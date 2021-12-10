@@ -18,6 +18,6 @@ import 'dart:_native_typed_data';
 import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, JSName, Native, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor, JSExtendableArray;
+import 'dart:_interceptors' show JavaScriptObject, JSExtendableArray;
 
 $!GENERATED_DART_FILES

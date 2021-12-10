@@ -164,7 +164,7 @@ class ProgramBuilder {
   Set<Class> _unneededNativeClasses;
 
   ClassEntity get _jsInteropInterceptor =>
-      _commonElements.jsJavaScriptObjectClass;
+      _commonElements.jsLegacyJavaScriptObjectClass;
   final List<StubMethod> _jsInteropIsChecks = [];
   final Set<TypeCheck> _jsInteropTypeChecks = {};
 

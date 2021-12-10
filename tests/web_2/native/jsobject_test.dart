@@ -10,7 +10,7 @@ import 'dart:_interceptors'
     show
         JSObject, // The interface, which may be re-exported by a
         // js-interop library.
-        JavaScriptObject, //   The interceptor abstract class.
+        LegacyJavaScriptObject, //   The interceptor abstract class.
         PlainJavaScriptObject, //     The interceptor concrete class.
         UnknownJavaScriptObject, //     The interceptor concrete class.
         Interceptor;
@@ -49,21 +49,21 @@ class Is<T> {
 static_test() {
   var x = makeA();
   Expect.isTrue(x is JSObject);
-  Expect.isTrue(x is JavaScriptObject);
+  Expect.isTrue(x is LegacyJavaScriptObject);
   Expect.isTrue(x is PlainJavaScriptObject);
   Expect.isTrue(x is! UnknownJavaScriptObject);
   Expect.equals(JSObject, x.runtimeType);
 
   x = makeB();
   Expect.isTrue(x is JSObject);
-  Expect.isTrue(x is JavaScriptObject);
+  Expect.isTrue(x is LegacyJavaScriptObject);
   Expect.isTrue(x is! PlainJavaScriptObject);
   Expect.isTrue(x is UnknownJavaScriptObject);
   Expect.equals(JSObject, x.runtimeType);
 
   x = makeQ();
   Expect.isFalse(x is JSObject);
-  Expect.isFalse(x is JavaScriptObject);
+  Expect.isFalse(x is LegacyJavaScriptObject);
   Expect.isFalse(x is PlainJavaScriptObject);
   Expect.isFalse(x is UnknownJavaScriptObject);
   Expect.isFalse(x.runtimeType == JSObject);
@@ -73,27 +73,27 @@ static_test() {
 dynamic_test() {
   var x = makeA();
   var isJSObject = new Is<JSObject>().check;
-  var isJavaScriptObject = new Is<JavaScriptObject>().check;
+  var isLegacyJavaScriptObject = new Is<LegacyJavaScriptObject>().check;
   var isPlainJavaScriptObject = new Is<PlainJavaScriptObject>().check;
   var isUnknownJavaScriptObject = new Is<UnknownJavaScriptObject>().check;
   var isQ = new Is<Q>().check;
 
   Expect.isTrue(isJSObject(x));
-  Expect.isTrue(isJavaScriptObject(x));
+  Expect.isTrue(isLegacyJavaScriptObject(x));
   Expect.isTrue(isPlainJavaScriptObject(x));
   Expect.isTrue(!isUnknownJavaScriptObject(x));
   Expect.equals(JSObject, x.runtimeType);
 
   x = makeB();
   Expect.isTrue(isJSObject(x));
-  Expect.isTrue(isJavaScriptObject(x));
+  Expect.isTrue(isLegacyJavaScriptObject(x));
   Expect.isTrue(!isPlainJavaScriptObject(x));
   Expect.isTrue(isUnknownJavaScriptObject(x));
   Expect.equals(JSObject, x.runtimeType);
 
   x = makeQ();
   Expect.isFalse(isJSObject(x));
-  Expect.isFalse(isJavaScriptObject(x));
+  Expect.isFalse(isLegacyJavaScriptObject(x));
   Expect.isFalse(isPlainJavaScriptObject(x));
   Expect.isFalse(isUnknownJavaScriptObject(x));
   Expect.isTrue(isQ(x));

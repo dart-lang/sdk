@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -784,7 +783,9 @@ abstract class AstNodeImpl implements AstNode {
   }
 
   @override
-  E? thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate) {
+  E? thisOrAncestorMatching<E extends AstNode>(
+    bool Function(AstNode) predicate,
+  ) {
     AstNode? node = this;
     while (node != null && !predicate(node)) {
       node = node.parent;
@@ -9336,12 +9337,11 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   Token literal;
 
   /// The value of the literal.
-  String _value;
+  @override
+  String value;
 
   /// Initialize a newly created simple string literal.
-  SimpleStringLiteralImpl(this.literal, this._value) {
-    _value = StringUtilities.intern(value);
-  }
+  SimpleStringLiteralImpl(this.literal, this.value);
 
   @override
   Token get beginToken => literal;
@@ -9369,13 +9369,6 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 
   @override
   bool get isSynthetic => literal.isSynthetic;
-
-  @override
-  String get value => _value;
-
-  set value(String string) {
-    _value = StringUtilities.intern(_value);
-  }
 
   StringLexemeHelper get _helper {
     return StringLexemeHelper(literal.lexeme, true, true);
@@ -9579,12 +9572,12 @@ class StringLexemeHelper {
       if (isRaw) {
         start++;
       }
-      if (StringUtilities.startsWith3(lexeme, start, 0x27, 0x27, 0x27)) {
+      if (lexeme.startsWith("'''", start)) {
         isSingleQuoted = true;
         isMultiline = true;
         start += 3;
         start = _trimInitialWhitespace(start);
-      } else if (StringUtilities.startsWith3(lexeme, start, 0x22, 0x22, 0x22)) {
+      } else if (lexeme.startsWith('"""', start)) {
         isSingleQuoted = false;
         isMultiline = true;
         start += 3;
@@ -9602,12 +9595,10 @@ class StringLexemeHelper {
     end = lexeme.length;
     if (isLast) {
       if (start + 3 <= end &&
-          (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
-              StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27))) {
+          (lexeme.endsWith("'''") || lexeme.endsWith('"""'))) {
         end -= 3;
       } else if (start + 1 <= end &&
-          (StringUtilities.endsWithChar(lexeme, 0x22) ||
-              StringUtilities.endsWithChar(lexeme, 0x27))) {
+          (lexeme.endsWith("'") || lexeme.endsWith('"'))) {
         end -= 1;
       }
     }

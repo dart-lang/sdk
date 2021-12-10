@@ -17,7 +17,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, JSName, Native;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor;
+import 'dart:_interceptors' show JavaScriptObject;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:svg library.
@@ -66,7 +66,7 @@ class AElement extends GraphicsElement implements UriReference {
 
 @Unstable()
 @Native("SVGAngle")
-class Angle extends Interceptor {
+class Angle extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Angle._() {
     throw new UnsupportedError("Not supported");
@@ -196,7 +196,7 @@ class AnimateTransformElement extends AnimationElement {
 
 @Unstable()
 @Native("SVGAnimatedAngle")
-class AnimatedAngle extends Interceptor {
+class AnimatedAngle extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedAngle._() {
     throw new UnsupportedError("Not supported");
@@ -212,7 +212,7 @@ class AnimatedAngle extends Interceptor {
 
 @Unstable()
 @Native("SVGAnimatedBoolean")
-class AnimatedBoolean extends Interceptor {
+class AnimatedBoolean extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedBoolean._() {
     throw new UnsupportedError("Not supported");
@@ -230,7 +230,7 @@ class AnimatedBoolean extends Interceptor {
 
 @Unstable()
 @Native("SVGAnimatedEnumeration")
-class AnimatedEnumeration extends Interceptor {
+class AnimatedEnumeration extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedEnumeration._() {
     throw new UnsupportedError("Not supported");
@@ -248,7 +248,7 @@ class AnimatedEnumeration extends Interceptor {
 
 @Unstable()
 @Native("SVGAnimatedInteger")
-class AnimatedInteger extends Interceptor {
+class AnimatedInteger extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedInteger._() {
     throw new UnsupportedError("Not supported");
@@ -266,7 +266,7 @@ class AnimatedInteger extends Interceptor {
 
 @Unstable()
 @Native("SVGAnimatedLength")
-class AnimatedLength extends Interceptor {
+class AnimatedLength extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLength._() {
     throw new UnsupportedError("Not supported");
@@ -282,7 +282,7 @@ class AnimatedLength extends Interceptor {
 
 @Unstable()
 @Native("SVGAnimatedLengthList")
-class AnimatedLengthList extends Interceptor {
+class AnimatedLengthList extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLengthList._() {
     throw new UnsupportedError("Not supported");
@@ -298,7 +298,7 @@ class AnimatedLengthList extends Interceptor {
 
 @Unstable()
 @Native("SVGAnimatedNumber")
-class AnimatedNumber extends Interceptor {
+class AnimatedNumber extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumber._() {
     throw new UnsupportedError("Not supported");
@@ -316,7 +316,7 @@ class AnimatedNumber extends Interceptor {
 
 @Unstable()
 @Native("SVGAnimatedNumberList")
-class AnimatedNumberList extends Interceptor {
+class AnimatedNumberList extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumberList._() {
     throw new UnsupportedError("Not supported");
@@ -332,7 +332,7 @@ class AnimatedNumberList extends Interceptor {
 
 @Unstable()
 @Native("SVGAnimatedPreserveAspectRatio")
-class AnimatedPreserveAspectRatio extends Interceptor {
+class AnimatedPreserveAspectRatio extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedPreserveAspectRatio._() {
     throw new UnsupportedError("Not supported");
@@ -348,7 +348,7 @@ class AnimatedPreserveAspectRatio extends Interceptor {
 
 @Unstable()
 @Native("SVGAnimatedRect")
-class AnimatedRect extends Interceptor {
+class AnimatedRect extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedRect._() {
     throw new UnsupportedError("Not supported");
@@ -364,7 +364,7 @@ class AnimatedRect extends Interceptor {
 
 @Unstable()
 @Native("SVGAnimatedString")
-class AnimatedString extends Interceptor {
+class AnimatedString extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedString._() {
     throw new UnsupportedError("Not supported");
@@ -382,7 +382,7 @@ class AnimatedString extends Interceptor {
 
 @Unstable()
 @Native("SVGAnimatedTransformList")
-class AnimatedTransformList extends Interceptor {
+class AnimatedTransformList extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedTransformList._() {
     throw new UnsupportedError("Not supported");
@@ -1785,7 +1785,7 @@ class FilterElement extends SvgElement implements UriReference {
 // BSD-style license that can be found in the LICENSE file.
 
 @Unstable()
-abstract class FilterPrimitiveStandardAttributes extends Interceptor {
+abstract class FilterPrimitiveStandardAttributes extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory FilterPrimitiveStandardAttributes._() {
     throw new UnsupportedError("Not supported");
@@ -1806,7 +1806,7 @@ abstract class FilterPrimitiveStandardAttributes extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Unstable()
-abstract class FitToViewBox extends Interceptor {
+abstract class FitToViewBox extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory FitToViewBox._() {
     throw new UnsupportedError("Not supported");
@@ -1986,7 +1986,7 @@ class ImageElement extends GraphicsElement implements UriReference {
 
 @Unstable()
 @Native("SVGLength")
-class Length extends Interceptor {
+class Length extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Length._() {
     throw new UnsupportedError("Not supported");
@@ -2038,7 +2038,7 @@ class Length extends Interceptor {
 
 @Unstable()
 @Native("SVGLengthList")
-class LengthList extends Interceptor
+class LengthList extends JavaScriptObject
     with ListMixin<Length>, ImmutableListMixin<Length>
     implements List<Length> {
   // To suppress missing implicit constructor warnings.
@@ -2271,7 +2271,7 @@ class MaskElement extends SvgElement implements Tests {
 
 @Unstable()
 @Native("SVGMatrix")
-class Matrix extends Interceptor {
+class Matrix extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Matrix._() {
     throw new UnsupportedError("Not supported");
@@ -2347,7 +2347,7 @@ class MetadataElement extends SvgElement {
 
 @Unstable()
 @Native("SVGNumber")
-class Number extends Interceptor {
+class Number extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Number._() {
     throw new UnsupportedError("Not supported");
@@ -2363,7 +2363,7 @@ class Number extends Interceptor {
 
 @Unstable()
 @Native("SVGNumberList")
-class NumberList extends Interceptor
+class NumberList extends JavaScriptObject
     with ListMixin<Number>, ImmutableListMixin<Number>
     implements List<Number> {
   // To suppress missing implicit constructor warnings.
@@ -2514,7 +2514,7 @@ class PatternElement extends SvgElement
 
 @Unstable()
 @Native("SVGPoint")
-class Point extends Interceptor {
+class Point extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Point._() {
     throw new UnsupportedError("Not supported");
@@ -2536,7 +2536,7 @@ class Point extends Interceptor {
 
 @Unstable()
 @Native("SVGPointList")
-class PointList extends Interceptor {
+class PointList extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PointList._() {
     throw new UnsupportedError("Not supported");
@@ -2620,7 +2620,7 @@ class PolylineElement extends GeometryElement {
 
 @Unstable()
 @Native("SVGPreserveAspectRatio")
-class PreserveAspectRatio extends Interceptor {
+class PreserveAspectRatio extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PreserveAspectRatio._() {
     throw new UnsupportedError("Not supported");
@@ -2702,7 +2702,7 @@ class RadialGradientElement extends _GradientElement {
 
 @Unstable()
 @Native("SVGRect")
-class Rect extends Interceptor {
+class Rect extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Rect._() {
     throw new UnsupportedError("Not supported");
@@ -2846,7 +2846,7 @@ class StopElement extends SvgElement {
 
 @Unstable()
 @Native("SVGStringList")
-class StringList extends Interceptor
+class StringList extends JavaScriptObject
     with ListMixin<String>, ImmutableListMixin<String>
     implements List<String> {
   // To suppress missing implicit constructor warnings.
@@ -3619,7 +3619,7 @@ class TSpanElement extends TextPositioningElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Unstable()
-abstract class Tests extends Interceptor {
+abstract class Tests extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Tests._() {
     throw new UnsupportedError("Not supported");
@@ -3791,7 +3791,7 @@ class TitleElement extends SvgElement {
 
 @Unstable()
 @Native("SVGTransform")
-class Transform extends Interceptor {
+class Transform extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Transform._() {
     throw new UnsupportedError("Not supported");
@@ -3835,7 +3835,7 @@ class Transform extends Interceptor {
 
 @Unstable()
 @Native("SVGTransformList")
-class TransformList extends Interceptor
+class TransformList extends JavaScriptObject
     with ListMixin<Transform>, ImmutableListMixin<Transform>
     implements List<Transform> {
   // To suppress missing implicit constructor warnings.
@@ -3917,7 +3917,7 @@ class TransformList extends Interceptor
 
 @Unstable()
 @Native("SVGUnitTypes")
-class UnitTypes extends Interceptor {
+class UnitTypes extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory UnitTypes._() {
     throw new UnsupportedError("Not supported");
@@ -3934,7 +3934,7 @@ class UnitTypes extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Unstable()
-abstract class UriReference extends Interceptor {
+abstract class UriReference extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory UriReference._() {
     throw new UnsupportedError("Not supported");
@@ -4013,7 +4013,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 // BSD-style license that can be found in the LICENSE file.
 
 @Unstable()
-abstract class ZoomAndPan extends Interceptor {
+abstract class ZoomAndPan extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ZoomAndPan._() {
     throw new UnsupportedError("Not supported");

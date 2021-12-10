@@ -67,11 +67,15 @@ extension RangeFactoryExtensions on RangeFactory {
     }
   }
 
-  /// Return a source range that covers the given [node] from the start of
-  /// any leading comment token (excluding any token considered a trailing
-  /// comment for the previous node) or the start of the node itself if there
-  /// are none, up until the end of the trailing comment token or the end of the
-  /// node itself if there are none.
+  /// Return a source range that covers the given [node] with any leading and
+  /// trailing comments.
+  ///
+  /// The range begins at the start of any leading comment token (excluding any
+  /// token considered a trailing comment for the previous node) or the start
+  /// of the node itself if there are none.
+  ///
+  /// The range ends at the end of the trailing comment token or the end of the
+  /// node itself if there is not one.
   SourceRange nodeWithComments(LineInfo lineInfo, AstNode node) {
     // If the node is the first thing in the unit, leading comments are treated
     // as headers and should never be included in the range.

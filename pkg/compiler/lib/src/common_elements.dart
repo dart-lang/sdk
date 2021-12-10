@@ -302,6 +302,8 @@ abstract class CommonElements {
 
   InterfaceType get jsJavaScriptFunctionType;
 
+  ClassEntity get jsLegacyJavaScriptObjectClass;
+
   ClassEntity get jsJavaScriptObjectClass;
 
   ClassEntity get jsIndexableClass;
@@ -1348,6 +1350,12 @@ class CommonElementsImpl
   InterfaceType get jsJavaScriptFunctionType =>
       _getRawType(jsJavaScriptFunctionClass);
 
+  ClassEntity _jsLegacyJavaScriptObjectClass;
+  @override
+  ClassEntity get jsLegacyJavaScriptObjectClass =>
+      _jsLegacyJavaScriptObjectClass ??=
+          _findInterceptorsClass('LegacyJavaScriptObject');
+
   ClassEntity _jsJavaScriptObjectClass;
   @override
   ClassEntity get jsJavaScriptObjectClass =>
@@ -2166,7 +2174,7 @@ class CommonElementsImpl
   ClassEntity getDefaultSuperclass(
       ClassEntity cls, NativeBasicData nativeBasicData) {
     if (nativeBasicData.isJsInteropClass(cls)) {
-      return jsJavaScriptObjectClass;
+      return jsLegacyJavaScriptObjectClass;
     }
     // Native classes inherit from Interceptor.
     return nativeBasicData.isNativeClass(cls)

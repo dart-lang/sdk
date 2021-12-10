@@ -30,4 +30,14 @@ main() {
     var e = confuse(new html.DivElement());
     Expect.type<html.DivElement>(e.clone(false));
   });
+
+  test('js-call-static-js-method', () {
+    StaticHTMLDivElement e = confuse(makeDiv('hello'));
+    expect(e.bar(), equals('hello'));
+  });
+
+  test('dom-call-static-js-method', () {
+    StaticHTMLDivElement e = confuse(new html.DivElement());
+    Expect.type<html.DivElement>(e.cloneNode(false));
+  });
 }

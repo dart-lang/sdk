@@ -19,7 +19,7 @@ import 'dart:_internal' show FixedLengthListMixin;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor;
+import 'dart:_interceptors' show JavaScriptObject;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:audio library.
@@ -72,7 +72,7 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Native("Database")
-class SqlDatabase extends Interceptor {
+class SqlDatabase extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory SqlDatabase._() {
     throw new UnsupportedError("Not supported");
@@ -165,7 +165,7 @@ class SqlDatabase extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("SQLError")
-class SqlError extends Interceptor {
+class SqlError extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory SqlError._() {
     throw new UnsupportedError("Not supported");
@@ -196,7 +196,7 @@ class SqlError extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("SQLResultSet")
-class SqlResultSet extends Interceptor {
+class SqlResultSet extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSet._() {
     throw new UnsupportedError("Not supported");
@@ -213,7 +213,7 @@ class SqlResultSet extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("SQLResultSetRowList")
-class SqlResultSetRowList extends Interceptor
+class SqlResultSetRowList extends JavaScriptObject
     with ListMixin<Map>, ImmutableListMixin<Map>
     implements List<Map> {
   // To suppress missing implicit constructor warnings.
@@ -282,7 +282,7 @@ class SqlResultSetRowList extends Interceptor
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
 @Native("SQLTransaction")
-class SqlTransaction extends Interceptor {
+class SqlTransaction extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory SqlTransaction._() {
     throw new UnsupportedError("Not supported");

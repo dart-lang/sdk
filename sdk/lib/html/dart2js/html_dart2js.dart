@@ -57,7 +57,7 @@ import 'dart:_js_helper'
         applyExtension;
 import 'dart:_interceptors'
     show
-        Interceptor,
+        JavaScriptObject,
         JavaScriptFunction,
         JSExtendableArray,
         JSUInt31,
@@ -176,7 +176,7 @@ class AbsoluteOrientationSensor extends OrientationSensor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class AbstractWorker extends Interceptor implements EventTarget {
+abstract class AbstractWorker extends JavaScriptObject implements EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AbstractWorker._() {
     throw new UnsupportedError("Not supported");
@@ -469,7 +469,7 @@ class AccessibleNode extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("AccessibleNodeList")
-class AccessibleNodeList extends Interceptor {
+class AccessibleNodeList extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AccessibleNodeList._() {
     throw new UnsupportedError("Not supported");
@@ -705,7 +705,7 @@ class Animation extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("AnimationEffectReadOnly")
-class AnimationEffectReadOnly extends Interceptor {
+class AnimationEffectReadOnly extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationEffectReadOnly._() {
     throw new UnsupportedError("Not supported");
@@ -785,7 +785,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("AnimationEffectTimingReadOnly")
-class AnimationEffectTimingReadOnly extends Interceptor {
+class AnimationEffectTimingReadOnly extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationEffectTimingReadOnly._() {
     throw new UnsupportedError("Not supported");
@@ -869,7 +869,7 @@ class AnimationPlaybackEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("AnimationTimeline")
-class AnimationTimeline extends Interceptor {
+class AnimationTimeline extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationTimeline._() {
     throw new UnsupportedError("Not supported");
@@ -1226,7 +1226,7 @@ class AuthenticatorAttestationResponse extends AuthenticatorResponse {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("AuthenticatorResponse")
-class AuthenticatorResponse extends Interceptor {
+class AuthenticatorResponse extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AuthenticatorResponse._() {
     throw new UnsupportedError("Not supported");
@@ -1329,7 +1329,7 @@ class BackgroundFetchFailEvent extends BackgroundFetchEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("BackgroundFetchFetch")
-class BackgroundFetchFetch extends Interceptor {
+class BackgroundFetchFetch extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory BackgroundFetchFetch._() {
     throw new UnsupportedError("Not supported");
@@ -1342,7 +1342,7 @@ class BackgroundFetchFetch extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("BackgroundFetchManager")
-class BackgroundFetchManager extends Interceptor {
+class BackgroundFetchManager extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory BackgroundFetchManager._() {
     throw new UnsupportedError("Not supported");
@@ -1449,7 +1449,7 @@ class BackgroundFetchedEvent extends BackgroundFetchEvent {
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#barprop
 @deprecated // standard
 @Native("BarProp")
-class BarProp extends Interceptor {
+class BarProp extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory BarProp._() {
     throw new UnsupportedError("Not supported");
@@ -1462,7 +1462,7 @@ class BarProp extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("BarcodeDetector")
-class BarcodeDetector extends Interceptor {
+class BarcodeDetector extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory BarcodeDetector._() {
     throw new UnsupportedError("Not supported");
@@ -1582,7 +1582,7 @@ class BeforeUnloadEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Blob")
-class Blob extends Interceptor {
+class Blob extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Blob._() {
     throw new UnsupportedError("Not supported");
@@ -1649,7 +1649,7 @@ class BlobEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("BluetoothRemoteGATTDescriptor")
-class BluetoothRemoteGattDescriptor extends Interceptor {
+class BluetoothRemoteGattDescriptor extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory BluetoothRemoteGattDescriptor._() {
     throw new UnsupportedError("Not supported");
@@ -1671,7 +1671,7 @@ class BluetoothRemoteGattDescriptor extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Body")
-class Body extends Interceptor {
+class Body extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Body._() {
     throw new UnsupportedError("Not supported");
@@ -1896,7 +1896,7 @@ class BroadcastChannel extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("BudgetState")
-class BudgetState extends Interceptor {
+class BudgetState extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory BudgetState._() {
     throw new UnsupportedError("Not supported");
@@ -2006,7 +2006,7 @@ class CDataSection extends Text {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CacheStorage")
-class CacheStorage extends Interceptor {
+class CacheStorage extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CacheStorage._() {
     throw new UnsupportedError("Not supported");
@@ -2299,7 +2299,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
  * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
  */
 @Native("CanvasGradient")
-class CanvasGradient extends Interceptor {
+class CanvasGradient extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CanvasGradient._() {
     throw new UnsupportedError("Not supported");
@@ -2350,7 +2350,7 @@ class CanvasGradient extends Interceptor {
  * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
  */
 @Native("CanvasPattern")
-class CanvasPattern extends Interceptor {
+class CanvasPattern extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CanvasPattern._() {
     throw new UnsupportedError("Not supported");
@@ -2367,7 +2367,7 @@ abstract class CanvasRenderingContext {
 }
 
 @Native("CanvasRenderingContext2D")
-class CanvasRenderingContext2D extends Interceptor
+class CanvasRenderingContext2D extends JavaScriptObject
     implements CanvasRenderingContext {
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext2D._() {
@@ -3017,7 +3017,7 @@ class CharacterData extends Node
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class ChildNode extends Interceptor {
+abstract class ChildNode extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ChildNode._() {
     throw new UnsupportedError("Not supported");
@@ -3034,7 +3034,7 @@ abstract class ChildNode extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Client")
-class Client extends Interceptor {
+class Client extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Client._() {
     throw new UnsupportedError("Not supported");
@@ -3055,7 +3055,7 @@ class Client extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Clients")
-class Clients extends Interceptor {
+class Clients extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Clients._() {
     throw new UnsupportedError("Not supported");
@@ -3232,7 +3232,7 @@ class ContentElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CookieStore")
-class CookieStore extends Interceptor {
+class CookieStore extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CookieStore._() {
     throw new UnsupportedError("Not supported");
@@ -3260,7 +3260,7 @@ class CookieStore extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Coordinates")
-class Coordinates extends Interceptor {
+class Coordinates extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Coordinates._() {
     throw new UnsupportedError("Not supported");
@@ -3285,7 +3285,7 @@ class Coordinates extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Credential")
-class Credential extends Interceptor {
+class Credential extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Credential._() {
     throw new UnsupportedError("Not supported");
@@ -3300,7 +3300,7 @@ class Credential extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CredentialUserData")
-class CredentialUserData extends Interceptor {
+class CredentialUserData extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CredentialUserData._() {
     throw new UnsupportedError("Not supported");
@@ -3316,7 +3316,7 @@ class CredentialUserData extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CredentialsContainer")
-class CredentialsContainer extends Interceptor {
+class CredentialsContainer extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CredentialsContainer._() {
     throw new UnsupportedError("Not supported");
@@ -3356,7 +3356,7 @@ class CredentialsContainer extends Interceptor {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Native("Crypto")
-class Crypto extends Interceptor {
+class Crypto extends JavaScriptObject {
   TypedData getRandomValues(TypedData array) {
     return _getRandomValues(array);
   }
@@ -3382,7 +3382,7 @@ class Crypto extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CryptoKey")
-class CryptoKey extends Interceptor {
+class CryptoKey extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CryptoKey._() {
     throw new UnsupportedError("Not supported");
@@ -3402,7 +3402,7 @@ class CryptoKey extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CSS")
-class Css extends Interceptor {
+class Css extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Css._() {
     throw new UnsupportedError("Not supported");
@@ -3850,7 +3850,7 @@ class CssRotation extends CssTransformComponent {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CSSRule")
-class CssRule extends Interceptor {
+class CssRule extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CssRule._() {
     throw new UnsupportedError("Not supported");
@@ -3960,7 +3960,8 @@ class CssSkew extends CssTransformComponent {
 //   CSSPropertyNames.in
 
 @Native("CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties")
-class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
+class CssStyleDeclaration extends JavaScriptObject
+    with CssStyleDeclarationBase {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
   factory CssStyleDeclaration.css(String css) {
@@ -8725,7 +8726,7 @@ class CssStyleSheet extends StyleSheet {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CSSStyleValue")
-class CssStyleValue extends Interceptor {
+class CssStyleValue extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CssStyleValue._() {
     throw new UnsupportedError("Not supported");
@@ -8749,7 +8750,7 @@ class CssSupportsRule extends CssConditionRule {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CSSTransformComponent")
-class CssTransformComponent extends Interceptor {
+class CssTransformComponent extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CssTransformComponent._() {
     throw new UnsupportedError("Not supported");
@@ -8880,7 +8881,7 @@ class CssUnparsedValue extends CssStyleValue {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CSSVariableReferenceValue")
-class CssVariableReferenceValue extends Interceptor {
+class CssVariableReferenceValue extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CssVariableReferenceValue._() {
     throw new UnsupportedError("Not supported");
@@ -8936,7 +8937,7 @@ typedef void CustomElementConstructor();
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CustomElementRegistry")
-class CustomElementRegistry extends Interceptor {
+class CustomElementRegistry extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CustomElementRegistry._() {
     throw new UnsupportedError("Not supported");
@@ -9104,7 +9105,7 @@ class DataListElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DataTransfer")
-class DataTransfer extends Interceptor {
+class DataTransfer extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DataTransfer._() {
     throw new UnsupportedError("Not supported");
@@ -9144,7 +9145,7 @@ class DataTransfer extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DataTransferItem")
-class DataTransferItem extends Interceptor {
+class DataTransferItem extends JavaScriptObject {
   Entry getAsEntry() {
     Entry entry = _webkitGetAsEntry() as Entry;
 
@@ -9179,7 +9180,7 @@ class DataTransferItem extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DataTransferItemList")
-class DataTransferItemList extends Interceptor {
+class DataTransferItemList extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItemList._() {
     throw new UnsupportedError("Not supported");
@@ -9298,7 +9299,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DeprecatedStorageInfo")
-class DeprecatedStorageInfo extends Interceptor {
+class DeprecatedStorageInfo extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageInfo._() {
     throw new UnsupportedError("Not supported");
@@ -9321,7 +9322,7 @@ class DeprecatedStorageInfo extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DeprecatedStorageQuota")
-class DeprecatedStorageQuota extends Interceptor {
+class DeprecatedStorageQuota extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageQuota._() {
     throw new UnsupportedError("Not supported");
@@ -9385,7 +9386,7 @@ class DetailsElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DetectedBarcode")
-class DetectedBarcode extends Interceptor {
+class DetectedBarcode extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DetectedBarcode._() {
     throw new UnsupportedError("Not supported");
@@ -9408,7 +9409,7 @@ class DetectedBarcode extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DetectedFace")
-class DetectedFace extends Interceptor {
+class DetectedFace extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DetectedFace._() {
     throw new UnsupportedError("Not supported");
@@ -9428,7 +9429,7 @@ class DetectedFace extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DetectedText")
-class DetectedText extends Interceptor {
+class DetectedText extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DetectedText._() {
     throw new UnsupportedError("Not supported");
@@ -9450,7 +9451,7 @@ class DetectedText extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DeviceAcceleration")
-class DeviceAcceleration extends Interceptor {
+class DeviceAcceleration extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DeviceAcceleration._() {
     throw new UnsupportedError("Not supported");
@@ -9532,7 +9533,7 @@ class DeviceOrientationEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DeviceRotationRate")
-class DeviceRotationRate extends Interceptor {
+class DeviceRotationRate extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DeviceRotationRate._() {
     throw new UnsupportedError("Not supported");
@@ -9742,7 +9743,7 @@ class DirectoryEntry extends Entry {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DirectoryReader")
-class DirectoryReader extends Interceptor {
+class DirectoryReader extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DirectoryReader._() {
     throw new UnsupportedError("Not supported");
@@ -10584,7 +10585,7 @@ class DocumentFragment extends Node
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DocumentOrShadowRoot")
-class DocumentOrShadowRoot extends Interceptor {
+class DocumentOrShadowRoot extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DocumentOrShadowRoot._() {
     throw new UnsupportedError("Not supported");
@@ -10634,7 +10635,7 @@ class DocumentTimeline extends AnimationTimeline {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DOMError")
-class DomError extends Interceptor {
+class DomError extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DomError._() {
     throw new UnsupportedError("Not supported");
@@ -10660,7 +10661,7 @@ class DomError extends Interceptor {
 
 @Unstable()
 @Native("DOMException")
-class DomException extends Interceptor {
+class DomException extends JavaScriptObject {
   static const String INDEX_SIZE = 'IndexSizeError';
   static const String HIERARCHY_REQUEST = 'HierarchyRequestError';
   static const String WRONG_DOCUMENT = 'WrongDocumentError';
@@ -10719,7 +10720,7 @@ class DomException extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DOMImplementation")
-class DomImplementation extends Interceptor {
+class DomImplementation extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DomImplementation._() {
     throw new UnsupportedError("Not supported");
@@ -10741,7 +10742,7 @@ class DomImplementation extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Iterator")
-class DomIterator extends Interceptor {
+class DomIterator extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DomIterator._() {
     throw new UnsupportedError("Not supported");
@@ -10976,7 +10977,7 @@ class DomMatrix extends DomMatrixReadOnly {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DOMMatrixReadOnly")
-class DomMatrixReadOnly extends Interceptor {
+class DomMatrixReadOnly extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DomMatrixReadOnly._() {
     throw new UnsupportedError("Not supported");
@@ -11122,7 +11123,7 @@ class DomMatrixReadOnly extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DOMParser")
-class DomParser extends Interceptor {
+class DomParser extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DomParser._() {
     throw new UnsupportedError("Not supported");
@@ -11215,7 +11216,7 @@ class DomPoint extends DomPointReadOnly {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DOMPointReadOnly")
-class DomPointReadOnly extends Interceptor {
+class DomPointReadOnly extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DomPointReadOnly._() {
     throw new UnsupportedError("Not supported");
@@ -11286,7 +11287,7 @@ class DomPointReadOnly extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DOMQuad")
-class DomQuad extends Interceptor {
+class DomQuad extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DomQuad._() {
     throw new UnsupportedError("Not supported");
@@ -11366,7 +11367,7 @@ class DomQuad extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ClientRectList,DOMRectList")
-class DomRectList extends Interceptor
+class DomRectList extends JavaScriptObject
     with ListMixin<Rectangle>, ImmutableListMixin<Rectangle>
     implements List<Rectangle>, JavaScriptIndexingBehavior<Rectangle> {
   // To suppress missing implicit constructor warnings.
@@ -11426,7 +11427,7 @@ class DomRectList extends Interceptor
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DOMRectReadOnly")
-class DomRectReadOnly extends Interceptor implements Rectangle {
+class DomRectReadOnly extends JavaScriptObject implements Rectangle {
   // NOTE! All code below should be common with RectangleBase.
   String toString() {
     return 'Rectangle ($left, $top) $width x $height';
@@ -11616,7 +11617,7 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DOMStringList")
-class DomStringList extends Interceptor
+class DomStringList extends JavaScriptObject
     with ListMixin<String>, ImmutableListMixin<String>
     implements List<String>, JavaScriptIndexingBehavior<String> {
   // To suppress missing implicit constructor warnings.
@@ -11676,7 +11677,7 @@ class DomStringList extends Interceptor
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DOMStringMap")
-class DomStringMap extends Interceptor {
+class DomStringMap extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() {
     throw new UnsupportedError("Not supported");
@@ -11693,7 +11694,7 @@ class DomStringMap extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DOMTokenList")
-class DomTokenList extends Interceptor {
+class DomTokenList extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DomTokenList._() {
     throw new UnsupportedError("Not supported");
@@ -15318,7 +15319,7 @@ typedef void _EntriesCallback(List entries);
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Entry")
-class Entry extends Interceptor {
+class Entry extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Entry._() {
     throw new UnsupportedError("Not supported");
@@ -15474,7 +15475,7 @@ class ErrorEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 @Native("Event,InputEvent,SubmitEvent")
-class Event extends Interceptor {
+class Event extends JavaScriptObject {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
   // default to false (since that's Boolean(undefined)).
@@ -15781,7 +15782,7 @@ class ElementEvents extends Events {
  * for compile-time type checks and a more concise API.
  */
 @Native("EventTarget")
-class EventTarget extends Interceptor {
+class EventTarget extends JavaScriptObject {
   // Custom element created callback.
   EventTarget._created();
 
@@ -15881,7 +15882,7 @@ class ExtendableMessageEvent extends ExtendableEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("External")
-class External extends Interceptor {
+class External extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory External._() {
     throw new UnsupportedError("Not supported");
@@ -15896,7 +15897,7 @@ class External extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("FaceDetector")
-class FaceDetector extends Interceptor {
+class FaceDetector extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory FaceDetector._() {
     throw new UnsupportedError("Not supported");
@@ -16120,7 +16121,7 @@ class FileEntry extends Entry {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("FileList")
-class FileList extends Interceptor
+class FileList extends JavaScriptObject
     with ListMixin<File>, ImmutableListMixin<File>
     implements List<File>, JavaScriptIndexingBehavior<File> {
   // To suppress missing implicit constructor warnings.
@@ -16296,7 +16297,7 @@ class FileReader extends EventTarget {
 
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Native("DOMFileSystem")
-class FileSystem extends Interceptor {
+class FileSystem extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory FileSystem._() {
     throw new UnsupportedError("Not supported");
@@ -16462,7 +16463,7 @@ class FocusEvent extends UIEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("FontFace")
-class FontFace extends Interceptor {
+class FontFace extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory FontFace._() {
     throw new UnsupportedError("Not supported");
@@ -16595,7 +16596,7 @@ class FontFaceSetLoadEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("FontFaceSource")
-class FontFaceSource extends Interceptor {
+class FontFaceSource extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory FontFaceSource._() {
     throw new UnsupportedError("Not supported");
@@ -16636,7 +16637,7 @@ class ForeignFetchEvent extends ExtendableEvent {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Native("FormData")
-class FormData extends Interceptor {
+class FormData extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory FormData._() {
     throw new UnsupportedError("Not supported");
@@ -16770,7 +16771,7 @@ typedef void FunctionStringCallback(String data);
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Gamepad")
-class Gamepad extends Interceptor {
+class Gamepad extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Gamepad._() {
     throw new UnsupportedError("Not supported");
@@ -16803,7 +16804,7 @@ class Gamepad extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("GamepadButton")
-class GamepadButton extends Interceptor {
+class GamepadButton extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory GamepadButton._() {
     throw new UnsupportedError("Not supported");
@@ -16845,7 +16846,7 @@ class GamepadEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("GamepadPose")
-class GamepadPose extends Interceptor {
+class GamepadPose extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory GamepadPose._() {
     throw new UnsupportedError("Not supported");
@@ -16873,7 +16874,7 @@ class GamepadPose extends Interceptor {
 
 @Unstable()
 @Native("Geolocation")
-class Geolocation extends Interceptor {
+class Geolocation extends JavaScriptObject {
   Future<Geoposition> getCurrentPosition(
       {bool? enableHighAccuracy, Duration? timeout, Duration? maximumAge}) {
     var options = {};
@@ -17035,7 +17036,7 @@ class _GeopositionWrapper implements Geoposition {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Position,GeolocationPosition")
-class Geoposition extends Interceptor {
+class Geoposition extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Geoposition._() {
     throw new UnsupportedError("Not supported");
@@ -17486,7 +17487,7 @@ class HeadElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Headers")
-class Headers extends Interceptor {
+class Headers extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Headers._() {
     throw new UnsupportedError("Not supported");
@@ -17559,7 +17560,7 @@ class HeadingElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("History")
-class History extends Interceptor implements HistoryBase {
+class History extends JavaScriptObject implements HistoryBase {
   /**
    * Checks if the State APIs are supported on the current platform.
    *
@@ -17633,7 +17634,7 @@ class History extends Interceptor implements HistoryBase {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("HTMLCollection")
-class HtmlCollection extends Interceptor
+class HtmlCollection extends JavaScriptObject
     with ListMixin<Node>, ImmutableListMixin<Node>
     implements List<Node>, JavaScriptIndexingBehavior<Node> {
   // To suppress missing implicit constructor warnings.
@@ -17891,7 +17892,7 @@ class HtmlHtmlElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("HTMLHyperlinkElementUtils")
-class HtmlHyperlinkElementUtils extends Interceptor {
+class HtmlHyperlinkElementUtils extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory HtmlHyperlinkElementUtils._() {
     throw new UnsupportedError("Not supported");
@@ -18815,7 +18816,7 @@ class IFrameElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("IdleDeadline")
-class IdleDeadline extends Interceptor {
+class IdleDeadline extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory IdleDeadline._() {
     throw new UnsupportedError("Not supported");
@@ -18837,7 +18838,7 @@ typedef void IdleRequestCallback(IdleDeadline deadline);
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ImageBitmap")
-class ImageBitmap extends Interceptor {
+class ImageBitmap extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ImageBitmap._() {
     throw new UnsupportedError("Not supported");
@@ -18854,7 +18855,7 @@ class ImageBitmap extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ImageBitmapRenderingContext")
-class ImageBitmapRenderingContext extends Interceptor {
+class ImageBitmapRenderingContext extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ImageBitmapRenderingContext._() {
     throw new UnsupportedError("Not supported");
@@ -18869,7 +18870,7 @@ class ImageBitmapRenderingContext extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ImageCapture")
-class ImageCapture extends Interceptor {
+class ImageCapture extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ImageCapture._() {
     throw new UnsupportedError("Not supported");
@@ -18912,7 +18913,7 @@ class ImageCapture extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ImageData")
-class ImageData extends Interceptor {
+class ImageData extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ImageData._() {
     throw new UnsupportedError("Not supported");
@@ -19033,7 +19034,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("InputDeviceCapabilities")
-class InputDeviceCapabilities extends Interceptor {
+class InputDeviceCapabilities extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory InputDeviceCapabilities._() {
     throw new UnsupportedError("Not supported");
@@ -19889,7 +19890,7 @@ class InstallEvent extends ExtendableEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("IntersectionObserver")
-class IntersectionObserver extends Interceptor {
+class IntersectionObserver extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory IntersectionObserver._() {
     throw new UnsupportedError("Not supported");
@@ -19940,7 +19941,7 @@ typedef void IntersectionObserverCallback(
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("IntersectionObserverEntry")
-class IntersectionObserverEntry extends Interceptor {
+class IntersectionObserverEntry extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory IntersectionObserverEntry._() {
     throw new UnsupportedError("Not supported");
@@ -20356,7 +20357,7 @@ class LinkElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Location")
-class Location extends Interceptor implements LocationBase {
+class Location extends JavaScriptObject implements LocationBase {
   // To suppress missing implicit constructor warnings.
   factory Location._() {
     throw new UnsupportedError("Not supported");
@@ -20481,7 +20482,7 @@ class MapElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MediaCapabilities")
-class MediaCapabilities extends Interceptor {
+class MediaCapabilities extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaCapabilities._() {
     throw new UnsupportedError("Not supported");
@@ -20510,7 +20511,7 @@ class MediaCapabilities extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MediaCapabilitiesInfo")
-class MediaCapabilitiesInfo extends Interceptor {
+class MediaCapabilitiesInfo extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaCapabilitiesInfo._() {
     throw new UnsupportedError("Not supported");
@@ -20527,7 +20528,7 @@ class MediaCapabilitiesInfo extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MediaDeviceInfo")
-class MediaDeviceInfo extends Interceptor {
+class MediaDeviceInfo extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaDeviceInfo._() {
     throw new UnsupportedError("Not supported");
@@ -20764,7 +20765,7 @@ class MediaEncryptedEvent extends Event {
 
 @Unstable()
 @Native("MediaError")
-class MediaError extends Interceptor {
+class MediaError extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaError._() {
     throw new UnsupportedError("Not supported");
@@ -20850,7 +20851,7 @@ class MediaKeySession extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MediaKeyStatusMap")
-class MediaKeyStatusMap extends Interceptor {
+class MediaKeyStatusMap extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyStatusMap._() {
     throw new UnsupportedError("Not supported");
@@ -20867,7 +20868,7 @@ class MediaKeyStatusMap extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MediaKeySystemAccess")
-class MediaKeySystemAccess extends Interceptor {
+class MediaKeySystemAccess extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaKeySystemAccess._() {
     throw new UnsupportedError("Not supported");
@@ -20890,7 +20891,7 @@ class MediaKeySystemAccess extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MediaKeys")
-class MediaKeys extends Interceptor {
+class MediaKeys extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaKeys._() {
     throw new UnsupportedError("Not supported");
@@ -20911,7 +20912,7 @@ class MediaKeys extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MediaKeysPolicy")
-class MediaKeysPolicy extends Interceptor {
+class MediaKeysPolicy extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaKeysPolicy._() {
     throw new UnsupportedError("Not supported");
@@ -20932,7 +20933,7 @@ class MediaKeysPolicy extends Interceptor {
 
 @Unstable()
 @Native("MediaList")
-class MediaList extends Interceptor {
+class MediaList extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaList._() {
     throw new UnsupportedError("Not supported");
@@ -20955,7 +20956,7 @@ class MediaList extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MediaMetadata")
-class MediaMetadata extends Interceptor {
+class MediaMetadata extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaMetadata._() {
     throw new UnsupportedError("Not supported");
@@ -21104,7 +21105,7 @@ class MediaRecorder extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MediaSession")
-class MediaSession extends Interceptor {
+class MediaSession extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaSession._() {
     throw new UnsupportedError("Not supported");
@@ -21133,7 +21134,7 @@ typedef void MediaSessionActionHandler();
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MediaSettingsRange")
-class MediaSettingsRange extends Interceptor {
+class MediaSettingsRange extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MediaSettingsRange._() {
     throw new UnsupportedError("Not supported");
@@ -21442,7 +21443,7 @@ class MediaStreamTrackEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MemoryInfo")
-class MemoryInfo extends Interceptor {
+class MemoryInfo extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MemoryInfo._() {
     throw new UnsupportedError("Not supported");
@@ -21500,7 +21501,7 @@ typedef void MessageCallback(Map message);
 
 @Unstable()
 @Native("MessageChannel")
-class MessageChannel extends Interceptor {
+class MessageChannel extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MessageChannel._() {
     throw new UnsupportedError("Not supported");
@@ -21713,7 +21714,7 @@ class MetaElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Metadata")
-class Metadata extends Interceptor {
+class Metadata extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Metadata._() {
     throw new UnsupportedError("Not supported");
@@ -21863,7 +21864,7 @@ class MidiInput extends MidiPort {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MIDIInputMap")
-class MidiInputMap extends Interceptor with MapMixin<String, dynamic> {
+class MidiInputMap extends JavaScriptObject with MapMixin<String, dynamic> {
   // To suppress missing implicit constructor warnings.
   factory MidiInputMap._() {
     throw new UnsupportedError("Not supported");
@@ -21969,7 +21970,7 @@ class MidiOutput extends MidiPort {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MIDIOutputMap")
-class MidiOutputMap extends Interceptor with MapMixin<String, dynamic> {
+class MidiOutputMap extends JavaScriptObject with MapMixin<String, dynamic> {
   // To suppress missing implicit constructor warnings.
   factory MidiOutputMap._() {
     throw new UnsupportedError("Not supported");
@@ -22066,7 +22067,7 @@ class MidiPort extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MimeType")
-class MimeType extends Interceptor {
+class MimeType extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MimeType._() {
     throw new UnsupportedError("Not supported");
@@ -22085,7 +22086,7 @@ class MimeType extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MimeTypeArray")
-class MimeTypeArray extends Interceptor
+class MimeTypeArray extends JavaScriptObject
     with ListMixin<MimeType>, ImmutableListMixin<MimeType>
     implements List<MimeType>, JavaScriptIndexingBehavior<MimeType> {
   // To suppress missing implicit constructor warnings.
@@ -22450,7 +22451,7 @@ class MutationEvent extends Event {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Native("MutationObserver,WebKitMutationObserver")
-class MutationObserver extends Interceptor {
+class MutationObserver extends JavaScriptObject {
   void disconnect() native;
 
   void _observe(Node target, [Map? options]) {
@@ -22555,7 +22556,7 @@ class MutationObserver extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MutationRecord")
-class MutationRecord extends Interceptor {
+class MutationRecord extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory MutationRecord._() {
     throw new UnsupportedError("Not supported");
@@ -22588,7 +22589,7 @@ class MutationRecord extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("NavigationPreloadManager")
-class NavigationPreloadManager extends Interceptor {
+class NavigationPreloadManager extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NavigationPreloadManager._() {
     throw new UnsupportedError("Not supported");
@@ -22861,7 +22862,7 @@ class Navigator extends NavigatorConcurrentHardware
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("NavigatorAutomationInformation")
-class NavigatorAutomationInformation extends Interceptor {
+class NavigatorAutomationInformation extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorAutomationInformation._() {
     throw new UnsupportedError("Not supported");
@@ -22874,7 +22875,7 @@ class NavigatorAutomationInformation extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("NavigatorConcurrentHardware")
-class NavigatorConcurrentHardware extends Interceptor {
+class NavigatorConcurrentHardware extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorConcurrentHardware._() {
     throw new UnsupportedError("Not supported");
@@ -22887,7 +22888,7 @@ class NavigatorConcurrentHardware extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("NavigatorCookies")
-class NavigatorCookies extends Interceptor {
+class NavigatorCookies extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorCookies._() {
     throw new UnsupportedError("Not supported");
@@ -22899,7 +22900,7 @@ class NavigatorCookies extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class NavigatorID extends Interceptor {
+abstract class NavigatorID extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorID._() {
     throw new UnsupportedError("Not supported");
@@ -22923,7 +22924,7 @@ abstract class NavigatorID extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class NavigatorLanguage extends Interceptor {
+abstract class NavigatorLanguage extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorLanguage._() {
     throw new UnsupportedError("Not supported");
@@ -22937,7 +22938,7 @@ abstract class NavigatorLanguage extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class NavigatorOnLine extends Interceptor {
+abstract class NavigatorOnLine extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorOnLine._() {
     throw new UnsupportedError("Not supported");
@@ -22950,7 +22951,7 @@ abstract class NavigatorOnLine extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("NavigatorUserMediaError")
-class NavigatorUserMediaError extends Interceptor {
+class NavigatorUserMediaError extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorUserMediaError._() {
     throw new UnsupportedError("Not supported");
@@ -23546,7 +23547,7 @@ class Node extends EventTarget {
 
 @Unstable()
 @Native("NodeFilter")
-class NodeFilter extends Interceptor {
+class NodeFilter extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NodeFilter._() {
     throw new UnsupportedError("Not supported");
@@ -23580,7 +23581,7 @@ class NodeFilter extends Interceptor {
 
 @Unstable()
 @Native("NodeIterator")
-class NodeIterator extends Interceptor {
+class NodeIterator extends JavaScriptObject {
   factory NodeIterator(Node root, int whatToShow) {
     return document._createNodeIterator(root, whatToShow, null);
   }
@@ -23608,7 +23609,7 @@ class NodeIterator extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("NodeList,RadioNodeList")
-class NodeList extends Interceptor
+class NodeList extends JavaScriptObject
     with ListMixin<Node>, ImmutableListMixin<Node>
     implements List<Node>, JavaScriptIndexingBehavior<Node> {
   // To suppress missing implicit constructor warnings.
@@ -23669,7 +23670,7 @@ class NodeList extends Interceptor
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("NonDocumentTypeChildNode")
-class NonDocumentTypeChildNode extends Interceptor {
+class NonDocumentTypeChildNode extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NonDocumentTypeChildNode._() {
     throw new UnsupportedError("Not supported");
@@ -23684,7 +23685,7 @@ class NonDocumentTypeChildNode extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("NonElementParentNode")
-class NonElementParentNode extends Interceptor {
+class NonElementParentNode extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NonElementParentNode._() {
     throw new UnsupportedError("Not supported");
@@ -23697,7 +23698,7 @@ class NonElementParentNode extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("NoncedElement")
-class NoncedElement extends Interceptor {
+class NoncedElement extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory NoncedElement._() {
     throw new UnsupportedError("Not supported");
@@ -24038,7 +24039,7 @@ class OffscreenCanvas extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("OffscreenCanvasRenderingContext2D")
-class OffscreenCanvasRenderingContext2D extends Interceptor
+class OffscreenCanvasRenderingContext2D extends JavaScriptObject
     implements _CanvasPath {
   // To suppress missing implicit constructor warnings.
   factory OffscreenCanvasRenderingContext2D._() {
@@ -24482,7 +24483,7 @@ class OutputElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("OverconstrainedError")
-class OverconstrainedError extends Interceptor {
+class OverconstrainedError extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory OverconstrainedError._() {
     throw new UnsupportedError("Not supported");
@@ -24536,7 +24537,7 @@ class PageTransitionEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PaintRenderingContext2D")
-class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
+class PaintRenderingContext2D extends JavaScriptObject implements _CanvasPath {
   // To suppress missing implicit constructor warnings.
   factory PaintRenderingContext2D._() {
     throw new UnsupportedError("Not supported");
@@ -24693,7 +24694,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PaintSize")
-class PaintSize extends Interceptor {
+class PaintSize extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PaintSize._() {
     throw new UnsupportedError("Not supported");
@@ -24777,7 +24778,7 @@ class ParamElement extends HtmlElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class ParentNode extends Interceptor {
+abstract class ParentNode extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ParentNode._() {
     throw new UnsupportedError("Not supported");
@@ -24847,7 +24848,7 @@ class PasswordCredential extends Credential implements CredentialUserData {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Path2D")
-class Path2D extends Interceptor implements _CanvasPath {
+class Path2D extends JavaScriptObject implements _CanvasPath {
   // To suppress missing implicit constructor warnings.
   factory Path2D._() {
     throw new UnsupportedError("Not supported");
@@ -24901,7 +24902,7 @@ class Path2D extends Interceptor implements _CanvasPath {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PaymentAddress")
-class PaymentAddress extends Interceptor {
+class PaymentAddress extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PaymentAddress._() {
     throw new UnsupportedError("Not supported");
@@ -24934,7 +24935,7 @@ class PaymentAddress extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PaymentInstruments")
-class PaymentInstruments extends Interceptor {
+class PaymentInstruments extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PaymentInstruments._() {
     throw new UnsupportedError("Not supported");
@@ -24965,7 +24966,7 @@ class PaymentInstruments extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PaymentManager")
-class PaymentManager extends Interceptor {
+class PaymentManager extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PaymentManager._() {
     throw new UnsupportedError("Not supported");
@@ -25101,7 +25102,7 @@ class PaymentRequestUpdateEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PaymentResponse")
-class PaymentResponse extends Interceptor {
+class PaymentResponse extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PaymentResponse._() {
     throw new UnsupportedError("Not supported");
@@ -25177,7 +25178,7 @@ class Performance extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PerformanceEntry")
-class PerformanceEntry extends Interceptor {
+class PerformanceEntry extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceEntry._() {
     throw new UnsupportedError("Not supported");
@@ -25232,7 +25233,7 @@ class PerformanceMeasure extends PerformanceEntry {
 
 @Unstable()
 @Native("PerformanceNavigation")
-class PerformanceNavigation extends Interceptor {
+class PerformanceNavigation extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceNavigation._() {
     throw new UnsupportedError("Not supported");
@@ -25286,7 +25287,7 @@ class PerformanceNavigationTiming extends PerformanceResourceTiming {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PerformanceObserver")
-class PerformanceObserver extends Interceptor {
+class PerformanceObserver extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceObserver._() {
     throw new UnsupportedError("Not supported");
@@ -25323,7 +25324,7 @@ typedef void PerformanceObserverCallback(
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PerformanceObserverEntryList")
-class PerformanceObserverEntryList extends Interceptor {
+class PerformanceObserverEntryList extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceObserverEntryList._() {
     throw new UnsupportedError("Not supported");
@@ -25399,7 +25400,7 @@ class PerformanceResourceTiming extends PerformanceEntry {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PerformanceServerTiming")
-class PerformanceServerTiming extends Interceptor {
+class PerformanceServerTiming extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceServerTiming._() {
     throw new UnsupportedError("Not supported");
@@ -25417,7 +25418,7 @@ class PerformanceServerTiming extends Interceptor {
 
 @Unstable()
 @Native("PerformanceTiming")
-class PerformanceTiming extends Interceptor {
+class PerformanceTiming extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceTiming._() {
     throw new UnsupportedError("Not supported");
@@ -25488,7 +25489,7 @@ class PermissionStatus extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Permissions")
-class Permissions extends Interceptor {
+class Permissions extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Permissions._() {
     throw new UnsupportedError("Not supported");
@@ -25521,7 +25522,7 @@ class Permissions extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PhotoCapabilities")
-class PhotoCapabilities extends Interceptor {
+class PhotoCapabilities extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PhotoCapabilities._() {
     throw new UnsupportedError("Not supported");
@@ -25557,7 +25558,7 @@ class PictureElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Plugin")
-class Plugin extends Interceptor {
+class Plugin extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Plugin._() {
     throw new UnsupportedError("Not supported");
@@ -25580,7 +25581,7 @@ class Plugin extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PluginArray")
-class PluginArray extends Interceptor
+class PluginArray extends JavaScriptObject
     with ListMixin<Plugin>, ImmutableListMixin<Plugin>
     implements List<Plugin>, JavaScriptIndexingBehavior<Plugin> {
   // To suppress missing implicit constructor warnings.
@@ -25745,7 +25746,7 @@ typedef void _PositionCallback(position);
 
 @Unstable()
 @Native("PositionError,GeolocationPositionError")
-class PositionError extends Interceptor {
+class PositionError extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PositionError._() {
     throw new UnsupportedError("Not supported");
@@ -25797,7 +25798,7 @@ class PreElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Presentation")
-class Presentation extends Interceptor {
+class Presentation extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Presentation._() {
     throw new UnsupportedError("Not supported");
@@ -25924,7 +25925,7 @@ class PresentationConnectionList extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PresentationReceiver")
-class PresentationReceiver extends Interceptor {
+class PresentationReceiver extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PresentationReceiver._() {
     throw new UnsupportedError("Not supported");
@@ -26128,7 +26129,7 @@ class PushEvent extends ExtendableEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PushManager")
-class PushManager extends Interceptor {
+class PushManager extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PushManager._() {
     throw new UnsupportedError("Not supported");
@@ -26162,7 +26163,7 @@ class PushManager extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PushMessageData")
-class PushMessageData extends Interceptor {
+class PushMessageData extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PushMessageData._() {
     throw new UnsupportedError("Not supported");
@@ -26181,7 +26182,7 @@ class PushMessageData extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PushSubscription")
-class PushSubscription extends Interceptor {
+class PushSubscription extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PushSubscription._() {
     throw new UnsupportedError("Not supported");
@@ -26203,7 +26204,7 @@ class PushSubscription extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("PushSubscriptionOptions")
-class PushSubscriptionOptions extends Interceptor {
+class PushSubscriptionOptions extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory PushSubscriptionOptions._() {
     throw new UnsupportedError("Not supported");
@@ -26269,7 +26270,7 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 
 @Unstable()
 @Native("Range")
-class Range extends Interceptor {
+class Range extends JavaScriptObject {
   factory Range() => document.createRange();
 
   factory Range.fromPoint(Point point) =>
@@ -26377,7 +26378,7 @@ class Range extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("RelatedApplication")
-class RelatedApplication extends Interceptor {
+class RelatedApplication extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory RelatedApplication._() {
     throw new UnsupportedError("Not supported");
@@ -26447,7 +26448,7 @@ typedef void RemotePlaybackAvailabilityCallback(bool available);
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ReportBody")
-class ReportBody extends Interceptor {
+class ReportBody extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ReportBody._() {
     throw new UnsupportedError("Not supported");
@@ -26458,7 +26459,7 @@ class ReportBody extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ReportingObserver")
-class ReportingObserver extends Interceptor {
+class ReportingObserver extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ReportingObserver._() {
     throw new UnsupportedError("Not supported");
@@ -26495,7 +26496,7 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ResizeObserver")
-class ResizeObserver extends Interceptor {
+class ResizeObserver extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ResizeObserver._() {
     throw new UnsupportedError("Not supported");
@@ -26526,7 +26527,7 @@ typedef void ResizeObserverCallback(List entries, ResizeObserver observer);
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ResizeObserverEntry")
-class ResizeObserverEntry extends Interceptor {
+class ResizeObserverEntry extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ResizeObserverEntry._() {
     throw new UnsupportedError("Not supported");
@@ -26541,7 +26542,7 @@ class ResizeObserverEntry extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("RTCCertificate")
-class RtcCertificate extends Interceptor {
+class RtcCertificate extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory RtcCertificate._() {
     throw new UnsupportedError("Not supported");
@@ -26744,7 +26745,7 @@ class RtcDtmfToneChangeEvent extends Event {
 
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Native("RTCIceCandidate,mozRTCIceCandidate")
-class RtcIceCandidate extends Interceptor {
+class RtcIceCandidate extends JavaScriptObject {
   factory RtcIceCandidate(Map dictionary) {
     var constructorName = JS('', 'window[#]', 'RTCIceCandidate');
     return JS('RtcIceCandidate', 'new #(#)', constructorName,
@@ -26772,7 +26773,7 @@ class RtcIceCandidate extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("RTCLegacyStatsReport")
-class RtcLegacyStatsReport extends Interceptor {
+class RtcLegacyStatsReport extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory RtcLegacyStatsReport._() {
     throw new UnsupportedError("Not supported");
@@ -27106,7 +27107,7 @@ class RtcPeerConnectionIceEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("RTCRtpContributingSource")
-class RtcRtpContributingSource extends Interceptor {
+class RtcRtpContributingSource extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory RtcRtpContributingSource._() {
     throw new UnsupportedError("Not supported");
@@ -27121,7 +27122,7 @@ class RtcRtpContributingSource extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("RTCRtpReceiver")
-class RtcRtpReceiver extends Interceptor {
+class RtcRtpReceiver extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory RtcRtpReceiver._() {
     throw new UnsupportedError("Not supported");
@@ -27136,7 +27137,7 @@ class RtcRtpReceiver extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("RTCRtpSender")
-class RtcRtpSender extends Interceptor {
+class RtcRtpSender extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory RtcRtpSender._() {
     throw new UnsupportedError("Not supported");
@@ -27150,7 +27151,7 @@ class RtcRtpSender extends Interceptor {
 
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Native("RTCSessionDescription,mozRTCSessionDescription")
-class RtcSessionDescription extends Interceptor {
+class RtcSessionDescription extends JavaScriptObject {
   factory RtcSessionDescription(Map dictionary) {
     var constructorName = JS('', 'window[#]', 'RTCSessionDescription');
     return JS('RtcSessionDescription', 'new #(#)', constructorName,
@@ -27174,7 +27175,7 @@ class RtcSessionDescription extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("RTCStatsReport")
-class RtcStatsReport extends Interceptor with MapMixin<String, dynamic> {
+class RtcStatsReport extends JavaScriptObject with MapMixin<String, dynamic> {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsReport._() {
     throw new UnsupportedError("Not supported");
@@ -27242,7 +27243,7 @@ class RtcStatsReport extends Interceptor with MapMixin<String, dynamic> {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("RTCStatsResponse")
-class RtcStatsResponse extends Interceptor {
+class RtcStatsResponse extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsResponse._() {
     throw new UnsupportedError("Not supported");
@@ -27281,7 +27282,7 @@ class RtcTrackEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Screen")
-class Screen extends Interceptor {
+class Screen extends JavaScriptObject {
   Rectangle get available =>
       new Rectangle(_availLeft!, _availTop!, _availWidth!, _availHeight!);
   // To suppress missing implicit constructor warnings.
@@ -27400,7 +27401,7 @@ class ScriptElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ScrollState")
-class ScrollState extends Interceptor {
+class ScrollState extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ScrollState._() {
     throw new UnsupportedError("Not supported");
@@ -27645,7 +27646,7 @@ class SelectElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Selection")
-class Selection extends Interceptor {
+class Selection extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Selection._() {
     throw new UnsupportedError("Not supported");
@@ -28050,7 +28051,7 @@ Please remove them from your code.
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("SharedArrayBuffer")
-class SharedArrayBuffer extends Interceptor {
+class SharedArrayBuffer extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory SharedArrayBuffer._() {
     throw new UnsupportedError("Not supported");
@@ -28370,7 +28371,7 @@ class SpanElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("SpeechGrammar")
-class SpeechGrammar extends Interceptor {
+class SpeechGrammar extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammar._() {
     throw new UnsupportedError("Not supported");
@@ -28395,7 +28396,7 @@ class SpeechGrammar extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("SpeechGrammarList")
-class SpeechGrammarList extends Interceptor
+class SpeechGrammarList extends JavaScriptObject
     with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar>
     implements List<SpeechGrammar>, JavaScriptIndexingBehavior<SpeechGrammar> {
   // To suppress missing implicit constructor warnings.
@@ -28649,7 +28650,7 @@ class SpeechRecognition extends EventTarget {
 
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Native("SpeechRecognitionAlternative")
-class SpeechRecognitionAlternative extends Interceptor {
+class SpeechRecognitionAlternative extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionAlternative._() {
     throw new UnsupportedError("Not supported");
@@ -28733,7 +28734,7 @@ class SpeechRecognitionEvent extends Event {
 
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Native("SpeechRecognitionResult")
-class SpeechRecognitionResult extends Interceptor {
+class SpeechRecognitionResult extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionResult._() {
     throw new UnsupportedError("Not supported");
@@ -28933,7 +28934,7 @@ class SpeechSynthesisUtterance extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("SpeechSynthesisVoice")
-class SpeechSynthesisVoice extends Interceptor {
+class SpeechSynthesisVoice extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisVoice._() {
     throw new UnsupportedError("Not supported");
@@ -28956,7 +28957,7 @@ class SpeechSynthesisVoice extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("StaticRange")
-class StaticRange extends Interceptor {
+class StaticRange extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory StaticRange._() {
     throw new UnsupportedError("Not supported");
@@ -28998,7 +28999,7 @@ class StaticRange extends Interceptor {
  */
 @Unstable()
 @Native("Storage")
-class Storage extends Interceptor with MapMixin<String, String> {
+class Storage extends JavaScriptObject with MapMixin<String, String> {
   void addAll(Map<String, String> other) {
     other.forEach((k, v) {
       this[k] = v;
@@ -29146,7 +29147,7 @@ class StorageEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("StorageManager")
-class StorageManager extends Interceptor {
+class StorageManager extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory StorageManager._() {
     throw new UnsupportedError("Not supported");
@@ -29217,7 +29218,7 @@ class StyleElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("StyleMedia")
-class StyleMedia extends Interceptor {
+class StyleMedia extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory StyleMedia._() {
     throw new UnsupportedError("Not supported");
@@ -29249,7 +29250,7 @@ class StylePropertyMap extends StylePropertyMapReadonly {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("StylePropertyMapReadonly")
-class StylePropertyMapReadonly extends Interceptor {
+class StylePropertyMapReadonly extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory StylePropertyMapReadonly._() {
     throw new UnsupportedError("Not supported");
@@ -29268,7 +29269,7 @@ class StylePropertyMapReadonly extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("StyleSheet")
-class StyleSheet extends Interceptor {
+class StyleSheet extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory StyleSheet._() {
     throw new UnsupportedError("Not supported");
@@ -29317,7 +29318,7 @@ class SyncEvent extends ExtendableEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("SyncManager")
-class SyncManager extends Interceptor {
+class SyncManager extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory SyncManager._() {
     throw new UnsupportedError("Not supported");
@@ -29867,7 +29868,7 @@ class TextAreaElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("TextDetector")
-class TextDetector extends Interceptor {
+class TextDetector extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory TextDetector._() {
     throw new UnsupportedError("Not supported");
@@ -29918,7 +29919,7 @@ class TextEvent extends UIEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("TextMetrics")
-class TextMetrics extends Interceptor {
+class TextMetrics extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory TextMetrics._() {
     throw new UnsupportedError("Not supported");
@@ -30049,7 +30050,7 @@ class TextTrackCue extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("TextTrackCueList")
-class TextTrackCueList extends Interceptor
+class TextTrackCueList extends JavaScriptObject
     with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue>
     implements List<TextTrackCue>, JavaScriptIndexingBehavior<TextTrackCue> {
   // To suppress missing implicit constructor warnings.
@@ -30212,7 +30213,7 @@ class TimeElement extends HtmlElement {
 
 @Unstable()
 @Native("TimeRanges")
-class TimeRanges extends Interceptor {
+class TimeRanges extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory TimeRanges._() {
     throw new UnsupportedError("Not supported");
@@ -30259,7 +30260,7 @@ class TitleElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Touch")
-class Touch extends Interceptor {
+class Touch extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Touch._() {
     throw new UnsupportedError("Not supported");
@@ -30389,7 +30390,7 @@ class TouchEvent extends UIEvent {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("TouchList")
-class TouchList extends Interceptor
+class TouchList extends JavaScriptObject
     with ListMixin<Touch>, ImmutableListMixin<Touch>
     implements List<Touch>, JavaScriptIndexingBehavior<Touch> {
   // To suppress missing implicit constructor warnings.
@@ -30452,7 +30453,7 @@ class TouchList extends Interceptor
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("TrackDefault")
-class TrackDefault extends Interceptor {
+class TrackDefault extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory TrackDefault._() {
     throw new UnsupportedError("Not supported");
@@ -30496,7 +30497,7 @@ class TrackDefault extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("TrackDefaultList")
-class TrackDefaultList extends Interceptor {
+class TrackDefaultList extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory TrackDefaultList._() {
     throw new UnsupportedError("Not supported");
@@ -30638,7 +30639,7 @@ class TransitionEvent extends Event {
 
 @Unstable()
 @Native("TreeWalker")
-class TreeWalker extends Interceptor {
+class TreeWalker extends JavaScriptObject {
   factory TreeWalker(Node root, int whatToShow) {
     return document._createTreeWalker(root, whatToShow, null);
   }
@@ -30676,7 +30677,7 @@ class TreeWalker extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("TrustedHTML")
-class TrustedHtml extends Interceptor {
+class TrustedHtml extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory TrustedHtml._() {
     throw new UnsupportedError("Not supported");
@@ -30691,7 +30692,7 @@ class TrustedHtml extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("TrustedScriptURL")
-class TrustedScriptUrl extends Interceptor {
+class TrustedScriptUrl extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory TrustedScriptUrl._() {
     throw new UnsupportedError("Not supported");
@@ -30704,7 +30705,7 @@ class TrustedScriptUrl extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("TrustedURL")
-class TrustedUrl extends Interceptor {
+class TrustedUrl extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory TrustedUrl._() {
     throw new UnsupportedError("Not supported");
@@ -30798,7 +30799,7 @@ class UListElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("UnderlyingSourceBase")
-class UnderlyingSourceBase extends Interceptor {
+class UnderlyingSourceBase extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory UnderlyingSourceBase._() {
     throw new UnsupportedError("Not supported");
@@ -30838,7 +30839,7 @@ class UnknownElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("URL")
-class Url extends Interceptor {
+class Url extends JavaScriptObject {
   static String createObjectUrl(blob_OR_source_OR_stream) => JS(
       'String',
       '(self.URL || self.webkitURL).createObjectURL(#)',
@@ -30912,7 +30913,7 @@ class Url extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("URLSearchParams")
-class UrlSearchParams extends Interceptor {
+class UrlSearchParams extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory UrlSearchParams._() {
     throw new UnsupportedError("Not supported");
@@ -30947,7 +30948,7 @@ class UrlSearchParams extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class UrlUtilsReadOnly extends Interceptor {
+abstract class UrlUtilsReadOnly extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory UrlUtilsReadOnly._() {
     throw new UnsupportedError("Not supported");
@@ -30989,7 +30990,7 @@ class VR extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("VRCoordinateSystem")
-class VRCoordinateSystem extends Interceptor {
+class VRCoordinateSystem extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VRCoordinateSystem._() {
     throw new UnsupportedError("Not supported");
@@ -31099,7 +31100,7 @@ class VRDisplay extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("VRDisplayCapabilities")
-class VRDisplayCapabilities extends Interceptor {
+class VRDisplayCapabilities extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VRDisplayCapabilities._() {
     throw new UnsupportedError("Not supported");
@@ -31145,7 +31146,7 @@ class VRDisplayEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("VREyeParameters")
-class VREyeParameters extends Interceptor {
+class VREyeParameters extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VREyeParameters._() {
     throw new UnsupportedError("Not supported");
@@ -31162,7 +31163,7 @@ class VREyeParameters extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("VRFrameData")
-class VRFrameData extends Interceptor {
+class VRFrameData extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VRFrameData._() {
     throw new UnsupportedError("Not supported");
@@ -31203,7 +31204,7 @@ class VRFrameOfReference extends VRCoordinateSystem {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("VRPose")
-class VRPose extends Interceptor {
+class VRPose extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VRPose._() {
     throw new UnsupportedError("Not supported");
@@ -31290,7 +31291,7 @@ class VRSessionEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("VRStageBounds")
-class VRStageBounds extends Interceptor {
+class VRStageBounds extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VRStageBounds._() {
     throw new UnsupportedError("Not supported");
@@ -31303,7 +31304,7 @@ class VRStageBounds extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("VRStageBoundsPoint")
-class VRStageBoundsPoint extends Interceptor {
+class VRStageBoundsPoint extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VRStageBoundsPoint._() {
     throw new UnsupportedError("Not supported");
@@ -31318,7 +31319,7 @@ class VRStageBoundsPoint extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("VRStageParameters")
-class VRStageParameters extends Interceptor {
+class VRStageParameters extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VRStageParameters._() {
     throw new UnsupportedError("Not supported");
@@ -31335,7 +31336,7 @@ class VRStageParameters extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ValidityState")
-class ValidityState extends Interceptor {
+class ValidityState extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ValidityState._() {
     throw new UnsupportedError("Not supported");
@@ -31429,7 +31430,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("VideoPlaybackQuality")
-class VideoPlaybackQuality extends Interceptor {
+class VideoPlaybackQuality extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VideoPlaybackQuality._() {
     throw new UnsupportedError("Not supported");
@@ -31448,7 +31449,7 @@ class VideoPlaybackQuality extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("VideoTrack")
-class VideoTrack extends Interceptor {
+class VideoTrack extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VideoTrack._() {
     throw new UnsupportedError("Not supported");
@@ -31595,7 +31596,7 @@ class VttCue extends TextTrackCue {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("VTTRegion")
-class VttRegion extends Interceptor {
+class VttRegion extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VttRegion._() {
     throw new UnsupportedError("Not supported");
@@ -33756,7 +33757,7 @@ class _BeforeUnloadEventStreamProvider
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class WindowBase64 extends Interceptor {
+abstract class WindowBase64 extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory WindowBase64._() {
     throw new UnsupportedError("Not supported");
@@ -34026,7 +34027,7 @@ class WorkerPerformance extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WorkletAnimation")
-class WorkletAnimation extends Interceptor {
+class WorkletAnimation extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory WorkletAnimation._() {
     throw new UnsupportedError("Not supported");
@@ -34057,7 +34058,7 @@ class WorkletAnimation extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WorkletGlobalScope")
-class WorkletGlobalScope extends Interceptor {
+class WorkletGlobalScope extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory WorkletGlobalScope._() {
     throw new UnsupportedError("Not supported");
@@ -34070,7 +34071,7 @@ class WorkletGlobalScope extends Interceptor {
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathEvaluator
 @deprecated // experimental
 @Native("XPathEvaluator")
-class XPathEvaluator extends Interceptor {
+class XPathEvaluator extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory XPathEvaluator._() {
     throw new UnsupportedError("Not supported");
@@ -34098,7 +34099,7 @@ class XPathEvaluator extends Interceptor {
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathExpression
 @deprecated // experimental
 @Native("XPathExpression")
-class XPathExpression extends Interceptor {
+class XPathExpression extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory XPathExpression._() {
     throw new UnsupportedError("Not supported");
@@ -34113,7 +34114,7 @@ class XPathExpression extends Interceptor {
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathNSResolver
 @deprecated // experimental
 @Native("XPathNSResolver")
-class XPathNSResolver extends Interceptor {
+class XPathNSResolver extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory XPathNSResolver._() {
     throw new UnsupportedError("Not supported");
@@ -34129,7 +34130,7 @@ class XPathNSResolver extends Interceptor {
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathResult
 @deprecated // experimental
 @Native("XPathResult")
-class XPathResult extends Interceptor {
+class XPathResult extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory XPathResult._() {
     throw new UnsupportedError("Not supported");
@@ -34191,7 +34192,7 @@ class XmlDocument extends Document {
 // http://domparsing.spec.whatwg.org/#the-xmlserializer-interface
 @deprecated // stable
 @Native("XMLSerializer")
-class XmlSerializer extends Interceptor {
+class XmlSerializer extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory XmlSerializer._() {
     throw new UnsupportedError("Not supported");
@@ -34214,7 +34215,7 @@ class XmlSerializer extends Interceptor {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @deprecated // nonstandard
 @Native("XSLTProcessor")
-class XsltProcessor extends Interceptor {
+class XsltProcessor extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory XsltProcessor._() {
     throw new UnsupportedError("Not supported");
@@ -34274,7 +34275,7 @@ class _Attr extends Node {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Bluetooth")
-abstract class _Bluetooth extends Interceptor {
+abstract class _Bluetooth extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _Bluetooth._() {
     throw new UnsupportedError("Not supported");
@@ -34285,7 +34286,7 @@ abstract class _Bluetooth extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("BluetoothCharacteristicProperties")
-abstract class _BluetoothCharacteristicProperties extends Interceptor {
+abstract class _BluetoothCharacteristicProperties extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _BluetoothCharacteristicProperties._() {
     throw new UnsupportedError("Not supported");
@@ -34318,7 +34319,7 @@ abstract class _BluetoothRemoteGATTCharacteristic extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("BluetoothRemoteGATTServer")
-abstract class _BluetoothRemoteGATTServer extends Interceptor {
+abstract class _BluetoothRemoteGATTServer extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _BluetoothRemoteGATTServer._() {
     throw new UnsupportedError("Not supported");
@@ -34329,7 +34330,7 @@ abstract class _BluetoothRemoteGATTServer extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("BluetoothRemoteGATTService")
-abstract class _BluetoothRemoteGATTService extends Interceptor {
+abstract class _BluetoothRemoteGATTService extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _BluetoothRemoteGATTService._() {
     throw new UnsupportedError("Not supported");
@@ -34340,7 +34341,7 @@ abstract class _BluetoothRemoteGATTService extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("BluetoothUUID")
-abstract class _BluetoothUUID extends Interceptor {
+abstract class _BluetoothUUID extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _BluetoothUUID._() {
     throw new UnsupportedError("Not supported");
@@ -34351,7 +34352,7 @@ abstract class _BluetoothUUID extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("BudgetService")
-class _BudgetService extends Interceptor {
+class _BudgetService extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _BudgetService._() {
     throw new UnsupportedError("Not supported");
@@ -34371,7 +34372,7 @@ class _BudgetService extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Cache")
-abstract class _Cache extends Interceptor {
+abstract class _Cache extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _Cache._() {
     throw new UnsupportedError("Not supported");
@@ -34381,7 +34382,7 @@ abstract class _Cache extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class _CanvasPath extends Interceptor {
+abstract class _CanvasPath extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _CanvasPath._() {
     throw new UnsupportedError("Not supported");
@@ -34415,7 +34416,7 @@ class _Clipboard extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("CSSRuleList")
-class _CssRuleList extends Interceptor
+class _CssRuleList extends JavaScriptObject
     with ListMixin<CssRule>, ImmutableListMixin<CssRule>
     implements List<CssRule>, JavaScriptIndexingBehavior<CssRule> {
   // To suppress missing implicit constructor warnings.
@@ -34476,7 +34477,7 @@ class _CssRuleList extends Interceptor
 
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Native("DOMFileSystemSync")
-abstract class _DOMFileSystemSync extends Interceptor {
+abstract class _DOMFileSystemSync extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _DOMFileSystemSync._() {
     throw new UnsupportedError("Not supported");
@@ -34498,7 +34499,7 @@ abstract class _DirectoryEntrySync extends _EntrySync {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("DirectoryReaderSync")
-abstract class _DirectoryReaderSync extends Interceptor {
+abstract class _DirectoryReaderSync extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryReaderSync._() {
     throw new UnsupportedError("Not supported");
@@ -34683,7 +34684,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("EntrySync")
-abstract class _EntrySync extends Interceptor {
+abstract class _EntrySync extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _EntrySync._() {
     throw new UnsupportedError("Not supported");
@@ -34705,7 +34706,7 @@ abstract class _FileEntrySync extends _EntrySync {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("FileReaderSync")
-abstract class _FileReaderSync extends Interceptor {
+abstract class _FileReaderSync extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _FileReaderSync._() {
     throw new UnsupportedError("Not supported");
@@ -34722,7 +34723,7 @@ abstract class _FileReaderSync extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("FileWriterSync")
-abstract class _FileWriterSync extends Interceptor {
+abstract class _FileWriterSync extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _FileWriterSync._() {
     throw new UnsupportedError("Not supported");
@@ -34733,7 +34734,7 @@ abstract class _FileWriterSync extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("GamepadList")
-class _GamepadList extends Interceptor
+class _GamepadList extends JavaScriptObject
     with ListMixin<Gamepad?>, ImmutableListMixin<Gamepad?>
     implements List<Gamepad?>, JavaScriptIndexingBehavior<Gamepad?> {
   // To suppress missing implicit constructor warnings.
@@ -34795,7 +34796,7 @@ class _GamepadList extends Interceptor
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
 @deprecated // deprecated
 @Native("HTMLAllCollection")
-abstract class _HTMLAllCollection extends Interceptor {
+abstract class _HTMLAllCollection extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAllCollection._() {
     throw new UnsupportedError("Not supported");
@@ -34906,7 +34907,7 @@ abstract class _HTMLMarqueeElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Mojo")
-abstract class _Mojo extends Interceptor {
+abstract class _Mojo extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _Mojo._() {
     throw new UnsupportedError("Not supported");
@@ -34917,7 +34918,7 @@ abstract class _Mojo extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MojoHandle")
-abstract class _MojoHandle extends Interceptor {
+abstract class _MojoHandle extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _MojoHandle._() {
     throw new UnsupportedError("Not supported");
@@ -34981,7 +34982,7 @@ abstract class _MojoInterfaceRequestEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("MojoWatcher")
-abstract class _MojoWatcher extends Interceptor {
+abstract class _MojoWatcher extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _MojoWatcher._() {
     throw new UnsupportedError("Not supported");
@@ -34992,7 +34993,7 @@ abstract class _MojoWatcher extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("NFC")
-abstract class _NFC extends Interceptor {
+abstract class _NFC extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _NFC._() {
     throw new UnsupportedError("Not supported");
@@ -35005,7 +35006,7 @@ abstract class _NFC extends Interceptor {
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
 @Native("NamedNodeMap,MozNamedAttrMap")
-class _NamedNodeMap extends Interceptor
+class _NamedNodeMap extends JavaScriptObject
     with ListMixin<Node>, ImmutableListMixin<Node>
     implements List<Node>, JavaScriptIndexingBehavior<Node> {
   // To suppress missing implicit constructor warnings.
@@ -35078,7 +35079,7 @@ class _NamedNodeMap extends Interceptor
 
 @deprecated // nonstandard
 @Native("PagePopupController")
-abstract class _PagePopupController extends Interceptor {
+abstract class _PagePopupController extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _PagePopupController._() {
     throw new UnsupportedError("Not supported");
@@ -35097,7 +35098,7 @@ abstract class _PagePopupController extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Report")
-class _Report extends Interceptor {
+class _Report extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _Report._() {
     throw new UnsupportedError("Not supported");
@@ -35195,7 +35196,7 @@ abstract class _Response extends Body {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("SpeechRecognitionResultList")
-class _SpeechRecognitionResultList extends Interceptor
+class _SpeechRecognitionResultList extends JavaScriptObject
     with
         ListMixin<SpeechRecognitionResult>,
         ImmutableListMixin<SpeechRecognitionResult>
@@ -35259,7 +35260,7 @@ class _SpeechRecognitionResultList extends Interceptor
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("StyleSheetList")
-class _StyleSheetList extends Interceptor
+class _StyleSheetList extends JavaScriptObject
     with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet>
     implements List<StyleSheet>, JavaScriptIndexingBehavior<StyleSheet> {
   // To suppress missing implicit constructor warnings.
@@ -35321,7 +35322,7 @@ class _StyleSheetList extends Interceptor
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("SubtleCrypto")
-abstract class _SubtleCrypto extends Interceptor {
+abstract class _SubtleCrypto extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _SubtleCrypto._() {
     throw new UnsupportedError("Not supported");
@@ -35343,7 +35344,7 @@ abstract class _USB extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("USBAlternateInterface")
-abstract class _USBAlternateInterface extends Interceptor {
+abstract class _USBAlternateInterface extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _USBAlternateInterface._() {
     throw new UnsupportedError("Not supported");
@@ -35362,7 +35363,7 @@ abstract class _USBAlternateInterface extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("USBConfiguration")
-abstract class _USBConfiguration extends Interceptor {
+abstract class _USBConfiguration extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _USBConfiguration._() {
     throw new UnsupportedError("Not supported");
@@ -35403,7 +35404,7 @@ abstract class _USBConnectionEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("USBDevice")
-abstract class _USBDevice extends Interceptor {
+abstract class _USBDevice extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _USBDevice._() {
     throw new UnsupportedError("Not supported");
@@ -35414,7 +35415,7 @@ abstract class _USBDevice extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("USBEndpoint")
-abstract class _USBEndpoint extends Interceptor {
+abstract class _USBEndpoint extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _USBEndpoint._() {
     throw new UnsupportedError("Not supported");
@@ -35436,7 +35437,7 @@ abstract class _USBEndpoint extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("USBInTransferResult")
-abstract class _USBInTransferResult extends Interceptor {
+abstract class _USBInTransferResult extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _USBInTransferResult._() {
     throw new UnsupportedError("Not supported");
@@ -35458,7 +35459,7 @@ abstract class _USBInTransferResult extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("USBInterface")
-abstract class _USBInterface extends Interceptor {
+abstract class _USBInterface extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _USBInterface._() {
     throw new UnsupportedError("Not supported");
@@ -35475,7 +35476,7 @@ abstract class _USBInterface extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("USBIsochronousInTransferPacket")
-abstract class _USBIsochronousInTransferPacket extends Interceptor {
+abstract class _USBIsochronousInTransferPacket extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _USBIsochronousInTransferPacket._() {
     throw new UnsupportedError("Not supported");
@@ -35502,7 +35503,7 @@ abstract class _USBIsochronousInTransferPacket extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("USBIsochronousInTransferResult")
-abstract class _USBIsochronousInTransferResult extends Interceptor {
+abstract class _USBIsochronousInTransferResult extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _USBIsochronousInTransferResult._() {
     throw new UnsupportedError("Not supported");
@@ -35531,7 +35532,7 @@ abstract class _USBIsochronousInTransferResult extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("USBIsochronousOutTransferPacket")
-abstract class _USBIsochronousOutTransferPacket extends Interceptor {
+abstract class _USBIsochronousOutTransferPacket extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _USBIsochronousOutTransferPacket._() {
     throw new UnsupportedError("Not supported");
@@ -35558,7 +35559,7 @@ abstract class _USBIsochronousOutTransferPacket extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("USBIsochronousOutTransferResult")
-abstract class _USBIsochronousOutTransferResult extends Interceptor {
+abstract class _USBIsochronousOutTransferResult extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _USBIsochronousOutTransferResult._() {
     throw new UnsupportedError("Not supported");
@@ -35578,7 +35579,7 @@ abstract class _USBIsochronousOutTransferResult extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("USBOutTransferResult")
-abstract class _USBOutTransferResult extends Interceptor {
+abstract class _USBOutTransferResult extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _USBOutTransferResult._() {
     throw new UnsupportedError("Not supported");
@@ -35602,7 +35603,7 @@ abstract class _USBOutTransferResult extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class _WindowTimers extends Interceptor {
+abstract class _WindowTimers extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _WindowTimers._() {
     throw new UnsupportedError("Not supported");
@@ -35625,7 +35626,8 @@ abstract class _WindowTimers extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WorkerLocation")
-abstract class _WorkerLocation extends Interceptor implements UrlUtilsReadOnly {
+abstract class _WorkerLocation extends JavaScriptObject
+    implements UrlUtilsReadOnly {
   // To suppress missing implicit constructor warnings.
   factory _WorkerLocation._() {
     throw new UnsupportedError("Not supported");
@@ -35658,7 +35660,7 @@ abstract class _WorkerNavigator extends NavigatorConcurrentHardware
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("Worklet")
-abstract class _Worklet extends Interceptor {
+abstract class _Worklet extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _Worklet._() {
     throw new UnsupportedError("Not supported");

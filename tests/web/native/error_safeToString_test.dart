@@ -7,7 +7,7 @@ import 'dart:_foreign_helper' show JS_INTERCEPTOR_CONSTANT;
 import 'dart:_interceptors'
     show
         Interceptor,
-        JavaScriptObject,
+        LegacyJavaScriptObject,
         PlainJavaScriptObject,
         UnknownJavaScriptObject;
 

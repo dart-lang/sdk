@@ -15,7 +15,7 @@ import 'dart:typed_data';
 import 'dart:_js_helper'
     show Creates, JSName, Native, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor, JSExtendableArray;
+import 'dart:_interceptors' show JavaScriptObject, JSExtendableArray;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:web_gl library.
@@ -26,7 +26,7 @@ import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 
 @Unstable()
 @Native("WebGLActiveInfo")
-class ActiveInfo extends Interceptor {
+class ActiveInfo extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ActiveInfo._() {
     throw new UnsupportedError("Not supported");
@@ -43,7 +43,7 @@ class ActiveInfo extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("ANGLEInstancedArrays,ANGLE_instanced_arrays")
-class AngleInstancedArrays extends Interceptor {
+class AngleInstancedArrays extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory AngleInstancedArrays._() {
     throw new UnsupportedError("Not supported");
@@ -68,7 +68,7 @@ class AngleInstancedArrays extends Interceptor {
 
 @Unstable()
 @Native("WebGLBuffer")
-class Buffer extends Interceptor {
+class Buffer extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Buffer._() {
     throw new UnsupportedError("Not supported");
@@ -79,7 +79,7 @@ class Buffer extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLCanvas")
-class Canvas extends Interceptor {
+class Canvas extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Canvas._() {
     throw new UnsupportedError("Not supported");
@@ -97,7 +97,7 @@ class Canvas extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLColorBufferFloat")
-class ColorBufferFloat extends Interceptor {
+class ColorBufferFloat extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ColorBufferFloat._() {
     throw new UnsupportedError("Not supported");
@@ -108,7 +108,7 @@ class ColorBufferFloat extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLCompressedTextureASTC")
-class CompressedTextureAstc extends Interceptor {
+class CompressedTextureAstc extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureAstc._() {
     throw new UnsupportedError("Not supported");
@@ -175,7 +175,7 @@ class CompressedTextureAstc extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLCompressedTextureATC,WEBGL_compressed_texture_atc")
-class CompressedTextureAtc extends Interceptor {
+class CompressedTextureAtc extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureAtc._() {
     throw new UnsupportedError("Not supported");
@@ -192,7 +192,7 @@ class CompressedTextureAtc extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLCompressedTextureETC1,WEBGL_compressed_texture_etc1")
-class CompressedTextureETC1 extends Interceptor {
+class CompressedTextureETC1 extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureETC1._() {
     throw new UnsupportedError("Not supported");
@@ -205,7 +205,7 @@ class CompressedTextureETC1 extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLCompressedTextureETC")
-class CompressedTextureEtc extends Interceptor {
+class CompressedTextureEtc extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureEtc._() {
     throw new UnsupportedError("Not supported");
@@ -236,7 +236,7 @@ class CompressedTextureEtc extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLCompressedTexturePVRTC,WEBGL_compressed_texture_pvrtc")
-class CompressedTexturePvrtc extends Interceptor {
+class CompressedTexturePvrtc extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CompressedTexturePvrtc._() {
     throw new UnsupportedError("Not supported");
@@ -255,7 +255,7 @@ class CompressedTexturePvrtc extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLCompressedTextureS3TC,WEBGL_compressed_texture_s3tc")
-class CompressedTextureS3TC extends Interceptor {
+class CompressedTextureS3TC extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureS3TC._() {
     throw new UnsupportedError("Not supported");
@@ -274,7 +274,7 @@ class CompressedTextureS3TC extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLCompressedTextureS3TCsRGB")
-class CompressedTextureS3TCsRgb extends Interceptor {
+class CompressedTextureS3TCsRgb extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureS3TCsRgb._() {
     throw new UnsupportedError("Not supported");
@@ -319,7 +319,7 @@ class ContextEvent extends Event {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLDebugRendererInfo,WEBGL_debug_renderer_info")
-class DebugRendererInfo extends Interceptor {
+class DebugRendererInfo extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DebugRendererInfo._() {
     throw new UnsupportedError("Not supported");
@@ -334,7 +334,7 @@ class DebugRendererInfo extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLDebugShaders,WEBGL_debug_shaders")
-class DebugShaders extends Interceptor {
+class DebugShaders extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DebugShaders._() {
     throw new UnsupportedError("Not supported");
@@ -347,7 +347,7 @@ class DebugShaders extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLDepthTexture,WEBGL_depth_texture")
-class DepthTexture extends Interceptor {
+class DepthTexture extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DepthTexture._() {
     throw new UnsupportedError("Not supported");
@@ -360,7 +360,7 @@ class DepthTexture extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLDrawBuffers,WEBGL_draw_buffers")
-class DrawBuffers extends Interceptor {
+class DrawBuffers extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DrawBuffers._() {
     throw new UnsupportedError("Not supported");
@@ -374,7 +374,7 @@ class DrawBuffers extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("EXTsRGB,EXT_sRGB")
-class EXTsRgb extends Interceptor {
+class EXTsRgb extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory EXTsRgb._() {
     throw new UnsupportedError("Not supported");
@@ -393,7 +393,7 @@ class EXTsRgb extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("EXTBlendMinMax,EXT_blend_minmax")
-class ExtBlendMinMax extends Interceptor {
+class ExtBlendMinMax extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ExtBlendMinMax._() {
     throw new UnsupportedError("Not supported");
@@ -408,7 +408,7 @@ class ExtBlendMinMax extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("EXTColorBufferFloat")
-class ExtColorBufferFloat extends Interceptor {
+class ExtColorBufferFloat extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ExtColorBufferFloat._() {
     throw new UnsupportedError("Not supported");
@@ -419,7 +419,7 @@ class ExtColorBufferFloat extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("EXTColorBufferHalfFloat")
-class ExtColorBufferHalfFloat extends Interceptor {
+class ExtColorBufferHalfFloat extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ExtColorBufferHalfFloat._() {
     throw new UnsupportedError("Not supported");
@@ -430,7 +430,7 @@ class ExtColorBufferHalfFloat extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("EXTDisjointTimerQuery")
-class ExtDisjointTimerQuery extends Interceptor {
+class ExtDisjointTimerQuery extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ExtDisjointTimerQuery._() {
     throw new UnsupportedError("Not supported");
@@ -479,7 +479,7 @@ class ExtDisjointTimerQuery extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("EXTDisjointTimerQueryWebGL2")
-class ExtDisjointTimerQueryWebGL2 extends Interceptor {
+class ExtDisjointTimerQueryWebGL2 extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ExtDisjointTimerQueryWebGL2._() {
     throw new UnsupportedError("Not supported");
@@ -501,7 +501,7 @@ class ExtDisjointTimerQueryWebGL2 extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("EXTFragDepth,EXT_frag_depth")
-class ExtFragDepth extends Interceptor {
+class ExtFragDepth extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ExtFragDepth._() {
     throw new UnsupportedError("Not supported");
@@ -512,7 +512,7 @@ class ExtFragDepth extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("EXTShaderTextureLOD,EXT_shader_texture_lod")
-class ExtShaderTextureLod extends Interceptor {
+class ExtShaderTextureLod extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ExtShaderTextureLod._() {
     throw new UnsupportedError("Not supported");
@@ -523,7 +523,7 @@ class ExtShaderTextureLod extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("EXTTextureFilterAnisotropic,EXT_texture_filter_anisotropic")
-class ExtTextureFilterAnisotropic extends Interceptor {
+class ExtTextureFilterAnisotropic extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ExtTextureFilterAnisotropic._() {
     throw new UnsupportedError("Not supported");
@@ -539,7 +539,7 @@ class ExtTextureFilterAnisotropic extends Interceptor {
 
 @Unstable()
 @Native("WebGLFramebuffer")
-class Framebuffer extends Interceptor {
+class Framebuffer extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Framebuffer._() {
     throw new UnsupportedError("Not supported");
@@ -550,7 +550,7 @@ class Framebuffer extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLGetBufferSubDataAsync")
-class GetBufferSubDataAsync extends Interceptor {
+class GetBufferSubDataAsync extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory GetBufferSubDataAsync._() {
     throw new UnsupportedError("Not supported");
@@ -566,7 +566,7 @@ class GetBufferSubDataAsync extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLLoseContext,WebGLExtensionLoseContext,WEBGL_lose_context")
-class LoseContext extends Interceptor {
+class LoseContext extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory LoseContext._() {
     throw new UnsupportedError("Not supported");
@@ -581,7 +581,7 @@ class LoseContext extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("OESElementIndexUint,OES_element_index_uint")
-class OesElementIndexUint extends Interceptor {
+class OesElementIndexUint extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory OesElementIndexUint._() {
     throw new UnsupportedError("Not supported");
@@ -592,7 +592,7 @@ class OesElementIndexUint extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("OESStandardDerivatives,OES_standard_derivatives")
-class OesStandardDerivatives extends Interceptor {
+class OesStandardDerivatives extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory OesStandardDerivatives._() {
     throw new UnsupportedError("Not supported");
@@ -605,7 +605,7 @@ class OesStandardDerivatives extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("OESTextureFloat,OES_texture_float")
-class OesTextureFloat extends Interceptor {
+class OesTextureFloat extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloat._() {
     throw new UnsupportedError("Not supported");
@@ -616,7 +616,7 @@ class OesTextureFloat extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("OESTextureFloatLinear,OES_texture_float_linear")
-class OesTextureFloatLinear extends Interceptor {
+class OesTextureFloatLinear extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloatLinear._() {
     throw new UnsupportedError("Not supported");
@@ -627,7 +627,7 @@ class OesTextureFloatLinear extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("OESTextureHalfFloat,OES_texture_half_float")
-class OesTextureHalfFloat extends Interceptor {
+class OesTextureHalfFloat extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloat._() {
     throw new UnsupportedError("Not supported");
@@ -640,7 +640,7 @@ class OesTextureHalfFloat extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("OESTextureHalfFloatLinear,OES_texture_half_float_linear")
-class OesTextureHalfFloatLinear extends Interceptor {
+class OesTextureHalfFloatLinear extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloatLinear._() {
     throw new UnsupportedError("Not supported");
@@ -651,7 +651,7 @@ class OesTextureHalfFloatLinear extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("OESVertexArrayObject,OES_vertex_array_object")
-class OesVertexArrayObject extends Interceptor {
+class OesVertexArrayObject extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory OesVertexArrayObject._() {
     throw new UnsupportedError("Not supported");
@@ -677,7 +677,7 @@ class OesVertexArrayObject extends Interceptor {
 
 @Unstable()
 @Native("WebGLProgram")
-class Program extends Interceptor {
+class Program extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Program._() {
     throw new UnsupportedError("Not supported");
@@ -688,7 +688,7 @@ class Program extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLQuery")
-class Query extends Interceptor {
+class Query extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Query._() {
     throw new UnsupportedError("Not supported");
@@ -700,7 +700,7 @@ class Query extends Interceptor {
 
 @Unstable()
 @Native("WebGLRenderbuffer")
-class Renderbuffer extends Interceptor {
+class Renderbuffer extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Renderbuffer._() {
     throw new UnsupportedError("Not supported");
@@ -714,7 +714,8 @@ class Renderbuffer extends Interceptor {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @Unstable()
 @Native("WebGLRenderingContext")
-class RenderingContext extends Interceptor implements CanvasRenderingContext {
+class RenderingContext extends JavaScriptObject
+    implements CanvasRenderingContext {
   // To suppress missing implicit constructor warnings.
   factory RenderingContext._() {
     throw new UnsupportedError("Not supported");
@@ -1356,7 +1357,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGL2RenderingContext")
-class RenderingContext2 extends Interceptor
+class RenderingContext2 extends JavaScriptObject
     implements _WebGL2RenderingContextBase, _WebGLRenderingContextBase {
   // To suppress missing implicit constructor warnings.
   factory RenderingContext2._() {
@@ -2834,7 +2835,7 @@ class RenderingContext2 extends Interceptor
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLSampler")
-class Sampler extends Interceptor {
+class Sampler extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Sampler._() {
     throw new UnsupportedError("Not supported");
@@ -2845,7 +2846,7 @@ class Sampler extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLShader")
-class Shader extends Interceptor {
+class Shader extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Shader._() {
     throw new UnsupportedError("Not supported");
@@ -2856,7 +2857,7 @@ class Shader extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLShaderPrecisionFormat")
-class ShaderPrecisionFormat extends Interceptor {
+class ShaderPrecisionFormat extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ShaderPrecisionFormat._() {
     throw new UnsupportedError("Not supported");
@@ -2873,7 +2874,7 @@ class ShaderPrecisionFormat extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLSync")
-class Sync extends Interceptor {
+class Sync extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Sync._() {
     throw new UnsupportedError("Not supported");
@@ -2884,7 +2885,7 @@ class Sync extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLTexture")
-class Texture extends Interceptor {
+class Texture extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Texture._() {
     throw new UnsupportedError("Not supported");
@@ -2903,7 +2904,7 @@ class Texture extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLTimerQueryEXT")
-class TimerQueryExt extends Interceptor {
+class TimerQueryExt extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory TimerQueryExt._() {
     throw new UnsupportedError("Not supported");
@@ -2914,7 +2915,7 @@ class TimerQueryExt extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLTransformFeedback")
-class TransformFeedback extends Interceptor {
+class TransformFeedback extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory TransformFeedback._() {
     throw new UnsupportedError("Not supported");
@@ -2925,7 +2926,7 @@ class TransformFeedback extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLUniformLocation")
-class UniformLocation extends Interceptor {
+class UniformLocation extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory UniformLocation._() {
     throw new UnsupportedError("Not supported");
@@ -2936,7 +2937,7 @@ class UniformLocation extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLVertexArrayObject")
-class VertexArrayObject extends Interceptor {
+class VertexArrayObject extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VertexArrayObject._() {
     throw new UnsupportedError("Not supported");
@@ -2947,7 +2948,7 @@ class VertexArrayObject extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGLVertexArrayObjectOES")
-class VertexArrayObjectOes extends Interceptor {
+class VertexArrayObjectOes extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory VertexArrayObjectOes._() {
     throw new UnsupportedError("Not supported");
@@ -4161,7 +4162,7 @@ abstract class WebGL {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("WebGL2RenderingContextBase")
-abstract class _WebGL2RenderingContextBase extends Interceptor
+abstract class _WebGL2RenderingContextBase extends JavaScriptObject
     implements _WebGLRenderingContextBase {
   // To suppress missing implicit constructor warnings.
   factory _WebGL2RenderingContextBase._() {
@@ -4174,7 +4175,7 @@ abstract class _WebGL2RenderingContextBase extends Interceptor
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class _WebGLRenderingContextBase extends Interceptor {
+abstract class _WebGLRenderingContextBase extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory _WebGLRenderingContextBase._() {
     throw new UnsupportedError("Not supported");

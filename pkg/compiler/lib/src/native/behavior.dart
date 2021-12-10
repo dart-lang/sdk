@@ -820,7 +820,7 @@ abstract class BehaviorBuilder {
         // JS interop API returns dynamic.  This means that to some degree we
         // still use the return type to decide whether to include native types,
         // even though we don't trust the type annotation.
-        ClassEntity cls = commonElements.jsJavaScriptObjectClass;
+        ClassEntity cls = commonElements.jsLegacyJavaScriptObjectClass;
         _behavior.typesInstantiated.add(elementEnvironment.getThisType(cls));
       }
     }

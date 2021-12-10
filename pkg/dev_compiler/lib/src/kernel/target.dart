@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
+import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -188,6 +189,7 @@ class DevCompilerTarget extends Target {
       ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
+    var staticInteropClassEraser = StaticInteropClassEraser(coreTypes);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
       JsInteropChecks(
@@ -196,6 +198,7 @@ class DevCompilerTarget extends Target {
               _nativeClasses!)
           .visitLibrary(library);
       jsUtilOptimizer.visitLibrary(library);
+      staticInteropClassEraser.visitLibrary(library);
     }
   }
 
