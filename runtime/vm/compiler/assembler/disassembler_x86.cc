@@ -404,9 +404,14 @@ int DisassemblerX64::PrintRightOperandHelper(
   switch (mod) {
     case 0:
       if ((rm & 7) == 5) {
+#if defined(TARGET_ARCH_IA32)
+        int32_t abs = LoadUnaligned(reinterpret_cast<int32_t*>(modrmp + 1));
+        Print("[%#x]", abs);
+#else
         int32_t disp = LoadUnaligned(reinterpret_cast<int32_t*>(modrmp + 1));
         Print("[rip");
         PrintDisp(disp, "]");
+#endif
         return 5;
       } else if ((rm & 7) == 4) {
         // Codes for SIB byte.

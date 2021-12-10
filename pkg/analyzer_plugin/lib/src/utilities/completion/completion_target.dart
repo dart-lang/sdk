@@ -286,6 +286,8 @@ class CompletionTarget {
         executable = invocation.constructorName.staticElement;
       } else if (invocation is MethodInvocation) {
         executable = invocation.methodName.staticElement;
+      } else if (invocation is RedirectingConstructorInvocation) {
+        executable = invocation.staticElement;
       } else if (invocation is SuperConstructorInvocation) {
         executable = invocation.staticElement;
       }

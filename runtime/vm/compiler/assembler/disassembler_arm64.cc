@@ -836,8 +836,8 @@ void ARM64Decoder::DecodeBitfield(Instr* instr) {
         }
       }
       if ((s_imm != (reg_size - 1)) && ((s_imm + 1) == r_imm)) {
-        int shift = reg_size - s_imm;
-        Format(instr, "lsl'sf 'rd, 'rn, ");
+        int shift = reg_size - s_imm - 1;
+        Format(instr, "lsl'sf 'rd, 'rn, #");
         PrintInt(shift);
         break;
       } else if (s_imm == (reg_size - 1)) {

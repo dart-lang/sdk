@@ -15,6 +15,13 @@ namespace dart {
 namespace compiler {
 #define __ assembler->
 
+#if defined(PRODUCT)
+#define EXPECT_DISASSEMBLY(expected)
+#else
+#define EXPECT_DISASSEMBLY(expected)                                           \
+  EXPECT_STREQ(expected, test->RelativeDisassembly())
+#endif
+
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
   __ add(R0, ZR, Operand(ZR));
   __ add(R0, R0, Operand(42));
@@ -1107,6 +1114,123 @@ FOR_EACH_LSL_32_TEST_CONFIG(LSL_32_IMMEDIATE_TEST)
 #undef FOR_EACH_LSL_32_TESTS_LIST
 #undef FOR_EACH_LSR_32_TESTS_LIST
 #undef FOR_EACH_ASR_32_TESTS_LIST
+
+ASSEMBLER_TEST_GENERATE(LslImmediate, assembler) {
+  __ LslImmediate(R0, R0, 1);
+  __ LslImmediate(R0, R0, 2);
+  __ LslImmediate(R0, R0, 3);
+  __ LslImmediate(R0, R0, 4);
+  __ LslImmediate(R0, R0, 60);
+  __ LslImmediate(R0, R0, 61);
+  __ LslImmediate(R0, R0, 62);
+  __ LslImmediate(R0, R0, 63);
+  __ LslImmediate(R0, R0, 1, kFourBytes);
+  __ LslImmediate(R0, R0, 2, kFourBytes);
+  __ LslImmediate(R0, R0, 3, kFourBytes);
+  __ LslImmediate(R0, R0, 4, kFourBytes);
+  __ LslImmediate(R0, R0, 28, kFourBytes);
+  __ LslImmediate(R0, R0, 29, kFourBytes);
+  __ LslImmediate(R0, R0, 30, kFourBytes);
+  __ LslImmediate(R0, R0, 31, kFourBytes);
+}
+
+ASSEMBLER_TEST_RUN(LslImmediate, test) {
+  EXPECT_DISASSEMBLY(
+      "lsl r0, r0, #1\n"
+      "lsl r0, r0, #2\n"
+      "lsl r0, r0, #3\n"
+      "lsl r0, r0, #4\n"
+      "lsl r0, r0, #60\n"
+      "lsl r0, r0, #61\n"
+      "lsl r0, r0, #62\n"
+      "lsl r0, r0, #63\n"
+      "lslw r0, r0, #1\n"
+      "lslw r0, r0, #2\n"
+      "lslw r0, r0, #3\n"
+      "lslw r0, r0, #4\n"
+      "lslw r0, r0, #28\n"
+      "lslw r0, r0, #29\n"
+      "lslw r0, r0, #30\n"
+      "lslw r0, r0, #31\n");
+}
+
+ASSEMBLER_TEST_GENERATE(LsrImmediate, assembler) {
+  __ LsrImmediate(R0, R0, 1);
+  __ LsrImmediate(R0, R0, 2);
+  __ LsrImmediate(R0, R0, 3);
+  __ LsrImmediate(R0, R0, 4);
+  __ LsrImmediate(R0, R0, 60);
+  __ LsrImmediate(R0, R0, 61);
+  __ LsrImmediate(R0, R0, 62);
+  __ LsrImmediate(R0, R0, 63);
+  __ LsrImmediate(R0, R0, 1, kFourBytes);
+  __ LsrImmediate(R0, R0, 2, kFourBytes);
+  __ LsrImmediate(R0, R0, 3, kFourBytes);
+  __ LsrImmediate(R0, R0, 4, kFourBytes);
+  __ LsrImmediate(R0, R0, 28, kFourBytes);
+  __ LsrImmediate(R0, R0, 29, kFourBytes);
+  __ LsrImmediate(R0, R0, 30, kFourBytes);
+  __ LsrImmediate(R0, R0, 31, kFourBytes);
+}
+
+ASSEMBLER_TEST_RUN(LsrImmediate, test) {
+  EXPECT_DISASSEMBLY(
+      "lsr r0, r0, #1\n"
+      "lsr r0, r0, #2\n"
+      "lsr r0, r0, #3\n"
+      "lsr r0, r0, #4\n"
+      "lsr r0, r0, #60\n"
+      "lsr r0, r0, #61\n"
+      "lsr r0, r0, #62\n"
+      "lsr r0, r0, #63\n"
+      "lsrw r0, r0, #1\n"
+      "lsrw r0, r0, #2\n"
+      "lsrw r0, r0, #3\n"
+      "lsrw r0, r0, #4\n"
+      "lsrw r0, r0, #28\n"
+      "lsrw r0, r0, #29\n"
+      "lsrw r0, r0, #30\n"
+      "lsrw r0, r0, #31\n");
+}
+
+ASSEMBLER_TEST_GENERATE(AsrImmediate, assembler) {
+  __ AsrImmediate(R0, R0, 1);
+  __ AsrImmediate(R0, R0, 2);
+  __ AsrImmediate(R0, R0, 3);
+  __ AsrImmediate(R0, R0, 4);
+  __ AsrImmediate(R0, R0, 60);
+  __ AsrImmediate(R0, R0, 61);
+  __ AsrImmediate(R0, R0, 62);
+  __ AsrImmediate(R0, R0, 63);
+  __ AsrImmediate(R0, R0, 1, kFourBytes);
+  __ AsrImmediate(R0, R0, 2, kFourBytes);
+  __ AsrImmediate(R0, R0, 3, kFourBytes);
+  __ AsrImmediate(R0, R0, 4, kFourBytes);
+  __ AsrImmediate(R0, R0, 28, kFourBytes);
+  __ AsrImmediate(R0, R0, 29, kFourBytes);
+  __ AsrImmediate(R0, R0, 30, kFourBytes);
+  __ AsrImmediate(R0, R0, 31, kFourBytes);
+}
+
+ASSEMBLER_TEST_RUN(AsrImmediate, test) {
+  EXPECT_DISASSEMBLY(
+      "asr r0, r0, #1\n"
+      "asr r0, r0, #2\n"
+      "asr r0, r0, #3\n"
+      "asr r0, r0, #4\n"
+      "asr r0, r0, #60\n"
+      "asr r0, r0, #61\n"
+      "asr r0, r0, #62\n"
+      "asr r0, r0, #63\n"
+      "asrw r0, r0, #1\n"
+      "asrw r0, r0, #2\n"
+      "asrw r0, r0, #3\n"
+      "asrw r0, r0, #4\n"
+      "asrw r0, r0, #28\n"
+      "asrw r0, r0, #29\n"
+      "asrw r0, r0, #30\n"
+      "asrw r0, r0, #31\n");
+}
 
 ASSEMBLER_TEST_GENERATE(AndShiftRegs, assembler) {
   __ movz(R1, Immediate(42), 0);

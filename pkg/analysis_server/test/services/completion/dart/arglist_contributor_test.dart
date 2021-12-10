@@ -882,16 +882,15 @@ class B extends A {
     check();
 
     // This constructor invocation.
-    // TODO(scheglov) implement
-//     addTestSource2('''
-// $languageVersionLine
-// class A {
-//   A$parameters;
-//   A.named() : this$arguments;
-// }
-// ''');
-//     await computeSuggestions();
-//     check();
+    addTestSource2('''
+$languageVersionLine
+class A {
+  A$parameters;
+  A.named() : this$arguments;
+}
+''');
+    await computeSuggestions();
+    check();
 
     // Invalid: getter invocation.
     // Parameters not used. Check not used.
