@@ -1142,8 +1142,9 @@ abstract class FileSystemEntity {
       throw 0;
 }
 
-enum ProcessStartMode {
-  normal,
+class ProcessStartMode {
+  static const normal = const ProcessStartMode._internal(0);
+  const ProcessStartMode._internal(int mode);
 }
 
 abstract class Process {
