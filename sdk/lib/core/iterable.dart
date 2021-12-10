@@ -315,13 +315,11 @@ abstract class Iterable<E> {
   /// Example:
   /// ```dart
   /// final numbers = <int>[1, 2, 6, 7];
-  /// numbers.forEach((element) {
-  ///   print(element);
-  ///   // 1
-  ///   // 2
-  ///   // 6
-  ///   // 7
-  /// });
+  /// numbers.forEach(print);
+  /// // 1
+  /// // 2
+  /// // 6
+  /// // 7
   /// ```
   void forEach(void action(E element)) {
     for (E element in this) action(element);
@@ -737,9 +735,9 @@ abstract class Iterable<E> {
   /// result = numbers.singleWhere((element) => element == 1,
   ///     orElse: () => -1); // -1
   /// ```
-  /// Multiple matches, throws an error.
+  /// There must not be more than one matching element.
   /// ```dart continued
-  /// result = numbers.singleWhere((element) => element == 2); // StateError.
+  /// result = numbers.singleWhere((element) => element == 2); // Throws Error.
   /// ```
   E singleWhere(bool test(E element), {E orElse()?}) {
     late E result;
