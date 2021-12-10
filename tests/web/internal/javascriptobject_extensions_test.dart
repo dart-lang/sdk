@@ -12,9 +12,14 @@ import 'package:js/js_util.dart';
 import 'package:expect/expect.dart' show hasUnsoundNullSafety;
 import 'package:expect/minitest.dart';
 
-import 'dart:typed_data';
+import 'dart:html' show Window;
+import 'dart:typed_data' show ByteBuffer;
 import 'dart:_interceptors'
-    show JavaScriptObject, UnknownJavaScriptObject, JSObject;
+    show
+        LegacyJavaScriptObject,
+        JavaScriptObject,
+        UnknownJavaScriptObject,
+        JSObject;
 
 @JS()
 external void eval(String code);
@@ -45,6 +50,11 @@ external ByteBuffer get arrayBuffer;
 
 @JS('arrayBuffer')
 external dynamic get arrayBufferDynamic;
+
+external Window get window;
+
+@JS('window')
+external dynamic get windowDynamic;
 
 // Extension on JavaScriptObject. In the future, when extension types are
 // introduced, this will be explicitly disallowed.
@@ -112,19 +122,33 @@ main() {
   expect(javaScriptObject is DartClass, false);
   runtimeIsAndAs<DartClass>(javaScriptObject, false);
 
-  // Native objects cannot be casted to or from JavaScriptObject.
+  // Web Native classes are subclasses of JavaScriptObject, but not
+  // LegacyJavaScriptObject.
+  expect(window is JavaScriptObject, true);
+  runtimeIsAndAs<JavaScriptObject>(window, true);
+  runtimeIsAndAs<JavaScriptObject>(windowDynamic, true);
+  javaScriptObject = jsObj as JavaScriptObject;
+  expect(javaScriptObject is Window, false);
+  runtimeIsAndAs<Window>(javaScriptObject, false);
+
+  expect(window is LegacyJavaScriptObject, false);
+  runtimeIsAndAs<LegacyJavaScriptObject>(window, false);
+  runtimeIsAndAs<LegacyJavaScriptObject>(windowDynamic, false);
+  var legacyJavaScriptObject = jsObj as LegacyJavaScriptObject;
+  expect(legacyJavaScriptObject is Window, false);
+  runtimeIsAndAs<Window>(legacyJavaScriptObject, false);
+
+  // Non-web Native classes like those in `dart:typed_data` are not subclasses
+  // of JavaScriptObject.
   expect(arrayBuffer is JavaScriptObject, false);
   runtimeIsAndAs<JavaScriptObject>(arrayBuffer, false);
+  runtimeIsAndAs<JavaScriptObject>(arrayBufferDynamic, false);
   expect(javaScriptObject is ByteBuffer, false);
   runtimeIsAndAs<ByteBuffer>(javaScriptObject, false);
 
-  // Dynamic native objects are intercepted and cannot be casted to
-  // JavaScriptObject.
-  runtimeIsAndAs<JavaScriptObject>(arrayBufferDynamic, false);
-
   // Make sure `Object` methods work with JavaScriptObject like they do with JS
   // interop objects.
-  expect(anonymousObj == javaScriptObject, true);
+  expect(javaScriptObject == jsObj, true);
   expect(javaScriptObject.hashCode, isNotNull);
   expect(javaScriptObject.toString, isNotNull);
   expect(javaScriptObject.noSuchMethod, isNotNull);

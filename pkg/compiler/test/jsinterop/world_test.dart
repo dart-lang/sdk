@@ -98,8 +98,8 @@ $mainSource
     ClassEntity Object_ = registerClass(world.commonElements.objectClass);
     ClassEntity Interceptor =
         registerClass(world.commonElements.jsInterceptorClass);
-    ClassEntity BaseJavaScriptObject =
-        registerClass(world.commonElements.jsBaseJavaScriptObjectClass);
+    ClassEntity JavaScriptObject =
+        registerClass(world.commonElements.jsJavaScriptObjectClass);
     ClassEntity LegacyJavaScriptObject =
         registerClass(world.commonElements.jsLegacyJavaScriptObjectClass);
     ClassEntity A = registerClass(findClass(world, 'A'));
@@ -113,9 +113,9 @@ $mainSource
 
     Expect.equals(elementEnvironment.getSuperClass(Interceptor), Object_);
     Expect.equals(
-        elementEnvironment.getSuperClass(BaseJavaScriptObject), Interceptor);
+        elementEnvironment.getSuperClass(JavaScriptObject), Interceptor);
     Expect.equals(elementEnvironment.getSuperClass(LegacyJavaScriptObject),
-        BaseJavaScriptObject);
+        JavaScriptObject);
 
     Expect.equals(elementEnvironment.getSuperClass(A), LegacyJavaScriptObject);
     Expect.equals(elementEnvironment.getSuperClass(B), LegacyJavaScriptObject);
@@ -197,7 +197,7 @@ $mainSource
   ], indirectlyInstantiated: [
     'Object',
     'Interceptor',
-    'BaseJavaScriptObject',
+    'JavaScriptObject',
     'LegacyJavaScriptObject'
   ]);
 
@@ -209,7 +209,7 @@ $mainSource
   ], indirectlyInstantiated: [
     'Object',
     'Interceptor',
-    'BaseJavaScriptObject',
+    'JavaScriptObject',
     'LegacyJavaScriptObject'
   ]);
 
@@ -221,7 +221,7 @@ $mainSource
   ], indirectlyInstantiated: [
     'Object',
     'Interceptor',
-    'BaseJavaScriptObject',
+    'JavaScriptObject',
     'LegacyJavaScriptObject'
   ]);
 
@@ -233,7 +233,7 @@ $mainSource
   ], indirectlyInstantiated: [
     'Object',
     'Interceptor',
-    'BaseJavaScriptObject',
+    'JavaScriptObject',
     'LegacyJavaScriptObject'
   ]);
 
@@ -251,7 +251,7 @@ $mainSource
   ], indirectlyInstantiated: [
     'Object',
     'Interceptor',
-    'BaseJavaScriptObject',
+    'JavaScriptObject',
     'LegacyJavaScriptObject'
   ]);
 }

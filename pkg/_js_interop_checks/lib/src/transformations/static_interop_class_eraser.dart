@@ -10,29 +10,29 @@ import 'package:kernel/src/replacement_visitor.dart';
 import 'package:_js_interop_checks/src/js_interop.dart';
 
 class _TypeSubstitutor extends ReplacementVisitor {
-  final Class _baseJavaScriptObject;
-  _TypeSubstitutor(this._baseJavaScriptObject);
+  final Class _javaScriptObject;
+  _TypeSubstitutor(this._javaScriptObject);
 
   @override
   DartType? visitInterfaceType(InterfaceType type, int variance) {
     if (hasStaticInteropAnnotation(type.classNode)) {
-      return InterfaceType(_baseJavaScriptObject, type.declaredNullability);
+      return InterfaceType(_javaScriptObject, type.declaredNullability);
     }
     return super.visitInterfaceType(type, variance);
   }
 }
 
 /// Erases usage of `@JS` classes that are annotated with `@staticInterop` in
-/// favor of `BaseJavaScriptObject`.
+/// favor of `JavaScriptObject`.
 class StaticInteropClassEraser extends Transformer {
-  final Class _baseJavaScriptObject;
+  final Class _javaScriptObject;
   final CloneVisitorNotMembers _cloner = CloneVisitorNotMembers();
   late final _TypeSubstitutor _typeSubstitutor;
 
   StaticInteropClassEraser(CoreTypes coreTypes)
-      : _baseJavaScriptObject = coreTypes.index
-            .getClass('dart:_interceptors', 'BaseJavaScriptObject') {
-    _typeSubstitutor = _TypeSubstitutor(_baseJavaScriptObject);
+      : _javaScriptObject =
+            coreTypes.index.getClass('dart:_interceptors', 'JavaScriptObject') {
+    _typeSubstitutor = _TypeSubstitutor(_javaScriptObject);
   }
 
   String _factoryStubName(Procedure factoryTarget) =>
@@ -98,7 +98,7 @@ class StaticInteropClassEraser extends Transformer {
         //
         // In order to circumvent this, we introduce a new static method that
         // clones the factory body and has a return type of
-        // `BaseJavaScriptObject`. Invocations of the factory are turned into
+        // `JavaScriptObject`. Invocations of the factory are turned into
         // invocations of the static method. The original factory is still kept
         // in order to make modular compilations work.
         _findOrCreateFactoryStub(node);
@@ -130,11 +130,11 @@ class StaticInteropClassEraser extends Transformer {
   @override
   TreeNode visitConstructorInvocation(ConstructorInvocation node) {
     if (hasStaticInteropAnnotation(node.target.enclosingClass)) {
-      // Add a cast so that the result gets typed as `BaseJavaScriptObject`.
+      // Add a cast so that the result gets typed as `JavaScriptObject`.
       var newInvocation = super.visitConstructorInvocation(node) as Expression;
       return AsExpression(
           newInvocation,
-          InterfaceType(_baseJavaScriptObject,
+          InterfaceType(_javaScriptObject,
               node.target.function.returnType.declaredNullability))
         ..fileOffset = newInvocation.fileOffset;
     }
@@ -161,11 +161,11 @@ class StaticInteropClassEraser extends Transformer {
             isConst: node.isConst)
           ..fileOffset = node.fileOffset;
       } else {
-        // Add a cast so that the result gets typed as `BaseJavaScriptObject`.
+        // Add a cast so that the result gets typed as `JavaScriptObject`.
         var newInvocation = super.visitStaticInvocation(node) as Expression;
         return AsExpression(
             newInvocation,
-            InterfaceType(_baseJavaScriptObject,
+            InterfaceType(_javaScriptObject,
                 node.target.function.returnType.declaredNullability))
           ..fileOffset = newInvocation.fileOffset;
       }

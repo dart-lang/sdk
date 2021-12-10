@@ -86,15 +86,15 @@ abstract class JSObject {}
 ///
 /// This is the class static interop classes erase to and the class interop
 /// extension types should use as the on-type.
-class BaseJavaScriptObject extends Interceptor {
-  const BaseJavaScriptObject();
+class JavaScriptObject extends Interceptor {
+  const JavaScriptObject();
 }
 
 /// Interceptor base class for JavaScript objects not recognized as some more
 /// specific native type.
 ///
 /// Note that this used to be `JavaScriptObject`.
-class LegacyJavaScriptObject extends BaseJavaScriptObject implements JSObject {
+class LegacyJavaScriptObject extends JavaScriptObject implements JSObject {
   const LegacyJavaScriptObject();
 }
 

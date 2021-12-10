@@ -304,7 +304,7 @@ abstract class CommonElements {
 
   ClassEntity get jsLegacyJavaScriptObjectClass;
 
-  ClassEntity get jsBaseJavaScriptObjectClass;
+  ClassEntity get jsJavaScriptObjectClass;
 
   ClassEntity get jsIndexableClass;
 
@@ -1356,11 +1356,10 @@ class CommonElementsImpl
       _jsLegacyJavaScriptObjectClass ??=
           _findInterceptorsClass('LegacyJavaScriptObject');
 
-  ClassEntity _jsBaseJavaScriptObjectClass;
+  ClassEntity _jsJavaScriptObjectClass;
   @override
-  ClassEntity get jsBaseJavaScriptObjectClass =>
-      _jsBaseJavaScriptObjectClass ??=
-          _findInterceptorsClass('BaseJavaScriptObject');
+  ClassEntity get jsJavaScriptObjectClass =>
+      _jsJavaScriptObjectClass ??= _findInterceptorsClass('JavaScriptObject');
 
   ClassEntity _jsIndexableClass;
   @override

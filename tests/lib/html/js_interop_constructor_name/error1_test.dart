@@ -18,7 +18,7 @@ main() {
   });
   test('dom-is-static-js', () {
     var e = confuse(new html.DivElement());
-    // However, HTML types are `BaseJavaScriptObject`s, so they can be used with
+    // However, HTML types are `JavaScriptObject`s, so they can be used with
     // static `package:js` types, using `@staticInterop`.
     expect(e is StaticHTMLDivElement, isTrue);
   });

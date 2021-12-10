@@ -519,7 +519,7 @@ class BackendImpacts {
           _commonElements.getNativeInterceptorMethod
         ],
         instantiatedClasses: [
-          _commonElements.jsBaseJavaScriptObjectClass,
+          _commonElements.jsJavaScriptObjectClass,
           _commonElements.jsLegacyJavaScriptObjectClass,
           _commonElements.jsPlainJavaScriptObjectClass,
           _commonElements.jsJavaScriptFunctionClass
@@ -607,7 +607,7 @@ class BackendImpacts {
       _commonElements.getNativeInterceptorMethod
     ], globalClasses: [
       _commonElements.jsInterceptorClass,
-      _commonElements.jsBaseJavaScriptObjectClass,
+      _commonElements.jsJavaScriptObjectClass,
       _commonElements.jsLegacyJavaScriptObjectClass,
       _commonElements.jsPlainJavaScriptObjectClass,
       _commonElements.jsJavaScriptFunctionClass
