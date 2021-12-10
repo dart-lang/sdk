@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
+import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -142,6 +143,7 @@ class Dart2jsTarget extends Target {
       ChangedStructureNotifier? changedStructureNotifier}) {
     var nativeClasses = JsInteropChecks.getNativeClasses(component);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
+    var staticInteropClassEraser = StaticInteropClassEraser(coreTypes);
     for (var library in libraries) {
       JsInteropChecks(
               coreTypes,
@@ -151,6 +153,7 @@ class Dart2jsTarget extends Target {
       // TODO (rileyporter): Merge js_util optimizations with other lowerings
       // in the single pass in `transformations/lowering.dart`.
       jsUtilOptimizer.visitLibrary(library);
+      staticInteropClassEraser.visitLibrary(library);
     }
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
