@@ -197,20 +197,13 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    var analysisContext = contextFor(testFile);
-
-    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    tracker.addContext(analysisContext);
-
     var context = DartFixContextImpl(
       TestInstrumentationService(),
       workspace,
       testAnalysisResult,
       error,
-      (name) {
-        var provider = TopLevelDeclarationsProvider(tracker);
-        provider.doTrackerWork();
-        return provider.get(analysisContext, testFile, name);
+      (name) async {
+        return TopLevelDeclarations(testAnalysisResult).withName(name);
       },
     );
 
@@ -522,10 +515,6 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    var analysisContext = contextFor(testFile);
-
-    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    tracker.addContext(analysisContext);
     extensionCache.cacheFromResult(testAnalysisResult);
 
     var context = DartFixContextImpl(
@@ -533,10 +522,8 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       workspace,
       testAnalysisResult,
       error,
-      (name) {
-        var provider = TopLevelDeclarationsProvider(tracker);
-        provider.doTrackerWork();
-        return provider.get(analysisContext, testFile, name);
+      (name) async {
+        return TopLevelDeclarations(testAnalysisResult).withName(name);
       },
       extensionCache: extensionCache,
     );

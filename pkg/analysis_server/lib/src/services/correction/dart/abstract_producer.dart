@@ -7,7 +7,6 @@ import 'dart:math' as math;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
@@ -493,8 +492,11 @@ abstract class _AbstractCorrectionProducer {
 
   /// Return the top-level declarations with the [name] in libraries that are
   /// available to this context.
-  List<TopLevelDeclaration> getTopLevelDeclarations(String name) =>
-      _context.dartFixContext!.getTopLevelDeclarations(name);
+  Future<Map<LibraryElement, List<Element>>> getTopLevelDeclarations(
+    String name,
+  ) {
+    return _context.dartFixContext!.getTopLevelDeclarations(name);
+  }
 
   /// Return `true` the lint with the given [name] is enabled.
   bool isLintEnabled(String name) {

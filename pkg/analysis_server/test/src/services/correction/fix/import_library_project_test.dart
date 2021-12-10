@@ -714,6 +714,224 @@ main() {
 ''');
   }
 
+  Future<void> test_withClass_pub_other_inLib_dependencies() async {
+    var aaaRoot = getFolder('$packagesRootPath/aaa');
+    newFile('${aaaRoot.path}/lib/a.dart', content: '''
+class Test {}
+''');
+
+    updateTestPubspecFile(r'''
+name: test
+dependencies:
+  aaa: any
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path),
+    );
+
+    await resolveTestCode('''
+void f(Test t) {}
+''');
+
+    await assertHasFix('''
+import 'package:aaa/a.dart';
+
+void f(Test t) {}
+''');
+  }
+
+  Future<void> test_withClass_pub_other_inLib_devDependencies() async {
+    var aaaRoot = getFolder('$packagesRootPath/aaa');
+    newFile('${aaaRoot.path}/lib/a.dart', content: '''
+class Test {}
+''');
+
+    updateTestPubspecFile(r'''
+name: test
+dev_dependencies:
+  aaa: any
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path),
+    );
+
+    await resolveTestCode('''
+void f(Test t) {}
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_withClass_pub_other_inLib_notListed() async {
+    var aaaRoot = getFolder('$packagesRootPath/aaa');
+    newFile('${aaaRoot.path}/lib/a.dart', content: '''
+class Test {}
+''');
+
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path),
+    );
+
+    await resolveTestCode('''
+void f(Test t) {}
+''');
+
+    // If `aaa` is not in `dependencies`, we will not suggest it.
+    await assertNoFix();
+  }
+
+  Future<void> test_withClass_pub_other_inTest_dependencies() async {
+    var aaaRoot = getFolder('$packagesRootPath/aaa');
+    newFile('${aaaRoot.path}/lib/a.dart', content: '''
+class Test {}
+''');
+
+    updateTestPubspecFile(r'''
+name: test
+dependencies:
+  aaa: any
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path),
+    );
+
+    var b = newFile('$testPackageTestPath/b.dart', content: r'''
+void f(Test t) {}
+''');
+
+    await resolveFile2(b.path);
+
+    await assertHasFix('''
+import 'package:aaa/a.dart';
+
+void f(Test t) {}
+''', target: b.path);
+  }
+
+  Future<void> test_withClass_pub_other_inTest_devDependencies() async {
+    var aaaRoot = getFolder('$packagesRootPath/aaa');
+    newFile('${aaaRoot.path}/lib/a.dart', content: '''
+class Test {}
+''');
+
+    updateTestPubspecFile(r'''
+name: test
+dev_dependencies:
+  aaa: any
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path),
+    );
+
+    var b = newFile('$testPackageTestPath/b.dart', content: r'''
+void f(Test t) {}
+''');
+
+    await resolveFile2(b.path);
+
+    await assertHasFix('''
+import 'package:aaa/a.dart';
+
+void f(Test t) {}
+''', target: b.path);
+  }
+
+  Future<void> test_withClass_pub_this() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/a.dart', content: r'''
+class Test {}
+''');
+
+    await resolveTestCode('''
+void f(Test t) {}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f(Test t) {}
+''');
+  }
+
+  Future<void> test_withClass_pub_this_inLib_excludesTest() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageTestPath/a.dart', content: r'''
+class Test {}
+''');
+
+    await resolveTestCode('''
+void f(Test t) {}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_withClass_pub_this_inTest_includesTest() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageTestPath/a.dart', content: r'''
+class Test {}
+''');
+
+    var b = newFile('$testPackageTestPath/b.dart', content: r'''
+void f(Test t) {}
+''');
+
+    await resolveFile2(b.path);
+
+    await assertHasFix('''
+import 'a.dart';
+
+void f(Test t) {}
+''', target: b.path);
+  }
+
+  Future<void> test_withExtension_pub_this() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/a.dart', content: r'''
+extension IntExtension on int {
+  int get foo => 0;
+}
+''');
+
+    await resolveTestCode('''
+void f() {
+  IntExtension(0).foo;
+}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() {
+  IntExtension(0).foo;
+}
+''');
+  }
+
   Future<void> test_withFunction() async {
     addSource('$testPackageLibPath/lib.dart', '''
 library lib;
@@ -973,47 +1191,6 @@ class ImportLibraryProject3Test extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT3;
 
-  Future<void> test_inLibSrc_differentContextRoot() async {
-    newFile('/.pub-cache/bbb/lib/b1.dart', content: r'''
-import 'src/b2.dart';
-class A {}
-''');
-
-    writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'bbb', rootPath: '/.pub-cache/bbb'),
-    );
-
-    newFile('/.pub-cache/bbb/lib/src/b2.dart', content: 'class Test {}');
-    await resolveTestCode('''
-import 'package:bbb/b1.dart';
-main() {
-  Test t;
-  A? a;
-  print('\$t \$a');
-}
-''');
-    await assertNoFix();
-  }
-
-  Future<void> test_inLibSrc_thisContextRoot() async {
-    addSource('$testPackageLibPath/src/lib.dart', 'class Test {}');
-    await resolveTestCode('''
-main() {
-  Test t;
-  print(t);
-}
-''');
-    await assertHasFix('''
-import 'package:test/src/lib.dart';
-
-main() {
-  Test t;
-  print(t);
-}
-''');
-  }
-
   Future<void> test_inLibSrc_thisContextRoot_extension() async {
     addSource('$testPackageLibPath/src/lib.dart', '''
 extension E on int {
@@ -1032,5 +1209,47 @@ f() {
   print(E.m());
 }
 ''');
+  }
+
+  Future<void> test_withClass_pub_this_inLib_includesThisSrc() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/src/a.dart', content: r'''
+class Test {}
+''');
+
+    await resolveTestCode('''
+void f(Test t) {}
+''');
+
+    await assertHasFix('''
+import 'package:test/src/a.dart';
+
+void f(Test t) {}
+''');
+  }
+
+  Future<void> test_withClass_pub_this_inTest_includesThisSrc() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageLibPath/src/a.dart', content: r'''
+class Test {}
+''');
+
+    var b = newFile('$testPackageTestPath/b.dart', content: r'''
+void f(Test t) {}
+''');
+
+    await resolveFile2(b.path);
+
+    await assertHasFix('''
+import 'package:test/src/a.dart';
+
+void f(Test t) {}
+''', target: b.path);
   }
 }

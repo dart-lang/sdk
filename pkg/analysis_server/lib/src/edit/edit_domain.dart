@@ -604,17 +604,9 @@ class EditDomainHandler extends AbstractRequestHandler {
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace(server.currentSessions);
           var context = DartFixContextImpl(
-              server.instrumentationService, workspace, result, error, (name) {
-            var tracker = server.declarationsTracker;
-            if (tracker == null) {
-              return const [];
-            }
-            var provider = TopLevelDeclarationsProvider(tracker);
-            return provider.get(
-              result.session.analysisContext,
-              result.path,
-              name,
-            );
+              server.instrumentationService, workspace, result, error,
+              (name) async {
+            return TopLevelDeclarations(result).withName(name);
           }, extensionCache: server.getExtensionCacheFor(result));
 
           List<Fix> fixes;
