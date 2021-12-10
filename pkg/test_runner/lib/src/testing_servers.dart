@@ -166,6 +166,7 @@ class TestingServers {
       server.addHandler('/$prefixBuildDir', fileHandler);
       server.addHandler('/$prefixDartDir', fileHandler);
       server.addHandler('/packages', fileHandler);
+      server.addHandler('/upload', _handleUploadRequest);
       _serverList.add(httpServer);
       return server;
     });
@@ -235,6 +236,23 @@ class TestingServers {
       DebugLogger.warning(
           'HttpServer: error while transforming to WebSocket', e);
     });
+  }
+
+  void _handleUploadRequest(HttpRequest request) async {
+    try {
+      var builder = await request.fold(BytesBuilder(), (var b, var d) {
+        b.add(d);
+        return b;
+      });
+      var data = builder.takeBytes();
+      DebugLogger.info(
+          'Uploaded data: ${String.fromCharCodes(data as Iterable<int>)}');
+      request.response.headers.set("Access-Control-Allow-Origin", "*");
+      request.response.close();
+    } catch (e) {
+      DebugLogger.warning(
+          'HttpServer: error while processing upload request', e);
+    }
   }
 
   Uri _getFileUriFromRequestUri(Uri request) {
