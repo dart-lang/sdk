@@ -15,7 +15,6 @@ part of dart.math;
 /// from 0, inclusive, to [max], exclusive, use [nextInt(int max)].
 /// ```dart
 /// var value = Random().nextInt(10); // Value between 0 - 9.
-/// value = Random().nextInt(10) + 1; // Value between 0 - 10.
 /// value = Random().nextInt(100) + 50; // Value between 50 - 149
 /// ```
 /// To create a random boolean value, use [nextBool].
@@ -25,7 +24,7 @@ part of dart.math;
 /// To create random floating point value, use [nextDouble].
 /// ```dart
 /// var value = Random().nextDouble(); // Value between 0.0 - 1.0.
-/// value = Random().nextDouble() + 10; // Value is > 10.0 and value < 11.0
+/// value = Random().nextDouble() + 10; // Value is >= 10.0 and < 11.0
 /// ```
 abstract class Random {
   /// Creates a random number generator.
