@@ -38,7 +38,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 
 /// Two or more string literals that are implicitly concatenated because of
@@ -318,7 +317,9 @@ abstract class AstNode implements SyntacticEntity {
 
   /// Return either this node or the most immediate ancestor of this node for
   /// which the [predicate] returns `true`, or `null` if there is no such node.
-  E? thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate);
+  E? thisOrAncestorMatching<E extends AstNode>(
+    bool Function(AstNode) predicate,
+  );
 
   /// Return either this node or the most immediate ancestor of this node that
   /// has the given type, or `null` if there is no such node.
