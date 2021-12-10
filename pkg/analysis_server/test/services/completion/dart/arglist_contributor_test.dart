@@ -120,107 +120,6 @@ mixin ArgListContributorMixin on DartCompletionContributorTest {
 @reflectiveTest
 class ArgListContributorTest extends DartCompletionContributorTest
     with ArgListContributorMixin {
-  Future<void> test_closure_namedArgument() async {
-    addTestSource(r'''
-void f({void Function(int a, String b) closure}) {}
-
-void main() {
-  f(closure: ^);
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, b) => ,',
-      selectionOffset: 10,
-    );
-
-    assertSuggest(
-      '''
-(a, b) {
-${' ' * 4}
-${' ' * 2}},''',
-      selectionOffset: 13,
-    );
-  }
-
-  Future<void> test_closure_namedArgument_hasComma() async {
-    addTestSource(r'''
-void f({void Function(int a, String b) closure}) {}
-
-void main() {
-  f(
-    closure: ^,
-  );
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, b) => ',
-      selectionOffset: 10,
-    );
-
-    assertSuggest(
-      '''
-(a, b) {
-${' ' * 6}
-${' ' * 4}}''',
-      selectionOffset: 15,
-    );
-  }
-
-  Future<void> test_closure_namedArgument_parameters_optionalNamed() async {
-    addTestSource(r'''
-void f({void Function(int a, {int b, int c}) closure}) {}
-
-void main() {
-  f(closure: ^);
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, {b, c}) => ,',
-      selectionOffset: 15,
-    );
-  }
-
-  Future<void>
-      test_closure_namedArgument_parameters_optionalPositional() async {
-    addTestSource(r'''
-void f({void Function(int a, [int b, int c]) closure]) {}
-
-void main() {
-  f(closure: ^);
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, [b, c]) => ,',
-      selectionOffset: 15,
-    );
-  }
-
-  /// todo (pq): implement positional functional parameters
-  @failingTest
-  Future<void> test_closure_positionalArgument() async {
-    addTestSource(r'''
-void f(void Function(int a, int b) closure) {}
-
-void main() {
-  f(^);
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, b, c) => ,',
-      selectionOffset: 13,
-    );
-  }
-
   Future<void> test_fieldFormal_documentation() async {
     var content = '''
 class A {
@@ -486,6 +385,45 @@ foo({String children}) {}
   Future<void> test_named_03() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
+      arguments: '(o^ two: 2)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+            namedArgumentsWithTypes: {'one': 'bool'}, includeComma: true);
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ,', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_04() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(o^, two: 2)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+            namedArgumentsWithTypes: {'one': 'bool'}, includeComma: false);
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_05() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(o^ , two: 2)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+            namedArgumentsWithTypes: {'one': 'bool'}, includeComma: false);
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_06() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
       arguments: '(^o,)',
       check: () {
         assertSuggestArgumentsAndTypes(
@@ -497,7 +435,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_04() async {
+  Future<void> test_named_07() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
       arguments: '(^ two: 2)',
@@ -510,20 +448,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_05() async {
-    await _tryParametersArguments(
-      parameters: '({bool one, int two})',
-      arguments: '(o^ two: 2)',
-      check: () {
-        assertSuggestArgumentsAndTypes(
-            namedArgumentsWithTypes: {'one': 'bool'}, includeComma: true);
-        assertSuggestArgumentAndCompletion('one',
-            completion: 'one: ,', selectionOffset: 5);
-      },
-    );
-  }
-
-  Future<void> test_named_06() async {
+  Future<void> test_named_08() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
       arguments: '(^two: 2)',
@@ -533,7 +458,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_07() async {
+  Future<void> test_named_09() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
       arguments: '(^, two: 2)',
@@ -548,20 +473,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_08() async {
-    await _tryParametersArguments(
-      parameters: '({bool one, int two})',
-      arguments: '(o^, two: 2)',
-      check: () {
-        assertSuggestArgumentsAndTypes(
-            namedArgumentsWithTypes: {'one': 'bool'}, includeComma: false);
-        assertSuggestArgumentAndCompletion('one',
-            completion: 'one: ', selectionOffset: 5);
-      },
-    );
-  }
-
-  Future<void> test_named_09() async {
+  Future<void> test_named_10() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
       arguments: '(^ , two: 2)',
@@ -573,7 +485,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_10() async {
+  Future<void> test_named_11() async {
     await _tryParametersArguments(
       parameters: '(int one, {bool two, int three})',
       arguments: '(1, ^, three: 3)',
@@ -585,7 +497,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_11() async {
+  Future<void> test_named_12() async {
     await _tryParametersArguments(
       parameters: '(int one, {bool two, int three})',
       arguments: '(1, ^ three: 3)',
@@ -595,7 +507,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_12() async {
+  Future<void> test_named_13() async {
     await _tryParametersArguments(
       parameters: '(int one, {bool two, int three})',
       arguments: '(1, ^three: 3)',
@@ -606,7 +518,7 @@ foo({String children}) {}
   }
 
   @failingTest
-  Future<void> test_named_13() async {
+  Future<void> test_named_14() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
       arguments: '(two: 2^)',
@@ -617,7 +529,7 @@ foo({String children}) {}
   }
 
   @failingTest
-  Future<void> test_named_14() async {
+  Future<void> test_named_15() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
       arguments: '(two: 2 ^)',
@@ -627,7 +539,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_15() async {
+  Future<void> test_named_16() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
       arguments: '(two: 2, ^)',
@@ -641,7 +553,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_16() async {
+  Future<void> test_named_17() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
       arguments: '(two: 2, o^)',
@@ -655,7 +567,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_17() async {
+  Future<void> test_named_18() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
       arguments: '(two: 2, o^,)',
@@ -669,7 +581,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_18() async {
+  Future<void> test_named_19() async {
     await _tryParametersArguments(
       parameters: '(int one, int two, int three, {int four, int five})',
       arguments: '(1, ^, 3)',
@@ -679,7 +591,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_19() async {
+  Future<void> test_named_20() async {
     await _tryParametersArguments(
       languageVersion: '2.15',
       parameters: '(int one, int two, int three, {int four, int five})',
@@ -690,7 +602,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_20() async {
+  Future<void> test_named_21() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
       arguments: '(o^: false)',
@@ -703,7 +615,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_21() async {
+  Future<void> test_named_22() async {
     await _tryParametersArguments(
       parameters: '(bool one, {int two, double three})',
       arguments: '(false, ^t: 2)',
@@ -713,7 +625,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_22() async {
+  Future<void> test_named_23() async {
     await _tryParametersArguments(
       parameters: '(bool one, {int two, double three})',
       arguments: '(false, ^: 2)',
@@ -725,7 +637,7 @@ foo({String children}) {}
     );
   }
 
-  Future<void> test_named_23() async {
+  Future<void> test_named_24() async {
     await _tryParametersArguments(
       parameters: '({bool one, int two})',
       arguments: '(one: ^)',

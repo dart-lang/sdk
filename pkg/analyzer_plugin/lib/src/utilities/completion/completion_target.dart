@@ -343,6 +343,37 @@ class CompletionTarget {
     return false;
   }
 
+  /// Return `true` if the [offset] is followed by a comma.
+  bool get isFollowedByComma {
+    // f(^); NO
+    // f(one: 1, ^); NO
+    // f(^ , one: 1); YES
+    // f(^, one: 1); YES
+    // f(^ one: 1); NO
+
+    bool isExistingComma(Token? token) {
+      return token != null &&
+          !token.isSynthetic &&
+          token.type == TokenType.COMMA;
+    }
+
+    var entity = this.entity;
+
+    Token token;
+    if (entity is AstNode) {
+      token = entity.endToken;
+    } else if (entity is Token) {
+      token = entity;
+    } else {
+      return false;
+    }
+
+    if (token.offset <= offset && offset <= token.end) {
+      return isExistingComma(token.next);
+    }
+    return isExistingComma(token);
+  }
+
   /// If the target is an argument in an argument list, and the invocation is
   /// resolved, return the corresponding [ParameterElement].
   ParameterElement? get parameterElement {
