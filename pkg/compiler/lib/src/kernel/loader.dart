@@ -52,6 +52,37 @@ class KernelLoaderTask extends CompilerTask {
   @override
   String get name => 'kernel loader';
 
+  static Library _findEntryLibrary(Component component, Uri entryUri) {
+    var entryLibrary = component.libraries
+        .firstWhere((l) => l.fileUri == entryUri, orElse: () => null);
+    if (entryLibrary == null) {
+      throw ArgumentError('Entry uri $entryUri not found in dill.');
+    }
+    return entryLibrary;
+  }
+
+  static ir.Reference _findMainMethod(Library entryLibrary) {
+    var mainMethod = entryLibrary.procedures
+        .firstWhere((p) => p.name.text == 'main', orElse: () => null);
+
+    // In some cases, a main method is defined in another file, and then
+    // exported. In these cases, we search for the main method in
+    // [additionalExports].
+    ir.Reference mainMethodReference;
+    if (mainMethod == null) {
+      mainMethodReference = entryLibrary.additionalExports.firstWhere(
+          (p) => p.canonicalName.name == 'main',
+          orElse: () => null);
+    } else {
+      mainMethodReference = mainMethod.reference;
+    }
+    if (mainMethodReference == null) {
+      throw ArgumentError(
+          'Entry uri ${entryLibrary.fileUri} has no main method.');
+    }
+    return mainMethodReference;
+  }
+
   /// Loads an entire Kernel [Component] from a file on disk.
   Future<KernelResult> load() {
     return measure(() async {
@@ -127,6 +158,18 @@ class KernelLoaderTask extends CompilerTask {
           for (Uri dependency in _options.dillDependencies) {
             await read(dependency);
           }
+        }
+
+        if (_options.entryUri != null) {
+          var entryLibrary = _findEntryLibrary(component, _options.entryUri);
+          var mainMethod = _findMainMethod(entryLibrary);
+          component.setMainMethodAndMode(mainMethod, true, component.mode);
+        }
+        if (!_options.modularMode && component.mainMethod == null) {
+          // TODO(sigmund): move this so that we use the same error template
+          // from the CFE.
+          _reporter.reportError(_reporter.createMessage(NO_LOCATION_SPANNABLE,
+              MessageKind.GENERIC, {'text': "No 'main' method found."}));
         }
       } else {
         bool verbose = false;
@@ -250,40 +293,7 @@ class KernelResult {
   KernelResult(this.component, this.rootLibraryUri, this.libraries,
       this.moduleLibraries);
 
-  static Library _findEntryLibrary(Component component, Uri entryUri) {
-    var entryLibrary = component.libraries
-        .firstWhere((l) => l.fileUri == entryUri, orElse: () => null);
-    if (entryLibrary == null) {
-      throw ArgumentError('Entry uri $entryUri not found in dill.');
-    }
-    return entryLibrary;
-  }
-
-  static ir.Reference _findMainMethod(Library entryLibrary) {
-    var mainMethod = entryLibrary.procedures
-        .firstWhere((p) => p.name.text == 'main', orElse: () => null);
-
-    // In some cases, a main method is defined in another file, and then
-    // exported. In these cases, we search for the main method in
-    // [additionalExports].
-    ir.Reference mainMethodReference;
-    if (mainMethod == null) {
-      mainMethodReference = entryLibrary.additionalExports.firstWhere(
-          (p) => p.canonicalName.name == 'main',
-          orElse: () => null);
-    } else {
-      mainMethodReference = mainMethod.reference;
-    }
-    if (mainMethodReference == null) {
-      throw ArgumentError(
-          'Entry uri ${entryLibrary.fileUri} has no main method.');
-    }
-    return mainMethodReference;
-  }
-
-  void setMainAndTrimComponent(Uri entryUri) {
-    var entryLibrary = _findEntryLibrary(component, entryUri);
-    var mainMethod = _findMainMethod(entryLibrary);
+  void trimComponent(Uri entryUri) {
     var irLibraryMap = <Uri, Library>{};
     var irLibraries = <Library>[];
     for (var library in component.libraries) {
@@ -292,11 +302,13 @@ class KernelResult {
     for (var library in libraries) {
       irLibraries.add(irLibraryMap[library]);
     }
+    var mainMethod = component.mainMethodName;
+    var componentMode = component.mode;
     component = ir.Component(
         libraries: irLibraries,
         uriToSource: component.uriToSource,
         nameRoot: component.root);
-    component.setMainMethodAndMode(mainMethod, true, component.mode);
+    component.setMainMethodAndMode(mainMethod, true, componentMode);
   }
 
   @override
