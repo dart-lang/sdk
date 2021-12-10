@@ -72,8 +72,7 @@ class CiderFixesComputer {
       String name) async {
     var result = <LibraryElement, List<Element>>{};
     var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
-    for (var fileWithKind in files) {
-      var file = fileWithKind.file;
+    for (var file in files) {
       if (file.partOfLibrary == null) {
         var libraryElement = _fileResolver.getLibraryByUri(
           uriStr: file.uriStr,
