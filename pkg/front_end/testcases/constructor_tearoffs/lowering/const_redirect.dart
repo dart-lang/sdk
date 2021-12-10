@@ -14,6 +14,13 @@ class Class {
         Alias.impl(),
         ImplAlias<String>()
       ]});
+
+  const Class.named(
+      {this.constants = const [
+        Const.impl(),
+        Alias.impl(),
+        ImplAlias<String>()
+      ]});
 }
 
 typedef Alias = Const;
