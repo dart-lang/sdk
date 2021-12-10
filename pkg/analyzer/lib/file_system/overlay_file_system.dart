@@ -40,16 +40,6 @@ class OverlayResourceProvider implements ResourceProvider {
   Folder getFolder(String path) =>
       _OverlayFolder(this, baseProvider.getFolder(path));
 
-  @Deprecated('Not used by clients')
-  @override
-  Future<List<int>> getModificationTimes(List<Source> sources) async {
-    return sources.map((source) {
-      String path = source.fullName;
-      return _overlays[path]?.modificationStamp ??
-          baseProvider.getFile(path).modificationStamp;
-    }).toList();
-  }
-
   @override
   Resource getResource(String path) {
     if (hasOverlay(path)) {
@@ -353,16 +343,6 @@ abstract class _OverlayResource implements Resource {
 
   @override
   int get hashCode => path.hashCode;
-
-  @Deprecated('Use parent2 instead')
-  @override
-  Folder? get parent {
-    Folder? parent = _resource.parent;
-    if (parent == null) {
-      return null;
-    }
-    return _OverlayFolder(provider, parent);
-  }
 
   @override
   Folder get parent2 {

@@ -22,8 +22,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   final pathos.Context _pathContext;
 
-  MemoryResourceProvider(
-      {pathos.Context? context, @deprecated bool isWindows = false})
+  MemoryResourceProvider({pathos.Context? context})
       : _pathContext = context ??= pathos.style == pathos.Style.windows
             // On Windows, ensure that the current drive matches
             // the drive inserted by MemoryResourceProvider.convertPath
@@ -106,20 +105,6 @@ class MemoryResourceProvider implements ResourceProvider {
     return _MemoryFolder(this, path);
   }
 
-  @Deprecated('Not used by clients')
-  @override
-  Future<List<int>> getModificationTimes(List<Source> sources) async {
-    return sources.map((source) {
-      String path = source.fullName;
-      var file = getFile(path);
-      try {
-        return file.modificationStamp;
-      } on FileSystemException {
-        return -1;
-      }
-    }).toList();
-  }
-
   @override
   Resource getResource(String path) {
     _ensureAbsoluteAndNormalized(path);
@@ -146,17 +131,6 @@ class MemoryResourceProvider implements ResourceProvider {
       timeStamp: nextStamp++,
     );
     _notifyWatchers(path, ChangeType.MODIFY);
-  }
-
-  /// Create a resource representing a dummy link (that is, a File object which
-  /// appears in its parent directory, but whose `exists` property is false)
-  @Deprecated('Not used by clients')
-  File newDummyLink(String path) {
-    _ensureAbsoluteAndNormalized(path);
-    newFolder(pathContext.dirname(path));
-    _MemoryDummyLink link = _MemoryDummyLink(this, path);
-    _notifyWatchers(path, ChangeType.ADD);
-    return link;
   }
 
   File newFile(
@@ -200,18 +174,6 @@ class MemoryResourceProvider implements ResourceProvider {
     _ensureAbsoluteAndNormalized(path);
     _ensureAbsoluteAndNormalized(target);
     _pathToLinkedPath[path] = target;
-  }
-
-  @Deprecated('Not used by clients')
-  File updateFile(String path, String content, [int? stamp]) {
-    _ensureAbsoluteAndNormalized(path);
-    newFolder(pathContext.dirname(path));
-    _pathToData[path] = _FileData(
-      bytes: utf8.encode(content) as Uint8List,
-      timeStamp: stamp ?? nextStamp++,
-    );
-    _notifyWatchers(path, ChangeType.MODIFY);
-    return _MemoryFile(this, path);
   }
 
   /// Write a representation of the file system on the given [sink].
@@ -358,81 +320,6 @@ class _FileData extends _ResourceData {
 class _FolderData extends _ResourceData {
   /// Names (not paths) of direct children.
   final List<String> childNames = [];
-}
-
-/// An in-memory implementation of [File] which acts like a symbolic link to a
-/// non-existent file.
-class _MemoryDummyLink extends _MemoryResource implements File {
-  _MemoryDummyLink(MemoryResourceProvider provider, String path)
-      : super(provider, path);
-
-  @override
-  Stream<WatchEvent> get changes {
-    throw FileSystemException(path, "File does not exist");
-  }
-
-  @override
-  bool get exists => false;
-
-  @override
-  int get lengthSync {
-    throw FileSystemException(path, 'File could not be read');
-  }
-
-  @override
-  int get modificationStamp {
-    throw FileSystemException(path, "File does not exist");
-  }
-
-  @override
-  File copyTo(Folder parentFolder) {
-    throw FileSystemException(path, 'File could not be copied');
-  }
-
-  @override
-  Source createSource([Uri? uri]) {
-    throw FileSystemException(path, 'File could not be read');
-  }
-
-  @override
-  void delete() {
-    throw FileSystemException(path, 'File could not be deleted');
-  }
-
-  @override
-  bool isOrContains(String path) {
-    return path == this.path;
-  }
-
-  @override
-  Uint8List readAsBytesSync() {
-    throw FileSystemException(path, 'File could not be read');
-  }
-
-  @override
-  String readAsStringSync() {
-    throw FileSystemException(path, 'File could not be read');
-  }
-
-  @override
-  File renameSync(String newPath) {
-    throw FileSystemException(path, 'File could not be renamed');
-  }
-
-  @override
-  File resolveSymbolicLinksSync() {
-    return throw FileSystemException(path, "File does not exist");
-  }
-
-  @override
-  void writeAsBytesSync(List<int> bytes) {
-    throw FileSystemException(path, 'File could not be written');
-  }
-
-  @override
-  void writeAsStringSync(String content) {
-    throw FileSystemException(path, 'File could not be written');
-  }
 }
 
 /// An in-memory implementation of [File].
@@ -698,16 +585,6 @@ abstract class _MemoryResource implements Resource {
 
   @override
   int get hashCode => path.hashCode;
-
-  @Deprecated('Use parent2 instead')
-  @override
-  Folder? get parent {
-    String parentPath = provider.pathContext.dirname(path);
-    if (parentPath == path) {
-      return null;
-    }
-    return provider.getFolder(parentPath);
-  }
 
   @override
   Folder get parent2 {

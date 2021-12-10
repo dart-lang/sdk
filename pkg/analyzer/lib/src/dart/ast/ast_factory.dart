@@ -1327,14 +1327,6 @@ class AstFactoryImpl extends AstFactory {
   TypeLiteralImpl typeLiteral({required NamedType typeName}) =>
       TypeLiteralImpl(typeName as NamedTypeImpl);
 
-  @Deprecated('Use namedType() instead')
-  @override
-  NamedTypeImpl typeName(Identifier name, TypeArgumentList? typeArguments,
-          {Token? question}) =>
-      NamedTypeImpl(
-          name as IdentifierImpl, typeArguments as TypeArgumentListImpl?,
-          question: question);
-
   @override
   TypeParameterImpl typeParameter(
           Comment? comment,

@@ -544,17 +544,18 @@ $ dart2js_info coverage_analysis main.dart.info.data main.dart.coverage.json
 This package is developed in [github][repo].  Please file feature requests and
 bugs at the [issue tracker][tracker].
 
-[repo]: https://github.com/dart-lang/dart2js_info/
-[tracker]: https://github.com/dart-lang/dart2js_info/issues
-[code_deps]: https://github.com/dart-lang/dart2js_info/blob/master/bin/code_deps.dart
-[diff]: https://github.com/dart-lang/dart2js_info/blob/master/bin/diff.dart
-[library_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/library_size_split.dart
-[deferred_check]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_check.dart
-[deferred_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_size.dart
-[deferred_layout]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_layout.dart
-[coverage_server]: https://github.com/dart-lang/dart2js_info/blob/master/bin/coverage_log_server.dart
-[coverage_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
-[function_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
-[AllInfo]: http://dart-lang.github.io/dart2js_info/doc/api/dart2js_info.info/AllInfo-class.html
-[convert]: https://github.com/dart-lang/dart2js_info/blob/master/bin/convert.dart
-[show]: https://github.com/dart-lang/dart2js_info/blob/master/bin/text_print.dart
+[AllInfo]: https://pub.dev/documentation/dart2js_info/latest/dart2js_info.info/AllInfo-class.html
+[code_deps]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/code_deps.dart
+[common]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/common_command.dart
+[convert]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/convert.dart
+[coverage_server]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/coverage_log_server.dart
+[coverage_analysis]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/live_code_size_analysis.dart
+[deferred_check]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/deferred_library_check.dart
+[deferred_layout]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/deferred_library_layout.dart
+[deferred_size]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/deferred_library_size.dart
+[diff]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/diff.dart
+[function_size]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/function_size_analysis.dart
+[library_size]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/library_size_split.dart
+[repo]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/
+[show]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/text_print.dart
+[tracker]: https://github.com/dart-lang/sdk/issues

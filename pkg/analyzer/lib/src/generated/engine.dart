@@ -341,11 +341,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     nonPackageFeatureSet = featureSet;
   }
 
-  @deprecated
-  set enabledExperiments(List<String> enabledExperiments) {
-    _contextFeatures = ExperimentStatus.fromStrings(enabledExperiments);
-  }
-
   @override
   List<ErrorProcessor> get errorProcessors =>
       _errorProcessors ??= const <ErrorProcessor>[];

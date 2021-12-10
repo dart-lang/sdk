@@ -1,0 +1,26 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Disposable extends core::Object {
+}
+abstract class A extends core::Object {
+}
+abstract class Data<T extends core::Object? = dynamic> extends core::Object {
+}
+class DataStream<T extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::DataStream<self::DataStream::T%>
+    : super core::Object::•() {
+    self::DataStream::T? lastValue = block {
+      #C1!;
+    } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+    if(!(throw "Attempt to execute code removed by Dart AOT compiler (TFA)") && false && !([@vm.inferred-type.metadata=dart.core::bool (skip check) (receiver not int)] lastValue{self::DataStream::T & self::Disposable /* '!' & '!' = '!' */} =={core::Object::==}{(core::Object) → core::bool} #C1)) {
+    }
+  }
+}
+static method main() → void {
+  new self::DataStream::•<self::A>();
+}
+constants  {
+  #C1 = null
+}

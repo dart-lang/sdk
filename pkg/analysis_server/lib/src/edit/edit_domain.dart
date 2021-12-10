@@ -536,7 +536,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     // Do sort.
-    var sorter = MemberSorter(code, unit);
+    var sorter = MemberSorter(code, unit, result.lineInfo);
     var edits = sorter.sort();
     var fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
     server.sendResponse(EditSortMembersResult(fileEdit).toResponse(request.id));

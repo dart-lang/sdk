@@ -32,27 +32,6 @@ String? _getStandardStateLocation() {
       : null;
 }
 
-/// Return modification times for every file path in [paths].
-///
-/// If a path is `null`, the modification time is also `null`.
-///
-/// If any exception happens, the file is considered as a not existing and
-/// `-1` is its modification time.
-List<int?> _pathsToTimes(List<String?> paths) {
-  return paths.map((path) {
-    if (path != null) {
-      try {
-        io.File file = io.File(path);
-        return file.lastModifiedSync().millisecondsSinceEpoch;
-      } catch (_) {
-        return -1;
-      }
-    } else {
-      return null;
-    }
-  }).toList();
-}
-
 /// A `dart:io` based implementation of [ResourceProvider].
 class PhysicalResourceProvider implements ResourceProvider {
   static final PhysicalResourceProvider INSTANCE = PhysicalResourceProvider();
@@ -76,13 +55,6 @@ class PhysicalResourceProvider implements ResourceProvider {
   Folder getFolder(String path) {
     _ensureAbsoluteAndNormalized(path);
     return _PhysicalFolder(io.Directory(path));
-  }
-
-  @Deprecated('Not used by clients')
-  @override
-  Future<List<int?>> getModificationTimes(List<Source> sources) async {
-    List<String> paths = sources.map((source) => source.fullName).toList();
-    return _pathsToTimes(paths);
   }
 
   @override
@@ -355,16 +327,6 @@ abstract class _PhysicalResource implements Resource {
 
   @override
   int get hashCode => path.hashCode;
-
-  @Deprecated('Use parent2 instead')
-  @override
-  Folder? get parent {
-    String parentPath = pathContext.dirname(path);
-    if (parentPath == path) {
-      return null;
-    }
-    return _PhysicalFolder(io.Directory(parentPath));
-  }
 
   @override
   Folder get parent2 {

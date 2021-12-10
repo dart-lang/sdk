@@ -1709,10 +1709,6 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   bool get isAbstract => abstractKeyword != null;
 
-  @Deprecated('Use superclass2 instead')
-  @override
-  NamedTypeImpl get superclass => _superclass;
-
   set superclass(NamedType superclass) {
     _superclass = _becomeParentOf(superclass as NamedTypeImpl);
   }
@@ -2653,10 +2649,6 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   set name(SimpleIdentifier? name) {
     _name = _becomeParentOf(name as SimpleIdentifierImpl?);
   }
-
-  @Deprecated('Use type2 instead')
-  @override
-  NamedTypeImpl get type => _type;
 
   set type(NamedType type) {
     _type = _becomeParentOf(type as NamedTypeImpl);
@@ -3724,10 +3716,6 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 
   @override
   Token get endToken => _superclass.endToken;
-
-  @Deprecated('Use superclass2 instead')
-  @override
-  NamedTypeImpl get superclass => _superclass;
 
   set superclass(NamedType name) {
     _superclass = _becomeParentOf(name as NamedTypeImpl);
@@ -5857,10 +5845,6 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   @override
   Token get endToken => _interfaces.endToken!;
 
-  @Deprecated('Use interfaces2 instead')
-  @override
-  NodeList<TypeName> get interfaces => _DelegatingTypeNameList(_interfaces);
-
   @override
   NodeListImpl<NamedType> get interfaces2 => _interfaces;
 
@@ -7516,7 +7500,7 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
 ///    typeName ::=
 ///        [Identifier] typeArguments? '?'?
 /// ignore: deprecated_member_use_from_same_package
-class NamedTypeImpl extends TypeAnnotationImpl implements TypeName {
+class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   /// The name of the type.
   IdentifierImpl _name;
 
@@ -8065,11 +8049,6 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
 
   @override
   Token get endToken => _superclassConstraints.endToken!;
-
-  @Deprecated('Use superclassConstraints2 instead')
-  @override
-  NodeList<TypeName> get superclassConstraints =>
-      _DelegatingTypeNameList(_superclassConstraints);
 
   @override
   NodeListImpl<NamedType> get superclassConstraints2 => _superclassConstraints;
@@ -10587,10 +10566,6 @@ class TypeLiteralImpl extends CommentReferableExpressionImpl
   @override
   NamedTypeImpl get type => _typeName;
 
-  @Deprecated('Use namedType instead')
-  @override
-  NamedTypeImpl get typeName => _typeName;
-
   set typeName(NamedTypeImpl value) {
     _typeName = _becomeParentOf(value);
   }
@@ -11171,10 +11146,6 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   @override
   Token get endToken => _mixinTypes.endToken!;
 
-  @Deprecated('Use mixinTypes2 instead')
-  @override
-  NodeList<TypeName> get mixinTypes => _DelegatingTypeNameList(_mixinTypes);
-
   @override
   NodeListImpl<NamedType> get mixinTypes2 => _mixinTypes;
 
@@ -11244,77 +11215,6 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
-  }
-}
-
-/// Implementation of `NodeList<TypeName>` that delegates.
-@Deprecated('Use NamedType instead')
-class _DelegatingTypeNameList
-    with ListMixin<TypeName>
-    implements NodeList<TypeName> {
-  final NodeListImpl<NamedType> _delegate;
-
-  _DelegatingTypeNameList(this._delegate);
-
-  @override
-  Token? get beginToken {
-    return _delegate.beginToken;
-  }
-
-  @override
-  Token? get endToken {
-    return _delegate.endToken;
-  }
-
-  @override
-  int get length => _delegate.length;
-
-  @override
-  set length(int newLength) {
-    _delegate.length = newLength;
-  }
-
-  @override
-  AstNodeImpl get owner => _delegate.owner;
-
-  @override
-  TypeName operator [](int index) {
-    return _delegate[index] as TypeName;
-  }
-
-  @override
-  void operator []=(int index, TypeName node) {
-    _delegate[index] = node;
-  }
-
-  @override
-  void accept(AstVisitor visitor) {
-    _delegate.accept(visitor);
-  }
-
-  @override
-  void add(NamedType node) {
-    _delegate.add(node);
-  }
-
-  @override
-  void addAll(Iterable<TypeName> nodes) {
-    _delegate.addAll(nodes);
-  }
-
-  @override
-  void clear() {
-    _delegate.clear();
-  }
-
-  @override
-  void insert(int index, TypeName node) {
-    _delegate.insert(index, node);
-  }
-
-  @override
-  TypeName removeAt(int index) {
-    return _delegate.removeAt(index) as TypeName;
   }
 }
 

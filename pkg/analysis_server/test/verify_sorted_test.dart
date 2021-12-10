@@ -143,7 +143,7 @@ void buildTestsIn(AnalysisSession session, String testDirPath,
         if (errors.isNotEmpty) {
           fail('Errors found when parsing $path');
         }
-        var sorter = MemberSorter(code, unit);
+        var sorter = MemberSorter(code, unit, result.lineInfo);
         var edits = sorter.sort();
         if (edits.isNotEmpty) {
           fail('Unsorted file $path');

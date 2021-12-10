@@ -9,15 +9,15 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 extension RangeFactoryExtensions on RangeFactory {
-  /// Return a source range that covers the given [item] in the containing
+  /// Return a source range that covers the given [node] in the containing
   /// [list]. This includes a leading or trailing comma, as appropriate, and any
   /// leading or trailing comments. The [lineInfo] is used to differentiate
-  /// trailing comments (on the same line as the end of the item) from leading
-  /// comments (on lines between the start of the item and the preceding comma).
+  /// trailing comments (on the same line as the end of the node) from leading
+  /// comments (on lines between the start of the node and the preceding comma).
   ///
-  /// Throws an `ArgumentError` if the [item] is not an element of the [list].
+  /// Throws an `ArgumentError` if the [node] is not an element of the [list].
   SourceRange nodeInListWithComments<T extends AstNode>(
-      LineInfo lineInfo, NodeList<T> list, T item) {
+      LineInfo lineInfo, NodeList<T> list, T node) {
     // TODO(brianwilkerson) Improve the name and signature of this method and
     //  make it part of the API of either `RangeFactory` or
     //  `DartFileEditBuilder`. The implementation currently assumes that the
@@ -28,24 +28,24 @@ extension RangeFactoryExtensions on RangeFactory {
     // TODO(brianwilkerson) Consider adding a `separator` parameter so that we
     //  can handle things like statements in a block.
     if (list.length == 1) {
-      if (list[0] != item) {
-        throw ArgumentError('The item must be in the list.');
+      if (list[0] != node) {
+        throw ArgumentError('The node must be in the list.');
       }
       // If there's only one item in the list, then delete everything including
       // any leading or trailing comments, including any trailing comma.
-      var leadingComment = _leadingComment(lineInfo, item.beginToken);
-      var trailingComment = _trailingComment(lineInfo, item.endToken, true);
+      var leadingComment = _leadingComment(lineInfo, node.beginToken);
+      var trailingComment = _trailingComment(lineInfo, node.endToken, true);
       return startEnd(leadingComment, trailingComment);
     }
-    final index = list.indexOf(item);
+    final index = list.indexOf(node);
     if (index < 0) {
-      throw ArgumentError('The item must be in the list.');
+      throw ArgumentError('The node must be in the list.');
     }
     if (index == 0) {
       // If this is the first item in the list, then delete everything from the
       // leading comment for this item to the leading comment for the next item.
       // This will include the comment after this item.
-      var thisLeadingComment = _leadingComment(lineInfo, item.beginToken);
+      var thisLeadingComment = _leadingComment(lineInfo, node.beginToken);
       var nextLeadingComment = _leadingComment(lineInfo, list[1].beginToken);
       return startStart(thisLeadingComment, nextLeadingComment);
     } else {
@@ -56,7 +56,7 @@ extension RangeFactoryExtensions on RangeFactory {
           _trailingComment(lineInfo, list[index - 1].endToken, false);
       var previousHasTrailingComment = previousTrailingComment is CommentToken;
       var thisTrailingComment =
-          _trailingComment(lineInfo, item.endToken, previousHasTrailingComment);
+          _trailingComment(lineInfo, node.endToken, previousHasTrailingComment);
       if (!previousHasTrailingComment && thisTrailingComment is CommentToken) {
         // But if this item has a trailing comment and the previous didn't, then
         // we'd be deleting both commas, which would leave invalid code. We
@@ -65,6 +65,24 @@ extension RangeFactoryExtensions on RangeFactory {
       }
       return endEnd(previousTrailingComment, thisTrailingComment);
     }
+  }
+
+  /// Return a source range that covers the given [node] from the start of
+  /// any leading comment token (excluding any token considered a trailing
+  /// comment for the previous node) or the start of the node itself if there
+  /// are none, up until the end of the trailing comment token or the end of the
+  /// node itself if there are none.
+  SourceRange nodeWithComments(LineInfo lineInfo, AstNode node) {
+    // If the node is the first thing in the unit, leading comments are treated
+    // as headers and should never be included in the range.
+    final isFirstItem = node.beginToken == node.root.beginToken;
+
+    var thisLeadingComment = isFirstItem
+        ? node.beginToken
+        : _leadingComment(lineInfo, node.beginToken);
+    var thisTrailingComment = _trailingComment(lineInfo, node.endToken, false);
+
+    return startEnd(thisLeadingComment, thisTrailingComment);
   }
 
   /// Return the comment token immediately following the [token] if it is on the
@@ -94,7 +112,11 @@ extension RangeFactoryExtensions on RangeFactory {
   /// the same line as the first non-comment token before the [token]. Return
   /// the [token] if there is no such comment.
   Token _leadingComment(LineInfo lineInfo, Token token) {
-    var previousLine = lineInfo.getLocation(token.previous!.offset).lineNumber;
+    var previous = token.previous;
+    if (previous == null || previous.type == TokenType.EOF) {
+      return token.precedingComments ?? token;
+    }
+    var previousLine = lineInfo.getLocation(previous.offset).lineNumber;
     Token? comment = token.precedingComments;
     while (comment != null) {
       var commentLine = lineInfo.getLocation(comment.offset).lineNumber;
