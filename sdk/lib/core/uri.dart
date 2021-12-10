@@ -26,20 +26,92 @@ const String _hexDigits = "0123456789ABCDEF";
 
 /// A parsed URI, such as a URL.
 ///
-/// **See also:**
+/// To create a URI with specific components, use [new Uri]:
+/// ```dart
+/// var httpsUri = Uri(
+///     scheme: 'https',
+///     host: 'dart.dev',
+///     path: '/guides/libraries/library-tour',
+///     fragment: 'numbers');
+/// print(httpsUri); // https://dart.dev/guides/libraries/library-tour#numbers
 ///
+/// httpsUri = Uri(
+///     scheme: 'https',
+///     host: 'example.com',
+///     path: '/page/',
+///     queryParameters: {'search': 'blue', 'limit': '10'});
+/// print(httpsUri); // https://example.com/page/?search=blue&limit=10
+///
+/// final mailtoUri = Uri(
+///     scheme: 'mailto',
+///     path: 'John.Doe@example.com',
+///     queryParameters: {'subject': 'Example'});
+/// print(mailtoUri); // mailto:John.Doe@example.com?subject=Example
+/// ```
+///
+/// ## HTTP and HTTPS URI
+/// To create a URI with https scheme, use [Uri.https] or [Uri.http]:
+/// ```dart
+/// final httpsUri = Uri.https('example.com', 'api/fetch', {'limit': '10'});
+/// print(httpsUri); // https://example.com/api/fetch?limit=10
+/// ```
+/// ## File URI
+/// To create a URI from file path, use [Uri.file]:
+/// ```dart
+/// final fileUriUnix =
+///     Uri.file(r'/home/myself/images/image.png', windows: false);
+/// print(fileUriUnix); // file:///home/myself/images/image.png
+///
+/// final fileUriWindows =
+///     Uri.file(r'C:\Users\myself\Documents\image.png', windows: true);
+/// print(fileUriWindows); // file:///C:/Users/myself/Documents/image.png
+/// ```
+/// If the URI is not a file URI, calling this throws [UnsupportedError].
+///
+/// ## Directory URI
+/// Like [Uri.file] except that a non-empty URI path ends in a slash.
+/// ```dart
+/// final fileDirectory =
+///     Uri.directory('/home/myself/data/image', windows: false);
+/// print(fileDirectory); // file:///home/myself/data/image/
+///
+/// final fileDirectoryWindows = Uri.directory('/data/images', windows: true);
+/// print(fileDirectoryWindows); //  file:///data/images/
+/// ```
+///
+/// ## URI from string
+/// To create a URI from string, use [Uri.parse] or [Uri.tryParse]:
+/// ```dart
+/// final uri = Uri.parse(
+///     'https://dart.dev/guides/libraries/library-tour#utility-classes');
+/// print(uri); // https://dart.dev
+/// print(uri.isScheme('https')); // true
+/// print(uri.origin); // https://dart.dev
+/// print(uri.host); // dart.dev
+/// print(uri.authority); // dart.dev
+/// print(uri.port); // 443
+/// print(uri.path); // guides/libraries/library-tour
+/// print(uri.pathSegments); // [guides, libraries, library-tour]
+/// print(uri.fragment); // utility-classes
+/// print(uri.hasQuery); // false
+/// print(uri.data); // null
+/// ```
+///
+/// **See also:**
 /// * [URIs][uris] in the [library tour][libtour]
-/// * [RFC-3986](http://tools.ietf.org/html/rfc3986)
+/// * [RFC-3986](https://tools.ietf.org/html/rfc3986)
+/// * [RFC-2396](https://tools.ietf.org/html/rfc2396)
+/// * [RFC-2045](https://tools.ietf.org/html/rfc2045)
 ///
 /// [uris]: https://dart.dev/guides/libraries/library-tour#uris
 /// [libtour]: https://dart.dev/guides/libraries/library-tour
 abstract class Uri {
   /// The natural base URI for the current platform.
   ///
-  /// When running in a browser this is the current URL of the current page
+  /// When running in a browser, this is the current URL of the current page
   /// (from `window.location.href`).
   ///
-  /// When not running in a browser this is the file URI referencing
+  /// When not running in a browser, this is the file URI referencing
   /// the current working directory.
   external static Uri get base;
 
@@ -93,7 +165,7 @@ abstract class Uri {
   /// When [query] is used, the provided string should be a valid URI query,
   /// but invalid characters, other than general delimiters,
   /// will be escaped if necessary.
-  /// When [queryParameters] is used the query is built from the
+  /// When [queryParameters] is used, the query is built from the
   /// provided map. Each key and value in the map is percent-encoded
   /// and joined using equal and ampersand characters.
   /// A value in the map must be either a string, or an [Iterable] of strings,
@@ -110,8 +182,24 @@ abstract class Uri {
   ///
   /// The fragment component is set through [fragment].
   /// It should be a valid URI fragment, but invalid characters other than
-  /// general delimiters, are escaped if necessary.
+  /// general delimiters are escaped if necessary.
   /// If [fragment] is omitted or `null`, the URI has no fragment part.
+  ///
+  /// Example:
+  /// ```dart
+  /// final httpsUri = Uri(
+  ///     scheme: 'https',
+  ///     host: 'dart.dev',
+  ///     path: 'guides/libraries/library-tour',
+  ///     fragment: 'numbers');
+  /// print(httpsUri); // https://dart.dev/guides/libraries/library-tour#numbers
+  ///
+  /// final mailtoUri = Uri(
+  ///     scheme: 'mailto',
+  ///     path: 'John.Doe@example.com',
+  ///     queryParameters: {'subject': 'Example'});
+  /// print(mailtoUri); // mailto:John.Doe@example.com?subject=Example
+  /// ```
   factory Uri(
       {String? scheme,
       String? userInfo,
@@ -125,20 +213,19 @@ abstract class Uri {
 
   /// Creates a new `http` URI from authority, path and query.
   ///
-  /// Examples:
-  ///
+  /// Example:
   /// ```dart
-  /// // http://example.org/path?q=dart.
-  /// Uri.http("example.org", "/path", { "q" : "dart" });
+  /// var uri = Uri.http('example.org', '/path', { 'q' : 'dart' });
+  /// print(uri); // http://example.org/path?q=dart
   ///
-  /// // http://user:pass@localhost:8080
-  /// Uri.http("user:pass@localhost:8080", "");
+  /// uri = Uri.http('user:password@localhost:8080', '');
+  /// print(uri); // http://user:password@localhost:8080
   ///
-  /// // http://example.org/a%20b
-  /// Uri.http("example.org", "a b");
+  /// uri = Uri.http('example.org', 'a b');
+  /// print(uri); // http://example.org/a%20b
   ///
-  /// // http://example.org/a%252F
-  /// Uri.http("example.org", "/a%2F");
+  /// uri = Uri.http('example.org', '/a%2F');
+  /// print(uri); // http://example.org/a%252F
   /// ```
   ///
   /// The `scheme` is always set to `http`.
@@ -161,6 +248,21 @@ abstract class Uri {
   ///
   /// This constructor is the same as [Uri.http] except for the scheme
   /// which is set to `https`.
+  ///
+  /// Example:
+  /// ```dart
+  /// var uri = Uri.https('example.org', '/path', {'q': 'dart'});
+  /// print(uri); // https://example.org/path?q=dart
+  ///
+  /// uri = Uri.https('user:password@localhost:8080', '');
+  /// print(uri); // https://user:password@localhost:8080
+  ///
+  /// uri = Uri.https('example.org', 'a b');
+  /// print(uri); // https://example.org/a%20b
+  ///
+  /// uri = Uri.https('example.org', '/a%2F');
+  /// print(uri); // https://example.org/a%252F
+  /// ```
   factory Uri.https(String authority, String unencodedPath,
       [Map<String, dynamic>? queryParameters]) = _Uri.https;
 
@@ -171,7 +273,7 @@ abstract class Uri {
   /// This path is interpreted using either Windows or non-Windows
   /// semantics.
   ///
-  /// With non-Windows semantics the slash (`/`) is used to separate
+  /// With non-Windows semantics, the slash (`/`) is used to separate
   /// path segments in the input [path].
   ///
   /// With Windows semantics, backslash (`\`) and forward-slash (`/`)
@@ -182,14 +284,14 @@ abstract class Uri {
   /// If the path starts with a path separator, an absolute URI (with the
   /// `file` scheme and an empty authority) is created.
   /// Otherwise a relative URI reference with no scheme or authority is created.
-  /// One exception from this rule is that when Windows semantics is used
+  /// One exception to this rule is that when Windows semantics is used
   /// and the path starts with a drive letter followed by a colon (":") and a
   /// path separator, then an absolute URI is created.
   ///
   /// The default for whether to use Windows or non-Windows semantics
-  /// determined from the platform Dart is running on. When running in
+  /// is determined from the platform Dart is running on. When running in
   /// the standalone VM, this is detected by the VM based on the
-  /// operating system. When running in a browser non-Windows semantics
+  /// operating system. When running in a browser, non-Windows semantics
   /// is always used.
   ///
   /// To override the automatic detection of which semantics to use pass
@@ -197,51 +299,49 @@ abstract class Uri {
   /// semantics and passing `false` will use non-Windows semantics.
   ///
   /// Examples using non-Windows semantics:
-  ///
   /// ```dart
   /// // xxx/yyy
-  /// Uri.file("xxx/yyy", windows: false);
+  /// Uri.file('xxx/yyy', windows: false);
   ///
   /// // xxx/yyy/
-  /// Uri.file("xxx/yyy/", windows: false);
+  /// Uri.file('xxx/yyy/', windows: false);
   ///
   /// // file:///xxx/yyy
-  /// Uri.file("/xxx/yyy", windows: false);
+  /// Uri.file('/xxx/yyy', windows: false);
   ///
   /// // file:///xxx/yyy/
-  /// Uri.file("/xxx/yyy/", windows: false);
+  /// Uri.file('/xxx/yyy/', windows: false);
   ///
   /// // C%3A
-  /// Uri.file("C:", windows: false);
+  /// Uri.file('C:', windows: false);
   /// ```
   ///
   /// Examples using Windows semantics:
-  ///
   /// ```dart
   /// // xxx/yyy
-  /// Uri.file(r"xxx\yyy", windows: true);
+  /// Uri.file(r'xxx\yyy', windows: true);
   ///
   /// // xxx/yyy/
-  /// Uri.file(r"xxx\yyy\", windows: true);
+  /// Uri.file(r'xxx\yyy\', windows: true);
   ///
   /// file:///xxx/yyy
-  /// Uri.file(r"\xxx\yyy", windows: true);
+  /// Uri.file(r'\xxx\yyy', windows: true);
   ///
   /// file:///xxx/yyy/
-  /// Uri.file(r"\xxx\yyy/", windows: true);
+  /// Uri.file(r'\xxx\yyy/', windows: true);
   ///
   /// // file:///C:/xxx/yyy
-  /// Uri.file(r"C:\xxx\yyy", windows: true);
+  /// Uri.file(r'C:\xxx\yyy', windows: true);
   ///
   /// // This throws an error. A path with a drive letter, but no following
   /// // path, is not allowed.
-  /// Uri.file(r"C:", windows: true);
+  /// Uri.file(r'C:', windows: true);
   ///
   /// // This throws an error. A path with a drive letter is not absolute.
-  /// Uri.file(r"C:xxx\yyy", windows: true);
+  /// Uri.file(r'C:xxx\yyy', windows: true);
   ///
   /// // file://server/share/file
-  /// Uri.file(r"\\server\share\file", windows: true);
+  /// Uri.file(r'\\server\share\file', windows: true);
   /// ```
   ///
   /// If the path passed is not a valid file path, an error is thrown.
@@ -252,17 +352,27 @@ abstract class Uri {
   /// If [path] is not empty, and it doesn't end in a directory separator,
   /// then a slash is added to the returned URI's path.
   /// In all other cases, the result is the same as returned by `Uri.file`.
+  ///
+  /// Example:
+  /// ```dart
+  /// final fileDirectory = Uri.directory('data/images', windows: false);
+  /// print(fileDirectory); // data/images/
+  ///
+  /// final fileDirectoryWindows =
+  ///    Uri.directory(r'C:\data\images', windows: true);
+  /// print(fileDirectoryWindows); // file:///C:/data/images/
+  /// ```
   factory Uri.directory(String path, {bool? windows}) = _Uri.directory;
 
   /// Creates a `data:` URI containing the [content] string.
   ///
-  /// Converts the content to a bytes using [encoding] or the charset specified
+  /// Converts the content to bytes using [encoding] or the charset specified
   /// in [parameters] (defaulting to US-ASCII if not specified or unrecognized),
   /// then encodes the bytes into the resulting data URI.
   ///
-  /// Defaults to encoding using percent-encoding (any non-ASCII or non-URI-valid
-  /// bytes is replaced by a percent encoding). If [base64] is true, the bytes
-  /// are instead encoded using [base64].
+  /// Defaults to encoding using percent-encoding (any non-ASCII or
+  /// non-URI-valid bytes is replaced by a percent encoding). If [base64] is
+  /// true, the bytes are instead encoded using [base64].
   ///
   /// If [encoding] is not provided and [parameters] has a `charset` entry,
   /// that name is looked up using [Encoding.getByName],
@@ -280,6 +390,16 @@ abstract class Uri {
   /// as an omitted `charset` parameter defaults to meaning `US-ASCII`.
   ///
   /// To read the content back, use [UriData.contentAsString].
+  ///
+  /// Example:
+  /// ```dart
+  /// final uri = Uri.dataFromString(
+  ///   'example content',
+  ///   mimeType: 'text/plain',
+  ///   parameters: <String, String>{'search': 'file', 'max': '10'},
+  /// );
+  /// print(uri); // data:;search=name;max=10,example%20content
+  /// ```
   factory Uri.dataFromString(String content,
       {String? mimeType,
       Encoding? encoding,
@@ -307,6 +427,12 @@ abstract class Uri {
   /// in the data URI, the character is percent-escaped. If the character is
   /// non-ASCII, it is first UTF-8 encoded and then the bytes are percent
   /// encoded.
+  ///
+  /// Example:
+  /// ```dart
+  /// final uri = Uri.dataFromBytes([68, 97, 114, 116]);
+  /// print(uri); // data:application/octet-stream;base64,RGFydA==
+  /// ```
   factory Uri.dataFromBytes(List<int> bytes,
       {String mimeType = "application/octet-stream",
       Map<String, String>? parameters,
@@ -336,7 +462,7 @@ abstract class Uri {
 
   /// The user info part of the authority component.
   ///
-  /// Th value is the empty string if there is no user info in the
+  /// The value is the empty string if there is no user info in the
   /// authority component.
   String get userInfo;
 
@@ -363,7 +489,7 @@ abstract class Uri {
   ///
   /// The path is the actual substring of the URI representing the path,
   /// and it is encoded where necessary. To get direct access to the decoded
-  /// path use [pathSegments].
+  /// path, use [pathSegments].
   ///
   /// The path value is the empty string if there is no path component.
   String get path;
@@ -372,7 +498,7 @@ abstract class Uri {
   ///
   /// The value is the actual substring of the URI representing the query part,
   /// and it is encoded where necessary.
-  /// To get direct access to the decoded query use [queryParameters].
+  /// To get direct access to the decoded query, use [queryParameters].
   ///
   /// The value is the empty string if there is no query component.
   String get query;
@@ -385,8 +511,8 @@ abstract class Uri {
 
   /// The URI path split into its segments.
   ///
-  /// Each of the segments in the list have been decoded.
-  /// If the path is empty the empty list will
+  /// Each of the segments in the list has been decoded.
+  /// If the path is empty, the empty list will
   /// be returned. A leading slash `/` does not affect the segments returned.
   ///
   /// The list is unmodifiable and will throw [UnsupportedError] on any
@@ -395,10 +521,11 @@ abstract class Uri {
 
   /// The URI query split into a map according to the rules
   /// specified for FORM post in the [HTML 4.01 specification section
-  /// 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
+  /// 17.13.4](https://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4
+  /// "HTML 4.01 section 17.13.4").
   ///
   /// Each key and value in the resulting map has been decoded.
-  /// If there is no query the empty map is returned.
+  /// If there is no query, the empty map is returned.
   ///
   /// Keys in the query string that have no value are mapped to the
   /// empty string.
@@ -407,19 +534,35 @@ abstract class Uri {
   /// The [queryParametersAll] getter can provide a map
   /// that maps keys to all of their values.
   ///
+  /// Example:
+  /// ```dart import:convert
+  /// final uri =
+  ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
+  /// print(jsonEncode(uri.queryParameters));
+  /// // {"limit":"10,20,30","max":"100"}
+  /// ```
+  ///
   /// The map is unmodifiable.
   Map<String, String> get queryParameters;
 
   /// Returns the URI query split into a map according to the rules
   /// specified for FORM post in the [HTML 4.01 specification section
-  /// 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
+  /// 17.13.4](https://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4
+  /// "HTML 4.01 section 17.13.4").
   ///
   /// Each key and value in the resulting map has been decoded. If there is no
-  /// query the map is empty.
+  /// query, the map is empty.
   ///
   /// Keys are mapped to lists of their values. If a key occurs only once,
   /// its value is a singleton list. If a key occurs with no value, the
   /// empty string is used as the value for that occurrence.
+  ///
+  /// Example:
+  /// ```dart import:convert
+  /// final uri =
+  ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
+  /// print(jsonEncode(uri.queryParameters)); // {"limit":"10,20,30","max":"100"}
+  /// ```
   ///
   /// The map and the lists it contains are unmodifiable.
   Map<String, List<String>> get queryParametersAll;
@@ -462,7 +605,7 @@ abstract class Uri {
   /// It is an error if the scheme is not "http" or "https", or if the host name
   /// is missing or empty.
   ///
-  /// See: http://www.w3.org/TR/2011/WD-html5-20110405/origin-0.html#origin
+  /// See: https://www.w3.org/TR/2011/WD-html5-20110405/origin-0.html#origin
   String get origin;
 
   /// Whether the scheme of this [Uri] is [scheme].
@@ -472,8 +615,11 @@ abstract class Uri {
   ///
   /// Example:
   /// ```dart
-  /// var uri = Uri.parse("http://example.com/");
-  /// print(uri.isScheme("HTTP"));  // Prints true.
+  /// var uri = Uri.parse('http://example.com');
+  /// print(uri.isScheme('HTTP')); // true
+  ///
+  /// final uriNoScheme = Uri(host: 'example.com');
+  /// print(uriNoScheme.isScheme('HTTP')); // false
   /// ```
   ///
   /// An empty [scheme] string matches a URI with no scheme
@@ -485,22 +631,22 @@ abstract class Uri {
   /// The returned path has either Windows or non-Windows
   /// semantics.
   ///
-  /// For non-Windows semantics the slash ("/") is used to separate
+  /// For non-Windows semantics, the slash ("/") is used to separate
   /// path segments.
   ///
-  /// For Windows semantics the backslash ("\\") separator is used to
+  /// For Windows semantics, the backslash ("\\") separator is used to
   /// separate path segments.
   ///
-  /// If the URI is absolute the path starts with a path separator
+  /// If the URI is absolute, the path starts with a path separator
   /// unless Windows semantics is used and the first path segment is a
-  /// drive letter. When Windows semantics is used a host component in
+  /// drive letter. When Windows semantics is used, a host component in
   /// the uri in interpreted as a file server and a UNC path is
   /// returned.
   ///
   /// The default for whether to use Windows or non-Windows semantics
-  /// determined from the platform Dart is running on. When running in
-  /// the standalone VM this is detected by the VM based on the
-  /// operating system. When running in a browser non-Windows semantics
+  /// is determined from the platform Dart is running on. When running in
+  /// the standalone VM, this is detected by the VM based on the
+  /// operating system. When running in a browser, non-Windows semantics
   /// is always used.
   ///
   /// To override the automatic detection of which semantics to use pass
@@ -508,10 +654,10 @@ abstract class Uri {
   /// semantics and passing `false` will use non-Windows semantics.
   ///
   /// If the URI ends with a slash (i.e. the last path component is
-  /// empty) the returned file path will also end with a slash.
+  /// empty), the returned file path will also end with a slash.
   ///
-  /// With Windows semantics URIs starting with a drive letter cannot
-  /// be relative to the current drive on the designated drive. That is
+  /// With Windows semantics, URIs starting with a drive letter cannot
+  /// be relative to the current drive on the designated drive. That is,
   /// for the URI `file:///c:abc` calling `toFilePath` will throw as a
   /// path segment cannot contain colon on Windows.
   ///
@@ -536,10 +682,10 @@ abstract class Uri {
   ///                               // cannot contain colon on Windows.
   /// Uri.parse("file://server/share/file");  // \\server\share\file
   /// ```
-  /// If the URI is not a file URI calling this throws
+  /// If the URI is not a file URI, calling this throws
   /// [UnsupportedError].
   ///
-  /// If the URI cannot be converted to a file path calling this throws
+  /// If the URI cannot be converted to a file path, calling this throws
   /// [UnsupportedError].
   // TODO(lrn): Deprecate and move functionality to File class or similar.
   // The core libraries should not worry about the platform.
@@ -576,31 +722,35 @@ abstract class Uri {
   /// Each part that is not provided will default to the corresponding
   /// value from this `Uri` instead.
   ///
-  /// This method is different from [Uri.resolve] which overrides in a
+  /// This method is different from [Uri.resolve], which overrides in a
   /// hierarchical manner,
   /// and can instead replace each part of a `Uri` individually.
   ///
   /// Example:
   /// ```dart
-  /// Uri uri1 = Uri.parse("a://b@c:4/d/e?f#g");
-  /// Uri uri2 = uri1.replace(scheme: "A", path: "D/E/E", fragment: "G");
-  /// print(uri2);  // prints "a://b@c:4/D/E/E?f#G"
+  /// final uri1 = Uri.parse(
+  ///     'http://dart.dev/guides/libraries/library-tour#utility-classes');
+  ///
+  /// final uri2 = uri1.replace(
+  ///     scheme: 'https',
+  ///     path: 'guides/libraries/library-tour',
+  ///     fragment: 'uris');
+  /// print(uri2); // https://dart.dev/guides/libraries/library-tour#uris
   /// ```
   /// This method acts similarly to using the `Uri` constructor with
   /// some of the arguments taken from this `Uri`. Example:
-  /// ```dart
-  /// Uri uri3 = Uri(
-  ///     scheme: "A",
+  /// ``` dart continued
+  /// final Uri uri3 = Uri(
+  ///     scheme: 'https',
   ///     userInfo: uri1.userInfo,
   ///     host: uri1.host,
-  ///     port: uri1.port,
-  ///     path: "D/E/E",
+  ///     port: uri2.port,
+  ///     path: '/guides/language/language-tour',
   ///     query: uri1.query,
-  ///     fragment: "G");
-  /// print(uri3);  // prints "a://b@c:4/D/E/E?f#G"
-  /// print(uri2 == uri3);  // prints true.
+  ///     fragment: null);
+  /// print(uri3); // https://dart.dev/guides/language/language-tour
   /// ```
-  /// Using this method can be seen as a shorthand for the `Uri` constructor
+  /// Using this method can be seen as shorthand for the `Uri` constructor
   /// call above, but may also be slightly faster because the parts taken
   /// from this `Uri` need not be checked for validity again.
   Uri replace(
@@ -617,6 +767,13 @@ abstract class Uri {
   /// Creates a `Uri` that differs from this only in not having a fragment.
   ///
   /// If this `Uri` does not have a fragment, it is itself returned.
+  ///
+  /// Example:
+  /// ```dart
+  /// final uri =
+  ///     Uri.parse('https://example.org:8080/foo/bar#frag').removeFragment();
+  /// print(uri); // https://example.org:8080/foo/bar
+  /// ```
   Uri removeFragment();
 
   /// Resolve [reference] as an URI relative to `this`.
@@ -629,16 +786,17 @@ abstract class Uri {
   /// See [resolveUri] for details.
   Uri resolve(String reference);
 
-  /// Resolve [reference] as an URI relative to `this`.
+  /// Resolve [reference] as a URI relative to `this`.
   ///
   /// Returns the resolved URI.
   ///
   /// The algorithm "Transform Reference" for resolving a reference is described
-  /// in [RFC-3986 Section 5](http://tools.ietf.org/html/rfc3986#section-5 "RFC-1123").
+  /// in [RFC-3986 Section 5](https://tools.ietf.org/html/rfc3986#section-5
+  /// "RFC-1123").
   ///
   /// Updated to handle the case where the base URI is just a relative path -
-  /// that is: when it has no scheme and no authority and the path does not start
-  /// with a slash.
+  /// that is: when it has no scheme and no authority and the path does not
+  /// start with a slash.
   /// In that case, the paths are combined without removing leading "..", and
   /// an empty path is not converted to "/".
   Uri resolveUri(Uri reference);
@@ -648,7 +806,7 @@ abstract class Uri {
   /// A normalized path does not contain `.` segments or non-leading `..`
   /// segments.
   /// Only a relative path with no scheme or authority may contain
-  /// leading `..` segments,
+  /// leading `..` segments;
   /// a path that starts with `/` will also drop any leading `..` segments.
   ///
   /// This uses the same normalization strategy as `Uri().resolve(this)`.
@@ -666,6 +824,15 @@ abstract class Uri {
   ///
   /// If the [uri] string is not valid as a URI or URI reference,
   /// a [FormatException] is thrown.
+  ///
+  /// Example:
+  /// ```dart
+  /// final uri =
+  ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
+  /// print(uri); // https://example.com/api/fetch?limit=10,20,30&max=100
+  ///
+  /// Uri.parse('::Not valid URI::'); // Throws FormatException.
+  /// ```
   static Uri parse(String uri, [int start = 0, int? end]) {
     // This parsing will not validate percent-encoding, IPv6, etc.
     // When done splitting into parts, it will call, e.g., [_makeFragment]
@@ -963,6 +1130,17 @@ abstract class Uri {
   /// of [uri], and only the substring from `start` to `end` is parsed as a URI.
   ///
   /// Returns `null` if the [uri] string is not valid as a URI or URI reference.
+  ///
+  /// Example:
+  /// ```dart
+  /// final uri = Uri.tryParse(
+  ///     'https://dart.dev/guides/libraries/library-tour#utility-classes', 0,
+  ///     16);
+  /// print(uri); // https://dart.dev
+  ///
+  /// var notUri = Uri.tryParse('::Not valid URI::');
+  /// print(notUri); // null
+  /// ```
   static Uri? tryParse(String uri, [int start = 0, int? end]) {
     // TODO: Optimize to avoid throwing-and-recatching.
     try {
@@ -977,19 +1155,26 @@ abstract class Uri {
   ///
   /// All characters except uppercase and lowercase letters, digits and
   /// the characters `-_.!~*'()` are percent-encoded. This is the
-  /// set of characters specified in RFC 2396 and the which is
+  /// set of characters specified in RFC 2396 and which is
   /// specified for the encodeUriComponent in ECMA-262 version 5.1.
   ///
-  /// When manually encoding path segments or query components remember
+  /// When manually encoding path segments or query components, remember
   /// to encode each part separately before building the path or query
   /// string.
   ///
   /// For encoding the query part consider using
   /// [encodeQueryComponent].
   ///
-  /// To avoid the need for explicitly encoding use the [pathSegments]
+  /// To avoid the need for explicitly encoding, use the [pathSegments]
   /// and [queryParameters] optional named arguments when constructing
   /// a [Uri].
+  ///
+  /// Example:
+  /// ```dart
+  /// const request = 'http://example.com/search=Dart';
+  /// final encoded = Uri.encodeComponent(request);
+  /// print(encoded); // http%3A%2F%2Fexample.com%2Fsearch%3DDart
+  /// ```
   static String encodeComponent(String component) {
     return _Uri._uriEncode(_Uri._unreserved2396Table, component, utf8, false);
   }
@@ -1024,7 +1209,7 @@ abstract class Uri {
    * [queryParameters] optional named arguments when constructing a
    * [Uri].
    *
-   * See http://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.2 for more
+   * See https://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.2 for more
    * details.
    */
   static String encodeQueryComponent(String component,
@@ -1035,14 +1220,21 @@ abstract class Uri {
   /// Decodes the percent-encoding in [encodedComponent].
   ///
   /// Note that decoding a URI component might change its meaning as
-  /// some of the decoded characters could be characters with are
+  /// some of the decoded characters could be characters which are
   /// delimiters for a given URI component type. Always split a URI
   /// component using the delimiters for the component before decoding
   /// the individual parts.
   ///
-  /// For handling the [path] and [query] components consider using
+  /// For handling the [path] and [query] components, consider using
   /// [pathSegments] and [queryParameters] to get the separated and
   /// decoded component.
+  ///
+  /// Example:
+  /// ```dart
+  /// final decoded =
+  ///     Uri.decodeComponent('http%3A%2F%2Fexample.com%2Fsearch%3DDart');
+  /// print(decoded); // http://example.com/search=Dart
+  /// ```
   static String decodeComponent(String encodedComponent) {
     return _Uri._uriDecode(
         encodedComponent, 0, encodedComponent.length, utf8, false);
@@ -1066,7 +1258,14 @@ abstract class Uri {
   /// All characters except uppercase and lowercase letters, digits and
   /// the characters `!#$&'()*+,-./:;=?@_~` are percent-encoded. This
   /// is the set of characters specified in in ECMA-262 version 5.1 for
-  /// the encodeURI function .
+  /// the encodeURI function.
+  ///
+  /// Example:
+  /// ```dart
+  /// final encoded =
+  ///     Uri.encodeFull('https://example.com/api/query?search= dart is');
+  /// print(encoded); // https://example.com/api/query?search=%20dart%20is
+  /// ```
   static String encodeFull(String uri) {
     return _Uri._uriEncode(_Uri._encodeFullTable, uri, utf8, false);
   }
@@ -1075,24 +1274,41 @@ abstract class Uri {
   ///
   /// Note that decoding a full URI might change its meaning as some of
   /// the decoded characters could be reserved characters. In most
-  /// cases an encoded URI should be parsed into components using
+  /// cases, an encoded URI should be parsed into components using
   /// [Uri.parse] before decoding the separate components.
+  ///
+  /// Example:
+  /// ```dart
+  /// final decoded =
+  ///     Uri.decodeFull('https://example.com/api/query?search=%20dart%20is');
+  /// print(decoded); // https://example.com/api/query?search= dart is
+  /// ```
   static String decodeFull(String uri) {
     return _Uri._uriDecode(uri, 0, uri.length, utf8, false);
   }
 
   /// Splits the [query] into a map according to the rules
   /// specified for FORM post in the [HTML 4.01 specification section
-  /// 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
+  /// 17.13.4](https://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4
+  /// "HTML 4.01 section 17.13.4").
   ///
   /// Each key and value in the returned map has been decoded. If the [query]
-  /// is the empty string an empty map is returned.
+  /// is the empty string, an empty map is returned.
   ///
   /// Keys in the query string that have no value are mapped to the
   /// empty string.
   ///
-  /// Each query component will be decoded using [encoding]. The default encoding
-  /// is UTF-8.
+  /// Each query component will be decoded using [encoding]. The default
+  /// encoding is UTF-8.
+  ///
+  /// Example:
+  /// ```dart import:convert
+  /// final queryStringMap =
+  ///     Uri.splitQueryString('limit=10&max=100&search=Dart%20is%20fun');
+  /// print(jsonEncode(queryStringMap));
+  /// // {"limit":"10","max":"100","search":"Dart is fun"}
+  ///
+  /// ```
   static Map<String, String> splitQueryString(String query,
       {Encoding encoding = utf8}) {
     return query.split("&").fold({}, (map, element) {
@@ -1170,7 +1386,7 @@ abstract class Uri {
   /// representation.
   ///
   /// Acts on the substring from [start] to [end]. If [end] is omitted, it
-  /// defaults ot the end of the string.
+  /// defaults to the end of the string.
   ///
   /// Some examples of IPv6 addresses:
   ///  * `::1`
@@ -2181,7 +2397,7 @@ class _Uri implements Uri {
 
   /// Performs RFC 3986 Percent-Encoding Normalization.
   ///
-  /// Returns a replacement string that should be replace the original escape.
+  /// Returns a replacement string that should replace the original escape.
   /// Returns null if no replacement is necessary because the escape is
   /// not for an unreserved character and is already non-lower-case.
   ///
@@ -2266,12 +2482,12 @@ class _Uri implements Uri {
   }
 
   /// Runs through component checking that each character is valid and
-  /// normalize percent escapes.
+  /// normalizes percent escapes.
   ///
   /// Uses [charTable] to check if a non-`%` character is allowed.
   /// Each `%` character must be followed by two hex digits.
-  /// If the hex-digits are lower case letters, they are converted to
-  /// upper case.
+  /// If the hex-digits are lowercase letters, they are converted to
+  /// uppercase.
   ///
   /// Returns `null` if the original content was already normalized.
   static String? _normalize(
@@ -2430,7 +2646,7 @@ class _Uri implements Uri {
   /// Removing the ".." from a "bar/foo/.." sequence results in "bar/"
   /// (trailing "/"). If the entire path is removed (because it contains as
   /// many ".." segments as real segments), the result is "./".
-  /// This is different from an empty string, which represents "no path",
+  /// This is different from an empty string, which represents "no path"
   /// when you resolve it against a base URI with a path with a non-empty
   /// final segment.
   static String _normalizeRelativePath(String path, bool allowScheme) {
@@ -2811,7 +3027,7 @@ class _Uri implements Uri {
   /// If [plusToSpace] is `true`, plus characters will be converted to spaces.
   ///
   /// The decoder will create a byte-list of the percent-encoded parts, and then
-  /// decode the byte-list using [encoding]. The default encodings UTF-8.
+  /// decode the byte-list using [encoding]. The default encoding is UTF-8.
   static String _uriDecode(
       String text, int start, int end, Encoding encoding, bool plusToSpace) {
     assert(0 <= start);
@@ -3115,7 +3331,7 @@ class _Uri implements Uri {
 /// Data URIs are non-hierarchical URIs that can contain any binary data.
 /// They are defined by [RFC 2397](https://tools.ietf.org/html/rfc2397).
 ///
-/// This class allows parsing the URI text and extracting individual parts of the
+/// This class allows parsing the URI text, extracting individual parts of the
 /// URI, as well as building the URI text from structured parts.
 class UriData {
   static const int _noScheme = -1;
@@ -3137,7 +3353,7 @@ class UriData {
   /// The first separator ends the mime type. We don't bother with finding
   /// the '/' inside the mime type.
   ///
-  /// Each two separators after that marks a parameter key and value.
+  /// Each two separators after that mark a parameter key and value.
   ///
   /// If there is a single separator left, it ends the "base64" marker.
   ///
@@ -3244,7 +3460,7 @@ class UriData {
   /// until just before the ',' before the data, or before a `;base64,`
   /// marker.
   ///
-  /// Of an [indices] list is passed, separator indices are stored in that
+  /// If an [indices] list is passed, separator indices are stored in that
   /// list.
   static void _writeUri(
       String? mimeType,
@@ -3335,7 +3551,7 @@ class UriData {
   /// it valid, and existing escapes are case normalized.
   ///
   /// Accessing the individual parts may fail later if they turn out to have
-  /// content that can't be decoded successfully as a string, for example if
+  /// content that cannot be decoded successfully as a string, for example if
   /// existing percent escapes represent bytes that cannot be decoded
   /// by the chosen [Encoding] (see [contentAsString]).
   ///
@@ -3410,7 +3626,7 @@ class UriData {
   /// If the parameters of the media type contains a `charset` parameter
   /// then this returns its value, otherwise it returns `US-ASCII`,
   /// which is the default charset for data URIs.
-  /// If the value contain non-ASCII percent escapes, they are decoded as UTF-8.
+  /// If the values contain non-ASCII percent escapes, they are decoded as UTF-8.
   ///
   /// If the MIME type representation in the URI text contains URI escapes,
   /// they are unescaped in the returned string.
@@ -3497,7 +3713,7 @@ class UriData {
   /// If the content is Base64 encoded, it will be decoded to bytes and then
   /// decoded to a string using [encoding].
   /// If encoding is omitted, the value of a `charset` parameter is used
-  /// if it is recognized by [Encoding.getByName], otherwise it defaults to
+  /// if it is recognized by [Encoding.getByName]; otherwise it defaults to
   /// the [ascii] encoding, which is the default encoding for data URIs
   /// that do not specify an encoding.
   ///
@@ -3725,7 +3941,7 @@ const int _nonSimpleEndStates = 14;
 // Initial state for scheme validation.
 const int _schemeStart = 20;
 
-/// Transition tables used to scan a URI to determine its structure.
+/// Transition tables are used to scan a URI to determine its structure.
 ///
 /// The tables represent a state machine with output.
 ///
@@ -3740,13 +3956,13 @@ const int _schemeStart = 20;
 /// and a 3-bit index into the output table.
 ///
 /// For URI scanning, only characters in the range U+0020 through U+007E are
-/// interesting, all characters outside that range are treated the same.
-/// The tables only contain 96 entries, representing that characters in the
+/// interesting; all characters outside that range are treated the same.
+/// The tables only contain 96 entries, representing the characters in the
 /// interesting range, plus one more to represent all values outside the range.
 /// The character entries are stored in one `Uint8List` per state, with the
 /// transition for a character at position `character ^ 0x60`,
 /// which maps the range U+0020 .. U+007F into positions 0 .. 95.
-/// All remaining characters are mapped to position 31 (`0x7f ^ 0x60`) which
+/// All remaining characters are mapped to position 31 (`0x7f ^ 0x60`), which
 /// represents the transition for all remaining characters.
 final List<Uint8List> _scannerTables = _createTables();
 
