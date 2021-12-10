@@ -913,7 +913,6 @@ class SourceClassBuilder extends ClassBuilderImpl
         new ConstructorTearOff(constructorBuilder.member)..parent = literal);
   }
 
-  @override
   int resolveConstructors(SourceLibraryBuilder library) {
     if (constructorReferences == null) return 0;
     for (ConstructorReferenceBuilder ref in constructorReferences!) {

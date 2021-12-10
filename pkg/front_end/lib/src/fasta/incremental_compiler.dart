@@ -465,24 +465,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<Library> newDillLibraryBuilders = new Set<Library>();
     _userBuilders ??= <Uri, LibraryBuilder>{};
     Map<LibraryBuilder, List<LibraryBuilder>>? convertedLibraries;
-    for (LibraryBuilder builder
-        in nextGoodKernelTarget.loader.libraryBuilders) {
-      if (builder is SourceLibraryBuilder) {
-        DillLibraryBuilder dillBuilder =
-            _dillLoadedData!.loader.appendLibrary(builder.library);
-        nextGoodKernelTarget.loader.registerLibraryBuilder(
-            // TODO(johnniwinther): Why do we need to create
-            //  [DillLibraryBuilder]s for the patch library file uris?
-            dillBuilder,
-            builder.isPatch ? builder.fileUri : null);
-        _userBuilders![builder.importUri] = dillBuilder;
-        newDillLibraryBuilders.add(builder.library);
-        changed = true;
-        if (experimentalInvalidation != null) {
-          convertedLibraries ??=
-              new Map<LibraryBuilder, List<LibraryBuilder>>();
-          convertedLibraries[builder] = [dillBuilder];
-        }
+    for (SourceLibraryBuilder builder
+        in nextGoodKernelTarget.loader.sourceLibraryBuilders) {
+      DillLibraryBuilder dillBuilder =
+          _dillLoadedData!.loader.appendLibrary(builder.library);
+      nextGoodKernelTarget.loader.registerLibraryBuilder(dillBuilder);
+      _userBuilders![builder.importUri] = dillBuilder;
+      newDillLibraryBuilders.add(builder.library);
+      changed = true;
+      if (experimentalInvalidation != null) {
+        convertedLibraries ??= new Map<LibraryBuilder, List<LibraryBuilder>>();
+        convertedLibraries[builder] = [dillBuilder];
       }
     }
     if (changed) {
@@ -537,6 +530,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   bool _checkEquivalentScopes(
       SourceLoader sourceLoader, DillLoader dillLoader) {
+    // TODO(johnniwinther): Use [SourceLoader.sourceLibraryBuilders] here.
+    // Currently this causes a failure in incremental_dartino_suite.dart.
     for (LibraryBuilder sourceLibraryBuilder in sourceLoader.libraryBuilders) {
       if (sourceLibraryBuilder is SourceLibraryBuilder) {
         Uri uri = sourceLibraryBuilder.importUri;
@@ -1733,12 +1728,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
-        libraryUri,
-        debugExprUri,
-        /*packageUri*/ null,
-        new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
-        lastGoodKernelTarget.loader,
-        null,
+        importUri: libraryUri,
+        fileUri: debugExprUri,
+        packageLanguageVersion:
+            new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
+        loader: lastGoodKernelTarget.loader,
         scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder,
       );

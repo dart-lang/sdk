@@ -118,6 +118,7 @@ class Tags {
   static const String error = 'message';
   static const String isNonNullableByDefault = 'nnbd';
   static const String patch = 'patch';
+  static const String isAbstract = 'isAbstract';
 }
 
 class PatchingDataExtractor extends CfeDataExtractor<Features> {
@@ -137,6 +138,9 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
     ClassBuilder clsBuilder = lookupClassBuilder(compilerResult, cls)!;
 
     Features features = new Features();
+    if (cls.isAbstract) {
+      features.add(Tags.isAbstract);
+    }
     clsBuilder.scope.forEach((String name, Builder builder) {
       features.addElement(Tags.scope, name);
     });
