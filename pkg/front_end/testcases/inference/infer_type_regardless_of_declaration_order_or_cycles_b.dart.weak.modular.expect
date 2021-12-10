@@ -1,0 +1,60 @@
+library;
+import self as self;
+import "infer_type_regardless_of_declaration_order_or_cycles.dart" as test;
+
+import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles.dart";
+
+class B extends test::A {
+  synthetic constructor •() → self::B*
+    : super test::A::•()
+    ;
+}
+static method main() → dynamic {}
+
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   String z = /*error:INVALID_ASSIGNMENT*/ new C(). /*@target=C.x*/ x;
+//                                                                    ^
+//
+import self as test;
+import "infer_type_regardless_of_declaration_order_or_cycles_b.dart" as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles_b.dart";
+
+class C extends self::B {
+  synthetic constructor •() → test::C*
+    : super self::B::•()
+    ;
+  get x() → core::int*
+    return null;
+}
+class A extends core::Object {
+  synthetic constructor •() → test::A*
+    : super core::Object::•()
+    ;
+  get x() → core::int*
+    return 0;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method foo() → dynamic {
+  core::int* y = new test::C::•().{test::C::x}{core::int*};
+  core::String* z = invalid-expression "pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  String z = /*error:INVALID_ASSIGNMENT*/ new C(). /*@target=C.x*/ x;
+                                                                   ^" in new test::C::•().{test::C::x}{core::int*} as{TypeError} core::String*;
+}
+static method main() → dynamic {
+  test::foo();
+}

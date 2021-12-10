@@ -8,6 +8,7 @@ const List<String> standardSuites = <String>[
   'weak',
   'outline',
   'strong',
+  'modular',
   'text_serialization',
   'textual_outline',
 ];

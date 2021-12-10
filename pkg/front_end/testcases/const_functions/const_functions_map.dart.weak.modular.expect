@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static const field core::Object? var1 = #C1;
+static const field core::Object? var2 = #C2;
+static const field core::Object? var3 = #C3;
+static const field core::Map<core::String, core::int> map = #C9;
+static const field core::Object? var4 = #C2;
+static const field core::Object? var5 = #C6;
+static const field core::Object? var6 = #C8;
+static const field core::int? var7 = #C2;
+static method fn(core::Map<core::Object, core::Object> map, core::Object key) → core::Object? {
+  return map.{core::Map::[]}(key){(core::Object?) → core::Object?};
+}
+static method fn2() → core::int? {
+  return #C11.{core::Map::[]}("key"){(core::Object?) → core::int?};
+}
+static method main() → void {
+  exp::Expect::equals(#C1, "val");
+  exp::Expect::equals(#C2, 2);
+  exp::Expect::equals(#C3, null);
+  exp::Expect::equals(#C2, 2);
+  exp::Expect::equals(#C6, 3);
+  exp::Expect::equals(#C8, 4);
+  exp::Expect::equals(#C2, 2);
+}
+
+constants  {
+  #C1 = "val"
+  #C2 = 2
+  #C3 = null
+  #C4 = "key1"
+  #C5 = "key2"
+  #C6 = 3
+  #C7 = "key3"
+  #C8 = 4
+  #C9 = <core::String*, core::int*>{#C4:#C2, #C5:#C6, #C7:#C8)
+  #C10 = "key"
+  #C11 = <core::String*, core::int*>{#C10:#C2)
+}

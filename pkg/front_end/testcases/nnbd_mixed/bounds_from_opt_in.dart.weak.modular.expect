@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "bounds_from_opt_in_lib.dart" as bou;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///bounds_from_opt_in_lib.dart";
+
+class LegacyClass<T extends Null> extends bou::Class<self::LegacyClass::T*> {
+  synthetic constructor •() → self::LegacyClass<self::LegacyClass::T*>*
+    : super bou::Class::•()
+    ;
+  method method<T extends Null>() → dynamic {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method test() → dynamic {
+  bou::Class<Null>* c = new bou::Class::•<Null>();
+  c.{bou::Class::method}<Null>(){() →* dynamic};
+  bou::method<Null>();
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as bou;
+import "dart:core" as core;
+
+class Class<T extends Never> extends core::Object {
+  synthetic constructor •() → bou::Class<bou::Class::T>
+    : super core::Object::•()
+    ;
+  method method<T extends Never>() → dynamic {}
+}
+static method method<T extends Never>() → dynamic {}

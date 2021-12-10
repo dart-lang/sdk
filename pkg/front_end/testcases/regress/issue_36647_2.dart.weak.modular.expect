@@ -1,0 +1,44 @@
+library;
+import self as self;
+import "issue_36647_2_lib1.dart" as iss;
+additionalExports = (iss::foo,
+  iss::foo,
+  iss::bar,
+  iss::baz)
+
+export "org-dartlang-testcase:///issue_36647_2_lib1.dart";
+
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_36647_2_lib1.dart:6:5: Error: 'foo' is already declared in this scope.
+// int foo = 43;
+//     ^^^
+// pkg/front_end/testcases/regress/issue_36647_2_lib1.dart:5:5: Context: Previous declaration of 'foo'.
+// int foo = 42;
+//     ^^^
+//
+// pkg/front_end/testcases/regress/issue_36647_2_lib1.dart:8:14: Error: 'bar' is already declared in this scope.
+// typedef bool bar();
+//              ^^^
+// pkg/front_end/testcases/regress/issue_36647_2_lib1.dart:7:14: Context: Previous declaration of 'bar'.
+// typedef bool bar();
+//              ^^^
+//
+// pkg/front_end/testcases/regress/issue_36647_2_lib1.dart:13:5: Error: 'baz' is already declared in this scope.
+// int baz() {
+//     ^^^
+// pkg/front_end/testcases/regress/issue_36647_2_lib1.dart:9:5: Context: Previous declaration of 'baz'.
+// int baz() {
+//     ^^^
+//
+import self as iss;
+import "dart:core" as core;
+
+typedef bar = () →* core::bool*;
+static field core::int* foo;
+static method baz() → core::int* {
+  return 42;
+}

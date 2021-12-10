@@ -1,0 +1,84 @@
+library;
+import self as self;
+import "error_location_02_lib1.dart" as err;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///error_location_02_lib1.dart";
+import "org-dartlang-testcase:///error_location_02_lib2.dart";
+import "org-dartlang-testcase:///error_location_02_lib3.dart";
+
+static method main() → dynamic {
+  err::foo();
+  core::print(invalid-expression "This assertion failed.");
+}
+
+library;
+import self as err;
+import "dart:core" as core;
+
+class Foo extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::int* i) → err::Foo*
+    : assert(i.{core::num::>}(0){(core::num*) →* core::bool*}), super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method foo() → dynamic {
+  new err::Foo::•(0);
+}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_locations/error_location_02_lib2.dart:7:24: Error: Constant evaluation error:
+// const fooField = const Foo(0);
+//                        ^
+// pkg/front_end/testcases/general/error_locations/error_location_02_lib1.dart:6:31: Context: This assertion failed.
+//   const Foo(int i) : assert(i > 0);
+//                               ^
+// pkg/front_end/testcases/general/error_locations/error_location_02_lib2.dart:7:7: Context: While analyzing:
+// const fooField = const Foo(0);
+//       ^
+//
+import self as self2;
+import "error_location_02_lib1.dart" as err;
+
+import "org-dartlang-testcase:///error_location_02_lib1.dart";
+
+static const field err::Foo* fooField = invalid-expression "This assertion failed.";
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_locations/error_location_02_lib3.dart:7:19: Error: Constant evaluation error:
+// const fooField2 = fooField;
+//                   ^
+// pkg/front_end/testcases/general/error_locations/error_location_02_lib1.dart:6:31: Context: This assertion failed.
+//   const Foo(int i) : assert(i > 0);
+//                               ^
+// pkg/front_end/testcases/general/error_locations/error_location_02_lib3.dart:7:7: Context: While analyzing:
+// const fooField2 = fooField;
+//       ^
+//
+import self as self3;
+import "error_location_02_lib1.dart" as err;
+
+import "org-dartlang-testcase:///error_location_02_lib2.dart";
+
+static const field err::Foo* fooField2 = invalid-expression "This assertion failed.";
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///error_location_02_lib2.dart:
+- Foo. (from org-dartlang-testcase:///error_location_02_lib1.dart:6:9)

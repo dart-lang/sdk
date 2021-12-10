@@ -1,0 +1,65 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:116: Error: Inferred type argument 'Cloneable<dynamic>' doesn't conform to the bound 'Cloneable<T>' of the type variable 'T' on 'Pair'.
+//  - 'Cloneable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@ typeArgs=Cloneable<dynamic>*, Cloneable<dynamic>* */ Pair
+//                                                                                                                    ^
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:10:12: Context: This is the type variable whose bound isn't conformed to.
+// class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
+//            ^
+//
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:116: Error: Inferred type argument 'Cloneable<dynamic>' doesn't conform to the bound 'Cloneable<U>' of the type variable 'U' on 'Pair'.
+//  - 'Cloneable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@ typeArgs=Cloneable<dynamic>*, Cloneable<dynamic>* */ Pair
+//                                                                                                                    ^
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:10:36: Context: This is the type variable whose bound isn't conformed to.
+// class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
+//                                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Cloneable<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Cloneable<self::Cloneable::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Pair<T extends self::Cloneable<self::Pair::T*>* = self::Cloneable<dynamic>*, U extends self::Cloneable<self::Pair::U*>* = self::Cloneable<dynamic>*> extends core::Object {
+  covariant-by-class field self::Pair::T* t;
+  covariant-by-class field self::Pair::U* u;
+  constructor •(self::Pair::T* t, self::Pair::U* u) → self::Pair<self::Pair::T*, self::Pair::U*>*
+    : self::Pair::t = t, self::Pair::u = u, super core::Object::•()
+    ;
+  constructor _() → self::Pair<self::Pair::T*, self::Pair::U*>*
+    : self::Pair::u = null, self::Pair::t = null, super core::Object::•()
+    ;
+  get reversed() → self::Pair<self::Pair::U*, self::Pair::T*>*
+    return new self::Pair::•<self::Pair::U*, self::Pair::T*>(this.{self::Pair::u}{self::Pair::U*}, this.{self::Pair::t}{self::Pair::T*});
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  final self::Pair<self::Cloneable<dynamic>*, self::Cloneable<dynamic>*>* x = new self::Pair::_<self::Cloneable<dynamic>*, self::Cloneable<dynamic>*>();
+}

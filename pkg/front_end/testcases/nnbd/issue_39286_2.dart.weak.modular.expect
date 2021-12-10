@@ -1,0 +1,45 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue_39286_2.dart:15:14: Warning: Operand of null-aware operation '!' has type 'String' which excludes null.
+//   x..f()!.g()['Hi!']!..h()!.y = 2;
+//              ^
+//
+// pkg/front_end/testcases/nnbd/issue_39286_2.dart:15:24: Warning: Operand of null-aware operation '!' has type 'C' which excludes null.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd/issue_39286_2.dart'.
+//   x..f()!.g()['Hi!']!..h()!.y = 2;
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int y = 42;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method f() → self::D?
+    return new self::D::•();
+  method h() → self::C
+    return this;
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  method g() → self::D
+    return this;
+  operator [](core::String s) → core::String {
+    return "!${s}!";
+  }
+}
+static method test(self::C x) → void {
+  let final self::C #t1 = x in block {
+    #t1.{self::C::f}(){() → self::D?}!.{self::D::g}(){() → self::D}.{self::D::[]}("Hi!"){(core::String) → core::String}!;
+    #t1.{self::C::h}(){() → self::C}!.{self::C::y} = 2;
+  } =>#t1;
+}
+static method main() → dynamic {
+  self::test(new self::C::•());
+}

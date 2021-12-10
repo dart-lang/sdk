@@ -1,0 +1,50 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field dynamic staticField = null;
+  field dynamic instanceField = null;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  static set staticSetter(dynamic x) → void {}
+  set instanceSetter(dynamic x) → void {}
+  method test() → void {
+    dynamic localVar;
+    for (final dynamic #t1 in <dynamic>[]) {
+      self::topLevel = #t1;
+    }
+    for (final dynamic #t2 in <dynamic>[]) {
+      self::topLevelSetter = #t2;
+    }
+    for (final dynamic #t3 in <dynamic>[]) {
+      self::C::staticField = #t3;
+    }
+    for (final dynamic #t4 in <dynamic>[]) {
+      self::C::staticSetter = #t4;
+    }
+    for (final dynamic #t5 in <dynamic>[]) {
+      this.{self::C::instanceField} = #t5;
+    }
+    for (final dynamic #t6 in <dynamic>[]) {
+      this.{self::C::instanceSetter} = #t6;
+    }
+    for (final dynamic #t7 in <dynamic>[]) {
+      localVar = #t7;
+    }
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field dynamic topLevel;
+static set topLevelSetter(dynamic x) → void {}
+static method main() → dynamic {}

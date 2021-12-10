@@ -1,0 +1,138 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::B
+    : super core::Object::•()
+    ;
+  @#C1
+  method toString() → core::String
+    return "B";
+}
+class C extends core::Object /*hasConstConstructor*/  {
+  final field core::int y;
+  const constructor •(core::int y) → self::C
+    : self::C::y = y, super core::Object::•()
+    ;
+  method fn() → core::int {
+    if(this.{self::C::y}{core::int} =={core::num::==}{(core::Object) → core::bool} 1)
+      return 100;
+    return 200;
+  }
+}
+class D extends self::C /*hasConstConstructor*/  {
+  const constructor •(core::int y) → self::D
+    : super self::C::•(y)
+    ;
+  @#C1
+  method fn() → core::int
+    return 300;
+}
+class E extends self::C /*hasConstConstructor*/  {
+  const constructor •(core::int y) → self::E
+    : super self::C::•(y)
+    ;
+}
+class F<T extends core::Object? = dynamic, U extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::F<self::F::T%, self::F::U%, self::F::V%>
+    : super core::Object::•()
+    ;
+  method fn(covariant-by-class self::F::U% x) → self::F::U%
+    return x;
+}
+class G<T extends core::Object? = dynamic> extends self::F<self::G::T%, core::String, core::num> /*hasConstConstructor*/  {
+  const constructor •() → self::G<self::G::T%>
+    : super self::F::•()
+    ;
+}
+static const field core::String var1 = #C2;
+static const field core::String toString1 = #C2;
+static const field core::String var2 = #C3;
+static const field core::String toString2 = #C3;
+static const field core::int var3 = #C4;
+static const field core::int var4 = #C5;
+static const field core::int fnVal1 = #C4;
+static const field core::int fnVal2 = #C5;
+static const field core::int var5 = #C6;
+static const field core::int fnVal3 = #C6;
+static const field core::int var6 = #C5;
+static const field core::int fnVal4 = #C4;
+static const field core::String var7 = #C7;
+static const field core::String fnVal5 = #C7;
+static const field core::String var8 = #C7;
+static const field core::String fnVal6 = #C7;
+static method fn() → core::String
+  return #C8.{core::Object::toString}(){() → core::String};
+static method fn2() → core::String
+  return #C9.{self::B::toString}(){() → core::String};
+static method fn3() → core::int
+  return #C11.{self::C::fn}(){() → core::int};
+static method fn4() → core::int
+  return #C13.{self::C::fn}(){() → core::int};
+static method fn5() → core::int
+  return #C14.{self::D::fn}(){() → core::int};
+static method fn6() → core::int
+  return #C15.{self::C::fn}(){() → core::int};
+static method fn7() → core::String
+  return #C16.{self::F::fn}("string"){(core::String) → core::String};
+static method fn8() → core::String
+  return #C17.{self::F::fn}("string"){(core::String) → core::String};
+static method main() → void {
+  exp::Expect::equals(#C2, #C8.{core::Object::toString}(){() → core::String});
+  exp::Expect::equals(#C2, #C8.{core::Object::toString}(){() → core::String});
+  exp::Expect::equals(#C3, #C9.{self::B::toString}(){() → core::String});
+  exp::Expect::equals(#C3, #C9.{self::B::toString}(){() → core::String});
+  exp::Expect::equals(#C4, 200);
+  exp::Expect::equals(#C5, 100);
+  exp::Expect::equals(#C4, 200);
+  exp::Expect::equals(#C5, 100);
+  exp::Expect::equals(#C6, 300);
+  exp::Expect::equals(#C6, 300);
+  exp::Expect::equals(#C5, 100);
+  exp::Expect::equals(#C4, 200);
+  exp::Expect::equals(#C7, "string");
+  exp::Expect::equals(#C7, "string");
+  exp::Expect::equals(#C7, "string");
+  exp::Expect::equals(#C7, "string");
+}
+
+constants  {
+  #C1 = core::_Override {}
+  #C2 = "Instance of 'A'"
+  #C3 = "B"
+  #C4 = 200
+  #C5 = 100
+  #C6 = 300
+  #C7 = "string"
+  #C8 = self::A {}
+  #C9 = self::B {}
+  #C10 = 0
+  #C11 = self::C {y:#C10}
+  #C12 = 1
+  #C13 = self::C {y:#C12}
+  #C14 = self::D {y:#C12}
+  #C15 = self::E {y:#C12}
+  #C16 = self::F<core::int*, core::String*, core::num*> {}
+  #C17 = self::G<core::int*> {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_functions_instance_methods.dart:
+- A. (from org-dartlang-testcase:///const_functions_instance_methods.dart:10:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- B. (from org-dartlang-testcase:///const_functions_instance_methods.dart:14:9)
+- C. (from org-dartlang-testcase:///const_functions_instance_methods.dart:23:9)
+- D. (from org-dartlang-testcase:///const_functions_instance_methods.dart:32:9)
+- E. (from org-dartlang-testcase:///const_functions_instance_methods.dart:39:9)
+- F. (from org-dartlang-testcase:///const_functions_instance_methods.dart:43:9)
+- G. (from org-dartlang-testcase:///const_functions_instance_methods.dart:48:9)

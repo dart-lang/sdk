@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic {
+  mai::C1<<T extends core::Object? = dynamic>(T%) → T%> c1 = new mai::C1::•<<T extends core::Object? = dynamic>(T%) → T%>();
+  mai::C1<<T extends core::Object? = dynamic>(T%) → T%> c2 = new mai::C1::•<<T extends core::Object? = dynamic>(T%) → T%>();
+  mai::C2<<T extends core::Object? = dynamic>() → void> c3 = new mai::C2::•<<T extends core::Object? = dynamic>() → void>();
+  mai::C2<<T extends core::Object? = dynamic>() → void> c4 = new mai::C2::•<<int extends core::Object? = dynamic>() → void>();
+  mai::C3<<T extends core::Object? = dynamic>() → T%> c5 = new mai::C3::•<<T extends core::Object? = dynamic>() → T%>();
+  mai::C3<<T extends core::Object? = dynamic>() → T%> c6 = new mai::C3::•<<T extends core::Object? = dynamic>() → T%>();
+  mai::C4<<T extends core::Object? = dynamic>(T%) → void> c7 = new mai::C4::•<<T extends core::Object? = dynamic>(T%) → void>();
+  mai::C4<<T extends core::Object? = dynamic>(T%) → void> c8 = new mai::C4::•<<T extends core::Object? = dynamic>(T%) → void>();
+  mai::C5<<T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> c9 = new mai::C5::•<<T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T>();
+  mai::C5<<T extends <S extends core::Object? = dynamic>(S%) → S% = dynamic>(T) → T> c10 = new mai::C5::•<<T extends <S extends core::Object? = dynamic>(S%) → S%>(T) → T>();
+  mai::C6<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> c11 = new mai::C6::•<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%>();
+  mai::C6<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S% = dynamic, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%> c12 = new mai::C6::•<<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(T%, S%, <V extends S%, U extends core::Object? = dynamic>(T%, U%, V%, core::Map<S%, U%>) → V%) → T%>();
+}

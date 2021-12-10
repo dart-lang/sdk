@@ -1,0 +1,32 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int* field = 0;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  get getter() → core::int*
+    return 0;
+  method function() → core::int*
+    return 0;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field self::C* c = new self::C::•();
+static field core::int* field_ref = self::c.{self::C::field}{core::int*};
+static field core::int* getter_ref = self::c.{self::C::getter}{core::int*};
+static field () →* core::int* function_ref = self::c.{self::C::function}{() →* core::int*};
+static field core::List<core::int*>* field_ref_list = <core::int*>[self::c.{self::C::field}{core::int*}];
+static field core::List<core::int*>* getter_ref_list = <core::int*>[self::c.{self::C::getter}{core::int*}];
+static field core::List<() →* core::int*>* function_ref_list = <() →* core::int*>[self::c.{self::C::function}{() →* core::int*}];
+static method main() → dynamic {}

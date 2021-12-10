@@ -1,0 +1,95 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/issue46925.dart:14:21: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   const v1 = MyClass<String>.new;
+//                     ^
+//
+// pkg/front_end/testcases/general/constants/issue46925.dart:14:30: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   const v1 = MyClass<String>.new;
+//                              ^^^
+//
+// pkg/front_end/testcases/general/constants/issue46925.dart:14:30: Error: Member not found: 'new'.
+//   const v1 = MyClass<String>.new;
+//                              ^^^
+//
+// pkg/front_end/testcases/general/constants/issue46925.dart:15:21: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   const v2 = MyClass<int>.constr;
+//                     ^
+//
+// pkg/front_end/testcases/general/constants/issue46925.dart:15:27: Error: Member not found: 'constr'.
+//   const v2 = MyClass<int>.constr;
+//                           ^^^^^^
+//
+// pkg/front_end/testcases/general/constants/issue46925.dart:16:21: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   const v3 = MyClass<int>.new;
+//                     ^
+//
+// pkg/front_end/testcases/general/constants/issue46925.dart:16:27: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   const v3 = MyClass<int>.new;
+//                           ^^^
+//
+// pkg/front_end/testcases/general/constants/issue46925.dart:16:27: Error: Member not found: 'new'.
+//   const v3 = MyClass<int>.new;
+//                           ^^^
+//
+// pkg/front_end/testcases/general/constants/issue46925.dart:17:21: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   const v4 = MyClass<String>.constr;
+//                     ^
+//
+// pkg/front_end/testcases/general/constants/issue46925.dart:17:30: Error: Member not found: 'constr'.
+//   const v4 = MyClass<String>.constr;
+//                              ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class MyClass<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field dynamic a;
+  const constructor •(core::int i, core::int j) → self::MyClass<self::MyClass::T%>
+    : self::MyClass::a = i.{core::num::+}(j){(core::num) → core::int}, super core::Object::•()
+    ;
+  const constructor constr() → self::MyClass<self::MyClass::T%>
+    : self::MyClass::a = 0, super core::Object::•()
+    ;
+}
+static method test() → dynamic {
+  const invalid-type v1 = invalid-expression "pkg/front_end/testcases/general/constants/issue46925.dart:14:30: Error: Member not found: 'new'.
+  const v1 = MyClass<String>.new;
+                             ^^^";
+  const invalid-type v2 = invalid-expression "pkg/front_end/testcases/general/constants/issue46925.dart:15:27: Error: Member not found: 'constr'.
+  const v2 = MyClass<int>.constr;
+                          ^^^^^^";
+  const invalid-type v3 = invalid-expression "pkg/front_end/testcases/general/constants/issue46925.dart:16:27: Error: Member not found: 'new'.
+  const v3 = MyClass<int>.new;
+                          ^^^";
+  const invalid-type v4 = invalid-expression "pkg/front_end/testcases/general/constants/issue46925.dart:17:30: Error: Member not found: 'constr'.
+  const v4 = MyClass<String>.constr;
+                             ^^^^^^";
+  const dynamic c1 = invalid-expression "pkg/front_end/testcases/general/constants/issue46925.dart:14:30: Error: Member not found: 'new'.
+  const v1 = MyClass<String>.new;
+                             ^^^";
+  const dynamic c2 = invalid-expression "pkg/front_end/testcases/general/constants/issue46925.dart:14:30: Error: Member not found: 'new'.
+  const v1 = MyClass<String>.new;
+                             ^^^";
+  const dynamic c3 = invalid-expression "pkg/front_end/testcases/general/constants/issue46925.dart:15:27: Error: Member not found: 'constr'.
+  const v2 = MyClass<int>.constr;
+                          ^^^^^^";
+  const dynamic c4 = invalid-expression "pkg/front_end/testcases/general/constants/issue46925.dart:15:27: Error: Member not found: 'constr'.
+  const v2 = MyClass<int>.constr;
+                          ^^^^^^";
+  const dynamic c5 = invalid-expression "pkg/front_end/testcases/general/constants/issue46925.dart:16:27: Error: Member not found: 'new'.
+  const v3 = MyClass<int>.new;
+                          ^^^";
+  const dynamic c6 = invalid-expression "pkg/front_end/testcases/general/constants/issue46925.dart:17:30: Error: Member not found: 'constr'.
+  const v4 = MyClass<String>.constr;
+                             ^^^^^^";
+}
+static method main() → dynamic {}

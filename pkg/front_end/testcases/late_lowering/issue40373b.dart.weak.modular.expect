@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class C extends core::Object {
+  static field dynamic _#s = null;
+  static field core::bool _#s#isSet = false;
+  field dynamic _#C#v = null;
+  field core::bool _#C#v#isSet = false;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  static get s() → dynamic
+    return self::C::_#s#isSet ?{dynamic} self::C::_#s : throw new _in::LateError::fieldNI("s");
+  static set s(dynamic #t1) → void
+    if(self::C::_#s#isSet)
+      throw new _in::LateError::fieldAI("s");
+    else {
+      self::C::_#s#isSet = true;
+      self::C::_#s = #t1;
+    }
+  get v() → dynamic
+    return this.{self::C::_#C#v#isSet}{core::bool} ?{dynamic} this.{self::C::_#C#v}{dynamic} : throw new _in::LateError::fieldNI("v");
+  set v(dynamic #t2) → void
+    if(this.{self::C::_#C#v#isSet}{core::bool})
+      throw new _in::LateError::fieldAI("v");
+    else {
+      this.{self::C::_#C#v#isSet} = true;
+      this.{self::C::_#C#v} = #t2;
+    }
+}
+static field dynamic _#g = null;
+static field core::bool _#g#isSet = false;
+static get g() → dynamic
+  return self::_#g#isSet ?{dynamic} self::_#g : throw new _in::LateError::fieldNI("g");
+static set g(dynamic #t3) → void
+  if(self::_#g#isSet)
+    throw new _in::LateError::fieldAI("g");
+  else {
+    self::_#g#isSet = true;
+    self::_#g = #t3;
+  }
+static method main() → dynamic {
+  lowered final dynamic #l;
+  lowered core::bool #l#isSet = false;
+  function #l#get() → dynamic
+    return #l#isSet ?{dynamic} #l : throw new _in::LateError::localNI("l");
+  function #l#set(dynamic #t4) → dynamic
+    if(#l#isSet)
+      throw new _in::LateError::localAI("l");
+    else {
+      #l#isSet = true;
+      return #l = #t4;
+    }
+  self::g = "Lily";
+  self::C::s = "was";
+  self::C c = new self::C::•();
+  c.{self::C::v} = "here";
+  #l#set("Run, Forrest, run"){(dynamic) → dynamic};
+  self::expect("Lily", self::g);
+  self::expect("was", self::C::s);
+  self::expect("here", c.{self::C::v}{dynamic});
+  self::expect("Run, Forrest, run", #l#get(){() → dynamic});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

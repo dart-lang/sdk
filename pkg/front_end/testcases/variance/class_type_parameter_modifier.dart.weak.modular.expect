@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic, contravariant Y extends core::Object? = dynamic, invariant Z extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%, self::A::Y%, self::A::Z%>
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::A<dynamic, dynamic, dynamic> a = new self::A::•<dynamic, dynamic, dynamic>();
+}

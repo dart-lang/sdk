@@ -1,0 +1,42 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/missing_redirecting_target.dart:10:23: Error: Redirection constructor target not found: 'Class.nonexisting'
+//   factory Class.a() = Class.nonexisting;
+//                       ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/missing_redirecting_target.dart:11:23: Error: Redirection constructor target not found: 'Class.constructor'
+//   factory Class.b() = Class.constructor;
+//                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static field () → self::Class field = () → self::Class => new self::Class::_();
+  static final field dynamic _redirecting# = <dynamic>[#C1, #C2]/*isLegacy*/;
+  constructor _() → self::Class
+    : super core::Object::•()
+    ;
+  static method _#_#tearOff() → self::Class
+    return new self::Class::_();
+  static method constructor() → self::Class
+    return new self::Class::_();
+  static factory a() → self::Class
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/missing_redirecting_target.dart:10:23: Error: Redirection constructor target not found: 'Class.nonexisting'
+  factory Class.a() = Class.nonexisting;
+                      ^";
+  static method _#a#tearOff() → self::Class;
+  static factory b() → self::Class
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/missing_redirecting_target.dart:11:23: Error: Redirection constructor target not found: 'Class.constructor'
+  factory Class.b() = Class.constructor;
+                      ^";
+  static method _#b#tearOff() → self::Class;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::Class::a
+  #C2 = constructor-tearoff self::Class::b
+}

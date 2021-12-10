@@ -1,0 +1,4 @@
+import 'b_lib.dart';
+
+expect(expected, actual) {}
+main() {}

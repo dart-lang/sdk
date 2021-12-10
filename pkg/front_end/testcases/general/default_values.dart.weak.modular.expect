@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method topLevel([dynamic a = #C1]) → dynamic
+  return a;
+static method main() → dynamic {
+  core::print(self::topLevel());
+}
+
+constants  {
+  #C1 = 42
+}

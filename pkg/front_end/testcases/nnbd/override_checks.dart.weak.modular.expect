@@ -1,0 +1,93 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/override_checks.dart:14:7: Error: The field 'B2.bar' has type 'num', which does not match the corresponding type, 'num?', in the overridden setter, 'B1.bar'.
+//   num bar = 3.14; // Error in strong mode and Warning in weak mode.
+//       ^
+// pkg/front_end/testcases/nnbd/override_checks.dart:8:12: Context: This is the overridden method ('bar').
+//   void set bar(num? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/override_checks.dart:15:12: Error: The return type of the method 'B2.baz' is 'num?', which does not match the return type, 'num', of the overridden method, 'B1.baz'.
+// Change to a subtype of 'num'.
+//   num? get baz => null; // Error in strong mode and Warning in weak mode.
+//            ^
+// pkg/front_end/testcases/nnbd/override_checks.dart:9:11: Context: This is the overridden method ('baz').
+//   num get baz => 42;
+//           ^
+//
+// pkg/front_end/testcases/nnbd/override_checks.dart:16:17: Error: The parameter 'value' of the method 'B2.hest' has type 'num', which does not match the corresponding type, 'num?', in the overridden method, 'B1.hest'.
+// Change to a supertype of 'num?', or, for a covariant parameter, a subtype.
+//   void hest(num value) {} // Error in strong mode and Warning in weak mode.
+//                 ^
+// pkg/front_end/testcases/nnbd/override_checks.dart:10:8: Context: This is the overridden method ('hest').
+//   void hest(num? value) {}
+//        ^
+//
+// pkg/front_end/testcases/nnbd/override_checks.dart:20:18: Error: The type 'int?' doesn't extend 'int'.
+// Try using a different type as argument.
+//   factory C1() = C2<int?>; // Error in strong mode and Warning in weak mode.
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/override_checks.dart:27:27: Error: The constructor function type 'D Function(num)' isn't a subtype of 'D Function(num?)'.
+//  - 'D' is from 'pkg/front_end/testcases/nnbd/override_checks.dart'.
+//   factory D.bar(num? x) = D.foo; // Error in strong mode and Warning in weak mode.
+//                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::num> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    : super core::Object::•()
+    ;
+}
+class B1 extends core::Object {
+  synthetic constructor •() → self::B1
+    : super core::Object::•()
+    ;
+  set bar(core::num? value) → void {}
+  get baz() → core::num
+    return 42;
+  method hest(core::num? value) → void {}
+}
+class B2 extends self::B1 {
+  field core::num bar = 3.14;
+  synthetic constructor •() → self::B2
+    : super self::B1::•()
+    ;
+  get baz() → core::num?
+    return null;
+  method hest(core::num value) → void {}
+}
+class C1 extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  static factory •() → self::C1
+    return invalid-expression "pkg/front_end/testcases/nnbd/override_checks.dart:20:18: Error: The type 'int?' doesn't extend 'int'.
+Try using a different type as argument.
+  factory C1() = C2<int?>; // Error in strong mode and Warning in weak mode.
+                 ^";
+}
+class C2<X extends core::int> extends core::Object implements self::C1 {
+  synthetic constructor •() → self::C2<self::C2::X>
+    : super core::Object::•()
+    ;
+}
+class D extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
+  constructor foo(core::num x) → self::D
+    : super core::Object::•()
+    ;
+  static factory bar(core::num? x) → self::D
+    return invalid-expression "pkg/front_end/testcases/nnbd/override_checks.dart:27:27: Error: The constructor function type 'D Function(num)' isn't a subtype of 'D Function(num?)'.
+ - 'D' is from 'pkg/front_end/testcases/nnbd/override_checks.dart'.
+  factory D.bar(num? x) = D.foo; // Error in strong mode and Warning in weak mode.
+                          ^";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::C1::•
+  #C2 = constructor-tearoff self::D::bar
+}

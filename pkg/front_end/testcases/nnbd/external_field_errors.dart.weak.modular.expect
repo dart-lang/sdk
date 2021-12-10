@@ -1,0 +1,122 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:5:28: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+// external int topLevelField = 0;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:7:39: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+// external final int finalTopLevelField = 0;
+//                                       ^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:9:31: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+// external const int constField = 0;
+//                               ^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:12:37: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+//   external int fieldWithInitializer = 0;
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:18:10: Error: External fields cannot have initializers.
+// Try removing the field initializer or the 'external' keyword from the field declaration.
+//   A(this.initializedField1) : this.initializedField2 = 0;
+//          ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:18:36: Error: External fields cannot have initializers.
+// Try removing the field initializer or the 'external' keyword from the field declaration.
+//   A(this.initializedField1) : this.initializedField2 = 0;
+//                                    ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:20:35: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+//   external static int staticField = 0;
+//                                   ^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:22:46: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+//   external static final int finalStaticField = 0;
+//                                              ^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:26:35: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+//   external static int staticField = 0;
+//                                   ^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:28:46: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+//   external static final int finalStaticField = 0;
+//                                              ^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:32:39: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+//   external int extensionInstanceField = 0;
+//                                       ^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:33:50: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+//   external final int finalExtensionInstanceField = 0;
+//                                                  ^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:34:44: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+//   external static int extensionStaticField = 0;
+//                                            ^
+//
+// pkg/front_end/testcases/nnbd/external_field_errors.dart:35:55: Error: External fields cannot have initializers.
+// Try removing the initializer or the 'external' keyword.
+//   external static final int finalExtensionStaticField = 0;
+//                                                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  constructor •(core::int initializedField1) → self::A
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/nnbd/external_field_errors.dart:18:10: Error: External fields cannot have initializers.
+Try removing the field initializer or the 'external' keyword from the field declaration.
+  A(this.initializedField1) : this.initializedField2 = 0;
+         ^^^^^^^^^^^^^^^^^", final dynamic #t2 = invalid-expression "pkg/front_end/testcases/nnbd/external_field_errors.dart:18:36: Error: External fields cannot have initializers.
+Try removing the field initializer or the 'external' keyword from the field declaration.
+  A(this.initializedField1) : this.initializedField2 = 0;
+                                   ^^^^^^^^^^^^^^^^^"
+    ;
+  external get fieldWithInitializer() → core::int;
+  external set fieldWithInitializer(core::int #externalFieldValue) → void;
+  external get initializedField1() → core::int;
+  external set initializedField1(core::int #externalFieldValue) → void;
+  external get initializedField2() → core::int;
+  external set initializedField2(core::int #externalFieldValue) → void;
+  external static get staticField() → core::int;
+  external static set staticField(core::int #externalFieldValue) → void;
+  external static get finalStaticField() → core::int;
+}
+abstract class B extends core::Object /*isMixinDeclaration*/  {
+  external static get staticField() → core::int;
+  external static set staticField(core::int #externalFieldValue) → void;
+  external static get finalStaticField() → core::int;
+}
+extension Extension on self::A {
+  get extensionInstanceField = self::Extension|get#extensionInstanceField;
+  set extensionInstanceField = self::Extension|set#extensionInstanceField;
+  get finalExtensionInstanceField = self::Extension|get#finalExtensionInstanceField;
+  static get extensionStaticField = get self::Extension|extensionStaticField;
+  static set extensionStaticField = set self::Extension|extensionStaticField;
+  static get finalExtensionStaticField = get self::Extension|finalExtensionStaticField;
+}
+external static get topLevelField() → core::int;
+external static set topLevelField(core::int #externalFieldValue) → void;
+external static get finalTopLevelField() → core::int;
+external static get constField() → core::int;
+external static set constField(core::int #externalFieldValue) → void;
+external static method Extension|get#extensionInstanceField(self::A #this) → core::int;
+external static method Extension|set#extensionInstanceField(self::A #this, core::int #externalFieldValue) → void;
+external static method Extension|get#finalExtensionInstanceField(self::A #this) → core::int;
+external static get Extension|extensionStaticField() → core::int;
+external static set Extension|extensionStaticField(core::int #externalFieldValue) → void;
+external static get Extension|finalExtensionStaticField() → core::int;
+static method main() → dynamic {}

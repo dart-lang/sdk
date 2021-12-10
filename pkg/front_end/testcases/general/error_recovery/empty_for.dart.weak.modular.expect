@@ -1,0 +1,23 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/empty_for.dart:3:8: Error: Expected an identifier, but got ')'.
+// Try inserting an identifier before ')'.
+//   for () {}
+//        ^
+//
+// pkg/front_end/testcases/general/error_recovery/empty_for.dart:3:7: Error: Expected ';' after this.
+//   for () {}
+//       ^
+//
+import self as self;
+
+static method main() → dynamic {
+  for (final invalid-type #t1 = invalid-expression "pkg/front_end/testcases/general/error_recovery/empty_for.dart:3:8: Error: This couldn't be parsed.
+  for () {}
+       ^"; invalid-expression "pkg/front_end/testcases/general/error_recovery/empty_for.dart:3:8: Error: This couldn't be parsed.
+  for () {}
+       ^"; ) {
+  }
+}

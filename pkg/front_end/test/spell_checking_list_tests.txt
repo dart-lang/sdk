@@ -903,6 +903,7 @@ stay
 std
 stress
 string2
+stringy
 strip
 strongest
 stub's

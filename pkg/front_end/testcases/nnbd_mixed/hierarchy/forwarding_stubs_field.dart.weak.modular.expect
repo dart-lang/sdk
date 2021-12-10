@@ -1,0 +1,179 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:41:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
+//  - Interface1.extendedAbstractCovariantImplementedField
+//  - Interface1.extendedAbstractImplementedCovariantField
+//  - Interface1.implementsMultipleCovariantField1
+//  - Interface1.implementsMultipleCovariantField2
+//  - Interface2.implementsMultipleCovariantField1
+//  - Interface2.implementsMultipleCovariantField2
+//  - Super.extendedAbstractCovariantField
+//  - Super.extendedAbstractCovariantField=
+//  - Super.extendedAbstractCovariantImplementedField
+//  - Super.extendedAbstractCovariantImplementedField=
+//  - Super.extendedAbstractImplementedCovariantField
+//  - Super.extendedAbstractImplementedCovariantField=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSub extends AbstractClass {}
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:22:7: Context: 'Interface1.extendedAbstractCovariantImplementedField' is defined here.
+//   int extendedAbstractCovariantImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:26:17: Context: 'Interface1.extendedAbstractImplementedCovariantField' is defined here.
+//   covariant int extendedAbstractImplementedCovariantField = 0;
+//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:28:17: Context: 'Interface1.implementsMultipleCovariantField1' is defined here.
+//   covariant int implementsMultipleCovariantField1 = 0;
+//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:30:7: Context: 'Interface1.implementsMultipleCovariantField2' is defined here.
+//   int implementsMultipleCovariantField2 = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:34:7: Context: 'Interface2.implementsMultipleCovariantField1' is defined here.
+//   int implementsMultipleCovariantField1 = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:36:17: Context: 'Interface2.implementsMultipleCovariantField2' is defined here.
+//   covariant int implementsMultipleCovariantField2 = 0;
+//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:8:26: Context: 'Super.extendedAbstractCovariantField' is defined here.
+//   abstract covariant int extendedAbstractCovariantField;
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:8:26: Context: 'Super.extendedAbstractCovariantField=' is defined here.
+//   abstract covariant int extendedAbstractCovariantField;
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:12:26: Context: 'Super.extendedAbstractCovariantImplementedField' is defined here.
+//   abstract covariant int extendedAbstractCovariantImplementedField;
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:12:26: Context: 'Super.extendedAbstractCovariantImplementedField=' is defined here.
+//   abstract covariant int extendedAbstractCovariantImplementedField;
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:16:16: Context: 'Super.extendedAbstractImplementedCovariantField' is defined here.
+//   abstract int extendedAbstractImplementedCovariantField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:16:16: Context: 'Super.extendedAbstractImplementedCovariantField=' is defined here.
+//   abstract int extendedAbstractImplementedCovariantField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:43:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - Interface1.extendedAbstractCovariantImplementedField
+//  - Interface1.extendedAbstractImplementedCovariantField
+//  - Interface1.implementsMultipleCovariantField1
+//  - Interface1.implementsMultipleCovariantField2
+//  - Interface2.implementsMultipleCovariantField1
+//  - Interface2.implementsMultipleCovariantField2
+//  - Super.extendedAbstractCovariantField
+//  - Super.extendedAbstractCovariantField=
+//  - Super.extendedAbstractCovariantImplementedField
+//  - Super.extendedAbstractCovariantImplementedField=
+//  - Super.extendedAbstractImplementedCovariantField
+//  - Super.extendedAbstractImplementedCovariantField=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass extends Super implements Interface1, Interface2 {}
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:22:7: Context: 'Interface1.extendedAbstractCovariantImplementedField' is defined here.
+//   int extendedAbstractCovariantImplementedField = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:26:17: Context: 'Interface1.extendedAbstractImplementedCovariantField' is defined here.
+//   covariant int extendedAbstractImplementedCovariantField = 0;
+//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:28:17: Context: 'Interface1.implementsMultipleCovariantField1' is defined here.
+//   covariant int implementsMultipleCovariantField1 = 0;
+//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:30:7: Context: 'Interface1.implementsMultipleCovariantField2' is defined here.
+//   int implementsMultipleCovariantField2 = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:34:7: Context: 'Interface2.implementsMultipleCovariantField1' is defined here.
+//   int implementsMultipleCovariantField1 = 0;
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:36:17: Context: 'Interface2.implementsMultipleCovariantField2' is defined here.
+//   covariant int implementsMultipleCovariantField2 = 0;
+//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:8:26: Context: 'Super.extendedAbstractCovariantField' is defined here.
+//   abstract covariant int extendedAbstractCovariantField;
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:8:26: Context: 'Super.extendedAbstractCovariantField=' is defined here.
+//   abstract covariant int extendedAbstractCovariantField;
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:12:26: Context: 'Super.extendedAbstractCovariantImplementedField' is defined here.
+//   abstract covariant int extendedAbstractCovariantImplementedField;
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:12:26: Context: 'Super.extendedAbstractCovariantImplementedField=' is defined here.
+//   abstract covariant int extendedAbstractCovariantImplementedField;
+//                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:16:16: Context: 'Super.extendedAbstractImplementedCovariantField' is defined here.
+//   abstract int extendedAbstractImplementedCovariantField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_field.dart:16:16: Context: 'Super.extendedAbstractImplementedCovariantField=' is defined here.
+//   abstract int extendedAbstractImplementedCovariantField;
+//                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Super extends core::Object {
+  covariant-by-declaration field core::int extendedConcreteCovariantField = 0;
+  covariant-by-declaration field core::int extendedConcreteCovariantImplementedField = 0;
+  field core::int extendedConcreteImplementedCovariantField = 0;
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  abstract get extendedAbstractCovariantField() → core::int;
+  abstract set extendedAbstractCovariantField(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract get extendedAbstractCovariantImplementedField() → core::int;
+  abstract set extendedAbstractCovariantImplementedField(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract get extendedAbstractImplementedCovariantField() → core::int;
+  abstract set extendedAbstractImplementedCovariantField(core::int #externalFieldValue) → void;
+}
+class Interface1 extends core::Object {
+  field core::int extendedConcreteCovariantImplementedField = 0;
+  field core::int extendedAbstractCovariantImplementedField = 0;
+  covariant-by-declaration field core::int extendedConcreteImplementedCovariantField = 0;
+  covariant-by-declaration field core::int extendedAbstractImplementedCovariantField = 0;
+  covariant-by-declaration field core::int implementsMultipleCovariantField1 = 0;
+  field core::int implementsMultipleCovariantField2 = 0;
+  synthetic constructor •() → self::Interface1
+    : super core::Object::•()
+    ;
+}
+class Interface2 extends core::Object {
+  field core::int implementsMultipleCovariantField1 = 0;
+  covariant-by-declaration field core::int implementsMultipleCovariantField2 = 0;
+  synthetic constructor •() → self::Interface2
+    : super core::Object::•()
+    ;
+}
+abstract class AbstractClass extends self::Super implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::AbstractClass
+    : super self::Super::•()
+    ;
+  forwarding-stub set extendedConcreteImplementedCovariantField(covariant-by-declaration core::int value) → void
+    return super.{self::Super::extendedConcreteImplementedCovariantField} = value;
+  abstract forwarding-stub set extendedAbstractImplementedCovariantField(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract forwarding-stub set implementsMultipleCovariantField2(covariant-by-declaration core::int value) → void;
+}
+class ConcreteSub extends self::AbstractClass {
+  synthetic constructor •() → self::ConcreteSub
+    : super self::AbstractClass::•()
+    ;
+}
+class ConcreteClass extends self::Super implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::ConcreteClass
+    : super self::Super::•()
+    ;
+  forwarding-stub set extendedConcreteImplementedCovariantField(covariant-by-declaration core::int value) → void
+    return super.{self::Super::extendedConcreteImplementedCovariantField} = value;
+  abstract forwarding-stub set extendedAbstractImplementedCovariantField(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract forwarding-stub set implementsMultipleCovariantField2(covariant-by-declaration core::int value) → void;
+}
+static method main() → dynamic {}

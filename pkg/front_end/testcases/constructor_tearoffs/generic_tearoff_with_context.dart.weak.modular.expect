@@ -1,0 +1,140 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:13:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+//  - 'X/*1*/' is from 'unknown'.
+//  - 'X/*2*/' is from 'unknown'.
+// A<X> Function<X>(X) test2() => A.foo2; // Error.
+//                                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:14:32: Error: A value of type 'A<X/*1*/> Function<X>()' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+//  - 'X/*1*/' is from 'unknown'.
+//  - 'X/*2*/' is from 'unknown'.
+// A<X> Function<X>(X) test3() => A.new; // Error.
+//                                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:15:32: Error: A value of type 'A<int> Function()' can't be returned from a function with return type 'A<X> Function<X>(X)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+// A<X> Function<X>(X) test4() => A<int>.new; // Error.
+//                                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:16:32: Error: Too many type arguments: 1 allowed, but 2 found.
+// Try removing the extra type arguments.
+// A<X> Function<X>(X) test5() => A<int, String>.new; // Error.
+//                                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:17:32: Error: A value of type 'A<int> Function(int)' can't be returned from a function with return type 'A<X> Function<X>(X)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+// A<X> Function<X>(X) test6() => A<int>.foo1; // Error.
+//                                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:18:32: Error: Too many type arguments: 1 allowed, but 2 found.
+// Try removing the extra type arguments.
+// A<X> Function<X>(X) test7() => A<int, String>.foo1; // Error.
+//                                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:19:32: Error: A value of type 'A<int> Function(int, int)' can't be returned from a function with return type 'A<X> Function<X>(X)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+// A<X> Function<X>(X) test8() => A<int>.foo2; // Error.
+//                                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:20:32: Error: Too many type arguments: 1 allowed, but 2 found.
+// Try removing the extra type arguments.
+// A<X> Function<X>(X) test9() => A<int, String>.foo2; // Error.
+//                                ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:22:33: Error: A value of type 'A<X/*1*/> Function<X>()' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+//  - 'X/*1*/' is from 'unknown'.
+//  - 'X/*2*/' is from 'unknown'.
+// A<X> Function<X>(X) test11() => A.bar1; // Error.
+//                                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  constructor foo1(self::A::X% x) → self::A<self::A::X%>
+    : super core::Object::•() {}
+  constructor foo2(self::A::X% x, core::int y) → self::A<self::A::X%>
+    : super core::Object::•() {}
+  constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+  static factory bar1<X extends core::Object? = dynamic>() → self::A<self::A::bar1::X%>
+    return new self::A::•<self::A::bar1::X%>();
+}
+static method test1() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  return #C1;
+static method test2() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:13:32: Error: A value of type 'A<X/*1*/> Function<X>(X/*1*/, int)' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+ - 'X/*1*/' is from 'unknown'.
+ - 'X/*2*/' is from 'unknown'.
+A<X> Function<X>(X) test2() => A.foo2; // Error.
+                               ^" in #C2 as{TypeError,ForNonNullableByDefault} Never;
+static method test3() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:14:32: Error: A value of type 'A<X/*1*/> Function<X>()' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+ - 'X/*1*/' is from 'unknown'.
+ - 'X/*2*/' is from 'unknown'.
+A<X> Function<X>(X) test3() => A.new; // Error.
+                               ^" in #C3 as{TypeError,ForNonNullableByDefault} Never;
+static method test4() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:15:32: Error: A value of type 'A<int> Function()' can't be returned from a function with return type 'A<X> Function<X>(X)'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+A<X> Function<X>(X) test4() => A<int>.new; // Error.
+                               ^" in #C4 as{TypeError,ForNonNullableByDefault} Never;
+static method test5() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:16:32: Error: Too many type arguments: 1 allowed, but 2 found.
+Try removing the extra type arguments.
+A<X> Function<X>(X) test5() => A<int, String>.new; // Error.
+                               ^";
+static method test6() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:17:32: Error: A value of type 'A<int> Function(int)' can't be returned from a function with return type 'A<X> Function<X>(X)'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+A<X> Function<X>(X) test6() => A<int>.foo1; // Error.
+                               ^" in #C5 as{TypeError,ForNonNullableByDefault} Never;
+static method test7() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:18:32: Error: Too many type arguments: 1 allowed, but 2 found.
+Try removing the extra type arguments.
+A<X> Function<X>(X) test7() => A<int, String>.foo1; // Error.
+                               ^";
+static method test8() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:19:32: Error: A value of type 'A<int> Function(int, int)' can't be returned from a function with return type 'A<X> Function<X>(X)'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+A<X> Function<X>(X) test8() => A<int>.foo2; // Error.
+                               ^" in #C6 as{TypeError,ForNonNullableByDefault} Never;
+static method test9() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:20:32: Error: Too many type arguments: 1 allowed, but 2 found.
+Try removing the extra type arguments.
+A<X> Function<X>(X) test9() => A<int, String>.foo2; // Error.
+                               ^";
+static method test10() → <X extends core::Object? = dynamic>() → self::A<X%>
+  return #C7;
+static method test11() → <X extends core::Object? = dynamic>(X%) → self::A<X%>
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart:22:33: Error: A value of type 'A<X/*1*/> Function<X>()' can't be returned from a function with return type 'A<X/*2*/> Function<X>(X/*2*/)'.
+ - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/generic_tearoff_with_context.dart'.
+ - 'X/*1*/' is from 'unknown'.
+ - 'X/*2*/' is from 'unknown'.
+A<X> Function<X>(X) test11() => A.bar1; // Error.
+                                ^" in #C7 as{TypeError,ForNonNullableByDefault} Never;
+static method test12() → () → self::A<core::int>
+  return #C8;
+static method test13() → () → self::A<core::int>
+  return #C8;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::foo1
+  #C2 = constructor-tearoff self::A::foo2
+  #C3 = constructor-tearoff self::A::•
+  #C4 = instantiation #C3 <core::int*>
+  #C5 = instantiation #C1 <core::int*>
+  #C6 = instantiation #C2 <core::int*>
+  #C7 = constructor-tearoff self::A::bar1
+  #C8 = instantiation #C7 <core::int*>
+}

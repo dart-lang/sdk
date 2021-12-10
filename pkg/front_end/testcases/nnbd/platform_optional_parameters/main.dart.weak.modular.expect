@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:test" as test;
+
+import "dart:test";
+
+static method main() → dynamic {
+  test::Class? c = new test::Class::•();
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:11:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void patchedMethod([int i]) {}
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:13:29: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void _injectedMethod([int i]) {}
+//                             ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:17:25: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// void patchedMethod([int i]) {}
+//                         ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/patch_lib.dart:19:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// void _injectedMethod([int i]) {}
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/origin_lib.dart:6:20: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   void method([int i]) {}
+//                    ^
+//
+// pkg/front_end/testcases/nnbd/platform_optional_parameters/origin_lib.dart:11:18: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// void method([int i]) {}
+//                  ^
+//
+import self as test;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@#C1
+class Class extends core::Object {
+  synthetic constructor •() → test::Class
+    : super core::Object::•()
+    ;
+  method method([core::int i = #C2]) → void {}
+  @#C1
+  method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([core::int i = #C2]) → void {}
+  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i = #C2]) → void {}
+}
+static method method([core::int i = #C2]) → void {}
+@#C1
+static method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([core::int i = #C2]) → void {}
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([core::int i = #C2]) → void {}
+
+constants  {
+  #C1 = _in::_Patch {}
+  #C2 = null
+}

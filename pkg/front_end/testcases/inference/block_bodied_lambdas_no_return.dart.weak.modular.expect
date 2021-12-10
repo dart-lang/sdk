@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test1() → dynamic {
+  core::List<core::int*>* o;
+  core::Iterable<Null>* y = o.{core::Iterable::map}<Null>((core::int* x) → Null {}){((core::int*) →* Null) →* core::Iterable<Null>*};
+  core::Iterable<core::int*>* z = y;
+}
+static method main() → dynamic {}

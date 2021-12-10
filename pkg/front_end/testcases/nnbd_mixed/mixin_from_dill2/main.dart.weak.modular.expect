@@ -1,0 +1,29 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+abstract class RenderAnimatedOpacityMixin<T extends mai::RenderObject> extends mai::RenderObjectWithChildMixin<self::RenderAnimatedOpacityMixin::T> /*isMixinDeclaration*/  {
+}
+abstract class _RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin = mai::RenderProxyBox with mai::RenderProxyBoxMixin<mai::RenderBox> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin
+    : super mai::RenderProxyBox::•()
+    ;
+  mixin-super-stub method hitTestChildren(mai::BoxHitTestResult result, {required mai::Offset position}) → core::bool
+    return super.{mai::RenderProxyBoxMixin::hitTestChildren}(result, position: position);
+}
+abstract class _RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin&RenderAnimatedOpacityMixin = self::_RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin with self::RenderAnimatedOpacityMixin<mai::RenderBox> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin&RenderAnimatedOpacityMixin
+    : super self::_RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin::•()
+    ;
+}
+class RenderAnimatedOpacity extends self::_RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin&RenderAnimatedOpacityMixin {
+  synthetic constructor •() → self::RenderAnimatedOpacity
+    : super self::_RenderAnimatedOpacity&RenderProxyBox&RenderProxyBoxMixin&RenderAnimatedOpacityMixin::•()
+    ;
+}
+static method main() → dynamic {
+  new self::RenderAnimatedOpacity::•();
+}

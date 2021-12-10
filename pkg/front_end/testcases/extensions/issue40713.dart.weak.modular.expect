@@ -1,0 +1,38 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/issue40713.dart:22:8: Error: 'safeFirst' isn't a function or method and can't be invoked.
+//   list.safeFirst();
+//        ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue40713.dart:24:18: Error: Too few positional arguments: 1 required, 0 given.
+//   list2.safeFirst();
+//                  ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension SafeAccess<T extends core::Object* = dynamic> on core::Iterable<T*>* {
+  get safeFirst = self::SafeAccess|get#safeFirst;
+}
+static method SafeAccess|get#safeFirst<T extends core::Object* = dynamic>(lowered final core::Iterable<self::SafeAccess|get#safeFirst::T*>* #this) → self::SafeAccess|get#safeFirst::T* {
+  return #this.{core::Iterable::isNotEmpty}{core::bool*} ?{self::SafeAccess|get#safeFirst::T*} #this.{core::Iterable::first}{self::SafeAccess|get#safeFirst::T*} : null;
+}
+static method main() → dynamic {}
+static method test() → void {
+  final core::List<dynamic>* list = <dynamic>[];
+  self::SafeAccess|get#safeFirst<dynamic>(list){dynamic}.call();
+  final core::List<(core::int*) →* void>* list2 = <(core::int*) →* void>[];
+  self::SafeAccess|get#safeFirst<(core::int*) →* void>(list2)(0){(core::int*) →* void};
+}
+static method errors() → void {
+  final core::List<core::Object*>* list = <core::Object*>[];
+  invalid-expression "pkg/front_end/testcases/extensions/issue40713.dart:22:8: Error: 'safeFirst' isn't a function or method and can't be invoked.
+  list.safeFirst();
+       ^^^^^^^^^" in self::SafeAccess|get#safeFirst<core::Object*>(list){<unresolved>}.call();
+  final core::List<(core::int*) →* void>* list2 = <(core::int*) →* void>[];
+  invalid-expression "pkg/front_end/testcases/extensions/issue40713.dart:24:18: Error: Too few positional arguments: 1 required, 0 given.
+  list2.safeFirst();
+                 ^" in self::SafeAccess|get#safeFirst<(core::int*) →* void>(list2){<inapplicable>}.();
+}

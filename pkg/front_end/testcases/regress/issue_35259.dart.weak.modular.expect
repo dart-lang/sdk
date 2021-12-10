@@ -1,0 +1,60 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:7:11: Error: 'Supertype' is already declared in this scope.
+//   factory Supertype() = Unresolved;
+//           ^^^^^^^^^
+// pkg/front_end/testcases/regress/issue_35259.dart:6:11: Context: Previous declaration of 'Supertype'.
+//   factory Supertype() = Unresolved;
+//           ^^^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:6:25: Error: Couldn't find constructor 'Unresolved'.
+//   factory Supertype() = Unresolved;
+//                         ^
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:7:25: Error: Couldn't find constructor 'Unresolved'.
+//   factory Supertype() = Unresolved;
+//                         ^
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:7:25: Error: Redirection constructor target not found: 'Unresolved'
+//   factory Supertype() = Unresolved;
+//                         ^
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:6:25: Error: Redirection constructor target not found: 'Unresolved'
+//   factory Supertype() = Unresolved;
+//                         ^
+//
+// pkg/front_end/testcases/regress/issue_35259.dart:11:13: Error: Can't use 'Supertype' because it is declared more than once.
+//   print(new Supertype());
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Supertype extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1];
+  static factory •() → self::Supertype*
+    return invalid-expression "pkg/front_end/testcases/regress/issue_35259.dart:6:25: Error: Redirection constructor target not found: 'Unresolved'
+  factory Supertype() = Unresolved;
+                        ^";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  core::print(invalid-expression "pkg/front_end/testcases/regress/issue_35259.dart:11:13: Error: Can't use 'Supertype' because it is declared more than once.
+  print(new Supertype());
+            ^");
+}
+
+constants  {
+  #C1 = constructor-tearoff self::Supertype::•
+}

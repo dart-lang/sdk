@@ -1,0 +1,12 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  () →* core::Iterable<Null>* f = () → core::Iterable<Null>* sync* {
+    yield null;
+  };
+  core::Iterable<dynamic>* y = f(){() →* core::Iterable<Null>*};
+  core::Iterable<core::String*>* z = f(){() →* core::Iterable<Null>*};
+  core::String* s = f(){() →* core::Iterable<Null>*}.{core::Iterable::first}{Null};
+}

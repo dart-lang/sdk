@@ -1,0 +1,112 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:15:13: Error: Too many type arguments: 1 allowed, but 2 found.
+// Try removing the extra type arguments.
+//   var d = id<int, String>; // error - too many args
+//             ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:16:17: Error: Too few type arguments: 2 required, 1 given.
+// Try adding the missing type arguments.
+//   var e = method<int>; // error - too few args
+//                 ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:17:12: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
+// Try changing the operand or remove the type arguments.
+//   var f = 0<int>; // error - non-function type operand
+//            ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:18:15: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic Function()'.
+// Try changing the operand or remove the type arguments.
+//   var g = main<int>; // error - non-generic function type operand
+//               ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:19:24: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'X Function<X extends num>(X)'.
+// Try changing type arguments so that they conform to the bounds.
+//   var h = boundedMethod<String>; // error - invalid bound
+//                        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:25:11: Error: Too many type arguments: 1 allowed, but 2 found.
+// Try removing the extra type arguments.
+// var d = id<int, String>; // error - too many args
+//           ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:26:15: Error: Too few type arguments: 2 required, 1 given.
+// Try adding the missing type arguments.
+// var e = method<int>; // error - too few args
+//               ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:27:10: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
+// Try changing the operand or remove the type arguments.
+// var f = 0<int>; // error - non-function type operand
+//          ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:28:13: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic Function()'.
+// Try changing the operand or remove the type arguments.
+// var g = main<int>; // error - non-generic function type operand
+//             ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:29:22: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'X Function<X extends num>(X)'.
+// Try changing type arguments so that they conform to the bounds.
+// var h = boundedMethod<String>; // error - invalid bound
+//                      ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field <X extends core::Object? = dynamic>(X%) → X% a = #C1;
+static field (core::int) → core::int b = self::a<core::int>;
+static field (core::int) → core::int c = #C2;
+static field invalid-type d = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:25:11: Error: Too many type arguments: 1 allowed, but 2 found.
+Try removing the extra type arguments.
+var d = id<int, String>; // error - too many args
+          ^";
+static field invalid-type e = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:26:15: Error: Too few type arguments: 2 required, 1 given.
+Try adding the missing type arguments.
+var e = method<int>; // error - too few args
+              ^";
+static field invalid-type f = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:27:10: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
+Try changing the operand or remove the type arguments.
+var f = 0<int>; // error - non-function type operand
+         ^";
+static field invalid-type g = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:28:13: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic Function()'.
+Try changing the operand or remove the type arguments.
+var g = main<int>; // error - non-generic function type operand
+            ^";
+static field (core::String) → core::String h = #C4;
+static method id<X extends core::Object? = dynamic>(self::id::X% x) → self::id::X%
+  return x;
+static method method<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → void {}
+static method boundedMethod<X extends core::num>(self::boundedMethod::X x) → self::boundedMethod::X
+  return x;
+static method test() → dynamic {
+  <X extends core::Object? = dynamic>(X%) → X% a = #C1;
+  (core::int) → core::int b = a<core::int>;
+  (core::int) → core::int c = #C2;
+  invalid-type d = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:15:13: Error: Too many type arguments: 1 allowed, but 2 found.
+Try removing the extra type arguments.
+  var d = id<int, String>; // error - too many args
+            ^";
+  invalid-type e = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:16:17: Error: Too few type arguments: 2 required, 1 given.
+Try adding the missing type arguments.
+  var e = method<int>; // error - too few args
+                ^";
+  invalid-type f = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:17:12: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
+Try changing the operand or remove the type arguments.
+  var f = 0<int>; // error - non-function type operand
+           ^";
+  invalid-type g = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:18:15: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic Function()'.
+Try changing the operand or remove the type arguments.
+  var g = main<int>; // error - non-generic function type operand
+              ^";
+  (core::String) → core::String h = #C4;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = static-tearoff self::id
+  #C2 = instantiation #C1 <core::int*>
+  #C3 = static-tearoff self::boundedMethod
+  #C4 = instantiation #C3 <core::String*>
+}

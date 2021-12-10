@@ -1,0 +1,98 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:41:14: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+// const var4 = C();
+//              ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:26:5: Error: Constructors can't have a return type.
+// Try removing the return type.
+//     return Simple2(this.name);
+//     ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:12:14: Error: Constant evaluation error:
+// const var1 = Simple(printString);
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:17:22: Context: This assertion failed.
+//     assert(this.name != printString);
+//                      ^
+// pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:12:7: Context: While analyzing:
+// const var1 = Simple(printString);
+//       ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:30:14: Error: Constant evaluation error:
+// const var3 = B();
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:33:14: Context: This assertion failed.
+//     assert(1 == 2);
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:30:7: Context: While analyzing:
+// const var3 = B();
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+class Simple extends core::Object /*hasConstConstructor*/  {
+  final field core::String name;
+  const constructor •(core::String name) → self::Simple
+    : self::Simple::name = name, super core::Object::•() {
+    assert(!(this.{self::Simple::name}{core::String} =={core::String::==}{(core::Object) → core::bool} #C1));
+  }
+}
+class Simple2 extends core::Object /*hasConstConstructor*/  {
+  final field core::String name;
+  const constructor •(core::String name) → self::Simple2
+    : self::Simple2::name = name, super core::Object::•() {
+    invalid-expression "pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:26:5: Error: Constructors can't have a return type.
+Try removing the return type.
+    return Simple2(this.name);
+    ^";
+  }
+}
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•() {
+    assert(1 =={core::num::==}{(core::Object) → core::bool} 2);
+  }
+}
+class B extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+class C extends core::Object {
+  field core::int? x = null;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static const field core::String printString = #C1;
+static const field self::Simple var1 = invalid-expression "This assertion failed.";
+static const field self::Simple2 var2 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:26:5: Error: Constructors can't have a return type.
+Try removing the return type.
+    return Simple2(this.name);
+    ^";
+static const field self::B var3 = invalid-expression "This assertion failed.";
+static const field invalid-type var4 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_const_ctor_error.dart:41:14: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+const var4 = C();
+             ^";
+static method main() → void {}
+
+constants  {
+  #C1 = "print"
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_functions_const_ctor_error.dart:
+- Simple. (from org-dartlang-testcase:///const_functions_const_ctor_error.dart:16:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Simple2. (from org-dartlang-testcase:///const_functions_const_ctor_error.dart:25:9)
+- B. (from org-dartlang-testcase:///const_functions_const_ctor_error.dart:38:9)
+- A. (from org-dartlang-testcase:///const_functions_const_ctor_error.dart:32:9)

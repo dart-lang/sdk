@@ -1,0 +1,31 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A<T extends core::Object* = dynamic> extends core::Object {
+  covariant-by-class field core::List<self::A::T*>* z = null;
+  synthetic constructor •() → self::A<self::A::T*>*
+    : super core::Object::•()
+    ;
+  abstract get x() → core::List<self::A::T*>*;
+  abstract set y(covariant-by-class core::List<self::A::T*>* value) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A<core::int*> {
+  field core::List<core::int*>* x = null;
+  covariant-by-class field core::List<core::int*>* y = null;
+  covariant-by-class field core::List<core::int*>* z = null;
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+static method main() → dynamic {}

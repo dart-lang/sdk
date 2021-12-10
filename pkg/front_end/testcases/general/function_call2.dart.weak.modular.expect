@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/function_call2.dart:16:6: Error: Cannot invoke an instance of '_Closure1' because it declares 'call' to be something other than a method.
+//  - '_Closure1' is from 'pkg/front_end/testcases/general/function_call2.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+//   foo();
+//      ^
+//
+// pkg/front_end/testcases/general/function_call2.dart:17:6: Error: Cannot invoke an instance of '_Closure2' because it declares 'call' to be something other than a method.
+//  - '_Closure2' is from 'pkg/front_end/testcases/general/function_call2.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+//   bar();
+//      ^
+//
+// pkg/front_end/testcases/general/function_call2.dart:23:22: Error: Cannot invoke an instance of '_Closure1' because it declares 'call' to be something other than a method.
+//  - '_Closure1' is from 'pkg/front_end/testcases/general/function_call2.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var field1 = closure1();
+//                      ^
+//
+// pkg/front_end/testcases/general/function_call2.dart:24:22: Error: Cannot invoke an instance of '_Closure2' because it declares 'call' to be something other than a method.
+//  - '_Closure2' is from 'pkg/front_end/testcases/general/function_call2.dart'.
+// Try changing 'call' to a method or explicitly invoke 'call'.
+// var field2 = closure2();
+//                      ^
+//
+import self as self;
+import "dart:core" as core;
+
+class _Closure1 extends core::Object {
+  synthetic constructor •() → self::_Closure1
+    : super core::Object::•()
+    ;
+  get call() → () → void
+    return () → void {};
+}
+class _Closure2 extends core::Object {
+  final field () → void call;
+  constructor •(() → void call) → self::_Closure2
+    : self::_Closure2::call = call, super core::Object::•()
+    ;
+}
+late static field self::_Closure1 closure1;
+late static field self::_Closure2 closure2;
+static field invalid-type field1 = invalid-expression "pkg/front_end/testcases/general/function_call2.dart:23:22: Error: Cannot invoke an instance of '_Closure1' because it declares 'call' to be something other than a method.
+ - '_Closure1' is from 'pkg/front_end/testcases/general/function_call2.dart'.
+Try changing 'call' to a method or explicitly invoke 'call'.
+var field1 = closure1();
+                     ^";
+static field invalid-type field2 = invalid-expression "pkg/front_end/testcases/general/function_call2.dart:24:22: Error: Cannot invoke an instance of '_Closure2' because it declares 'call' to be something other than a method.
+ - '_Closure2' is from 'pkg/front_end/testcases/general/function_call2.dart'.
+Try changing 'call' to a method or explicitly invoke 'call'.
+var field2 = closure2();
+                     ^";
+static method test(self::_Closure1 foo, self::_Closure2 bar) → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/function_call2.dart:16:6: Error: Cannot invoke an instance of '_Closure1' because it declares 'call' to be something other than a method.
+ - '_Closure1' is from 'pkg/front_end/testcases/general/function_call2.dart'.
+Try changing 'call' to a method or explicitly invoke 'call'.
+  foo();
+     ^";
+  invalid-expression "pkg/front_end/testcases/general/function_call2.dart:17:6: Error: Cannot invoke an instance of '_Closure2' because it declares 'call' to be something other than a method.
+ - '_Closure2' is from 'pkg/front_end/testcases/general/function_call2.dart'.
+Try changing 'call' to a method or explicitly invoke 'call'.
+  bar();
+     ^";
+}
+static method main() → dynamic {}

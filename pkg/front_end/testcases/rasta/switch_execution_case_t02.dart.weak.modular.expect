@@ -1,0 +1,85 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:35:5: Error: Switch case may fall through to the next case.
+//     case 2:  result = 2; /// static warning - case fall-through, see "Switch"
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:36:5: Error: Switch case may fall through to the next case.
+//     case 3:  result = 3; /// static warning - case fall-through, see "Switch"
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_execution_case_t02.dart:46:5: Error: Switch case may fall through to the next case.
+//     case 1:
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic value) → dynamic {
+  dynamic result;
+  #L1:
+  switch(value) {
+    #L2:
+    case #C1:
+      {
+        result = 1;
+        break #L1;
+      }
+    #L3:
+    case #C2:
+      {
+        result = 2;
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_execution_case_t02.dart", 35);
+      }
+    #L4:
+    case #C3:
+      {
+        result = 3;
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_execution_case_t02.dart", 36);
+      }
+    #L5:
+    default:
+      {
+        result = 4;
+      }
+  }
+  return result;
+}
+static method testEmptyCases(dynamic value) → dynamic {
+  dynamic result;
+  #L6:
+  switch(value) {
+    #L7:
+    case #C1:
+    case #C2:
+      {
+        result = 1;
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_execution_case_t02.dart", 46);
+      }
+    #L8:
+    case #C3:
+    case #C4:
+      {
+        result = 2;
+        break #L6;
+      }
+    #L9:
+    case #C5:
+    case #C6:
+    default:
+      {}
+  }
+  return result;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = 4
+  #C5 = 5
+  #C6 = 6
+}

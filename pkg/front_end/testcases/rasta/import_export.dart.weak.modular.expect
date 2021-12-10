@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "foo.dart" as foo;
+
+import "org-dartlang-testcase:///export.dart";
+
+static method main() → dynamic {
+  foo::foo();
+}
+
+library export;
+import self as self2;
+import "foo.dart" as foo;
+additionalExports = (foo::foo)
+
+export "org-dartlang-testcase:///foo.dart";
+
+
+library foo;
+import self as foo;
+import "dart:core" as core;
+
+static method foo() → dynamic {
+  core::print("Hello, World!");
+}

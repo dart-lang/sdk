@@ -1,0 +1,67 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue34515.dart:9:3: Error: 'ImportedClass' is imported from both 'pkg/front_end/testcases/general/issue34515_lib1.dart' and 'pkg/front_end/testcases/general/issue34515_lib2.dart'.
+//   ImportedClass(1);
+//   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/issue34515.dart:10:3: Error: 'ImportedClass' is imported from both 'pkg/front_end/testcases/general/issue34515_lib1.dart' and 'pkg/front_end/testcases/general/issue34515_lib2.dart'.
+//   ImportedClass("a");
+//   ^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue34515_lib1.dart";
+import "org-dartlang-testcase:///issue34515_lib2.dart";
+
+static method test() → void {
+  let final core::Object* #t1 = 1 in invalid-expression "pkg/front_end/testcases/general/issue34515.dart:9:3: Error: 'ImportedClass' is imported from both 'pkg/front_end/testcases/general/issue34515_lib1.dart' and 'pkg/front_end/testcases/general/issue34515_lib2.dart'.
+  ImportedClass(1);
+  ^^^^^^^^^^^^^";
+  let final core::Object* #t2 = "a" in invalid-expression "pkg/front_end/testcases/general/issue34515.dart:10:3: Error: 'ImportedClass' is imported from both 'pkg/front_end/testcases/general/issue34515_lib1.dart' and 'pkg/front_end/testcases/general/issue34515_lib2.dart'.
+  ImportedClass(\"a\");
+  ^^^^^^^^^^^^^";
+}
+static method main() → dynamic {}
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class ImportedClass extends core::Object {
+  constructor •(core::int* a) → self2::ImportedClass*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+class ImportedClass extends core::Object {
+  constructor •(core::String* a) → self3::ImportedClass*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}

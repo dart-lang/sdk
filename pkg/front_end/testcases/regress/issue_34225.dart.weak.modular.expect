@@ -1,0 +1,65 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_34225.dart:6:14: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   static set C(v) {} //# 01: compile-time error
+//              ^
+//
+// pkg/front_end/testcases/regress/issue_34225.dart:10:7: Error: A class member can't have the same name as the enclosing class.
+// Try renaming the member.
+//   set D(v) {} //# 02: compile-time error
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_34225.dart:15:5: Error: The setter 'C' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/regress/issue_34225.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'C'.
+//   c.C = 5;
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  static set C(dynamic v) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D*
+    : super core::Object::•()
+    ;
+  set D(dynamic v) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  self::C* c = new self::C::•();
+  invalid-expression "pkg/front_end/testcases/regress/issue_34225.dart:15:5: Error: The setter 'C' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/regress/issue_34225.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'C'.
+  c.C = 5;
+    ^" in c{<unresolved>}.C = 5;
+  self::D* d = new self::D::•();
+  d.{self::D::D} = 5;
+}

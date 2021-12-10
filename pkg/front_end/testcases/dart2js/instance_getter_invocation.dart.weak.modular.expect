@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get idFunction() → <S extends core::Object? = dynamic>(S%) → S%
+    return #C1;
+  get dynFunction() → dynamic
+    return #C1;
+  static method _#new#tearOff() → self::Class
+    return new self::Class::•();
+}
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  return t;
+static method main() → dynamic {
+  self::Class c = new self::Class::•();
+  let final self::Class #t1 = c in let final core::int #t2 = 0 in #t1.{self::Class::idFunction}<core::int>(#t2){(core::int) → core::int};
+  let final self::Class #t3 = c in let final core::int #t4 = 0 in #t3.{self::Class::idFunction}<core::int>(#t4){(core::int) → core::int};
+  let final self::Class #t5 = c in let final core::int #t6 = 0 in #t5.{self::Class::dynFunction}(#t6);
+}
+
+constants  {
+  #C1 = static-tearoff self::id
+}

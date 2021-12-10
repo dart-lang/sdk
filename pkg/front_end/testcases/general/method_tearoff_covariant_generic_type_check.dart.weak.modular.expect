@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::num> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X>
+    : super core::Object::•()
+    ;
+  method f<covariant-by-class Y extends self::A::X>(self::A::f::Y y) → void {}
+}
+static method expectThrows(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object e) {
+    return;
+  }
+  throw "Expected an exception to be thrown!";
+}
+static method main() → dynamic {
+  self::A<core::num> a = new self::A::•<core::int>();
+  self::expectThrows(() → void {
+    <Y extends core::num>(Y) → void f = a.{self::A::f}{<covariant-by-class Y extends core::num>(Y) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} <covariant-by-class Y extends core::num>(Y) → void;
+  });
+}

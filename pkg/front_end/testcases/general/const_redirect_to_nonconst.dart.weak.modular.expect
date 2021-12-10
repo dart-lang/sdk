@@ -1,0 +1,42 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/const_redirect_to_nonconst.dart:12:21: Error: A constant constructor can't call a non-constant super constructor.
+//   const B() : super.bad();
+//                     ^^^
+//
+// pkg/front_end/testcases/general/const_redirect_to_nonconst.dart:6:20: Error: A constant constructor can't call a non-constant constructor.
+//   const A() : this.bad();
+//                    ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : this self::A::bad()
+    ;
+  constructor bad() → self::A
+    : super core::Object::•() {}
+}
+class B extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B
+    : super self::A::bad()
+    ;
+}
+static method test() → dynamic {
+  core::print(invalid-expression "A constant constructor can't call a non-constant constructor.");
+  core::print(invalid-expression "A constant constructor can't call a non-constant super constructor.");
+}
+static method main() → dynamic {
+  core::print(new self::A::•());
+  core::print(new self::B::•());
+}
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_redirect_to_nonconst.dart:
+- A. (from org-dartlang-testcase:///const_redirect_to_nonconst.dart:6:9)
+- B. (from org-dartlang-testcase:///const_redirect_to_nonconst.dart:12:9)

@@ -1,0 +1,91 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "b_lib.dart" as b_l;
+import "a_lib.dart" as a_l;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///b_lib.dart";
+
+static method main() → dynamic {
+  b_l::B bInst = new b_l::B::•();
+  self::expect(2.71, bInst.{a_l::A::d}{core::double});
+  self::expect("default", bInst.{a_l::A::doStringy}("DEFAULT"){(core::String) → core::String});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}.";
+}
+
+library /*isNonNullableByDefault*/;
+import self as b_l;
+import "a_lib.dart" as a_l;
+import "m_lib.dart" as m_l;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///a_lib.dart";
+import "org-dartlang-testcase:///m_lib.dart";
+
+abstract class _B&A&M = a_l::A with m_l::M /*isAnonymousMixin*/  {
+  synthetic constructor •({core::double d = #C1, (core::String) → core::String s = #C2}) → b_l::_B&A&M
+    : super a_l::A::•(d: d, s: s)
+    ;
+  synthetic constructor factoryConstructor({core::double d = #C1, (core::String) → core::String s = #C2}) → b_l::_B&A&M
+    : super a_l::A::factoryConstructor(d: d, s: s)
+    ;
+  mixin-super-stub method m1() → dynamic
+    return super.{m_l::M::m1}();
+}
+class B extends b_l::_B&A&M {
+  constructor •({core::double d = #C3}) → b_l::B
+    : super b_l::_B&A&M::•(d: d)
+    ;
+  static method _#new#tearOff({core::double d = #C3}) → b_l::B
+    return new b_l::B::•(d: d);
+}
+
+library /*isNonNullableByDefault*/;
+import self as m_l;
+import "a_lib.dart" as a_l;
+
+import "org-dartlang-testcase:///a_lib.dart";
+
+abstract class M extends a_l::A /*isMixinDeclaration*/  {
+  method m1() → dynamic {}
+}
+
+library /*isNonNullableByDefault*/;
+import self as a_l;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///t_lib.dart";
+
+class A extends core::Object {
+  final field core::double d;
+  final field (core::String) → core::String _s;
+  constructor •({core::double d = #C1, (core::String) → core::String s = #C2}) → a_l::A
+    : this a_l::A::factoryConstructor(d: d, s: s)
+    ;
+  constructor factoryConstructor({core::double d = #C1, (core::String) → core::String s = #C2}) → a_l::A
+    : a_l::A::d = d, a_l::A::_s = s, super core::Object::•()
+    ;
+  static method _#new#tearOff({core::double d = #C1, (core::String) → core::String s = #C2}) → a_l::A
+    return new a_l::A::•(d: d, s: s);
+  static method _#factoryConstructor#tearOff({core::double d = #C1, (core::String) → core::String s = #C2}) → a_l::A
+    return new a_l::A::factoryConstructor(d: d, s: s);
+  method doStringy(core::String i) → core::String
+    return let final core::String #t1 = i in this.{a_l::A::_s}(#t1){(core::String) → core::String};
+}
+static method _defaultStringy(core::String t) → core::String
+  return t.{core::String::toLowerCase}(){() → core::String};
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+typedef StringyFunction<contravariant T extends core::Object? = dynamic> = (T%) → core::String;
+
+constants  {
+  #C1 = 3.14
+  #C2 = static-tearoff a_l::_defaultStringy
+  #C3 = 2.71
+}

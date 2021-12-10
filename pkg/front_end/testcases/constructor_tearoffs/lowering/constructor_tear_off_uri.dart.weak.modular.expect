@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off_uri_part.dart:8:27: Error: A value of type 'Class Function()' can't be assigned to a variable of type 'Class Function(int)'.
+//  - 'Class' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off_uri.dart'.
+//   Class Function(int) f = Class.new;
+//                           ^
+//
+import self as self;
+import "dart:core" as core;
+
+part constructor_tear_off_uri_part.dart;
+class Class extends core::Object { // from org-dartlang-testcase:///constructor_tear_off_uri_part.dart
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff() → self::Class
+    return new self::Class::•();
+}
+static method main() → dynamic {}
+static method /* from org-dartlang-testcase:///constructor_tear_off_uri_part.dart */ test() → dynamic {
+  (core::int) → self::Class f = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off_uri_part.dart:8:27: Error: A value of type 'Class Function()' can't be assigned to a variable of type 'Class Function(int)'.
+ - 'Class' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/constructor_tear_off_uri.dart'.
+  Class Function(int) f = Class.new;
+                          ^" in #C1 as{TypeError,ForNonNullableByDefault} (core::int) → self::Class;
+}
+
+constants  {
+  #C1 = static-tearoff self::Class::_#new#tearOff
+}

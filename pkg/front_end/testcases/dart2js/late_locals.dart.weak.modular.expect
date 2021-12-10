@@ -1,0 +1,60 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  self::testNullableUninitializedNonFinalLocal();
+  self::testNonNullableUninitializedNonFinalLocal();
+  self::testNullableUninitializedFinalLocal();
+  self::testNonNullableUninitializedFinalLocal();
+  self::testNullableInitializedNonFinalLocal();
+  self::testNonNullableInitializedNonFinalLocal();
+  self::testNullableInitializedFinalLocal();
+  self::testNonNullableInitializedFinalLocal();
+}
+static method testNullableUninitializedNonFinalLocal() → void {
+  late core::int? x;
+  x = 42;
+  core::print(x{core::int});
+}
+static method testNonNullableUninitializedNonFinalLocal() → void {
+  late core::int x;
+  x = 42;
+  core::print(x);
+}
+static method testNullableUninitializedFinalLocal() → void {
+  late final core::int? x;
+  x = 42;
+  core::print(x{core::int});
+}
+static method testNonNullableUninitializedFinalLocal() → void {
+  late final core::int x;
+  x = 42;
+  core::print(x);
+}
+static method testNullableInitializedNonFinalLocal() → void {
+  late core::int? x = 1.{core::int::unary-}(){() → core::int};
+  core::print(x{core::int});
+  x = 42;
+  core::print(x{core::int});
+  late core::int? y = null;
+  core::print(y);
+  y = 42;
+  core::print(y{core::int});
+}
+static method testNonNullableInitializedNonFinalLocal() → void {
+  late core::int x = 1.{core::int::unary-}(){() → core::int};
+  core::print(x);
+  x = 42;
+  core::print(x);
+}
+static method testNullableInitializedFinalLocal() → void {
+  late final core::int? x = 1.{core::int::unary-}(){() → core::int};
+  core::print(x);
+  late final core::int? y = null;
+  core::print(y);
+}
+static method testNonNullableInitializedFinalLocal() → void {
+  late final core::int x = 1.{core::int::unary-}(){() → core::int};
+  core::print(x);
+}

@@ -1,0 +1,423 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:15:14: Error: The type 'String' of the getter 'A.property3' is not assignable to the type 'int' of the setter 'A.property3'.
+//   String get property3; // error
+//              ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:16:12: Context: This is the declaration of the setter 'A.property3'.
+//   void set property3(int i);
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:33:18: Error: The type 'num' of the getter 'A.property9' is not assignable to the type 'String' of the setter 'A.property9'.
+//   static num get property9 => 0; // error
+//                  ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:34:19: Context: This is the declaration of the setter 'A.property9'.
+//   static void set property9(String value) {}
+//                   ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:56:12: Error: The type 'int' of the inherited getter 'B1.property2' is not assignable to the type 'String' of the setter 'B2.property2'.
+//   void set property2(String i); // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:40:11: Context: This is the declaration of the getter 'B1.property2'.
+//   int get property2;
+//           ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:58:12: Error: The type 'String' of the inherited getter 'B1.property3' is not assignable to the type 'int' of the setter 'B2.property3'.
+//   void set property3(int i); // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:42:14: Context: This is the declaration of the getter 'B1.property3'.
+//   String get property3;
+//              ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:62:12: Error: The type 'int' of the inherited field 'B1.property5' is not assignable to the type 'String' of the setter 'B2.property5'.
+//   void set property5(String i); // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:46:13: Context: This is the declaration of the field 'B1.property5'.
+//   final int property5;
+//             ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:64:12: Error: The type 'String' of the inherited field 'B1.property6' is not assignable to the type 'int' of the setter 'B2.property6'.
+//   void set property6(int i); // error
+//            ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:48:16: Context: This is the declaration of the field 'B1.property6'.
+//   final String property6;
+//                ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:84:11: Error: The type 'int' of the getter 'C2.property2' is not assignable to the type 'String' of the inherited setter 'C1.property2'.
+//   int get property2; // error
+//           ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:70:12: Context: This is the declaration of the setter 'C1.property2'.
+//   void set property2(String i);
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:86:14: Error: The type 'String' of the getter 'C2.property3' is not assignable to the type 'int' of the inherited setter 'C1.property3'.
+//   String get property3; // error
+//              ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:72:12: Context: This is the declaration of the setter 'C1.property3'.
+//   void set property3(int i);
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:92:11: Error: The type 'int' of the getter 'C2.property5' is not assignable to the type 'String' of the inherited setter 'C1.property5'.
+//   int get property5; // error
+//           ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:76:10: Context: This is the declaration of the setter 'C1.property5'.
+//   String property5;
+//          ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:96:14: Error: The type 'String' of the getter 'C2.property6' is not assignable to the type 'int' of the inherited setter 'C1.property6'.
+//   String get property6; // error
+//              ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:78:7: Context: This is the declaration of the setter 'C1.property6'.
+//   int property6;
+//       ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:92:11: Error: The return type of the method 'C2.property5' is 'int', which does not match the return type, 'String', of the overridden method, 'C1.property5'.
+// Change to a subtype of 'String'.
+//   int get property5; // error
+//           ^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:76:10: Context: This is the overridden method ('property5').
+//   String property5;
+//          ^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:96:14: Error: The return type of the method 'C2.property6' is 'String', which does not match the return type, 'int', of the overridden method, 'C1.property6'.
+// Change to a subtype of 'int'.
+//   String get property6; // error
+//              ^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:78:7: Context: This is the overridden method ('property6').
+//   int property6;
+//       ^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:115:16: Error: The type 'int' of the inherited getter 'D1.property2' is not assignable to the type 'String' of the inherited setter 'D2.property2'.
+// abstract class D3 implements D1, D2 /* error on property2 and property3 */ {}
+//                ^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:102:11: Context: This is the declaration of the getter 'D1.property2'.
+//   int get property2;
+//           ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:110:12: Context: This is the declaration of the setter 'D2.property2'.
+//   void set property2(String i);
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:115:16: Error: The type 'String' of the inherited getter 'D1.property3' is not assignable to the type 'int' of the inherited setter 'D2.property3'.
+// abstract class D3 implements D1, D2 /* error on property2 and property3 */ {}
+//                ^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:104:14: Context: This is the declaration of the getter 'D1.property3'.
+//   String get property3;
+//              ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:112:12: Context: This is the declaration of the setter 'D2.property3'.
+//   void set property3(int i);
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:117:16: Error: The type 'int' of the inherited getter 'D1.property2' is not assignable to the type 'String' of the inherited setter 'D2.property2'.
+// abstract class D4
+//                ^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:102:11: Context: This is the declaration of the getter 'D1.property2'.
+//   int get property2;
+//           ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:110:12: Context: This is the declaration of the setter 'D2.property2'.
+//   void set property2(String i);
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:117:16: Error: The type 'String' of the inherited getter 'D1.property3' is not assignable to the type 'int' of the inherited setter 'D2.property3'.
+// abstract class D4
+//                ^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:104:14: Context: This is the declaration of the getter 'D1.property3'.
+//   String get property3;
+//              ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:112:12: Context: This is the declaration of the setter 'D2.property3'.
+//   void set property3(int i);
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:130:14: Error: The type 'String' of the getter 'property3' is not assignable to the type 'int' of the setter 'property3'.
+//   String get property3 => ''; // error
+//              ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:131:12: Context: This is the declaration of the setter 'property3'.
+//   void set property3(int i) {}
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:142:14: Error: The type 'String' of the getter 'property6' is not assignable to the type 'S' of the setter 'property6'.
+//   String get property6 => ''; // error
+//              ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:143:12: Context: This is the declaration of the setter 'property6'.
+//   void set property6(S i) {}
+//            ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:154:18: Error: The type 'num' of the getter 'property9' is not assignable to the type 'String' of the setter 'property9'.
+//   static num get property9 => 0; // error
+//                  ^^^^^^^^^
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:155:19: Context: This is the declaration of the setter 'property9'.
+//   static void set property9(String value) {}
+//                   ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:133:22: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
+//   S get property4 => 0; // ok
+//                      ^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:136:23: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
+//   S get property5a => 0; // ok
+//                       ^
+//
+// pkg/front_end/testcases/general/getter_vs_setter_type.dart:139:23: Error: A value of type 'int' can't be assigned to a variable of type 'T'.
+//   T get property5b => 0; // ok
+//                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  field core::int* property4 = null;
+  field core::int* property5 = null;
+  covariant-by-declaration field core::String* property6 = null;
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract get property1() → core::int*;
+  abstract set property1(core::int* i) → void;
+  abstract get property2a() → core::num*;
+  abstract set property2a(core::int* i) → void;
+  abstract get property2b() → core::int*;
+  abstract set property2b(core::num* i) → void;
+  abstract get property3() → core::String*;
+  abstract set property3(core::int* i) → void;
+  static get property7() → core::int*
+    return 0;
+  static set property7(core::int* value) → void {}
+  static get property8a() → core::int*
+    return 0;
+  static set property8a(core::num* value) → void {}
+  static get property8b() → core::num*
+    return 0;
+  static set property8b(core::int* value) → void {}
+  static get property9() → core::num*
+    return 0;
+  static set property9(core::String* value) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class B1 extends core::Object {
+  final field core::int* property4;
+  final field core::int* property5;
+  final field core::String* property6;
+  constructor •(core::int* property4, core::int* property5, core::String* property6) → self::B1*
+    : self::B1::property4 = property4, self::B1::property5 = property5, self::B1::property6 = property6, super core::Object::•()
+    ;
+  abstract get property1() → core::int*;
+  abstract get property2() → core::int*;
+  abstract get property3() → core::String*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class B2 extends core::Object implements self::B1 {
+  synthetic constructor •() → self::B2*
+    : super core::Object::•()
+    ;
+  abstract set property1(core::int* i) → void;
+  abstract set property2(core::String* i) → void;
+  abstract set property3(core::int* i) → void;
+  abstract set property4(core::int* i) → void;
+  abstract set property5(core::String* i) → void;
+  abstract set property6(core::int* i) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class C1 extends core::Object {
+  field core::int* property4 = null;
+  field core::String* property5 = null;
+  field core::int* property6 = null;
+  synthetic constructor •() → self::C1*
+    : super core::Object::•()
+    ;
+  abstract set property1(core::int* i) → void;
+  abstract set property2(core::String* i) → void;
+  abstract set property3(core::int* i) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class C2 extends core::Object implements self::C1 {
+  synthetic constructor •() → self::C2*
+    : super core::Object::•()
+    ;
+  abstract get property1() → core::int*;
+  abstract get property2() → core::int*;
+  abstract get property3() → core::String*;
+  abstract get property4() → core::int*;
+  abstract get property5() → core::int*;
+  abstract get property6() → core::String*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class D1 extends core::Object {
+  synthetic constructor •() → self::D1*
+    : super core::Object::•()
+    ;
+  abstract get property1() → core::int*;
+  abstract get property2() → core::int*;
+  abstract get property3() → core::String*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class D2 extends core::Object {
+  synthetic constructor •() → self::D2*
+    : super core::Object::•()
+    ;
+  abstract set property1(core::int* i) → void;
+  abstract set property2(core::String* i) → void;
+  abstract set property3(core::int* i) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class D3 extends core::Object implements self::D1, self::D2 {
+  synthetic constructor •() → self::D3*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class D4 extends core::Object implements self::D3 {
+  synthetic constructor •() → self::D4*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension<T extends core::num*, S extends T* = core::num*> on core::int* {
+  get property1 = self::Extension|get#property1;
+  get property2a = self::Extension|get#property2a;
+  get property2b = self::Extension|get#property2b;
+  get property3 = self::Extension|get#property3;
+  get property4 = self::Extension|get#property4;
+  get property5a = self::Extension|get#property5a;
+  get property5b = self::Extension|get#property5b;
+  get property6 = self::Extension|get#property6;
+  static get property7 = get self::Extension|property7;
+  static get property8a = get self::Extension|property8a;
+  static get property8b = get self::Extension|property8b;
+  static get property9 = get self::Extension|property9;
+  set property1 = self::Extension|set#property1;
+  set property2a = self::Extension|set#property2a;
+  set property2b = self::Extension|set#property2b;
+  set property3 = self::Extension|set#property3;
+  set property4 = self::Extension|set#property4;
+  set property5a = self::Extension|set#property5a;
+  set property5b = self::Extension|set#property5b;
+  set property6 = self::Extension|set#property6;
+  static set property7 = set self::Extension|property7;
+  static set property8a = set self::Extension|property8a;
+  static set property8b = set self::Extension|property8b;
+  static set property9 = set self::Extension|property9;
+}
+static method Extension|get#property1<T extends core::num*, S extends self::Extension|get#property1::T* = core::num*>(lowered final core::int* #this) → core::int*
+  return 0;
+static method Extension|set#property1<T extends core::num*, S extends self::Extension|set#property1::T* = core::num*>(lowered final core::int* #this, core::int* i) → void {}
+static method Extension|get#property2a<T extends core::num*, S extends self::Extension|get#property2a::T* = core::num*>(lowered final core::int* #this) → core::num*
+  return 0;
+static method Extension|set#property2a<T extends core::num*, S extends self::Extension|set#property2a::T* = core::num*>(lowered final core::int* #this, core::int* i) → void {}
+static method Extension|get#property2b<T extends core::num*, S extends self::Extension|get#property2b::T* = core::num*>(lowered final core::int* #this) → core::int*
+  return 0;
+static method Extension|set#property2b<T extends core::num*, S extends self::Extension|set#property2b::T* = core::num*>(lowered final core::int* #this, core::num* i) → void {}
+static method Extension|get#property3<T extends core::num*, S extends self::Extension|get#property3::T* = core::num*>(lowered final core::int* #this) → core::String*
+  return "";
+static method Extension|set#property3<T extends core::num*, S extends self::Extension|set#property3::T* = core::num*>(lowered final core::int* #this, core::int* i) → void {}
+static method Extension|get#property4<T extends core::num*, S extends self::Extension|get#property4::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property4::S*
+  return invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:133:22: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
+  S get property4 => 0; // ok
+                     ^" in 0 as{TypeError} Never;
+static method Extension|set#property4<T extends core::num*, S extends self::Extension|set#property4::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property4::S* i) → void {}
+static method Extension|get#property5a<T extends core::num*, S extends self::Extension|get#property5a::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5a::S*
+  return invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:136:23: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
+  S get property5a => 0; // ok
+                      ^" in 0 as{TypeError} Never;
+static method Extension|set#property5a<T extends core::num*, S extends self::Extension|set#property5a::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5a::T* i) → void {}
+static method Extension|get#property5b<T extends core::num*, S extends self::Extension|get#property5b::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5b::T*
+  return invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:139:23: Error: A value of type 'int' can't be assigned to a variable of type 'T'.
+  T get property5b => 0; // ok
+                      ^" in 0 as{TypeError} Never;
+static method Extension|set#property5b<T extends core::num*, S extends self::Extension|set#property5b::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5b::S* i) → void {}
+static method Extension|get#property6<T extends core::num*, S extends self::Extension|get#property6::T* = core::num*>(lowered final core::int* #this) → core::String*
+  return "";
+static method Extension|set#property6<T extends core::num*, S extends self::Extension|set#property6::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property6::S* i) → void {}
+static get Extension|property7() → core::int*
+  return 0;
+static set Extension|property7(core::int* value) → void {}
+static get Extension|property8a() → core::int*
+  return 0;
+static set Extension|property8a(core::num* value) → void {}
+static get Extension|property8b() → core::num*
+  return 0;
+static set Extension|property8b(core::int* value) → void {}
+static get Extension|property9() → core::num*
+  return 0;
+static set Extension|property9(core::String* value) → void {}
+static method main() → dynamic {}

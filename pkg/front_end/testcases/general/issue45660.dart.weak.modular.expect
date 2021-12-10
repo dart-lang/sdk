@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue45660.dart:11:22: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'call'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   extendsNumReturnArg/*<String>*/("");
+//                      ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field <T extends core::num* = dynamic>(T*) →* T* extendsNumReturnArg = <S extends core::num*>(S* s) → S* => s;
+static method functionInvocations() → dynamic {
+  self::extendsNumReturnArg<Null>(null){(Null) →* Null};
+  self::extendsNumReturnArg<core::String*>(""){(core::String*) →* core::String*};
+}
+static method main() → dynamic {}

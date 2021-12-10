@@ -1,0 +1,51 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class Class1 extends core::Object {
+  field FutureOr<dynamic>instanceField1 = null;
+  field FutureOr<core::int?>instanceField2 = null;
+  field FutureOr<FutureOr<dynamic>>instanceField3 = null;
+  static field FutureOr<dynamic>staticField1 = null;
+  static field FutureOr<core::int?>staticField2 = null;
+  static field FutureOr<FutureOr<dynamic>>staticField3 = null;
+  synthetic constructor •() → self::Class1
+    : super core::Object::•()
+    ;
+  method instanceMethod1([FutureOr<dynamic>parameter1 = #C1, FutureOr<core::int?>parameter2 = #C1, FutureOr<FutureOr<dynamic>>parameter3 = #C1]) → void {}
+  method instanceMethod2({FutureOr<dynamic>parameter1 = #C1, FutureOr<core::int?>parameter2 = #C1, FutureOr<FutureOr<dynamic>>parameter3 = #C1}) → void {}
+  static method staticMethod1([FutureOr<dynamic>parameter1 = #C1, FutureOr<core::int?>parameter2 = #C1, FutureOr<FutureOr<dynamic>>parameter3 = #C1]) → void {}
+  static method staticMethod2({FutureOr<dynamic>parameter1 = #C1, FutureOr<core::int?>parameter2 = #C1, FutureOr<FutureOr<dynamic>>parameter3 = #C1}) → void {}
+}
+class Class2 extends core::Object {
+  field FutureOr<dynamic>instanceField1;
+  field FutureOr<core::int?>instanceField2;
+  field FutureOr<FutureOr<dynamic>>instanceField3;
+  constructor constructor1(FutureOr<dynamic>instanceField1, FutureOr<core::int?>instanceField2, FutureOr<FutureOr<dynamic>>instanceField3) → self::Class2
+    : self::Class2::instanceField1 = instanceField1, self::Class2::instanceField2 = instanceField2, self::Class2::instanceField3 = instanceField3, super core::Object::•()
+    ;
+  constructor constructor2() → self::Class2
+    : self::Class2::instanceField3 = null, self::Class2::instanceField2 = null, self::Class2::instanceField1 = null, super core::Object::•()
+    ;
+}
+static field FutureOr<dynamic>topLevelField1;
+static field FutureOr<core::int?>topLevelField2;
+static field FutureOr<FutureOr<dynamic>>topLevelField3;
+static method toplevelMethod1([FutureOr<dynamic>parameter1 = #C1, FutureOr<core::int?>parameter2 = #C1, FutureOr<FutureOr<dynamic>>parameter3 = #C1]) → void {}
+static method toplevelMethod2({FutureOr<dynamic>parameter1 = #C1, FutureOr<core::int?>parameter2 = #C1, FutureOr<FutureOr<dynamic>>parameter3 = #C1}) → void {}
+static method main() → dynamic {
+  FutureOr<dynamic>local1;
+  FutureOr<core::int?>local2;
+  FutureOr<FutureOr<dynamic>>local3;
+  core::print(local1);
+  core::print(local2);
+  core::print(local3);
+  function localFunction1([FutureOr<dynamic>parameter1 = #C1, FutureOr<core::int?>parameter2 = #C1, FutureOr<FutureOr<dynamic>>parameter3 = #C1]) → void {}
+  function localFunction2({FutureOr<dynamic>parameter1 = #C1, FutureOr<core::int?>parameter2 = #C1, FutureOr<FutureOr<dynamic>>parameter3 = #C1}) → void {}
+}
+
+constants  {
+  #C1 = null
+}

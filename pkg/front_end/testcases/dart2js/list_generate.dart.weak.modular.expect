@@ -1,0 +1,7 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::List::generate<core::int>(10, (core::int i) → core::int => i.{core::num::*}(2){(core::num) → core::int});
+}

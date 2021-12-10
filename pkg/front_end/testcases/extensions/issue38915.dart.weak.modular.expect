@@ -1,0 +1,67 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension on self::Class* {
+  method method1 = self::Extension|method1;
+  tearoff method1 = self::Extension|get#method1;
+  method method2 = self::Extension|method2;
+  tearoff method2 = self::Extension|get#method2;
+  method method3 = self::Extension|method3;
+  tearoff method3 = self::Extension|get#method3;
+  method method4 = self::Extension|method4;
+  tearoff method4 = self::Extension|get#method4;
+}
+static method Extension|method1(lowered final self::Class* #this, {core::bool* b = #C1, core::String* s = #C2}) → void
+  return null;
+static method Extension|get#method1(lowered final self::Class* #this) → ({b: core::bool*, s: core::String*}) →* void
+  return ({core::bool* b = #C1, core::String* s = #C2}) → void => self::Extension|method1(#this, b: b, s: s);
+static method Extension|method2(lowered final self::Class* #this, [core::bool* b = #C1, core::String* s = #C2]) → void
+  return null;
+static method Extension|get#method2(lowered final self::Class* #this) → ([core::bool*, core::String*]) →* void
+  return ([core::bool* b = #C1, core::String* s = #C2]) → void => self::Extension|method2(#this, b, s);
+static method Extension|method3(lowered final self::Class* #this, core::int* i, {core::bool* b = #C1, core::String* s = #C2}) → void {}
+static method Extension|get#method3(lowered final self::Class* #this) → (core::int*, {b: core::bool*, s: core::String*}) →* void
+  return (core::int* i, {core::bool* b = #C1, core::String* s = #C2}) → void => self::Extension|method3(#this, i, b: b, s: s);
+static method Extension|method4(lowered final self::Class* #this, core::int* i, [core::bool* b = #C1, core::String* s = #C2]) → void {}
+static method Extension|get#method4(lowered final self::Class* #this) → (core::int*, [core::bool*, core::String*]) →* void
+  return (core::int* i, [core::bool* b = #C1, core::String* s = #C2]) → void => self::Extension|method4(#this, i, b, s);
+static method main() → dynamic {
+  self::Class* c = new self::Class::•();
+  self::Extension|method1(c);
+  self::Extension|method1(c, s: "foo");
+  self::Extension|method1(c, b: true);
+  self::Extension|method1(c, b: true, s: "foo");
+  self::Extension|method1(c, s: "foo", b: true);
+  self::Extension|method2(c);
+  self::Extension|method2(c, true);
+  self::Extension|method2(c, true, "foo");
+  self::Extension|method3(c, 42);
+  self::Extension|method3(c, 42, s: "foo");
+  self::Extension|method3(c, 42, b: true);
+  self::Extension|method3(c, 42, b: true, s: "foo");
+  self::Extension|method3(c, 42, s: "foo", b: true);
+  self::Extension|method4(c, 42);
+  self::Extension|method4(c, 42, true);
+  self::Extension|method4(c, 42, true, "foo");
+}
+
+constants  {
+  #C1 = false
+  #C2 = ", "
+}

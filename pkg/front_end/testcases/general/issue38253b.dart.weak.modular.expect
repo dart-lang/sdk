@@ -1,0 +1,35 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue38253b.dart:6:3: Error: 'g' isn't a type.
+//   g f1() {
+//   ^
+//
+// pkg/front_end/testcases/general/issue38253b.dart:10:3: Error: 'g' isn't a type.
+//   g f2() async {
+//   ^
+//
+// pkg/front_end/testcases/general/issue38253b.dart:7:5: Error: A value must be explicitly returned from a non-void function.
+//     return;
+//     ^
+//
+// pkg/front_end/testcases/general/issue38253b.dart:11:5: Error: A value must be explicitly returned from a non-void async function.
+//     return;
+//     ^
+//
+import self as self;
+
+static field () → Null a = () → Null {
+  function f1() → invalid-type {
+    return invalid-expression "pkg/front_end/testcases/general/issue38253b.dart:7:5: Error: A value must be explicitly returned from a non-void function.
+    return;
+    ^" in null;
+  }
+  function f2() → invalid-type async {
+    return invalid-expression "pkg/front_end/testcases/general/issue38253b.dart:11:5: Error: A value must be explicitly returned from a non-void async function.
+    return;
+    ^" in null;
+  }
+};
+static method main() → dynamic {}

@@ -1,0 +1,47 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/bad_redirection.dart:6:9: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
+//   Foo() = Bar;
+//         ^
+//
+// pkg/front_end/testcases/rasta/bad_redirection.dart:6:9: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   Foo() = Bar;
+//         ^
+//
+// pkg/front_end/testcases/rasta/bad_redirection.dart:6:11: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   Foo() = Bar;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → self::Foo*
+    : super core::Object::•()
+    invalid-expression "pkg/front_end/testcases/rasta/bad_redirection.dart:6:11: Error: Constructors can't have a return type.
+Try removing the return type.
+  Foo() = Bar;
+          ^";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Bar extends self::Foo {
+  static factory •() → self::Bar*
+    return null;
+}
+static method main() → dynamic {
+  new self::Foo::•();
+}

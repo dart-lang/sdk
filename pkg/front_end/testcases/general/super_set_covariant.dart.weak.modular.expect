@@ -1,0 +1,39 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class SuperClass extends core::Object {
+  synthetic constructor •() → self::SuperClass*
+    : super core::Object::•()
+    ;
+  set setter(core::Object* o) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class Class extends self::SuperClass {
+  synthetic constructor •() → self::Class*
+    : super self::SuperClass::•()
+    ;
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int*) →* void */ setter(covariant-by-declaration core::Object* o) → void
+    return super.{self::SuperClass::setter} = o;
+}
+class SubClass extends self::Class {
+  synthetic constructor •() → self::SubClass*
+    : super self::Class::•()
+    ;
+  set setter(covariant-by-declaration core::int* o) → void {
+    super.{self::Class::setter} = "${o}";
+  }
+}
+static method test() → dynamic {
+  new self::SubClass::•().{self::SubClass::setter} = 0;
+}
+static method main() → dynamic {}

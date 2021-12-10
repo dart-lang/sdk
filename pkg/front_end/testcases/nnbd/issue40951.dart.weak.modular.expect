@@ -1,0 +1,206 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:9:3: Error: This constructor should initialize field 'field1' because its type 'num' doesn't allow null.
+//   A() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:6:7: Context: 'field1' is defined here.
+//   num field1;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:9:3: Error: This constructor should initialize field 'field2' because its type 'num' doesn't allow null.
+//   A() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:7:7: Context: 'field2' is defined here.
+//   num field2;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:10:3: Error: This constructor should initialize field 'field1' because its type 'num' doesn't allow null.
+//   A.foo() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:6:7: Context: 'field1' is defined here.
+//   num field1;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:10:3: Error: This constructor should initialize field 'field2' because its type 'num' doesn't allow null.
+//   A.foo() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:7:7: Context: 'field2' is defined here.
+//   num field2;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:11:3: Error: This constructor should initialize field 'field2' because its type 'num' doesn't allow null.
+//   A.bar(this.field1) {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:7:7: Context: 'field2' is defined here.
+//   num field2;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:19:3: Error: This constructor should initialize field 'field1' because its type 'num' doesn't allow null.
+//   B() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:16:7: Context: 'field1' is defined here.
+//   num field1;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:19:3: Error: This constructor should initialize field 'field2' because its type 'num' doesn't allow null.
+//   B() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:17:7: Context: 'field2' is defined here.
+//   num field2;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:20:3: Error: This constructor should initialize field 'field1' because its type 'num' doesn't allow null.
+//   B.foo() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:16:7: Context: 'field1' is defined here.
+//   num field1;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:20:3: Error: This constructor should initialize field 'field2' because its type 'num' doesn't allow null.
+//   B.foo() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:17:7: Context: 'field2' is defined here.
+//   num field2;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:21:3: Error: This constructor should initialize field 'field2' because its type 'num' doesn't allow null.
+//   B.bar(this.field1) {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:17:7: Context: 'field2' is defined here.
+//   num field2;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:29:3: Error: Final field 'field1' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   C() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:26:14: Context: 'field1' is defined here.
+//   final num? field1;
+//              ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:29:3: Error: Final field 'field2' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   C() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:27:14: Context: 'field2' is defined here.
+//   final num? field2;
+//              ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:30:3: Error: Final field 'field1' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   C.foo() {}
+//   ^^^
+// pkg/front_end/testcases/nnbd/issue40951.dart:26:14: Context: 'field1' is defined here.
+//   final num? field1;
+//              ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:30:3: Error: Final field 'field2' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   C.foo() {}
+//   ^^^
+// pkg/front_end/testcases/nnbd/issue40951.dart:27:14: Context: 'field2' is defined here.
+//   final num? field2;
+//              ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:31:3: Error: Final field 'field2' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   C.bar(this.field1) {}
+//   ^^^
+// pkg/front_end/testcases/nnbd/issue40951.dart:27:14: Context: 'field2' is defined here.
+//   final num? field2;
+//              ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:39:3: Error: Final field 'field1' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   D() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:36:14: Context: 'field1' is defined here.
+//   final num? field1;
+//              ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:39:3: Error: Final field 'field2' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   D() {}
+//   ^
+// pkg/front_end/testcases/nnbd/issue40951.dart:37:14: Context: 'field2' is defined here.
+//   final num? field2;
+//              ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:40:3: Error: Final field 'field1' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   D.foo() {}
+//   ^^^
+// pkg/front_end/testcases/nnbd/issue40951.dart:36:14: Context: 'field1' is defined here.
+//   final num? field1;
+//              ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:40:3: Error: Final field 'field2' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   D.foo() {}
+//   ^^^
+// pkg/front_end/testcases/nnbd/issue40951.dart:37:14: Context: 'field2' is defined here.
+//   final num? field2;
+//              ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/issue40951.dart:41:3: Error: Final field 'field2' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   D.bar(this.field1) {}
+//   ^^^
+// pkg/front_end/testcases/nnbd/issue40951.dart:37:14: Context: 'field2' is defined here.
+//   final num? field2;
+//              ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::num field1;
+  field core::num field2;
+  constructor •() → self::A
+    : self::A::field2 = null, self::A::field1 = null, super core::Object::•() {}
+  constructor foo() → self::A
+    : self::A::field2 = null, self::A::field1 = null, super core::Object::•() {}
+  constructor bar(core::num field1) → self::A
+    : self::A::field2 = null, self::A::field1 = field1, super core::Object::•() {}
+  constructor baz(core::num field1, core::num field2) → self::A
+    : self::A::field1 = field1, self::A::field2 = field2, super core::Object::•() {}
+}
+abstract class B extends core::Object {
+  field core::num field1;
+  field core::num field2;
+  constructor •() → self::B
+    : self::B::field2 = null, self::B::field1 = null, super core::Object::•() {}
+  constructor foo() → self::B
+    : self::B::field2 = null, self::B::field1 = null, super core::Object::•() {}
+  constructor bar(core::num field1) → self::B
+    : self::B::field2 = null, self::B::field1 = field1, super core::Object::•() {}
+  constructor baz(core::num field1, core::num field2) → self::B
+    : self::B::field1 = field1, self::B::field2 = field2, super core::Object::•() {}
+}
+class C extends core::Object {
+  final field core::num? field1;
+  final field core::num? field2;
+  constructor •() → self::C
+    : self::C::field2 = null, self::C::field1 = null, super core::Object::•() {}
+  constructor foo() → self::C
+    : self::C::field2 = null, self::C::field1 = null, super core::Object::•() {}
+  constructor bar(core::num? field1) → self::C
+    : self::C::field2 = null, self::C::field1 = field1, super core::Object::•() {}
+  constructor baz(core::num? field1, core::num? field2) → self::C
+    : self::C::field1 = field1, self::C::field2 = field2, super core::Object::•() {}
+}
+abstract class D extends core::Object {
+  final field core::num? field1;
+  final field core::num? field2;
+  constructor •() → self::D
+    : self::D::field2 = null, self::D::field1 = null, super core::Object::•() {}
+  constructor foo() → self::D
+    : self::D::field2 = null, self::D::field1 = null, super core::Object::•() {}
+  constructor bar(core::num? field1) → self::D
+    : self::D::field2 = null, self::D::field1 = field1, super core::Object::•() {}
+  constructor baz(core::num? field1, core::num? field2) → self::D
+    : self::D::field1 = field1, self::D::field2 = field2, super core::Object::•() {}
+}
+static method main() → dynamic {}

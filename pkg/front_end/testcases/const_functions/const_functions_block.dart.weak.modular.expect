@@ -1,0 +1,43 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static method blockTest() → void {
+  function x() → core::int
+    return 1;
+  exp::Expect::equals(#C1, 1);
+  {
+    function x() → core::int
+      return 2;
+    exp::Expect::equals(#C2, 2);
+    {
+      function x() → core::int
+        return 3;
+      exp::Expect::equals(#C3, 3);
+    }
+  }
+  exp::Expect::equals(#C1, 1);
+}
+static method blockTest1() → void {
+  function x() → core::int {
+    core::int z = 3;
+    {
+      core::int z = 4;
+    }
+    return z;
+  }
+  exp::Expect::equals(#C3, 3);
+}
+static method main() → void {
+  self::blockTest();
+  self::blockTest1();
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+}

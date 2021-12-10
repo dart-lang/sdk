@@ -1,0 +1,19 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/with_dependencies/issue_43084/issue_43084.dart:8:20: Error: Couldn't find constructor 'Bar'.
+//   Bar<int> x = new Bar<int>();
+//                    ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue_43084_lib.dart";
+
+static method main() → dynamic {
+  invalid-type x = invalid-expression "pkg/front_end/testcases/general/with_dependencies/issue_43084/issue_43084.dart:8:20: Error: Couldn't find constructor 'Bar'.
+  Bar<int> x = new Bar<int>();
+                   ^^^";
+  core::print(x);
+}

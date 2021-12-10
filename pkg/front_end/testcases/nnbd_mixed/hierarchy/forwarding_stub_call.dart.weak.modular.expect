@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Super<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Super<self::Super::T%>
+    : super core::Object::•()
+    ;
+  method method(covariant-by-class self::Super::T% t) → void {}
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin
+    : super core::Object::•()
+    ;
+  method method(core::int t) → void {}
+}
+class Class = self::Super<core::int> with self::Mixin {
+  synthetic constructor •() → self::Class
+    : super self::Super::•()
+    ;
+  forwarding-stub method method(covariant-by-class core::int t) → void
+    return super.{self::Mixin::method}(t);
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass
+    : super self::Class::•()
+    ;
+  method test() → void {
+    super.{self::Class::method}(0);
+  }
+}
+static method main() → dynamic {}

@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field dynamic field = null;
+  synthetic constructor •() → self::Foo*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method identity(dynamic x) → dynamic
+  return x;
+static method use(dynamic x) → void {}
+static method main(core::List<core::String*>* args) → dynamic {
+  dynamic foo = self::identity(new self::Foo::•());
+  if(args.{core::List::length}{core::int*}.{core::num::>}(1){(core::num*) →* core::bool*}) {
+    foo{dynamic}.field = "string";
+    dynamic first = foo{dynamic}.field;
+    self::use(first);
+    foo{dynamic}.noField = "string";
+    dynamic second = foo{dynamic}.noField;
+    self::use(second);
+  }
+}

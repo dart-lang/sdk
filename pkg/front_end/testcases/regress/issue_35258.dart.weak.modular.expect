@@ -1,0 +1,43 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35258.dart:13:3: Error: 'C' is already declared in this scope.
+//   C(this.d) {}
+//   ^
+// pkg/front_end/testcases/regress/issue_35258.dart:12:3: Context: Previous declaration of 'C'.
+//   C() {}
+//   ^
+//
+// pkg/front_end/testcases/regress/issue_35258.dart:6:7: Error: Can't use 'C' because it is declared more than once.
+//   new C(42);
+//       ^
+//
+// pkg/front_end/testcases/regress/issue_35258.dart:10:9: Error: Final field 'd' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final d;
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  final field dynamic d = null;
+  constructor •() → self::C*
+    : super core::Object::•() {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/regress/issue_35258.dart:6:7: Error: Can't use 'C' because it is declared more than once.
+  new C(42);
+      ^";
+}

@@ -1,0 +1,17 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  core::List<core::int*>* o;
+  core::int* y = o.{core::Iterable::fold}<core::int*>(0, (core::int* x, core::int* y) → core::int* => x.{core::num::+}(y){(core::num*) →* core::int*}){(core::int*, (core::int*, core::int*) →* core::int*) →* core::int*};
+  dynamic z = o.{core::Iterable::fold}<dynamic>(0, (dynamic x, core::int* y) → dynamic => x{dynamic}.+(y)){(dynamic, (dynamic, core::int*) →* dynamic) →* dynamic};
+  y = z as{TypeError,ForDynamic} core::int*;
+}
+static method functionExpressionInvocation() → void {
+  core::List<core::int*>* o;
+  core::int* y = o.{core::Iterable::fold}{<T extends core::Object* = dynamic>(T*, (T*, core::int*) →* T*) →* T*}<core::int*>(0, (core::int* x, core::int* y) → core::int* => x.{core::num::+}(y){(core::num*) →* core::int*}){(core::int*, (core::int*, core::int*) →* core::int*) →* core::int*};
+  dynamic z = o.{core::Iterable::fold}{<T extends core::Object* = dynamic>(T*, (T*, core::int*) →* T*) →* T*}<dynamic>(0, (dynamic x, core::int* y) → dynamic => x{dynamic}.+(y)){(dynamic, (dynamic, core::int*) →* dynamic) →* dynamic};
+  y = z as{TypeError,ForDynamic} core::int*;
+}
+static method main() → dynamic {}

@@ -1,0 +1,41 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "infer_statics_with_method_invocations_a.dart" as inf;
+
+import "org-dartlang-testcase:///infer_statics_with_method_invocations_a.dart";
+
+class T extends core::Object {
+  static final field self::T* foo = self::T::m1(self::T::m2(inf::m3("", "")));
+  synthetic constructor •() → self::T*
+    : super core::Object::•()
+    ;
+  static method m1(core::String* m) → self::T* {
+    return null;
+  }
+  static method m2(dynamic e) → core::String* {
+    return "";
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+library;
+import self as inf;
+import "dart:core" as core;
+
+static method m3(core::String* a, core::String* b, [dynamic a1 = #C1, dynamic a2 = #C1]) → dynamic {}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

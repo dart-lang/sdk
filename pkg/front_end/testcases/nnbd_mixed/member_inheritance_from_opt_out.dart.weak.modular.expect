@@ -1,0 +1,266 @@
+library main /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "member_inheritance_from_opt_out_lib.dart" as opt;
+
+import "org-dartlang-testcase:///member_inheritance_from_opt_out_lib.dart";
+
+abstract class Interface extends core::Object {
+  field core::int field1 = 0;
+  field core::int? field2 = null;
+  field core::int property3 = 0;
+  field core::int? property4 = null;
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  abstract method method1() → core::int;
+  abstract method method2() → core::int?;
+  abstract method method3a(core::int a, core::int b) → core::int;
+  abstract method method3b(core::int a, [core::int b = #C1]) → core::int;
+  abstract method method3c([core::int a = #C1, core::int b = #C1]) → core::int;
+  abstract method method4a(core::int? a, core::int? b) → core::int?;
+  abstract method method4b(core::int? a, [core::int? b = #C1]) → core::int?;
+  abstract method method4c([core::int? a = #C1, core::int? b = #C1]) → core::int?;
+  abstract method method5a(core::int a, {core::int b = #C2}) → core::int;
+  abstract method method5b({core::int a = #C2, core::int b = #C2}) → core::int;
+  abstract method method5c({required core::int a = #C1, required core::int b = #C1}) → core::int;
+  abstract method method6a(core::int? a, {core::int? b = #C1}) → core::int?;
+  abstract method method6b({core::int? a = #C1, core::int? b = #C1}) → core::int?;
+  abstract method method6c({required core::int? a = #C1, required core::int? b = #C1}) → core::int?;
+  abstract get getter1() → core::int;
+  abstract get getter2() → core::int?;
+  abstract set setter1(core::int value) → void;
+  abstract set setter2(core::int? value) → void;
+  abstract get field3() → core::int;
+  abstract set field3(core::int value) → void;
+  abstract get field4() → core::int?;
+  abstract set field4(core::int? value) → void;
+  abstract get property1() → core::int;
+  abstract set property1(core::int value) → void;
+  abstract get property2() → core::int?;
+  abstract set property2(core::int? value) → void;
+}
+class Class1 extends opt::LegacyClass {
+  synthetic constructor •() → self::Class1
+    : super opt::LegacyClass::•()
+    ;
+}
+class Class2a extends opt::LegacyClass implements self::Interface {
+  synthetic constructor •() → self::Class2a
+    : super opt::LegacyClass::•()
+    ;
+  abstract member-signature get field1() → core::int; -> opt::LegacyClass::field1
+  abstract member-signature set field1(core::int value) → void; -> opt::LegacyClass::field1
+  abstract member-signature get field2() → core::int?; -> opt::LegacyClass::field2
+  abstract member-signature set field2(core::int? value) → void; -> opt::LegacyClass::field2
+  abstract member-signature get field3() → core::int; -> opt::LegacyClass::field3
+  abstract member-signature set field3(core::int value) → void; -> opt::LegacyClass::field3
+  abstract member-signature get field4() → core::int?; -> opt::LegacyClass::field4
+  abstract member-signature set field4(core::int? value) → void; -> opt::LegacyClass::field4
+  abstract member-signature get property1() → core::int; -> opt::LegacyClass::property1
+  abstract member-signature set property1(core::int value) → void; -> opt::LegacyClass::property1
+  abstract member-signature get property2() → core::int?; -> opt::LegacyClass::property2
+  abstract member-signature set property2(core::int? value) → void; -> opt::LegacyClass::property2
+  abstract member-signature get property3() → core::int; -> opt::LegacyClass::property3
+  abstract member-signature set property3(core::int value) → void; -> opt::LegacyClass::property3
+  abstract member-signature get property4() → core::int?; -> opt::LegacyClass::property4
+  abstract member-signature set property4(core::int? value) → void; -> opt::LegacyClass::property4
+  abstract member-signature method method1() → core::int; -> opt::LegacyClass::method1
+  abstract member-signature method method2() → core::int?; -> opt::LegacyClass::method2
+  abstract member-signature method method3a(core::int a, core::int b) → core::int; -> opt::LegacyClass::method3a
+  abstract member-signature method method3b(core::int a, [core::int b = #C1]) → core::int; -> opt::LegacyClass::method3b
+  abstract member-signature method method3c([core::int a = #C1, core::int b = #C1]) → core::int; -> opt::LegacyClass::method3c
+  abstract member-signature method method4a(core::int? a, core::int? b) → core::int?; -> opt::LegacyClass::method4a
+  abstract member-signature method method4b(core::int? a, [core::int? b = #C1]) → core::int?; -> opt::LegacyClass::method4b
+  abstract member-signature method method4c([core::int? a = #C1, core::int? b = #C1]) → core::int?; -> opt::LegacyClass::method4c
+  abstract member-signature method method5a(core::int a, {core::int b = #C1}) → core::int; -> opt::LegacyClass::method5a
+  abstract member-signature method method5b({core::int a = #C1, core::int b = #C1}) → core::int; -> opt::LegacyClass::method5b
+  abstract member-signature method method6a(core::int? a, {core::int? b = #C1}) → core::int?; -> opt::LegacyClass::method6a
+  abstract member-signature method method6b({core::int? a = #C1, core::int? b = #C1}) → core::int?; -> opt::LegacyClass::method6b
+  abstract member-signature get getter1() → core::int; -> opt::LegacyClass::getter1
+  abstract member-signature get getter2() → core::int?; -> opt::LegacyClass::getter2
+  abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
+  abstract member-signature set setter1(core::int value) → void; -> opt::LegacyClass::setter1
+  abstract member-signature set setter2(core::int? value) → void; -> opt::LegacyClass::setter2
+}
+class Class2b extends opt::LegacyClass implements self::Interface {
+  field core::int field1 = 0;
+  field core::int? field2 = null;
+  field core::int property3 = 0;
+  field core::int? property4 = null;
+  synthetic constructor •() → self::Class2b
+    : super opt::LegacyClass::•()
+    ;
+  method method1() → core::int
+    return 0;
+  method method2() → core::int?
+    return 0;
+  method method3a(core::int a, core::int b) → core::int
+    return 0;
+  method method3b(core::int a, [core::int b = #C3]) → core::int
+    return 0;
+  method method3c([core::int a = #C3, core::int b = #C3]) → core::int
+    return 0;
+  method method4a(core::int? a, core::int? b) → core::int?
+    return 0;
+  method method4b(core::int? a, [core::int? b = #C1]) → core::int?
+    return 0;
+  method method4c([core::int? a = #C1, core::int? b = #C1]) → core::int?
+    return 0;
+  method method5a(core::int a, {core::int b = #C2}) → core::int
+    return 0;
+  method method5b({core::int a = #C2, core::int b = #C2}) → core::int
+    return 0;
+  method method5c({required core::int a = #C1, required core::int b = #C1}) → core::int
+    return 0;
+  method method6a(core::int? a, {core::int? b = #C1}) → core::int?
+    return 0;
+  method method6b({core::int? a = #C1, core::int? b = #C1}) → core::int?
+    return 0;
+  method method6c({required core::int? a = #C1, required core::int? b = #C1}) → core::int?
+    return 0;
+  get getter1() → core::int
+    return 0;
+  get getter2() → core::int?
+    return 0;
+  set setter1(core::int value) → void {}
+  set setter2(core::int? value) → void {}
+  get field3() → core::int
+    return 0;
+  set field3(core::int value) → void {}
+  get field4() → core::int?
+    return 0;
+  set field4(core::int? value) → void {}
+  get property1() → core::int
+    return 0;
+  set property1(core::int value) → void {}
+  get property2() → core::int?
+    return 0;
+  set property2(core::int? value) → void {}
+  abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
+}
+class Class3a extends opt::GenericLegacyClass<core::int> {
+  synthetic constructor •() → self::Class3a
+    : super opt::GenericLegacyClass::•()
+    ;
+}
+class Class3b extends opt::GenericLegacyClass<core::int?> {
+  synthetic constructor •() → self::Class3b
+    : super opt::GenericLegacyClass::•()
+    ;
+}
+class Class3c<S extends core::Object? = dynamic> extends opt::GenericLegacyClass<self::Class3c::S%> {
+  synthetic constructor •() → self::Class3c<self::Class3c::S%>
+    : super opt::GenericLegacyClass::•()
+    ;
+}
+static method main() → dynamic {}
+
+library opt_out;
+import self as opt;
+import "dart:core" as core;
+
+class LegacyClass extends core::Object {
+  field core::int* field1 = null;
+  field core::int* field2 = null;
+  field core::int* field3 = null;
+  field core::int* field4 = null;
+  synthetic constructor •() → opt::LegacyClass*
+    : super core::Object::•()
+    ;
+  method method1() → core::int*
+    return 0;
+  method method2() → core::int*
+    return 0;
+  method method3a(core::int* a, core::int* b) → core::int*
+    return 0;
+  method method3b(core::int* a, [core::int* b = #C1]) → core::int*
+    return 0;
+  method method3c([core::int* a = #C1, core::int* b = #C1]) → core::int*
+    return 0;
+  method method4a(core::int* a, core::int* b) → core::int*
+    return 0;
+  method method4b(core::int* a, [core::int* b = #C1]) → core::int*
+    return 0;
+  method method4c([core::int* a = #C1, core::int* b = #C1]) → core::int*
+    return 0;
+  method method5a(core::int* a, {core::int* b = #C1}) → core::int*
+    return 0;
+  method method5b({core::int* a = #C1, core::int* b = #C1}) → core::int*
+    return 0;
+  method method5c({core::int* a = #C1, core::int* b = #C1}) → core::int*
+    return 0;
+  method method6a(core::int* a, {core::int* b = #C1}) → core::int*
+    return 0;
+  method method6b({core::int* a = #C1, core::int* b = #C1}) → core::int*
+    return 0;
+  method method6c({core::int* a = #C1, core::int* b = #C1}) → core::int*
+    return 0;
+  get getter1() → core::int*
+    return 0;
+  get getter2() → core::int*
+    return 0;
+  set setter1(core::int* value) → void {}
+  set setter2(core::int* value) → void {}
+  get property1() → core::int*
+    return 0;
+  set property1(core::int* value) → void {}
+  get property2() → core::int*
+    return 0;
+  set property2(core::int* value) → void {}
+  get property3() → core::int*
+    return 0;
+  set property3(core::int* value) → void {}
+  get property4() → core::int*
+    return 0;
+  set property4(core::int* value) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class GenericLegacyClass<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → opt::GenericLegacyClass<opt::GenericLegacyClass::T*>*
+    : super core::Object::•()
+    ;
+  method method1() → opt::GenericLegacyClass::T*
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+
+constants  {
+  #C1 = null
+  #C2 = 0
+  #C3 = 42
+}

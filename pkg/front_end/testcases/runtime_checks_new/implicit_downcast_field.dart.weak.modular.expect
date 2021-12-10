@@ -1,0 +1,43 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field core::bool* staticValue = self::o as{TypeError} core::bool*;
+  field core::bool* instanceValue = self::o as{TypeError} core::bool*;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field core::Object* o = 1;
+static field core::bool* topLevelValue = self::o as{TypeError} core::bool*;
+static method main() → dynamic {
+  try {
+    self::topLevelValue;
+    throw "no exception";
+  }
+  on core::TypeError* catch(no-exception-var) {
+  }
+  try {
+    self::C::staticValue;
+    throw "no exception";
+  }
+  on core::TypeError* catch(no-exception-var) {
+  }
+  try {
+    new self::C::•();
+    throw "no exception";
+  }
+  on core::TypeError* catch(no-exception-var) {
+  }
+}

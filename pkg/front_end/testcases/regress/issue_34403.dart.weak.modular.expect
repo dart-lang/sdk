@@ -1,0 +1,216 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:16:14: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   var c1 = C.bar<int>();
+//              ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:18:18: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   var c2 = new C.bar<int>();
+//                  ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:20:13: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   var c3 = C<String>.bar<int>();
+//             ^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:20:22: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   var c3 = C<String>.bar<int>();
+//                      ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:22:26: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   var c4 = new C<String>.bar<int>();
+//                          ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:25:16: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   const d1 = D.foo<int>();
+//                ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:27:22: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   const d2 = const D.foo<int>();
+//                      ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:29:15: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   const d3 = D<String>.foo<int>();
+//               ^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:29:24: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   const d3 = D<String>.foo<int>();
+//                        ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:31:30: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   const d4 = const D<String>.foo<int>();
+//                              ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:34:16: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   var e1 = p.E.bar<int>();
+//                ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:36:20: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   var e2 = new p.E.bar<int>();
+//                    ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:38:15: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   var e3 = p.E<String>.bar<int>();
+//               ^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:38:24: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   var e3 = p.E<String>.bar<int>();
+//                        ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:40:28: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   var e4 = new p.E<String>.bar<int>();
+//                            ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:43:18: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   const f1 = p.F.foo<int>();
+//                  ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:45:24: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   const f2 = const p.F.foo<int>();
+//                        ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:47:17: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   const f3 = p.F<String>.foo<int>();
+//                 ^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:47:26: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   const f3 = p.F<String>.foo<int>();
+//                          ^^^
+//
+// pkg/front_end/testcases/regress/issue_34403.dart:49:32: Error: A constructor invocation can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   const f4 = const p.F<String>.foo<int>();
+//                                ^^^
+//
+import self as self;
+import "dart:core" as core;
+import "issue_34403_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue_34403_lib.dart" as p;
+
+class C<T extends core::Object* = dynamic> extends core::Object {
+  constructor bar() → self::C<self::C::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor foo() → self::D<self::D::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  self::C<core::int*>* c1 = new self::C::bar<core::int*>();
+  c1.{self::C::toString}(){() →* core::String*};
+  self::C<core::int*>* c2 = new self::C::bar<core::int*>();
+  c2.{self::C::toString}(){() →* core::String*};
+  self::C<core::int*>* c3 = new self::C::bar<core::int*>();
+  c3.{self::C::toString}(){() →* core::String*};
+  self::C<core::String*>* c4 = new self::C::bar<core::String*>();
+  c4.{self::C::toString}(){() →* core::String*};
+  #C1.{self::D::toString}(){() →* core::String*};
+  #C1.{self::D::toString}(){() →* core::String*};
+  #C1.{self::D::toString}(){() →* core::String*};
+  #C2.{self::D::toString}(){() →* core::String*};
+  iss::E<core::int*>* e1 = new iss::E::bar<core::int*>();
+  e1.{iss::E::toString}(){() →* core::String*};
+  iss::E<dynamic>* e2 = new iss::E::bar<dynamic>();
+  e2.{iss::E::toString}(){() →* core::String*};
+  iss::E<core::int*>* e3 = new iss::E::bar<core::int*>();
+  e3.{iss::E::toString}(){() →* core::String*};
+  iss::E<core::String*>* e4 = new iss::E::bar<core::String*>();
+  e4.{iss::E::toString}(){() →* core::String*};
+  #C3.{iss::F::toString}(){() →* core::String*};
+  #C4.{iss::F::toString}(){() →* core::String*};
+  #C3.{iss::F::toString}(){() →* core::String*};
+  #C5.{iss::F::toString}(){() →* core::String*};
+}
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+class E<T extends core::Object* = dynamic> extends core::Object {
+  constructor bar() → iss::E<iss::E::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class F<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor foo() → iss::F<iss::F::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+
+constants  {
+  #C1 = self::D<core::int*> {}
+  #C2 = self::D<core::String*> {}
+  #C3 = iss::F<core::int*> {}
+  #C4 = iss::F<dynamic> {}
+  #C5 = iss::F<core::String*> {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue_34403.dart:
+- D.foo (from org-dartlang-testcase:///issue_34403.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- F.foo (from org-dartlang-testcase:///issue_34403_lib.dart:10:9)

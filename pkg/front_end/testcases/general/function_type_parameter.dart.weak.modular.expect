@@ -1,0 +1,60 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/function_type_parameter.dart:11:20: Error: A type variable on a function type can't have annotations.
+// void Function<@A() T>(T)? f;
+//                    ^
+//
+// pkg/front_end/testcases/general/function_type_parameter.dart:13:32: Error: A type variable on a function type can't have annotations.
+// typedef F = void Function<@A() T>(T);
+//                                ^
+//
+// pkg/front_end/testcases/general/function_type_parameter.dart:19:33: Error: A type variable on a function type can't have annotations.
+// void method2(void Function<@A() T>(T) f) {}
+//                                 ^
+//
+// pkg/front_end/testcases/general/function_type_parameter.dart:21:42: Error: A type variable on a function type can't have annotations.
+// class Class<T extends void Function<@A() S>(S)> {}
+//                                          ^
+//
+// pkg/front_end/testcases/general/function_type_parameter.dart:21:13: Error: Type variables can't have generic function types in their bounds.
+// class Class<T extends void Function<@A() S>(S)> {}
+//             ^
+//
+// pkg/front_end/testcases/general/function_type_parameter.dart:26:22: Error: A type variable on a function type can't have annotations.
+//   void Function<@A() T>(T)? f;
+//                      ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F = <T extends core::Object? = dynamic>(T%) → void;
+typedef G<@#C1 contravariant T extends core::Object? = dynamic> = (T%) → void;
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class Class<T extends <S extends core::Object? = dynamic>(S%) → void = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T>
+    : super core::Object::•()
+    ;
+}
+static field <T extends core::Object? = dynamic>(T%) →? void f;
+static method method1<@#C1 T extends core::Object? = dynamic>(self::method1::T% t) → void {}
+static method method2(<T extends core::Object? = dynamic>(T%) → void f) → void {}
+static method main() → dynamic {
+  function local<@#C1 T extends core::Object? = dynamic>(T% t) → void {}
+  <T extends core::Object? = dynamic>(T%) →? void f;
+}
+
+constants  {
+  #C1 = self::A {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///function_type_parameter.dart:
+- A. (from org-dartlang-testcase:///function_type_parameter.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

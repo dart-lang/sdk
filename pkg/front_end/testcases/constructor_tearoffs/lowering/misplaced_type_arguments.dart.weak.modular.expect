@@ -1,0 +1,116 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:15:8: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   A.new<int>;
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:16:10: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   A.named<int>;
+//          ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:17:9: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   A.fact<int>;
+//         ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:18:13: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   A.redirect<int>;
+//             ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:19:8: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   B.new<int>;
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:20:10: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   B.named<int>;
+//          ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:21:9: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   B.fact<int>;
+//         ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:22:13: Error: A constructor tear-off can't have type arguments after the constructor name.
+// Try removing the type arguments or placing them after the class name.
+//   B.redirect<int>;
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef B<T extends core::num> = self::A<T>;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  constructor named() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
+    return new self::A::•<self::A::_#new#tearOff::T%>();
+  static method _#named#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#named#tearOff::T%>
+    return new self::A::named<self::A::_#named#tearOff::T%>();
+  static factory fact<T extends core::Object? = dynamic>() → self::A<self::A::fact::T%>
+    return new self::A::•<self::A::fact::T%>();
+  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#fact#tearOff::T%>
+    return self::A::fact<self::A::_#fact#tearOff::T%>();
+  static factory redirect<T extends core::Object? = dynamic>() → self::A<self::A::redirect::T%>
+    return new self::A::•<self::A::redirect::T%>();
+  static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#redirect#tearOff::T%>
+    return new self::A::•<self::A::_#redirect#tearOff::T%>();
+}
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:15:8: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  A.new<int>;
+       ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:16:10: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  A.named<int>;
+         ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:17:9: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  A.fact<int>;
+        ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:18:13: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  A.redirect<int>;
+            ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:19:8: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  B.new<int>;
+       ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:20:10: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  B.named<int>;
+         ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:21:9: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  B.fact<int>;
+        ^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/misplaced_type_arguments.dart:22:13: Error: A constructor tear-off can't have type arguments after the constructor name.
+Try removing the type arguments or placing them after the class name.
+  B.redirect<int>;
+            ^";
+}
+static method main() → dynamic {}
+static method _#B#new#tearOff<T extends core::num>() → self::A<self::_#B#new#tearOff::T>
+  return new self::A::•<self::_#B#new#tearOff::T>();
+static method _#B#named#tearOff<T extends core::num>() → self::A<self::_#B#named#tearOff::T>
+  return new self::A::named<self::_#B#named#tearOff::T>();
+static method _#B#fact#tearOff<T extends core::num>() → self::A<self::_#B#fact#tearOff::T>
+  return self::A::fact<self::_#B#fact#tearOff::T>();
+static method _#B#redirect#tearOff<T extends core::num>() → self::A<self::_#B#redirect#tearOff::T>
+  return self::A::_#redirect#tearOff<self::_#B#redirect#tearOff::T>();
+
+constants  {
+  #C1 = constructor-tearoff self::A::redirect
+}

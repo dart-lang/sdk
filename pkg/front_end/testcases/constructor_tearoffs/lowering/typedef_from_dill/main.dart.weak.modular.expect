@@ -1,0 +1,89 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+typedef H<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = mai::A<Y%>;
+static field dynamic H_new = #C1;
+static field dynamic H_named = #C2;
+static field dynamic H_fact = #C3;
+static field dynamic H_redirect = #C4;
+static field dynamic F_new = #C5;
+static field dynamic F_named = #C6;
+static field dynamic F_fact = #C7;
+static field dynamic F_redirect = #C8;
+static method main() → dynamic {
+  self::expect(true, core::identical(self::F_new, mai::F_new_lib));
+  self::expect(false, core::identical(self::F_new, mai::F_named_lib));
+  self::expect(false, core::identical(self::F_new, mai::F_fact_lib));
+  self::expect(false, core::identical(self::F_new, mai::F_redirect_lib));
+  self::expect(false, core::identical(self::F_new, mai::G_new_lib));
+  self::expect(false, core::identical(self::F_new, mai::G_named_lib));
+  self::expect(false, core::identical(self::F_new, mai::G_fact_lib));
+  self::expect(false, core::identical(self::F_new, mai::G_redirect_lib));
+  self::expect(false, core::identical(self::F_new, self::H_new));
+  self::expect(false, core::identical(self::F_new, self::H_named));
+  self::expect(false, core::identical(self::F_new, self::H_fact));
+  self::expect(false, core::identical(self::F_new, self::H_redirect));
+  self::expect(false, core::identical(self::F_named, mai::F_new_lib));
+  self::expect(true, core::identical(self::F_named, mai::F_named_lib));
+  self::expect(false, core::identical(self::F_named, mai::F_fact_lib));
+  self::expect(false, core::identical(self::F_named, mai::F_redirect_lib));
+  self::expect(false, core::identical(self::F_named, mai::G_new_lib));
+  self::expect(false, core::identical(self::F_named, mai::G_named_lib));
+  self::expect(false, core::identical(self::F_named, mai::G_fact_lib));
+  self::expect(false, core::identical(self::F_named, mai::G_redirect_lib));
+  self::expect(false, core::identical(self::F_named, self::H_new));
+  self::expect(false, core::identical(self::F_named, self::H_named));
+  self::expect(false, core::identical(self::F_named, self::H_fact));
+  self::expect(false, core::identical(self::F_named, self::H_redirect));
+  self::expect(false, core::identical(self::F_fact, mai::F_new_lib));
+  self::expect(false, core::identical(self::F_fact, mai::F_named_lib));
+  self::expect(true, core::identical(self::F_fact, mai::F_fact_lib));
+  self::expect(false, core::identical(self::F_fact, mai::F_redirect_lib));
+  self::expect(false, core::identical(self::F_fact, mai::G_new_lib));
+  self::expect(false, core::identical(self::F_fact, mai::G_named_lib));
+  self::expect(false, core::identical(self::F_fact, mai::G_fact_lib));
+  self::expect(false, core::identical(self::F_fact, mai::G_redirect_lib));
+  self::expect(false, core::identical(self::F_fact, self::H_new));
+  self::expect(false, core::identical(self::F_fact, self::H_named));
+  self::expect(false, core::identical(self::F_fact, self::H_fact));
+  self::expect(false, core::identical(self::F_fact, self::H_redirect));
+  self::expect(false, core::identical(self::F_redirect, mai::F_new_lib));
+  self::expect(false, core::identical(self::F_redirect, mai::F_named_lib));
+  self::expect(false, core::identical(self::F_redirect, mai::F_fact_lib));
+  self::expect(true, core::identical(self::F_redirect, mai::F_redirect_lib));
+  self::expect(false, core::identical(self::F_redirect, mai::G_new_lib));
+  self::expect(false, core::identical(self::F_redirect, mai::G_named_lib));
+  self::expect(false, core::identical(self::F_redirect, mai::G_fact_lib));
+  self::expect(false, core::identical(self::F_redirect, mai::G_redirect_lib));
+  self::expect(false, core::identical(self::F_redirect, self::H_new));
+  self::expect(false, core::identical(self::F_redirect, self::H_named));
+  self::expect(false, core::identical(self::F_redirect, self::H_fact));
+  self::expect(false, core::identical(self::F_redirect, self::H_redirect));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b, core::int c}) → mai::A<self::_#H#fact#tearOff::Y%>
+  return mai::A::fact<self::_#H#fact#tearOff::Y%>(a, b: b, c: c);
+static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#redirect#tearOff::Y%>
+  return mai::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();
+static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → mai::A<self::_#H#new#tearOff::Y%>
+  return new mai::A::•<self::_#H#new#tearOff::Y%>();
+static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b]) → mai::A<self::_#H#named#tearOff::Y%>
+  return new mai::A::named<self::_#H#named#tearOff::Y%>(a, b);
+
+constants  {
+  #C1 = static-tearoff self::_#H#new#tearOff
+  #C2 = static-tearoff self::_#H#named#tearOff
+  #C3 = static-tearoff self::_#H#fact#tearOff
+  #C4 = static-tearoff self::_#H#redirect#tearOff
+  #C5 = static-tearoff mai::_#F#new#tearOff
+  #C6 = static-tearoff mai::_#F#named#tearOff
+  #C7 = static-tearoff mai::_#F#fact#tearOff
+  #C8 = static-tearoff mai::_#F#redirect#tearOff
+}

@@ -1,0 +1,156 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Class extends core::Object {
+  field core::int? _#Class#field1 = null;
+  field core::bool _#Class#field1#isSet = false;
+  field core::int? _#Class#field2 = null;
+  field core::bool _#Class#field2#isSet = false;
+  field core::int? _#Class#field3 = null;
+  field core::bool _#Class#field3#isSet = false;
+  field core::int? _#Class#field4 = null;
+  field core::bool _#Class#field4#isSet = false;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get field1() → core::int
+    return this.{self::Class::_#Class#field1#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::Class::_#Class#field1}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("field1");
+  set field1(core::int #t2) → void {
+    this.{self::Class::_#Class#field1#isSet} = true;
+    this.{self::Class::_#Class#field1} = #t2;
+  }
+  get field2() → core::int
+    return this.{self::Class::_#Class#field2#isSet}{core::bool} ?{core::int} let final core::int? #t3 = this.{self::Class::_#Class#field2}{core::int?} in #t3{core::int} : throw new _in::LateError::fieldNI("field2");
+  set field2(core::int #t4) → void {
+    this.{self::Class::_#Class#field2#isSet} = true;
+    this.{self::Class::_#Class#field2} = #t4;
+  }
+  get field3() → core::int
+    return this.{self::Class::_#Class#field3#isSet}{core::bool} ?{core::int} let final core::int? #t5 = this.{self::Class::_#Class#field3}{core::int?} in #t5{core::int} : throw new _in::LateError::fieldNI("field3");
+  set field3(core::int #t6) → void
+    if(this.{self::Class::_#Class#field3#isSet}{core::bool})
+      throw new _in::LateError::fieldAI("field3");
+    else {
+      this.{self::Class::_#Class#field3#isSet} = true;
+      this.{self::Class::_#Class#field3} = #t6;
+    }
+  get field4() → core::int
+    return this.{self::Class::_#Class#field4#isSet}{core::bool} ?{core::int} let final core::int? #t7 = this.{self::Class::_#Class#field4}{core::int?} in #t7{core::int} : throw new _in::LateError::fieldNI("field4");
+  set field4(core::int #t8) → void
+    if(this.{self::Class::_#Class#field4#isSet}{core::bool})
+      throw new _in::LateError::fieldAI("field4");
+    else {
+      this.{self::Class::_#Class#field4#isSet} = true;
+      this.{self::Class::_#Class#field4} = #t8;
+    }
+}
+class SubClass extends self::Class {
+  field core::int? _#SubClass#field1 = null;
+  field core::bool _#SubClass#field1#isSet = false;
+  field core::int? _#SubClass#field2 = null;
+  field core::bool _#SubClass#field2#isSet = false;
+  field core::int? _#SubClass#field3 = null;
+  field core::bool _#SubClass#field3#isSet = false;
+  field core::int? _#SubClass#field4 = null;
+  field core::bool _#SubClass#field4#isSet = false;
+  synthetic constructor •() → self::SubClass
+    : super self::Class::•()
+    ;
+  get field1() → core::int
+    return this.{self::SubClass::_#SubClass#field1#isSet}{core::bool} ?{core::int} let final core::int? #t9 = this.{self::SubClass::_#SubClass#field1}{core::int?} in #t9{core::int} : throw new _in::LateError::fieldNI("field1");
+  set field1(core::int #t10) → void {
+    this.{self::SubClass::_#SubClass#field1#isSet} = true;
+    this.{self::SubClass::_#SubClass#field1} = #t10;
+  }
+  get field2() → core::int {
+    if(!this.{self::SubClass::_#SubClass#field2#isSet}{core::bool}) {
+      this.{self::SubClass::_#SubClass#field2} = 0;
+      this.{self::SubClass::_#SubClass#field2#isSet} = true;
+    }
+    return let final core::int? #t11 = this.{self::SubClass::_#SubClass#field2}{core::int?} in #t11{core::int};
+  }
+  set field2(core::int #t12) → void {
+    this.{self::SubClass::_#SubClass#field2#isSet} = true;
+    this.{self::SubClass::_#SubClass#field2} = #t12;
+  }
+  get field3() → core::int
+    return this.{self::SubClass::_#SubClass#field3#isSet}{core::bool} ?{core::int} let final core::int? #t13 = this.{self::SubClass::_#SubClass#field3}{core::int?} in #t13{core::int} : throw new _in::LateError::fieldNI("field3");
+  set field3(core::int #t14) → void
+    if(this.{self::SubClass::_#SubClass#field3#isSet}{core::bool})
+      throw new _in::LateError::fieldAI("field3");
+    else {
+      this.{self::SubClass::_#SubClass#field3#isSet} = true;
+      this.{self::SubClass::_#SubClass#field3} = #t14;
+    }
+  get field4() → core::int {
+    if(!this.{self::SubClass::_#SubClass#field4#isSet}{core::bool}) {
+      final core::int #t15 = 0;
+      if(this.{self::SubClass::_#SubClass#field4#isSet}{core::bool})
+        throw new _in::LateError::fieldADI("field4");
+      this.{self::SubClass::_#SubClass#field4} = #t15;
+      this.{self::SubClass::_#SubClass#field4#isSet} = true;
+    }
+    return let final core::int? #t16 = this.{self::SubClass::_#SubClass#field4}{core::int?} in #t16{core::int};
+  }
+  get directField1() → core::int
+    return super.{self::Class::field1};
+  set directField1(core::int value) → void {
+    super.{self::Class::field1} = value;
+  }
+  get directField2() → core::int
+    return super.{self::Class::field2};
+  set directField2(core::int value) → void {
+    super.{self::Class::field2} = value;
+  }
+  get directField3() → core::int
+    return super.{self::Class::field3};
+  get directField4() → core::int
+    return super.{self::Class::field4};
+}
+static method main() → dynamic {
+  self::SubClass sc = new self::SubClass::•();
+  self::Class c = sc;
+  self::throws(() → core::int => c.{self::Class::field1}{core::int}, "Read value from uninitialized SubClass.field1");
+  self::throws(() → core::int => sc.{self::SubClass::directField1}{core::int}, "Read value from uninitialized Class.field1");
+  self::expect(42, c.{self::Class::field1} = 42);
+  self::expect(42, c.{self::Class::field1}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField1}{core::int}, "Read value from uninitialized Class.field1");
+  self::expect(87, sc.{self::SubClass::directField1} = 87);
+  self::expect(87, sc.{self::SubClass::directField1}{core::int});
+  self::expect(0, c.{self::Class::field2}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField2}{core::int}, "Read value from uninitialized Class.field2");
+  self::expect(42, c.{self::Class::field2} = 42);
+  self::expect(42, c.{self::Class::field2}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField2}{core::int}, "Read value from uninitialized Class.field2");
+  self::expect(87, sc.{self::SubClass::directField2} = 87);
+  self::expect(87, sc.{self::SubClass::directField2}{core::int});
+  self::throws(() → core::int => c.{self::Class::field3}{core::int}, "Read value from uninitialized SubClass.field3");
+  self::throws(() → core::int => sc.{self::SubClass::directField3}{core::int}, "Read value from uninitialized Class.field3");
+  self::expect(42, c.{self::Class::field3} = 42);
+  self::expect(42, c.{self::Class::field3}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField3}{core::int}, "Read value from uninitialized Class.field3");
+  self::throws(() → core::int => c.{self::Class::field3} = 87, "Write value to initialized SubClass.field3");
+  self::expect(0, c.{self::Class::field4}{core::int});
+  self::throws(() → core::int => sc.{self::SubClass::directField4}{core::int}, "Read value from uninitialized Class.field4");
+  self::expect(42, c.{self::Class::field4} = 42);
+  self::expect(0, c.{self::Class::field4}{core::int});
+  self::expect(42, sc.{self::SubClass::directField4}{core::int});
+  self::throws(() → core::int => c.{self::Class::field4} = 87, "Write value to initialized SubClass.field4");
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}.";
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f(){() → dynamic};
+  }
+  on core::Error catch(final core::Error e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}

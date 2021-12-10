@@ -1,0 +1,191 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:22:10: Warning: Operand of null-aware operation '??=' has type 'String' which excludes null.
+//     super[42] ??= "bar"; // Warning.
+//          ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:27:3: Warning: Operand of null-aware operation '?.' has type 'String' which excludes null.
+//   s?.length; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:28:3: Warning: Operand of null-aware operation '?..' has type 'String' which excludes null.
+//   s?..length; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:29:3: Warning: Operand of null-aware operation '??' has type 'String' which excludes null.
+//   s ?? "foo"; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:30:3: Warning: Operand of null-aware operation '??=' has type 'String' which excludes null.
+//   s ??= "foo"; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:31:8: Warning: Operand of null-aware operation '...?' has type 'List<String>' which excludes null.
+//  - 'List' is from 'dart:core'.
+//   [...?l]; // Warning.
+//        ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:32:16: Warning: Operand of null-aware operation '...?' has type 'List<String>' which excludes null.
+//  - 'List' is from 'dart:core'.
+//   var a = {...?l}; // Warning.
+//                ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:33:16: Warning: Operand of null-aware operation '...?' has type 'List<String>' which excludes null.
+//  - 'List' is from 'dart:core'.
+//   <String>{...?l}; // Warning.
+//                ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:34:16: Warning: Operand of null-aware operation '...?' has type 'Map<String, int>' which excludes null.
+//  - 'Map' is from 'dart:core'.
+//   var b = {...?m}; // Warning.
+//                ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:35:21: Warning: Operand of null-aware operation '...?' has type 'Map<String, int>' which excludes null.
+//  - 'Map' is from 'dart:core'.
+//   <String, int>{...?m}; // Warning.
+//                     ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:36:3: Warning: Operand of null-aware operation '!' has type 'String' which excludes null.
+//   s!; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:37:3: Warning: Operand of null-aware operation '?.' has type 'String' which excludes null.
+//   s?.substring(0, 0); // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:38:3: Warning: Operand of null-aware operation '?.' has type 'List<String>' which excludes null.
+//  - 'List' is from 'dart:core'.
+//   l?.length = 42; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:39:3: Warning: Operand of null-aware operation '?.' has type 'List<String>' which excludes null.
+//  - 'List' is from 'dart:core'.
+//   l?.length += 42; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:40:3: Warning: Operand of null-aware operation '?.' has type 'List<String>' which excludes null.
+//  - 'List' is from 'dart:core'.
+//   l?.length ??= 42; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:41:3: Warning: Operand of null-aware operation '?.' has type 'String' which excludes null.
+//   s?.foo; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:42:7: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   E(s)[42] ??= 42; // Warning.
+//       ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:43:4: Warning: Operand of null-aware operation '??=' has type 'String' which excludes null.
+//   l[42] ??= "foo"; // Warning.
+//    ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:44:5: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   l.length ??= 42; // Warning.
+//     ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:45:3: Warning: Operand of null-aware operation '?..' has type 'List<String>' which excludes null.
+//  - 'List' is from 'dart:core'.
+//   l?..length = 42; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:46:3: Warning: Operand of null-aware operation '?..' has type 'List<String>' which excludes null.
+//  - 'List' is from 'dart:core'.
+//   l?..length ??= 42; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/strictly_non_nullable_warnings.dart:46:7: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   l?..length ??= 42; // Warning.
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  operator [](core::int index) → core::String
+    return "foo";
+  operator []=(core::int index, core::String value) → void {}
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  method test() → void {
+    let final core::int #t1 = 42 in super.{self::A::[]}(#t1) == null ?{core::String} super.{self::A::[]=}(#t1, "bar") : null;
+  }
+}
+extension E on core::String {
+  get foo = self::E|get#foo;
+  operator []= = self::E|[]=;
+  operator [] = self::E|[];
+}
+static method E|get#foo(lowered final core::String #this) → core::int
+  return 42;
+static method E|[]=(lowered final core::String #this, core::int index, core::int value) → void {}
+static method E|[](lowered final core::String #this, core::int index) → core::int
+  return 42;
+static method warning(core::String s, core::List<core::String> l, core::Map<core::String, core::int> m) → dynamic {
+  let final core::String #t2 = s in #t2 == null ?{core::int?} null : #t2.{core::String::length}{core::int};
+  let final core::String #t3 = s in #t3 == null ?{core::String} null : block {
+    #t3.{core::String::length}{core::int};
+  } =>#t3;
+  let final core::String #t4 = s in #t4 == null ?{core::String} "foo" : #t4;
+  s == null ?{core::String} s = "foo" : null;
+  block {
+    final core::List<core::String> #t5 = <core::String>[];
+    final core::Iterable<core::String>? #t6 = l;
+    if(!(#t6 == null))
+      #t5.{core::List::addAll}{Invariant}(#t6{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
+  } =>#t5;
+  core::Set<core::String> a = block {
+    final core::Set<core::String> #t7 = col::LinkedHashSet::•<core::String>();
+    final core::Iterable<dynamic>? #t8 = l;
+    if(!(#t8 == null))
+      for (final dynamic #t9 in #t8{core::Iterable<dynamic>}) {
+        final core::String #t10 = #t9 as{TypeError,ForNonNullableByDefault} core::String;
+        #t7.{core::Set::add}{Invariant}(#t10){(core::String) → core::bool};
+      }
+  } =>#t7;
+  block {
+    final core::Set<core::String> #t11 = col::LinkedHashSet::•<core::String>();
+    final core::Iterable<core::String>? #t12 = l;
+    if(!(#t12 == null))
+      #t11.{core::Set::addAll}{Invariant}(#t12{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
+  } =>#t11;
+  core::Map<core::String, core::int> b = block {
+    final core::Map<core::String, core::int> #t13 = <core::String, core::int>{};
+    final core::Map<core::String, core::int>? #t14 = m;
+    if(!(#t14 == null))
+      for (final core::MapEntry<core::String, core::int> #t15 in #t14{core::Map<core::String, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String, core::int>>})
+        #t13.{core::Map::[]=}{Invariant}(#t15.{core::MapEntry::key}{core::String}, #t15.{core::MapEntry::value}{core::int}){(core::String, core::int) → void};
+  } =>#t13;
+  block {
+    final core::Map<core::String, core::int> #t16 = <core::String, core::int>{};
+    final core::Map<core::String, core::int>? #t17 = m;
+    if(!(#t17 == null))
+      for (final core::MapEntry<core::String, core::int> #t18 in #t17{core::Map<core::String, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::String, core::int>>})
+        #t16.{core::Map::[]=}{Invariant}(#t18.{core::MapEntry::key}{core::String}, #t18.{core::MapEntry::value}{core::int}){(core::String, core::int) → void};
+  } =>#t16;
+  s!;
+  let final core::String #t19 = s in #t19 == null ?{core::String?} null : #t19.{core::String::substring}(0, 0){(core::int, [core::int?]) → core::String};
+  let final core::List<core::String> #t20 = l in #t20 == null ?{core::int?} null : #t20.{core::List::length} = 42;
+  let final core::List<core::String> #t21 = l in #t21 == null ?{core::int?} null : #t21.{core::List::length} = #t21.{core::List::length}{core::int}.{core::num::+}(42){(core::num) → core::int};
+  let final core::List<core::String> #t22 = l in #t22 == null ?{core::int?} null : #t22.{core::List::length}{core::int} == null ?{core::int} #t22.{core::List::length} = 42 : null;
+  let final core::String #t23 = s in #t23 == null ?{core::int?} null : self::E|get#foo(#t23);
+  let final core::String #t24 = s in let final core::int #t25 = 42 in self::E|[](#t24, #t25) == null ?{core::int} self::E|[]=(#t24, #t25, 42) : null;
+  let final core::List<core::String> #t26 = l in let final core::int #t27 = 42 in #t26.{core::List::[]}(#t27){(core::int) → core::String} == null ?{core::String} #t26.{core::List::[]=}(#t27, "foo"){(core::int, core::String) → void} : null;
+  let final core::List<core::String> #t28 = l in #t28.{core::List::length}{core::int} == null ?{core::int} #t28.{core::List::length} = 42 : null;
+  let final core::List<core::String> #t29 = l in #t29 == null ?{core::List<core::String>} null : block {
+    #t29.{core::List::length} = 42;
+  } =>#t29;
+  let final core::List<core::String> #t30 = l in #t30 == null ?{core::List<core::String>} null : block {
+    let final core::List<core::String> #t31 = #t30 in #t31.{core::List::length}{core::int} == null ?{core::int} #t31.{core::List::length} = 42 : null;
+  } =>#t30;
+}
+static method main() → dynamic {}

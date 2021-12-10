@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/call_instantiation.dart:11:31: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Function'.
+//  - 'Function' is from 'dart:core'.
+// Try changing the operand or remove the type arguments.
+//   int Function(int) g = f.call<int>;
+//                               ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field <T extends core::Object? = dynamic>(T%) → T% funcValue = #C1;
+static field (core::int) → core::int f = self::funcValue.call<core::int>;
+static field (core::int) → core::int g = self::funcValue.call<core::int>;
+static method func<T extends core::Object? = dynamic>(self::func::T% value) → self::func::T%
+  return value;
+static method test(core::Function f) → dynamic {
+  (core::int) → core::int g = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/call_instantiation.dart:11:31: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Function'.
+ - 'Function' is from 'dart:core'.
+Try changing the operand or remove the type arguments.
+  int Function(int) g = f.call<int>;
+                              ^";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = static-tearoff self::func
+}

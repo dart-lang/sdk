@@ -1,0 +1,26 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue38253.dart:9:1: Error: Expected ';' after this.
+// }
+// ^
+//
+// pkg/front_end/testcases/general/issue38253.dart:6:3: Error: 'g' isn't a type.
+//   g f(){
+//   ^
+//
+// pkg/front_end/testcases/general/issue38253.dart:7:5: Error: A value must be explicitly returned from a non-void function.
+//     return;
+//     ^
+//
+import self as self;
+
+static field () → Null a = () → Null {
+  function f() → invalid-type {
+    return invalid-expression "pkg/front_end/testcases/general/issue38253.dart:7:5: Error: A value must be explicitly returned from a non-void function.
+    return;
+    ^" in null;
+  }
+};
+static method main() → dynamic {}

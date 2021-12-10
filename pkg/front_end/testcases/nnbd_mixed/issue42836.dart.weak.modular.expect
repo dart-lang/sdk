@@ -1,0 +1,73 @@
+library;
+import self as self;
+import "issue42836_lib.dart" as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue42836_lib.dart";
+
+class Legacy extends iss::Generic<core::int*> {
+  synthetic constructor •() → self::Legacy*
+    : super iss::Generic::•()
+    ;
+  method legacyMethod() → core::int*
+    return 3;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field self::Legacy* legacyInstance = new self::Legacy::•();
+static method test(core::bool* b) → dynamic {
+  self::Legacy* a1 = b ?{self::Legacy*} self::legacyInstance : self::legacyInstance;
+  iss::Generic<core::int*>* a2 = b ?{iss::Generic<core::int*>*} self::legacyInstance : iss::nonNullableInstance;
+  iss::Generic<core::int*>* a3 = b ?{iss::Generic<core::int*>*} self::legacyInstance : iss::nullableInstance;
+  iss::Generic<core::int*>* b1 = b ?{iss::Generic<core::int*>*} iss::nonNullableInstance : self::legacyInstance;
+  iss::NonNullable* b2 = b ?{iss::NonNullable*} iss::nonNullableInstance : iss::nonNullableInstance;
+  iss::Generic<core::int*>* b3 = b ?{iss::Generic<core::int*>*} iss::nonNullableInstance : iss::nullableInstance;
+  iss::Generic<core::int*>* c1 = b ?{iss::Generic<core::int*>*} iss::nullableInstance : self::legacyInstance;
+  iss::Generic<core::int*>* c2 = b ?{iss::Generic<core::int*>*} iss::nullableInstance : iss::nonNullableInstance;
+  iss::Nullable* c3 = b ?{iss::Nullable*} iss::nullableInstance : iss::nullableInstance;
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as iss;
+import "dart:core" as core;
+import "issue42836.dart" as self;
+
+import "org-dartlang-testcase:///issue42836.dart";
+
+class Generic<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → iss::Generic<iss::Generic::T%>
+    : super core::Object::•()
+    ;
+}
+class NonNullable extends iss::Generic<core::int> {
+  synthetic constructor •() → iss::NonNullable
+    : super iss::Generic::•()
+    ;
+}
+class Nullable extends iss::Generic<core::int?> {
+  synthetic constructor •() → iss::Nullable
+    : super iss::Generic::•()
+    ;
+}
+static field iss::NonNullable nonNullableInstance = new iss::NonNullable::•();
+static field iss::Nullable nullableInstance = new iss::Nullable::•();
+static method test(core::bool b) → dynamic {
+  self::Legacy a1 = b ?{self::Legacy*} self::legacyInstance : self::legacyInstance;
+  core::Object a2 = b ?{core::Object*} self::legacyInstance : iss::nonNullableInstance;
+  core::Object a3 = b ?{core::Object*} self::legacyInstance : iss::nullableInstance;
+  core::Object b1 = b ?{core::Object*} iss::nonNullableInstance : self::legacyInstance;
+  iss::NonNullable b2 = b ?{iss::NonNullable} iss::nonNullableInstance : iss::nonNullableInstance;
+  core::Object b3 = b ?{core::Object} iss::nonNullableInstance : iss::nullableInstance;
+  core::Object c1 = b ?{core::Object*} iss::nullableInstance : self::legacyInstance;
+  core::Object c2 = b ?{core::Object} iss::nullableInstance : iss::nonNullableInstance;
+  iss::Nullable c3 = b ?{iss::Nullable} iss::nullableInstance : iss::nullableInstance;
+}

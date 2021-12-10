@@ -1,0 +1,86 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "infer_types_on_generic_instantiations_in_library_cycle.dart" as test;
+
+import "org-dartlang-testcase:///infer_types_on_generic_instantiations_in_library_cycle.dart";
+
+abstract class I<E extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::E*>*
+    : super core::Object::•()
+    ;
+  abstract method m(dynamic a, (dynamic, core::int*) →* core::String* f) → test::A<self::I::E*>*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:30:29: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//       . /*@target=A.value*/ value;
+//                             ^
+//
+import self as test;
+import "dart:core" as core;
+import "infer_types_on_generic_instantiations_in_library_cycle_a.dart" as self;
+
+import "org-dartlang-testcase:///infer_types_on_generic_instantiations_in_library_cycle_a.dart";
+
+abstract class A<E extends core::Object* = dynamic> extends core::Object implements self::I<test::A::E*> /*hasConstConstructor*/  {
+  final field test::A::E* value = null;
+  const constructor •() → test::A<test::A::E*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class M extends core::Object {
+  final field core::int* y = 0;
+  synthetic constructor •() → test::M*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B<E extends core::Object* = dynamic> extends test::A<test::B::E*> implements test::M /*hasConstConstructor*/  {
+  const constructor •() → test::B<test::B::E*>*
+    : super test::A::•()
+    ;
+  get y() → core::int*
+    return 0;
+  method m(dynamic a, (dynamic, core::int*) →* dynamic f) → test::A<test::B::E*>* {}
+}
+static method foo() → dynamic {
+  core::int* y = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:30:29: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      . /*@target=A.value*/ value;
+                            ^" in new test::B::•<core::String*>().{test::B::m}(null, null){(dynamic, (dynamic, core::int*) →* dynamic) →* test::A<core::String*>*}.{test::A::value}{core::String*} as{TypeError} core::int*;
+  core::String* z = new test::B::•<core::String*>().{test::B::m}(null, null){(dynamic, (dynamic, core::int*) →* dynamic) →* test::A<core::String*>*}.{test::A::value}{core::String*};
+}
+static method main() → dynamic {}

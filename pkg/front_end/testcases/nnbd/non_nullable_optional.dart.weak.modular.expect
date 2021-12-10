@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/non_nullable_optional.dart:9:14: Error: The parameter 'a' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// method1({int a}) {}
+//              ^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_optional.dart:11:14: Error: The parameter 'a' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// method2([int a]) {}
+//              ^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_optional_part.dart:7:14: Error: The parameter 'a' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// method3({int a}) {}
+//              ^
+//
+// pkg/front_end/testcases/nnbd/non_nullable_optional_part.dart:9:14: Error: The parameter 'a' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// method4([int a]) {}
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+part non_nullable_optional_part.dart;
+static method main() → dynamic {}
+static method method1({core::int a = #C1}) → dynamic {}
+static method method2([core::int a = #C1]) → dynamic {}
+static method /* from org-dartlang-testcase:///non_nullable_optional_part.dart */ method3({core::int a = #C1}) → dynamic {}
+static method /* from org-dartlang-testcase:///non_nullable_optional_part.dart */ method4([core::int a = #C1]) → dynamic {}
+
+constants  {
+  #C1 = null
+}

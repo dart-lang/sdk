@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///from_agnostic_lib.dart";
+
+static const field core::bool c1 = #C1;
+static const field core::Map<core::List<core::int?>, core::int> c2 = #C6;
+static const field core::Set<core::List<core::int?>> c3 = #C7;
+static const field core::List<core::int> c4 = #C2;
+static const field core::List<core::int?> c5 = #C4;
+static method main() → dynamic {
+  #C2;
+  #C4;
+}
+
+constants  {
+  #C1 = false
+  #C2 = <core::int*>[]
+  #C3 = 0
+  #C4 = <core::int?>[]
+  #C5 = 1
+  #C6 = <core::List<core::int?>*, core::int*>{#C2:#C3, #C4:#C5)
+  #C7 = <core::List<core::int?>*>{#C2, #C4}
+}

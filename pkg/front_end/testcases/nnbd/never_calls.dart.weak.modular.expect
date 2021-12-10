@@ -1,0 +1,35 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+static method propertyGet(Never never) → dynamic {
+  Never v1 = let final Never #t1 = (let final Never #t2 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.foo in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v2 = let final Never #t3 = (let final Never #t4 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.hashCode in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v3 = let final Never #t5 = (let final Never #t6 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.runtimeType in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v4 = let final Never #t7 = (let final Never #t8 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.toString in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v5 = let final Never #t9 = (let final Never #t10 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.noSuchMethod in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+}
+static method propertySet(Never never) → dynamic {
+  core::int v1 = (let final Never #t11 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.foo = 42;
+}
+static method methodInvocation(Never never, core::Invocation invocation) → dynamic {
+  Never v1 = let final Never #t12 = (let final Never #t13 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.foo() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v2 = let final Never #t14 = (let final Never #t15 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.hashCode() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v3 = let final Never #t16 = (let final Never #t17 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.runtimeType() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v4 = let final Never #t18 = (let final Never #t19 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.toString() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v5 = let final Never #t20 = (let final Never #t21 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.toString(foo: 42) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v6 = let final Never #t22 = (let final Never #t23 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.noSuchMethod(invocation) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v7 = let final Never #t24 = (let final Never #t25 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.noSuchMethod(42) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+}
+static method equals(Never never) → dynamic {
+  core::bool v1 = (let final Never #t26 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")) == null;
+  Never v2 = let final Never #t27 = (let final Never #t28 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")) =={core::Object::==}{(dynamic) → Never} (let final Never #t29 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+}
+static method operator(Never never) → dynamic {
+  Never v1 = let final Never #t30 = (let final Never #t31 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.+(let final Never #t32 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v2 = let final Never #t33 = (let final Never #t34 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.unary-() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v3 = let final Never #t35 = (let final Never #t36 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[](let final Never #t37 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  Never v4 = let final Never #t38 = let final Never #t39 = let final Never #t40 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in let final Never #t41 = let final Never #t42 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in let final Never #t43 = let final Never #t44 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in let final void #t45 = #t39{Never}.[]=(#t41, #t43) in #t43 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+}
+static method main() → dynamic {}

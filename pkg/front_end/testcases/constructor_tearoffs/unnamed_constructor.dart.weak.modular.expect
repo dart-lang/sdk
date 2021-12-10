@@ -1,0 +1,72 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1, #C2]/*isLegacy*/;
+  constructor •() → self::A
+    : super core::Object::•()
+    ;
+  constructor redirecting() → self::A
+    : this self::A::•()
+    ;
+  static factory redirectingFactory() → self::A
+    return new self::A::•();
+  static factory redirectingFactoryChild() → self::A
+    return new self::B::•();
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+class C extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  const constructor •(core::int x) → self::C
+    : self::C::x = x, super core::Object::•()
+    ;
+}
+class D extends self::C {
+  constructor •(core::int x) → self::D
+    : super self::C::•(x.{core::num::*}(2){(core::num) → core::int})
+    ;
+}
+static method test() → dynamic {
+  new self::D::•(1);
+  #C4;
+  new self::C::•(1);
+  () → self::A f1 = #C5;
+  () → self::B f2 = #C6;
+  (core::int) → self::C f3 = #C7;
+  (core::int) → self::D f4 = #C8;
+  f1(){() → self::A};
+  f2(){() → self::B};
+  f3(1){(core::int) → self::C};
+  f4(1){(core::int) → self::D};
+  () → self::A g1 = #C5;
+  () → self::B g2 = #C6;
+  (core::int) → self::C g3 = #C7;
+  (core::int) → self::D g4 = #C8;
+  g1(){() → self::A};
+  g2(){() → self::B};
+  g3(1){(core::int) → self::C};
+  g4(1){(core::int) → self::D};
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::redirectingFactory
+  #C2 = constructor-tearoff self::A::redirectingFactoryChild
+  #C3 = 1
+  #C4 = self::C {x:#C3}
+  #C5 = constructor-tearoff self::A::•
+  #C6 = constructor-tearoff self::B::•
+  #C7 = constructor-tearoff self::C::•
+  #C8 = constructor-tearoff self::D::•
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///unnamed_constructor.dart:
+- C. (from org-dartlang-testcase:///unnamed_constructor.dart:16:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

@@ -1,0 +1,10 @@
+library;
+import self as self;
+
+static method foo() → dynamic {
+  Null _null;
+  for (dynamic i in _null) {
+  }
+  ;
+}
+static method main() → dynamic {}

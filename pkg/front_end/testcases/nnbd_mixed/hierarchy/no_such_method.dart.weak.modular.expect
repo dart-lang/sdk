@@ -1,0 +1,370 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:17:7: Error: The non-abstract class 'FromSuperAbstract' is missing implementations for these members:
+//  - Interface.field
+//  - Interface.finalField
+//  - Interface.getter
+//  - Interface.method
+//  - Interface.setter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class FromSuperAbstract extends SuperAbstract implements Interface {}
+//       ^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:9:7: Context: 'Interface.field' is defined here.
+//   int field;
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:10:13: Context: 'Interface.finalField' is defined here.
+//   final int finalField;
+//             ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:7:11: Context: 'Interface.getter' is defined here.
+//   int get getter;
+//           ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:6:8: Context: 'Interface.method' is defined here.
+//   void method();
+//        ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:8:12: Context: 'Interface.setter=' is defined here.
+//   void set setter(int value);
+//            ^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:35:7: Error: The non-abstract class 'FromMixinAbstract' is missing implementations for these members:
+//  - Interface.field
+//  - Interface.finalField
+//  - Interface.getter
+//  - Interface.method
+//  - Interface.setter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class FromMixinAbstract extends MixinAbstract implements Interface {}
+//       ^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:9:7: Context: 'Interface.field' is defined here.
+//   int field;
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:10:13: Context: 'Interface.finalField' is defined here.
+//   final int finalField;
+//             ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:7:11: Context: 'Interface.getter' is defined here.
+//   int get getter;
+//           ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:6:8: Context: 'Interface.method' is defined here.
+//   void method();
+//        ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:8:12: Context: 'Interface.setter=' is defined here.
+//   void set setter(int value);
+//            ^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:54:7: Error: The non-abstract class 'FromInterfaceAbstract' is missing implementations for these members:
+//  - Interface.field
+//  - Interface.finalField
+//  - Interface.getter
+//  - Interface.method
+//  - Interface.setter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class FromInterfaceAbstract implements InterfaceAbstract, Interface {}
+//       ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:9:7: Context: 'Interface.field' is defined here.
+//   int field;
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:10:13: Context: 'Interface.finalField' is defined here.
+//   final int finalField;
+//             ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:7:11: Context: 'Interface.getter' is defined here.
+//   int get getter;
+//           ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:6:8: Context: 'Interface.method' is defined here.
+//   void method();
+//        ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:8:12: Context: 'Interface.setter=' is defined here.
+//   void set setter(int value);
+//            ^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:63:7: Error: The non-abstract class 'FromInterfaceConcrete' is missing implementations for these members:
+//  - Interface.field
+//  - Interface.finalField
+//  - Interface.getter
+//  - Interface.method
+//  - Interface.setter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class FromInterfaceConcrete implements InterfaceConcrete, Interface {}
+//       ^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:9:7: Context: 'Interface.field' is defined here.
+//   int field;
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:10:13: Context: 'Interface.finalField' is defined here.
+//   final int finalField;
+//             ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:7:11: Context: 'Interface.getter' is defined here.
+//   int get getter;
+//           ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:6:8: Context: 'Interface.method' is defined here.
+//   void method();
+//        ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:8:12: Context: 'Interface.setter=' is defined here.
+//   void set setter(int value);
+//            ^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:65:7: Error: The non-abstract class 'DeclaredAbstract' is missing implementations for these members:
+//  - Interface.field
+//  - Interface.finalField
+//  - Interface.getter
+//  - Interface.method
+//  - Interface.setter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class DeclaredAbstract implements Interface {
+//       ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:9:7: Context: 'Interface.field' is defined here.
+//   int field;
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:10:13: Context: 'Interface.finalField' is defined here.
+//   final int finalField;
+//             ^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:7:11: Context: 'Interface.getter' is defined here.
+//   int get getter;
+//           ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:6:8: Context: 'Interface.method' is defined here.
+//   void method();
+//        ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:8:12: Context: 'Interface.setter=' is defined here.
+//   void set setter(int value);
+//            ^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:9:7: Error: Field 'field' should be initialized because its type 'int' doesn't allow null.
+//   int field;
+//       ^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/no_such_method.dart:10:13: Error: Final field 'finalField' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int finalField;
+//             ^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  field core::int field = null;
+  final field core::int finalField = null;
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  abstract method method() → void;
+  abstract get getter() → core::int;
+  abstract set setter(core::int value) → void;
+}
+class SuperAbstract extends core::Object {
+  synthetic constructor •() → self::SuperAbstract
+    : super core::Object::•()
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+}
+class FromSuperAbstract extends self::SuperAbstract implements self::Interface {
+  synthetic constructor •() → self::FromSuperAbstract
+    : super self::SuperAbstract::•()
+    ;
+}
+class SuperConcrete extends core::Object {
+  synthetic constructor •() → self::SuperConcrete
+    : super core::Object::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return null;
+  }
+}
+class FromSuperConcrete extends self::SuperConcrete implements self::Interface {
+  synthetic constructor •() → self::FromSuperConcrete
+    : super self::SuperConcrete::•()
+    ;
+  no-such-method-forwarder get getter() → core::int
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder get field() → core::int
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder method method() → void
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+  no-such-method-forwarder get finalField() → core::int
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder set setter(core::int value) → void
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set field(core::int value) → void
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+}
+class FromSuperConcreteAbstract extends self::SuperConcrete implements self::SuperAbstract, self::Interface {
+  synthetic constructor •() → self::FromSuperConcreteAbstract
+    : super self::SuperConcrete::•()
+    ;
+  no-such-method-forwarder get getter() → core::int
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder get field() → core::int
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder method method() → void
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+  no-such-method-forwarder get finalField() → core::int
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder set setter(core::int value) → void
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set field(core::int value) → void
+    return this.{self::SuperConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+}
+class MixinAbstract extends core::Object {
+  synthetic constructor •() → self::MixinAbstract
+    : super core::Object::•()
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+}
+class FromMixinAbstract extends self::MixinAbstract implements self::Interface {
+  synthetic constructor •() → self::FromMixinAbstract
+    : super self::MixinAbstract::•()
+    ;
+}
+class MixinConcrete extends core::Object {
+  synthetic constructor •() → self::MixinConcrete
+    : super core::Object::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return null;
+  }
+}
+abstract class _FromMixinConcrete&Object&MixinConcrete = core::Object with self::MixinConcrete /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_FromMixinConcrete&Object&MixinConcrete
+    : super core::Object::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation invocation) → dynamic
+    return super.{self::MixinConcrete::noSuchMethod}(invocation);
+}
+class FromMixinConcrete extends self::_FromMixinConcrete&Object&MixinConcrete implements self::Interface {
+  synthetic constructor •() → self::FromMixinConcrete
+    : super self::_FromMixinConcrete&Object&MixinConcrete::•()
+    ;
+  no-such-method-forwarder get getter() → core::int
+    return this.{self::_FromMixinConcrete&Object&MixinConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder get field() → core::int
+    return this.{self::_FromMixinConcrete&Object&MixinConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder method method() → void
+    return this.{self::_FromMixinConcrete&Object&MixinConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+  no-such-method-forwarder get finalField() → core::int
+    return this.{self::_FromMixinConcrete&Object&MixinConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder set setter(core::int value) → void
+    return this.{self::_FromMixinConcrete&Object&MixinConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set field(core::int value) → void
+    return this.{self::_FromMixinConcrete&Object&MixinConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+}
+abstract class _FromMixinConcreteAbstract&Object&MixinConcrete = core::Object with self::MixinConcrete /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_FromMixinConcreteAbstract&Object&MixinConcrete
+    : super core::Object::•()
+    ;
+  mixin-super-stub method noSuchMethod(core::Invocation invocation) → dynamic
+    return super.{self::MixinConcrete::noSuchMethod}(invocation);
+}
+abstract class _FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract = self::_FromMixinConcreteAbstract&Object&MixinConcrete with self::MixinAbstract /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract
+    : super self::_FromMixinConcreteAbstract&Object&MixinConcrete::•()
+    ;
+  abstract mixin-stub method noSuchMethod(core::Invocation invocation) → dynamic; -> self::MixinAbstract::noSuchMethod
+}
+class FromMixinConcreteAbstract extends self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract implements self::Interface {
+  synthetic constructor •() → self::FromMixinConcreteAbstract
+    : super self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::•()
+    ;
+  no-such-method-forwarder get getter() → core::int
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder get field() → core::int
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder method method() → void
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+  no-such-method-forwarder get finalField() → core::int
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder set setter(core::int value) → void
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set field(core::int value) → void
+    return this.{self::_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+}
+class InterfaceAbstract extends core::Object {
+  synthetic constructor •() → self::InterfaceAbstract
+    : super core::Object::•()
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+}
+class FromInterfaceAbstract extends core::Object implements self::InterfaceAbstract, self::Interface {
+  synthetic constructor •() → self::FromInterfaceAbstract
+    : super core::Object::•()
+    ;
+}
+class InterfaceConcrete extends core::Object {
+  synthetic constructor •() → self::InterfaceConcrete
+    : super core::Object::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return null;
+  }
+}
+class FromInterfaceConcrete extends core::Object implements self::InterfaceConcrete, self::Interface {
+  synthetic constructor •() → self::FromInterfaceConcrete
+    : super core::Object::•()
+    ;
+}
+class DeclaredAbstract extends core::Object implements self::Interface {
+  synthetic constructor •() → self::DeclaredAbstract
+    : super core::Object::•()
+    ;
+  abstract method noSuchMethod(core::Invocation invocation) → dynamic;
+}
+class DeclaredConcrete extends core::Object implements self::Interface {
+  synthetic constructor •() → self::DeclaredConcrete
+    : super core::Object::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return null;
+  }
+  no-such-method-forwarder get getter() → core::int
+    return this.{self::DeclaredConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder get field() → core::int
+    return this.{self::DeclaredConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder method method() → void
+    return this.{self::DeclaredConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+  no-such-method-forwarder get finalField() → core::int
+    return this.{self::DeclaredConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder set setter(core::int value) → void
+    return this.{self::DeclaredConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set field(core::int value) → void
+    return this.{self::DeclaredConcrete::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = core::_Override {}
+  #C2 = #getter
+  #C3 = <core::Type*>[]
+  #C4 = <dynamic>[]
+  #C5 = <core::Symbol*, dynamic>{)
+  #C6 = #field
+  #C7 = #method
+  #C8 = #finalField
+  #C9 = #setter=
+  #C10 = #field=
+}

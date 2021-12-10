@@ -1,0 +1,143 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/circularity.dart:37:34: Error: Constant evaluation error:
+//   const Class4({Class4 c = const Class4()});
+//                                  ^
+// pkg/front_end/testcases/general/constants/circularity.dart:37:34: Context: Constant expression depends on itself.
+//   const Class4({Class4 c = const Class4()});
+//                                  ^
+// pkg/front_end/testcases/general/constants/circularity.dart:37:24: Context: While analyzing:
+//   const Class4({Class4 c = const Class4()});
+//                        ^
+//
+// pkg/front_end/testcases/general/constants/circularity.dart:5:15: Error: Constant evaluation error:
+// const int a = b;
+//               ^
+// pkg/front_end/testcases/general/constants/circularity.dart:5:15: Context: Constant expression depends on itself.
+// const int a = b;
+//               ^
+// pkg/front_end/testcases/general/constants/circularity.dart:5:11: Context: While analyzing:
+// const int a = b;
+//           ^
+//
+// pkg/front_end/testcases/general/constants/circularity.dart:7:15: Error: Constant evaluation error:
+// const int c = d;
+//               ^
+// pkg/front_end/testcases/general/constants/circularity.dart:8:17: Context: Constant expression depends on itself.
+// const int d = e + 1;
+//                 ^
+// pkg/front_end/testcases/general/constants/circularity.dart:7:11: Context: While analyzing:
+// const int c = d;
+//           ^
+//
+// pkg/front_end/testcases/general/constants/circularity.dart:8:17: Error: Constant evaluation error:
+// const int d = e + 1;
+//                 ^
+// pkg/front_end/testcases/general/constants/circularity.dart:8:17: Context: Constant expression depends on itself.
+// const int d = e + 1;
+//                 ^
+// pkg/front_end/testcases/general/constants/circularity.dart:8:11: Context: While analyzing:
+// const int d = e + 1;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object /*hasConstConstructor*/  {
+  const constructor •({self::Class1* c = #C1}) → self::Class1*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class2 extends core::Object /*hasConstConstructor*/  {
+  final field self::Class2* field;
+  const constructor •(core::int* value) → self::Class2*
+    : self::Class2::field = value =={core::num::==}{(core::Object*) →* core::bool*} 0 ?{self::Class2*} null : #C3, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class3 extends core::Object /*hasConstConstructor*/  {
+  const constructor •([self::Class3* c = #C4]) → self::Class3*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class4 extends core::Object /*hasConstConstructor*/  {
+  const constructor •({self::Class4* c = invalid-expression "Constant expression depends on itself."}) → self::Class4*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field core::int* a = invalid-expression "Constant expression depends on itself.";
+static const field core::int* b = invalid-expression "Constant expression depends on itself.";
+static const field core::int* c = invalid-expression "Constant expression depends on itself.";
+static const field core::int* d = invalid-expression "Constant expression depends on itself.";
+static const field core::int* e = invalid-expression "Constant expression depends on itself.";
+static const field self::Class1* c1_0 = #C1;
+static const field self::Class1* c1_1 = #C1;
+static const field self::Class1* c1_2 = #C1;
+static const field self::Class2* c2_0 = #C5;
+static const field self::Class2* c2_1 = #C3;
+static const field self::Class2* c2_2 = #C5;
+static const field self::Class3* c3_0 = #C4;
+static const field self::Class3* c3_1 = #C4;
+static const field self::Class3* c3_2 = #C4;
+static const field self::Class4* c4_0 = invalid-expression "Constant expression depends on itself.";
+static const field self::Class4* c4_1 = #C6;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Class1 {}
+  #C2 = null
+  #C3 = self::Class2 {field:#C2}
+  #C4 = self::Class3 {}
+  #C5 = self::Class2 {field:#C3}
+  #C6 = self::Class4 {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///circularity.dart:
+- Class1. (from org-dartlang-testcase:///circularity.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Class2. (from org-dartlang-testcase:///circularity.dart:21:9)
+- Class3. (from org-dartlang-testcase:///circularity.dart:29:9)
+- Class4. (from org-dartlang-testcase:///circularity.dart:37:9)

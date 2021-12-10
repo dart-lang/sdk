@@ -1,0 +1,69 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/issue38600.dart:7:1: Error: Expected 'on' after this.
+// extension try<T> on Class<T> {}
+// ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38600.dart:7:11: Error: Expected a type, but got 'try'.
+// extension try<T> on Class<T> {}
+//           ^^^
+//
+// pkg/front_end/testcases/extensions/issue38600.dart:7:11: Error: A extension declaration must have a body, even if it is empty.
+// Try adding an empty body.
+// extension try<T> on Class<T> {}
+//           ^^^
+//
+// pkg/front_end/testcases/extensions/issue38600.dart:7:11: Error: 'try' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// extension try<T> on Class<T> {}
+//           ^^^
+//
+// pkg/front_end/testcases/extensions/issue38600.dart:7:11: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension try<T> on Class<T> {}
+//           ^^^
+//
+// pkg/front_end/testcases/extensions/issue38600.dart:7:18: Error: Expected '{' before this.
+// extension try<T> on Class<T> {}
+//                  ^^
+//
+// pkg/front_end/testcases/extensions/issue38600.dart:7:21: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// extension try<T> on Class<T> {}
+//                     ^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38600.dart:7:21: Error: 'Class' is already declared in this scope.
+// extension try<T> on Class<T> {}
+//                     ^^^^^
+// pkg/front_end/testcases/extensions/issue38600.dart:5:7: Context: Previous declaration of 'Class'.
+// class Class<T> {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38600.dart:7:18: Error: Type 'on' not found.
+// extension try<T> on Class<T> {}
+//                  ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension _extension#0 on invalid-type {
+}
+static method try<T extends core::Object* = dynamic>() → dynamic {}
+static method main() → dynamic {}

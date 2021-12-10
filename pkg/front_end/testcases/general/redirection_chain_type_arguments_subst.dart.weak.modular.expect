@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+abstract class A<T extends core::Object* = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1];
+  constructor empty() → self::A<self::A::T*>*
+    : super core::Object::•()
+    ;
+  static factory •<T extends core::Object* = dynamic>() → self::A<self::A::•::T*>*
+    return self::B::•<self::A::•::T*, core::List<self::A::•::T*>*>();
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class B<U extends core::Object* = dynamic, W extends core::Object* = dynamic> extends self::A<self::B::U*> {
+  static final field dynamic _redirecting# = <dynamic>[#C2];
+  constructor empty() → self::B<self::B::U*, self::B::W*>*
+    : super self::A::empty()
+    ;
+  static factory •<U extends core::Object* = dynamic, W extends core::Object* = dynamic>() → self::B<self::B::•::U*, self::B::•::W*>*
+    return new self::C::•<self::B::•::U*, self::B::•::W*, core::Map<self::B::•::U*, self::B::•::W*>*>();
+}
+class C<V extends core::Object* = dynamic, S extends core::Object* = dynamic, R extends core::Object* = dynamic> extends self::B<self::C::V*, self::C::S*> {
+  constructor •() → self::C<self::C::V*, self::C::S*, self::C::R*>*
+    : super self::B::empty()
+    ;
+  method toString() → core::String*
+    return "${self::C::V*},${self::C::S*},${self::C::R*}";
+}
+static method main() → dynamic {
+  exp::Expect::equals("${new self::C::•<core::int*, core::List<core::int*>*, core::Map<core::int*, core::List<core::int*>*>*>()}", "int,List<int>,Map<int, List<int>>");
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::•
+  #C2 = constructor-tearoff self::B::•
+}

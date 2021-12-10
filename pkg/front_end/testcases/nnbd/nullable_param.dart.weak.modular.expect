@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field core::int? field = null;
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+  method bar(core::int? x) → core::int? {}
+}
+static method main() → dynamic {
+  self::Foo foo = new self::Foo::•();
+  foo.{self::Foo::field} = 5;
+  foo.{self::Foo::bar}(6){(core::int?) → core::int?};
+  self::test_nullable_function_type_formal_param(f: () → core::int => 2);
+}
+static method test_nullable_function_type_formal_param({() →? core::int f = #C1}) → core::int {
+  return let final core::int? #t1 = let final () →? core::int #t2 = f in #t2 == null ?{core::int?} null : #t2{() → core::int}(){() → core::int} in #t1 == null ?{core::int} 1.{core::int::unary-}(){() → core::int} : #t1{core::int};
+}
+
+constants  {
+  #C1 = null
+}

@@ -1,0 +1,20 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/illegal_named_function_expression.dart:6:16: Error: A function expression can't have a name.
+//   var x = void f<T>(T t) {};
+//                ^
+//
+// pkg/front_end/testcases/general/illegal_named_function_expression.dart:8:14: Error: A function expression can't have a name.
+//   print(void g<T>(T t) {});
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  <T extends core::Object* = dynamic>(T*) →* Null x = let final <T extends core::Object* = dynamic>(T*) →* Null f = <T extends core::Object* = dynamic>(T* t) → Null {} in f;
+  core::print(x.{core::Object::runtimeType}{core::Type*});
+  core::print(let final <T extends core::Object* = dynamic>(T*) →* Null g = <T extends core::Object* = dynamic>(T* t) → Null {} in g);
+}

@@ -1,0 +1,8 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:async";
+
+static method h1<T extends FutureOr<self::h1::T?>? = FutureOr<dynamic>?>(self::h1::T? t) → void {}
+static method h2<S extends FutureOr<self::h2::S?> = FutureOr<dynamic>>(self::h2::S? s) → void {}
+static method main() → dynamic {}
