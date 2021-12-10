@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef FunctionReturningNum = () →* core::num*;
+static method test() → dynamic {
+  core::int* i = 1;
+  core::Object* o = 1;
+  () →* core::num* a = () → core::int* => i;
+  () →* core::num* b = () → core::num* => o as{TypeError} core::num*;
+  () →* core::num* c = () → core::int* {
+    return i;
+  };
+  () →* core::num* d = () → core::num* {
+    return o as{TypeError} core::num*;
+  };
+}
+static method main() → dynamic {}

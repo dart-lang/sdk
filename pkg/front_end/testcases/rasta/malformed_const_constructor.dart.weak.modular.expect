@@ -1,0 +1,52 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/malformed_const_constructor.dart:8:5: Error: Expected '{' before this.
+//     : x = 'foo'
+//     ^
+//
+// pkg/front_end/testcases/rasta/malformed_const_constructor.dart:6:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const A()
+//   ^^^^^
+//
+// pkg/front_end/testcases/rasta/malformed_const_constructor.dart:8:5: Error: Expected a class member, but got ':'.
+//     : x = 'foo'
+//     ^
+//
+// pkg/front_end/testcases/rasta/malformed_const_constructor.dart:8:7: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//     : x = 'foo'
+//       ^
+//
+// pkg/front_end/testcases/rasta/malformed_const_constructor.dart:13:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   const A();
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::String* x = "foo";
+  constructor •() → self::A*
+    : self::A::x = "foo", super core::Object::•() {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/rasta/malformed_const_constructor.dart:13:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  const A();
+        ^";
+  new self::A::•();
+}

@@ -306,8 +306,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   /// List of built redirecting factory invocations.  The targets of the
   /// invocations are to be resolved in a separate step.
-  final List<FactoryConstructorInvocation> redirectingFactoryInvocations =
-      <FactoryConstructorInvocation>[];
+  final List<FactoryConstructorInvocation> redirectingFactoryInvocations = [];
 
   /// List of redirecting factory invocations delayed for resolution.
   ///
@@ -315,7 +314,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// the inference in the declaration of the redirecting factory isn't done
   /// yet.
   final List<FactoryConstructorInvocation>
-      delayedRedirectingFactoryInvocations = <FactoryConstructorInvocation>[];
+      delayedRedirectingFactoryInvocations = [];
 
   /// List of built type aliased generative constructor invocations that
   /// require unaliasing.
@@ -325,6 +324,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// List of built type aliased factory constructor invocations that require
   /// unaliasing.
   final List<TypeAliasedFactoryInvocation> typeAliasedFactoryInvocations = [];
+
+  /// List of type aliased factory invocations delayed for resolution.
+  ///
+  /// A resolution of a type aliased factory invocation can be delayed because
+  /// the inference in the declaration of the target isn't done yet.
+  final List<TypeAliasedFactoryInvocation>
+      delayedTypeAliasedFactoryInvocations = [];
 
   /// Variables with metadata.  Their types need to be inferred late, for
   /// example, in [finishFunction].
@@ -897,9 +903,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       [List<DelayedActionPerformer>? delayedActionPerformers]) {
     _finishVariableMetadata();
     _unaliasTypeAliasedConstructorInvocations();
-    _unaliasTypeAliasedFactoryInvocations();
-    _resolveRedirectingFactoryTargets(
-        redirectingFactoryInvocations, delayedRedirectingFactoryInvocations);
+    _unaliasTypeAliasedFactoryInvocations(typeAliasedFactoryInvocations);
+    _resolveRedirectingFactoryTargets(redirectingFactoryInvocations);
     libraryBuilder.checkUncheckedTypedefTypes(typeEnvironment);
     if (hasDelayedActions) {
       assert(
@@ -1043,6 +1048,56 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         buildInvalidInitializer(node as Expression, token.charOffset)
       ];
     }
+
+    if (initializers.isNotEmpty && initializers.last is SuperInitializer) {
+      List<VariableDeclaration>? positionalSuperParameters;
+      List<VariableDeclaration>? namedSuperParameters;
+
+      List<FormalParameterBuilder>? formals =
+          (member as ConstructorBuilder).formals;
+      if (formals != null) {
+        for (FormalParameterBuilder formal in formals) {
+          if (formal.isSuperInitializingFormal) {
+            if (formal.isNamed) {
+              (namedSuperParameters ??= <VariableDeclaration>[])
+                  .add(formal.variable!);
+            } else {
+              (positionalSuperParameters ??= <VariableDeclaration>[])
+                  .add(formal.variable!);
+            }
+          }
+        }
+
+        SuperInitializer superInitializer =
+            initializers.last as SuperInitializer;
+        Arguments arguments = superInitializer.arguments;
+        if (positionalSuperParameters != null) {
+          if (arguments.positional.isNotEmpty) {
+            addProblem(fasta.messagePositionalSuperParametersAndArguments,
+                arguments.fileOffset, noLength,
+                context: <LocatedMessage>[
+                  fasta.messageSuperInitializerParameter.withLocation(
+                      uri, positionalSuperParameters.first.fileOffset, noLength)
+                ]);
+          } else {
+            for (VariableDeclaration positional in positionalSuperParameters) {
+              arguments.positional.add(
+                  new VariableGetImpl(positional, forNullGuardedAccess: false)
+                    ..fileOffset = positional.fileOffset);
+            }
+          }
+        }
+        if (namedSuperParameters != null) {
+          // TODO(cstefantsova): Report name conflicts.
+          for (VariableDeclaration named in namedSuperParameters) {
+            arguments.named.add(new NamedExpression(named.name!,
+                new VariableGetImpl(named, forNullGuardedAccess: false))
+              ..fileOffset = named.fileOffset);
+          }
+        }
+      }
+    }
+
     _initializers ??= <Initializer>[];
     _initializers!.addAll(initializers);
   }
@@ -1349,9 +1404,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void _resolveRedirectingFactoryTargets(
-      List<FactoryConstructorInvocation> redirectingFactoryInvocations,
-      List<FactoryConstructorInvocation>?
-          delayedRedirectingFactoryInvocations) {
+      List<FactoryConstructorInvocation> redirectingFactoryInvocations) {
     List<FactoryConstructorInvocation> invocations =
         redirectingFactoryInvocations.toList();
     redirectingFactoryInvocations.clear();
@@ -1381,7 +1434,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           invocation.fileOffset,
           invocation.isConst);
       if (replacement == null) {
-        delayedRedirectingFactoryInvocations?.add(invocation);
+        delayedRedirectingFactoryInvocations.add(invocation);
       } else {
         invocation.replaceWith(replacement);
       }
@@ -1414,9 +1467,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     typeAliasedConstructorInvocations.clear();
   }
 
-  void _unaliasTypeAliasedFactoryInvocations() {
-    for (TypeAliasedFactoryInvocation invocation
-        in typeAliasedFactoryInvocations) {
+  void _unaliasTypeAliasedFactoryInvocations(
+      List<TypeAliasedFactoryInvocation> typeAliasedFactoryInvocations) {
+    List<TypeAliasedFactoryInvocation> invocations =
+        typeAliasedFactoryInvocations.toList();
+    typeAliasedFactoryInvocations.clear();
+    for (TypeAliasedFactoryInvocation invocation in invocations) {
       bool inferred = !hasExplicitTypeArguments(invocation.arguments);
       DartType aliasedType = new TypedefType(
           invocation.typeAliasBuilder.typedef,
@@ -1436,8 +1492,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           named: invocation.arguments.named,
           hasExplicitTypeArguments:
               hasExplicitTypeArguments(invocation.arguments));
-      invocation.replaceWith(_resolveRedirectingFactoryTarget(invocation.target,
-          invocationArguments, invocation.fileOffset, invocation.isConst)!);
+      Expression? replacement = _resolveRedirectingFactoryTarget(
+          invocation.target,
+          invocationArguments,
+          invocation.fileOffset,
+          invocation.isConst);
+      if (replacement == null) {
+        delayedTypeAliasedFactoryInvocations.add(invocation);
+      } else {
+        invocation.replaceWith(replacement);
+      }
     }
     typeAliasedFactoryInvocations.clear();
   }
@@ -1451,11 +1515,24 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void performDelayedActions() {
     if (delayedRedirectingFactoryInvocations.isNotEmpty) {
-      _resolveRedirectingFactoryTargets(
-          delayedRedirectingFactoryInvocations, null);
+      _resolveRedirectingFactoryTargets(delayedRedirectingFactoryInvocations);
       if (delayedRedirectingFactoryInvocations.isNotEmpty) {
         for (StaticInvocation invocation
             in delayedRedirectingFactoryInvocations) {
+          internalProblem(
+              fasta.templateInternalProblemUnhandled.withArguments(
+                  invocation.target.name.text, 'performDelayedActions'),
+              invocation.fileOffset,
+              uri);
+        }
+      }
+    }
+    if (delayedTypeAliasedFactoryInvocations.isNotEmpty) {
+      _unaliasTypeAliasedFactoryInvocations(
+          delayedTypeAliasedFactoryInvocations);
+      if (delayedTypeAliasedFactoryInvocations.isNotEmpty) {
+        for (StaticInvocation invocation
+            in delayedTypeAliasedFactoryInvocations) {
           internalProblem(
               fasta.templateInternalProblemUnhandled.withArguments(
                   invocation.target.name.text, 'performDelayedActions'),
@@ -1468,7 +1545,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   bool get hasDelayedActions {
-    return delayedRedirectingFactoryInvocations.isNotEmpty;
+    return delayedRedirectingFactoryInvocations.isNotEmpty ||
+        delayedTypeAliasedFactoryInvocations.isNotEmpty;
   }
 
   void _finishVariableMetadata() {

@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field () →* core::String* g = #C1;
+static method f() → core::String*
+  return null;
+static method main() → dynamic {
+  #C1;
+}
+
+constants  {
+  #C1 = static-tearoff self::f
+}

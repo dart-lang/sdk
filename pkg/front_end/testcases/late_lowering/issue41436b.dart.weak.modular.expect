@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+abstract class A extends core::Object {
+  field core::int? _#A#x = null;
+  field core::bool _#A#x#isSet = false;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return this.{self::A::_#A#x#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::A::_#A#x}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("x");
+  set x(core::int #t2) → void {
+    this.{self::A::_#A#x#isSet} = true;
+    this.{self::A::_#A#x} = #t2;
+  }
+}
+class _B extends core::Object implements self::A {
+  field core::int x = 3;
+  synthetic constructor •() → self::_B
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::A a;
+}

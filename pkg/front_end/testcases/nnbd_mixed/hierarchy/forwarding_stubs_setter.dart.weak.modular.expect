@@ -1,0 +1,152 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:41:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
+//  - Interface1.extendedAbstractCovariantImplementedSetter=
+//  - Interface1.extendedAbstractImplementedCovariantSetter=
+//  - Interface1.implementsMultipleCovariantSetter1=
+//  - Interface1.implementsMultipleCovariantSetter2=
+//  - Interface2.implementsMultipleCovariantSetter1=
+//  - Interface2.implementsMultipleCovariantSetter2=
+//  - Super.extendedAbstractCovariantImplementedSetter=
+//  - Super.extendedAbstractCovariantSetter=
+//  - Super.extendedAbstractImplementedCovariantSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSub extends AbstractClass {}
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:22:12: Context: 'Interface1.extendedAbstractCovariantImplementedSetter=' is defined here.
+//   void set extendedAbstractCovariantImplementedSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:26:12: Context: 'Interface1.extendedAbstractImplementedCovariantSetter=' is defined here.
+//   void set extendedAbstractImplementedCovariantSetter(covariant int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:28:12: Context: 'Interface1.implementsMultipleCovariantSetter1=' is defined here.
+//   void set implementsMultipleCovariantSetter1(covariant int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:30:12: Context: 'Interface1.implementsMultipleCovariantSetter2=' is defined here.
+//   void set implementsMultipleCovariantSetter2(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:34:12: Context: 'Interface2.implementsMultipleCovariantSetter1=' is defined here.
+//   void set implementsMultipleCovariantSetter1(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:36:12: Context: 'Interface2.implementsMultipleCovariantSetter2=' is defined here.
+//   void set implementsMultipleCovariantSetter2(covariant int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:12:12: Context: 'Super.extendedAbstractCovariantImplementedSetter=' is defined here.
+//   void set extendedAbstractCovariantImplementedSetter(covariant int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:8:12: Context: 'Super.extendedAbstractCovariantSetter=' is defined here.
+//   void set extendedAbstractCovariantSetter(covariant int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:16:12: Context: 'Super.extendedAbstractImplementedCovariantSetter=' is defined here.
+//   void set extendedAbstractImplementedCovariantSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:43:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - Interface1.extendedAbstractCovariantImplementedSetter=
+//  - Interface1.extendedAbstractImplementedCovariantSetter=
+//  - Interface1.implementsMultipleCovariantSetter1=
+//  - Interface1.implementsMultipleCovariantSetter2=
+//  - Interface2.implementsMultipleCovariantSetter1=
+//  - Interface2.implementsMultipleCovariantSetter2=
+//  - Super.extendedAbstractCovariantImplementedSetter=
+//  - Super.extendedAbstractCovariantSetter=
+//  - Super.extendedAbstractImplementedCovariantSetter=
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass extends Super implements Interface1, Interface2 {}
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:22:12: Context: 'Interface1.extendedAbstractCovariantImplementedSetter=' is defined here.
+//   void set extendedAbstractCovariantImplementedSetter(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:26:12: Context: 'Interface1.extendedAbstractImplementedCovariantSetter=' is defined here.
+//   void set extendedAbstractImplementedCovariantSetter(covariant int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:28:12: Context: 'Interface1.implementsMultipleCovariantSetter1=' is defined here.
+//   void set implementsMultipleCovariantSetter1(covariant int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:30:12: Context: 'Interface1.implementsMultipleCovariantSetter2=' is defined here.
+//   void set implementsMultipleCovariantSetter2(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:34:12: Context: 'Interface2.implementsMultipleCovariantSetter1=' is defined here.
+//   void set implementsMultipleCovariantSetter1(int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:36:12: Context: 'Interface2.implementsMultipleCovariantSetter2=' is defined here.
+//   void set implementsMultipleCovariantSetter2(covariant int i) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:12:12: Context: 'Super.extendedAbstractCovariantImplementedSetter=' is defined here.
+//   void set extendedAbstractCovariantImplementedSetter(covariant int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:8:12: Context: 'Super.extendedAbstractCovariantSetter=' is defined here.
+//   void set extendedAbstractCovariantSetter(covariant int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_stubs_setter.dart:16:12: Context: 'Super.extendedAbstractImplementedCovariantSetter=' is defined here.
+//   void set extendedAbstractImplementedCovariantSetter(int i);
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  set extendedConcreteCovariantSetter(covariant-by-declaration core::int i) → void {}
+  abstract set extendedAbstractCovariantSetter(covariant-by-declaration core::int i) → void;
+  set extendedConcreteCovariantImplementedSetter(covariant-by-declaration core::int i) → void {}
+  abstract set extendedAbstractCovariantImplementedSetter(covariant-by-declaration core::int i) → void;
+  set extendedConcreteImplementedCovariantSetter(core::int i) → void {}
+  abstract set extendedAbstractImplementedCovariantSetter(core::int i) → void;
+}
+class Interface1 extends core::Object {
+  synthetic constructor •() → self::Interface1
+    : super core::Object::•()
+    ;
+  set extendedConcreteCovariantImplementedSetter(core::int i) → void {}
+  set extendedAbstractCovariantImplementedSetter(core::int i) → void {}
+  set extendedConcreteImplementedCovariantSetter(covariant-by-declaration core::int i) → void {}
+  set extendedAbstractImplementedCovariantSetter(covariant-by-declaration core::int i) → void {}
+  set implementsMultipleCovariantSetter1(covariant-by-declaration core::int i) → void {}
+  set implementsMultipleCovariantSetter2(core::int i) → void {}
+}
+class Interface2 extends core::Object {
+  synthetic constructor •() → self::Interface2
+    : super core::Object::•()
+    ;
+  set implementsMultipleCovariantSetter1(core::int i) → void {}
+  set implementsMultipleCovariantSetter2(covariant-by-declaration core::int i) → void {}
+}
+abstract class AbstractClass extends self::Super implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::AbstractClass
+    : super self::Super::•()
+    ;
+  forwarding-stub set extendedConcreteImplementedCovariantSetter(covariant-by-declaration core::int i) → void
+    return super.{self::Super::extendedConcreteImplementedCovariantSetter} = i;
+  abstract forwarding-stub set extendedAbstractImplementedCovariantSetter(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub set implementsMultipleCovariantSetter2(covariant-by-declaration core::int i) → void;
+}
+class ConcreteSub extends self::AbstractClass {
+  synthetic constructor •() → self::ConcreteSub
+    : super self::AbstractClass::•()
+    ;
+}
+class ConcreteClass extends self::Super implements self::Interface1, self::Interface2 {
+  synthetic constructor •() → self::ConcreteClass
+    : super self::Super::•()
+    ;
+  forwarding-stub set extendedConcreteImplementedCovariantSetter(covariant-by-declaration core::int i) → void
+    return super.{self::Super::extendedConcreteImplementedCovariantSetter} = i;
+  abstract forwarding-stub set extendedAbstractImplementedCovariantSetter(covariant-by-declaration core::int i) → void;
+  abstract forwarding-stub set implementsMultipleCovariantSetter2(covariant-by-declaration core::int i) → void;
+}
+static method main() → dynamic {}

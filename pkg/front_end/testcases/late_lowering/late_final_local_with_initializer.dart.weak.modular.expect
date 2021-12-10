@@ -1,0 +1,54 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method main() → dynamic {
+  core::int? lateLocalInit;
+  function initLateLocal(core::int value) → core::int {
+    return lateLocalInit = value;
+  }
+  lowered final core::int? #lateLocal;
+  lowered core::bool #lateLocal#isSet = false;
+  function #lateLocal#get() → core::int {
+    if(!#lateLocal#isSet) {
+      final core::int #t1 = initLateLocal(123){(core::int) → core::int};
+      if(#lateLocal#isSet)
+        throw new _in::LateError::localADI("lateLocal");
+      #lateLocal = #t1;
+      #lateLocal#isSet = true;
+    }
+    return #lateLocal{core::int};
+  }
+  self::expect(null, lateLocalInit);
+  self::expect(123, #lateLocal#get(){() → core::int});
+  self::expect(123, lateLocalInit);
+  function local<T extends core::Object? = dynamic>(T% value) → Null {
+    T? lateGenericLocalInit;
+    function initLateGenericLocal(T% value) → T% {
+      return lateGenericLocalInit = value;
+    }
+    lowered final T? #lateGenericLocal;
+    lowered core::bool #lateGenericLocal#isSet = false;
+    function #lateGenericLocal#get() → T% {
+      if(!#lateGenericLocal#isSet) {
+        final T% #t2 = initLateGenericLocal(value){(T%) → T%};
+        if(#lateGenericLocal#isSet)
+          throw new _in::LateError::localADI("lateGenericLocal");
+        #lateGenericLocal = #t2;
+        #lateGenericLocal#isSet = true;
+      }
+      return #lateGenericLocal{T%};
+    }
+    self::expect(null, lateGenericLocalInit);
+    self::expect(value, #lateGenericLocal#get(){() → T%});
+    self::expect(value, lateGenericLocalInit);
+  }
+  local<core::int?>(null){(core::int?) → Null};
+  local<core::int?>(42){(core::int?) → Null};
+  local<core::int>(42){(core::int) → Null};
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

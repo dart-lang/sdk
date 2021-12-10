@@ -1,0 +1,106 @@
+@#C1
+library name /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart" as self;
+export "org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart";
+
+@#C1
+part redirecting_factory_invocation_metadata_lib.dart;
+@#C1
+typedef Typedef1<@#C1 unrelated T extends core::Object? = dynamic> = <T extends core::Object? = dynamic>(@#C1 self::Class<dynamic> #t1, [@#C1 self::Class<dynamic> #t2]) → dynamic;
+@#C1
+typedef Typedef2<@#C1 unrelated T extends core::Object? = dynamic> = <T extends core::Object? = dynamic>(@#C1 self::Class<dynamic> #t3, {@#C1 self::Class<dynamic> o2}) → dynamic;
+@#C1
+typedef Typedef3<@#C1 unrelated T extends core::Object? = dynamic> = (@#C1 dynamic o1, [@#C1 dynamic o2]) → void;
+@#C1
+typedef Typedef4<@#C1 unrelated T extends core::Object? = dynamic> = (@#C1 dynamic o1, {@#C1 dynamic o2}) → void;
+@#C1
+class Const extends core::Object /*hasConstConstructor*/  {
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
+  const constructor internal() → self::Const
+    : super core::Object::•()
+    ;
+  static factory •() → self::Const
+    return new self::Const::internal();
+}
+class Class<@#C1 T extends core::Object? = dynamic> extends core::Object {
+  @#C1
+  field <T extends core::Object? = dynamic>(dynamic, {o2: dynamic}) → Null field = <@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, {@#C1 dynamic o2 = #C3}) → Null {
+    @#C1 dynamic l1;
+    @#C1
+    function l2<@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, {@#C1 dynamic o2 = #C3}) → Null {}
+  };
+  @#C1
+  constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+  @#C1
+  method method1<@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, [@#C1 dynamic o2 = #C3]) → dynamic {
+    @#C1 dynamic l1;
+    @#C1
+    function l2<@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, [@#C1 dynamic o2 = #C3]) → Null {}
+  }
+  @#C1
+  method method2<@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, {@#C1 dynamic o2 = #C3}) → dynamic {
+    <@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, {@#C1 dynamic o2 = #C3}) → Null {};
+  }
+}
+@#C1
+extension Extension<@#C1 T extends core::Object? = dynamic> on self::Class<T%> {
+  static field field = self::Extension|field;
+  method method1 = self::Extension|method1;
+  tearoff method1 = self::Extension|get#method1;
+  method method2 = self::Extension|method2;
+  tearoff method2 = self::Extension|get#method2;
+}
+@#C1
+static field <T extends core::Object? = dynamic>(dynamic, [dynamic]) → Null field = <@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, [@#C1 dynamic o2 = #C3]) → Null {
+  @#C1 dynamic l1;
+  @#C1
+  function l2<@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, [@#C1 dynamic o2 = #C3]) → Null {}
+};
+@#C1
+static field <T extends core::Object? = dynamic>(dynamic, [dynamic]) → Null Extension|field = <@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, [@#C1 dynamic o2 = #C3]) → Null {
+  @#C1 dynamic l1;
+  @#C1
+  function l2<@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, [@#C1 dynamic o2 = #C3]) → Null {}
+};
+@#C1
+static method method1<@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, [@#C1 dynamic o2 = #C3]) → dynamic {
+  @#C1 dynamic l1;
+  @#C1
+  function l2<@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, [@#C1 dynamic o2 = #C3]) → Null {}
+}
+@#C1
+static method method2<@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, {@#C1 dynamic o2 = #C3}) → dynamic {
+  <@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, {@#C1 dynamic o2 = #C3}) → Null {};
+}
+@#C1
+static method Extension|method1<#T extends core::Object? = dynamic, @#C1 T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|method1::#T%> #this, @#C1 dynamic o1, [@#C1 dynamic o2 = #C3]) → dynamic {
+  @#C1 dynamic l1;
+  @#C1
+  function l2<@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, [@#C1 dynamic o2 = #C3]) → Null {}
+}
+static method Extension|get#method1<#T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#method1::#T%> #this) → <T extends core::Object? = dynamic>(dynamic, [dynamic]) → dynamic
+  return <T extends core::Object? = dynamic>(dynamic o1, [dynamic o2 = #C3]) → dynamic => self::Extension|method1<self::Extension|get#method1::#T%, T%>(#this, o1, o2);
+@#C1
+static method Extension|method2<#T extends core::Object? = dynamic, @#C1 T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|method2::#T%> #this, @#C1 dynamic o1, {@#C1 dynamic o2 = #C3}) → dynamic {
+  <@#C1 T extends core::Object? = dynamic>(@#C1 dynamic o1, {@#C1 dynamic o2 = #C3}) → Null {};
+}
+static method Extension|get#method2<#T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#method2::#T%> #this) → <T extends core::Object? = dynamic>(dynamic, {o2: dynamic}) → dynamic
+  return <T extends core::Object? = dynamic>(dynamic o1, {dynamic o2 = #C3}) → dynamic => self::Extension|method2<self::Extension|get#method2::#T%, T%>(#this, o1, o2: o2);
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Const {}
+  #C2 = constructor-tearoff self::Const::•
+  #C3 = null
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:
+- Const.internal (from org-dartlang-testcase:///redirecting_factory_invocation_metadata.dart:19:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

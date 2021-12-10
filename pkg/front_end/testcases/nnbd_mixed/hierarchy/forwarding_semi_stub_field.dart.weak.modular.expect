@@ -1,0 +1,144 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:24:19: Error: The return type of the method 'Class.field2' is 'String', which does not match the return type, 'num', of the overridden method, 'Super.field2'.
+// Change to a subtype of 'num'.
+//   abstract String field2;
+//                   ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:7:7: Context: This is the overridden method ('field2').
+//   num field2 = 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:24:19: Error: The return type of the method 'Class.field2' is 'String', which does not match the return type, 'int', of the overridden method, 'Interface.field2'.
+// Change to a subtype of 'int'.
+//   abstract String field2;
+//                   ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:16:17: Context: This is the overridden method ('field2').
+//   covariant int field2 = 0;
+//                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:24:19: Error: The parameter '#externalFieldValue' of the method 'Class.field2' has type 'String', which does not match the corresponding type, 'num', in the overridden method, 'Super.field2'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   abstract String field2;
+//                   ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:7:7: Context: This is the overridden method ('field2').
+//   num field2 = 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:24:19: Error: The parameter '#externalFieldValue' of the method 'Class.field2' has type 'String', which does not match the corresponding type, 'int', in the overridden method, 'Interface.field2'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
+//   abstract String field2;
+//                   ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:16:17: Context: This is the overridden method ('field2').
+//   covariant int field2 = 0;
+//                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:25:16: Error: The parameter '#externalFieldValue' of the method 'Class.field3' has type 'int', which does not match the corresponding type, 'num', in the overridden method, 'Super.field3'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   abstract int field3;
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:8:7: Context: This is the overridden method ('field3').
+//   num field3 = 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:28:16: Error: The return type of the method 'Class.field5' is 'num', which does not match the return type, 'int', of the overridden method, 'Super.field5'.
+// Change to a subtype of 'int'.
+//   abstract num field5;
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:11:17: Context: This is the overridden method ('field5').
+//   covariant int field5 = 0;
+//                 ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:28:16: Error: The return type of the method 'Class.field5' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface.field5'.
+// Change to a subtype of 'int'.
+//   abstract num field5;
+//                ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:19:7: Context: This is the overridden method ('field5').
+//   int field5 = 0;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:22:7: Error: The implementation of 'field1' in the non-abstract class 'Class' does not conform to its interface.
+// class Class extends Super implements Interface {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:6:7: Context: The return type of the method 'Super.field1' is 'num', which does not match the return type, 'int', of the overridden method, 'Class.field1'.
+// Change to a subtype of 'int'.
+//   num field1 = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:23:16: Context: This is the overridden method ('field1').
+//   abstract int field1;
+//                ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:22:7: Error: The implementation of 'field2' in the non-abstract class 'Class' does not conform to its interface.
+// class Class extends Super implements Interface {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:7:7: Context: The return type of the method 'Super.field2' is 'num', which does not match the return type, 'String', of the overridden method, 'Class.field2'.
+// Change to a subtype of 'String'.
+//   num field2 = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:24:19: Context: This is the overridden method ('field2').
+//   abstract String field2;
+//                   ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:22:7: Error: The implementation of 'field3' in the non-abstract class 'Class' does not conform to its interface.
+// class Class extends Super implements Interface {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:8:7: Context: The return type of the method 'Super.field3' is 'num', which does not match the return type, 'int', of the overridden method, 'Class.field3'.
+// Change to a subtype of 'int'.
+//   num field3 = 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:25:16: Context: This is the overridden method ('field3').
+//   abstract int field3;
+//                ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:22:7: Error: The implementation of 'field4' in the non-abstract class 'Class' does not conform to its interface.
+// class Class extends Super implements Interface {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:10:17: Context: The return type of the method 'Super.field4' is 'num', which does not match the return type, 'int', of the overridden method, 'Class.field4'.
+// Change to a subtype of 'int'.
+//   covariant num field4 = 0;
+//                 ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_field.dart:27:16: Context: This is the overridden method ('field4').
+//   abstract int field4;
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  field core::num field1 = 0;
+  field core::num field2 = 0;
+  field core::num field3 = 0;
+  covariant-by-declaration field core::num field4 = 0;
+  covariant-by-declaration field core::int field5 = 0;
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+}
+class Interface extends core::Object {
+  covariant-by-declaration field core::int field1 = 0;
+  covariant-by-declaration field core::int field2 = 0;
+  field core::int field4 = 0;
+  field core::int field5 = 0;
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+}
+class Class extends self::Super implements self::Interface {
+  synthetic constructor •() → self::Class
+    : super self::Super::•()
+    ;
+  abstract get field1() → core::int;
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int) → void */ field1(covariant-by-declaration core::num #externalFieldValue) → void
+    return super.{self::Super::field1} = #externalFieldValue;
+  abstract get field2() → core::String;
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::String) → void */ field2(covariant-by-declaration core::num #externalFieldValue) → void
+    return super.{self::Super::field2} = #externalFieldValue;
+  abstract get field3() → core::int;
+  abstract set field3(core::int #externalFieldValue) → void;
+  abstract get field4() → core::int;
+  abstract set field4(covariant-by-declaration core::int #externalFieldValue) → void;
+  abstract get field5() → core::num;
+  abstract set field5(covariant-by-declaration core::num #externalFieldValue) → void;
+}
+static method main() → dynamic {}

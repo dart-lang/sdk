@@ -29,7 +29,10 @@ import '../fasta_codes.dart'
 import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'redirecting_factory_body.dart'
-    show RedirectingFactoryBody, isRedirectingFactory;
+    show
+        RedirectingFactoryBody,
+        isRedirectingFactory,
+        isRedirectingFactoryField;
 
 List<LocatedMessage> verifyComponent(Component component, Target target,
     {bool? isOutline, bool? afterConst, bool skipPlatform: false}) {
@@ -429,6 +432,89 @@ class FastaVerifyingVisitor extends VerifyingVisitor {
     enterTreeNode(node);
     super.visitStaticInvocation(node);
     exitTreeNode(node);
+  }
+
+  void _checkConstructorTearOff(Node node, Member tearOffTarget) {
+    if (tearOffTarget.enclosingLibrary.importUri.scheme == 'dart') {
+      // Platform libraries are not compilation with test flags and might
+      // contain tear-offs not expected when testing lowerings.
+      return;
+    }
+    if (currentMember != null && isRedirectingFactoryField(currentMember!)) {
+      // The encoding of the redirecting factory field uses
+      // [ConstructorTearOffConstant] nodes also when lowerings are enabled.
+      return;
+    }
+    if (tearOffTarget is Constructor &&
+        target.isConstructorTearOffLoweringEnabled) {
+      problem(
+          node is TreeNode ? node : getLastSeenTreeNode(),
+          '${node.runtimeType} nodes for generative constructors should be '
+          'lowered for target "${target.name}".');
+    }
+    if (tearOffTarget is Procedure &&
+        tearOffTarget.isFactory &&
+        target.isFactoryTearOffLoweringEnabled) {
+      problem(
+          node is TreeNode ? node : getLastSeenTreeNode(),
+          '${node.runtimeType} nodes for factory constructors should be '
+          'lowered for target "${target.name}".');
+    }
+  }
+
+  @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _checkConstructorTearOff(node, node.target);
+    super.visitConstructorTearOff(node);
+  }
+
+  @override
+  void visitConstructorTearOffConstant(ConstructorTearOffConstant node) {
+    _checkConstructorTearOff(node, node.target);
+    super.visitConstructorTearOffConstant(node);
+  }
+
+  void _checkTypedefTearOff(Node node) {
+    if (target.isTypedefTearOffLoweringEnabled) {
+      problem(
+          node is TreeNode ? node : getLastSeenTreeNode(),
+          '${node.runtimeType} nodes for typedefs should be '
+          'lowered for target "${target.name}".');
+    }
+  }
+
+  @override
+  void visitTypedefTearOff(TypedefTearOff node) {
+    _checkTypedefTearOff(node);
+    super.visitTypedefTearOff(node);
+  }
+
+  @override
+  void visitTypedefTearOffConstant(TypedefTearOffConstant node) {
+    _checkTypedefTearOff(node);
+    super.visitTypedefTearOffConstant(node);
+  }
+
+  void _checkRedirectingFactoryTearOff(Node node) {
+    if (target.isRedirectingFactoryTearOffLoweringEnabled) {
+      problem(
+          node is TreeNode ? node : getLastSeenTreeNode(),
+          'ConstructorTearOff nodes for redirecting factories should be '
+          'lowered for target "${target.name}".');
+    }
+  }
+
+  @override
+  void visitRedirectingFactoryTearOff(RedirectingFactoryTearOff node) {
+    _checkRedirectingFactoryTearOff(node);
+    super.visitRedirectingFactoryTearOff(node);
+  }
+
+  @override
+  void visitRedirectingFactoryTearOffConstant(
+      RedirectingFactoryTearOffConstant node) {
+    _checkRedirectingFactoryTearOff(node);
+    super.visitRedirectingFactoryTearOffConstant(node);
   }
 
   @override

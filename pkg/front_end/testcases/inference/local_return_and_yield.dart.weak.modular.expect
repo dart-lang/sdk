@@ -1,0 +1,39 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/local_return_and_yield.dart:19:38: Error: A value of type 'Future<dynamic Function(dynamic)>' can't be assigned to a variable of type 'FutureOr<int Function(int)>'.
+//  - 'Future' is from 'dart:async'.
+//     return /*@ returnType=dynamic */ (/*@ type=dynamic */ x) => x;
+//                                      ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+typedef IntToInt = (core::int*) →* core::int*;
+static method main() → dynamic {
+  function a() → (core::int*) →* core::int* {
+    return (core::int* x) → core::int* => x;
+  }
+  function b() → asy::Future<(core::int*) →* core::int*>* async {
+    return invalid-expression "pkg/front_end/testcases/inference/local_return_and_yield.dart:19:38: Error: A value of type 'Future<dynamic Function(dynamic)>' can't be assigned to a variable of type 'FutureOr<int Function(int)>'.
+ - 'Future' is from 'dart:async'.
+    return /*@ returnType=dynamic */ (/*@ type=dynamic */ x) => x;
+                                     ^" in ((dynamic x) → dynamic => x) as{TypeError} FutureOr<(core::int*) →* core::int*>*;
+  }
+  function c() → core::Iterable<(core::int*) →* core::int*>* sync* {
+    yield(core::int* x) → core::int* => x;
+  }
+  function d() → core::Iterable<(core::int*) →* core::int*>* sync* {
+    yield*<(core::int*) →* core::int*>[(core::int* x) → core::int* => x];
+  }
+  function e() → asy::Stream<(core::int*) →* core::int*>* async* {
+    yield(core::int* x) → core::int* => x;
+  }
+  function f() → asy::Stream<(core::int*) →* core::int*>* async* {
+    yield* asy::Stream::fromIterable<(core::int*) →* core::int*>(<(core::int*) →* core::int*>[(core::int* x) → core::int* => x]);
+  }
+}

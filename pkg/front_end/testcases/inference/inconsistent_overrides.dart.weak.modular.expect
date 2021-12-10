@@ -1,0 +1,89 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:16:3: Error: Can't infer types for 'f' as the overridden members don't have a combined signature.
+// Try adding explicit types.
+//   f(x, {y}) {}
+//   ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:10:5: Context: This is one of the overridden members.
+//   A f(A x, {A y}) {}
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:22:5: Context: This is one of the overridden members.
+//   I f(I x, {I y}) {}
+//     ^
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:17:3: Error: Can't infer types for 'g' as the overridden members don't have a combined signature.
+// Try adding explicit types.
+//   g(x, {y}) {}
+//   ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:11:5: Context: This is one of the overridden members.
+//   A g(A x, {A y}) {}
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:23:5: Context: This is one of the overridden members.
+//   A g(I x, {I y}) {}
+//     ^
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:18:3: Error: Can't infer types for 'h' as the overridden members don't have a combined signature.
+// Try adding explicit types.
+//   h(x, {y}) {}
+//   ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:12:5: Context: This is one of the overridden members.
+//   A h(A x, {A y}) {}
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:24:5: Context: This is one of the overridden members.
+//   A h(A x, {I y}) {}
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  method f(self::A* x, {self::A* y = #C1}) → self::A* {}
+  method g(self::A* x, {self::A* y = #C1}) → self::A* {}
+  method h(self::A* x, {self::A* y = #C1}) → self::A* {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A implements self::I {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+  method f(invalid-type x, {invalid-type y = #C1}) → invalid-type {}
+  method g(invalid-type x, {invalid-type y = #C1}) → invalid-type {}
+  method h(invalid-type x, {invalid-type y = #C1}) → invalid-type {}
+}
+class I extends core::Object {
+  synthetic constructor •() → self::I*
+    : super core::Object::•()
+    ;
+  method f(self::I* x, {self::I* y = #C1}) → self::I* {}
+  method g(self::I* x, {self::I* y = #C1}) → self::A* {}
+  method h(self::A* x, {self::I* y = #C1}) → self::A* {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

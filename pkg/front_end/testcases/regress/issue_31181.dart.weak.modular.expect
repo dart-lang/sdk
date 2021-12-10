@@ -1,0 +1,7 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Foo<unrelated T extends core::Object* = dynamic> = <T extends core::Object* = dynamic>(T*) →* T*;
+static field <T extends core::Object* = dynamic>(T*) →* T* x;
+static method main() → dynamic {}

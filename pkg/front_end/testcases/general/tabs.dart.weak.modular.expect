@@ -1,0 +1,45 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/tabs.dart:9:9: Error: Undefined name 'one'.
+//   print(one);
+//         ^^^
+//
+// pkg/front_end/testcases/general/tabs.dart:10:9: Error: Undefined name 'two'.
+//   print(two);
+//         ^^^
+//
+// pkg/front_end/testcases/general/tabs.dart:11:9: Error: Undefined name 'three'.
+//   print(three);
+//         ^^^^^
+//
+// pkg/front_end/testcases/general/tabs.dart:12:9: Error: Undefined name 'four'.
+//   print(four);
+//         ^^^^
+//
+// pkg/front_end/testcases/general/tabs.dart:13:9: Error: Undefined name 'five'.
+//   print(five);
+//         ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  core::print(invalid-expression "pkg/front_end/testcases/general/tabs.dart:9:9: Error: Undefined name 'one'.
+  print(one);
+        ^^^");
+  core::print(invalid-expression "pkg/front_end/testcases/general/tabs.dart:10:9: Error: Undefined name 'two'.
+  print(two);
+        ^^^");
+  core::print(invalid-expression "pkg/front_end/testcases/general/tabs.dart:11:9: Error: Undefined name 'three'.
+  print(three);
+        ^^^^^");
+  core::print(invalid-expression "pkg/front_end/testcases/general/tabs.dart:12:9: Error: Undefined name 'four'.
+  print(four);
+        ^^^^");
+  core::print(invalid-expression "pkg/front_end/testcases/general/tabs.dart:13:9: Error: Undefined name 'five'.
+  print(five);
+        ^^^^");
+}
+static method main() → dynamic {}

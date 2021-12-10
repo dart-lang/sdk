@@ -1,0 +1,86 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = #C1;
+static const field core::int var2 = #C1;
+static const field core::int y = #C2;
+static const field core::int var3 = #C3;
+static const field core::int var4 = #C1;
+static const field core::int var5 = #C4;
+static const field core::int var6 = #C4;
+static method foo() → core::int {
+  () → () → core::int f = () → () → core::int {
+    core::int count = 0;
+    function baz() → core::int {
+      count = count.{core::num::+}(1){(core::num) → core::int};
+      return count;
+    }
+    return baz;
+  };
+  () → core::int c1 = f(){() → () → core::int};
+  () → core::int c2 = f(){() → () → core::int};
+  core::int c1_val1 = c1(){() → core::int};
+  assert(c1_val1 =={core::num::==}{(core::Object) → core::bool} 1);
+  core::int c1_val2 = c1(){() → core::int};
+  assert(c1_val2 =={core::num::==}{(core::Object) → core::bool} 2);
+  core::int c1_val3 = c1(){() → core::int};
+  assert(c1_val3 =={core::num::==}{(core::Object) → core::bool} 3);
+  core::int c2_val1 = c2(){() → core::int};
+  assert(c1_val1 =={core::num::==}{(core::Object) → core::bool} 1);
+  core::int c2_val2 = c2(){() → core::int};
+  assert(c1_val2 =={core::num::==}{(core::Object) → core::bool} 2);
+  core::int c2_val3 = c2(){() → core::int};
+  assert(c1_val3 =={core::num::==}{(core::Object) → core::bool} 3);
+  return 0;
+}
+static method fn() → core::int {
+  return (() → core::int => 0)(){() → core::int};
+}
+static method fn3() → core::int {
+  core::int y = 2;
+  return y;
+}
+static method fn4() → core::int {
+  core::int x = 0;
+  function innerFn() → core::int {
+    return x;
+  }
+  return innerFn(){() → core::int};
+}
+static method fn5(core::int a) → core::int {
+  function recurse(core::int b) → core::int {
+    if(b =={core::num::==}{(core::Object) → core::bool} 1)
+      return 1;
+    core::int result = recurse(b.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::int};
+    return b.{core::num::*}(result){(core::num) → core::int};
+  }
+  return recurse(a){(core::int) → core::int};
+}
+static method fn6(core::int a) → core::int {
+  function recurse() → core::int {
+    a = a.{core::num::-}(1){(core::num) → core::int};
+    if(a =={core::num::==}{(core::Object) → core::bool} 1)
+      return 1;
+    return a.{core::num::*}(recurse(){() → core::int}){(core::num) → core::int};
+  }
+  return recurse(){() → core::int};
+}
+static method main() → void {
+  exp::Expect::equals(#C1, 0);
+  exp::Expect::equals(#C1, 0);
+  exp::Expect::equals(#C3, 2);
+  exp::Expect::equals(#C1, 0);
+  exp::Expect::equals(#C4, 6);
+  exp::Expect::equals(#C4, 6);
+}
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+  #C3 = 2
+  #C4 = 6
+}

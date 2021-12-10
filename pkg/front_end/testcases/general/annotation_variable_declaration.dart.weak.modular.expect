@@ -1,0 +1,69 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef hest_t = ({@#C1 dynamic named}) →* dynamic;
+class Bar extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Bar*
+    : super core::Object::•()
+    ;
+  const constructor named(dynamic x) → self::Bar*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Baz extends core::Object {
+  constructor •(@#C1 dynamic constructorFormal) → self::Baz*
+    : super core::Object::•()
+    ;
+  static factory bazFactory(@#C1 dynamic factoryFormal) → self::Baz*
+    return null;
+  method fisk(@#C1 dynamic formal1, @#C2 dynamic formal2, @#C2 dynamic formal3, @#C1 @#C2 dynamic formal4, [@#C1 dynamic optional = #C3]) → dynamic {
+    @#C1 dynamic local1;
+    @#C2 dynamic local2;
+    @#C2 dynamic local3;
+    @#C1 @#C2 dynamic local4;
+    @#C1 core::String* localWithInitializer = "hello";
+    @#C1 @#C2 dynamic localGroupPart1;
+    @#C1 @#C2 dynamic localGroupPart2;
+    function naebdyr(@#C1 dynamic nestedFormal) → Null
+      return null;
+    (dynamic) →* Null roedmus = (@#C1 dynamic closureFormal) → Null => null;
+  }
+  method hest({@#C1 dynamic named = #C3}) → dynamic
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field core::int* foo = #C1;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 42
+  #C2 = self::Bar {}
+  #C3 = null
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///annotation_variable_declaration.dart:
+- Bar. (from org-dartlang-testcase:///annotation_variable_declaration.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Bar.named (from org-dartlang-testcase:///annotation_variable_declaration.dart:9:9)

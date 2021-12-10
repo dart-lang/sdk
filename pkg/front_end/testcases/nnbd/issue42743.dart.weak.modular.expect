@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method main() → dynamic async {
+  core::bool b = (() → core::bool => true)(){() → core::bool};
+  (dynamic _) → core::int? {
+    if(b)
+      return 42;
+  };
+  (dynamic _) → asy::Future<core::int?> async {
+    if(b)
+      return 42;
+  };
+}

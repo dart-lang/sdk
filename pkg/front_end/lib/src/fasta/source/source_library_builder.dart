@@ -106,6 +106,7 @@ import '../modifier.dart'
         declaresConstConstructorMask,
         hasInitializerMask,
         initializingFormalMask,
+        superInitializingFormalMask,
         lateMask,
         mixinDeclarationMask,
         namedMixinApplicationMask,
@@ -2770,10 +2771,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       TypeBuilder? type,
       String name,
       bool hasThis,
+      bool hasSuper,
       int charOffset,
       Token? initializerToken) {
+    assert(!hasThis || !hasSuper,
+        "Formal parameter '${name}' has both 'this' and 'super' prefixes.");
     if (hasThis) {
       modifiers |= initializingFormalMask;
+    }
+    if (hasSuper) {
+      modifiers |= superInitializingFormalMask;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
         metadata, modifiers, type, name, this, charOffset,

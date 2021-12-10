@@ -1,0 +1,90 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/override_check_accessor_after_inference.dart:26:9: Error: The return type of the method 'F.y' is 'A', which does not match the return type, 'B', of the overridden method, 'D.y'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_accessor_after_inference.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/general/override_check_accessor_after_inference.dart'.
+// Change to a subtype of 'B'.
+//   A get y => null;
+//         ^
+// pkg/front_end/testcases/general/override_check_accessor_after_inference.dart:16:7: Context: This is the overridden method ('y').
+//   get y => null; // Inferred type: B
+//       ^
+//
+// pkg/front_end/testcases/general/override_check_accessor_after_inference.dart:25:16: Error: The parameter 'value' of the method 'F.x' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'D.x'.
+//  - 'B' is from 'pkg/front_end/testcases/general/override_check_accessor_after_inference.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_accessor_after_inference.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void set x(B value) {}
+//                ^
+// pkg/front_end/testcases/general/override_check_accessor_after_inference.dart:15:12: Context: This is the overridden method ('x').
+//   void set x(value) {} // Inferred type: A
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  set x(self::A* value) → void {}
+  get y() → self::B*
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D extends self::C {
+  synthetic constructor •() → self::D*
+    : super self::C::•()
+    ;
+  set x(self::A* value) → void {}
+  get y() → self::B*
+    return null;
+}
+class E extends self::D {
+  synthetic constructor •() → self::E*
+    : super self::D::•()
+    ;
+  set x(self::A* value) → void {}
+  get y() → self::B*
+    return null;
+}
+class F extends self::D {
+  synthetic constructor •() → self::F*
+    : super self::D::•()
+    ;
+  set x(self::B* value) → void {}
+  get y() → self::A*
+    return null;
+}
+static method main() → dynamic {}

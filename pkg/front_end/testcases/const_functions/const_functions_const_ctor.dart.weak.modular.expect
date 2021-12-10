@@ -1,0 +1,42 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+class Simple extends core::Object /*hasConstConstructor*/  {
+  final field core::String name;
+  const constructor •(core::String name) → self::Simple
+    : self::Simple::name = name, super core::Object::•() {
+    assert(this.{self::Simple::name}{core::String} =={core::String::==}{(core::Object) → core::bool} #C1);
+  }
+}
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•() {
+    return;
+  }
+}
+static const field core::String printString = #C1;
+static const field self::Simple var1 = #C2;
+static const field self::A var2 = #C3;
+static const field self::A var3 = #C3;
+static method fn() → self::A
+  return new self::A::•();
+static method main() → void {
+  exp::Expect::equals(#C2.{self::Simple::name}{core::String}, #C1);
+}
+
+constants  {
+  #C1 = "print"
+  #C2 = self::Simple {name:#C1}
+  #C3 = self::A {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_functions_const_ctor.dart:
+- Simple. (from org-dartlang-testcase:///const_functions_const_ctor.dart:14:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- A. (from org-dartlang-testcase:///const_functions_const_ctor.dart:21:9)

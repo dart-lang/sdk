@@ -1,0 +1,30 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/inferred_initializing_formal_checks_default_value.dart:10:46: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   Foo([this.x = /*error:INVALID_ASSIGNMENT*/ "1"]);
+//                                              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  field core::int* x = 1;
+  constructor •([core::int* x = invalid-expression "pkg/front_end/testcases/inference/inferred_initializing_formal_checks_default_value.dart:10:46: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  Foo([this.x = /*error:INVALID_ASSIGNMENT*/ \"1\"]);
+                                             ^"]) → self::Foo*
+    : self::Foo::x = x, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

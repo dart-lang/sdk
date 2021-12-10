@@ -1,0 +1,29 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41700a.dart:7:5: Error: The method 'foo' isn't defined for the class 'Null'.
+// Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+//   x.foo();
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/issue41700a.dart:9:5: Error: The method 'foo' isn't defined for the class 'Null'.
+// Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+//   y.foo();
+//     ^^^
+//
+import self as self;
+
+static method test() → dynamic {
+  Null x = null;
+  invalid-expression "pkg/front_end/testcases/nnbd/issue41700a.dart:7:5: Error: The method 'foo' isn't defined for the class 'Null'.
+Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+  x.foo();
+    ^^^" in x{<unresolved>}.foo();
+  Null y = null;
+  invalid-expression "pkg/front_end/testcases/nnbd/issue41700a.dart:9:5: Error: The method 'foo' isn't defined for the class 'Null'.
+Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+  y.foo();
+    ^^^" in y{<unresolved>}.foo();
+}
+static method main() → dynamic {}

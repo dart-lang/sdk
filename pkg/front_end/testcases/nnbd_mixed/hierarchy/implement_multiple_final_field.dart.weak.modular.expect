@@ -1,0 +1,95 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:21:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - ConcreteClass.declareAbstractImplementMultipleField
+//  - Interface1.implementMultipleField
+//  - Interface2.implementMultipleField
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass implements Interface1, Interface2 {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:24:22: Context: 'ConcreteClass.declareAbstractImplementMultipleField' is defined here.
+//   abstract final int declareAbstractImplementMultipleField;
+//                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:6:13: Context: 'Interface1.implementMultipleField' is defined here.
+//   final int implementMultipleField = 0;
+//             ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:14:13: Context: 'Interface2.implementMultipleField' is defined here.
+//   final int implementMultipleField = 0;
+//             ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:33:7: Error: The non-abstract class 'ConcreteSub' is missing implementations for these members:
+//  - AbstractClass.declareAbstractImplementMultipleField
+//  - Interface1.declareAbstractImplementMultipleField
+//  - Interface1.implementMultipleField
+//  - Interface2.declareAbstractImplementMultipleField
+//  - Interface2.implementMultipleField
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteSub extends AbstractClass {}
+//       ^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:30:22: Context: 'AbstractClass.declareAbstractImplementMultipleField' is defined here.
+//   abstract final int declareAbstractImplementMultipleField;
+//                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:10:13: Context: 'Interface1.declareAbstractImplementMultipleField' is defined here.
+//   final int declareAbstractImplementMultipleField = 0;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:6:13: Context: 'Interface1.implementMultipleField' is defined here.
+//   final int implementMultipleField = 0;
+//             ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:18:13: Context: 'Interface2.declareAbstractImplementMultipleField' is defined here.
+//   final int declareAbstractImplementMultipleField = 0;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/implement_multiple_final_field.dart:14:13: Context: 'Interface2.implementMultipleField' is defined here.
+//   final int implementMultipleField = 0;
+//             ^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Interface1 extends core::Object {
+  final field core::int implementMultipleField = 0;
+  final field core::int declareConcreteImplementMultipleField = 0;
+  final field core::int declareAbstractImplementMultipleField = 0;
+  synthetic constructor •() → self::Interface1
+    : super core::Object::•()
+    ;
+}
+class Interface2 extends core::Object {
+  final field core::int implementMultipleField = 0;
+  final field core::int declareConcreteImplementMultipleField = 0;
+  final field core::int declareAbstractImplementMultipleField = 0;
+  synthetic constructor •() → self::Interface2
+    : super core::Object::•()
+    ;
+}
+class ConcreteClass extends core::Object implements self::Interface1, self::Interface2 {
+  final field core::int declareConcreteImplementMultipleField = 0;
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+  abstract get declareAbstractImplementMultipleField() → core::int;
+}
+abstract class AbstractClass extends core::Object implements self::Interface1, self::Interface2 {
+  final field core::int declareConcreteImplementMultipleField = 0;
+  synthetic constructor •() → self::AbstractClass
+    : super core::Object::•()
+    ;
+  abstract get declareAbstractImplementMultipleField() → core::int;
+}
+class ConcreteSub extends self::AbstractClass {
+  synthetic constructor •() → self::ConcreteSub
+    : super self::AbstractClass::•()
+    ;
+}
+static method main() → dynamic {}

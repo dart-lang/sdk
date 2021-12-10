@@ -1,0 +1,147 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::Class1*
+    : self::Class1::field = field, super core::Object::•()
+    ;
+  method toString() → core::String*
+    return "Class1(${this.{self::Class1::field}{core::int*}})";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class2 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::Class2*
+    : self::Class2::field = field, super core::Object::•()
+    ;
+  method toString() → core::String*
+    return "Class2(${this.{self::Class2::field}{core::int*}})";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension _extension#0 on self::Class1* {
+  method method = self::_extension#0|method;
+  tearoff method = self::_extension#0|get#method;
+  method genericMethod = self::_extension#0|genericMethod;
+  tearoff genericMethod = self::_extension#0|get#genericMethod;
+  get property = self::_extension#0|get#property;
+  set property = self::_extension#0|set#property;
+}
+extension _extension#1 on self::Class2* {
+  method method = self::_extension#1|method;
+  tearoff method = self::_extension#1|get#method;
+  method genericMethod = self::_extension#1|genericMethod;
+  tearoff genericMethod = self::_extension#1|get#genericMethod;
+  get property = self::_extension#1|get#property;
+  set property = self::_extension#1|set#property;
+}
+static method _extension#0|method(lowered final self::Class1* #this) → core::int* {
+  core::print("Extension1.method on ${#this}");
+  return #this.{self::Class1::field}{core::int*};
+}
+static method _extension#0|get#method(lowered final self::Class1* #this) → () →* core::int*
+  return () → core::int* => self::_extension#0|method(#this);
+static method _extension#0|genericMethod<T extends core::num*>(lowered final self::Class1* #this, self::_extension#0|genericMethod::T* t) → core::int* {
+  core::print("Extension1.genericMethod<${self::_extension#0|genericMethod::T*}>(${t}) on ${#this}");
+  return #this.{self::Class1::field}{core::int*}.{core::num::+}(t){(core::num*) →* core::num*} as{TypeError} core::int*;
+}
+static method _extension#0|get#genericMethod(lowered final self::Class1* #this) → <T extends core::num*>(T*) →* core::int*
+  return <T extends core::num*>(T* t) → core::int* => self::_extension#0|genericMethod<T*>(#this, t);
+static method _extension#0|get#property(lowered final self::Class1* #this) → core::int* {
+  core::print("Extension1.property get on ${#this}");
+  return #this.{self::Class1::field}{core::int*};
+}
+static method _extension#0|set#property(lowered final self::Class1* #this, core::int* value) → void {
+  #this.{self::Class1::field} = value;
+  core::print("Extension1.property set(${value}) on ${#this}");
+  value = value.{core::num::+}(1){(core::num*) →* core::int*};
+}
+static method _extension#1|method(lowered final self::Class2* #this) → core::int* {
+  core::print("Extension2.method on ${#this}");
+  return #this.{self::Class2::field}{core::int*}.{core::num::+}(3){(core::num*) →* core::int*};
+}
+static method _extension#1|get#method(lowered final self::Class2* #this) → () →* core::int*
+  return () → core::int* => self::_extension#1|method(#this);
+static method _extension#1|genericMethod<T extends core::num*>(lowered final self::Class2* #this, self::_extension#1|genericMethod::T* t) → core::int* {
+  core::print("Extension2.genericMethod<${self::_extension#1|genericMethod::T*}>(${t}) on ${#this}");
+  return #this.{self::Class2::field}{core::int*}.{core::num::+}(t){(core::num*) →* core::num*}.{core::num::+}(4){(core::num*) →* core::num*} as{TypeError} core::int*;
+}
+static method _extension#1|get#genericMethod(lowered final self::Class2* #this) → <T extends core::num*>(T*) →* core::int*
+  return <T extends core::num*>(T* t) → core::int* => self::_extension#1|genericMethod<T*>(#this, t);
+static method _extension#1|get#property(lowered final self::Class2* #this) → core::int* {
+  core::print("Extension2.property get on ${#this}");
+  return #this.{self::Class2::field}{core::int*}.{core::num::+}(5){(core::num*) →* core::int*};
+}
+static method _extension#1|set#property(lowered final self::Class2* #this, core::int* value) → void {
+  core::print("Extension2.property set(${value}) on ${#this}");
+  value = value.{core::num::+}(1){(core::num*) →* core::int*};
+  #this.{self::Class2::field} = value;
+}
+static method main() → dynamic {
+  self::testExtension1();
+  self::testExtension2();
+}
+static method testExtension1() → dynamic {
+  self::Class1* c0 = new self::Class1::•(0);
+  self::Class1* c1 = new self::Class1::•(1);
+  self::expect(0, self::_extension#0|method(c0));
+  self::expect(1, self::_extension#0|method(c1));
+  self::expect(1, let final self::Class1* #t1 = c1 in #t1 == null ?{core::int*} null : self::_extension#0|method(#t1));
+  self::expect(42, self::_extension#0|genericMethod<core::int*>(c0, 42));
+  self::expect(43, self::_extension#0|genericMethod<core::num*>(c0, 43));
+  self::expect(88, self::_extension#0|genericMethod<core::int*>(c1, 87));
+  self::expect(89, self::_extension#0|genericMethod<core::num*>(c1, 88));
+  self::expect(0, self::_extension#0|get#property(c0));
+  self::expect(0, let final self::Class1* #t2 = c0 in #t2 == null ?{core::int*} null : self::_extension#0|get#property(#t2));
+  self::expect(42, let final core::int* #t3 = 42 in let final void #t4 = self::_extension#0|set#property(c0, #t3) in #t3);
+  self::expect(1, self::_extension#0|get#property(c1));
+  self::expect(87, let final core::int* #t5 = 87 in let final void #t6 = self::_extension#0|set#property(c0, #t5) in #t5);
+  self::expect(27, let final core::int* #t7 = let final core::int* #t8 = 27 in let final void #t9 = self::_extension#0|set#property(c1, #t8) in #t8 in let final void #t10 = self::_extension#0|set#property(c0, #t7) in #t7);
+  self::expect(37, let final core::int* #t11 = let final core::int* #t12 = 37 in let final void #t13 = self::_extension#0|set#property(c0, #t12) in #t12 in let final void #t14 = self::_extension#0|set#property(c1, #t11) in #t11);
+  self::expect(77, let final core::int* #t15 = let final core::int* #t16 = let final core::int* #t17 = 77 in let final void #t18 = self::_extension#0|set#property(c1, #t17) in #t17 in let final void #t19 = self::_extension#0|set#property(c0, #t16) in #t16 in let final void #t20 = self::_extension#0|set#property(c1, #t15) in #t15);
+  self::expect(67, let final core::int* #t21 = let final core::int* #t22 = let final core::int* #t23 = 67 in let final void #t24 = self::_extension#0|set#property(c0, #t23) in #t23 in let final void #t25 = self::_extension#0|set#property(c1, #t22) in #t22 in let final void #t26 = self::_extension#0|set#property(c0, #t21) in #t21);
+}
+static method testExtension2() → dynamic {
+  self::Class2* c0 = new self::Class2::•(0);
+  self::Class2* c1 = new self::Class2::•(1);
+  self::expect(3, self::_extension#1|method(c0));
+  self::expect(3, let final self::Class2* #t27 = c0 in #t27 == null ?{core::int*} null : self::_extension#1|method(#t27));
+  self::expect(4, self::_extension#1|method(c1));
+  self::expect(46, self::_extension#1|genericMethod<core::int*>(c0, 42));
+  self::expect(47, self::_extension#1|genericMethod<core::num*>(c0, 43));
+  self::expect(92, self::_extension#1|genericMethod<core::int*>(c1, 87));
+  self::expect(93, self::_extension#1|genericMethod<core::num*>(c1, 88));
+  self::expect(5, self::_extension#1|get#property(c0));
+  self::expect(5, let final self::Class2* #t28 = c0 in #t28 == null ?{core::int*} null : self::_extension#1|get#property(#t28));
+  self::expect(42, let final core::int* #t29 = 42 in let final void #t30 = self::_extension#1|set#property(c0, #t29) in #t29);
+  self::expect(48, self::_extension#1|get#property(c0));
+  self::expect(6, self::_extension#1|get#property(c1));
+  self::expect(43, let final core::int* #t31 = 43 in let final void #t32 = self::_extension#1|set#property(c1, #t31) in #t31);
+  self::expect(49, self::_extension#1|get#property(c1));
+  self::expect(49, let final core::int* #t33 = self::_extension#1|get#property(c1) in let final void #t34 = self::_extension#1|set#property(c0, #t33) in #t33);
+  self::expect(55, let final core::int* #t35 = self::_extension#1|get#property(c0) in let final void #t36 = self::_extension#1|set#property(c1, #t35) in #t35);
+  self::expect(61, let final core::int* #t37 = let final core::int* #t38 = self::_extension#1|get#property(c1) in let final void #t39 = self::_extension#1|set#property(c0, #t38) in #t38 in let final void #t40 = self::_extension#1|set#property(c1, #t37) in #t37);
+  self::expect(67, let final core::int* #t41 = let final core::int* #t42 = self::_extension#1|get#property(c0) in let final void #t43 = self::_extension#1|set#property(c1, #t42) in #t42 in let final void #t44 = self::_extension#1|set#property(c0, #t41) in #t41);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

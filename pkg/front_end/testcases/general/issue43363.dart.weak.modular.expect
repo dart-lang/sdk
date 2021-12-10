@@ -1,0 +1,60 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue43363.dart:10:9: Error: Expected a class member, but got 'this'.
+//         this.y = 2;
+//         ^^^^
+//
+// pkg/front_end/testcases/general/issue43363.dart:10:13: Error: Expected a class member, but got '.'.
+//         this.y = 2;
+//             ^
+//
+// pkg/front_end/testcases/general/issue43363.dart:10:14: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//         this.y = 2;
+//              ^
+//
+// pkg/front_end/testcases/general/issue43363.dart:10:14: Error: 'y' is already declared in this scope.
+//         this.y = 2;
+//              ^
+// pkg/front_end/testcases/general/issue43363.dart:7:13: Context: Previous declaration of 'y'.
+//   final int y;
+//             ^
+//
+// pkg/front_end/testcases/general/issue43363.dart:9:16: Error: A redirecting constructor can't have other initializers.
+//         this.x = 1;
+//                ^
+//
+// pkg/front_end/testcases/general/issue43363.dart:13:20: Error: Can't use 'y' because it is declared more than once.
+//               this.y = 6;
+//                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::Object {
+  final field core::int* x;
+  final field core::int* y = null;
+  constructor •() → self::E*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/issue43363.dart:9:16: Error: A redirecting constructor can't have other initializers.
+        this.x = 1;
+               ^", this self::E::named()
+    ;
+  constructor named() → self::E*
+    : self::E::x = 5, final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/issue43363.dart:13:20: Error: Can't use 'y' because it is declared more than once.
+              this.y = 6;
+                   ^"
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

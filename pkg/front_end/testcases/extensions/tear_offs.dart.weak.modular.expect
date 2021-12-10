@@ -1,0 +1,75 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/tear_offs.dart:17:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+//     int Function(int) intId = getter;
+//                               ^
+//
+// pkg/front_end/testcases/extensions/tear_offs.dart:30:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'num Function(num)'.
+//   num Function(num) numId = c.getter;
+//                               ^
+//
+// pkg/front_end/testcases/extensions/tear_offs.dart:31:45: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'bool Function(bool)'.
+//   bool Function(bool) boolId = Extension(c).getter;
+//                                             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension on self::Class* {
+  method id = self::Extension|id;
+  tearoff id = self::Extension|get#id;
+  get getter = self::Extension|get#getter;
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  method errors = self::Extension|errors;
+  tearoff errors = self::Extension|get#errors;
+}
+static method Extension|id<T extends core::Object* = dynamic>(lowered final self::Class* #this, self::Extension|id::T* t) → self::Extension|id::T*
+  return t;
+static method Extension|get#id(lowered final self::Class* #this) → <T extends core::Object* = dynamic>(T*) →* T*
+  return <T extends core::Object* = dynamic>(T* t) → T* => self::Extension|id<T*>(#this, t);
+static method Extension|get#getter(lowered final self::Class* #this) → <T extends core::Object* = dynamic>(T*) →* T*
+  return self::Extension|get#id(#this);
+static method Extension|method(lowered final self::Class* #this) → dynamic {
+  (core::String*) →* core::String* stringId = self::Extension|get#id(#this)<core::String*>;
+}
+static method Extension|get#method(lowered final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::Extension|method(#this);
+static method Extension|errors(lowered final self::Class* #this) → dynamic {
+  (core::int*) →* core::int* intId = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:17:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
+    int Function(int) intId = getter;
+                              ^" in self::Extension|get#getter(#this) as{TypeError} (core::int*) →* core::int*;
+}
+static method Extension|get#errors(lowered final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::Extension|errors(#this);
+static method main() → dynamic {
+  self::Class* c = new self::Class::•();
+  (core::int*) →* core::int* intId = self::Extension|get#id(c)<core::int*>;
+  (core::double*) →* core::double* doubleId = self::Extension|get#id(c)<core::double*>;
+}
+static method errors() → dynamic {
+  self::Class* c = new self::Class::•();
+  (core::num*) →* core::num* numId = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:30:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'num Function(num)'.
+  num Function(num) numId = c.getter;
+                              ^" in self::Extension|get#getter(c) as{TypeError} (core::num*) →* core::num*;
+  (core::bool*) →* core::bool* boolId = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:31:45: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'bool Function(bool)'.
+  bool Function(bool) boolId = Extension(c).getter;
+                                            ^" in self::Extension|get#getter(c) as{TypeError} (core::bool*) →* core::bool*;
+}

@@ -1,0 +1,137 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:16:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+//   const Foo.withInvalidCondition(this.x) : assert(x);
+//                                                   ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:26:24: Error: Constant evaluation error:
+// const Foo foo2 = const Foo(0);
+//                        ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:8:18: Context: This assertion failed with message: x is not positive
+//       : assert(x > 0, "x is not positive"),
+//                  ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:26:11: Context: While analyzing:
+// const Foo foo2 = const Foo(0);
+//           ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:28:24: Error: Constant evaluation error:
+// const Foo foo4 = const Foo.withInvalidMessage(42);
+//                        ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:15:56: Context: Expected constant '42' to be of type 'String', but was of type 'int'.
+//   const Foo.withInvalidMessage(this.x) : assert(x < 0, x);
+//                                                        ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:28:11: Context: While analyzing:
+// const Foo foo4 = const Foo.withInvalidMessage(42);
+//           ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:30:24: Error: Constant evaluation error:
+// const Bar bar1 = const Bar.withMessage(1);
+//                        ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:21:44: Context: This assertion failed with message: x is not negative
+//   const Bar.withMessage(this.x) : assert(x < 0, "x is not negative");
+//                                            ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:30:11: Context: While analyzing:
+// const Bar bar1 = const Bar.withMessage(1);
+//           ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:31:24: Error: Constant evaluation error:
+// const Bar bar2 = const Bar.withMessage(0);
+//                        ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:21:44: Context: This assertion failed with message: x is not negative
+//   const Bar.withMessage(this.x) : assert(x < 0, "x is not negative");
+//                                            ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:31:11: Context: While analyzing:
+// const Bar bar2 = const Bar.withMessage(0);
+//           ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:32:24: Error: Constant evaluation error:
+// const Bar bar3 = const Bar.withoutMessage(1);
+//                        ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:22:47: Context: This assertion failed.
+//   const Bar.withoutMessage(this.x) : assert(x < 0);
+//                                               ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:32:11: Context: While analyzing:
+// const Bar bar3 = const Bar.withoutMessage(1);
+//           ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:33:24: Error: Constant evaluation error:
+// const Bar bar4 = const Bar.withoutMessage(0);
+//                        ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:22:47: Context: This assertion failed.
+//   const Bar.withoutMessage(this.x) : assert(x < 0);
+//                                               ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:33:11: Context: While analyzing:
+// const Bar bar4 = const Bar.withoutMessage(0);
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  const constructor •(core::int x) → self::Foo
+    : self::Foo::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}, "x is not positive"), assert(x.{core::num::>}(0){(core::num) → core::bool}), assert(#C2 =={core::Object::==}{(core::Object) → core::bool} false, "foo was ${#C3}"), assert(#C4 =={core::Object::==}{(core::Object) → core::bool} false), super core::Object::•()
+    ;
+  const constructor withMessage(core::int x) → self::Foo
+    : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, "btw foo was ${#C5}"), super core::Object::•()
+    ;
+  const constructor withInvalidMessage(core::int x) → self::Foo
+    : self::Foo::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, x), super core::Object::•()
+    ;
+  const constructor withInvalidCondition(core::int x) → self::Foo
+    : self::Foo::x = x, assert(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:16:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+  const Foo.withInvalidCondition(this.x) : assert(x);
+                                                  ^" in x as{TypeError,ForNonNullableByDefault} core::bool), super core::Object::•()
+    ;
+}
+class Bar extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  const constructor withMessage(core::int x) → self::Bar
+    : self::Bar::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}, "x is not negative"), super core::Object::•()
+    ;
+  const constructor withoutMessage(core::int x) → self::Bar
+    : self::Bar::x = x, assert(x.{core::num::<}(0){(core::num) → core::bool}), super core::Object::•()
+    ;
+}
+static const field self::Foo foo1 = #C9;
+static const field self::Foo foo2 = invalid-expression "This assertion failed with message: x is not positive";
+static const field self::Foo foo3 = #C12;
+static const field self::Foo foo4 = invalid-expression "Expected constant '42' to be of type 'String', but was of type 'int'.";
+static const field self::Foo foo5 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/const_asserts.dart:16:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
+  const Foo.withInvalidCondition(this.x) : assert(x);
+                                                  ^";
+static const field self::Bar bar1 = invalid-expression "This assertion failed with message: x is not negative";
+static const field self::Bar bar2 = invalid-expression "This assertion failed with message: x is not negative";
+static const field self::Bar bar3 = invalid-expression "This assertion failed.";
+static const field self::Bar bar4 = invalid-expression "This assertion failed.";
+static method main() → dynamic {
+  core::print(#C9);
+}
+
+constants  {
+  #C1 = "foo"
+  #C2 = eval const core::bool::fromEnvironment(#C1)
+  #C3 = eval const core::bool::fromEnvironment(#C1)
+  #C4 = eval const core::bool::fromEnvironment(#C1)
+  #C5 = eval const core::bool::fromEnvironment(#C1)
+  #C6 = 1
+  #C7 = false
+  #C8 = "foo was "
+  #C9 = eval self::Foo{x:#C6, assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} #C7, "${#C8}${const core::bool::fromEnvironment(#C1)}"), assert(const core::bool::fromEnvironment(#C1) =={core::Object::==}{(core::Object) → core::bool} #C7)}
+  #C10 = 42
+  #C11 = "btw foo was "
+  #C12 = eval self::Foo{x:#C10, assert(#C7, "${#C11}${const core::bool::fromEnvironment(#C1)}")}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_asserts.dart:
+- Foo. (from org-dartlang-testcase:///const_asserts.dart:7:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Foo.withMessage (from org-dartlang-testcase:///const_asserts.dart:13:9)
+- Foo.withInvalidMessage (from org-dartlang-testcase:///const_asserts.dart:15:9)
+- Foo.withInvalidCondition (from org-dartlang-testcase:///const_asserts.dart:16:9)
+- Bar.withMessage (from org-dartlang-testcase:///const_asserts.dart:21:9)
+- Bar.withoutMessage (from org-dartlang-testcase:///const_asserts.dart:22:9)

@@ -1,0 +1,135 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "issue31767_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue31767_lib.dart";
+
+class C extends core::Object {
+  final field core::int* w;
+  constructor foo(core::int* x, [core::int* y = #C1, core::int* z = #C1]) → self::C*
+    : self::C::w = self::p("x", x).{core::num::+}(self::p("y", y)){(core::num*) →* core::int*}.{core::num::+}(self::p("z", z)){(core::num*) →* core::int*}, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class M extends self::C /*isMixinDeclaration*/  {
+  get w2() → core::int*
+    return this.{self::C::w}{core::int*}.{core::num::*}(this.{self::C::w}{core::int*}){(core::num*) →* core::int*};
+}
+class D = self::C with self::M {
+  synthetic constructor foo(core::int* x, [core::int* y = #C1, core::int* z = #C1]) → self::D*
+    : super self::C::foo(x, y, z)
+    ;
+  mixin-super-stub get w2() → core::int*
+    return super.{self::M::w2};
+}
+abstract class N extends iss::A /*isMixinDeclaration*/  {
+  get w2() → core::int*
+    return this.{iss::A::w}{core::int*}.{core::num::*}(this.{iss::A::w}{core::int*}){(core::num*) →* core::int*};
+}
+class E = iss::A with self::N {
+  synthetic constructor foo(core::int* x, [core::int* y = #C2, core::int* z = #C2, iss::_A* a = #C4]) → self::E*
+    : super iss::A::foo(x, y, z, a)
+    ;
+  mixin-super-stub get w2() → core::int*
+    return super.{self::N::w2};
+}
+static field core::StringBuffer* sb;
+static method p(core::String* name, core::int* value) → core::int* {
+  self::sb.{core::StringBuffer::write}("${name} = ${value}, "){(core::Object*) →* void};
+  return value;
+}
+static method main() → dynamic {
+  self::sb = new core::StringBuffer::•();
+  iss::A* a = new iss::A::foo(1, 2);
+  self::expect("x = 1, y = 2, z = 3, ", self::sb.{core::StringBuffer::toString}(){() →* core::String*});
+  self::expect(6, a.{iss::A::w}{core::int*});
+  self::expect(5, a.{iss::A::a}{iss::_A*}.{iss::_A::field}{core::int*});
+  self::sb = new core::StringBuffer::•();
+  self::C* c = new self::C::foo(1, 2);
+  self::expect("x = 1, y = 2, z = 0, ", self::sb.{core::StringBuffer::toString}(){() →* core::String*});
+  self::expect(3, c.{self::C::w}{core::int*});
+  self::sb = new core::StringBuffer::•();
+  self::D* d = new self::D::foo(1, 2);
+  self::expect("x = 1, y = 2, z = 0, ", self::sb.{core::StringBuffer::toString}(){() →* core::String*});
+  self::expect(3, d.{self::C::w}{core::int*});
+  self::expect(9, d.{self::D::w2}{core::int*});
+  self::sb = new core::StringBuffer::•();
+  self::E* e = new self::E::foo(1, 2);
+  self::expect("x = 1, y = 2, z = 3, ", self::sb.{core::StringBuffer::toString}(){() →* core::String*});
+  self::expect(6, e.{iss::A::w}{core::int*});
+  self::expect(36, e.{self::E::w2}{core::int*});
+  self::expect(5, e.{iss::A::a}{iss::_A*}.{iss::_A::field}{core::int*});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+library;
+import self as iss;
+import "dart:core" as core;
+import "issue31767.dart" as self;
+
+import "org-dartlang-testcase:///issue31767.dart";
+
+class A extends core::Object {
+  final field core::int* w;
+  final field iss::_A* a;
+  constructor foo(core::int* x, [core::int* y = #C2, core::int* z = #C2, iss::_A* a = #C4]) → iss::A*
+    : iss::A::a = a, iss::A::w = self::p("x", x).{core::num::+}(self::p("y", y)){(core::num*) →* core::int*}.{core::num::+}(self::p("z", z)){(core::num*) →* core::int*}, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class _A extends core::Object /*hasConstConstructor*/  {
+  final field core::int* field;
+  const constructor •(core::int* field) → iss::_A*
+    : iss::_A::field = field, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field core::int* _private = #C2;
+
+constants  {
+  #C1 = 0
+  #C2 = 3
+  #C3 = 5
+  #C4 = iss::_A {field:#C3}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue31767.dart:
+- _A. (from org-dartlang-testcase:///issue31767_lib.dart:20:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+
+org-dartlang-testcase:///issue31767_lib.dart:
+- _A. (from org-dartlang-testcase:///issue31767_lib.dart:20:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

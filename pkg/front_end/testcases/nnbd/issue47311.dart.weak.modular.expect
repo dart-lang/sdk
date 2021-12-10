@@ -1,0 +1,68 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef Baz<invariant T extends core::Object? = dynamic> = (T%) → T%;
+class Foo1<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Foo1<self::Foo1::T%>
+    : super core::Object::•()
+    ;
+  method method<covariant-by-class S extends self::Foo1::T%>((self::Foo1::method::S%) → self::Foo1::method::S% x) → void {}
+}
+class Bar1 extends core::Object implements self::Foo1<core::Object> {
+  synthetic constructor •() → self::Bar1
+    : super core::Object::•()
+    ;
+  method method<covariant-by-class T extends core::Object>((self::Bar1::method::T) → self::Bar1::method::T x) → void {}
+}
+class Foo2<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Foo2<self::Foo2::T%>
+    : super core::Object::•()
+    ;
+  method method<V extends self::Foo2::method::S% = self::Foo2::T%, covariant-by-class S extends self::Foo2::T%>((self::Foo2::method::S%) → self::Foo2::method::S% x, (self::Foo2::method::V%) → self::Foo2::method::V% y) → void {}
+}
+class Bar2 extends core::Object implements self::Foo2<core::Object> {
+  synthetic constructor •() → self::Bar2
+    : super core::Object::•()
+    ;
+  method method<V extends self::Bar2::method::T = core::Object, covariant-by-class T extends core::Object>((self::Bar2::method::T) → self::Bar2::method::T x, (self::Bar2::method::V) → self::Bar2::method::V y) → void {}
+}
+class Foo3<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Foo3<self::Foo3::T%>
+    : super core::Object::•()
+    ;
+  method method<V extends self::Foo3::method::S% = FutureOr<self::Foo3::T%>, covariant-by-class S extends FutureOr<self::Foo3::T%>>((self::Foo3::method::S%) → self::Foo3::method::S% x, (self::Foo3::method::V%) → self::Foo3::method::V% y) → void {}
+}
+class Bar3 extends core::Object implements self::Foo3<core::Object> {
+  synthetic constructor •() → self::Bar3
+    : super core::Object::•()
+    ;
+  method method<V extends self::Bar3::method::T = FutureOr<core::Object>, covariant-by-class T extends FutureOr<core::Object>>((self::Bar3::method::T) → self::Bar3::method::T x, (self::Bar3::method::V) → self::Bar3::method::V y) → void {}
+}
+class Foo4<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Foo4<self::Foo4::T%>
+    : super core::Object::•()
+    ;
+  method method<V extends FutureOr<self::Foo4::method::S%> = FutureOr<self::Foo4::T%>, covariant-by-class S extends self::Foo4::T%>((self::Foo4::method::S%) → self::Foo4::method::S% x, (self::Foo4::method::V%) → self::Foo4::method::V% y) → void {}
+}
+class Bar4 extends core::Object implements self::Foo4<core::Object> {
+  synthetic constructor •() → self::Bar4
+    : super core::Object::•()
+    ;
+  method method<V extends FutureOr<self::Bar4::method::T> = FutureOr<core::Object>, covariant-by-class T extends core::Object>((self::Bar4::method::T) → self::Bar4::method::T x, (self::Bar4::method::V) → self::Bar4::method::V y) → void {}
+}
+class Foo5<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Foo5<self::Foo5::T%>
+    : super core::Object::•()
+    ;
+  method method<V extends FutureOr<self::Foo5::method::S%> = FutureOr<FutureOr<self::Foo5::T%>>, covariant-by-class S extends FutureOr<self::Foo5::T%>>((self::Foo5::method::S%) → self::Foo5::method::S% x, (self::Foo5::method::V%) → self::Foo5::method::V% y) → void {}
+}
+class Bar5 extends core::Object implements self::Foo5<core::Object> {
+  synthetic constructor •() → self::Bar5
+    : super core::Object::•()
+    ;
+  method method<V extends FutureOr<self::Bar5::method::T> = FutureOr<FutureOr<core::Object>>, covariant-by-class T extends FutureOr<core::Object>>((self::Bar5::method::T) → self::Bar5::method::T x, (self::Bar5::method::V) → self::Bar5::method::V y) → void {}
+}
+static method main() → void {}

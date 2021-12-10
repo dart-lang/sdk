@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  @#C3
+  method instanceMethod() → dynamic {}
+  @#C3
+  static method staticMethod() → dynamic {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension on self::Class* {
+  method extensionInstanceMethod = self::Extension|extensionInstanceMethod;
+  tearoff extensionInstanceMethod = self::Extension|get#extensionInstanceMethod;
+  static method extensionStaticMethod = self::Extension|extensionStaticMethod;
+}
+@#C3
+static method Extension|extensionInstanceMethod(lowered final self::Class* #this) → dynamic {}
+static method Extension|get#extensionInstanceMethod(lowered final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::Extension|extensionInstanceMethod(#this);
+@#C3
+static method Extension|extensionStaticMethod() → dynamic {}
+@#C3
+static method topLevelMethod() → dynamic {}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = "dart2js:noInline"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///annotations.dart:
+- pragma._ (from org-dartlang-sdk:///sdk/lib/core/annotations.dart:188:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

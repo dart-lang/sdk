@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:14:17: Error: Constructors on abstract classes can't be torn off.
+//   AbstractClass.new; // error
+//                 ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:15:9: Error: Member not found: 'new'.
+//   Mixin.new; // error
+//         ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:17:33: Error: Constructors on abstract classes can't be torn off.
+//   AbstractNamedMixinApplication.new; // error
+//                                 ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:18:13: Error: Member not found: 'new'.
+//   Extension.new; // error
+//             ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class ConcreteClass extends core::Object {
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+}
+abstract class AbstractClass extends core::Object {
+  synthetic constructor •() → self::AbstractClass
+    : super core::Object::•()
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+class NamedMixinApplication = core::Object with self::Mixin /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::NamedMixinApplication
+    : super core::Object::•()
+    ;
+}
+abstract class AbstractNamedMixinApplication = core::Object with self::Mixin /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::AbstractNamedMixinApplication
+    : super core::Object::•()
+    ;
+}
+extension Extension on core::int {
+}
+static method test() → dynamic {
+  #C1;
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:14:17: Error: Constructors on abstract classes can't be torn off.
+  AbstractClass.new; // error
+                ^^^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:15:9: Error: Member not found: 'new'.
+  Mixin.new; // error
+        ^^^";
+  #C2;
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:17:33: Error: Constructors on abstract classes can't be torn off.
+  AbstractNamedMixinApplication.new; // error
+                                ^^^";
+  invalid-expression "pkg/front_end/testcases/constructor_tearoffs/abstract_class_constructor_tear_off.dart:18:13: Error: Member not found: 'new'.
+  Extension.new; // error
+            ^^^";
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::ConcreteClass::•
+  #C2 = constructor-tearoff self::NamedMixinApplication::•
+}

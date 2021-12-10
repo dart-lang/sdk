@@ -2104,6 +2104,7 @@ class OutlineBuilder extends StackListenerImpl {
           type,
           name == null ? FormalParameterBuilder.noNameSentinel : name as String,
           thisKeyword != null,
+          superKeyword != null,
           charOffset,
           initializerStart));
     }

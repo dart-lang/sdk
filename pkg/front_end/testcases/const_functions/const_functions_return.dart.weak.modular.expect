@@ -1,0 +1,41 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static const field void var1 = #C1;
+static const field void var2 = #C1;
+static const field core::int? var3 = #C1;
+static const field core::int? var4 = #C1;
+static const field core::int var5 = #C2;
+static method fn() → void {}
+static method fn2() → void {
+  return;
+}
+static method fn3() → core::int?
+  return null;
+static method fn4() → core::int? {
+  return null;
+}
+static method fn5() → core::int {
+  try {
+    return throw 1;
+  }
+  on core::int catch(no-exception-var) {
+    return 2;
+  }
+}
+static method main() → void {
+  exp::Expect::equals(#C1 as{ForNonNullableByDefault} dynamic, null);
+  exp::Expect::equals(#C1 as{ForNonNullableByDefault} dynamic, null);
+  exp::Expect::equals(#C1, null);
+  exp::Expect::equals(#C1, null);
+  exp::Expect::equals(#C2, 2);
+}
+
+constants  {
+  #C1 = null
+  #C2 = 2
+}

@@ -1,0 +1,47 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  lowered core::int? #lateLocal;
+  lowered core::bool #lateLocal#isSet = false;
+  function #lateLocal#get() → core::int {
+    if(!#lateLocal#isSet) {
+      #lateLocal = 123;
+      #lateLocal#isSet = true;
+    }
+    return #lateLocal{core::int};
+  }
+  function #lateLocal#set(core::int #t1) → dynamic {
+    #lateLocal#isSet = true;
+    return #lateLocal = #t1;
+  }
+  self::expect(123, #lateLocal#get(){() → core::int});
+  self::expect(124, #lateLocal#set(124){(core::int) → dynamic});
+  self::expect(124, #lateLocal#get(){() → core::int});
+  function local<T extends core::Object? = dynamic>(T% value1, T% value2) → Null {
+    lowered T? #lateGenericLocal;
+    lowered core::bool #lateGenericLocal#isSet = false;
+    function #lateGenericLocal#get() → T% {
+      if(!#lateGenericLocal#isSet) {
+        #lateGenericLocal = value1;
+        #lateGenericLocal#isSet = true;
+      }
+      return #lateGenericLocal{T%};
+    }
+    function #lateGenericLocal#set(T% #t2) → dynamic {
+      #lateGenericLocal#isSet = true;
+      return #lateGenericLocal = #t2;
+    }
+    self::expect(value1, #lateGenericLocal#get(){() → T%});
+    self::expect(value2, #lateGenericLocal#set(value2){(T%) → dynamic});
+    self::expect(value2, #lateGenericLocal#get(){() → T%});
+  }
+  local<core::int?>(null, 0){(core::int?, core::int?) → Null};
+  local<core::int?>(0, null){(core::int?, core::int?) → Null};
+  local<core::int>(0, 42){(core::int, core::int) → Null};
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

@@ -1,0 +1,50 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/issue_000039.dart:10:3: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
+//   }
+//   ^
+//
+// pkg/front_end/testcases/rasta/issue_000039.dart:10:3: Error: Expected an identifier, but got ''.
+// Try inserting an identifier before ''.
+//   }
+//   ^
+//
+// pkg/front_end/testcases/rasta/issue_000039.dart:9:15: Error: Expected ';' after this.
+//     this.a = x.
+//               ^
+//
+// pkg/front_end/testcases/rasta/issue_000039.dart:13:7: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+// class B extends A {
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic a = null;
+  constructor •(dynamic x) → self::A*
+    : super core::Object::•() {
+    this.{self::A::a} = invalid-expression "pkg/front_end/testcases/rasta/issue_000039.dart:10:3: Error: Expected an identifier, but got ''.
+Try inserting an identifier before ''.
+  }
+  ^";
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : invalid-initializer
+    ;
+}

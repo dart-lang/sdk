@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method f<T extends core::Object* = dynamic>() → self::f::T*
+  return null;
+static method test() → void {
+  assert(self::f<core::bool*>());
+  assert(self::f<core::bool*>(), self::f<dynamic>());
+}
+static method main() → dynamic {}

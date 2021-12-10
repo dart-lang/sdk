@@ -1,0 +1,191 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:46: Error: Undefined name 'x'.
+// var b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
+//                                              ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:21:34: Error: Undefined name 'x'.
+//   /*error:UNDEFINED_IDENTIFIER*/ x
+//                                  ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The operator 'unary-' isn't defined for the class 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+// Try correcting the operator to an existing operator, or defining a 'unary-' operator.
+// var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();
+//                                                          ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:36:36: Error: A value of type 'String' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+//   a = /*error:INVALID_ASSIGNMENT*/ "hi";
+//                                    ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:38:36: Error: A value of type 'String' can't be assigned to a variable of type 'B'.
+//  - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+//   b = /*error:INVALID_ASSIGNMENT*/ "hi";
+//                                    ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:41:59: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'List<invalid-type>'.
+//  - 'Set' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+//   c1 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};
+//                                                           ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:43:59: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'List<dynamic>'.
+//  - 'Set' is from 'dart:core'.
+//  - 'List' is from 'dart:core'.
+//   c2 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};
+//                                                           ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:45:36: Error: A value of type 'int' can't be assigned to a variable of type 'Map<dynamic, dynamic>'.
+//  - 'Map' is from 'dart:core'.
+//   d = /*error:INVALID_ASSIGNMENT*/ 3;
+//                                    ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:47:67: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'A'.
+//  - 'Map' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+//   e = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic, dynamic*/ {};
+//                                                                   ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:49:36: Error: A value of type 'bool' can't be assigned to a variable of type 'int'.
+//   f = /*error:INVALID_ASSIGNMENT*/ false;
+//                                    ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:51:36: Error: A value of type 'bool' can't be assigned to a variable of type 'int'.
+//   g = /*error:INVALID_ASSIGNMENT*/ false;
+//                                    ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:52:36: Error: A value of type 'bool' can't be assigned to a variable of type 'B'.
+//  - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+//   h = /*error:INVALID_ASSIGNMENT*/ false;
+//                                    ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:56:36: Error: A value of type 'bool' can't be assigned to a variable of type 'B'.
+//  - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+//   j = /*error:INVALID_ASSIGNMENT*/ false;
+//                                    ^
+//
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:57:58: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'B'.
+//  - 'List' is from 'dart:core'.
+//  - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+//   j = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ [];
+//                                                          ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class A extends core::Object {
+  field core::int* x = null;
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → self::B*
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  constructor •(dynamic ignore) → self::B*
+    : super self::A::•()
+    ;
+}
+static field self::A* a = new self::A::•();
+static field self::B* b = new self::B::•(invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:46: Error: Undefined name 'x'.
+var b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
+                                             ^");
+static field core::List<invalid-type>* c1 = <invalid-type>[invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:21:34: Error: Undefined name 'x'.
+  /*error:UNDEFINED_IDENTIFIER*/ x
+                                 ^"];
+static field core::List<dynamic>* c2 = #C1;
+static field core::Map<dynamic, dynamic>* d = <dynamic, dynamic>{"a": "b"};
+static field self::A* e = let final self::A* #t1 = new self::A::•() in block {
+  #t1.{self::A::x} = 3;
+} =>#t1;
+static field core::int* f = 2.{core::num::+}(3){(core::num*) →* core::int*};
+static field core::int* g = 3.{core::int::unary-}(){() →* core::int*};
+static field self::B* h = new self::A::•().{self::A::+}(3){(dynamic) →* self::B*};
+static field dynamic i = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The operator 'unary-' isn't defined for the class 'A'.
+ - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+Try correcting the operator to an existing operator, or defining a 'unary-' operator.
+var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();
+                                                         ^" in new self::A::•(){<unresolved>}.unary-();
+static field self::B* j = null as self::B*;
+static method test1() → dynamic {
+  self::a = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:36:36: Error: A value of type 'String' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+  a = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                   ^" in "hi" as{TypeError} self::A*;
+  self::a = new self::B::•(3);
+  self::b = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:38:36: Error: A value of type 'String' can't be assigned to a variable of type 'B'.
+ - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+  b = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                   ^" in "hi" as{TypeError} self::B*;
+  self::b = new self::B::•(3);
+  self::c1 = <invalid-type>[];
+  self::c1 = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:41:59: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'List<invalid-type>'.
+ - 'Set' is from 'dart:core'.
+ - 'List' is from 'dart:core'.
+  c1 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};
+                                                          ^" in ( block {
+    final core::Set<dynamic>* #t2 = col::LinkedHashSet::•<dynamic>();
+  } =>#t2) as{TypeError} core::List<invalid-type>*;
+  self::c2 = <dynamic>[];
+  self::c2 = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:43:59: Error: A value of type 'Set<dynamic>' can't be assigned to a variable of type 'List<dynamic>'.
+ - 'Set' is from 'dart:core'.
+ - 'List' is from 'dart:core'.
+  c2 = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ {};
+                                                          ^" in ( block {
+    final core::Set<dynamic>* #t3 = col::LinkedHashSet::•<dynamic>();
+  } =>#t3) as{TypeError} core::List<dynamic>*;
+  self::d = <dynamic, dynamic>{};
+  self::d = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:45:36: Error: A value of type 'int' can't be assigned to a variable of type 'Map<dynamic, dynamic>'.
+ - 'Map' is from 'dart:core'.
+  d = /*error:INVALID_ASSIGNMENT*/ 3;
+                                   ^" in 3 as{TypeError} core::Map<dynamic, dynamic>*;
+  self::e = new self::A::•();
+  self::e = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:47:67: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'A'.
+ - 'Map' is from 'dart:core'.
+ - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+  e = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic, dynamic*/ {};
+                                                                  ^" in <dynamic, dynamic>{} as{TypeError} self::A*;
+  self::f = 3;
+  self::f = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:49:36: Error: A value of type 'bool' can't be assigned to a variable of type 'int'.
+  f = /*error:INVALID_ASSIGNMENT*/ false;
+                                   ^" in false as{TypeError} core::int*;
+  self::g = 1;
+  self::g = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:51:36: Error: A value of type 'bool' can't be assigned to a variable of type 'int'.
+  g = /*error:INVALID_ASSIGNMENT*/ false;
+                                   ^" in false as{TypeError} core::int*;
+  self::h = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:52:36: Error: A value of type 'bool' can't be assigned to a variable of type 'B'.
+ - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+  h = /*error:INVALID_ASSIGNMENT*/ false;
+                                   ^" in false as{TypeError} self::B*;
+  self::h = new self::B::•("b");
+  self::i = false;
+  self::j = new self::B::•("b");
+  self::j = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:56:36: Error: A value of type 'bool' can't be assigned to a variable of type 'B'.
+ - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+  j = /*error:INVALID_ASSIGNMENT*/ false;
+                                   ^" in false as{TypeError} self::B*;
+  self::j = invalid-expression "pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:57:58: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'B'.
+ - 'List' is from 'dart:core'.
+ - 'B' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
+  j = /*error:INVALID_ASSIGNMENT*/ /*@typeArgs=dynamic*/ [];
+                                                         ^" in <dynamic>[] as{TypeError} self::B*;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = <dynamic>[]
+}

@@ -1,0 +1,37 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/dependency_only_if_generic_method.dart:18:5: Error: Can't infer the type of 'b': circularity found during type inference.
+// Specify the type explicitly.
+// var b = /*@ returnType=() ->* invalid-type */ () =>
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  method f<T extends core::Object* = dynamic>(self::A::f::T* t) → self::A::f::T*
+    return t;
+  method g(dynamic i) → core::int*
+    return 0;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field self::A* a = new self::A::•();
+static field invalid-type b = () → () →* invalid-type => self::a.{self::A::f}<() →* invalid-type>(self::c){(() →* invalid-type) →* () →* invalid-type};
+static field () →* invalid-type c = () → invalid-type => self::a.{self::A::f}<invalid-type>(self::b){(invalid-type) →* invalid-type};
+static field () →* () →* core::int* d = () → () →* core::int* => self::a.{self::A::f}<() →* core::int*>(self::e){(() →* core::int*) →* () →* core::int*};
+static field () →* core::int* e = () → core::int* => self::a.{self::A::g}(self::d){(dynamic) →* core::int*};
+static method main() → dynamic {}

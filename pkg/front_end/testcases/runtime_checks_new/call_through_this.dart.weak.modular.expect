@@ -1,0 +1,49 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<contravariant T extends core::Object* = dynamic> = (T*) →* dynamic;
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
+    : super core::Object::•()
+    ;
+  method f(covariant-by-class self::C::T* x) → void {}
+  method g1(covariant-by-class self::C::T* x) → void {
+    this.{self::C::f}(x){(self::C::T*) →* void};
+  }
+  method g2(covariant-by-class self::C::T* x) → void {
+    this.{self::C::f}(x){(self::C::T*) →* void};
+  }
+  method g3(covariant-by-class self::C<self::C::T*>* c, covariant-by-class self::C::T* x) → void {
+    c.{self::C::f}(x){(self::C::T*) →* void};
+  }
+  method g4() → (self::C::T*) →* dynamic
+    return this.{self::C::f}{(self::C::T*) →* void};
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D extends self::C<core::int*> {
+  synthetic constructor •() → self::D*
+    : super self::C::•()
+    ;
+}
+class E extends self::C<core::num*> {
+  synthetic constructor •() → self::E*
+    : super self::C::•()
+    ;
+  method f(covariant-by-declaration covariant-by-class core::int* x) → void {}
+}
+static method test() → dynamic {
+  (core::Object*) →* dynamic x = (new self::D::•().{self::C::g4}(){() →* (core::int*) →* dynamic} as{TypeError,CovarianceCheck} (core::int*) →* dynamic) as (core::Object*) →* dynamic;
+  x("hi"){(core::Object*) →* dynamic};
+  new self::E::•().{self::C::g1}(1.5){(core::num*) →* void};
+}
+static method main() → dynamic {}

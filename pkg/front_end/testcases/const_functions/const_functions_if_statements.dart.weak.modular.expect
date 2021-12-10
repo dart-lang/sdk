@@ -1,0 +1,86 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = #C1;
+static const field core::int var2 = #C2;
+static const field core::int var3 = #C3;
+static const field core::int one = #C4;
+static const field core::int var4 = #C1;
+static const field core::int var5 = #C2;
+static const field core::int var6 = #C1;
+static const field core::int var6_1 = #C2;
+static const field core::int var6_2 = #C3;
+static const field core::int var7 = #C5;
+static const field core::int var8 = #C6;
+static method ifTest(core::int a) → core::int {
+  if(a =={core::num::==}{(core::Object) → core::bool} 1) {
+    return 100;
+  }
+  else
+    if(a =={core::num::==}{(core::Object) → core::bool} 2) {
+      return 200;
+    }
+    else {
+      return 300;
+    }
+}
+static method ifTest2(core::int a) → core::int {
+  if(a =={core::num::==}{(core::Object) → core::bool} #C4) {
+    return 100;
+  }
+  else {
+    return 200;
+  }
+}
+static method ifTest3(core::int a) → core::int {
+  if(a.{core::num::>}(0){(core::num) → core::bool}) {
+    if(a =={core::num::==}{(core::Object) → core::bool} 1)
+      return 100;
+    return 200;
+  }
+  return 300;
+}
+static method ifTest4(core::int a) → core::int {
+  core::int b = a;
+  if(a =={core::num::==}{(core::Object) → core::bool} 1) {
+    b = b.{core::num::+}(a){(core::num) → core::int};
+    if(a.{core::num::%}(2){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
+      b = b.{core::num::+}(a){(core::num) → core::int};
+    }
+  }
+  else
+    if(a =={core::num::==}{(core::Object) → core::bool} 2) {
+      b = b.{core::num::-}(a){(core::num) → core::int};
+    }
+  return b;
+}
+static method ifTest5() → core::int {
+  core::int x = 10;
+  if(true) {
+    core::int x = 20;
+  }
+  return x;
+}
+static method main() → void {
+  exp::Expect::equals(#C1, 100);
+  exp::Expect::equals(#C2, 200);
+  exp::Expect::equals(#C3, 300);
+  exp::Expect::equals(#C1, 100);
+  exp::Expect::equals(#C2, 200);
+  exp::Expect::equals(#C1, 100);
+  exp::Expect::equals(#C5, 3);
+  exp::Expect::equals(#C6, 10);
+}
+
+constants  {
+  #C1 = 100
+  #C2 = 200
+  #C3 = 300
+  #C4 = 1
+  #C5 = 3
+  #C6 = 10
+}

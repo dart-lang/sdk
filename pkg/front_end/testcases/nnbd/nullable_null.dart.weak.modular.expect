@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+}
+class B extends self::A<Null> {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method foo(Null n, self::A<Null> an) → Null
+    return n;
+}
+static method foo() → dynamic {
+  return <core::List<self::A<Null>?>>[<Null>[], <self::A<Null>>[]];
+}
+static method bar() → dynamic {
+  return <core::List<self::A<Null>?>>[#C1, #C2];
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = <Null>[]
+  #C2 = <self::A<Null>*>[]
+}

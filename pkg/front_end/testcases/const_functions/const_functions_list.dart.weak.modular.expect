@@ -1,0 +1,125 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static const field core::int firstVar = #C1;
+static const field core::int firstCatchVar = #C2;
+static const field core::bool isEmptyVar = #C3;
+static const field core::bool isNotEmptyVar = #C4;
+static const field core::int lastVar = #C5;
+static const field core::int lastCatchVar = #C2;
+static const field core::int lengthVar = #C5;
+static const field core::int singleVar = #C1;
+static const field core::int singleCatchVar = #C2;
+static const field core::int singleCatchVar2 = #C2;
+static const field core::int getWithIndexVar = #C1;
+static const field core::int rangeErrorCatchVar = #C2;
+static const field core::List<core::int> mutableListVar = #C6;
+static const field core::List<core::int> mutableListAddVar = #C8;
+static method firstFn() → core::int {
+  return #C6.{core::Iterable::first}{core::int};
+}
+static method firstCatchFn() → core::int {
+  try {
+    core::int v = #C9.{core::Iterable::first}{core::int};
+  }
+  on core::StateError catch(no-exception-var) {
+    return 0;
+  }
+  return 1;
+}
+static method isEmptyFn() → core::bool {
+  return #C6.{core::Iterable::isEmpty}{core::bool};
+}
+static method isNotEmptyFn() → core::bool {
+  return #C6.{core::Iterable::isNotEmpty}{core::bool};
+}
+static method lastFn() → core::int {
+  return #C6.{core::Iterable::last}{core::int};
+}
+static method lastCatchFn() → core::int {
+  try {
+    core::int v = #C9.{core::Iterable::last}{core::int};
+  }
+  on core::StateError catch(no-exception-var) {
+    return 0;
+  }
+  return 1;
+}
+static method lengthFn() → core::int {
+  return #C6.{core::List::length}{core::int};
+}
+static method singleFn() → core::int {
+  return #C10.{core::Iterable::single}{core::int};
+}
+static method singleCatchFn() → core::int {
+  try {
+    core::int v = #C9.{core::Iterable::single}{core::int};
+  }
+  on core::StateError catch(no-exception-var) {
+    return 0;
+  }
+  return 1;
+}
+static method singleCatchFn2() → core::int {
+  try {
+    core::int v = #C6.{core::Iterable::single}{core::int};
+  }
+  on core::StateError catch(no-exception-var) {
+    return 0;
+  }
+  return 1;
+}
+static method getWithIndexFn() → core::int {
+  return #C10.{core::List::[]}(0){(core::int) → core::int};
+}
+static method rangeErrorCatchFn() → core::int {
+  try {
+    core::int v = #C10.{core::List::[]}(1){(core::int) → core::int};
+  }
+  on core::RangeError catch(no-exception-var) {
+    return 0;
+  }
+  return 1;
+}
+static method mutableList() → core::List<core::int> {
+  core::List<core::int> x = <core::int>[1, 2];
+  return x;
+}
+static method mutableListAdd() → core::List<core::int> {
+  core::List<core::int> x = <core::int>[1, 2];
+  x.{core::List::add}(3){(core::int) → void};
+  return x;
+}
+static method main() → void {
+  exp::Expect::equals(#C1, 1);
+  exp::Expect::equals(#C2, 0);
+  exp::Expect::equals(#C3, false);
+  exp::Expect::equals(#C4, true);
+  exp::Expect::equals(#C5, 2);
+  exp::Expect::equals(#C2, 0);
+  exp::Expect::equals(#C5, 2);
+  exp::Expect::equals(#C1, 1);
+  exp::Expect::equals(#C2, 0);
+  exp::Expect::equals(#C2, 0);
+  exp::Expect::equals(#C1, 1);
+  exp::Expect::equals(#C2, 0);
+  exp::Expect::equals(#C6, #C6);
+  exp::Expect::equals(#C8, #C8);
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 0
+  #C3 = false
+  #C4 = true
+  #C5 = 2
+  #C6 = <core::int*>[#C1, #C5]
+  #C7 = 3
+  #C8 = <core::int*>[#C1, #C5, #C7]
+  #C9 = <core::int*>[]
+  #C10 = <core::int*>[#C1]
+}

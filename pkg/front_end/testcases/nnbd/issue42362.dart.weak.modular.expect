@@ -1,0 +1,233 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:45:16: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   method3([int i]) {} // error
+//                ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:47:16: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   method4({int i}) {} // error
+//                ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:8:24: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   A.constructor1([this.i]); // error
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:10:24: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   A.constructor2({this.i}); // error
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:12:23: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   A.constructor3([int i]) // error
+//                       ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:15:23: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   A.constructor4({int i}) // error
+//                       ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:41:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   factory A.factory8([int i]) => new A.constructor3(); // error
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:43:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   factory A.factory9({int i}) => new A.constructor4(); // error
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:106:12: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   method3([i]) {} // error
+//            ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:108:12: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   method4({i}) {} // error
+//            ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:77:24: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   C.constructor1([this.i]); // error
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:79:24: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   C.constructor2({this.i}); // error
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:81:23: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   C.constructor3([int i]) : this.i = i; // error
+//                       ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:83:23: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   C.constructor4({int i}) : this.i = i; // error
+//                       ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:102:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   factory C.factory8([int i]) => new C.constructor3(); // error
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:104:27: Error: The parameter 'i' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   factory C.factory9({int i}) => new C.constructor4(); // error
+//                           ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:19:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+//       : this.i = i; // error
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:22:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+//       : this.i = i; // error
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:85:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+//   C.constructor5([int? i]) : this.i = i; // error
+//                                       ^
+//
+// pkg/front_end/testcases/nnbd/issue42362.dart:87:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+//   C.constructor6({int? i}) : this.i = i; // error
+//                                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int i;
+  static final field dynamic _redirecting# = <dynamic>[#C1, #C2, #C3, #C4, #C5]/*isLegacy*/;
+  constructor constructor1([core::int i = #C6]) → self::A
+    : self::A::i = i, super core::Object::•()
+    ;
+  constructor constructor2({core::int i = #C6}) → self::A
+    : self::A::i = i, super core::Object::•()
+    ;
+  constructor constructor3([core::int i = #C6]) → self::A
+    : self::A::i = i, super core::Object::•()
+    ;
+  constructor constructor4({core::int i = #C6}) → self::A
+    : self::A::i = i, super core::Object::•()
+    ;
+  constructor constructor5([core::int? i = #C6]) → self::A
+    : self::A::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:19:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+      : this.i = i; // error
+                 ^" in i as{TypeError,ForNonNullableByDefault} core::int, super core::Object::•()
+    ;
+  constructor constructor6({core::int? i = #C6}) → self::A
+    : self::A::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:22:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+      : this.i = i; // error
+                 ^" in i as{TypeError,ForNonNullableByDefault} core::int, super core::Object::•()
+    ;
+  constructor constructor7({required core::int i = #C6}) → self::A
+    : self::A::i = i, super core::Object::•()
+    ;
+  external constructor constructor8([core::int i = #C6]) → self::A
+    : super core::Object::•()
+    ;
+  external constructor constructor9({core::int i = #C6}) → self::A
+    : super core::Object::•()
+    ;
+  static factory factory3([core::int i = #C6]) → self::A
+    return new self::A::constructor3(i);
+  static factory factory4({core::int i = #C6}) → self::A
+    return new self::A::constructor4(i: i);
+  static factory factory5([core::int? i = #C6]) → self::A
+    return new self::A::constructor5(i);
+  static factory factory6({core::int? i = #C6}) → self::A
+    return new self::A::constructor6(i: i);
+  static factory factory7({required core::int i = #C6}) → self::A
+    return new self::A::constructor7(i: i);
+  static factory factory8([core::int i = #C6]) → self::A
+    return new self::A::constructor3();
+  static factory factory9({core::int i = #C6}) → self::A
+    return new self::A::constructor4();
+  method method3([core::int i = #C6]) → dynamic {}
+  method method4({core::int i = #C6}) → dynamic {}
+  method method5([core::int? i = #C6]) → dynamic {}
+  method method6({core::int? i = #C6}) → dynamic {}
+  method method7({required core::int i = #C6}) → dynamic {}
+  external method method8([core::int i = #C6]) → dynamic;
+  external method method9({core::int i = #C6}) → dynamic;
+}
+abstract class B extends core::Object {
+  field core::int i = 42;
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  abstract method method3([core::int i = #C6]) → dynamic;
+  abstract method method4({core::int i = #C6}) → dynamic;
+  abstract method method5([core::int? i = #C6]) → dynamic;
+  abstract method method6({core::int? i = #C6}) → dynamic;
+  abstract method method7({required core::int i = #C6}) → dynamic;
+}
+class C extends core::Object implements self::B {
+  field core::int i;
+  static final field dynamic _redirecting# = <dynamic>[#C7, #C8, #C9, #C10, #C11]/*isLegacy*/;
+  constructor constructor1([core::int i = #C6]) → self::C
+    : self::C::i = i, super core::Object::•()
+    ;
+  constructor constructor2({core::int i = #C6}) → self::C
+    : self::C::i = i, super core::Object::•()
+    ;
+  constructor constructor3([core::int i = #C6]) → self::C
+    : self::C::i = i, super core::Object::•()
+    ;
+  constructor constructor4({core::int i = #C6}) → self::C
+    : self::C::i = i, super core::Object::•()
+    ;
+  constructor constructor5([core::int? i = #C6]) → self::C
+    : self::C::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:85:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+  C.constructor5([int? i]) : this.i = i; // error
+                                      ^" in i as{TypeError,ForNonNullableByDefault} core::int, super core::Object::•()
+    ;
+  constructor constructor6({core::int? i = #C6}) → self::C
+    : self::C::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:87:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
+  C.constructor6({int? i}) : this.i = i; // error
+                                      ^" in i as{TypeError,ForNonNullableByDefault} core::int, super core::Object::•()
+    ;
+  constructor constructor7({required core::int i = #C6}) → self::C
+    : self::C::i = i, super core::Object::•()
+    ;
+  static factory factory3([core::int i = #C6]) → self::C
+    return new self::C::constructor3(i);
+  static factory factory4({core::int i = #C6}) → self::C
+    return new self::C::constructor4(i: i);
+  static factory factory5([core::int? i = #C6]) → self::C
+    return new self::C::constructor5(i);
+  static factory factory6({core::int? i = #C6}) → self::C
+    return new self::C::constructor6(i: i);
+  static factory factory7({required core::int i = #C6}) → self::C
+    return new self::C::constructor7(i: i);
+  static factory factory8([core::int i = #C6]) → self::C
+    return new self::C::constructor3();
+  static factory factory9({core::int i = #C6}) → self::C
+    return new self::C::constructor4();
+  method method3([core::int i = #C6]) → dynamic {}
+  method method4({core::int i = #C6}) → dynamic {}
+  method method5([core::int? i = #C6]) → dynamic {}
+  method method6({core::int? i = #C6}) → dynamic {}
+  method method7({required core::int i = #C6}) → dynamic {}
+}
+static method main() → void {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::factory3
+  #C2 = constructor-tearoff self::A::factory4
+  #C3 = constructor-tearoff self::A::factory5
+  #C4 = constructor-tearoff self::A::factory6
+  #C5 = constructor-tearoff self::A::factory7
+  #C6 = null
+  #C7 = constructor-tearoff self::C::factory3
+  #C8 = constructor-tearoff self::C::factory4
+  #C9 = constructor-tearoff self::C::factory5
+  #C10 = constructor-tearoff self::C::factory6
+  #C11 = constructor-tearoff self::C::factory7
+}

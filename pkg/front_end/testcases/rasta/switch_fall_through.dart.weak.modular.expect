@@ -1,0 +1,99 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:7:5: Error: Switch case may fall through to the next case.
+//     case 1:
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:13:5: Error: Switch case may fall through to the next case.
+//     case 2:
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:20:5: Error: Switch case may fall through to the next case.
+//     case 3:
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:26:5: Error: Switch case may fall through to the next case.
+//     case 4:
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:31:5: Error: Switch case may fall through to the next case.
+//     case 5:
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  #L1:
+  switch(1) {
+    #L2:
+    case #C1:
+      {
+        {
+          "No fall-through error needed.";
+          break #L1;
+          ;
+        }
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 7);
+      }
+    #L3:
+    case #C2:
+      {
+        {
+          "Fall-through error needed.";
+          if(true) {
+            break #L1;
+          }
+        }
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 13);
+      }
+    #L4:
+    case #C3:
+      {
+        try {
+          "No fall-through error needed.";
+        }
+        finally {
+          break #L1;
+        }
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 20);
+      }
+    #L5:
+    case #C4:
+      {
+        try {
+          "No fall-through error needed.";
+          break #L1;
+        }
+        finally {
+        }
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 26);
+      }
+    #L6:
+    case #C5:
+      {
+        try {
+          "Fall-through error needed.";
+        }
+        finally {
+        }
+        throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 31);
+      }
+    #L7:
+    case #C6:
+      {
+        "Should be last. No fall-through error, falling through allowed here.";
+      }
+  }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = 4
+  #C5 = 5
+  #C6 = 10000
+}

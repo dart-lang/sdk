@@ -1,0 +1,69 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31198.dart:10:24: Error: Expected an identifier, but got ')'.
+// Try inserting an identifier before ')'.
+//   B.named2(): super().() {}
+//                        ^
+//
+// pkg/front_end/testcases/regress/issue_31198.dart:8:8: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//   B(): super().foo() {}
+//        ^
+//
+// pkg/front_end/testcases/regress/issue_31198.dart:8:16: Error: Expected an initializer.
+//   B(): super().foo() {}
+//                ^
+//
+// pkg/front_end/testcases/regress/issue_31198.dart:9:23: Error: Expected identifier, but got 'super'.
+//   B.named1(): super().super() {}
+//                       ^^^^^
+//
+// pkg/front_end/testcases/regress/issue_31198.dart:10:23: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   B.named2(): super().() {}
+//                       ^
+//
+// pkg/front_end/testcases/regress/issue_31198.dart:10:23: Error: Expected an initializer.
+//   B.named2(): super().() {}
+//                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  constructor •() → self::B*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_31198.dart:8:8: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+  B(): super().foo() {}
+       ^"{dynamic}.foo() {}
+  constructor named1() → self::B*
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/regress/issue_31198.dart:9:23: Error: Expected identifier, but got 'super'.
+  B.named1(): super().super() {}
+                      ^^^^^" {}
+  constructor named2() → self::B*
+    : final dynamic #t3 = invalid-expression "pkg/front_end/testcases/regress/issue_31198.dart:10:23: Error: Expected an identifier, but got '('.
+Try inserting an identifier before '('.
+  B.named2(): super().() {}
+                      ^" {}
+}
+static method bad() → dynamic {
+  new self::B::•();
+}
+static method main() → dynamic {}

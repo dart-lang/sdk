@@ -1,0 +1,35 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Superclass extends core::Object {
+  synthetic constructor •() → self::Superclass
+    : super core::Object::•()
+    ;
+  method foo({dynamic alpha = #C1, dynamic beta = #C1}) → dynamic {}
+  method bar({dynamic beta = #C1, dynamic alpha = #C1}) → dynamic {}
+  method namedCallback(({alpha: core::String, beta: core::int}) → dynamic callback) → dynamic {
+    callback(alpha: "one", beta: 2){({alpha: core::String, beta: core::int}) → dynamic};
+    callback(beta: 1, alpha: "two"){({alpha: core::String, beta: core::int}) → dynamic};
+  }
+}
+class Subclass extends self::Superclass {
+  synthetic constructor •() → self::Subclass
+    : super self::Superclass::•()
+    ;
+  method foo({dynamic beta = #C1, dynamic alpha = #C1}) → dynamic {}
+  method bar({dynamic alpha = #C1, dynamic beta = #C1}) → dynamic {}
+  method namedCallback(({alpha: core::String, beta: core::int}) → dynamic callback) → dynamic {}
+}
+static method topLevelNamed(dynamic beta, dynamic alpha, {dynamic gamma = #C1, dynamic delta = #C1}) → dynamic {}
+static method topLevelOptional(dynamic beta, dynamic alpha, [dynamic gamma = #C1, dynamic delta = #C1]) → dynamic {}
+static method main() → dynamic {
+  new self::Subclass::•().{self::Subclass::foo}(beta: 1, alpha: 2){({alpha: dynamic, beta: dynamic}) → dynamic};
+  new self::Subclass::•().{self::Subclass::foo}(alpha: 1, beta: 2){({alpha: dynamic, beta: dynamic}) → dynamic};
+  self::topLevelNamed(1, 2, gamma: 3, delta: 4);
+  self::topLevelNamed(1, 2, delta: 3, gamma: 4);
+}
+
+constants  {
+  #C1 = null
+}

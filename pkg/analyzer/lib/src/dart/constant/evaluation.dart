@@ -220,7 +220,7 @@ class ConstantEvaluationEngine {
           if (superclass != null && !superclass.isDartCoreObject) {
             var unnamedConstructor =
                 superclass.element.unnamedConstructor?.declaration;
-            if (unnamedConstructor != null) {
+            if (unnamedConstructor != null && unnamedConstructor.isConst) {
               callback(unnamedConstructor);
             }
           }

@@ -1,0 +1,51 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/incomplete_field_formal_parameter.dart:6:7: Error: 'this' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   C.a(this);
+//       ^^^^
+//
+// pkg/front_end/testcases/general/incomplete_field_formal_parameter.dart:7:12: Error: Expected an identifier, but got ')'.
+// Try inserting an identifier before ')'.
+//   C.b(this.);
+//            ^
+//
+// pkg/front_end/testcases/general/incomplete_field_formal_parameter.dart:8:7: Error: 'this' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   C.c(this, p);
+//       ^^^^
+//
+// pkg/front_end/testcases/general/incomplete_field_formal_parameter.dart:9:12: Error: Expected an identifier, but got ','.
+// Try inserting an identifier before ','.
+//   C.d(this., p);
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor a(dynamic this) → self::C*
+    : super core::Object::•()
+    ;
+  constructor b() → self::C*
+    : super core::Object::•()
+    ;
+  constructor c(dynamic this, dynamic p) → self::C*
+    : super core::Object::•()
+    ;
+  constructor d() → self::C*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}

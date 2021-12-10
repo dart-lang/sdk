@@ -20,6 +20,7 @@ import 'analysis.dart';
 import 'calls.dart';
 import 'signature_shaking.dart';
 import 'protobuf_handler.dart' show ProtobufHandler;
+import 'rta.dart' show RapidTypeAnalysis;
 import 'summary.dart';
 import 'table_selector_assigner.dart';
 import 'types.dart';
@@ -44,7 +45,8 @@ Component transformComponent(
     {PragmaAnnotationParser? matcher,
     bool treeShakeSignatures: true,
     bool treeShakeWriteOnlyFields: true,
-    bool treeShakeProtobufs: false}) {
+    bool treeShakeProtobufs: false,
+    bool useRapidTypeAnalysis: true}) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component, coreTypes,
           onAmbiguousSupertypes: ignoreAmbiguousSupertypes)
@@ -58,6 +60,25 @@ Component transformComponent(
       : null;
 
   Statistics.reset();
+
+  CleanupAnnotations(coreTypes, libraryIndex, protobufHandler)
+      .visitComponent(component);
+
+  Stopwatch? rtaStopWatch;
+  RapidTypeAnalysis? rta;
+  if (useRapidTypeAnalysis) {
+    // Rapid type analysis (RTA) is used to quickly calculate
+    // the set of allocated classes to make the subsequent
+    // type flow analysis converge much faster.
+    rtaStopWatch = new Stopwatch()..start();
+    final protobufHandlerRta = treeShakeProtobufs
+        ? ProtobufHandler.forComponent(component, coreTypes)
+        : null;
+    rta = RapidTypeAnalysis(
+        component, coreTypes, hierarchy, libraryIndex, protobufHandlerRta);
+    rtaStopWatch.stop();
+  }
+
   final analysisStopWatch = new Stopwatch()..start();
 
   MoveFieldInitializers().transformComponent(component);
@@ -81,8 +102,11 @@ Component transformComponent(
     typeFlowAnalysis.addRawCall(mainSelector);
   }
 
-  CleanupAnnotations(coreTypes, libraryIndex, protobufHandler)
-      .visitComponent(component);
+  if (useRapidTypeAnalysis) {
+    for (Class c in rta!.allocatedClasses) {
+      typeFlowAnalysis.addAllocatedClass(c);
+    }
+  }
 
   typeFlowAnalysis.process();
 
@@ -119,6 +143,9 @@ Component transformComponent(
 
   transformsStopWatch.stop();
 
+  if (useRapidTypeAnalysis) {
+    statPrint("RTA took ${rtaStopWatch!.elapsedMilliseconds}ms");
+  }
   statPrint("TF analysis took ${analysisStopWatch.elapsedMilliseconds}ms");
   statPrint("TF transforms took ${transformsStopWatch.elapsedMilliseconds}ms");
 

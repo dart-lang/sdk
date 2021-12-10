@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {}
+static method test<X extends Null, Y extends Never?, Z extends Never>() → dynamic {
+  (Null) → core::int f = (core::Object? x) → core::int => 1;
+  (Never) → core::int g = (core::Object? x) → core::int => 1;
+  (Never?) → core::int h = (core::Object? x) → core::int => 1;
+  (core::String) → core::int i = (core::String x) → core::int => 1;
+  (self::test::X%) → core::int j = (core::Object? x) → core::int => 1;
+  (self::test::Y%) → core::int k = (core::Object? x) → core::int => 1;
+  (self::test::Z) → core::int l = (core::Object? x) → core::int => 1;
+  (self::test::Z?) → core::int m = (core::Object? x) → core::int => 1;
+}

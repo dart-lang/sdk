@@ -1,0 +1,136 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:48:10: Error: The getter 'missingField' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
+//     this.missingField;
+//          ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:49:10: Error: The setter 'missingField' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
+//     this.missingField = 0;
+//          ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:50:10: Error: The method 'missingMethod' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
+//     this.missingMethod();
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:52:5: Error: The getter 'missingField' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
+//     missingField;
+//     ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:53:5: Error: The setter 'missingField' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
+//     missingField = 0;
+//     ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/warn_unresolved_sends.dart:54:5: Error: The method 'missingMethod' isn't defined for the class 'D'.
+//  - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
+//     missingMethod();
+//     ^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic superField = null;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  method superMethod() → dynamic {}
+  get setterOnly() → dynamic
+    return null;
+  set setterOnly(dynamic _) → void {}
+  get getterOnly() → dynamic
+    return null;
+  set getterOnly(dynamic _) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D extends self::C {
+  field dynamic field = null;
+  synthetic constructor •() → self::D*
+    : super self::C::•()
+    ;
+  set setterOnly(dynamic _) → void {}
+  get getterOnly() → dynamic
+    return null;
+  method method() → dynamic {}
+  method test() → void {
+    this.{self::D::field}{dynamic};
+    this.{self::C::superField}{dynamic};
+    this.{self::D::field} = 0;
+    this.{self::C::superField} = 0;
+    this.{self::D::method}(){() →* dynamic};
+    this.{self::C::superMethod}(){() →* dynamic};
+    this.{self::C::setterOnly}{dynamic};
+    this.{self::D::setterOnly} = 0;
+    this.{self::D::getterOnly}{dynamic};
+    this.{self::C::getterOnly} = 0;
+    this.{self::D::field}{dynamic};
+    this.{self::C::superField}{dynamic};
+    this.{self::D::field} = 0;
+    this.{self::C::superField} = 0;
+    this.{self::D::method}(){() →* dynamic};
+    this.{self::C::superMethod}(){() →* dynamic};
+    this.{self::C::setterOnly}{dynamic};
+    this.{self::D::setterOnly} = 0;
+    this.{self::D::getterOnly}{dynamic};
+    this.{self::C::getterOnly} = 0;
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:48:10: Error: The getter 'missingField' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
+    this.missingField;
+         ^^^^^^^^^^^^" in this{<unresolved>}.missingField;
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:49:10: Error: The setter 'missingField' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
+    this.missingField = 0;
+         ^^^^^^^^^^^^" in this{<unresolved>}.missingField = 0;
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:50:10: Error: The method 'missingMethod' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
+    this.missingMethod();
+         ^^^^^^^^^^^^^" in this{<unresolved>}.missingMethod();
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:52:5: Error: The getter 'missingField' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.
+    missingField;
+    ^^^^^^^^^^^^" in this{<unresolved>}.missingField;
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:53:5: Error: The setter 'missingField' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.
+    missingField = 0;
+    ^^^^^^^^^^^^" in this{<unresolved>}.missingField = 0;
+    invalid-expression "pkg/front_end/testcases/general/warn_unresolved_sends.dart:54:5: Error: The method 'missingMethod' isn't defined for the class 'D'.
+ - 'D' is from 'pkg/front_end/testcases/general/warn_unresolved_sends.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'missingMethod'.
+    missingMethod();
+    ^^^^^^^^^^^^^" in this{<unresolved>}.missingMethod();
+  }
+}
+class E extends self::D {
+  field dynamic missingField = null;
+  synthetic constructor •() → self::E*
+    : super self::D::•()
+    ;
+  method missingMethod() → void {}
+}
+static method main() → dynamic {}

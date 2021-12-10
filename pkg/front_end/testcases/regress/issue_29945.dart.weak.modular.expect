@@ -1,0 +1,13 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29945.dart:6:3: Error: 's.bool' can't be used as a type because 's' isn't defined.
+//   s.bool x = null;
+//   ^^^^^^
+//
+import self as self;
+
+static method main() → dynamic {
+  invalid-type x = null;
+}

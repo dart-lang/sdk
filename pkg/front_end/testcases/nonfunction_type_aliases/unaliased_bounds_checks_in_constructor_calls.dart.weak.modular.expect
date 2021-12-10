@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/unaliased_bounds_checks_in_constructor_calls.dart:9:7: Error: Type argument 'dynamic' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   new A<dynamic, String>();
+//       ^
+// pkg/front_end/testcases/nonfunction_type_aliases/unaliased_bounds_checks_in_constructor_calls.dart:6:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef A<X extends num, Y> = C<X>;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef A<X extends core::num, unrelated Y extends core::Object? = dynamic> = self::C<X>;
+class C<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X%>
+    : super core::Object::•()
+    ;
+}
+static method foo() → dynamic {
+  new self::C::•<dynamic>();
+}
+static method main() → dynamic {}
+static method _#A#new#tearOff<X extends core::num, unrelated Y extends core::Object? = dynamic>() → self::C<self::_#A#new#tearOff::X>
+  return new self::C::•<self::_#A#new#tearOff::X>();

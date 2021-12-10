@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/generic_metadata/issue45329.dart:6:9: Error: Expected an identifier, but got 'void'.
+// Try inserting an identifier before 'void'.
+//   local<void Function()>() {}
+//         ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  function local<#T1 extends core::Object? = dynamic>() → Null {}
+}
+static method main() → dynamic {}

@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/redirecting_constructors.dart:20:5: Error: Expected ';' after this.
+//   A x3 f3();
+//     ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1, #C2, #C3]/*isLegacy*/;
+  constructor •() → self::A
+    : super core::Object::•()
+    ;
+  static factory redirectingFactory() → self::A
+    return new self::A::•();
+  static factory redirectingFactoryChild() → self::A
+    return new self::B::•();
+  static factory redirectingTwice() → self::A
+    return self::A::redirectingFactory();
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+static method test() → dynamic {
+  () → self::A f1 = #C4;
+  () → self::A f2 = #C5;
+  () → self::A f3 = #C6;
+  self::A x1 = f1(){() → self::A};
+  self::B x2 = f2(){() → self::A} as{ForNonNullableByDefault} self::B;
+  self::A x3;
+  f3(){() → self::A};
+}
+static method main() → dynamic
+  return self::test();
+
+constants  {
+  #C1 = constructor-tearoff self::A::redirectingFactory
+  #C2 = constructor-tearoff self::A::redirectingFactoryChild
+  #C3 = constructor-tearoff self::A::redirectingTwice
+  #C4 = redirecting-factory-tearoff self::A::redirectingFactory
+  #C5 = redirecting-factory-tearoff self::A::redirectingFactoryChild
+  #C6 = redirecting-factory-tearoff self::A::redirectingTwice
+}

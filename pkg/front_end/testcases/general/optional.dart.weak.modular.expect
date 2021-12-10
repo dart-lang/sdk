@@ -1,0 +1,146 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/optional.dart:47:21: Error: The argument type 'InvalidListener' can't be assigned to the parameter type 'Listener'.
+//  - 'InvalidListener' is from 'pkg/front_end/testcases/general/optional.dart'.
+//  - 'Listener' is from 'pkg/front_end/testcases/general/optional.dart'.
+//   extern.listen(new InvalidListener());
+//                     ^
+//
+// pkg/front_end/testcases/general/optional.dart:49:28: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing1 = foo.method();
+//                            ^
+//
+// pkg/front_end/testcases/general/optional.dart:50:28: Error: Too many positional arguments: 3 allowed, but 4 found.
+// Try removing the extra positional arguments.
+//   var nothing2 = foo.method(1, 2, 3, 4);
+//                            ^
+//
+// pkg/front_end/testcases/general/optional.dart:51:39: Error: Too few positional arguments: 1 required, 0 given.
+//   var nothing3 = extern.externalMethod();
+//                                       ^
+//
+// pkg/front_end/testcases/general/optional.dart:52:39: Error: Too many positional arguments: 3 allowed, but 4 found.
+// Try removing the extra positional arguments.
+//   var nothing4 = extern.externalMethod(1, 2, 3, 4);
+//                                       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo*
+    : super core::Object::•()
+    ;
+  method method(dynamic x, [dynamic y = #C1, dynamic z = #C1]) → dynamic {
+    return "string";
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class External extends core::Object {
+  synthetic constructor •() → self::External*
+    : super core::Object::•()
+    ;
+  abstract method externalMethod(core::int* x, [core::int* y = #C1, core::int* z = #C1]) → core::String*;
+  abstract method listen(self::Listener* listener) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class Listener extends core::Object {
+  synthetic constructor •() → self::Listener*
+    : super core::Object::•()
+    ;
+  abstract method event(core::String* input, [core::int* x = #C1, core::int* y = #C1]) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class TestListener extends self::Listener {
+  synthetic constructor •() → self::TestListener*
+    : super self::Listener::•()
+    ;
+  method event(core::String* input, [core::int* x = #C1, core::int* y = #C1]) → void {}
+}
+class ExtendedListener extends self::Listener {
+  synthetic constructor •() → self::ExtendedListener*
+    : super self::Listener::•()
+    ;
+  method event(core::String* input, [core::int* x = #C1, core::int* y = #C1, dynamic z = #C1]) → void {}
+}
+class InvalidListener extends core::Object {
+  synthetic constructor •() → self::InvalidListener*
+    : super core::Object::•()
+    ;
+  method event(dynamic input, [dynamic x = #C1]) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+external static method createExternal() → self::External*;
+static method main() → dynamic {
+  self::Foo* foo = new self::Foo::•();
+  dynamic string1 = foo.{self::Foo::method}(1){(dynamic, [dynamic, dynamic]) →* dynamic};
+  dynamic string2 = foo.{self::Foo::method}(1, 2){(dynamic, [dynamic, dynamic]) →* dynamic};
+  dynamic string3 = foo.{self::Foo::method}(1, 2, 3){(dynamic, [dynamic, dynamic]) →* dynamic};
+  self::External* extern = self::createExternal();
+  core::String* string4 = extern.{self::External::externalMethod}(1){(core::int*, [core::int*, core::int*]) →* core::String*};
+  core::String* string5 = extern.{self::External::externalMethod}(1, 2){(core::int*, [core::int*, core::int*]) →* core::String*};
+  core::String* string6 = extern.{self::External::externalMethod}(1, 2, 3){(core::int*, [core::int*, core::int*]) →* core::String*};
+  extern.{self::External::listen}(new self::TestListener::•()){(self::Listener*) →* void};
+  extern.{self::External::listen}(new self::ExtendedListener::•()){(self::Listener*) →* void};
+  extern.{self::External::listen}(invalid-expression "pkg/front_end/testcases/general/optional.dart:47:21: Error: The argument type 'InvalidListener' can't be assigned to the parameter type 'Listener'.
+ - 'InvalidListener' is from 'pkg/front_end/testcases/general/optional.dart'.
+ - 'Listener' is from 'pkg/front_end/testcases/general/optional.dart'.
+  extern.listen(new InvalidListener());
+                    ^" in new self::InvalidListener::•() as{TypeError} self::Listener*){(self::Listener*) →* void};
+  invalid-type nothing1 = invalid-expression "pkg/front_end/testcases/general/optional.dart:49:28: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing1 = foo.method();
+                           ^" in foo.{self::Foo::method}{<inapplicable>}.(){() →* invalid-type};
+  invalid-type nothing2 = invalid-expression "pkg/front_end/testcases/general/optional.dart:50:28: Error: Too many positional arguments: 3 allowed, but 4 found.
+Try removing the extra positional arguments.
+  var nothing2 = foo.method(1, 2, 3, 4);
+                           ^" in foo.{self::Foo::method}{<inapplicable>}.(1, 2, 3, 4){(invalid-type, invalid-type, invalid-type, invalid-type) →* invalid-type};
+  invalid-type nothing3 = invalid-expression "pkg/front_end/testcases/general/optional.dart:51:39: Error: Too few positional arguments: 1 required, 0 given.
+  var nothing3 = extern.externalMethod();
+                                      ^" in extern.{self::External::externalMethod}{<inapplicable>}.(){() →* invalid-type};
+  invalid-type nothing4 = invalid-expression "pkg/front_end/testcases/general/optional.dart:52:39: Error: Too many positional arguments: 3 allowed, but 4 found.
+Try removing the extra positional arguments.
+  var nothing4 = extern.externalMethod(1, 2, 3, 4);
+                                      ^" in extern.{self::External::externalMethod}{<inapplicable>}.(1, 2, 3, 4){(invalid-type, invalid-type, invalid-type, invalid-type) →* invalid-type};
+}
+
+constants  {
+  #C1 = null
+}

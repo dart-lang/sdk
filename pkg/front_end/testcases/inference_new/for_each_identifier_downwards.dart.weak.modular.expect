@@ -1,0 +1,59 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C extends core::Object {
+  field self::A* aField = null;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  set aSetter(self::A* value) → void {}
+  method test() → void {
+    self::A* aLocal;
+    for (final self::A* #t1 in self::f<core::Iterable<self::A*>*>()) {
+      aLocal = #t1;
+    }
+    for (final self::A* #t2 in self::f<core::Iterable<self::A*>*>()) {
+      this.{self::C::aField} = #t2;
+    }
+    for (final self::A* #t3 in self::f<core::Iterable<self::A*>*>()) {
+      this.{self::C::aSetter} = #t3;
+    }
+    for (final self::A* #t4 in self::f<core::Iterable<self::A*>*>()) {
+      self::aTopLevel = #t4;
+    }
+    for (final self::A* #t5 in self::f<core::Iterable<self::A*>*>()) {
+      self::aTopLevelSetter = #t5;
+    }
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field self::A* aTopLevel;
+static method f<T extends core::Object* = dynamic>() → self::f::T*
+  return null;
+static set aTopLevelSetter(self::A* value) → void {}
+static method main() → dynamic {}

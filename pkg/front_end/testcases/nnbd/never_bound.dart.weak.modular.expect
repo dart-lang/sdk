@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/never_bound.dart:10:3: Error: Type argument 'Null' doesn't conform to the bound 'Never' of the type variable 'T' on 'GenericNever'.
+// Try changing type arguments so that they conform to the bounds.
+//   GenericNever<Null>();
+//   ^
+// pkg/front_end/testcases/nnbd/never_bound.dart:5:20: Context: This is the type variable whose bound isn't conformed to.
+// class GenericNever<T extends Never> {
+//                    ^
+//
+// pkg/front_end/testcases/nnbd/never_bound.dart:11:3: Error: Type argument 'void' doesn't conform to the bound 'Never' of the type variable 'T' on 'GenericNever'.
+// Try changing type arguments so that they conform to the bounds.
+//   GenericNever<void>();
+//   ^
+// pkg/front_end/testcases/nnbd/never_bound.dart:5:20: Context: This is the type variable whose bound isn't conformed to.
+// class GenericNever<T extends Never> {
+//                    ^
+//
+// pkg/front_end/testcases/nnbd/never_bound.dart:12:3: Error: Type argument 'int' doesn't conform to the bound 'Never' of the type variable 'T' on 'GenericNever'.
+// Try changing type arguments so that they conform to the bounds.
+//   GenericNever<int>();
+//   ^
+// pkg/front_end/testcases/nnbd/never_bound.dart:5:20: Context: This is the type variable whose bound isn't conformed to.
+// class GenericNever<T extends Never> {
+//                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class GenericNever<T extends Never> extends core::Object {
+  synthetic constructor •() → self::GenericNever<self::GenericNever::T>
+    : super core::Object::•()
+    ;
+  method getParamType() → dynamic
+    return self::GenericNever::T;
+}
+static method errors() → dynamic {
+  new self::GenericNever::•<Null>();
+  new self::GenericNever::•<void>();
+  new self::GenericNever::•<core::int>();
+}
+static method main() → dynamic {}

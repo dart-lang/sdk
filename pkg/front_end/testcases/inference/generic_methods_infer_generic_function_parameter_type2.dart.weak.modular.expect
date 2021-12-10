@@ -1,0 +1,29 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef G<V extends core::Object* = dynamic> = () →* core::List<V*>*;
+class C<T extends core::Object* = dynamic> extends self::D<self::C::T*> {
+  synthetic constructor •() → self::C<self::C::T*>*
+    : super self::D::•()
+    ;
+  method f<U extends core::Object* = dynamic>(() →* core::List<self::C::f::U*>* g) → void
+    return null;
+}
+abstract class D<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::T*>*
+    : super core::Object::•()
+    ;
+  abstract method f<U extends core::Object* = dynamic>(() →* core::List<self::D::f::U*>* g) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

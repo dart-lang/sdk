@@ -1,0 +1,40 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/parser_error.dart:10:7: Error: Expected an identifier, but got '?'.
+// Try inserting an identifier before '?'.
+//   if (?b) return b;  /// 01: compile-time error
+//       ^
+//
+// pkg/front_end/testcases/rasta/parser_error.dart:10:9: Error: Expected ':' before this.
+//   if (?b) return b;  /// 01: compile-time error
+//         ^
+//
+// pkg/front_end/testcases/rasta/parser_error.dart:10:9: Error: Expected an identifier, but got ')'.
+// Try inserting an identifier before ')'.
+//   if (?b) return b;  /// 01: compile-time error
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static method test(dynamic a, {dynamic b = #C1, dynamic c = #C1}) → core::int* {
+  if(invalid-expression "pkg/front_end/testcases/rasta/parser_error.dart:10:7: Error: This couldn't be parsed.
+  if (?b) return b;  /// 01: compile-time error
+      ^" ?{invalid-type} b : invalid-expression "pkg/front_end/testcases/rasta/parser_error.dart:10:9: Error: This couldn't be parsed.
+  if (?b) return b;  /// 01: compile-time error
+        ^")
+    return b as{TypeError,ForDynamic} core::int*;
+  return a{dynamic}.+(b){dynamic}.+(c) as{TypeError,ForDynamic} core::int*;
+}
+static method main() → dynamic {
+  exp::Expect::equals(6, self::test(1, b: 2, c: 3));
+}
+
+constants  {
+  #C1 = null
+}

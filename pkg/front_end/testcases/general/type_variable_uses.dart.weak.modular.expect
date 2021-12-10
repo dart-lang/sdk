@@ -1,0 +1,120 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:7:12: Error: Type variables can't be used in static members.
+//   static C<T> staticMethod() {
+//            ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:8:11: Error: Type variables can't be used in static members.
+//     print(T);
+//           ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:9:5: Error: Type variables can't be used in static members.
+//     T t;
+//     ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:10:7: Error: Type variables can't be used in static members.
+//     C<T> l;
+//       ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:11:9: Error: Type variables can't be used in static members.
+//     C<C<T>> ll;
+//         ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:12:13: Error: Type variables can't be used in static members.
+//     const C<T>();
+//             ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:13:12: Error: Type variables can't be used in static members.
+//     const <T>[];
+//            ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:14:14: Error: Type variables can't be used in static members.
+//     const <C<T>>[];
+//              ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:15:20: Error: Type variables can't be used in static members.
+//     const <Object>[T];
+//                    ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:16:28: Error: Type variables can't be used in static members.
+//     const <Object>[const C<T>()];
+//                            ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:24:13: Error: Type variables can't be used as constants.
+//     const C<T>();
+//             ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:25:12: Error: Type variables can't be used as constants.
+//     const <T>[];
+//            ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:26:14: Error: Type variables can't be used as constants.
+//     const <C<T>>[];
+//              ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:27:20: Error: Type variables can't be used as constants.
+//     const <Object>[T];
+//                    ^
+//
+// pkg/front_end/testcases/general/type_variable_uses.dart:28:28: Error: Type variables can't be used as constants.
+//     const <Object>[const C<T>()];
+//                            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C<self::C::T*>*
+    : super core::Object::•()
+    ;
+  static method staticMethod() → self::C<invalid-type>* {
+    core::print(#C1);
+    invalid-type t;
+    self::C<invalid-type>* l;
+    self::C<self::C<invalid-type>*>* ll;
+    #C2;
+    #C3;
+    #C4;
+    #C5;
+    #C6;
+  }
+  method instanceMethod() → self::C<self::C::T*>* {
+    core::print(self::C::T*);
+    self::C::T* t;
+    self::C<self::C::T*>* l;
+    self::C<self::C<self::C::T*>*>* ll;
+    #C2;
+    #C3;
+    #C4;
+    #C5;
+    #C6;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = TypeLiteralConstant(invalid-type)
+  #C2 = self::C<invalid-type> {}
+  #C3 = <invalid-type>[]
+  #C4 = <self::C<invalid-type>*>[]
+  #C5 = <core::Object*>[#C1]
+  #C6 = <core::Object*>[#C2]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///type_variable_uses.dart:
+- C. (from org-dartlang-testcase:///type_variable_uses.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

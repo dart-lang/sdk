@@ -5444,3 +5444,10 @@ NewAsSelector:
 EnumDeclaresFactory:
   problemMessage: "Enums can't declare factory constructors."
   correctionMessage: "Try removing the factory constructor declaration."
+
+PositionalSuperParametersAndArguments:
+  problemMessage: "Positional super-initializer parameters cannot be used when the super initializer has positional arguments."
+
+SuperInitializerParameter:
+  problemMessage: "This is the super-initializer parameter."
+  severity: CONTEXT

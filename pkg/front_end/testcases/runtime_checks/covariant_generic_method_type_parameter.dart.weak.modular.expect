@@ -1,0 +1,46 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/runtime_checks/covariant_generic_method_type_parameter.dart:11:15: Error: The argument type 'double' can't be assigned to the parameter type 'U'.
+//     this.f<U>(1.5);
+//               ^
+//
+// pkg/front_end/testcases/runtime_checks/covariant_generic_method_type_parameter.dart:20:16: Error: Type argument 'num' doesn't conform to the bound 'int' of the type variable 'U' on 'C<int>.g1'.
+//  - 'C' is from 'pkg/front_end/testcases/runtime_checks/covariant_generic_method_type_parameter.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   new C<int>().g1<num>();
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
+    : super core::Object::•()
+    ;
+  method f<covariant-by-class U extends self::C::T*>(self::C::f::U* x) → void {}
+  method g1<covariant-by-class U extends self::C::T*>() → void {
+    this.{self::C::f}<self::C::g1::U*>(invalid-expression "pkg/front_end/testcases/runtime_checks/covariant_generic_method_type_parameter.dart:11:15: Error: The argument type 'double' can't be assigned to the parameter type 'U'.
+    this.f<U>(1.5);
+              ^" in 1.5 as{TypeError} Never){(self::C::g1::U*) →* void};
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method g2(self::C<core::Object*>* c) → void {
+  c.{self::C::f}<core::num*>(1.5){(core::num*) →* void};
+}
+static method test() → void {
+  new self::C::•<core::int*>().{self::C::g1}<core::num*>(){() →* void};
+  self::g2(new self::C::•<core::int*>());
+}
+static method main() → void {}

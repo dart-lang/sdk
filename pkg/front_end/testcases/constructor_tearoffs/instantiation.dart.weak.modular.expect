@@ -1,0 +1,73 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:16:40: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'A<X> Function<X extends num>(X)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/instantiation.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// A<dynamic> Function(String) test5() => A.foo; // Error.
+//                                        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:17:40: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'A<X> Function<X extends num>(X)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/instantiation.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// A<dynamic> Function(String) test6() => A.new; // Error.
+//                                        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/instantiation.dart:23:41: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'A<X> Function<X extends num>(X)'.
+//  - 'A' is from 'pkg/front_end/testcases/constructor_tearoffs/instantiation.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// A<dynamic> Function(String) test11() => A.bar; // Error.
+//                                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::num> extends core::Object {
+  constructor foo(self::A::X x) → self::A<self::A::X>
+    : super core::Object::•() {}
+  constructor •(self::A::X x) → self::A<self::A::X>
+    : super core::Object::•() {}
+  static factory bar<X extends core::num>(self::A::bar::X x) → self::A<self::A::bar::X>
+    return new self::A::•<self::A::bar::X>(x);
+}
+static method test1() → (core::num) → self::A<core::num>
+  return #C2;
+static method test2() → (core::int) → self::A<core::int>
+  return #C3;
+static method test3() → (core::num) → self::A<core::num>
+  return #C5;
+static method test4() → (core::int) → self::A<core::int>
+  return #C6;
+static method test5() → (core::String) → self::A<dynamic>
+  return #C7;
+static method test6() → (core::String) → self::A<dynamic>
+  return #C8;
+static method test7() → (core::num) → self::A<dynamic>
+  return #C2;
+static method test8() → (core::num) → self::A<dynamic>
+  return #C5;
+static method test9() → (core::num) → self::A<core::num>
+  return #C10;
+static method test10() → (core::int) → self::A<core::int>
+  return #C11;
+static method test11() → (core::String) → self::A<dynamic>
+  return #C12;
+static method test12() → (core::num) → self::A<dynamic>
+  return #C10;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::A::foo
+  #C2 = instantiation #C1 <core::num*>
+  #C3 = instantiation #C1 <core::int*>
+  #C4 = constructor-tearoff self::A::•
+  #C5 = instantiation #C4 <core::num*>
+  #C6 = instantiation #C4 <core::int*>
+  #C7 = instantiation #C1 <core::String*>
+  #C8 = instantiation #C4 <core::String*>
+  #C9 = constructor-tearoff self::A::bar
+  #C10 = instantiation #C9 <core::num*>
+  #C11 = instantiation #C9 <core::int*>
+  #C12 = instantiation #C9 <core::String*>
+}

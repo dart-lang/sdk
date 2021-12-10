@@ -1,0 +1,74 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42603.dart:18:17: Error: Operator '==' should have exactly one parameter.
+//   bool operator ==() => true;
+//                 ^^
+//
+// pkg/front_end/testcases/nnbd/issue42603.dart:18:17: Error: The method 'E.==' has fewer positional arguments than those of overridden method 'Object.=='.
+//   bool operator ==() => true;
+//                 ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is the overridden method ('==').
+//   external bool operator ==(Object other);
+//                          ^
+//
+// pkg/front_end/testcases/nnbd/issue42603.dart:22:17: Error: The method 'F.==' has more required arguments than those of overridden method 'E.=='.
+//   bool operator ==(Object? other) => super == other;
+//                 ^
+// pkg/front_end/testcases/nnbd/issue42603.dart:18:17: Context: This is the overridden method ('==').
+//   bool operator ==() => true;
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/issue42603.dart:22:44: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//   bool operator ==(Object? other) => super == other;
+//                                            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  operator ==(core::Object other) → core::bool
+    return true;
+}
+class D extends self::C {
+  synthetic constructor •() → self::D
+    : super self::C::•()
+    ;
+  operator ==(core::Object? other) → core::bool
+    return super.{self::C::==}(other);
+  method method1(dynamic o) → core::bool
+    return super.{self::C::==}(o);
+  method method2(Null o) → core::bool
+    return super.{self::C::==}(o);
+}
+class E extends core::Object {
+  synthetic constructor •() → self::E
+    : super core::Object::•()
+    ;
+  operator ==() → core::bool
+    return true;
+}
+class F extends self::E {
+  synthetic constructor •() → self::F
+    : super self::E::•()
+    ;
+  operator ==(core::Object? other) → core::bool
+    return invalid-expression "pkg/front_end/testcases/nnbd/issue42603.dart:22:44: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+  bool operator ==(Object? other) => super == other;
+                                           ^" in super.{self::E::==}(other);
+}
+static method main() → dynamic {
+  self::expect(true, new self::D::•() =={self::D::==}{(core::Object?) → core::bool} new self::D::•());
+  self::expect(false, new self::D::•().{self::D::method1}(null){(dynamic) → core::bool});
+  self::expect(false, new self::D::•().{self::D::method2}(null){(Null) → core::bool});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

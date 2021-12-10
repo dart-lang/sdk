@@ -1,0 +1,196 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:9:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int field;
+//       ^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:11:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int property = 42;
+//             ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:15:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int property2 = 42;
+//             ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:17:19: Error: Conflicts with member 'property2'.
+//   static void set property2(int value) {}
+//                   ^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:15:13: Error: Conflicts with setter 'property2'.
+//   final int property2 = 42;
+//             ^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:20:5: Error: Undefined name 'field'.
+//     field;
+//     ^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:21:5: Error: Setter not found: 'field'.
+//     field = 23;
+//     ^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:22:5: Error: Getter not found: 'property'.
+//     property;
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:24:5: Error: Undefined name 'property2'.
+//     property2;
+//     ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:25:5: Error: Setter not found: 'property2'.
+//     property2 = 23;
+//     ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:40:10: Error: Member not found: 'field'.
+//   ext(c).field;
+//          ^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:41:10: Error: Setter not found: 'field'.
+//   ext(c).field = 23;
+//          ^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:42:10: Error: Getter not found: 'property'.
+//   ext(c).property;
+//          ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:44:10: Error: Member not found: 'property2'.
+//   ext(c).property2;
+//          ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:45:10: Error: Setter not found: 'property2'.
+//   ext(c).property2 = 23;
+//          ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:34:5: Error: The getter 'field' isn't defined for the class 'C<int>'.
+//  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'field'.
+//   c.field;
+//     ^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:35:5: Error: The setter 'field' isn't defined for the class 'C<int>'.
+//  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'field'.
+//   c.field = 23;
+//     ^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:36:5: Error: The getter 'property' isn't defined for the class 'C<int>'.
+//  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+//   c.property;
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:38:5: Error: The getter 'property2' isn't defined for the class 'C<int>'.
+//  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'property2'.
+//   c.property2;
+//     ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38745.dart:39:5: Error: The setter 'property2' isn't defined for the class 'C<int>'.
+//  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'property2'.
+//   c.property2 = 23;
+//     ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension ext<T extends core::Object* = dynamic> on self::C<T*>* {
+  field field = self::ext|field;
+  field property = self::ext|property;
+  field property2 = self::ext|property2;
+  method method = self::ext|method;
+  tearoff method = self::ext|get#method;
+  set property = self::ext|set#property;
+  static set property2 = set self::ext|property2;
+}
+static field core::int* ext|field;
+static final field core::int* ext|property = 42;
+static final field core::int* ext|property2 = 42;
+static method ext|set#property<T extends core::Object* = dynamic>(lowered final self::C<self::ext|set#property::T*>* #this, core::int* value) → void {}
+static set ext|property2(core::int* value) → void {}
+static method ext|method<T extends core::Object* = dynamic>(lowered final self::C<self::ext|method::T*>* #this) → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:20:5: Error: Undefined name 'field'.
+    field;
+    ^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:21:5: Error: Setter not found: 'field'.
+    field = 23;
+    ^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:22:5: Error: Getter not found: 'property'.
+    property;
+    ^^^^^^^^";
+  self::ext|set#property<self::ext|method::T*>(#this, 23);
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:24:5: Error: Undefined name 'property2'.
+    property2;
+    ^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:25:5: Error: Setter not found: 'property2'.
+    property2 = 23;
+    ^^^^^^^^^";
+}
+static method ext|get#method<T extends core::Object* = dynamic>(lowered final self::C<self::ext|get#method::T*>* #this) → () →* dynamic
+  return () → dynamic => self::ext|method<self::ext|get#method::T*>(#this);
+static method main() → dynamic {}
+static method errors() → dynamic {
+  self::C<core::int*>* c = new self::C::•<core::int*>();
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:34:5: Error: The getter 'field' isn't defined for the class 'C<int>'.
+ - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'field'.
+  c.field;
+    ^^^^^" in c{<unresolved>}.field;
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:35:5: Error: The setter 'field' isn't defined for the class 'C<int>'.
+ - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'field'.
+  c.field = 23;
+    ^^^^^" in c{<unresolved>}.field = 23;
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:36:5: Error: The getter 'property' isn't defined for the class 'C<int>'.
+ - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+  c.property;
+    ^^^^^^^^" in c{<unresolved>}.property;
+  self::ext|set#property<core::int*>(c, 23);
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:38:5: Error: The getter 'property2' isn't defined for the class 'C<int>'.
+ - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'property2'.
+  c.property2;
+    ^^^^^^^^^" in c{<unresolved>}.property2;
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:39:5: Error: The setter 'property2' isn't defined for the class 'C<int>'.
+ - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'property2'.
+  c.property2 = 23;
+    ^^^^^^^^^" in c{<unresolved>}.property2 = 23;
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:40:10: Error: Member not found: 'field'.
+  ext(c).field;
+         ^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:41:10: Error: Setter not found: 'field'.
+  ext(c).field = 23;
+         ^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:42:10: Error: Getter not found: 'property'.
+  ext(c).property;
+         ^^^^^^^^";
+  self::ext|set#property<core::int*>(c, 23);
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:44:10: Error: Member not found: 'property2'.
+  ext(c).property2;
+         ^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:45:10: Error: Setter not found: 'property2'.
+  ext(c).property2 = 23;
+         ^^^^^^^^^";
+  self::ext|method<core::int*>(c);
+}

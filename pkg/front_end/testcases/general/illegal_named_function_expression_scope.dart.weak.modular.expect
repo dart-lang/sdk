@@ -1,0 +1,15 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/illegal_named_function_expression_scope.dart:7:14: Error: A function expression can't have a name.
+//   print(void f() {});
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  function f() → void {}
+  core::print(let final () →* Null f = () → Null {} in f);
+}

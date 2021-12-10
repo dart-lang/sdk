@@ -1,0 +1,150 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:16:19: Error: Couldn't find constructor 'Missing'.
+//   factory A.c() = Missing;
+//                   ^
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:16:19: Error: Redirection constructor target not found: 'Missing'
+//   factory A.c() = Missing;
+//                   ^
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:15:19: Error: The constructor function type 'B<C1> Function()' isn't a subtype of 'A<T> Function()'.
+//  - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'C1' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//   factory A.b() = B<C1>.a;
+//                   ^
+//
+// pkg/front_end/testcases/rasta/generic_factory.dart:23:19: Error: The constructor function type 'C<C2> Function()' isn't a subtype of 'B<S> Function()'.
+//  - 'C' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'C2' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+//   factory B.b() = C<C2>;
+//                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  synthetic constructor •() → self::C1*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C2 extends core::Object {
+  synthetic constructor •() → self::C2*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C3 extends core::Object {
+  synthetic constructor •() → self::C3*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class A<T extends core::Object* = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1, #C2, #C3];
+  constructor internal() → self::A<self::A::T*>*
+    : super core::Object::•()
+    ;
+  static factory a<T extends core::Object* = dynamic>() → self::A<self::A::a::T*>*
+    return self::B::a<self::A::a::T*>();
+  static factory b<T extends core::Object* = dynamic>() → self::A<self::A::b::T*>*
+    return invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:15:19: Error: The constructor function type 'B<C1> Function()' isn't a subtype of 'A<T> Function()'.
+ - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+ - 'C1' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+ - 'A' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+  factory A.b() = B<C1>.a;
+                  ^";
+  static factory c<T extends core::Object* = dynamic>() → self::A<self::A::c::T*>*
+    return invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:16:19: Error: Redirection constructor target not found: 'Missing'
+  factory A.c() = Missing;
+                  ^";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B<S extends core::Object* = dynamic> extends self::A<self::B::S*> {
+  static final field dynamic _redirecting# = <dynamic>[#C4, #C5];
+  constructor internal() → self::B<self::B::S*>*
+    : super self::A::internal()
+    ;
+  static factory a<S extends core::Object* = dynamic>() → self::B<self::B::a::S*>*
+    return new self::C::•<self::B::a::S*>();
+  static factory b<S extends core::Object* = dynamic>() → self::B<self::B::b::S*>*
+    return invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:23:19: Error: The constructor function type 'C<C2> Function()' isn't a subtype of 'B<S> Function()'.
+ - 'C' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+ - 'C2' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+ - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+  factory B.b() = C<C2>;
+                  ^";
+}
+class C<U extends core::Object* = dynamic> extends self::B<self::C::U*> {
+  constructor •() → self::C<self::C::U*>*
+    : super self::B::internal()
+    ;
+}
+static method main() → dynamic {
+  new self::C::•<self::C3*>();
+  invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:15:19: Error: The constructor function type 'B<C1> Function()' isn't a subtype of 'A<T> Function()'.
+ - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+ - 'C1' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+ - 'A' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+  factory A.b() = B<C1>.a;
+                  ^";
+  new self::C::•<self::C3*>();
+  invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:23:19: Error: The constructor function type 'C<C2> Function()' isn't a subtype of 'B<S> Function()'.
+ - 'C' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+ - 'C2' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+ - 'B' is from 'pkg/front_end/testcases/rasta/generic_factory.dart'.
+  factory B.b() = C<C2>;
+                  ^";
+  invalid-expression "pkg/front_end/testcases/rasta/generic_factory.dart:16:19: Error: Redirection constructor target not found: 'Missing'
+  factory A.c() = Missing;
+                  ^";
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::a
+  #C2 = constructor-tearoff self::A::b
+  #C3 = constructor-tearoff self::A::c
+  #C4 = constructor-tearoff self::B::a
+  #C5 = constructor-tearoff self::B::b
+}

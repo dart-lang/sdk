@@ -1,0 +1,63 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/undefined.dart:12:5: Error: The getter 'y' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'y'.
+//   c.y;
+//     ^
+//
+// pkg/front_end/testcases/general/undefined.dart:14:5: Error: The method 'g' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'g'.
+//   c.g();
+//     ^
+//
+// pkg/front_end/testcases/general/undefined.dart:16:5: Error: The setter 'y' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'y'.
+//   c.y = null;
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic x = null;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  method f() → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method test(self::C* c) → void {
+  c.{self::C::x}{dynamic};
+  invalid-expression "pkg/front_end/testcases/general/undefined.dart:12:5: Error: The getter 'y' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'y'.
+  c.y;
+    ^" in c{<unresolved>}.y;
+  c.{self::C::f}(){() →* void};
+  invalid-expression "pkg/front_end/testcases/general/undefined.dart:14:5: Error: The method 'g' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'g'.
+  c.g();
+    ^" in c{<unresolved>}.g();
+  c.{self::C::x} = null;
+  invalid-expression "pkg/front_end/testcases/general/undefined.dart:16:5: Error: The setter 'y' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'y'.
+  c.y = null;
+    ^" in c{<unresolved>}.y = null;
+}
+static method main() → dynamic {}

@@ -1,0 +1,41 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue38253c.dart:6:3: Error: 'g' isn't a type.
+//   g f1() {}
+//   ^
+//
+// pkg/front_end/testcases/general/issue38253c.dart:7:3: Error: 'g' isn't a type.
+//   g f2() async {}
+//   ^
+//
+// pkg/front_end/testcases/general/issue38253c.dart:8:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+//   int f3() {}
+//   ^
+//
+// pkg/front_end/testcases/general/issue38253c.dart:9:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+//   Future<int> f4() async {}
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static field () → Null a = () → Null {
+  function f1() → invalid-type {}
+  function f2() → invalid-type async {}
+  function f3() → core::int {
+    return invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:8:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+  int f3() {}
+  ^" in null;
+  }
+  function f4() → asy::Future<core::int> async {
+    return invalid-expression "pkg/front_end/testcases/general/issue38253c.dart:9:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+  Future<int> f4() async {}
+  ^" in null;
+  }
+};
+static field (dynamic) → asy::Future<dynamic> b = (dynamic f) → asy::Future<dynamic> async => await f;
+static field (dynamic) → dynamic c = (dynamic f) → dynamic => f;
+static method main() → dynamic {}

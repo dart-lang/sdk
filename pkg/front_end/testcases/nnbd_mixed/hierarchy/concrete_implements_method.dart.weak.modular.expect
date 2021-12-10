@@ -1,0 +1,82 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_method.dart:5:7: Error: The non-abstract class 'Interface' is missing implementations for these members:
+//  - Interface.declaredAbstractImplementsAbstractMethod
+//  - Interface.declaredConcreteImplementsAbstractMethod
+//  - Interface.implementedAbstractMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Interface {
+//       ^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_method.dart:16:8: Context: 'Interface.declaredAbstractImplementsAbstractMethod' is defined here.
+//   void declaredAbstractImplementsAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_method.dart:14:8: Context: 'Interface.declaredConcreteImplementsAbstractMethod' is defined here.
+//   void declaredConcreteImplementsAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_method.dart:8:8: Context: 'Interface.implementedAbstractMethod' is defined here.
+//   void implementedAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_method.dart:19:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - ConcreteClass.declaredAbstractImplementsAbstractMethod
+//  - ConcreteClass.declaredAbstractImplementsConcreteMethod
+//  - ConcreteClass.declaredAbstractMethod
+//  - Interface.implementedAbstractMethod
+//  - Interface.implementedConcreteMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass implements Interface {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_method.dart:30:8: Context: 'ConcreteClass.declaredAbstractImplementsAbstractMethod' is defined here.
+//   void declaredAbstractImplementsAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_method.dart:26:8: Context: 'ConcreteClass.declaredAbstractImplementsConcreteMethod' is defined here.
+//   void declaredAbstractImplementsConcreteMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_method.dart:22:8: Context: 'ConcreteClass.declaredAbstractMethod' is defined here.
+//   void declaredAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_method.dart:8:8: Context: 'Interface.implementedAbstractMethod' is defined here.
+//   void implementedAbstractMethod();
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_method.dart:6:8: Context: 'Interface.implementedConcreteMethod' is defined here.
+//   void implementedConcreteMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  method implementedConcreteMethod() → void {}
+  abstract method implementedAbstractMethod() → void;
+  method declaredConcreteImplementsConcreteMethod() → void {}
+  method declaredAbstractImplementsConcreteMethod() → void {}
+  abstract method declaredConcreteImplementsAbstractMethod() → void;
+  abstract method declaredAbstractImplementsAbstractMethod() → void;
+}
+class ConcreteClass extends core::Object implements self::Interface {
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+  method declaredConcreteMethod() → void {}
+  abstract method declaredAbstractMethod() → void;
+  method declaredConcreteImplementsConcreteMethod() → void {}
+  abstract method declaredAbstractImplementsConcreteMethod() → void;
+  method declaredConcreteImplementsAbstractMethod() → void {}
+  abstract method declaredAbstractImplementsAbstractMethod() → void;
+}
+static method main() → dynamic {}

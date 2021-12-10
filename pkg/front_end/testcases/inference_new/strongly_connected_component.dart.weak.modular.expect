@@ -1,0 +1,18 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/strongly_connected_component.dart:17:5: Error: Can't infer the type of 'x': circularity found during type inference.
+// Specify the type explicitly.
+// var x = /*@ returnType=() ->* invalid-type */ () => f() ? y : z;
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field invalid-type x = () → () →* invalid-type => self::f() ?{() →* invalid-type} self::y : self::z;
+static field () →* invalid-type y = () → invalid-type => self::x;
+static field () →* invalid-type z = () → invalid-type => self::x;
+static method f() → core::bool*
+  return null;
+static method main() → dynamic {}

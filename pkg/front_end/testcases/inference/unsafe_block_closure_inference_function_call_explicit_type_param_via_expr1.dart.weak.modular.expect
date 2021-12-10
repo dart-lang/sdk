@@ -1,0 +1,22 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1.dart:9:11: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// var v = (f<int>)/*@typeArgs=int**/(/*@returnType=int**/() {
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field core::List<core::int*>* v = #C1<core::int*>(() → core::int* {
+  return 1;
+}){(() →* core::int*) →* core::List<core::int*>*};
+static method f<T extends core::Object* = dynamic>(() →* self::f::T* g) → core::List<self::f::T*>*
+  return <self::f::T*>[g(){() →* self::f::T*}];
+static method main() → dynamic {}
+
+constants  {
+  #C1 = static-tearoff self::f
+}

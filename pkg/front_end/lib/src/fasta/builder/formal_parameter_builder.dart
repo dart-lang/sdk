@@ -117,13 +117,19 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
 
+  bool get isSuperInitializingFormal =>
+      (modifiers & superInitializingFormalMask) != 0;
+
   bool get isCovariantByDeclaration => (modifiers & covariantMask) != 0;
 
   // An initializing formal parameter might be final without its
   // VariableDeclaration being final. See
   // [ProcedureBuilder.computeFormalParameterInitializerScope]..
   @override
-  bool get isAssignable => variable!.isAssignable && !isInitializingFormal;
+  bool get isAssignable =>
+      variable!.isAssignable &&
+      !isInitializingFormal &&
+      !isSuperInitializingFormal;
 
   @override
   String get fullNameForErrors => name;
@@ -171,19 +177,33 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   FormalParameterBuilder forFormalParameterInitializerScope() {
     // ignore: unnecessary_null_comparison
     assert(variable != null);
-    return !isInitializingFormal
-        ? this
-        : (new FormalParameterBuilder(
-            metadata,
-            modifiers | finalMask | initializingFormalMask,
-            type,
-            name,
-            null,
-            charOffset,
-            fileUri: fileUri,
-            isExtensionThis: isExtensionThis)
-          ..parent = parent
-          ..variable = variable);
+    if (isInitializingFormal) {
+      return new FormalParameterBuilder(
+          metadata,
+          modifiers | finalMask | initializingFormalMask,
+          type,
+          name,
+          null,
+          charOffset,
+          fileUri: fileUri,
+          isExtensionThis: isExtensionThis)
+        ..parent = parent
+        ..variable = variable;
+    } else if (isSuperInitializingFormal) {
+      return new FormalParameterBuilder(
+          metadata,
+          modifiers | finalMask | superInitializingFormalMask,
+          type,
+          name,
+          null,
+          charOffset,
+          fileUri: fileUri,
+          isExtensionThis: isExtensionThis)
+        ..parent = parent
+        ..variable = variable;
+    } else {
+      return this;
+    }
   }
 
   void finalizeInitializingFormal(ClassBuilder classBuilder) {

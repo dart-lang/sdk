@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class Class extends core::Object {
+  field core::Map<core::String*, core::Set<core::String*>*>* map = null;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  method method(core::String* node, core::Set<core::String*>* set) → core::List<core::String*>*
+    return set.{core::Set::add}(node){(core::String*) →* core::bool*} ?{core::List<core::String*>*} block {
+      final core::List<core::String*>* #t1 = <core::String*>[node];
+      final core::Iterable<core::String*>* #t2 = let final core::Iterable<core::String*>* #t3 = let final core::Set<core::String*>* #t4 = this.{self::Class::map}{core::Map<core::String*, core::Set<core::String*>*>*}.{core::Map::[]}(node){(core::Object*) →* core::Set<core::String*>*} in #t4 == null ?{core::Iterable<core::String*>*} null : #t4.{core::Iterable::expand}<core::String*>((core::String* node) → core::List<core::String*>* => this.{self::Class::method}(node, set){(core::String*, core::Set<core::String*>*) →* core::List<core::String*>*}){((core::String*) →* core::Iterable<core::String*>*) →* core::Iterable<core::String*>*} in #t3 == null ?{core::List<core::String*>*} null : #t3.{core::Iterable::toList}(){({growable: core::bool*}) →* core::List<core::String*>*};
+      if(!(#t2 == null))
+        #t1.{core::List::addAll}{Invariant}(#t2){(core::Iterable<core::String*>*) →* void};
+    } =>#t1 : <core::String*>[];
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main(dynamic args) → dynamic {
+  if(false)
+    new self::Class::•().{self::Class::method}("", block {
+      final core::Set<core::String*>* #t5 = col::LinkedHashSet::•<core::String*>();
+    } =>#t5){(core::String*, core::Set<core::String*>*) →* core::List<core::String*>*};
+}

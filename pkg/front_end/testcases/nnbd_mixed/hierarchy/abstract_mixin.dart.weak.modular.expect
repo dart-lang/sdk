@@ -1,0 +1,54 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  method extendedConcreteMixedInAbstractMethod() → void {}
+  method extendedConcreteMixedInConcreteMethod() → void {}
+  method extendedConcreteMixedInAbstractImplementedMethod(core::int i) → void {}
+  method extendedConcreteMixedInConcreteImplementedMethod(core::int i) → void {}
+}
+class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  method extendedConcreteMixedInAbstractImplementedMethod(covariant-by-declaration core::num i) → void {}
+  method extendedConcreteMixedInConcreteImplementedMethod(covariant-by-declaration core::num i) → void {}
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  abstract method extendedConcreteMixedInAbstractMethod() → void;
+  method extendedConcreteMixedInConcreteMethod() → void {}
+  abstract method extendedConcreteMixedInAbstractImplementedMethod(core::int i) → void;
+  method extendedConcreteMixedInConcreteImplementedMethod(core::int i) → void {}
+}
+class Class = self::Super with self::Mixin implements self::Interface {
+  synthetic constructor •() → self::Class
+    : super self::Super::•()
+    ;
+  abstract mixin-stub method extendedConcreteMixedInAbstractMethod() → void; -> self::Mixin::extendedConcreteMixedInAbstractMethod
+  mixin-super-stub method extendedConcreteMixedInConcreteMethod() → void
+    return super.{self::Mixin::extendedConcreteMixedInConcreteMethod}();
+  forwarding-stub method extendedConcreteMixedInAbstractImplementedMethod(covariant-by-declaration core::int i) → void
+    return super.{self::Super::extendedConcreteMixedInAbstractImplementedMethod}(i);
+  forwarding-stub method extendedConcreteMixedInConcreteImplementedMethod(covariant-by-declaration core::int i) → void
+    return super.{self::Mixin::extendedConcreteMixedInConcreteImplementedMethod}(i);
+}
+class Sub extends self::Class {
+  synthetic constructor •() → self::Sub
+    : super self::Class::•()
+    ;
+  method test() → void {
+    this.{self::Class::extendedConcreteMixedInAbstractMethod}(){() → void};
+    super.{self::Super::extendedConcreteMixedInAbstractMethod}();
+    this.{self::Class::extendedConcreteMixedInConcreteMethod}(){() → void};
+    super.{self::Class::extendedConcreteMixedInConcreteMethod}();
+    this.{self::Class::extendedConcreteMixedInAbstractImplementedMethod}(0){(core::int) → void};
+    super.{self::Class::extendedConcreteMixedInAbstractImplementedMethod}(0);
+    this.{self::Class::extendedConcreteMixedInConcreteImplementedMethod}(0){(core::int) → void};
+    super.{self::Class::extendedConcreteMixedInConcreteImplementedMethod}(0);
+  }
+}
+static method main() → dynamic {}

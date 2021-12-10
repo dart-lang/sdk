@@ -1,0 +1,56 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/function_invocation_bounds.dart:9:8: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'local'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   local("");
+//        ^
+//
+// pkg/front_end/testcases/general/function_invocation_bounds.dart:10:8: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'local'.
+// Try changing type arguments so that they conform to the bounds.
+//   local<String>(throw '');
+//        ^
+//
+// pkg/front_end/testcases/general/function_invocation_bounds.dart:13:8: Error: Expected 1 type arguments.
+//   local<int, String>(throw '');
+//        ^
+//
+// pkg/front_end/testcases/general/function_invocation_bounds.dart:15:4: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'call'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   f("");
+//    ^
+//
+// pkg/front_end/testcases/general/function_invocation_bounds.dart:16:4: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'call'.
+// Try changing type arguments so that they conform to the bounds.
+//   f<String>(throw '');
+//    ^
+//
+// pkg/front_end/testcases/general/function_invocation_bounds.dart:19:4: Error: Expected 1 type arguments.
+//   f<int, String>(throw '');
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef G<invariant T extends core::Object? = dynamic> = (T%) → T%;
+static method test() → dynamic {
+  function local<T extends core::num>(T t) → T
+    return t;
+  local<core::String>(""){(core::String) → core::String};
+  local<core::String>(throw ""){(core::String) → core::String};
+  local<core::int>(0){(core::int) → core::int};
+  local<core::int>(throw ""){(core::int) → core::int};
+  invalid-expression "pkg/front_end/testcases/general/function_invocation_bounds.dart:13:8: Error: Expected 1 type arguments.
+  local<int, String>(throw '');
+       ^" in local{<inapplicable>}.<core::int, core::String>(throw "");
+  <T extends core::num>(T) → T f = local;
+  f<core::String>(""){(core::String) → core::String};
+  f<core::String>(throw ""){(core::String) → core::String};
+  f<core::int>(0){(core::int) → core::int};
+  f<core::int>(throw ""){(core::int) → core::int};
+  invalid-expression "pkg/front_end/testcases/general/function_invocation_bounds.dart:19:4: Error: Expected 1 type arguments.
+  f<int, String>(throw '');
+   ^" in f{<inapplicable>}.<core::int, core::String>(throw "");
+}
+static method main() → dynamic {}

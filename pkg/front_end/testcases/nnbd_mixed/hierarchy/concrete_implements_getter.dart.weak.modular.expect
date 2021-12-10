@@ -1,0 +1,88 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_getter.dart:5:7: Error: The non-abstract class 'Interface' is missing implementations for these members:
+//  - Interface.declaredAbstractImplementsAbstractGetter
+//  - Interface.declaredConcreteImplementsAbstractGetter
+//  - Interface.implementedAbstractGetter
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class Interface {
+//       ^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_getter.dart:16:11: Context: 'Interface.declaredAbstractImplementsAbstractGetter' is defined here.
+//   int get declaredAbstractImplementsAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_getter.dart:14:11: Context: 'Interface.declaredConcreteImplementsAbstractGetter' is defined here.
+//   int get declaredConcreteImplementsAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_getter.dart:8:11: Context: 'Interface.implementedAbstractGetter' is defined here.
+//   int get implementedAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_getter.dart:19:7: Error: The non-abstract class 'ConcreteClass' is missing implementations for these members:
+//  - ConcreteClass.declaredAbstractGetter
+//  - ConcreteClass.declaredAbstractImplementsAbstractGetter
+//  - ConcreteClass.declaredAbstractImplementsConcreteGetter
+//  - Interface.implementedAbstractGetter
+//  - Interface.implementedConcreteGetter
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ConcreteClass implements Interface {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_getter.dart:22:11: Context: 'ConcreteClass.declaredAbstractGetter' is defined here.
+//   int get declaredAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_getter.dart:30:11: Context: 'ConcreteClass.declaredAbstractImplementsAbstractGetter' is defined here.
+//   int get declaredAbstractImplementsAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_getter.dart:26:11: Context: 'ConcreteClass.declaredAbstractImplementsConcreteGetter' is defined here.
+//   int get declaredAbstractImplementsConcreteGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_getter.dart:8:11: Context: 'Interface.implementedAbstractGetter' is defined here.
+//   int get implementedAbstractGetter;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/concrete_implements_getter.dart:6:11: Context: 'Interface.implementedConcreteGetter' is defined here.
+//   int get implementedConcreteGetter => 0;
+//           ^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  get implementedConcreteGetter() → core::int
+    return 0;
+  abstract get implementedAbstractGetter() → core::int;
+  get declaredConcreteImplementsConcreteGetter() → core::int
+    return 0;
+  get declaredAbstractImplementsConcreteGetter() → core::int
+    return 0;
+  abstract get declaredConcreteImplementsAbstractGetter() → core::int;
+  abstract get declaredAbstractImplementsAbstractGetter() → core::int;
+}
+class ConcreteClass extends core::Object implements self::Interface {
+  synthetic constructor •() → self::ConcreteClass
+    : super core::Object::•()
+    ;
+  get declaredConcreteGetter() → core::int
+    return 0;
+  abstract get declaredAbstractGetter() → core::int;
+  get declaredConcreteImplementsConcreteGetter() → core::int
+    return 0;
+  abstract get declaredAbstractImplementsConcreteGetter() → core::int;
+  get declaredConcreteImplementsAbstractGetter() → core::int
+    return 0;
+  abstract get declaredAbstractImplementsAbstractGetter() → core::int;
+}
+static method main() → dynamic {}

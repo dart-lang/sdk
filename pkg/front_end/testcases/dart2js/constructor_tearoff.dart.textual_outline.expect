@@ -1,0 +1,15 @@
+typedef Alias<T extends num> = Class<T>;
+
+class Class<T> {
+  Class();
+  factory Class.fact() => Class<T>();
+  factory Class.redirect() = Class<T>;
+}
+
+const a = Class.new;
+const b = Class.fact;
+const c = Class.redirect;
+const d = Alias.new;
+const e = Alias.fact;
+const f = Alias.redirect;
+main() {}

@@ -1,0 +1,85 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///issue_36647_lib1.dart";
+
+
+library;
+import self as self2;
+import "issue_36647_lib2.dart" as iss;
+additionalExports = (iss::xxx,
+  iss::XXX,
+  iss::XXX,
+  iss::extends,
+  iss::extends)
+
+export "org-dartlang-testcase:///issue_36647_lib2.dart";
+
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:7: Error: A class declaration must have a body, even if it is empty.
+// Try adding an empty body.
+// class xxx xx XXX extends XXX {
+//       ^^^
+//
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:14: Error: Expected ';' after this.
+// class xxx xx XXX extends XXX {
+//              ^^^
+//
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:18: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class xxx xx XXX extends XXX {
+//                  ^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:18: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class xxx xx XXX extends XXX {
+//                  ^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:18: Error: Expected ';' after this.
+// class xxx xx XXX extends XXX {
+//                  ^^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:26: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// class xxx xx XXX extends XXX {
+//                          ^^^
+//
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:26: Error: 'XXX' is already declared in this scope.
+// class xxx xx XXX extends XXX {
+//                          ^^^
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:14: Context: Previous declaration of 'XXX'.
+// class xxx xx XXX extends XXX {
+//              ^^^
+//
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:11: Error: Type 'xx' not found.
+// class xxx xx XXX extends XXX {
+//           ^^
+//
+// pkg/front_end/testcases/regress/issue_36647_lib2.dart:5:11: Error: 'xx' isn't a type.
+// class xxx xx XXX extends XXX {
+//           ^^
+//
+import self as iss;
+import "dart:core" as core;
+
+class xxx extends core::Object {
+  synthetic constructor •() → iss::xxx*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field invalid-type XXX;
+static field dynamic extends;

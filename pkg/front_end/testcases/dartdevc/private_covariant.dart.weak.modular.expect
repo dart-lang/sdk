@@ -1,0 +1,15 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method _privateMethod(covariant-by-declaration core::int i) → dynamic {}
+  static method _#new#tearOff() → self::Class
+    return new self::Class::•();
+}
+static method main() → dynamic {
+  new self::Class::•().{self::Class::_privateMethod}(0){(core::int) → dynamic};
+}

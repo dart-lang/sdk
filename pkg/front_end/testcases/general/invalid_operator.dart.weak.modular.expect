@@ -1,0 +1,968 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:6:12: Error: Operator '==' should have exactly one parameter.
+//   operator ==() => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:7:12: Error: Operator '<' should have exactly one parameter.
+//   operator <() => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:8:12: Error: Operator '>' should have exactly one parameter.
+//   operator >() => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:9:12: Error: Operator '<=' should have exactly one parameter.
+//   operator <=() => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:10:12: Error: Operator '>=' should have exactly one parameter.
+//   operator >=() => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:11:12: Error: Operator '+' should have exactly one parameter.
+//   operator +() => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:12:12: Error: Operator '/' should have exactly one parameter.
+//   operator /() => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:13:12: Error: Operator '~/' should have exactly one parameter.
+//   operator ~/() => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:14:12: Error: Operator '*' should have exactly one parameter.
+//   operator *() => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:15:12: Error: Operator '%' should have exactly one parameter.
+//   operator %() => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:16:12: Error: Operator '|' should have exactly one parameter.
+//   operator |() => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:17:12: Error: Operator '^' should have exactly one parameter.
+//   operator ^() => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:18:12: Error: Operator '&' should have exactly one parameter.
+//   operator &() => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:19:12: Error: Operator '<<' should have exactly one parameter.
+//   operator <<() => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:20:12: Error: Operator '>>' should have exactly one parameter.
+//   operator >>() => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:21:12: Error: Operator '[]=' should have exactly two parameters.
+//   operator []=(a, b, c) => true;
+//            ^^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:22:12: Error: Operator '[]' should have exactly one parameter.
+//   operator []() => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:23:12: Error: Operator '~' shouldn't have any parameters.
+//   operator ~(a) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:27:12: Error: Operator '==' should have exactly one parameter.
+//   operator ==(a, b) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:28:12: Error: Operator '<' should have exactly one parameter.
+//   operator <(a, b) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:29:12: Error: Operator '>' should have exactly one parameter.
+//   operator >(a, b) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:30:12: Error: Operator '<=' should have exactly one parameter.
+//   operator <=(a, b) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:31:12: Error: Operator '>=' should have exactly one parameter.
+//   operator >=(a, b) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:32:12: Error: Operator '-' should have zero or one parameter.
+// With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.
+//   operator -(a, b) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:33:12: Error: Operator '+' should have exactly one parameter.
+//   operator +(a, b) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:34:12: Error: Operator '/' should have exactly one parameter.
+//   operator /(a, b) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:35:12: Error: Operator '~/' should have exactly one parameter.
+//   operator ~/(a, b) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:36:12: Error: Operator '*' should have exactly one parameter.
+//   operator *(a, b) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:37:12: Error: Operator '%' should have exactly one parameter.
+//   operator %(a, b) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:38:12: Error: Operator '|' should have exactly one parameter.
+//   operator |(a, b) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:39:12: Error: Operator '^' should have exactly one parameter.
+//   operator ^(a, b) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:40:12: Error: Operator '&' should have exactly one parameter.
+//   operator &(a, b) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:41:12: Error: Operator '<<' should have exactly one parameter.
+//   operator <<(a, b) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:42:12: Error: Operator '>>' should have exactly one parameter.
+//   operator >>(a, b) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:43:12: Error: Operator '[]=' should have exactly two parameters.
+//   operator []=(a, b, c) => true;
+//            ^^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:44:12: Error: Operator '[]' should have exactly one parameter.
+//   operator [](a, b) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:45:12: Error: Operator '~' shouldn't have any parameters.
+//   operator ~(a, b) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:49:16: Error: An operator can't have optional parameters.
+//   operator ==([a]) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:50:15: Error: An operator can't have optional parameters.
+//   operator <([a]) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:51:15: Error: An operator can't have optional parameters.
+//   operator >([a]) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:52:16: Error: An operator can't have optional parameters.
+//   operator <=([a]) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:53:16: Error: An operator can't have optional parameters.
+//   operator >=([a]) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:54:15: Error: An operator can't have optional parameters.
+//   operator -([a]) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:55:15: Error: An operator can't have optional parameters.
+//   operator +([a]) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:56:15: Error: An operator can't have optional parameters.
+//   operator /([a]) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:57:16: Error: An operator can't have optional parameters.
+//   operator ~/([a]) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:58:15: Error: An operator can't have optional parameters.
+//   operator *([a]) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:59:15: Error: An operator can't have optional parameters.
+//   operator %([a]) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:60:15: Error: An operator can't have optional parameters.
+//   operator |([a]) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:61:15: Error: An operator can't have optional parameters.
+//   operator ^([a]) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:62:15: Error: An operator can't have optional parameters.
+//   operator &([a]) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:63:16: Error: An operator can't have optional parameters.
+//   operator <<([a]) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:64:16: Error: An operator can't have optional parameters.
+//   operator >>([a]) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:65:17: Error: An operator can't have optional parameters.
+//   operator []=([a, b]) => true;
+//                 ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:65:20: Error: An operator can't have optional parameters.
+//   operator []=([a, b]) => true;
+//                    ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:66:16: Error: An operator can't have optional parameters.
+//   operator []([a]) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:67:12: Error: Operator '~' shouldn't have any parameters.
+//   operator ~([a]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:71:16: Error: An operator can't have optional parameters.
+//   operator ==({a}) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:72:15: Error: An operator can't have optional parameters.
+//   operator <({a}) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:73:15: Error: An operator can't have optional parameters.
+//   operator >({a}) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:74:16: Error: An operator can't have optional parameters.
+//   operator <=({a}) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:75:16: Error: An operator can't have optional parameters.
+//   operator >=({a}) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:76:15: Error: An operator can't have optional parameters.
+//   operator -({a}) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:77:15: Error: An operator can't have optional parameters.
+//   operator +({a}) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:78:15: Error: An operator can't have optional parameters.
+//   operator /({a}) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:79:16: Error: An operator can't have optional parameters.
+//   operator ~/({a}) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:80:15: Error: An operator can't have optional parameters.
+//   operator *({a}) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:81:15: Error: An operator can't have optional parameters.
+//   operator %({a}) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:82:15: Error: An operator can't have optional parameters.
+//   operator |({a}) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:83:15: Error: An operator can't have optional parameters.
+//   operator ^({a}) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:84:15: Error: An operator can't have optional parameters.
+//   operator &({a}) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:85:16: Error: An operator can't have optional parameters.
+//   operator <<({a}) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:86:16: Error: An operator can't have optional parameters.
+//   operator >>({a}) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:87:17: Error: An operator can't have optional parameters.
+//   operator []=({a, b}) => true;
+//                 ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:87:20: Error: An operator can't have optional parameters.
+//   operator []=({a, b}) => true;
+//                    ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:88:16: Error: An operator can't have optional parameters.
+//   operator []({a}) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:89:12: Error: Operator '~' shouldn't have any parameters.
+//   operator ~({a}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:93:12: Error: Operator '==' should have exactly one parameter.
+//   operator ==(a, [b]) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:94:12: Error: Operator '<' should have exactly one parameter.
+//   operator <(a, [b]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:95:12: Error: Operator '>' should have exactly one parameter.
+//   operator >(a, [b]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:96:12: Error: Operator '<=' should have exactly one parameter.
+//   operator <=(a, [b]) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:97:12: Error: Operator '>=' should have exactly one parameter.
+//   operator >=(a, [b]) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:98:12: Error: Operator '-' should have zero or one parameter.
+// With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.
+//   operator -(a, [b]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:99:12: Error: Operator '+' should have exactly one parameter.
+//   operator +(a, [b]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:100:12: Error: Operator '/' should have exactly one parameter.
+//   operator /(a, [b]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:101:12: Error: Operator '~/' should have exactly one parameter.
+//   operator ~/(a, [b]) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:102:12: Error: Operator '*' should have exactly one parameter.
+//   operator *(a, [b]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:103:12: Error: Operator '%' should have exactly one parameter.
+//   operator %(a, [b]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:104:12: Error: Operator '|' should have exactly one parameter.
+//   operator |(a, [b]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:105:12: Error: Operator '^' should have exactly one parameter.
+//   operator ^(a, [b]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:106:12: Error: Operator '&' should have exactly one parameter.
+//   operator &(a, [b]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:107:12: Error: Operator '<<' should have exactly one parameter.
+//   operator <<(a, [b]) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:108:12: Error: Operator '>>' should have exactly one parameter.
+//   operator >>(a, [b]) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:109:12: Error: Operator '[]=' should have exactly two parameters.
+//   operator []=(a, b, [c]) => true;
+//            ^^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:110:12: Error: Operator '[]' should have exactly one parameter.
+//   operator [](a, [b]) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:111:12: Error: Operator '~' shouldn't have any parameters.
+//   operator ~(a, [b]) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:115:12: Error: Operator '==' should have exactly one parameter.
+//   operator ==(a, {b}) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:116:12: Error: Operator '<' should have exactly one parameter.
+//   operator <(a, {b}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:117:12: Error: Operator '>' should have exactly one parameter.
+//   operator >(a, {b}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:118:12: Error: Operator '<=' should have exactly one parameter.
+//   operator <=(a, {b}) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:119:12: Error: Operator '>=' should have exactly one parameter.
+//   operator >=(a, {b}) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:120:12: Error: Operator '-' should have zero or one parameter.
+// With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.
+//   operator -(a, {b}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:121:12: Error: Operator '+' should have exactly one parameter.
+//   operator +(a, {b}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:122:12: Error: Operator '/' should have exactly one parameter.
+//   operator /(a, {b}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:123:12: Error: Operator '~/' should have exactly one parameter.
+//   operator ~/(a, {b}) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:124:12: Error: Operator '*' should have exactly one parameter.
+//   operator *(a, {b}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:125:12: Error: Operator '%' should have exactly one parameter.
+//   operator %(a, {b}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:126:12: Error: Operator '|' should have exactly one parameter.
+//   operator |(a, {b}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:127:12: Error: Operator '^' should have exactly one parameter.
+//   operator ^(a, {b}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:128:12: Error: Operator '&' should have exactly one parameter.
+//   operator &(a, {b}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:129:12: Error: Operator '<<' should have exactly one parameter.
+//   operator <<(a, {b}) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:130:12: Error: Operator '>>' should have exactly one parameter.
+//   operator >>(a, {b}) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:131:12: Error: Operator '[]=' should have exactly two parameters.
+//   operator []=(a, b, {c}) => true;
+//            ^^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:132:12: Error: Operator '[]' should have exactly one parameter.
+//   operator [](a, {b}) => true;
+//            ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:133:12: Error: Operator '~' shouldn't have any parameters.
+//   operator ~(a, {b}) => true;
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:137:15: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator ==<T>(a) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:138:14: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator ><T>(a) => true;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:139:15: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator <=<T>(a) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:140:15: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator >=<T>(a) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:141:14: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator -<T>() => true;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:142:14: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator -<T>(a) => true;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:143:14: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator +<T>(a) => true;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:144:14: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator /<T>(a) => true;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:145:15: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator ~/<T>(a) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:146:14: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator *<T>(a) => true;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:147:14: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator %<T>(a) => true;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:148:14: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator |<T>(a) => true;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:149:14: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator ^<T>(a) => true;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:150:14: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator &<T>(a) => true;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:151:15: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator <<<T>(a) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:152:15: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator >><T>(a) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:153:16: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator []=<T>(a, b) => true;
+//                ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:154:15: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator []<T>(a) => true;
+//               ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:155:14: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator ~<T>() => true;
+//              ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:137:12: Error: Can't infer types for '==' as the overridden members don't have a combined signature.
+// Try adding explicit types.
+//   operator ==<T>(a) => true;
+//            ^^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is one of the overridden members.
+//   external bool operator ==(Object other);
+//                          ^^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:6:12: Error: The method 'Operators1.==' has fewer positional arguments than those of overridden method 'Object.=='.
+//   operator ==() => true;
+//            ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is the overridden method ('==').
+//   external bool operator ==(Object other);
+//                          ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:27:12: Error: The method 'Operators2.==' has more required arguments than those of overridden method 'Object.=='.
+//   operator ==(a, b) => true;
+//            ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is the overridden method ('==').
+//   external bool operator ==(Object other);
+//                          ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:71:12: Error: The method 'Operators4.==' has fewer positional arguments than those of overridden method 'Object.=='.
+//   operator ==({a}) => true;
+//            ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is the overridden method ('==').
+//   external bool operator ==(Object other);
+//                          ^
+//
+// pkg/front_end/testcases/general/invalid_operator.dart:137:12: Error: Declared type variables of 'Operators7.==' doesn't match those on overridden method 'Object.=='.
+//   operator ==<T>(a) => true;
+//            ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:29:26: Context: This is the overridden method ('==').
+//   external bool operator ==(Object other);
+//                          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Operators1 extends core::Object {
+  synthetic constructor •() → self::Operators1*
+    : super core::Object::•()
+    ;
+  operator ==() → core::bool*
+    return true;
+  operator <() → dynamic
+    return true;
+  operator >() → dynamic
+    return true;
+  operator <=() → dynamic
+    return true;
+  operator >=() → dynamic
+    return true;
+  operator +() → dynamic
+    return true;
+  operator /() → dynamic
+    return true;
+  operator ~/() → dynamic
+    return true;
+  operator *() → dynamic
+    return true;
+  operator %() → dynamic
+    return true;
+  operator |() → dynamic
+    return true;
+  operator ^() → dynamic
+    return true;
+  operator &() → dynamic
+    return true;
+  operator <<() → dynamic
+    return true;
+  operator >>() → dynamic
+    return true;
+  operator []=(dynamic a, dynamic b, dynamic c) → void
+    return true;
+  operator []() → dynamic
+    return true;
+  operator ~(dynamic a) → dynamic
+    return true;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Operators2 extends core::Object {
+  synthetic constructor •() → self::Operators2*
+    : super core::Object::•()
+    ;
+  operator ==(dynamic a, dynamic b) → core::bool*
+    return true;
+  operator <(dynamic a, dynamic b) → dynamic
+    return true;
+  operator >(dynamic a, dynamic b) → dynamic
+    return true;
+  operator <=(dynamic a, dynamic b) → dynamic
+    return true;
+  operator >=(dynamic a, dynamic b) → dynamic
+    return true;
+  operator -(dynamic a, dynamic b) → dynamic
+    return true;
+  operator +(dynamic a, dynamic b) → dynamic
+    return true;
+  operator /(dynamic a, dynamic b) → dynamic
+    return true;
+  operator ~/(dynamic a, dynamic b) → dynamic
+    return true;
+  operator *(dynamic a, dynamic b) → dynamic
+    return true;
+  operator %(dynamic a, dynamic b) → dynamic
+    return true;
+  operator |(dynamic a, dynamic b) → dynamic
+    return true;
+  operator ^(dynamic a, dynamic b) → dynamic
+    return true;
+  operator &(dynamic a, dynamic b) → dynamic
+    return true;
+  operator <<(dynamic a, dynamic b) → dynamic
+    return true;
+  operator >>(dynamic a, dynamic b) → dynamic
+    return true;
+  operator []=(dynamic a, dynamic b, dynamic c) → void
+    return true;
+  operator [](dynamic a, dynamic b) → dynamic
+    return true;
+  operator ~(dynamic a, dynamic b) → dynamic
+    return true;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Operators3 extends core::Object {
+  synthetic constructor •() → self::Operators3*
+    : super core::Object::•()
+    ;
+  operator ==([dynamic a = #C1]) → core::bool*
+    return true;
+  operator <([dynamic a = #C1]) → dynamic
+    return true;
+  operator >([dynamic a = #C1]) → dynamic
+    return true;
+  operator <=([dynamic a = #C1]) → dynamic
+    return true;
+  operator >=([dynamic a = #C1]) → dynamic
+    return true;
+  operator -([dynamic a = #C1]) → dynamic
+    return true;
+  operator +([dynamic a = #C1]) → dynamic
+    return true;
+  operator /([dynamic a = #C1]) → dynamic
+    return true;
+  operator ~/([dynamic a = #C1]) → dynamic
+    return true;
+  operator *([dynamic a = #C1]) → dynamic
+    return true;
+  operator %([dynamic a = #C1]) → dynamic
+    return true;
+  operator |([dynamic a = #C1]) → dynamic
+    return true;
+  operator ^([dynamic a = #C1]) → dynamic
+    return true;
+  operator &([dynamic a = #C1]) → dynamic
+    return true;
+  operator <<([dynamic a = #C1]) → dynamic
+    return true;
+  operator >>([dynamic a = #C1]) → dynamic
+    return true;
+  operator []=([dynamic a = #C1, dynamic b = #C1]) → void
+    return true;
+  operator []([dynamic a = #C1]) → dynamic
+    return true;
+  operator ~([dynamic a = #C1]) → dynamic
+    return true;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Operators4 extends core::Object {
+  synthetic constructor •() → self::Operators4*
+    : super core::Object::•()
+    ;
+  operator ==({dynamic a = #C1}) → core::bool*
+    return true;
+  operator <({dynamic a = #C1}) → dynamic
+    return true;
+  operator >({dynamic a = #C1}) → dynamic
+    return true;
+  operator <=({dynamic a = #C1}) → dynamic
+    return true;
+  operator >=({dynamic a = #C1}) → dynamic
+    return true;
+  operator -({dynamic a = #C1}) → dynamic
+    return true;
+  operator +({dynamic a = #C1}) → dynamic
+    return true;
+  operator /({dynamic a = #C1}) → dynamic
+    return true;
+  operator ~/({dynamic a = #C1}) → dynamic
+    return true;
+  operator *({dynamic a = #C1}) → dynamic
+    return true;
+  operator %({dynamic a = #C1}) → dynamic
+    return true;
+  operator |({dynamic a = #C1}) → dynamic
+    return true;
+  operator ^({dynamic a = #C1}) → dynamic
+    return true;
+  operator &({dynamic a = #C1}) → dynamic
+    return true;
+  operator <<({dynamic a = #C1}) → dynamic
+    return true;
+  operator >>({dynamic a = #C1}) → dynamic
+    return true;
+  operator []=({dynamic a = #C1, dynamic b = #C1}) → void
+    return true;
+  operator []({dynamic a = #C1}) → dynamic
+    return true;
+  operator ~({dynamic a = #C1}) → dynamic
+    return true;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Operators5 extends core::Object {
+  synthetic constructor •() → self::Operators5*
+    : super core::Object::•()
+    ;
+  operator ==(dynamic a, [dynamic b = #C1]) → core::bool*
+    return true;
+  operator <(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator >(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator <=(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator >=(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator -(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator +(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator /(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator ~/(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator *(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator %(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator |(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator ^(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator &(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator <<(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator >>(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator []=(dynamic a, dynamic b, [dynamic c = #C1]) → void
+    return true;
+  operator [](dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  operator ~(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Operators6 extends core::Object {
+  synthetic constructor •() → self::Operators6*
+    : super core::Object::•()
+    ;
+  operator ==(dynamic a, {dynamic b = #C1}) → core::bool*
+    return true;
+  operator <(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator >(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator <=(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator >=(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator -(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator +(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator /(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator ~/(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator *(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator %(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator |(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator ^(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator &(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator <<(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator >>(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator []=(dynamic a, dynamic b, {dynamic c = #C1}) → void
+    return true;
+  operator [](dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  operator ~(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Operators7 extends core::Object {
+  synthetic constructor •() → self::Operators7*
+    : super core::Object::•()
+    ;
+  operator ==<T extends core::Object* = dynamic>(invalid-type a) → invalid-type
+    return true;
+  operator ><T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator <=<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator >=<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator unary-<T extends core::Object* = dynamic>() → dynamic
+    return true;
+  operator -<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator +<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator /<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator ~/<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator *<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator %<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator |<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator ^<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator &<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator <<<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator >><T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator []=<T extends core::Object* = dynamic>(dynamic a, dynamic b) → void
+    return true;
+  operator []<T extends core::Object* = dynamic>(dynamic a) → dynamic
+    return true;
+  operator ~<T extends core::Object* = dynamic>() → dynamic
+    return true;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

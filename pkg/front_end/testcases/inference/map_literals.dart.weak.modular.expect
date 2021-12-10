@@ -1,0 +1,58 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/map_literals.dart:12:46: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//       /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+//                                              ^
+//
+// pkg/front_end/testcases/inference/map_literals.dart:14:46: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//       /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0] = 'u';
+//                                              ^
+//
+// pkg/front_end/testcases/inference/map_literals.dart:15:60: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   x /*@target=Map.[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
+//                                                            ^
+//
+// pkg/front_end/testcases/inference/map_literals.dart:27:46: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
+//       /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+//                                              ^
+//
+// pkg/front_end/testcases/inference/map_literals.dart:29:60: Error: A value of type 'int' can't be assigned to a variable of type 'Pattern'.
+//  - 'Pattern' is from 'dart:core'.
+//   x /*@target=Map.[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
+//                                                            ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test1() → dynamic {
+  core::Map<core::int*, core::String*>* x = <core::int*, core::String*>{1: "x", 2: "y"};
+  x.{core::Map::[]=}(3, "z"){(core::int*, core::String*) →* void};
+  x.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/inference/map_literals.dart:12:46: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+                                             ^" in "hi" as{TypeError} core::int*, "w"){(core::int*, core::String*) →* void};
+  x.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/inference/map_literals.dart:14:46: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0] = 'u';
+                                             ^" in 4.0 as{TypeError} core::int*, "u"){(core::int*, core::String*) →* void};
+  x.{core::Map::[]=}(3, invalid-expression "pkg/front_end/testcases/inference/map_literals.dart:15:60: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  x /*@target=Map.[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
+                                                           ^" in 42 as{TypeError} core::String*){(core::int*, core::String*) →* void};
+  core::Map<core::num*, core::String*>* y = x;
+}
+static method test2() → dynamic {
+  core::Map<core::num*, core::Pattern*>* x = <core::num*, core::Pattern*>{1: "x", 2: "y", 3.0: core::RegExp::•(".")};
+  x.{core::Map::[]=}(3, "z"){(core::num*, core::Pattern*) →* void};
+  x.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/inference/map_literals.dart:27:46: Error: A value of type 'String' can't be assigned to a variable of type 'num'.
+      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi'] = 'w';
+                                             ^" in "hi" as{TypeError} core::num*, "w"){(core::num*, core::Pattern*) →* void};
+  x.{core::Map::[]=}(4.0, "u"){(core::num*, core::Pattern*) →* void};
+  x.{core::Map::[]=}(3, invalid-expression "pkg/front_end/testcases/inference/map_literals.dart:29:60: Error: A value of type 'int' can't be assigned to a variable of type 'Pattern'.
+ - 'Pattern' is from 'dart:core'.
+  x /*@target=Map.[]=*/ [3] = /*error:INVALID_ASSIGNMENT*/ 42;
+                                                           ^" in 42 as{TypeError} core::Pattern*){(core::num*, core::Pattern*) →* void};
+  core::Pattern* p = null;
+  x.{core::Map::[]=}(2, p){(core::num*, core::Pattern*) →* void};
+  core::Map<core::int*, core::String*>* y = x as{TypeError} core::Map<core::int*, core::String*>*;
+}
+static method main() → dynamic {}

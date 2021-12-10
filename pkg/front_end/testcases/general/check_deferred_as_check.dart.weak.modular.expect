@@ -1,0 +1,44 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/check_deferred_as_check.dart:9:8: Error: The type 'C' is deferred loaded via prefix 'lib' and can't be used as a type annotation.
+//  - 'C' is from 'pkg/front_end/testcases/general/deferred_lib.dart'.
+// Try removing 'deferred' from the import of 'lib' or use a supertype of 'C' that isn't deferred.
+//   x as lib.C;
+//        ^^^^^
+//
+import self as self;
+
+import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
+
+static method main() → dynamic {}
+static method test(dynamic x) → dynamic {
+  x as invalid-type;
+}
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class C extends core::Object {
+  static field core::int* y = 1;
+  synthetic constructor •() → self2::C*
+    : super core::Object::•()
+    ;
+  static method m() → core::int*
+    return 2;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field core::int* x = 0;
+static method m(dynamic x) → dynamic
+  return null;
