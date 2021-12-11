@@ -390,7 +390,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     // TODO (jwren) revisit- should we append '=' here or require clients to
     // include it?
     // Do we need the check for isSetter below?
-    if (!StringUtilities.endsWithChar(setterName, 0x3D)) {
+    if (!setterName.endsWith('=')) {
       setterName += '=';
     }
     for (PropertyAccessorElement accessor in accessors) {
@@ -2085,8 +2085,7 @@ abstract class ElementImpl implements Element {
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
-  ElementImpl(String? name, this._nameOffset, {this.reference}) {
-    _name = name != null ? StringUtilities.intern(name) : null;
+  ElementImpl(this._name, this._nameOffset, {this.reference}) {
     reference?.element = this;
   }
 
@@ -4723,8 +4722,8 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   final ParameterKind parameterKind;
 
-  /// The Dart code of the default value.
-  String? _defaultValueCode;
+  @override
+  String? defaultValueCode;
 
   /// True if this parameter inherits from a covariant parameter. This happens
   /// when it overrides a method in a supertype that has a corresponding
@@ -4754,18 +4753,6 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   ParameterElement get declaration => this;
-
-  @override
-  String? get defaultValueCode {
-    return _defaultValueCode;
-  }
-
-  /// Set Dart code of the default value.
-  set defaultValueCode(String? defaultValueCode) {
-    _defaultValueCode = defaultValueCode != null
-        ? StringUtilities.intern(defaultValueCode)
-        : null;
-  }
 
   @override
   bool get hasDefaultValue {

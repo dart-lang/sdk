@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -23,7 +22,6 @@ main() {
     defineReflectiveTests(LineInfoTest);
     defineReflectiveTests(NodeReplacerTest);
     defineReflectiveTests(SourceRangeTest);
-    defineReflectiveTests(StringUtilitiesTest);
   });
 }
 
@@ -1043,6 +1041,21 @@ class LineInfoTest {
     expect(() {
       LineInfo(<int>[]);
     }, throwsArgumentError);
+  }
+
+  void test_fromContent_n() {
+    var lineInfo = LineInfo.fromContent('a\nbb\nccc');
+    expect(lineInfo.lineStarts, <int>[0, 2, 5]);
+  }
+
+  void test_fromContent_r() {
+    var lineInfo = LineInfo.fromContent('a\rbb\rccc');
+    expect(lineInfo.lineStarts, <int>[0, 2, 5]);
+  }
+
+  void test_fromContent_rn() {
+    var lineInfo = LineInfo.fromContent('a\r\nbb\r\nccc');
+    expect(lineInfo.lineStarts, <int>[0, 3, 7]);
   }
 
   void test_getLocation_firstLine() {
@@ -2558,38 +2571,5 @@ class SourceRangeTest {
   void test_toString() {
     SourceRange r = SourceRange(10, 1);
     expect(r.toString(), "[offset=10, length=1]");
-  }
-}
-
-@reflectiveTest
-class StringUtilitiesTest {
-  void test_computeLineStarts_n() {
-    List<int> starts = StringUtilities.computeLineStarts('a\nbb\nccc');
-    expect(starts, <int>[0, 2, 5]);
-  }
-
-  void test_computeLineStarts_r() {
-    List<int> starts = StringUtilities.computeLineStarts('a\rbb\rccc');
-    expect(starts, <int>[0, 2, 5]);
-  }
-
-  void test_computeLineStarts_rn() {
-    List<int> starts = StringUtilities.computeLineStarts('a\r\nbb\r\nccc');
-    expect(starts, <int>[0, 3, 7]);
-  }
-
-  void test_EMPTY() {
-    expect(StringUtilities.EMPTY, "");
-    expect(StringUtilities.EMPTY.isEmpty, isTrue);
-  }
-
-  void test_EMPTY_ARRAY() {
-    expect(StringUtilities.EMPTY_ARRAY.length, 0);
-  }
-
-  void test_endsWithChar() {
-    expect(StringUtilities.endsWithChar("a", 0x61), isTrue);
-    expect(StringUtilities.endsWithChar("b", 0x61), isFalse);
-    expect(StringUtilities.endsWithChar("", 0x61), isFalse);
   }
 }

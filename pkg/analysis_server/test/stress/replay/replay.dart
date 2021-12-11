@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart' as error;
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -497,7 +496,7 @@ class FileEdit {
       throw ArgumentError('Unhandled change of type ${record.status}');
     } else {
       content = File(filePath).readAsStringSync();
-      lineInfo = LineInfo(StringUtilities.computeLineStarts(content));
+      lineInfo = LineInfo.fromContent(content);
     }
     currentContent = content;
   }
