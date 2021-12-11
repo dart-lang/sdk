@@ -28,7 +28,7 @@ abstract class _B&A&M = a_l::A with m_l::M /*isAnonymousMixin*/  {
     return super.{m_l::M::m1}();
 }
 class B extends self2::_B&A&M {
-  constructor •({core::double d}) → self2::B
+  constructor •({core::double d = 2.71}) → self2::B
     ;
   static method _#new#tearOff({core::double d}) → self2::B
     return new self2::B::•(d: d);
@@ -54,9 +54,9 @@ import "org-dartlang-testcase:///t_lib.dart";
 class A extends core::Object {
   final field core::double d;
   final field (core::String) → core::String _s;
-  constructor •({core::double d, (core::String) → core::String s}) → a_l::A
+  constructor •({core::double d = #C1, (core::String) → core::String s = #C2}) → a_l::A
     ;
-  constructor factoryConstructor({core::double d, (core::String) → core::String s}) → a_l::A
+  constructor factoryConstructor({core::double d = #C1, (core::String) → core::String s = #C2}) → a_l::A
     ;
   static method _#new#tearOff({core::double d, (core::String) → core::String s}) → a_l::A
     return new a_l::A::•(d: d, s: s);
@@ -73,3 +73,8 @@ import self as self3;
 import "dart:core" as core;
 
 typedef StringyFunction<contravariant T extends core::Object? = dynamic> = (T%) → core::String;
+
+constants  {
+  #C1 = 3.14
+  #C2 = static-tearoff a_l::_defaultStringy
+}

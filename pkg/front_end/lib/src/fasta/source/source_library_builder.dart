@@ -17,6 +17,7 @@ import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
+import 'package:kernel/core_types.dart';
 
 import 'package:kernel/reference_from_index.dart'
     show IndexedClass, IndexedContainer, IndexedLibrary;
@@ -84,6 +85,7 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
+import '../kernel/kernel_helper.dart';
 import '../kernel/load_library_builder.dart';
 import '../kernel/type_algorithms.dart'
     show
@@ -122,6 +124,7 @@ import '../scope.dart';
 
 import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
+import '../util/helpers.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_extension_builder.dart';
@@ -181,7 +184,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   final Library library;
 
-  final SourceLibraryBuilder? actualOrigin;
+  final SourceLibraryBuilder? _origin;
 
   final List<FunctionBuilder> nativeMethods = <FunctionBuilder>[];
 
@@ -256,13 +259,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// [forEachExtensionInScope].
   Set<ExtensionBuilder>? _extensionsInScope;
 
+  List<SourceLibraryBuilder>? _patchLibraries;
+
   SourceLibraryBuilder.internal(
       SourceLoader loader,
       Uri fileUri,
       Uri? packageUri,
       LanguageVersion packageLanguageVersion,
       Scope? scope,
-      SourceLibraryBuilder? actualOrigin,
+      SourceLibraryBuilder? origin,
       Library library,
       LibraryBuilder? nameOrigin,
       Library? referencesFrom,
@@ -274,7 +279,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             packageLanguageVersion,
             new TypeParameterScopeBuilder.library(),
             scope ?? new Scope.top(),
-            actualOrigin,
+            origin,
             library,
             nameOrigin,
             referencesFrom);
@@ -286,7 +291,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this.packageLanguageVersion,
       this._libraryTypeParameterScopeBuilder,
       this.importScope,
-      this.actualOrigin,
+      SourceLibraryBuilder? origin,
       this.library,
       this._nameOrigin,
       this.referencesFrom)
@@ -294,6 +299,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
         referencesFromIndexed =
             referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
+        _origin = origin,
         super(fileUri, _libraryTypeParameterScopeBuilder.toScope(importScope),
             new Scope.top()) {
     assert(
@@ -457,13 +463,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   SourceLibraryBuilder(
-      Uri uri,
-      Uri fileUri,
+      {required Uri importUri,
+      required Uri fileUri,
       Uri? packageUri,
-      LanguageVersion packageLanguageVersion,
-      SourceLoader loader,
-      SourceLibraryBuilder? actualOrigin,
-      {Scope? scope,
+      required LanguageVersion packageLanguageVersion,
+      required SourceLoader loader,
+      SourceLibraryBuilder? origin,
+      Scope? scope,
       Library? target,
       LibraryBuilder? nameOrigin,
       Library? referencesFrom,
@@ -474,10 +480,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             packageUri,
             packageLanguageVersion,
             scope,
-            actualOrigin,
+            origin,
             target ??
-                (actualOrigin?.library ??
-                    new Library(uri,
+                (origin?.library ??
+                    new Library(importUri,
                         fileUri: fileUri,
                         reference: referenceIsPartOwner == true
                             ? null
@@ -489,6 +495,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   bool get isPart => partOfName != null || partOfUri != null;
+
+  // TODO(johnniwinther): Can avoid using this from outside this class?
+  Iterable<SourceLibraryBuilder>? get patchLibraries => _patchLibraries;
+
+  void addPatchLibrary(SourceLibraryBuilder patchLibrary) {
+    assert(patchLibrary.isPatch,
+        "Library ${patchLibrary} must be a patch library.");
+    assert(!patchLibrary.isPart,
+        "Patch library ${patchLibrary} cannot be a part .");
+    (_patchLibraries ??= []).add(patchLibrary);
+  }
 
   List<NamedTypeBuilder> get unresolvedNamedTypes =>
       _libraryTypeParameterScopeBuilder.unresolvedNamedTypes;
@@ -1045,6 +1062,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   /// Builds the core AST structure of this library as needed for the outline.
   Library build(LibraryBuilder coreLibrary, {bool modifyTarget: true}) {
+    // TODO(johnniwinther): Avoid the need to process patch libraries before
+    // the origin. Currently, settings performed by the patch are overridden
+    // by the origin. For instance, the `Map` class is abstract in the origin
+    // but (unintentionally) concrete in the patch. By processing the origin
+    // last the `isAbstract` property set by the patch is corrected by the
+    // origin.
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.build(coreLibrary, modifyTarget: modifyTarget);
+      }
+    }
+
     checkMemberConflicts(this, scope,
         checkForInstanceVsStaticConflict: false,
         checkForMethodVsSetterConflict: true);
@@ -1291,9 +1321,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         (library.problemsAsJson ??= <String>[])
             .addAll(part.library.problemsAsJson!);
       }
-      List<FieldBuilder>? partImplicitlyTypedFields =
-          part.takeImplicitlyTypedFields();
-      if (partImplicitlyTypedFields != null) {
+      List<FieldBuilder> partImplicitlyTypedFields = [];
+      part.collectImplicitlyTypedFields(partImplicitlyTypedFields);
+      if (partImplicitlyTypedFields.isNotEmpty) {
         if (_implicitlyTypedFields == null) {
           _implicitlyTypedFields = partImplicitlyTypedFields;
         } else {
@@ -1324,6 +1354,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildInitialScopes() {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.buildInitialScopes();
+      }
+    }
+
     NameIterator iterator = nameIterator;
     while (iterator.moveNext()) {
       addToExportScope(iterator.name, iterator.current);
@@ -1331,6 +1368,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addImportsToScope() {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.addImportsToScope();
+      }
+    }
+
     bool explicitCoreImport = this == loader.coreLibrary;
     for (Import import in imports) {
       if (import.imported?.isPart ?? false) {
@@ -1433,7 +1477,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// Resolves all unresolved types in [unresolvedNamedTypes]. The list of types
   /// is cleared when done.
   int resolveTypes() {
-    int typeCount = unresolvedNamedTypes.length;
+    int typeCount = 0;
+
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        typeCount += patchLibrary.resolveTypes();
+      }
+    }
+
+    typeCount += unresolvedNamedTypes.length;
     for (NamedTypeBuilder namedType in unresolvedNamedTypes) {
       namedType.resolveIn(
           scope, namedType.charOffset!, namedType.fileUri!, this);
@@ -1443,12 +1496,75 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return typeCount;
   }
 
-  @override
-  int resolveConstructors(_) {
-    int count = 0;
+  void installDefaultSupertypes(
+      ClassBuilder objectClassBuilder, Class objectClass) {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.installDefaultSupertypes(objectClassBuilder, objectClass);
+      }
+    }
+
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {
-      count += iterator.current.resolveConstructors(this);
+      Builder declaration = iterator.current;
+      if (declaration is SourceClassBuilder) {
+        Class cls = declaration.cls;
+        if (cls != objectClass) {
+          cls.supertype ??= objectClass.asRawSupertype;
+          declaration.supertypeBuilder ??= new NamedTypeBuilder(
+              "Object",
+              const NullabilityBuilder.omitted(),
+              /* arguments = */ null,
+              /* fileUri = */ null,
+              /* charOffset = */ null,
+              instanceTypeVariableAccess:
+                  InstanceTypeVariableAccessState.Unexpected)
+            ..bind(objectClassBuilder);
+        }
+        if (declaration.isMixinApplication) {
+          cls.mixedInType = declaration.mixedInTypeBuilder!.buildMixedInType(
+              this, declaration.charOffset, declaration.fileUri);
+        }
+      }
+    }
+  }
+
+  void collectSourceClasses(List<SourceClassBuilder> sourceClasses) {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.collectSourceClasses(sourceClasses);
+      }
+    }
+
+    Iterator<Builder> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      Builder member = iterator.current;
+      if (member is SourceClassBuilder && !member.isPatch) {
+        sourceClasses.add(member);
+      }
+    }
+  }
+
+  /// Resolve constructors (lookup names in scope) recorded in this builder and
+  /// return the number of constructors resolved.
+  int resolveConstructors() {
+    int count = 0;
+
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        count += patchLibrary.resolveConstructors();
+      }
+    }
+
+    Iterator<Builder> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      Builder builder = iterator.current;
+      if (builder is SourceClassBuilder) {
+        count += builder.resolveConstructors(this);
+      }
     }
     return count;
   }
@@ -1491,7 +1607,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   @override
-  SourceLibraryBuilder get origin => actualOrigin ?? this;
+  SourceLibraryBuilder get origin => _origin ?? this;
 
   @override
   Uri get importUri => library.importUri;
@@ -2800,10 +2916,45 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return builder;
   }
 
-  @override
-  void buildOutlineExpressions() {
+  void buildOutlineExpressions(
+      CoreTypes coreTypes,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes,
+      List<DelayedActionPerformer> delayedActionPerformers) {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.buildOutlineExpressions(
+            coreTypes, synthesizedFunctionNodes, delayedActionPerformers);
+      }
+    }
+
     MetadataBuilder.buildAnnotations(
         library, metadata, this, null, null, fileUri, scope);
+
+    Iterator<Builder> iterator = this.iterator;
+    while (iterator.moveNext()) {
+      Builder declaration = iterator.current;
+      if (declaration is ClassBuilder) {
+        declaration.buildOutlineExpressions(
+            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+      } else if (declaration is ExtensionBuilder) {
+        declaration.buildOutlineExpressions(
+            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+      } else if (declaration is MemberBuilder) {
+        declaration.buildOutlineExpressions(
+            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+      } else if (declaration is SourceTypeAliasBuilder) {
+        declaration.buildOutlineExpressions(
+            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+      } else {
+        assert(
+            declaration is PrefixBuilder ||
+                declaration is DynamicTypeDeclarationBuilder ||
+                declaration is NeverTypeDeclarationBuilder,
+            "Unexpected builder in library: ${declaration} "
+            "(${declaration.runtimeType}");
+      }
+    }
   }
 
   /// Builds the core AST structures for [declaration] needed for the outline.
@@ -3016,9 +3167,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         suppressMessage: false);
   }
 
-  @override
   int finishDeferredLoadTearoffs() {
     int total = 0;
+
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        total += patchLibrary.finishDeferredLoadTearoffs();
+      }
+    }
+
     for (Import import in imports) {
       if (import.deferred) {
         Procedure? tearoff = import.prefixBuilder!.loadLibraryBuilder!.tearoff;
@@ -3028,12 +3186,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         total++;
       }
     }
+
     return total;
   }
 
-  @override
   int finishForwarders() {
     int count = 0;
+
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        count += patchLibrary.finishForwarders();
+      }
+    }
+
     CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     for (int i = 0; i < forwardersOrigins.length; i += 2) {
       Procedure forwarder = forwardersOrigins[i];
@@ -3086,12 +3252,22 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     nativeMethods.add(method);
   }
 
-  @override
   int finishNativeMethods() {
+    int count = 0;
+
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        count += patchLibrary.finishNativeMethods();
+      }
+    }
+
     for (FunctionBuilder method in nativeMethods) {
       method.becomeNative(loader);
     }
-    return nativeMethods.length;
+    count += nativeMethods.length;
+
+    return count;
   }
 
   /// Creates a copy of [original] into the scope of [declaration].
@@ -3123,9 +3299,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return copy;
   }
 
-  @override
   int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
-    int count = unboundTypeVariables.length;
+    int count = 0;
+
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        count += patchLibrary.finishTypeVariables(object, dynamicType);
+      }
+    }
+
+    count += unboundTypeVariables.length;
+
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
     for (TypeVariableBuilder builder
@@ -3230,9 +3415,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _pendingNullabilities.clear();
   }
 
-  @override
+  /// Computes variances of type parameters on typedefs.
+  ///
+  /// The variance property of type parameters on typedefs is computed from the
+  /// use of the parameters in the right-hand side of the typedef definition.
   int computeVariances() {
     int count = 0;
+
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        count += patchLibrary.computeVariances();
+      }
+    }
+
     for (Builder? declaration
         in _libraryTypeParameterScopeBuilder.members!.values) {
       while (declaration != null) {
@@ -3336,10 +3532,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return false;
   }
 
-  @override
+  /// This method instantiates type parameters to their bounds in some cases
+  /// where they were omitted by the programmer and not provided by the type
+  /// inference.  The method returns the number of distinct type variables
+  /// that were instantiated in this library.
   int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
+
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        count += patchLibrary.computeDefaultTypes(
+            dynamicType, nullType, bottomType, objectClass);
+      }
+    }
 
     int computeDefaultTypesForVariables(List<TypeVariableBuilder>? variables,
         {required bool inErrorRecovery}) {
@@ -3560,7 +3767,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
-
     return count;
   }
 
@@ -3628,13 +3834,21 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  @override
   int finishPatchMethods() {
-    if (!isPatch) return 0;
     int count = 0;
-    Iterator<Builder> iterator = this.iterator;
-    while (iterator.moveNext()) {
-      count += iterator.current.finishPatch();
+
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        count += patchLibrary.finishPatchMethods();
+      }
+    }
+
+    if (isPatch) {
+      Iterator<Builder> iterator = this.iterator;
+      while (iterator.moveNext()) {
+        count += iterator.current.finishPatch();
+      }
     }
     return count;
   }
@@ -4269,6 +4483,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.checkTypesInOutline(typeEnvironment);
+      }
+    }
+
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
@@ -4302,6 +4523,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void computeShowHideElements(ClassMembersBuilder membersBuilder) {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.computeShowHideElements(membersBuilder);
+      }
+    }
+
     assert(currentTypeParameterScopeBuilder.kind ==
         TypeParameterScopeKind.library);
     for (SourceExtensionBuilder extensionBuilder
@@ -4513,11 +4741,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     (_implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
   }
 
-  @override
-  List<FieldBuilder>? takeImplicitlyTypedFields() {
-    List<FieldBuilder>? result = _implicitlyTypedFields;
-    _implicitlyTypedFields = null;
-    return result;
+  void collectImplicitlyTypedFields(
+      List<FieldBuilder> implicitlyTypedFieldBuilders) {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.collectImplicitlyTypedFields(implicitlyTypedFieldBuilders);
+      }
+    }
+
+    if (_implicitlyTypedFields != null) {
+      implicitlyTypedFieldBuilders.addAll(_implicitlyTypedFields!);
+      _implicitlyTypedFields = null;
+    }
   }
 
   void forEachExtensionInScope(void Function(ExtensionBuilder) f) {
@@ -4583,6 +4819,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void installTypedefTearOffs() {
+    Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        patchLibrary.installTypedefTearOffs();
+      }
+    }
+
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {
       Builder? declaration = iterator.current;

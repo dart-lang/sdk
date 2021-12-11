@@ -7,11 +7,11 @@ import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/micro/library_graph.dart' as cider;
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 
 class CiderErrorFixes {
@@ -68,30 +68,16 @@ class CiderFixesComputer {
     return result;
   }
 
-  List<TopLevelDeclaration> _topLevelDeclarations(String name) {
-    var result = <TopLevelDeclaration>[];
+  Future<Map<LibraryElement, List<Element>>> _topLevelDeclarations(
+      String name) async {
+    var result = <LibraryElement, List<Element>>{};
     var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
-    for (var fileWithKind in files) {
-      void addDeclaration(TopLevelDeclarationKind kind) {
-        var file = fileWithKind.file;
-        result.add(
-          TopLevelDeclaration(file.path, file.uri, kind, name, false),
+    for (var file in files) {
+      if (file.partOfLibrary == null) {
+        var libraryElement = _fileResolver.getLibraryByUri(
+          uriStr: file.uriStr,
         );
-      }
-
-      switch (fileWithKind.kind) {
-        case cider.FileTopLevelDeclarationKind.extension:
-          addDeclaration(TopLevelDeclarationKind.extension);
-          break;
-        case cider.FileTopLevelDeclarationKind.function:
-          addDeclaration(TopLevelDeclarationKind.function);
-          break;
-        case cider.FileTopLevelDeclarationKind.type:
-          addDeclaration(TopLevelDeclarationKind.type);
-          break;
-        case cider.FileTopLevelDeclarationKind.variable:
-          addDeclaration(TopLevelDeclarationKind.variable);
-          break;
+        TopLevelDeclarations.addElement(result, libraryElement, name);
       }
     }
     return result;

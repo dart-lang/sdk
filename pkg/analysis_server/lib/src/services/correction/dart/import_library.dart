@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
@@ -34,10 +33,9 @@ class ImportLibrary extends MultiCorrectionProducer {
     } else if (_importKind == _ImportKind.forExtension) {
       if (node is SimpleIdentifier) {
         var extensionName = node.name;
-        yield* _importLibraryForElement(
-            extensionName,
-            const [ElementKind.EXTENSION],
-            const [TopLevelDeclarationKind.extension]);
+        yield* _importLibraryForElement(extensionName, const [
+          ElementKind.EXTENSION,
+        ]);
       }
     } else if (_importKind == _ImportKind.forExtensionMember) {
       /// Return producers that will import extensions that apply to the
@@ -83,10 +81,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         var name = node.name;
         yield* _importLibraryForElement(name, const [
           ElementKind.FUNCTION,
-          ElementKind.TOP_LEVEL_VARIABLE
-        ], const [
-          TopLevelDeclarationKind.function,
-          TopLevelDeclarationKind.variable
+          ElementKind.TOP_LEVEL_VARIABLE,
         ]);
       }
     } else if (_importKind == _ImportKind.forTopLevelVariable) {
@@ -102,10 +97,9 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
       if (targetNode is SimpleIdentifier) {
         var name = targetNode.name;
-        yield* _importLibraryForElement(
-            name,
-            const [ElementKind.TOP_LEVEL_VARIABLE],
-            const [TopLevelDeclarationKind.variable]);
+        yield* _importLibraryForElement(name, const [
+          ElementKind.TOP_LEVEL_VARIABLE,
+        ]);
       }
     } else if (_importKind == _ImportKind.forType) {
       var targetNode = node;
@@ -124,15 +118,15 @@ class ImportLibrary extends MultiCorrectionProducer {
             : (targetNode as PrefixedIdentifier).prefix.name;
         yield* _importLibraryForElement(typeName, const [
           ElementKind.CLASS,
+          ElementKind.ENUM,
           ElementKind.FUNCTION_TYPE_ALIAS,
-          ElementKind.TYPE_ALIAS
-        ], const [
-          TopLevelDeclarationKind.type
+          ElementKind.TYPE_ALIAS,
         ]);
       } else if (mightBeImplicitConstructor(targetNode)) {
         var typeName = (targetNode as SimpleIdentifier).name;
-        yield* _importLibraryForElement(typeName, const [ElementKind.CLASS],
-            const [TopLevelDeclarationKind.type]);
+        yield* _importLibraryForElement(typeName, const [
+          ElementKind.CLASS,
+        ]);
       }
     }
   }
@@ -221,16 +215,16 @@ class ImportLibrary extends MultiCorrectionProducer {
   }
 
   Stream<CorrectionProducer> _importLibraryForElement(
-      String name,
-      List<ElementKind> elementKinds,
-      List<TopLevelDeclarationKind> kinds2) async* {
+    String name,
+    List<ElementKind> kinds,
+  ) async* {
     // ignore if private
     if (name.startsWith('_')) {
       return;
     }
     // may be there is an existing import,
     // but it is with prefix and we don't use this prefix
-    var alreadyImportedWithPrefix = <String>{};
+    var alreadyImportedWithPrefix = <LibraryElement>{};
     for (var imp in libraryElement.imports) {
       // prepare element
       var libraryElement = imp.importedLibrary;
@@ -244,7 +238,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (element is PropertyAccessorElement) {
         element = element.variable;
       }
-      if (!elementKinds.contains(element.kind)) {
+      if (!kinds.contains(element.kind)) {
         continue;
       }
       // may be apply prefix
@@ -268,47 +262,51 @@ class ImportLibrary extends MultiCorrectionProducer {
             libraryName = libraryElement.source.shortName;
           }
           // don't add this library again
-          alreadyImportedWithPrefix.add(libraryElement.source.fullName);
+          alreadyImportedWithPrefix.add(libraryElement);
           yield _ImportLibraryShow(libraryName, combinator, name);
         }
       }
     }
     // Find new top-level declarations.
-    var declarations = getTopLevelDeclarations(name);
-    for (var declaration in declarations) {
-      // Check the kind.
-      if (!kinds2.contains(declaration.kind)) {
-        continue;
+    var librariesWithElements = await getTopLevelDeclarations(name);
+    for (var libraryEntry in librariesWithElements.entries) {
+      var libraryElement = libraryEntry.key;
+      for (var declaration in libraryEntry.value) {
+        var librarySource = libraryElement.source;
+        // Check the kind.
+        if (!kinds.contains(declaration.kind)) {
+          continue;
+        }
+        // Check the source.
+        if (alreadyImportedWithPrefix.contains(libraryElement)) {
+          continue;
+        }
+        // Check that the import doesn't end with '.template.dart'
+        if (librarySource.uri.path.endsWith('.template.dart')) {
+          continue;
+        }
+        // Compute the fix kind.
+        FixKind fixKind;
+        if (librarySource.uri.isScheme('dart')) {
+          fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
+        } else if (_isLibSrcPath(librarySource.fullName)) {
+          // Bad: non-API.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
+        } else if (declaration.library != libraryElement) {
+          // Ugly: exports.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT2;
+        } else {
+          // Good: direct declaration.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
+        }
+        // If both files are in the same package's lib folder, also include a
+        // relative import.
+        var includeRelativeUri = canBeRelativeImport(
+            librarySource.uri, this.libraryElement.librarySource.uri);
+        // Add the fix(es).
+        yield* _importLibrary(fixKind, librarySource.uri,
+            includeRelativeFix: includeRelativeUri);
       }
-      // Check the source.
-      if (alreadyImportedWithPrefix.contains(declaration.path)) {
-        continue;
-      }
-      // Check that the import doesn't end with '.template.dart'
-      if (declaration.uri.path.endsWith('.template.dart')) {
-        continue;
-      }
-      // Compute the fix kind.
-      FixKind fixKind;
-      if (declaration.uri.isScheme('dart')) {
-        fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
-      } else if (_isLibSrcPath(declaration.path)) {
-        // Bad: non-API.
-        fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
-      } else if (declaration.isExported) {
-        // Ugly: exports.
-        fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT2;
-      } else {
-        // Good: direct declaration.
-        fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
-      }
-      // If both files are in the same package's lib folder, also include a
-      // relative import.
-      var includeRelativeUri = canBeRelativeImport(
-          declaration.uri, libraryElement.librarySource.uri);
-      // Add the fix(es).
-      yield* _importLibrary(fixKind, declaration.uri,
-          includeRelativeFix: includeRelativeUri);
     }
   }
 

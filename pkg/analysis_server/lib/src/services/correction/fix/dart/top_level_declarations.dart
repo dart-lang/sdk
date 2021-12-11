@@ -2,108 +2,63 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/src/services/available_declarations.dart';
+import 'dart:async';
 
-/// Information about a single top-level declaration.
-class TopLevelDeclaration {
-  /// The path of the library that exports this declaration.
-  final String path;
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 
-  /// The URI of the library that exports this declaration.
-  final Uri uri;
+class TopLevelDeclarations {
+  final ResolvedUnitResult resolvedUnit;
 
-  final TopLevelDeclarationKind kind;
+  TopLevelDeclarations(this.resolvedUnit);
 
-  final String name;
-
-  /// Is `true` if the declaration is exported, not declared in the [path].
-  final bool isExported;
-
-  TopLevelDeclaration(
-    this.path,
-    this.uri,
-    this.kind,
-    this.name,
-    this.isExported,
-  );
-
-  @override
-  String toString() => '($path, $uri, $kind, $name, $isExported)';
-}
-
-/// Kind of a top-level declaration.
-///
-/// We don't need it to be precise, just enough to support quick fixes.
-enum TopLevelDeclarationKind { type, extension, function, variable }
-
-class TopLevelDeclarationsProvider {
-  final DeclarationsTracker tracker;
-
-  TopLevelDeclarationsProvider(this.tracker);
-
-  void doTrackerWork() {
-    while (tracker.hasWork) {
-      tracker.doWork();
-    }
+  DriverBasedAnalysisContext get _analysisContext {
+    var analysisContext = resolvedUnit.session.analysisContext;
+    return analysisContext as DriverBasedAnalysisContext;
   }
 
-  List<TopLevelDeclaration> get(
-    AnalysisContext analysisContext,
-    String path,
+  Future<Map<LibraryElement, List<Element>>> withName(String name) async {
+    var analysisDriver = _analysisContext.driver;
+    await analysisDriver.discoverAvailableFiles();
+
+    var fsState = analysisDriver.fsState;
+    var filter = FileStateFilter(
+      fsState.getFileForPath(resolvedUnit.path),
+    );
+
+    var result = <LibraryElement, List<Element>>{};
+
+    for (var file in fsState.knownFiles.toList()) {
+      if (!filter.shouldInclude(file)) {
+        continue;
+      }
+
+      var libraryElement = analysisDriver.getLibraryByFile(file);
+      if (libraryElement == null) {
+        continue;
+      }
+
+      addElement(result, libraryElement, name);
+    }
+
+    return result;
+  }
+
+  static void addElement(
+    Map<LibraryElement, List<Element>> result,
+    LibraryElement libraryElement,
     String name,
   ) {
-    var declarations = <TopLevelDeclaration>[];
-
-    void addDeclarations(Library library) {
-      for (var declaration in library.declarations) {
-        if (declaration.name != name) continue;
-
-        var kind = _getTopKind(declaration.kind);
-        if (kind == null) continue;
-
-        declarations.add(
-          TopLevelDeclaration(
-            library.path,
-            library.uri,
-            kind,
-            name,
-            declaration.locationLibraryUri != library.uri,
-          ),
-        );
+    var exportNamespace = libraryElement.exportNamespace;
+    var element = exportNamespace.get(name);
+    if (element != null) {
+      // TODO(scheglov) Separate getters and setters.
+      if (element is PropertyAccessorElement) {
+        element = element.variable;
       }
-    }
-
-    var declarationsContext = tracker.getContext(analysisContext);
-    if (declarationsContext == null) return const [];
-
-    var libraries = declarationsContext.getLibraries(path);
-    libraries.context.forEach(addDeclarations);
-    libraries.dependencies.forEach(addDeclarations);
-    libraries.sdk.forEach(addDeclarations);
-
-    return declarations;
-  }
-
-  TopLevelDeclarationKind? _getTopKind(DeclarationKind kind) {
-    switch (kind) {
-      case DeclarationKind.CLASS:
-      case DeclarationKind.CLASS_TYPE_ALIAS:
-      case DeclarationKind.ENUM:
-      case DeclarationKind.FUNCTION_TYPE_ALIAS:
-      case DeclarationKind.TYPE_ALIAS:
-      case DeclarationKind.MIXIN:
-        return TopLevelDeclarationKind.type;
-      case DeclarationKind.EXTENSION:
-        return TopLevelDeclarationKind.extension;
-      case DeclarationKind.FUNCTION:
-        return TopLevelDeclarationKind.function;
-      case DeclarationKind.GETTER:
-      case DeclarationKind.SETTER:
-      case DeclarationKind.VARIABLE:
-        return TopLevelDeclarationKind.variable;
-      default:
-        return null;
+      (result[libraryElement] ??= []).add(element);
     }
   }
 }

@@ -11,10 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/extension_member_co
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/lint/pub.dart';
-import 'package:analyzer/src/workspace/pub.dart';
-import 'package:collection/collection.dart';
+import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 
 /// A contributor of suggestions from not yet imported libraries.
 class NotImportedContributor extends DartCompletionContributor {
@@ -33,7 +30,9 @@ class NotImportedContributor extends DartCompletionContributor {
     var analysisDriver = request.analysisContext.driver;
 
     var fsState = analysisDriver.fsState;
-    var filter = _buildFilter(fsState);
+    var filter = FileStateFilter(
+      fsState.getFileForPath(request.path),
+    );
 
     try {
       await analysisDriver.discoverAvailableFiles().timeout(budget.left);
@@ -80,113 +79,10 @@ class NotImportedContributor extends DartCompletionContributor {
     builder.suggestionAdded = null;
   }
 
-  _Filter _buildFilter(FileSystemState fsState) {
-    var file = fsState.getFileForPath(request.path);
-    var workspacePackage = file.workspacePackage;
-    if (workspacePackage is PubWorkspacePackage) {
-      return _PubFilter(workspacePackage, file.path);
-    } else {
-      return _AnyFilter();
-    }
-  }
-
   void _buildSuggestions(List<Element> elements) {
     var visitor = LibraryElementSuggestionBuilder(request, builder);
     for (var element in elements) {
       element.accept(visitor);
-    }
-  }
-}
-
-class _AnyFilter implements _Filter {
-  @override
-  bool shouldInclude(FileState file) => true;
-}
-
-abstract class _Filter {
-  bool shouldInclude(FileState file);
-}
-
-class _PubFilter implements _Filter {
-  final PubWorkspacePackage targetPackage;
-  final String? targetPackageName;
-  final bool targetInLib;
-  final Set<String> dependencies;
-
-  factory _PubFilter(PubWorkspacePackage package, String path) {
-    var inLib = package.workspace.provider
-        .getFolder(package.root)
-        .getChildAssumingFolder('lib')
-        .contains(path);
-
-    var dependencies = <String>{};
-    var pubspec = package.pubspec;
-    if (pubspec != null) {
-      dependencies.addAll(pubspec.dependencies.names);
-      if (!inLib) {
-        dependencies.addAll(pubspec.devDependencies.names);
-      }
-    }
-
-    return _PubFilter._(
-      targetPackage: package,
-      targetPackageName: pubspec?.name?.value.text,
-      targetInLib: inLib,
-      dependencies: dependencies,
-    );
-  }
-
-  _PubFilter._({
-    required this.targetPackage,
-    required this.targetPackageName,
-    required this.targetInLib,
-    required this.dependencies,
-  });
-
-  @override
-  bool shouldInclude(FileState file) {
-    var uri = file.uriProperties;
-    if (uri.isDart) {
-      return true;
-    }
-
-    // Normally only package URIs are available.
-    // But outside of lib/ we allow any files of this package.
-    var packageName = uri.packageName;
-    if (packageName == null) {
-      if (targetInLib) {
-        return false;
-      } else {
-        var filePackage = file.workspacePackage;
-        return filePackage is PubWorkspacePackage &&
-            filePackage.root == targetPackage.root;
-      }
-    }
-
-    // Any `package:` library from the same package.
-    if (packageName == targetPackageName) {
-      return true;
-    }
-
-    // If not the same package, must be public.
-    if (uri.isSrc) {
-      return false;
-    }
-
-    return dependencies.contains(packageName);
-  }
-}
-
-extension on PSDependencyList? {
-  List<String> get names {
-    final self = this;
-    if (self == null) {
-      return const [];
-    } else {
-      return self
-          .map((dependency) => dependency.name?.text)
-          .whereNotNull()
-          .toList();
     }
   }
 }

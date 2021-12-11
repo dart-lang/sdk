@@ -347,13 +347,9 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         }
         var workspace = DartChangeWorkspace(server.currentSessions);
         var context = DartFixContextImpl(
-            server.instrumentationService, workspace, unit, error, (name) {
-          var tracker = server.declarationsTracker!;
-          return TopLevelDeclarationsProvider(tracker).get(
-            unit.session.analysisContext,
-            unit.path,
-            name,
-          );
+            server.instrumentationService, workspace, unit, error,
+            (name) async {
+          return TopLevelDeclarations(unit).withName(name);
         }, extensionCache: server.getExtensionCacheFor(unit));
         final fixes = await fixContributor.computeFixes(context);
         if (fixes.isNotEmpty) {

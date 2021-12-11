@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///issue31767_lib.dart";
 
 class C extends core::Object {
   final field core::int* w;
-  constructor foo(core::int* x, [core::int* y, core::int* z]) → self::C*
+  constructor foo(core::int* x, [core::int* y = 0, core::int* z = 0]) → self::C*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -59,7 +59,7 @@ import "org-dartlang-testcase:///issue31767.dart";
 class A extends core::Object {
   final field core::int* w;
   final field iss::_A* a;
-  constructor foo(core::int* x, [core::int* y, core::int* z, iss::_A* a]) → iss::A*
+  constructor foo(core::int* x, [core::int* y = iss::_private, core::int* z = iss::_private, iss::_A* a = const iss::_A::•(5)]) → iss::A*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -89,3 +89,10 @@ class _A extends core::Object /*hasConstConstructor*/  {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static const field core::int* _private = 3;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///issue31767_lib.dart:14:25 -> IntConstant(3)
+Evaluated: StaticGet @ org-dartlang-testcase:///issue31767_lib.dart:14:43 -> IntConstant(3)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue31767_lib.dart:14:68 -> InstanceConstant(const _A{_A.field: 5})
+Extra constant evaluation: evaluated: 13, effectively constant: 3

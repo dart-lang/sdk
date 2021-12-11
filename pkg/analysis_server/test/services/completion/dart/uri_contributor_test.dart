@@ -24,8 +24,6 @@ void main() {
 
 @reflectiveTest
 class UriContributorTest extends DartCompletionContributorTest {
-  String get testPackageTestPath => '$testPackageRootPath/test';
-
   @override
   DartCompletionContributor createContributor(
     DartCompletionRequest request,

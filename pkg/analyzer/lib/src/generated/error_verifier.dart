@@ -45,6 +45,7 @@ import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 class EnclosingExecutableContext {
@@ -1501,7 +1502,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
       libraryNames.sort();
       errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_IMPORT,
-          node, [name, StringUtilities.printListOfQuotedNames(libraryNames)]);
+          node, [name, libraryNames.quotedAndCommaSeparatedWithAnd]);
     }
   }
 
@@ -4967,7 +4968,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       buffer.write(" (via ");
       if (indirectCount > 1) {
         indirectSources.sort();
-        buffer.write(StringUtilities.printListOfQuotedNames(indirectSources));
+        buffer.write(indirectSources.quotedAndCommaSeparatedWithAnd);
       } else {
         buffer.write(indirectSources[0]);
       }

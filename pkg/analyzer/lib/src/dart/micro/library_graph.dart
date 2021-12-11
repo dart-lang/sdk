@@ -43,39 +43,9 @@ void computeLibraryCycle(Uint32List linkedSalt, FileState file) {
   libraryWalker.walk(libraryWalker.getNode(file));
 }
 
-class CiderUnitTopLevelDeclarations {
-  final List<String> extensionNames;
-  final List<String> functionNames;
-  final List<String> typeNames;
-  final List<String> variableNames;
-
-  CiderUnitTopLevelDeclarations({
-    required this.extensionNames,
-    required this.functionNames,
-    required this.typeNames,
-    required this.variableNames,
-  });
-
-  factory CiderUnitTopLevelDeclarations.read(SummaryDataReader reader) {
-    return CiderUnitTopLevelDeclarations(
-      extensionNames: reader.readStringUtf8List(),
-      functionNames: reader.readStringUtf8List(),
-      typeNames: reader.readStringUtf8List(),
-      variableNames: reader.readStringUtf8List(),
-    );
-  }
-
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8Iterable(extensionNames);
-    sink.writeStringUtf8Iterable(functionNames);
-    sink.writeStringUtf8Iterable(typeNames);
-    sink.writeStringUtf8Iterable(variableNames);
-  }
-}
-
 class CiderUnlinkedUnit {
   /// Top-level declarations of the unit.
-  final CiderUnitTopLevelDeclarations topLevelDeclarations;
+  final Set<String> topLevelDeclarations;
 
   /// Unlinked summary of the compilation unit.
   final UnlinkedUnit unit;
@@ -93,7 +63,7 @@ class CiderUnlinkedUnit {
 
   factory CiderUnlinkedUnit.read(SummaryDataReader reader) {
     return CiderUnlinkedUnit(
-      topLevelDeclarations: CiderUnitTopLevelDeclarations.read(reader),
+      topLevelDeclarations: reader.readStringUtf8Set(),
       unit: UnlinkedUnit.read(reader),
     );
   }
@@ -106,7 +76,7 @@ class CiderUnlinkedUnit {
   }
 
   void write(BufferedSink sink) {
-    topLevelDeclarations.write(sink);
+    sink.writeStringUtf8Iterable(topLevelDeclarations);
     unit.write(sink);
   }
 }
@@ -386,40 +356,12 @@ class FileSystemState {
   }
 
   /// Return files that have a top-level declaration with the [name].
-  List<FileWithTopLevelDeclaration> getFilesWithTopLevelDeclarations(
-    String name,
-  ) {
-    var result = <FileWithTopLevelDeclaration>[];
-
+  List<FileState> getFilesWithTopLevelDeclarations(String name) {
+    var result = <FileState>[];
     for (var file in _pathToFile.values) {
-      void addDeclaration(
-        List<String> names,
-        FileTopLevelDeclarationKind kind,
-      ) {
-        if (names.contains(name)) {
-          result.add(
-            FileWithTopLevelDeclaration(file: file, kind: kind),
-          );
-        }
+      if (file._unlinked.unlinked.topLevelDeclarations.contains(name)) {
+        result.add(file);
       }
-
-      var topLevelDeclarations = file._unlinked.unlinked.topLevelDeclarations;
-      addDeclaration(
-        topLevelDeclarations.extensionNames,
-        FileTopLevelDeclarationKind.extension,
-      );
-      addDeclaration(
-        topLevelDeclarations.functionNames,
-        FileTopLevelDeclarationKind.function,
-      );
-      addDeclaration(
-        topLevelDeclarations.typeNames,
-        FileTopLevelDeclarationKind.type,
-      );
-      addDeclaration(
-        topLevelDeclarations.variableNames,
-        FileTopLevelDeclarationKind.variable,
-      );
     }
     return result;
   }
@@ -525,20 +467,6 @@ class FileSystemStateTimers {
     unlinked.timer.reset();
     prefetch.timer.reset();
   }
-}
-
-/// The kind in [FileWithTopLevelDeclaration].
-enum FileTopLevelDeclarationKind { extension, function, type, variable }
-
-/// The data structure for top-level declarations response.
-class FileWithTopLevelDeclaration {
-  final FileState file;
-  final FileTopLevelDeclarationKind kind;
-
-  FileWithTopLevelDeclaration({
-    required this.file,
-    required this.kind,
-  });
 }
 
 /// Information about libraries that reference each other, so form a cycle.
@@ -1004,27 +932,24 @@ class _FileStateUnlinked {
       );
     }
 
-    var declaredExtensions = <String>[];
-    var declaredFunctions = <String>[];
-    var declaredTypes = <String>[];
-    var declaredVariables = <String>[];
+    var topLevelDeclarations = <String>{};
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
-        declaredTypes.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.name);
       } else if (declaration is EnumDeclaration) {
-        declaredTypes.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.name);
       } else if (declaration is ExtensionDeclaration) {
         var name = declaration.name;
         if (name != null) {
-          declaredExtensions.add(name.name);
+          topLevelDeclarations.add(name.name);
         }
       } else if (declaration is FunctionDeclaration) {
-        declaredFunctions.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.name);
       } else if (declaration is MixinDeclaration) {
-        declaredTypes.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.name);
       } else if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
-          declaredVariables.add(variable.name.name);
+          topLevelDeclarations.add(variable.name.name);
         }
       }
     }
@@ -1044,12 +969,7 @@ class _FileStateUnlinked {
 
     return CiderUnlinkedUnit(
       unit: unlinkedUnit,
-      topLevelDeclarations: CiderUnitTopLevelDeclarations(
-        extensionNames: declaredExtensions,
-        functionNames: declaredFunctions,
-        typeNames: declaredTypes,
-        variableNames: declaredVariables,
-      ),
+      topLevelDeclarations: topLevelDeclarations,
     );
   }
 

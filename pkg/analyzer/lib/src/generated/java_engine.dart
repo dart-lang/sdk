@@ -46,34 +46,4 @@ class StringUtilities {
   }
 
   static String intern(String string) => INTERNER.intern(string);
-
-  /// Produce a string containing all of the names in the given array,
-  /// surrounded by single quotes, and separated by commas.
-  ///
-  /// The list must contain at least two elements.
-  ///
-  /// @param names the names to be printed
-  /// @return the result of printing the names
-  static String printListOfQuotedNames(List<String>? names) {
-    if (names == null) {
-      throw ArgumentError("The list must not be null");
-    }
-    int count = names.length;
-    if (count < 2) {
-      throw ArgumentError("The list must contain at least two names");
-    }
-    StringBuffer buffer = StringBuffer();
-    buffer.write("'");
-    buffer.write(names[0]);
-    buffer.write("'");
-    for (int i = 1; i < count - 1; i++) {
-      buffer.write(", '");
-      buffer.write(names[i]);
-      buffer.write("'");
-    }
-    buffer.write(" and '");
-    buffer.write(names[count - 1]);
-    buffer.write("'");
-    return buffer.toString();
-  }
 }
