@@ -7,7 +7,6 @@ import 'package:analysis_server/src/services/completion/dart/extension_cache.dar
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
@@ -202,9 +201,6 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
       workspace,
       testAnalysisResult,
       error,
-      (name) async {
-        return TopLevelDeclarations(testAnalysisResult).withName(name);
-      },
     );
 
     var fixes = await FixInFileProcessor(context).compute();
@@ -522,9 +518,6 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       workspace,
       testAnalysisResult,
       error,
-      (name) async {
-        return TopLevelDeclarations(testAnalysisResult).withName(name);
-      },
       extensionCache: extensionCache,
     );
     return await DartFixContributor().computeFixes(context);

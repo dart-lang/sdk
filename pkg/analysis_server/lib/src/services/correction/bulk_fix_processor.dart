@@ -220,7 +220,6 @@ class BulkFixProcessor {
           workspace,
           unit,
           error,
-          (name) async => {},
         );
         await _fixSingleError(fixContext, unit, error, overrideSet);
       }
@@ -266,7 +265,6 @@ class BulkFixProcessor {
         workspace,
         result,
         diagnostic,
-        (name) async => {},
       );
     }
 
