@@ -16,6 +16,7 @@
 * Removed deprecated `path` and `uri` from `AnalysisResult`.
 * Removed deprecated methods from `AnalysisSession`.
 * Removed `TypeName` and corresponding methods.
+* Removed deprecated methods from `TypeProvider`.
 
 ## 2.8.0
 * Deprecations and renames for `getXyz` methods in `AnalysisDriver`.
