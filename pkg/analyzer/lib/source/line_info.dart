@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/java_engine.dart';
-
 /// The location of a character represented as a line and column pair.
 class CharacterLocation {
   /// The one-based index of the line containing the character.
@@ -45,9 +43,32 @@ class LineInfo {
   }
 
   /// Initialize a newly created set of line information corresponding to the
-  /// given file [content].
-  factory LineInfo.fromContent(String content) =>
-      LineInfo(StringUtilities.computeLineStarts(content));
+  /// given file [content]. Lines end with `\r`, `\n` or `\r\n`.
+  factory LineInfo.fromContent(String content) {
+    const slashN = 0x0A;
+    const slashR = 0x0D;
+
+    var lineStarts = <int>[0];
+    var length = content.length;
+    for (var i = 0; i < length; i++) {
+      var unit = content.codeUnitAt(i);
+      // Special-case \r\n.
+      if (unit == slashR) {
+        // Peek ahead to detect a following \n.
+        if (i + 1 < length && content.codeUnitAt(i + 1) == slashN) {
+          // Line start will get registered at next index at the \n.
+        } else {
+          lineStarts.add(i + 1);
+        }
+      }
+      // \n
+      if (unit == slashN) {
+        lineStarts.add(i + 1);
+      }
+    }
+
+    return LineInfo(lineStarts);
+  }
 
   /// The number of lines.
   int get lineCount => lineStarts.length;

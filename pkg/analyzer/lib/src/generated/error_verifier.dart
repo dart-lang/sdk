@@ -42,7 +42,6 @@ import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -4935,11 +4934,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Return the name of the library that defines given [element].
   String _getLibraryName(Element? element) {
     if (element == null) {
-      return StringUtilities.EMPTY;
+      return '';
     }
     var library = element.library;
     if (library == null) {
-      return StringUtilities.EMPTY;
+      return '';
     }
     List<ImportElement> imports = _currentLibrary.imports;
     int count = imports.length;

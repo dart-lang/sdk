@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -279,7 +278,7 @@ class ContextManagerImpl implements ContextManager {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var content = _readFile(path);
-      var lineInfo = _computeLineInfo(content);
+      var lineInfo = LineInfo.fromContent(content);
       var errors = analyzeAnalysisOptions(
         resourceProvider.getFile(path).createSource(),
         content,
@@ -304,7 +303,7 @@ class ContextManagerImpl implements ContextManager {
       var content = _readFile(path);
       var validator =
           ManifestValidator(resourceProvider.getFile(path).createSource());
-      var lineInfo = _computeLineInfo(content);
+      var lineInfo = LineInfo.fromContent(content);
       var errors = validator.validate(
           content, driver.analysisOptions.chromeOsManifestChecks);
       var converter = AnalyzerConverter();
@@ -331,7 +330,8 @@ class ContextManagerImpl implements ContextManager {
       parser.parse(content);
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errorListener.errors,
-          lineInfo: _computeLineInfo(content), options: driver.analysisOptions);
+          lineInfo: LineInfo.fromContent(content),
+          options: driver.analysisOptions);
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
@@ -349,7 +349,7 @@ class ContextManagerImpl implements ContextManager {
       if (node is YamlMap) {
         var validator = PubspecValidator(
             resourceProvider, resourceProvider.getFile(path).createSource());
-        var lineInfo = _computeLineInfo(content);
+        var lineInfo = LineInfo.fromContent(content);
         var errors = validator.validate(node.nodes);
         var converter = AnalyzerConverter();
         convertedErrors = converter.convertAnalysisErrors(errors,
@@ -410,12 +410,6 @@ class ContextManagerImpl implements ContextManager {
         _analyzeFixDataYaml(driver, path);
       }
     }
-  }
-
-  /// Compute line information for the given [content].
-  LineInfo _computeLineInfo(String content) {
-    var lineStarts = StringUtilities.computeLineStarts(content);
-    return LineInfo(lineStarts);
   }
 
   void _createAnalysisContexts() {

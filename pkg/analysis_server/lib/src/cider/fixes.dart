@@ -7,12 +7,14 @@ import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 class CiderErrorFixes {
   final AnalysisError error;
@@ -47,12 +49,11 @@ class CiderFixesComputer {
         var errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == lineNumber) {
           var workspace = DartChangeWorkspace([resolvedUnit.session]);
-          var context = DartFixContextImpl(
-            InstrumentationService.NULL_SERVICE,
+          var context = _CiderDartFixContextImpl(
+            _fileResolver,
             workspace,
             resolvedUnit,
             error,
-            _topLevelDeclarations,
           );
 
           var fixes = await DartFixContributor().computeFixes(context);
@@ -67,9 +68,23 @@ class CiderFixesComputer {
 
     return result;
   }
+}
 
-  Future<Map<LibraryElement, List<Element>>> _topLevelDeclarations(
-      String name) async {
+class _CiderDartFixContextImpl extends DartFixContextImpl {
+  final FileResolver _fileResolver;
+
+  _CiderDartFixContextImpl(
+    this._fileResolver,
+    ChangeWorkspace workspace,
+    ResolvedUnitResult resolvedUnit,
+    AnalysisError error,
+  ) : super(InstrumentationService.NULL_SERVICE, workspace, resolvedUnit,
+            error);
+
+  @override
+  Future<Map<LibraryElement, List<Element>>> getTopLevelDeclarations(
+    String name,
+  ) async {
     var result = <LibraryElement, List<Element>>{};
     var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
     for (var file in files) {

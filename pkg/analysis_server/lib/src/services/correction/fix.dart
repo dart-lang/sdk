@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -58,18 +59,15 @@ class DartFixContextImpl implements DartFixContext {
   @override
   final ExtensionCache extensionCache;
 
-  final Future<Map<LibraryElement, List<Element>>> Function(String name)
-      getTopLevelDeclarationsFunction;
-
   DartFixContextImpl(this.instrumentationService, this.workspace,
-      this.resolveResult, this.error, this.getTopLevelDeclarationsFunction,
+      this.resolveResult, this.error,
       {ExtensionCache? extensionCache})
       : extensionCache = extensionCache ?? ExtensionCache();
 
   @override
   Future<Map<LibraryElement, List<Element>>> getTopLevelDeclarations(
-      String name) {
-    return getTopLevelDeclarationsFunction(name);
+      String name) async {
+    return TopLevelDeclarations(resolveResult).withName(name);
   }
 }
 
