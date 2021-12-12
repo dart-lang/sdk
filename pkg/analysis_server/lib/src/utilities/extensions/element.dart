@@ -96,15 +96,20 @@ extension LibraryElementExtensions on LibraryElement {
       LibraryElement containingLibrary,
       DartType targetType,
       String memberName) sync* {
-    for (var unit in units) {
-      for (var extension in unit.extensions) {
+    for (var extension in exportNamespace.definedNames.values) {
+      if (extension is ExtensionElement) {
         var extensionName = extension.name;
         if (extensionName != null && !Identifier.isPrivateName(extensionName)) {
           var extendedType =
               extension.resolvedExtendedType(containingLibrary, targetType);
           if (extendedType != null &&
               typeSystem.isSubtypeOf(targetType, extendedType)) {
-            yield extension;
+            // TODO(scheglov) share with analyzer
+            if (extension.getMethod(memberName) != null ||
+                extension.getGetter(memberName) != null ||
+                extension.getSetter(memberName) != null) {
+              yield extension;
+            }
           }
         }
       }

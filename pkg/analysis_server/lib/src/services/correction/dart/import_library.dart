@@ -9,7 +9,6 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -45,16 +44,9 @@ class ImportLibrary extends MultiCorrectionProducer {
         if (targetType == null) {
           return;
         }
-        var definingLibraries =
-            extensionCache.membersByName[memberName]?.toList();
-        if (definingLibraries != null) {
-          for (var definingLibrary in definingLibraries) {
-            var libraryPath = definingLibrary.libraryPath;
-            var uri = sessionHelper.session.uriConverter.pathToUri(libraryPath);
-            if (uri != null) {
-              yield* _importExtensionInLibrary(uri, targetType, memberName);
-            }
-          }
+        await for (var libraryToImport in librariesWithExtensions(memberName)) {
+          yield* _importExtensionInLibrary(
+              libraryToImport, targetType, memberName);
         }
       }
 
@@ -146,7 +138,10 @@ class ImportLibrary extends MultiCorrectionProducer {
   }
 
   Stream<CorrectionProducer> _importExtensionInLibrary(
-      Uri uri, DartType targetType, String memberName) async* {
+    LibraryElement libraryToImport,
+    DartType targetType,
+    String memberName,
+  ) async* {
     // Look to see whether the library at the [uri] is already imported. If it
     // is, then we can check the extension elements without needing to perform
     // additional analysis.
@@ -154,7 +149,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     for (var imp in libraryElement.imports) {
       // prepare element
       var importedLibrary = imp.importedLibrary;
-      if (importedLibrary == null || importedLibrary.source.uri != uri) {
+      if (importedLibrary == null || importedLibrary != libraryToImport) {
         continue;
       }
       foundImport = true;
@@ -169,8 +164,8 @@ class ImportLibrary extends MultiCorrectionProducer {
             // TODO(brianwilkerson) Support removing the extension name from a
             //  hide combinator.
           } else if (combinator is ShowElementCombinator) {
-            yield _ImportLibraryShow(
-                uri.toString(), combinator, extension.name!);
+            yield _ImportLibraryShow(libraryToImport.source.uri.toString(),
+                combinator, extension.name!);
           }
         }
       }
@@ -180,7 +175,8 @@ class ImportLibrary extends MultiCorrectionProducer {
     // correction producer that will either add an import or not based on the
     // result of analyzing the library.
     if (!foundImport) {
-      yield _ImportLibraryContainingExtension(uri, targetType, memberName);
+      yield _ImportLibraryContainingExtension(
+          libraryToImport, targetType, memberName);
     }
   }
 
@@ -429,8 +425,8 @@ enum _ImportKind {
 /// A correction processor that can add an import of a library containing an
 /// extension, but which does so only if the extension applies to a given type.
 class _ImportLibraryContainingExtension extends CorrectionProducer {
-  /// The URI of the library defining the extension.
-  Uri uri;
+  /// The library defining the extension.
+  LibraryElement library;
 
   /// The type of the target that the extension must apply to.
   DartType targetType;
@@ -441,7 +437,11 @@ class _ImportLibraryContainingExtension extends CorrectionProducer {
   /// The URI that is being proposed for the import directive.
   String _uriText = '';
 
-  _ImportLibraryContainingExtension(this.uri, this.targetType, this.memberName);
+  _ImportLibraryContainingExtension(
+    this.library,
+    this.targetType,
+    this.memberName,
+  );
 
   @override
   List<Object> get fixArguments => [_uriText];
@@ -451,16 +451,12 @@ class _ImportLibraryContainingExtension extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var result = await sessionHelper.session.getLibraryByUri(uri.toString());
-    if (result is LibraryElementResult) {
-      var library = result.element;
-      if (library
-          .matchingExtensionsWithMember(libraryElement, targetType, memberName)
-          .isNotEmpty) {
-        await builder.addDartFileEdit(file, (builder) {
-          _uriText = builder.importLibrary(uri);
-        });
-      }
+    if (library
+        .matchingExtensionsWithMember(libraryElement, targetType, memberName)
+        .isNotEmpty) {
+      await builder.addDartFileEdit(file, (builder) {
+        _uriText = builder.importLibrary(library.source.uri);
+      });
     }
   }
 }

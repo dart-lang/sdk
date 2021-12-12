@@ -40,7 +40,7 @@ main() {
   }
 
   Future<void> test_extension_notImported_field_onThisType_fromClass() async {
-    addUnimportedFile('$testPackageLibPath/lib2.dart', '''
+    addSource('$testPackageLibPath/lib2.dart', '''
 import 'package:test/lib1.dart';
 
 extension E on C {
@@ -68,7 +68,7 @@ class D extends C {
   }
 
   Future<void> test_extension_notImported_getter() async {
-    addUnimportedFile('$testPackageLibPath/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 extension E on String {
   int get m => 0;
 }
@@ -88,7 +88,7 @@ void f(String s) {
   }
 
   Future<void> test_extension_notImported_method() async {
-    addUnimportedFile('$testPackageLibPath/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 extension E on String {
   void m() {}
 }
@@ -108,7 +108,7 @@ void f(String s) {
   }
 
   Future<void> test_extension_notImported_method_extendsGeneric() async {
-    addUnimportedFile('$testPackageLibPath/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 import 'package:test/lib1.dart';
 
 extension E<T extends num> on List<T> {
@@ -130,7 +130,7 @@ void f(List<int> l) {
   }
 
   Future<void> test_extension_notImported_method_onThisType_fromClass() async {
-    addUnimportedFile('$testPackageLibPath/lib2.dart', '''
+    addSource('$testPackageLibPath/lib2.dart', '''
 import 'package:test/lib1.dart';
 
 extension E on C {
@@ -163,7 +163,7 @@ class D extends C {
 
   Future<void>
       test_extension_notImported_method_onThisType_fromExtension() async {
-    addUnimportedFile('$testPackageLibPath/lib2.dart', '''
+    addSource('$testPackageLibPath/lib2.dart', '''
 import 'package:test/lib1.dart';
 
 extension E on C {
@@ -195,7 +195,7 @@ extension F on C {
   }
 
   Future<void> test_extension_notImported_operator() async {
-    addUnimportedFile('$testPackageLibPath/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 extension E on String {
   String operator -(String other) => this;
 }
@@ -215,7 +215,7 @@ void f(String s) {
   }
 
   Future<void> test_extension_notImported_setter() async {
-    addUnimportedFile('$testPackageLibPath/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 extension E on String {
   set m(int v) {}
 }
@@ -234,15 +234,14 @@ void f(String s) {
 ''');
   }
 
-  @FailingTest(reason: 'We suggest importing src/b.dart')
   Future<void> test_extension_otherPackage_exported_fromSrc() async {
     var pkgRootPath = '/.pub-cache/aaa';
 
-    var a = newFile('$pkgRootPath/lib/a.dart', content: r'''
+    newFile('$pkgRootPath/lib/a.dart', content: r'''
 export 'src/b.dart';
 ''');
 
-    var b = newFile('$pkgRootPath/lib/src/b.dart', content: r'''
+    newFile('$pkgRootPath/lib/src/b.dart', content: r'''
 extension IntExtension on int {
   int get foo => 0;
 }
@@ -257,9 +256,6 @@ extension IntExtension on int {
 dependencies:
   aaa: any
 ''');
-
-    await cacheExtensionsForFile(a.path);
-    await cacheExtensionsForFile(b.path);
 
     await resolveTestCode('''
 void f() {

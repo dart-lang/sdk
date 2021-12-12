@@ -603,8 +603,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace(server.currentSessions);
           var context = DartFixContextImpl(
-              server.instrumentationService, workspace, result, error,
-              extensionCache: server.getExtensionCacheFor(result));
+              server.instrumentationService, workspace, result, error);
 
           List<Fix> fixes;
           try {
