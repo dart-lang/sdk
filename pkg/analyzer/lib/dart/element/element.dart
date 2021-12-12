@@ -46,7 +46,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' show Namespace;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
@@ -727,7 +726,9 @@ abstract class Element implements AnalysisTarget {
   /// Return either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`, or `null` if there is no such
   /// element.
-  E? thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate);
+  E? thisOrAncestorMatching<E extends Element>(
+    bool Function(Element) predicate,
+  );
 
   /// Return either this element or the most immediate ancestor of this element
   /// that has the given type, or `null` if there is no such element.

@@ -35,7 +35,6 @@ import 'package:analyzer/src/dart/resolver/scope.dart'
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -2552,7 +2551,9 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  E thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate) {
+  E thisOrAncestorMatching<E extends Element>(
+    bool Function(Element) predicate,
+  ) {
     Element? element = this;
     while (element != null && !predicate(element)) {
       element = element.enclosingElement;
@@ -4616,8 +4617,11 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @override
-  E? thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate) =>
-      null;
+  E? thisOrAncestorMatching<E extends Element>(
+    bool Function(Element) predicate,
+  ) {
+    return null;
+  }
 
   @override
   E? thisOrAncestorOfType<E extends Element>() => null;

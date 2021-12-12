@@ -8,7 +8,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
@@ -39,7 +38,10 @@ class AbstractSingleUnitTest extends AbstractContextTest {
         as SimpleIdentifier;
   }
 
-  AstNode? findNodeAtOffset(int offset, [Predicate<AstNode>? predicate]) {
+  AstNode? findNodeAtOffset(
+    int offset, [
+    bool Function(AstNode)? predicate,
+  ]) {
     var result = NodeLocator(offset).searchWithin(testUnit);
     if (result != null && predicate != null) {
       result = result.thisOrAncestorMatching(predicate);
@@ -47,13 +49,18 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return result;
   }
 
-  AstNode? findNodeAtString(String search, [Predicate<AstNode>? predicate]) {
+  AstNode? findNodeAtString(
+    String search, [
+    bool Function(AstNode)? predicate,
+  ]) {
     var offset = findOffset(search);
     return findNodeAtOffset(offset, predicate);
   }
 
-  Element? findNodeElementAtString(String search,
-      [Predicate<AstNode>? predicate]) {
+  Element? findNodeElementAtString(
+    String search, [
+    bool Function(AstNode)? predicate,
+  ]) {
     var node = findNodeAtString(search, predicate);
     if (node == null) {
       return null;
