@@ -21,57 +21,56 @@ class ImportLibraryPrefixTest extends FixProcessorTest {
 
   Future<void> test_withClass() async {
     await resolveTestCode('''
-import 'dart:collection' as pref;
-main() {
-  pref.HashMap? s = null;
-  LinkedHashMap? f = null;
-  print('\$s \$f');
-}
+import 'dart:collection' as prefix;
+
+void f(prefix.HashMap a, HashMap b) {}
 ''');
     await assertHasFix('''
-import 'dart:collection' as pref;
-main() {
-  pref.HashMap? s = null;
-  pref.LinkedHashMap? f = null;
-  print('\$s \$f');
-}
+import 'dart:collection' as prefix;
+
+void f(prefix.HashMap a, prefix.HashMap b) {}
 ''');
   }
 
   Future<void> test_withExtension() async {
-    addSource('$testPackageLibPath/lib.dart', '''
-class C {}
+    addSource('$testPackageLibPath/a.dart', '''
 extension E on int {
-  static String m() => '';
+  static int foo() => 0;
 }
 ''');
     await resolveTestCode('''
-import 'lib.dart' as p;
-void f(p.C c) {
-  print(E.m());
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.E.foo();
+  E.foo();
 }
 ''');
     await assertHasFix('''
-import 'lib.dart' as p;
-void f(p.C c) {
-  print(p.E.m());
+import 'a.dart' as prefix;
+
+void f() {
+  prefix.E.foo();
+  prefix.E.foo();
 }
 ''');
   }
 
   Future<void> test_withTopLevelVariable() async {
     await resolveTestCode('''
-import 'dart:math' as pref;
-main() {
-  print(pref.e);
-  print(pi);
+import 'dart:math' as prefix;
+
+void f() {
+  prefix.e;
+  pi;
 }
 ''');
     await assertHasFix('''
-import 'dart:math' as pref;
-main() {
-  print(pref.e);
-  print(pref.pi);
+import 'dart:math' as prefix;
+
+void f() {
+  prefix.e;
+  prefix.pi;
 }
 ''');
   }

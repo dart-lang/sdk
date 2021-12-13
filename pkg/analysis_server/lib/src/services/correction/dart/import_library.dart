@@ -18,7 +18,6 @@ import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart
 import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ImportLibrary extends MultiCorrectionProducer {
   final _ImportKind _importKind;
@@ -474,24 +473,23 @@ class _ImportLibraryPrefix extends CorrectionProducer {
   final LibraryElement _importedLibrary;
   final PrefixElement _importPrefix;
 
-  String _libraryName = '';
-
-  String _prefixName = '';
-
   _ImportLibraryPrefix(this._importedLibrary, this._importPrefix);
 
   @override
-  List<Object> get fixArguments => [_libraryName, _prefixName];
+  List<Object> get fixArguments {
+    var uriStr = _importedLibrary.source.uri.toString();
+    return [uriStr, _prefixName];
+  }
 
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_PREFIX;
 
+  String get _prefixName => _importPrefix.name;
+
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    _libraryName = _importedLibrary.displayName;
-    _prefixName = _importPrefix.displayName;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.startLength(node, 0), '$_prefixName.');
+      builder.addSimpleInsertion(node.offset, '$_prefixName.');
     });
   }
 }
