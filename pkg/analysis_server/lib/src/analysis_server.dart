@@ -783,7 +783,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     var path = result.path;
 
     analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
-    analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
 
     var unit = result.unit;
     if (analysisServer._hasAnalysisServiceSubscription(

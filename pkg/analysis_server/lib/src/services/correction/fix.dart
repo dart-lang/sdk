@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/extensions.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -56,18 +56,18 @@ class DartFixContextImpl implements DartFixContext {
   @override
   final AnalysisError error;
 
-  @override
-  final ExtensionCache extensionCache;
-
   DartFixContextImpl(this.instrumentationService, this.workspace,
-      this.resolveResult, this.error,
-      {ExtensionCache? extensionCache})
-      : extensionCache = extensionCache ?? ExtensionCache();
+      this.resolveResult, this.error);
 
   @override
   Future<Map<LibraryElement, List<Element>>> getTopLevelDeclarations(
       String name) async {
     return TopLevelDeclarations(resolveResult).withName(name);
+  }
+
+  @override
+  Stream<LibraryElement> librariesWithExtensions(String memberName) {
+    return Extensions(resolveResult).libraries(memberName);
   }
 }
 

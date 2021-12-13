@@ -251,7 +251,6 @@ class FixInFileProcessor {
             workspace,
             resolveResult,
             error,
-            extensionCache: context.extensionCache,
           );
           fixState = await _fixError(fixContext, fixState, generator(), error);
         }

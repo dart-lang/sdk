@@ -896,7 +896,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     var path = result.path;
 
     analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
-    analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
 
     final unit = result.unit;
     if (analysisServer.shouldSendClosingLabelsFor(path)) {

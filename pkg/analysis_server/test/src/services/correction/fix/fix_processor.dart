@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
@@ -245,16 +243,8 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
 
 /// A base class defining support for writing fix processor tests.
 abstract class FixProcessorTest extends BaseFixProcessorTest {
-  /// The extension cache used for test purposes.
-  ExtensionCache extensionCache = ExtensionCache();
-
   /// Return the kind of fixes being tested by this test class.
   FixKind get kind;
-
-  Future<void> addUnimportedFile(String filePath, String content) async {
-    addSource(filePath, content);
-    await cacheExtensionsForFile(filePath);
-  }
 
   Future<void> assertHasFix(String expected,
       {bool Function(AnalysisError)? errorFilter,
@@ -364,11 +354,6 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
   Future<void> assertNoFixAllFix(ErrorCode errorCode) async {
     var error = await _findErrorToFixOfType(errorCode);
     await _assertNoFixAllFix(error);
-  }
-
-  Future<void> cacheExtensionsForFile(String path) async {
-    var result = await session.getResolvedUnit(convertPath(path));
-    extensionCache.cacheFromResult(result as ResolvedUnitResult);
   }
 
   List<LinkedEditSuggestion> expectedSuggestions(
@@ -511,14 +496,11 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    extensionCache.cacheFromResult(testAnalysisResult);
-
     var context = DartFixContextImpl(
       TestInstrumentationService(),
       workspace,
       testAnalysisResult,
       error,
-      extensionCache: extensionCache,
     );
     return await DartFixContributor().computeFixes(context);
   }

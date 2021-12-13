@@ -346,8 +346,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         }
         var workspace = DartChangeWorkspace(server.currentSessions);
         var context = DartFixContextImpl(
-            server.instrumentationService, workspace, unit, error,
-            extensionCache: server.getExtensionCacheFor(unit));
+            server.instrumentationService, workspace, unit, error);
         final fixes = await fixContributor.computeFixes(context);
         if (fixes.isNotEmpty) {
           final diagnostic = toDiagnostic(

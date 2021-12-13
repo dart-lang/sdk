@@ -97,4 +97,7 @@ class _CiderDartFixContextImpl extends DartFixContextImpl {
     }
     return result;
   }
+
+  @override
+  Stream<LibraryElement> librariesWithExtensions(String memberName) async* {}
 }
