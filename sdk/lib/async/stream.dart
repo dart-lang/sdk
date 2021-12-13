@@ -147,6 +147,19 @@ abstract class Stream<T> {
   ///
   /// This is a stream which does nothing except sending a done event
   /// when it's listened to.
+  ///
+  /// Example:
+  /// ```dart
+  /// const stream = Stream.empty();
+  /// stream.listen(
+  /// (value) {
+  ///   print(value);
+  /// },
+  /// onDone: () {
+  ///   print('onDone');
+  /// },
+  /// );
+  /// ```
   const factory Stream.empty() = _EmptyStream<T>;
 
   /// Creates a stream which emits a single data event before closing.
@@ -161,7 +174,7 @@ abstract class Stream<T> {
   ///     print(x);
   ///   }
   /// }
-  /// printThings(Stream<String>.value("ok")); // prints "ok".
+  /// printThings(Stream<String>.value('ok')); // prints "ok".
   /// ```
   ///
   /// The returned stream is effectively equivalent to one created by
@@ -183,13 +196,13 @@ abstract class Stream<T> {
   /// Future<void> tryThings(Stream<int> data) async {
   ///   try {
   ///     await for (var x in data) {
-  ///       print("Data: $x");
+  ///       print('Data: $x');
   ///     }
   ///   } catch (e) {
   ///     print(e);
   ///   }
   /// }
-  /// tryThings(Stream<int>.error("Error")); // prints "Error".
+  /// tryThings(Stream<int>.error('Error')); // prints "Error".
   /// ```
   /// The returned stream is effectively equivalent to one created by
   /// `Future<T>.error(error, stackTrace).asStream()`, by or
@@ -209,6 +222,17 @@ abstract class Stream<T> {
   ///
   /// When the future completes, the stream will fire one event, either
   /// data or error, and then close with a done-event.
+  /// Example:
+  /// ```dart
+  /// Future<String> futureTask() async {
+  ///   return await Future.delayed(
+  ///       const Duration(seconds: 5), () => 'Future complete');
+  /// }
+  ///
+  /// final stream = Stream<String>.fromFuture(futureTask());
+  /// stream.listen((event) => print(event),
+  ///     onDone: () => print('Done'), onError: (error) => print(error));
+  /// ```
   factory Stream.fromFuture(Future<T> future) {
     // Use the controller's buffering to fill in the value even before
     // the stream has a listener. For a single value, it's not worth it
@@ -238,6 +262,22 @@ abstract class Stream<T> {
   /// When all futures have completed, the stream is closed.
   ///
   /// If [futures] is empty, the stream closes as soon as possible.
+  ///
+  /// Example:
+  /// ```dart
+  /// Future<int> waitTask() async {
+  ///   return await Future.delayed(const Duration(seconds: 3), () => 10);
+  /// }
+  ///
+  /// Future<String> doneTask() async {
+  ///   return await Future.delayed(
+  ///       const Duration(seconds: 5), () => 'Future complete');
+  /// }
+  ///
+  /// final stream = Stream<Object>.fromFutures([waitTask(), doneTask()]);
+  /// stream.listen((event) => print(event),
+  ///     onDone: () => print('Done'), onError: (error) => print(error));
+  /// ```
   factory Stream.fromFutures(Iterable<Future<T>> futures) {
     _StreamController<T> controller =
         new _SyncStreamController<T>(null, null, null, null);
@@ -368,6 +408,17 @@ abstract class Stream<T> {
   ///
   /// The [computation] must not be omitted if the event type [T] does not
   /// allow `null` as a value.
+  ///
+  /// Example:
+  /// ```dart
+  /// var stream =
+  ///     Stream<int>.periodic(const Duration(
+  ///         seconds: 1), (count) => count * count).take(5);
+  ///
+  /// stream.listen((event) {
+  ///   print(event);
+  /// });
+  /// ```
   factory Stream.periodic(Duration period,
       [T computation(int computationCount)?]) {
     if (computation == null && !typeAcceptsNull<T>()) {
@@ -551,6 +602,19 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// If a broadcast stream is listened to more than once, each subscription
   /// will individually perform the `test`.
+  ///
+  /// Example:
+  /// ``dart
+  /// final stream =
+  ///     Stream<int>.periodic(const Duration(seconds: 1), (count) => count)
+  ///         .take(10);
+  ///
+  /// final customStream = stream.where((event) => event > 3 && event <= 6);
+  /// customStream.listen((event) {
+  ///   print(event);
+  /// });
+  /// // Outputs values: 4,5,6
+  /// ```
   Stream<T> where(bool test(T event)) {
     return new _WhereStream<T>(this, test);
   }
@@ -579,6 +643,17 @@ abstract class Stream<T> {
   /// if a surrogate pair, or a multibyte UTF-8 encoding, is split into
   /// separate events, and those events are attempted encoded or decoded
   /// independently.
+  ///
+  /// Example:
+  /// ``dart
+  /// final stream =
+  ///     Stream<int>.periodic(const Duration(seconds: 1), (count) => count)
+  ///         .take(5);
+  ///
+  /// final mappedStream = stream.map((event) => event * event);
+  /// mappedStream.forEach(print);
+  /// // Outputs: 0, 1, 4, 9, 16
+  /// ```
   Stream<S> map<S>(S convert(T event)) {
     return new _MapStream<T, S>(this, convert);
   }
