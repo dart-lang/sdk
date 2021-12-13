@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -153,8 +154,12 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       foundImport = true;
-      for (var extension in importedLibrary.matchingExtensionsWithMember(
-          libraryElement, targetType, memberName)) {
+      var instantiatedExtensions = ApplicableExtensions(
+        targetLibrary: libraryElement,
+        targetType: targetType,
+        memberName: memberName,
+      ).instantiate(importedLibrary.exportedExtensions);
+      for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
         var combinators = imp.combinators;
@@ -165,7 +170,7 @@ class ImportLibrary extends MultiCorrectionProducer {
             //  hide combinator.
           } else if (combinator is ShowElementCombinator) {
             yield _ImportLibraryShow(libraryToImport.source.uri.toString(),
-                combinator, extension.name!);
+                combinator, instantiatedExtension.extension.name!);
           }
         }
       }
@@ -450,9 +455,12 @@ class _ImportLibraryContainingExtension extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (library
-        .matchingExtensionsWithMember(libraryElement, targetType, memberName)
-        .isNotEmpty) {
+    var instantiatedExtensions = ApplicableExtensions(
+      targetLibrary: libraryElement,
+      targetType: targetType,
+      memberName: memberName,
+    ).instantiate(library.exportedExtensions);
+    if (instantiatedExtensions.isNotEmpty) {
       await builder.addDartFileEdit(file, (builder) {
         _uriText = builder.importLibrary(library.source.uri);
       });

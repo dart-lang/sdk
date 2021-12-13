@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
@@ -64,6 +63,7 @@ extension ExtensionElementExtensions on ExtensionElement {
   /// Use the [type] of the object being extended in the [library] to compute
   /// the actual type extended by this [extension]. Return the computed type,
   /// or `null` if the type can't be computed.
+  /// TODO(scheglov) share with analyzer
   DartType? resolvedExtendedType(LibraryElement library, DartType type) {
     final typeParameters = this.typeParameters;
     var inferrer =
@@ -89,31 +89,9 @@ extension ExtensionElementExtensions on ExtensionElement {
 }
 
 extension LibraryElementExtensions on LibraryElement {
-  /// Return the extensions in this library that can be applied, within the
-  /// [containingLibrary], to the [targetType] and that define a member with the
-  /// given [memberName].
-  Iterable<ExtensionElement> matchingExtensionsWithMember(
-      LibraryElement containingLibrary,
-      DartType targetType,
-      String memberName) sync* {
-    for (var extension in exportNamespace.definedNames.values) {
-      if (extension is ExtensionElement) {
-        var extensionName = extension.name;
-        if (extensionName != null && !Identifier.isPrivateName(extensionName)) {
-          var extendedType =
-              extension.resolvedExtendedType(containingLibrary, targetType);
-          if (extendedType != null &&
-              typeSystem.isSubtypeOf(targetType, extendedType)) {
-            // TODO(scheglov) share with analyzer
-            if (extension.getMethod(memberName) != null ||
-                extension.getGetter(memberName) != null ||
-                extension.getSetter(memberName) != null) {
-              yield extension;
-            }
-          }
-        }
-      }
-    }
+  /// Return all extensions exported from this library.
+  Iterable<ExtensionElement> get exportedExtensions {
+    return exportNamespace.definedNames.values.whereType();
   }
 }
 

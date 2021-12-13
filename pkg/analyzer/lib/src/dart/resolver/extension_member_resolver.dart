@@ -13,10 +13,10 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -54,7 +54,11 @@ class ExtensionMemberResolver {
     SyntacticEntity nameEntity,
     String name,
   ) {
-    var extensions = _getApplicable(type, name);
+    var extensions = ApplicableExtensions(
+      targetLibrary: _resolver.definingLibrary,
+      targetType: type,
+      memberName: name,
+    ).instantiate(_resolver.definingLibrary.accessibleExtensions);
 
     if (extensions.isEmpty) {
       return ResolutionResult.none;
@@ -263,10 +267,10 @@ class ExtensionMemberResolver {
 
   /// Return either the most specific extension, or a list of the extensions
   /// that are ambiguous.
-  Either2<_InstantiatedExtension, List<_InstantiatedExtension>>
-      _chooseMostSpecific(List<_InstantiatedExtension> extensions) {
-    _InstantiatedExtension? bestSoFar;
-    var noneMoreSpecific = <_InstantiatedExtension>[];
+  Either2<InstantiatedExtension, List<InstantiatedExtension>>
+      _chooseMostSpecific(List<InstantiatedExtension> extensions) {
+    InstantiatedExtension? bestSoFar;
+    var noneMoreSpecific = <InstantiatedExtension>[];
     for (var candidate in extensions) {
       if (noneMoreSpecific.isNotEmpty) {
         var isMostSpecific = true;
@@ -303,110 +307,6 @@ class ExtensionMemberResolver {
     } else {
       return Either2.t2(noneMoreSpecific);
     }
-  }
-
-  /// Return extensions for the [type] that match the given [name] in the
-  /// current scope.
-  List<_InstantiatedExtension> _getApplicable(DartType type, String name) {
-    if (identical(type, NeverTypeImpl.instance)) {
-      return const <_InstantiatedExtension>[];
-    }
-
-    var candidates = _getExtensionsWithMember(name);
-
-    var instantiatedExtensions = <_InstantiatedExtension>[];
-    for (var candidate in candidates) {
-      var extension = candidate.extension;
-
-      var freshTypes = getFreshTypeParameters(extension.typeParameters);
-      var freshTypeParameters = freshTypes.freshTypeParameters;
-      var rawExtendedType = freshTypes.substitute(extension.extendedType);
-
-      var inferrer = GenericInferrer(_typeSystem, freshTypeParameters);
-      inferrer.constrainArgument(
-        type,
-        rawExtendedType,
-        'extendedType',
-      );
-      var typeArguments = inferrer.infer(
-        freshTypeParameters,
-        failAtError: true,
-        genericMetadataIsEnabled: _genericMetadataIsEnabled,
-      );
-      if (typeArguments == null) {
-        continue;
-      }
-
-      var substitution = Substitution.fromPairs(
-        extension.typeParameters,
-        typeArguments,
-      );
-      var extendedType = substitution.substituteType(
-        extension.extendedType,
-      );
-      if (!_isSubtypeOf(type, extendedType)) {
-        continue;
-      }
-
-      instantiatedExtensions.add(
-        _InstantiatedExtension(candidate, substitution, extendedType),
-      );
-    }
-
-    return instantiatedExtensions;
-  }
-
-  /// Return extensions from the current scope, that define a member with the
-  /// given [name].
-  List<_CandidateExtension> _getExtensionsWithMember(String name) {
-    var candidates = <_CandidateExtension>[];
-
-    /// Add the given [extension] to the list of [candidates] if it defined a
-    /// member whose name matches the target [name].
-    void checkExtension(ExtensionElement extension) {
-      for (var field in extension.fields) {
-        if (field.name == name) {
-          candidates.add(
-            _CandidateExtension(
-              extension,
-              getter: field.getter,
-              setter: field.setter,
-            ),
-          );
-          return;
-        }
-      }
-      if (name == '[]') {
-        ExecutableElement? getter;
-        ExecutableElement? setter;
-        for (var method in extension.methods) {
-          if (method.name == '[]') {
-            getter = method;
-          } else if (method.name == '[]=') {
-            setter = method;
-          }
-        }
-        if (getter != null || setter != null) {
-          candidates.add(
-            _CandidateExtension(extension, getter: getter, setter: setter),
-          );
-        }
-      } else {
-        for (var method in extension.methods) {
-          if (method.name == name) {
-            candidates.add(
-              _CandidateExtension(extension, getter: method),
-            );
-            return;
-          }
-        }
-      }
-    }
-
-    for (var extension in _resolver.definingLibrary.accessibleExtensions) {
-      checkExtension(extension);
-    }
-    return candidates;
   }
 
   /// Given the generic [element] element, either return types specified
@@ -469,7 +369,7 @@ class ExtensionMemberResolver {
   }
 
   /// Return `true` is [e1] is more specific than [e2].
-  bool _isMoreSpecific(_InstantiatedExtension e1, _InstantiatedExtension e2) {
+  bool _isMoreSpecific(InstantiatedExtension e1, InstantiatedExtension e2) {
     // 1. The latter extension is declared in a platform library, and the
     //    former extension is not.
     // 2. They are both declared in platform libraries, or both declared in
@@ -529,44 +429,5 @@ class ExtensionMemberResolver {
         parent is MethodInvocation && parent.target == node ||
         parent is PrefixExpression ||
         parent is PropertyAccess && parent.target == node;
-  }
-}
-
-class _CandidateExtension {
-  final ExtensionElement extension;
-  final ExecutableElement? getter;
-  final ExecutableElement? setter;
-
-  _CandidateExtension(this.extension, {this.getter, this.setter})
-      : assert(getter != null || setter != null);
-}
-
-class _InstantiatedExtension {
-  final _CandidateExtension candidate;
-  final MapSubstitution substitution;
-  final DartType extendedType;
-
-  _InstantiatedExtension(this.candidate, this.substitution, this.extendedType);
-
-  ResolutionResult get asResolutionResult {
-    return ResolutionResult(getter: getter, setter: setter);
-  }
-
-  ExtensionElement get extension => candidate.extension;
-
-  ExecutableElement? get getter {
-    var getter = candidate.getter;
-    if (getter == null) {
-      return null;
-    }
-    return ExecutableMember.from2(getter, substitution);
-  }
-
-  ExecutableElement? get setter {
-    var setter = candidate.setter;
-    if (setter == null) {
-      return null;
-    }
-    return ExecutableMember.from2(setter, substitution);
   }
 }
