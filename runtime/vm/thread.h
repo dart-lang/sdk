@@ -1030,6 +1030,7 @@ class Thread : public ThreadState {
   void InitVMConstants();
 
   Random* random() { return &thread_random_; }
+  static intptr_t random_offset() { return OFFSET_OF(Thread, thread_random_); }
 
   uint64_t* GetFfiMarshalledArguments(intptr_t size) {
     if (ffi_marshalled_arguments_size_ < size) {
@@ -1138,6 +1139,7 @@ class Thread : public ThreadState {
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
   uint8_t double_truncate_round_supported_;
+  ALIGN8 Random thread_random_;
 
   TsanUtils* tsan_utils_ = nullptr;
 
@@ -1176,8 +1178,6 @@ class Thread : public ThreadState {
   CompilerTimings* compiler_timings_ = nullptr;
 
   ErrorPtr sticky_error_;
-
-  Random thread_random_;
 
   intptr_t ffi_marshalled_arguments_size_ = 0;
   uint64_t* ffi_marshalled_arguments_;

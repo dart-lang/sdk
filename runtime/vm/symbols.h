@@ -441,7 +441,6 @@ class ObjectPointerVisitor;
   V(current_position, ":current_position")                                     \
   V(dynamic_assert_assignable_stc_check,                                       \
     ":dynamic_assert_assignable_stc_check")                                    \
-  V(identityHashCode, "identityHashCode")                                      \
   V(index_temp, ":index_temp")                                                 \
   V(is_sync, ":is_sync")                                                       \
   V(isPaused, "isPaused")                                                      \

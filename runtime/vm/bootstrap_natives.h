@@ -18,7 +18,6 @@ namespace dart {
   V(DartAsync_fatal, 1)                                                        \
   V(Object_equals, 2)                                                          \
   V(Object_getHash, 1)                                                         \
-  V(Object_setHashIfNotSetYet, 2)                                              \
   V(Object_toString, 1)                                                        \
   V(Object_runtimeType, 1)                                                     \
   V(Object_haveSameRuntimeType, 2)                                             \

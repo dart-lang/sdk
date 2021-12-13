@@ -1192,6 +1192,8 @@ class Thread : public AllStatic {
   THREAD_XMM_CONSTANT_LIST(DECLARE_CONSTANT_OFFSET_GETTER)
 #undef DECLARE_CONSTANT_OFFSET_GETTER
 
+  static word random_offset();
+
   static word OffsetFromThread(const dart::Object& object);
   static intptr_t OffsetFromThread(const dart::RuntimeEntry* runtime_entry);
 };

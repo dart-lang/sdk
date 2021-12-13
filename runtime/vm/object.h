@@ -2947,8 +2947,6 @@ class Function : public Object {
   // invalid (e.g., mismatched argument shapes after a reload).
   FunctionPtr ImplicitClosureTarget(Zone* zone) const;
 
-  intptr_t ComputeClosureHash() const;
-
   FunctionPtr ForwardingTarget() const;
   void SetForwardingTarget(const Function& target) const;
 
@@ -7517,7 +7515,7 @@ class Instance : public Object {
   virtual ObjectPtr HashCode() const;
 
   // Equivalent to invoking identityHashCode with this instance.
-  ObjectPtr IdentityHashCode() const;
+  IntegerPtr IdentityHashCode(Thread* thread) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedInstance));
@@ -10065,6 +10063,11 @@ class ExternalTwoByteString : public AllStatic {
   friend class Symbols;
 };
 
+// Matches null_patch.dart / bool_patch.dart.
+static constexpr intptr_t kNullIdentityHash = 2011;
+static constexpr intptr_t kTrueIdentityHash = 1231;
+static constexpr intptr_t kFalseIdentityHash = 1237;
+
 // Class Bool implements Dart core class bool.
 class Bool : public Instance {
  public:
@@ -10083,7 +10086,7 @@ class Bool : public Instance {
   }
 
   virtual uint32_t CanonicalizeHash() const {
-    return ptr() == True().ptr() ? 1231 : 1237;
+    return ptr() == True().ptr() ? kTrueIdentityHash : kFalseIdentityHash;
   }
 
  private:
