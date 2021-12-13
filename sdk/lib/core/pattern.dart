@@ -72,8 +72,7 @@ abstract class Match {
   ///
   /// The result may be `null` if the pattern didn't assign a value to it
   /// as part of this match.
-  /// ```dart
-  /// import 'dart:convert';
+  /// ```dart import dart:convert
   ///
   /// final string = '[00:13.37] This is a chat message.';
   /// final regExp = RegExp(r'^\[\s*([\d]+):([\d]+)\.([\d]+)\]\s*(.*)$');
@@ -97,8 +96,7 @@ abstract class Match {
   ///
   /// The list contains the strings returned by [group] for each index in
   /// [groupIndices].
-  /// ```dart
-  /// import 'dart:convert';
+  /// ```dart import dart:convert
   ///
   /// final string = '[00:13.37] This is a chat message.';
   /// final regExp = RegExp(r'^\[\s*([\d]+):([\d]+)\.([\d]+)\]\s*(.*)$');
