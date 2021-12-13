@@ -15,6 +15,7 @@
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/os_thread.h"
 #include "vm/profiler.h"
 #include "vm/runtime_entry.h"
@@ -726,12 +727,28 @@ void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
                                      ValidationPolicy::kDontValidateFrames,
                                      this, cross_thread_policy);
   RestoreWriteBarrierInvariantVisitor visitor(isolate_group(), this, op);
+  ObjectStore* object_store = isolate_group()->object_store();
   bool scan_next_dart_frame = false;
   for (StackFrame* frame = frames_iterator.NextFrame(); frame != NULL;
        frame = frames_iterator.NextFrame()) {
     if (frame->IsExitFrame()) {
       scan_next_dart_frame = true;
-    } else if (frame->IsDartFrame(/*validate=*/false)) {
+    } else if (frame->IsEntryFrame()) {
+      /* Continue searching. */
+    } else if (frame->IsStubFrame()) {
+      const uword pc = frame->pc();
+      if (Code::ContainsInstructionAt(
+              object_store->init_late_static_field_stub(), pc) ||
+          Code::ContainsInstructionAt(
+              object_store->init_late_final_static_field_stub(), pc) ||
+          Code::ContainsInstructionAt(
+              object_store->init_late_instance_field_stub(), pc) ||
+          Code::ContainsInstructionAt(
+              object_store->init_late_final_instance_field_stub(), pc)) {
+        scan_next_dart_frame = true;
+      }
+    } else {
+      ASSERT(frame->IsDartFrame(/*validate=*/false));
       if (scan_next_dart_frame) {
         frame->VisitObjectPointers(&visitor);
       }

@@ -1049,51 +1049,74 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       ];
     }
 
-    if (initializers.isNotEmpty && initializers.last is SuperInitializer) {
-      List<VariableDeclaration>? positionalSuperParameters;
-      List<VariableDeclaration>? namedSuperParameters;
-
-      List<FormalParameterBuilder>? formals =
-          (member as ConstructorBuilder).formals;
-      if (formals != null) {
-        for (FormalParameterBuilder formal in formals) {
-          if (formal.isSuperInitializingFormal) {
-            if (formal.isNamed) {
-              (namedSuperParameters ??= <VariableDeclaration>[])
-                  .add(formal.variable!);
-            } else {
-              (positionalSuperParameters ??= <VariableDeclaration>[])
-                  .add(formal.variable!);
-            }
-          }
-        }
-
+    if (libraryBuilder.enableSuperParametersInLibrary) {
+      if (initializers.isNotEmpty && initializers.last is SuperInitializer) {
         SuperInitializer superInitializer =
             initializers.last as SuperInitializer;
         Arguments arguments = superInitializer.arguments;
-        if (positionalSuperParameters != null) {
-          if (arguments.positional.isNotEmpty) {
-            addProblem(fasta.messagePositionalSuperParametersAndArguments,
-                arguments.fileOffset, noLength,
-                context: <LocatedMessage>[
-                  fasta.messageSuperInitializerParameter.withLocation(
-                      uri, positionalSuperParameters.first.fileOffset, noLength)
-                ]);
-          } else {
-            for (VariableDeclaration positional in positionalSuperParameters) {
-              arguments.positional.add(
-                  new VariableGetImpl(positional, forNullGuardedAccess: false)
-                    ..fileOffset = positional.fileOffset);
+
+        List<VariableDeclaration>? positionalSuperParameters;
+        List<VariableDeclaration>? namedSuperParameters;
+
+        List<FormalParameterBuilder>? formals =
+            (member as ConstructorBuilder).formals;
+        if (formals != null) {
+          for (FormalParameterBuilder formal in formals) {
+            if (formal.isSuperInitializingFormal) {
+              if (formal.isNamed) {
+                (namedSuperParameters ??= <VariableDeclaration>[])
+                    .add(formal.variable!);
+              } else {
+                (positionalSuperParameters ??= <VariableDeclaration>[])
+                    .add(formal.variable!);
+              }
+            }
+          }
+
+          if (positionalSuperParameters != null) {
+            if (arguments.positional.isNotEmpty) {
+              addProblem(fasta.messagePositionalSuperParametersAndArguments,
+                  arguments.fileOffset, noLength,
+                  context: <LocatedMessage>[
+                    fasta.messageSuperInitializerParameter.withLocation(uri,
+                        positionalSuperParameters.first.fileOffset, noLength)
+                  ]);
+            } else {
+              for (VariableDeclaration positional
+                  in positionalSuperParameters) {
+                arguments.positional.add(
+                    new VariableGetImpl(positional, forNullGuardedAccess: false)
+                      ..fileOffset = positional.fileOffset);
+              }
+            }
+          }
+          if (namedSuperParameters != null) {
+            // TODO(cstefantsova): Report name conflicts.
+            for (VariableDeclaration named in namedSuperParameters) {
+              arguments.named.add(new NamedExpression(
+                  named.name!,
+                  new VariableGetImpl(named, forNullGuardedAccess: false)
+                    ..fileOffset = named.fileOffset)
+                ..fileOffset = named.fileOffset);
             }
           }
         }
-        if (namedSuperParameters != null) {
-          // TODO(cstefantsova): Report name conflicts.
-          for (VariableDeclaration named in namedSuperParameters) {
-            arguments.named.add(new NamedExpression(named.name!,
-                new VariableGetImpl(named, forNullGuardedAccess: false))
-              ..fileOffset = named.fileOffset);
-          }
+
+        LocatedMessage? message = checkArgumentsForFunction(
+            superInitializer.target.function,
+            arguments,
+            arguments.fileOffset, <TypeParameter>[]);
+        if (message != null) {
+          initializers[initializers.length - 1] = buildInvalidInitializer(
+              buildUnresolvedError(
+                  forest.createNullLiteral(superInitializer.fileOffset),
+                  constructorNameForDiagnostics(
+                      superInitializer.target.name.text),
+                  arguments,
+                  superInitializer.fileOffset,
+                  isSuper: true,
+                  message: message,
+                  kind: UnresolvedKind.Constructor));
         }
       }
     }

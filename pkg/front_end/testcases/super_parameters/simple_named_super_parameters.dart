@@ -4,29 +4,30 @@
 
 class A1 {
   final int foo;
-  A1(this.foo);
+  A1({required this.foo});
 }
 
 class B1 extends A1 {
-  B1(super.foo) : super(); // Ok.
+  B1({required super.foo}) : super(); // Ok.
 }
 
 class C1 extends A1 {
-  C1(super.foo) : super(42); // Error.
+  C1({required super.foo}) : super(foo: foo); // Error.
 }
 
 class A2 {
   final int foo;
   final String bar;
-  A2(this.foo, this.bar);
+  A2({required this.foo, required this.bar});
 }
 
 class B2 extends A2 {
-  B2() : super(0, 1, 2); // Error.
+  B2() : super(foo: 42, bar: "bar", baz: false); // Error.
 }
 
 class C2 extends A2 {
-  C2(super.foo) : super(); // Error.
+  C2({required super.foo}) : super(); // Error.
+  C2.other({required super.foo}) : super(bar: 'bar'); // Ok.
 }
 
 main() {}

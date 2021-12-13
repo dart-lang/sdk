@@ -72,7 +72,7 @@ import '../kernel/transform_collections.dart' show CollectionTransformer;
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../loader.dart' show Loader, untranslatableUriScheme;
-import '../problems.dart' show internalProblem, unhandled;
+import '../problems.dart' show internalProblem;
 import '../scope.dart';
 import '../ticker.dart' show Ticker;
 import '../type_inference/type_inference_engine.dart';
@@ -527,9 +527,8 @@ class SourceLoader extends Loader {
     }
     accessor ??= _builders[accessorUri];
     if (accessor == null) {
-      if (libraryBuilder.loader == this && first != libraryBuilder) {
-        unhandled("null", "accessor", charOffset, uri);
-      }
+      // TODO(johnniwinther): Separate reading of imports/exports/parts from
+      // reading entry points.
     } else {
       libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
       if (!accessor.isPatch &&
