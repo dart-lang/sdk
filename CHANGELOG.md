@@ -64,7 +64,7 @@ Updated the Linter to `1.16.0`, which includes changes that
 - adds new lint: `use_decorated_box`.
 - improves docs for `omit_local_variable_types`.
 
-## 2.15.0
+## 2.15.0 - 2021-12-08
 
 ### Language
 
