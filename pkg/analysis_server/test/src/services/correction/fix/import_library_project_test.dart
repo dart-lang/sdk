@@ -1053,6 +1053,67 @@ main() {
 ''');
   }
 
+  Future<void> test_withGetter_read() async {
+    addSource('$testPackageLibPath/a.dart', '''
+int get foo => 0;
+''');
+
+    await resolveTestCode('''
+void f() {
+  foo;
+}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() {
+  foo;
+}
+''');
+  }
+
+  Future<void> test_withGetter_readWrite() async {
+    addSource('$testPackageLibPath/a.dart', '''
+int get foo => 0;
+''');
+
+    await resolveTestCode('''
+void f() {
+  foo++;
+}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() {
+  foo++;
+}
+''');
+  }
+
+  /// Not really useful, but shows what we have.
+  Future<void> test_withGetter_write() async {
+    addSource('$testPackageLibPath/a.dart', '''
+int get foo => 0;
+''');
+
+    await resolveTestCode('''
+void f() {
+  foo = 0;
+}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() {
+  foo = 0;
+}
+''');
+  }
+
   Future<void> test_withMixin() async {
     addSource('$testPackageLibPath/lib.dart', '''
 mixin Test {}
@@ -1067,21 +1128,80 @@ class X = Object with Test;
 ''');
   }
 
-  Future<void> test_withTopLevelVariable() async {
-    addSource('$testPackageLibPath/lib.dart', '''
-library lib;
-int MY_VAR = 42;
+  Future<void> test_withSetter_assignment() async {
+    addSource('$testPackageLibPath/a.dart', '''
+set foo(int _) {}
 ''');
+
     await resolveTestCode('''
-main() {
-  print(MY_VAR);
+void f() {
+  foo = 0;
 }
 ''');
-    await assertHasFix('''
-import 'package:test/lib.dart';
 
-main() {
-  print(MY_VAR);
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() {
+  foo = 0;
+}
+''');
+  }
+
+  Future<void> test_withTopLevelVariable_annotation() async {
+    addSource('$testPackageLibPath/a.dart', '''
+const foo = 0;
+''');
+
+    await resolveTestCode('''
+@foo
+void f() {}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+@foo
+void f() {}
+''');
+  }
+
+  Future<void> test_withTopLevelVariable_read() async {
+    addSource('$testPackageLibPath/a.dart', '''
+var foo = 0;
+''');
+
+    await resolveTestCode('''
+void f() {
+  foo;
+}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() {
+  foo;
+}
+''');
+  }
+
+  Future<void> test_withTopLevelVariable_write() async {
+    addSource('$testPackageLibPath/a.dart', '''
+var foo = 0;
+''');
+
+    await resolveTestCode('''
+void f() {
+  foo = 0;
+}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f() {
+  foo = 0;
 }
 ''');
   }

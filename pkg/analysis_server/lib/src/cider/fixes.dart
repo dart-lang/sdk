@@ -82,10 +82,10 @@ class _CiderDartFixContextImpl extends DartFixContextImpl {
             error);
 
   @override
-  Future<Map<LibraryElement, List<Element>>> getTopLevelDeclarations(
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
     String name,
   ) async {
-    var result = <LibraryElement, List<Element>>{};
+    var result = <LibraryElement, Element>{};
     var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
     for (var file in files) {
       if (file.partOfLibrary == null) {

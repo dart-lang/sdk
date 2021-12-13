@@ -267,42 +267,41 @@ class ImportLibrary extends MultiCorrectionProducer {
     var librariesWithElements = await getTopLevelDeclarations(name);
     for (var libraryEntry in librariesWithElements.entries) {
       var libraryElement = libraryEntry.key;
-      for (var declaration in libraryEntry.value) {
-        var librarySource = libraryElement.source;
-        // Check the kind.
-        if (!kinds.contains(declaration.kind)) {
-          continue;
-        }
-        // Check the source.
-        if (alreadyImportedWithPrefix.contains(libraryElement)) {
-          continue;
-        }
-        // Check that the import doesn't end with '.template.dart'
-        if (librarySource.uri.path.endsWith('.template.dart')) {
-          continue;
-        }
-        // Compute the fix kind.
-        FixKind fixKind;
-        if (librarySource.uri.isScheme('dart')) {
-          fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
-        } else if (_isLibSrcPath(librarySource.fullName)) {
-          // Bad: non-API.
-          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
-        } else if (declaration.library != libraryElement) {
-          // Ugly: exports.
-          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT2;
-        } else {
-          // Good: direct declaration.
-          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
-        }
-        // If both files are in the same package's lib folder, also include a
-        // relative import.
-        var includeRelativeUri = canBeRelativeImport(
-            librarySource.uri, this.libraryElement.librarySource.uri);
-        // Add the fix(es).
-        yield* _importLibrary(fixKind, librarySource.uri,
-            includeRelativeFix: includeRelativeUri);
+      var declaration = libraryEntry.value;
+      var librarySource = libraryElement.source;
+      // Check the kind.
+      if (!kinds.contains(declaration.kind)) {
+        continue;
       }
+      // Check the source.
+      if (alreadyImportedWithPrefix.contains(libraryElement)) {
+        continue;
+      }
+      // Check that the import doesn't end with '.template.dart'
+      if (librarySource.uri.path.endsWith('.template.dart')) {
+        continue;
+      }
+      // Compute the fix kind.
+      FixKind fixKind;
+      if (librarySource.uri.isScheme('dart')) {
+        fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
+      } else if (_isLibSrcPath(librarySource.fullName)) {
+        // Bad: non-API.
+        fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
+      } else if (declaration.library != libraryElement) {
+        // Ugly: exports.
+        fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT2;
+      } else {
+        // Good: direct declaration.
+        fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
+      }
+      // If both files are in the same package's lib folder, also include a
+      // relative import.
+      var includeRelativeUri = canBeRelativeImport(
+          librarySource.uri, this.libraryElement.librarySource.uri);
+      // Add the fix(es).
+      yield* _importLibrary(fixKind, librarySource.uri,
+          includeRelativeFix: includeRelativeUri);
     }
   }
 

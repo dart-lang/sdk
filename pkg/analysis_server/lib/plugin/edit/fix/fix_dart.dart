@@ -22,11 +22,11 @@ abstract class DartFixContext implements FixContext {
   /// The workspace in which the fix contributor operates.
   ChangeWorkspace get workspace;
 
-  /// Return top-level declarations with the [name] in libraries that are
-  /// available to this context.
-  Future<Map<LibraryElement, List<Element>>> getTopLevelDeclarations(
-    String name,
-  );
+  /// Return the mapping from a library (that is available to this context) to
+  /// a top-level declaration that is exported (not necessary declared) by this
+  /// library, and has the requested base name. For getters and setters the
+  /// corresponding top-level variable is returned.
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(String name);
 
   /// Return libraries with extensions that declare non-static public
   /// extension members with the [memberName].
