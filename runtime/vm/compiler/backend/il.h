@@ -5596,12 +5596,8 @@ class TemplateLoadField : public TemplateDefinition<N, Throws> {
                     const Field* field = nullptr)
       : Base(source, deopt_id),
         token_pos_(source.token_pos),
-        calls_runtime_on_initialization_(
-            field != nullptr &&
-            (!field->is_late() || field->needs_load_guard())),
-        throw_exception_on_initialization_(field != nullptr &&
-                                           !field->has_initializer() &&
-                                           !calls_runtime_on_initialization_),
+        throw_exception_on_initialization_(
+            field != nullptr && !field->has_initializer() && field->is_late()),
         calls_initializer_(calls_initializer) {
     ASSERT(!calls_initializer || field != nullptr);
     ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
@@ -5634,15 +5630,17 @@ class TemplateLoadField : public TemplateDefinition<N, Throws> {
   }
 
   virtual bool CanCallDart() const {
-    return calls_initializer() && !throw_exception_on_initialization() &&
-           !calls_runtime_on_initialization_;
+    // The slow path (running the field initializer) always calls one of a
+    // specific set of stubs. For those stubs that do not simply call the
+    // runtime, the GC recognizes their frames and restores write barriers
+    // automatically (see Thread::RestoreWriteBarrierInvariant).
+    return false;
   }
   virtual bool CanTriggerGC() const { return calls_initializer(); }
   virtual bool MayThrow() const { return calls_initializer(); }
 
  private:
   const TokenPosition token_pos_;
-  const bool calls_runtime_on_initialization_;
   const bool throw_exception_on_initialization_;
   bool calls_initializer_;
 
