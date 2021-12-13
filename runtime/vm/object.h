@@ -3800,7 +3800,8 @@ class Function : public Object {
   V(PolymorphicTarget, is_polymorphic_target)                                  \
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
-  V(IsExtensionMember, is_extension_member)
+  V(IsExtensionMember, is_extension_member)                                    \
+  V(IsRedirectingFactory, is_redirecting_factory)
 // Bit that is updated after function is constructed, has to be updated in
 // concurrent-safe manner.
 #define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V) V(Inlinable, is_inlinable)

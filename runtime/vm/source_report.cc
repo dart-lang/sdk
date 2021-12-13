@@ -105,7 +105,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       return true;
   }
   if (func.is_abstract() || func.IsImplicitConstructor() ||
-      func.is_synthetic()) {
+      func.is_synthetic() || func.is_redirecting_factory()) {
     return true;
   }
   if (func.IsNonImplicitClosureFunction() &&
