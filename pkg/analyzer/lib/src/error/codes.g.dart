@@ -7381,51 +7381,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * No parameters.
-   */
-  // #### Description
-  //
-  // The analyzer produces this diagnostic when the initializer list of a
-  // constructor contains an invocation of a constructor in the superclass, but
-  // the invocation isn't the last item in the initializer list.
-  //
-  // #### Example
-  //
-  // The following code produces this diagnostic because the invocation of the
-  // superclass' constructor isn't the last item in the initializer list:
-  //
-  // ```dart
-  // class A {
-  //   A(int x);
-  // }
-  //
-  // class B extends A {
-  //   B(int x) : [!super!](x), assert(x >= 0);
-  // }
-  // ```
-  //
-  // #### Common fixes
-  //
-  // Move the invocation of the superclass' constructor to the end of the
-  // initializer list:
-  //
-  // ```dart
-  // class A {
-  //   A(int x);
-  // }
-  //
-  // class B extends A {
-  //   B(int x) : assert(x >= 0), super(x);
-  // }
-  // ```
-  static const CompileTimeErrorCode INVALID_SUPER_INVOCATION =
-      CompileTimeErrorCode(
-    'INVALID_SUPER_INVOCATION',
-    "The superclass call must be last in an initializer list: '{0}'.",
-    hasPublishedDocs: true,
-  );
-
-  /**
    * Parameters:
    * 0: the name of the type parameter
    */
@@ -12892,6 +12847,52 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the superinitializer
+   */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when the initializer list of a
+  // constructor contains an invocation of a constructor in the superclass, but
+  // the invocation isn't the last item in the initializer list.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic because the invocation of the
+  // superclass' constructor isn't the last item in the initializer list:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class B extends A {
+  //   B(int x) : [!super!](x), assert(x >= 0);
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Move the invocation of the superclass' constructor to the end of the
+  // initializer list:
+  //
+  // ```dart
+  // class A {
+  //   A(int x);
+  // }
+  //
+  // class B extends A {
+  //   B(int x) : assert(x >= 0), super(x);
+  // }
+  // ```
+  static const CompileTimeErrorCode SUPER_INVOCATION_NOT_LAST =
+      CompileTimeErrorCode(
+    'SUPER_INVOCATION_NOT_LAST',
+    "The superconstructor call must be last in an initializer list: '{0}'.",
+    hasPublishedDocs: true,
+  );
+
+  /**
    * No parameters.
    */
   // #### Description
@@ -15614,6 +15615,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the type of the expression after `yield*`
+   * 1: the return type of the function containing the `yield*`
+   */
+  static const CompileTimeErrorCode YIELD_EACH_OF_INVALID_TYPE =
+      CompileTimeErrorCode(
+    'YIELD_OF_INVALID_TYPE',
+    "The type '{0}' implied by the 'yield*' expression must be assignable to '{1}'.",
+    hasPublishedDocs: true,
+    uniqueName: 'YIELD_EACH_OF_INVALID_TYPE',
+  );
+
+  /**
    * ?? Yield: It is a compile-time error if a yield statement appears in a
    * function that is not a generator function.
    *
@@ -15635,10 +15649,11 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when the type of object produced by a
-  // `yield` expression doesn't match the type of objects that are to be
-  // returned from the `Iterable` or `Stream` types that are returned from a
-  // generator (a function or method marked with either `sync*` or `async*`).
+  // The analyzer produces this diagnostic when the type of object produced by
+  // a `yield` or `yield*` expression doesn't match the type of objects that
+  // are to be returned from the `Iterable` or `Stream` types that are returned
+  // from a generator (a function or method marked with either `sync*` or
+  // `async*`).
   //
   // #### Example
   //
@@ -15674,7 +15689,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode YIELD_OF_INVALID_TYPE =
       CompileTimeErrorCode(
     'YIELD_OF_INVALID_TYPE',
-    "The type '{0}' implied by the 'yield' expression must be assignable to '{1}'.",
+    "A yielded value of type '{0}' must be assignable to '{1}'.",
     hasPublishedDocs: true,
   );
 
@@ -15923,7 +15938,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // `isEven` if `s` is `null`. In other words, if `s` is `null`, then neither
   // `length` nor `isEven` will be invoked, and if `s` is non-`null`, then
   // `length` can't return a `null` value. Either way, `isEven` can't be invoked
-  // on a `null` value, so the null-aware operator is not necessary. See
+  // on a `null` value, so the null-aware operator isn't necessary. See
   // [Understanding null safety](/null-safety/understanding-null-safety#smarter-null-aware-methods)
   // for more details.
   //

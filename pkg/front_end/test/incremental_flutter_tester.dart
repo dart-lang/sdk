@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, File, exit;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
@@ -32,7 +32,7 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import "incremental_utils.dart" as util;
 
-void usage(String extraMessage) {
+Never usage(String extraMessage) {
   print("""Usage as something like:
     out/ReleaseX64/dart pkg/front_end/test/incremental_flutter_tester.dart \
       --fast --experimental \
@@ -49,8 +49,8 @@ void usage(String extraMessage) {
 Future<void> main(List<String> args) async {
   bool fast = false;
   bool useExperimentalInvalidation = false;
-  File inputFile;
-  Directory flutterPatchedSdk;
+  File? inputFile;
+  Directory? flutterPatchedSdk;
   for (String arg in args) {
     if (arg == "--fast") {
       fast = true;
@@ -84,12 +84,13 @@ Future<void> main(List<String> args) async {
       .alternativeInvalidationStrategy] = useExperimentalInvalidation;
   helper.TestIncrementalCompiler compiler =
       new helper.TestIncrementalCompiler(options, inputFile.uri);
-  Component c = await compiler.computeDelta();
+  IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+  Component? c = compilerResult.component;
   print("Compiled to Component with ${c.libraries.length} "
       "libraries in ${stopwatch.elapsedMilliseconds} ms.");
   stopwatch.reset();
-  List<int> firstCompileData;
-  Map<Uri, List<int>> libToData;
+  late List<int> firstCompileData;
+  late Map<Uri, List<int>> libToData;
   if (fast) {
     libToData = {};
     c.libraries.sort((l1, l2) {
@@ -117,8 +118,9 @@ Future<void> main(List<String> args) async {
   stopwatch.reset();
 
   List<Uri> uris = c.uriToSource.values
-      .map((s) => s != null ? s.importUri : null)
-      .where((u) => u != null && u.scheme != "dart")
+      .map((s) => s.importUri)
+      .whereType<Uri>()
+      .where((u) => u.scheme != "dart")
       .toSet()
       .toList();
 
@@ -133,11 +135,14 @@ Future<void> main(List<String> args) async {
     print("Invalidating $uri ($i)");
     compiler.invalidate(uri);
     localStopwatch.reset();
-    Component c2 = await compiler.computeDelta(fullComponent: true);
+    IncrementalCompilerResult compilerResult =
+        await compiler.computeDelta(fullComponent: true);
+    Component c2 = compilerResult.component;
     print("Recompiled in ${localStopwatch.elapsedMilliseconds} ms");
     print("invalidatedImportUrisForTesting: "
-        "${compiler.invalidatedImportUrisForTesting}");
-    print("rebuildBodiesCount: ${compiler.rebuildBodiesCount}");
+        "${compiler.recorderForTesting.invalidatedImportUrisForTesting}");
+    print("rebuildBodiesCount: "
+        "${compiler.recorderForTesting.rebuildBodiesCount}");
     localStopwatch.reset();
     Set<Uri> thisUris = new Set<Uri>.from(c2.libraries.map((l) => l.importUri));
     if (componentUris.isNotEmpty) {
@@ -179,7 +184,7 @@ Future<void> main(List<String> args) async {
 
         List<int> libSerialized =
             serializeComponent(c2, filter: (l) => l == library);
-        if (!isEqual(libToData[library.importUri], libSerialized)) {
+        if (!isEqual(libToData[library.importUri]!, libSerialized)) {
           print("=====");
           print("=====");
           print("=====");
@@ -285,12 +290,12 @@ CompilerOptions getOptions(Uri sdkRoot) {
 
 class PrinterPrime extends Printer {
   PrinterPrime(StringSink sink,
-      {NameSystem syntheticNames,
+      {NameSystem? syntheticNames,
       bool showOffsets: false,
       bool showMetadata: false,
-      ImportTable importTable,
-      Annotator annotator,
-      Map<String, MetadataRepository<Object>> metadata})
+      ImportTable? importTable,
+      Annotator? annotator,
+      Map<String, MetadataRepository<dynamic>>? metadata})
       : super(sink,
             showOffsets: showOffsets,
             showMetadata: showMetadata,
@@ -300,7 +305,7 @@ class PrinterPrime extends Printer {
 
   @override
   PrinterPrime createInner(ImportTable importTable,
-      Map<String, MetadataRepository<Object>> metadata) {
+      Map<String, MetadataRepository<dynamic>>? metadata) {
     return new PrinterPrime(sink,
         importTable: importTable,
         metadata: metadata,
@@ -311,7 +316,7 @@ class PrinterPrime extends Printer {
   }
 
   @override
-  void writeInterfaceTarget(Name name, Reference target) {
+  void writeInterfaceTarget(Name name, Reference? target) {
     // Skipped!
   }
 }

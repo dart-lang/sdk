@@ -467,11 +467,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 8;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 8;
+    MonomorphicSmiableCall_expected_cid_offset = 4;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 12;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 4;
+    MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -528,7 +526,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 16;
+    MonomorphicSmiableCall_InstanceSize = 12;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 20;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 16;
 static constexpr dart::compiler::target::word Number_InstanceSize = 4;
@@ -1025,11 +1023,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 16;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 16;
+    MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 8;
+    MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -1087,7 +1083,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 32;
+    MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 40;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 32;
 static constexpr dart::compiler::target::word Number_InstanceSize = 8;
@@ -1576,11 +1572,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 8;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 8;
+    MonomorphicSmiableCall_expected_cid_offset = 4;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 12;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 4;
+    MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -1634,7 +1628,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 16;
+    MonomorphicSmiableCall_InstanceSize = 12;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 20;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 16;
 static constexpr dart::compiler::target::word Number_InstanceSize = 4;
@@ -2131,11 +2125,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 16;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 16;
+    MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 8;
+    MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -2194,7 +2186,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 32;
+    MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 40;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 32;
 static constexpr dart::compiler::target::word Number_InstanceSize = 8;
@@ -2689,11 +2681,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 12;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 16;
+    MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 8;
+    MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -2751,7 +2741,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 32;
+    MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 24;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 32;
 static constexpr dart::compiler::target::word Number_InstanceSize = 8;
@@ -3246,11 +3236,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 12;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 16;
+    MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 8;
+    MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -3309,7 +3297,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 32;
+    MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 24;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 32;
 static constexpr dart::compiler::target::word Number_InstanceSize = 8;
@@ -3794,11 +3782,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 8;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 8;
+    MonomorphicSmiableCall_expected_cid_offset = 4;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 12;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 4;
+    MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -3855,7 +3841,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 16;
+    MonomorphicSmiableCall_InstanceSize = 12;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 20;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 16;
 static constexpr dart::compiler::target::word Number_InstanceSize = 4;
@@ -4346,11 +4332,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 16;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 16;
+    MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 8;
+    MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -4408,7 +4392,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 32;
+    MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 40;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 32;
 static constexpr dart::compiler::target::word Number_InstanceSize = 8;
@@ -4891,11 +4875,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 8;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 8;
+    MonomorphicSmiableCall_expected_cid_offset = 4;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 12;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 4;
+    MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -4949,7 +4931,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 16;
+    MonomorphicSmiableCall_InstanceSize = 12;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 20;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 16;
 static constexpr dart::compiler::target::word Number_InstanceSize = 4;
@@ -5440,11 +5422,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 16;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 16;
+    MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 8;
+    MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 16;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -5503,7 +5483,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 32;
+    MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 40;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 32;
 static constexpr dart::compiler::target::word Number_InstanceSize = 8;
@@ -5992,11 +5972,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 12;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 16;
+    MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 8;
+    MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -6054,7 +6032,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 32;
+    MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 24;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 32;
 static constexpr dart::compiler::target::word Number_InstanceSize = 8;
@@ -6543,11 +6521,9 @@ static constexpr dart::compiler::target::word
     UnhandledException_stacktrace_offset = 12;
 static constexpr dart::compiler::target::word UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_expected_cid_offset = 16;
+    MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_target_offset = 8;
+    MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word WeakProperty_value_offset = 12;
 static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
@@ -6606,7 +6582,7 @@ static constexpr dart::compiler::target::word MegamorphicCache_InstanceSize =
 static constexpr dart::compiler::target::word Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word MirrorReference_InstanceSize = 16;
 static constexpr dart::compiler::target::word
-    MonomorphicSmiableCall_InstanceSize = 32;
+    MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word Namespace_InstanceSize = 24;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 32;
 static constexpr dart::compiler::target::word Number_InstanceSize = 8;
@@ -7151,11 +7127,9 @@ static constexpr dart::compiler::target::word
     AOT_UnhandledException_stacktrace_offset = 8;
 static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_expected_cid_offset = 8;
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 4;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_entrypoint_offset = 12;
-static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_target_offset = 4;
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
@@ -7219,7 +7193,7 @@ static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_MirrorReference_InstanceSize =
     8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_InstanceSize = 16;
+    AOT_MonomorphicSmiableCall_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_Namespace_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
     16;
@@ -7769,11 +7743,9 @@ static constexpr dart::compiler::target::word
     AOT_UnhandledException_stacktrace_offset = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_expected_cid_offset = 16;
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_target_offset = 8;
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
@@ -7839,7 +7811,7 @@ static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_MirrorReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_InstanceSize = 32;
+    AOT_MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Namespace_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
     32;
@@ -8392,11 +8364,9 @@ static constexpr dart::compiler::target::word
     AOT_UnhandledException_stacktrace_offset = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_expected_cid_offset = 16;
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_target_offset = 8;
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
@@ -8463,7 +8433,7 @@ static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_MirrorReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_InstanceSize = 32;
+    AOT_MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Namespace_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
     32;
@@ -9012,11 +8982,9 @@ static constexpr dart::compiler::target::word
     AOT_UnhandledException_stacktrace_offset = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_expected_cid_offset = 16;
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_target_offset = 8;
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
@@ -9082,7 +9050,7 @@ static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_MirrorReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_InstanceSize = 32;
+    AOT_MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Namespace_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
     32;
@@ -9631,11 +9599,9 @@ static constexpr dart::compiler::target::word
     AOT_UnhandledException_stacktrace_offset = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_expected_cid_offset = 16;
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_target_offset = 8;
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
@@ -9702,7 +9668,7 @@ static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_MirrorReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_InstanceSize = 32;
+    AOT_MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Namespace_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
     32;
@@ -10245,11 +10211,9 @@ static constexpr dart::compiler::target::word
     AOT_UnhandledException_stacktrace_offset = 8;
 static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_expected_cid_offset = 8;
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 4;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_entrypoint_offset = 12;
-static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_target_offset = 4;
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 4;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
@@ -10313,7 +10277,7 @@ static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_MirrorReference_InstanceSize =
     8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_InstanceSize = 16;
+    AOT_MonomorphicSmiableCall_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_Namespace_InstanceSize = 20;
 static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
     16;
@@ -10856,11 +10820,9 @@ static constexpr dart::compiler::target::word
     AOT_UnhandledException_stacktrace_offset = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_expected_cid_offset = 16;
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_target_offset = 8;
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
@@ -10926,7 +10888,7 @@ static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_MirrorReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_InstanceSize = 32;
+    AOT_MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Namespace_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
     32;
@@ -11472,11 +11434,9 @@ static constexpr dart::compiler::target::word
     AOT_UnhandledException_stacktrace_offset = 16;
 static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_expected_cid_offset = 16;
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_target_offset = 8;
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     16;
@@ -11543,7 +11503,7 @@ static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_MirrorReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_InstanceSize = 32;
+    AOT_MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Namespace_InstanceSize = 40;
 static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
     32;
@@ -12085,11 +12045,9 @@ static constexpr dart::compiler::target::word
     AOT_UnhandledException_stacktrace_offset = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_expected_cid_offset = 16;
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_target_offset = 8;
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
@@ -12155,7 +12113,7 @@ static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_MirrorReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_InstanceSize = 32;
+    AOT_MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Namespace_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
     32;
@@ -12697,11 +12655,9 @@ static constexpr dart::compiler::target::word
     AOT_UnhandledException_stacktrace_offset = 12;
 static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_expected_cid_offset = 16;
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 8;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
-static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_target_offset = 8;
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 16;
 static constexpr dart::compiler::target::word AOT_WeakProperty_key_offset = 8;
 static constexpr dart::compiler::target::word AOT_WeakProperty_value_offset =
     12;
@@ -12768,7 +12724,7 @@ static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_MirrorReference_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
-    AOT_MonomorphicSmiableCall_InstanceSize = 32;
+    AOT_MonomorphicSmiableCall_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Namespace_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
     32;

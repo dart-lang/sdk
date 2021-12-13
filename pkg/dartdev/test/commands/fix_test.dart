@@ -52,18 +52,18 @@ ${result.stderr}
 ''');
   }
 
-  ProcessResult runFix(List<String> args, {String workingDir}) {
+  Future<ProcessResult> runFix(List<String> args, {String workingDir}) async {
     if (runFromSource) {
       var binary = path.join(Directory.current.path, 'bin', 'dartdev.dart');
-      return p.runSync([binary, 'fix', ...?args], workingDir: workingDir);
+      return await p.run([binary, 'fix', ...?args], workingDir: workingDir);
     }
-    return p.runSync(['fix', ...args], workingDir: workingDir);
+    return await p.run(['fix', ...args], workingDir: workingDir);
   }
 
-  test('--help', () {
+  test('--help', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = runFix([p.dirPath, '--help']);
+    var result = await runFix([p.dirPath, '--help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -76,10 +76,10 @@ ${result.stderr}
     expect(result.stdout, contains('Usage: dart fix [arguments]'));
   });
 
-  test('--help --verbose', () {
+  test('--help --verbose', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = runFix([p.dirPath, '--help', '--verbose']);
+    var result = await runFix([p.dirPath, '--help', '--verbose']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -95,10 +95,10 @@ ${result.stderr}
     );
   });
 
-  test('none', () {
+  test('none', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = runFix([p.dirPath]);
+    var result = await runFix([p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -106,17 +106,17 @@ ${result.stderr}
         result.stdout, contains('Apply automated fixes to Dart source code.'));
   });
 
-  test('--apply (none)', () {
+  test('--apply (none)', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = runFix(['--apply', p.dirPath]);
+    var result = await runFix(['--apply', p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
   });
 
-  test('--apply (no args)', () {
+  test('--apply (no args)', () async {
     p = project(
       mainSrc: '''
 var x = "";
@@ -128,7 +128,7 @@ linter:
 ''',
     );
 
-    var result = runFix(['--apply'], workingDir: p.dirPath);
+    var result = await runFix(['--apply'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -140,7 +140,7 @@ linter:
         ]));
   });
 
-  test('--dry-run', () {
+  test('--dry-run', () async {
     p = project(
       mainSrc: '''
 class A {
@@ -158,7 +158,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = runFix(['--dry-run', '.'], workingDir: p.dirPath);
+    var result = await runFix(['--dry-run', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -171,7 +171,7 @@ linter:
         ]));
   });
 
-  test('--apply (.)', () {
+  test('--apply (.)', () async {
     p = project(
       mainSrc: '''
 var x = "";
@@ -182,7 +182,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = runFix(['--apply', '.'], workingDir: p.dirPath);
+    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -195,7 +195,33 @@ linter:
         ]));
   });
 
-  test('--apply (excludes)', () {
+  test('--apply (contradictory lints do not loop infinitely)', () async {
+    p = project(
+      mainSrc: '''
+var x = "";
+''',
+      analysisOptions: '''
+linter:
+  rules:
+    - prefer_double_quotes
+    - prefer_single_quotes
+''',
+    );
+    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(
+        result.stdout,
+        stringContainsInOrder([
+          'Applying fixes...',
+          'lib${Platform.pathSeparator}main.dart',
+          '  prefer_double_quotes $bullet 2 fixes',
+          '  prefer_single_quotes $bullet 2 fixes',
+          '4 fixes made in 1 file.',
+        ]));
+  });
+
+  test('--apply (excludes)', () async {
     p = project(
       mainSrc: '''
 var x = "";
@@ -209,13 +235,13 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = runFix(['--apply', '.'], workingDir: p.dirPath);
+    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
   });
 
-  test('--apply (ignores)', () {
+  test('--apply (ignores)', () async {
     p = project(
       mainSrc: '''
 // ignore: prefer_single_quotes
@@ -227,14 +253,41 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = runFix(['--apply', '.'], workingDir: p.dirPath);
+    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
   });
 
+  test('--apply (unused imports require a second pass)', () async {
+    p = project(
+      mainSrc: '''
+import 'dart:math';
+
+var x = "";
+''',
+      analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+''',
+    );
+    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(
+        result.stdout,
+        stringContainsInOrder([
+          'Applying fixes...',
+          'lib${Platform.pathSeparator}main.dart',
+          '  prefer_single_quotes $bullet 1 fix',
+          '  unused_import $bullet 1 fix',
+          '2 fixes made in 1 file.',
+        ]));
+  });
+
   group('compare-to-golden', () {
-    test('applied fixes do not match expected', () {
+    test('applied fixes do not match expected', () async {
       p = project(
         mainSrc: '''
 class A {
@@ -261,11 +314,12 @@ class B extends A {
   String a() => '';
 }
 ''');
-      result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+      result =
+          await runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
       assertResult(exitCode: 1);
     });
 
-    test('applied fixes match expected', () {
+    test('applied fixes match expected', () async {
       p = project(
         mainSrc: '''
 class A {
@@ -293,11 +347,12 @@ class B extends A {
   String a() => '';
 }
 ''');
-      result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+      result =
+          await runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
       assertResult();
     });
 
-    test('missing expect', () {
+    test('missing expect', () async {
       p = project(
         mainSrc: '''
 class A {
@@ -315,11 +370,12 @@ linter:
     - prefer_single_quotes
 ''',
       );
-      result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+      result =
+          await runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
       assertResult(exitCode: 1);
     });
 
-    test('missing original', () {
+    test('missing original', () async {
       p = project(mainSrc: '''
 class C {}
 ''');
@@ -329,11 +385,12 @@ class C {}
       p.file('lib/secondary.dart.expect', '''
 class A {}
 ''');
-      result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+      result =
+          await runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
       assertResult(exitCode: 1);
     });
 
-    test('no fixes to apply does not match expected', () {
+    test('no fixes to apply does not match expected', () async {
       p = project(
         mainSrc: '''
 class A {
@@ -351,7 +408,8 @@ class A {
   String a() => '';
 }
 ''');
-      result = runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+      result =
+          await runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
       assertResult(exitCode: 1);
     });
   });

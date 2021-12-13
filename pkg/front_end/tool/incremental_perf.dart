@@ -125,7 +125,8 @@ Future benchmark(
   collector.start("Initial compilation");
   var generator = new IncrementalKernelGenerator(compilerOptions, entryUri);
 
-  var component = await generator.computeDelta();
+  var compilerResult = await generator.computeDelta();
+  var component = compilerResult.component;
   collector.stop("Initial compilation");
   if (verbose) {
     print("Libraries changed: ${component.libraries.length}");
@@ -139,7 +140,8 @@ Future benchmark(
     await applyEdits(
         changeSet.edits, overlayFs, generator, uriTranslator, verbose);
     collector.start(name);
-    component = await generator.computeDelta();
+    compilerResult = await generator.computeDelta();
+    component = compilerResult.component;
     collector.stop(name);
     if (verbose) {
       print("Change '${changeSet.name}' - "

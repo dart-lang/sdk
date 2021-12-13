@@ -68,91 +68,10 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
   UNREACHABLE();
 }
 
-DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, count, arguments->NativeArgAt(1));
-  const auto& pointer_type_arg = AbstractType::Handle(pointer.type_argument());
-  const classid_t type_cid = pointer_type_arg.type_class_id();
-  classid_t cid = 0;
-
-  switch (type_cid) {
-    case kFfiInt8Cid:
-      cid = kExternalTypedDataInt8ArrayCid;
-      break;
-    case kFfiUint8Cid:
-      cid = kExternalTypedDataUint8ArrayCid;
-      break;
-    case kFfiInt16Cid:
-      cid = kExternalTypedDataInt16ArrayCid;
-      break;
-    case kFfiUint16Cid:
-      cid = kExternalTypedDataUint16ArrayCid;
-      break;
-    case kFfiInt32Cid:
-      cid = kExternalTypedDataInt32ArrayCid;
-      break;
-    case kFfiUint32Cid:
-      cid = kExternalTypedDataUint32ArrayCid;
-      break;
-    case kFfiInt64Cid:
-      cid = kExternalTypedDataInt64ArrayCid;
-      break;
-    case kFfiUint64Cid:
-      cid = kExternalTypedDataUint64ArrayCid;
-      break;
-    case kFfiIntPtrCid:
-      cid = kWordSize == 4 ? kExternalTypedDataInt32ArrayCid
-                           : kExternalTypedDataInt64ArrayCid;
-      break;
-    case kFfiFloatCid:
-      cid = kExternalTypedDataFloat32ArrayCid;
-      break;
-    case kFfiDoubleCid:
-      cid = kExternalTypedDataFloat64ArrayCid;
-      break;
-    default: {
-      const String& error = String::Handle(
-          String::NewFormatted("Cannot create a TypedData from a Pointer to %s",
-                               pointer_type_arg.ToCString()));
-      Exceptions::ThrowArgumentError(error);
-      UNREACHABLE();
-    }
-  }
-
-  const intptr_t element_count = count.AsInt64Value();
-
-  if (element_count < 0 ||
-      element_count > ExternalTypedData::MaxElements(cid)) {
-    const String& error = String::Handle(
-        String::NewFormatted("Count must be in the range [0, %" Pd "].",
-                             ExternalTypedData::MaxElements(cid)));
-    Exceptions::ThrowArgumentError(error);
-  }
-
-  // The address must be aligned by the element size.
-  const intptr_t element_size = ExternalTypedData::ElementSizeFor(cid);
-  if (!Utils::IsAligned(pointer.NativeAddress(), element_size)) {
-    const String& error = String::Handle(
-        String::NewFormatted("Pointer address must be aligned to a multiple of"
-                             "the element size (%" Pd ").",
-                             element_size));
-    Exceptions::ThrowArgumentError(error);
-  }
-
-  const auto& typed_data_class =
-      Class::Handle(zone, isolate->group()->class_table()->At(cid));
-  const auto& error =
-      Error::Handle(zone, typed_data_class.EnsureIsAllocateFinalized(thread));
-  if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
-  }
-
-  // We disable msan initialization check because the memory may not be
-  // initialized yet - dart code might do that later on.
-  return ExternalTypedData::New(
-      cid, reinterpret_cast<uint8_t*>(pointer.NativeAddress()), element_count,
-      Heap::kNew, /*perform_eager_msan_initialization_check=*/false);
-}
+#define DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA(type)                       \
+  DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData##type, 0, 2) { UNREACHABLE(); }
+CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA)
+#undef DEFINE_NATIVE_ENTRY_AS_EXTERNAL_TYPED_DATA
 
 DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)

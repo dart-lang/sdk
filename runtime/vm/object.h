@@ -2014,7 +2014,6 @@ class SingleTargetCache : public Object {
 
 class MonomorphicSmiableCall : public Object {
  public:
-  CodePtr target() const { return untag()->target(); }
   classid_t expected_cid() const { return untag()->expected_cid_; }
 
   static intptr_t InstanceSize() {
@@ -2026,10 +2025,6 @@ class MonomorphicSmiableCall : public Object {
 
   static intptr_t expected_cid_offset() {
     return OFFSET_OF(UntaggedMonomorphicSmiableCall, expected_cid_);
-  }
-
-  static intptr_t target_offset() {
-    return OFFSET_OF(UntaggedMonomorphicSmiableCall, target_);
   }
 
   static intptr_t entrypoint_offset() {
@@ -2709,6 +2704,8 @@ class Function : public Object {
                                 intptr_t num_free_fun_type_params = kAllFree,
                                 TrailPtr trail = nullptr) const;
 
+  bool IsPrivate() const;
+
   ClassPtr Owner() const;
   void set_owner(const Object& value) const;
   ClassPtr origin() const;
@@ -3180,8 +3177,8 @@ class Function : public Object {
   // run.
   bool ForceOptimize() const {
     return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
-           IsFfiStore() || IsFfiTrampoline() || IsTypedDataViewFactory() ||
-           IsUtf8Scan() || IsGetNativeField();
+           IsFfiStore() || IsFfiTrampoline() || IsFfiAsExternalTypedData() ||
+           IsTypedDataViewFactory() || IsUtf8Scan() || IsGetNativeField();
   }
 
   bool CanBeInlined() const;
@@ -3513,6 +3510,12 @@ class Function : public Object {
     return kind == MethodRecognizer::kFfiGetAddress;
   }
 
+  bool IsFfiAsExternalTypedData() const {
+    const auto kind = recognized_kind();
+    return MethodRecognizer::kFfiAsExternalTypedDataInt8 <= kind &&
+           kind <= MethodRecognizer::kFfiAsExternalTypedDataDouble;
+  }
+
   bool IsGetNativeField() const {
     const auto kind = recognized_kind();
     return kind == MethodRecognizer::kGetNativeField;
@@ -3699,6 +3702,9 @@ class Function : public Object {
   //   element 2 * i + 0 is token position
   //   element 2 * i + 1 is coverage hit (zero meaning code was not hit)
   ArrayPtr GetCoverageArray() const;
+
+  // Outputs this function's service ID to the provided JSON object.
+  void AddFunctionServiceId(const JSONObject& obj) const;
 
   // Sets deopt reason in all ICData-s with given deopt_id.
   void SetDeoptReasonForAll(intptr_t deopt_id, ICData::DeoptReasonId reason);
@@ -5445,7 +5451,8 @@ class Instructions : public Object {
   // _not_ at the start of the payload.
   static const intptr_t kBarePayloadAlignment = 4;
 
-  // In non-bare mode, we align the payloads on word boundaries.
+  // When instructions reside in the heap we align the payloads on word
+  // boundaries.
   static const intptr_t kNonBarePayloadAlignment = kWordSize;
 
   // In the precompiled runtime when running in bare instructions mode,
@@ -5454,9 +5461,7 @@ class Instructions : public Object {
 
   static intptr_t HeaderSize() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_use_bare_instructions) {
-      UNREACHABLE();
-    }
+    UNREACHABLE();
 #endif
     return Utils::RoundUp(sizeof(UntaggedInstructions),
                           kNonBarePayloadAlignment);
@@ -5470,18 +5475,14 @@ class Instructions : public Object {
 
   static intptr_t InstanceSize(intptr_t size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_use_bare_instructions) {
-      UNREACHABLE();
-    }
+    UNREACHABLE();
 #endif
     return RoundedAllocationSize(HeaderSize() + size);
   }
 
   static InstructionsPtr FromPayloadStart(uword payload_start) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_use_bare_instructions) {
-      UNREACHABLE();
-    }
+    UNREACHABLE();
 #endif
     return static_cast<InstructionsPtr>(payload_start - HeaderSize() +
                                         kHeapObjectTag);
@@ -5492,9 +5493,19 @@ class Instructions : public Object {
   }
 
   static bool Equals(InstructionsPtr a, InstructionsPtr b) {
-    if (Size(a) != Size(b)) return false;
+    // This method should only be called on non-null Instructions objects.
+    ASSERT_EQUAL(a->GetClassId(), kInstructionsCid);
+    ASSERT_EQUAL(b->GetClassId(), kInstructionsCid);
+    // Don't include the object header tags wholesale in the comparison,
+    // because the GC tags may differ in JIT mode. In fact, we can skip checking
+    // the object header entirely, as we're guaranteed that the cids match,
+    // because there are no subclasses for the Instructions class, and the sizes
+    // should match if the content size encoded in size_and_flags_ matches.
+    if (a->untag()->size_and_flags_ != b->untag()->size_and_flags_) {
+      return false;
+    }
     NoSafepointScope no_safepoint;
-    return memcmp(a->untag(), b->untag(), InstanceSize(Size(a))) == 0;
+    return memcmp(a->untag()->data(), b->untag()->data(), Size(a)) == 0;
   }
 
   uint32_t Hash() const {

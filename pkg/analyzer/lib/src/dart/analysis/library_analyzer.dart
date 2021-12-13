@@ -41,6 +41,7 @@ import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/ffi_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -48,6 +49,8 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 var timerLibraryAnalyzer = Stopwatch();
@@ -56,6 +59,16 @@ var timerLibraryAnalyzerFreshUnit = Stopwatch();
 var timerLibraryAnalyzerResolve = Stopwatch();
 var timerLibraryAnalyzerSplicer = Stopwatch();
 var timerLibraryAnalyzerVerify = Stopwatch();
+
+class AnalysisForCompletionResult {
+  final CompilationUnit parsedUnit;
+  final List<AstNode> resolvedNodes;
+
+  AnalysisForCompletionResult({
+    required this.parsedUnit,
+    required this.resolvedNodes,
+  });
+}
 
 /// Analyzer of a single library.
 class LibraryAnalyzer {
@@ -192,6 +205,84 @@ class LibraryAnalyzer {
     return results;
   }
 
+  AnalysisForCompletionResult analyzeForCompletion({
+    required FileState file,
+    required int offset,
+    required CompilationUnitElementImpl unitElement,
+    required OperationPerformanceImpl performance,
+  }) {
+    var parsedUnit = performance.run('parse', (performance) {
+      return _parse(file);
+    });
+
+    var node = NodeLocator(offset).searchWithin(parsedUnit);
+
+    if (_hasEmptyCompletionContext(node)) {
+      return AnalysisForCompletionResult(
+        parsedUnit: parsedUnit,
+        resolvedNodes: [],
+      );
+    }
+
+    var errorListener = RecordingErrorListener();
+
+    return performance.run('resolve', (performance) {
+      // TODO(scheglov) We don't need to do this for the whole unit.
+      parsedUnit.accept(
+        ResolutionVisitor(
+          unitElement: unitElement,
+          errorListener: errorListener,
+          featureSet: _libraryElement.featureSet,
+          nameScope: _libraryElement.scope,
+          elementWalker: ElementWalker.forCompilationUnit(
+            unitElement,
+            libraryFilePath: _library.path,
+            unitFilePath: file.path,
+          ),
+        ),
+      );
+
+      // TODO(scheglov) We don't need to do this for the whole unit.
+      parsedUnit.accept(ScopeResolverVisitor(
+          _libraryElement, file.source, _typeProvider, errorListener,
+          nameScope: _libraryElement.scope));
+
+      FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
+          _typeSystem, _testingData != null, _libraryElement.featureSet);
+      _testingData?.recordFlowAnalysisDataForTesting(
+          file.uri, flowAnalysisHelper.dataForTesting!);
+
+      var resolverVisitor = ResolverVisitor(_inheritance, _libraryElement,
+          file.source, _typeProvider, errorListener,
+          featureSet: _libraryElement.featureSet,
+          flowAnalysisHelper: flowAnalysisHelper);
+
+      var nodeToResolve = node?.thisOrAncestorMatching((e) {
+        return e.parent is ClassDeclaration ||
+            e.parent is CompilationUnit ||
+            e.parent is ExtensionDeclaration ||
+            e.parent is MixinDeclaration;
+      });
+      if (nodeToResolve != null) {
+        var can = resolverVisitor.prepareForResolving(nodeToResolve);
+        if (can) {
+          nodeToResolve.accept(resolverVisitor);
+          return AnalysisForCompletionResult(
+            parsedUnit: parsedUnit,
+            resolvedNodes: [nodeToResolve],
+          );
+        }
+      }
+
+      var resolvedUnits = analyze();
+      var resolvedUnit = resolvedUnits[file]!;
+      return AnalysisForCompletionResult(
+        parsedUnit: resolvedUnit.unit,
+        resolvedNodes: [resolvedUnit.unit],
+      );
+    });
+  }
+
   void _checkForInconsistentLanguageVersionOverride(
     Map<FileState, CompilationUnit> units,
   ) {
@@ -244,7 +335,7 @@ class LibraryAnalyzer {
   /// Compute [_constants] in all units.
   void _computeConstants() {
     computeConstants(_typeProvider, _typeSystem, _declaredVariables,
-        _constants.toList(), _analysisOptions.experimentStatus);
+        _constants.toList(), _libraryElement.featureSet);
   }
 
   void _computeHints(FileState file, CompilationUnit unit) {
@@ -683,6 +774,18 @@ class LibraryAnalyzer {
         featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
   }
 
+  Uri? _resolveRelativeUri(String relativeUriStr) {
+    Uri relativeUri;
+    try {
+      relativeUri = Uri.parse(relativeUriStr);
+    } on FormatException {
+      return null;
+    }
+
+    var absoluteUri = resolveRelativeUri(_library.uri, relativeUri);
+    return rewriteFileToPackageUri(_sourceFactory, absoluteUri);
+  }
+
   /// Return the result of resolve the given [uriContent], reporting errors
   /// against the [uriLiteral].
   Source? _resolveUri(FileState file, bool isImport, StringLiteral uriLiteral,
@@ -724,12 +827,12 @@ class LibraryAnalyzer {
         directive.uriSource = defaultSource;
       }
       if (directive is NamespaceDirectiveImpl) {
-        var relativeUri = _selectRelativeUri(directive);
-        directive.selectedUriContent = relativeUri;
-        directive.selectedSource = _sourceFactory.resolveUri(
-          _library.source,
-          relativeUri,
-        );
+        var relativeUriStr = _selectRelativeUri(directive);
+        directive.selectedUriContent = relativeUriStr;
+        var absoluteUri = _resolveRelativeUri(relativeUriStr);
+        if (absoluteUri != null) {
+          directive.selectedSource = _sourceFactory.forUri2(absoluteUri);
+        }
         for (var configuration in directive.configurations) {
           configuration as ConfigurationImpl;
           var uriLiteral = configuration.uri;
@@ -815,6 +918,54 @@ class LibraryAnalyzer {
         _validateUriBasedDirective(file, directive);
       }
     }
+  }
+
+  static bool _hasEmptyCompletionContext(AstNode? node) {
+    if (node is DoubleLiteral || node is IntegerLiteral) {
+      return true;
+    }
+
+    if (node is SimpleIdentifier) {
+      var parent = node.parent;
+
+      if (parent is ConstructorDeclaration && parent.name == node) {
+        return true;
+      }
+
+      if (parent is ConstructorFieldInitializer && parent.fieldName == node) {
+        return true;
+      }
+
+      // We have a contributor that looks at the type, but it is syntactic.
+      if (parent is FormalParameter && parent.identifier == node) {
+        return true;
+      }
+
+      if (parent is FunctionDeclaration && parent.name == node) {
+        return true;
+      }
+
+      if (parent is MethodDeclaration && parent.name == node) {
+        return true;
+      }
+
+      // The name of a NamedType does not provide any context.
+      // So, we don't need to resolve anything.
+      if (parent is NamedType) {
+        return true;
+      }
+
+      if (parent is TypeParameter && parent.name == node) {
+        return true;
+      }
+
+      // We have a contributor that looks at the type, but it is syntactic.
+      if (parent is VariableDeclaration && parent.name == node) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
 

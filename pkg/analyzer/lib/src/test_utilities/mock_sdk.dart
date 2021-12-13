@@ -47,7 +47,7 @@ abstract class Future<T> {
 
   Future<T> whenComplete(action());
 
-  static Future<List<T>> wait<T>(Iterable<Future<T>> futures, 
+  static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
     {void cleanUp(T successValue)?}) => throw 0;
 }
 
@@ -705,6 +705,10 @@ class Double extends NativeType {
   const Double();
 }
 
+class IntPtr extends NativeType {
+  const IntPtr();
+}
+
 class Pointer<T extends NativeType> extends NativeType {
   external factory Pointer.fromAddress(int ptr);
 
@@ -789,6 +793,50 @@ class FfiNative<T> {
   final bool isLeaf;
   const FfiNative(this.nativeName, {this.isLeaf: false});
 }
+
+class Abi {
+  static const androidArm = _androidArm;
+  static const androidArm64 = _androidArm64;
+  static const androidIA32 = _androidIA32;
+
+  static const _androidArm = Abi._(_Architecture.arm, _OS.android);
+  static const _androidArm64 = Abi._(_Architecture.arm64, _OS.android);
+  static const _androidIA32 = Abi._(_Architecture.ia32, _OS.android);
+
+  final _OS _os;
+
+  final _Architecture _architecture;
+
+  const Abi._(this._architecture, this._os);
+}
+
+enum _Architecture {
+  arm,
+  arm64,
+  ia32,
+  x64,
+}
+
+enum _OS {
+  android,
+  fuchsia,
+  ios,
+  linux,
+  macos,
+  windows,
+}
+
+
+class AbiSpecificInteger extends NativeType {
+  const AbiSpecificInteger();
+}
+
+class AbiSpecificIntegerMapping {
+  final Map<Abi, NativeType> mapping;
+
+  const AbiSpecificIntegerMapping(this.mapping);
+}
+
 ''',
   )
 ]);

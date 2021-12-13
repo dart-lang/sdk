@@ -64,20 +64,6 @@ def dart2js():
     compile_dart2js(argv.pop(0), True)
 
 
-def docs():
-    return call([
-        os.path.join(dart_out_dir, 'dart-sdk', 'bin', 'dart'),
-        '--package-root=%s' % os.path.join(dart_out_dir, 'packages/'),
-        os.path.join('tools', 'dom', 'docs', 'bin', 'docs.dart'),
-    ])
-
-
-def test_docs():
-    return call([
-        os.path.join('tools', 'test.py'), '--mode=release', '--checked', 'docs'
-    ])
-
-
 def compile_dart2js(dart_file, checked):
     out_file = dart_file + '.js'
     dart2js_path = os.path.join(dart_out_dir, 'dart-sdk', 'bin', 'dart2js')
@@ -187,10 +173,8 @@ commands = {
     'analyze': [analyze, 'Run the dart analyzer'],
     'build': [build, 'Build dart in release mode'],
     'dart2js': [dart2js, 'Run dart2js on the .dart file specified'],
-    'docs': [docs, 'Generates docs.json'],
     'gen': [gen, 'Re-generate DOM generated files (run go.sh)'],
     'size_check': [size_check, 'Check the size of dart2js compiled Swarm'],
-    'test_docs': [test_docs, 'Tests docs.dart'],
     'test_chrome': [
         test_chrome, 'Run tests in checked mode in Chrome.\n'
         '\t\tOptionally provide name of test to run.'

@@ -351,6 +351,7 @@ class RandomAccessFileOutputProvider implements CompilerOutput {
         uri = out.resolve('$name.$extension');
         break;
       case OutputType.dumpInfo:
+      case OutputType.dumpUnusedLibraries:
       case OutputType.deferredMap:
         if (name == '') {
           name = out.pathSegments.last;

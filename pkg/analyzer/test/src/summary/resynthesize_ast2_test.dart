@@ -13,11 +13,13 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'element_text.dart';
@@ -60,7 +62,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     for (var sdkLibrary in sdk.sdkLibraries) {
       var source = sourceFactory.resolveUri(null, sdkLibrary.shortName)!;
       var text = getFile(source.fullName).readAsStringSync();
-      var unit = parseText(text, featureSet);
+      var unit = parseText(source, text, featureSet);
 
       var inputUnits = <LinkInputUnit>[];
       _addLibraryUnits(source, unit, inputUnits, featureSet);
@@ -143,7 +145,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
       );
     }
 
-    return elementFactory.libraryOfUri('${source.uri}')!;
+    return elementFactory.libraryOfUri2('${source.uri}');
   }
 
   void setUp() {
@@ -178,7 +180,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
 
         if (partSource != null) {
           var text = _readSafely(partSource.fullName);
-          var unit = parseText(text, featureSet);
+          var unit = parseText(partSource, text, featureSet);
           units.add(
             LinkInputUnit(
               partDirectiveIndex: partDirectiveIndex,
@@ -196,16 +198,14 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
   void _addNonDartLibraries(
     Set<Source> addedLibraries,
     List<LinkInputLibrary> libraries,
-    Source? source,
+    Source source,
   ) {
-    if (source == null ||
-        source.uri.isScheme('dart') ||
-        !addedLibraries.add(source)) {
+    if (source.uri.isScheme('dart') || !addedLibraries.add(source)) {
       return;
     }
 
     var text = _readSafely(source.fullName);
-    var unit = parseText(text, featureSet);
+    var unit = parseText(source, text, featureSet);
 
     var units = <LinkInputUnit>[];
     _addLibraryUnits(source, unit, units, featureSet);
@@ -217,8 +217,29 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
     );
 
     void addRelativeUriStr(StringLiteral uriNode) {
-      var uriStr = uriNode.stringValue;
-      var uriSource = sourceFactory.resolveUri(source, uriStr);
+      var relativeUriStr = uriNode.stringValue;
+      if (relativeUriStr == null) {
+        return;
+      }
+
+      Uri relativeUri;
+      try {
+        relativeUri = Uri.parse(relativeUriStr);
+      } on FormatException {
+        return;
+      }
+
+      var absoluteUri = resolveRelativeUri(source.uri, relativeUri);
+      var rewrittenUri = rewriteFileToPackageUri(sourceFactory, absoluteUri);
+      if (rewrittenUri == null) {
+        return;
+      }
+
+      var uriSource = sourceFactory.forUri2(rewrittenUri);
+      if (uriSource == null) {
+        return;
+      }
+
       _addNonDartLibraries(addedLibraries, libraries, uriSource);
     }
 

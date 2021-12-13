@@ -56,20 +56,13 @@ class Message {
           uint8_t* snapshot,
           intptr_t snapshot_length,
           MessageFinalizableData* finalizable_data,
-          Priority priority,
-          Dart_Port delivery_failure_port = kIllegalPort);
+          Priority priority);
 
   // Message objects can also carry RawObject pointers for Smis and objects in
   // the VM heap. This is indicated by setting the len_ field to 0.
-  Message(Dart_Port dest_port,
-          ObjectPtr raw_obj,
-          Priority priority,
-          Dart_Port delivery_failure_port = kIllegalPort);
+  Message(Dart_Port dest_port, ObjectPtr raw_obj, Priority priority);
 
-  Message(Dart_Port dest_port,
-          PersistentHandle* handle,
-          Priority priority,
-          Dart_Port delivery_failure_port = kIllegalPort);
+  Message(Dart_Port dest_port, PersistentHandle* handle, Priority priority);
 
   ~Message();
 
@@ -119,8 +112,6 @@ class Message {
     return snapshot_length_ == kPersistentHandleSnapshotLen;
   }
 
-  bool RedirectToDeliveryFailurePort();
-
   void DropFinalizers() {
     if (finalizable_data_ != nullptr) {
       finalizable_data_->DropFinalizers();
@@ -138,7 +129,6 @@ class Message {
 
   Message* next_ = nullptr;
   Dart_Port dest_port_;
-  Dart_Port delivery_failure_port_;
   union Payload {
     Payload(uint8_t* snapshot) : snapshot_(snapshot) {}
     Payload(ObjectPtr raw_obj) : raw_obj_(raw_obj) {}

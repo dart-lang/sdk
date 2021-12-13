@@ -88,6 +88,7 @@ class GnWorkspace extends Workspace {
         return GnWorkspacePackage(folder.path, this);
       }
     }
+    return null;
   }
 
   /// Find the GN workspace that contains the given [filePath].
@@ -123,6 +124,7 @@ class GnWorkspace extends Workspace {
         return GnWorkspace._(provider, root, packageMap);
       }
     }
+    return null;
   }
 
   /// For a source at `$root/foo/bar`, the packages files are generated in

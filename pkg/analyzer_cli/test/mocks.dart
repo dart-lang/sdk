@@ -32,10 +32,10 @@ class MockAnalysisError implements AnalysisError {
   List<DiagnosticMessage> get contextMessages => const [];
 
   @override
-  String get correction => null;
+  String? get correction => null;
 
   @override
-  String get correctionMessage => null;
+  String? get correctionMessage => null;
 
   @override
   DiagnosticMessage get problemMessage => DiagnosticMessageImpl(
@@ -46,7 +46,7 @@ class MockAnalysisError implements AnalysisError {
       url: null);
 
   @override
-  Severity get severity => null;
+  Severity get severity => Severity.error;
 }
 
 class MockAnalysisErrorInfo implements AnalysisErrorInfo {
@@ -87,7 +87,7 @@ class MockErrorCode implements ErrorCode {
   String name;
 
   @override
-  String url;
+  String? url;
 
   MockErrorCode(this.type, this.errorSeverity, this.name);
 
@@ -120,7 +120,7 @@ class MockErrorCode implements ErrorCode {
 }
 
 class MockLineInfo implements LineInfo {
-  CharacterLocation defaultLocation;
+  CharacterLocation? defaultLocation;
 
   MockLineInfo({this.defaultLocation});
 
@@ -137,7 +137,7 @@ class MockLineInfo implements LineInfo {
   @override
   CharacterLocation getLocation(int offset) {
     if (defaultLocation != null) {
-      return defaultLocation;
+      return defaultLocation!;
     }
     throw StateError('Unexpected invocation of getLocation');
   }
@@ -155,55 +155,13 @@ class MockLineInfo implements LineInfo {
 
 class MockSource implements Source {
   @override
-  String fullName;
-
-  MockSource(this.fullName);
+  final String fullName;
 
   @override
-  TimestampedData<String> get contents {
-    throw StateError('Unexpected invocation of contents');
-  }
+  final Uri uri;
+
+  MockSource(this.fullName, this.uri);
 
   @override
-  String get encoding {
-    throw StateError('Unexpected invocation of encoding');
-  }
-
-  @override
-  bool get isInSystemLibrary {
-    throw StateError('Unexpected invocation of isInSystemLibrary');
-  }
-
-  @override
-  Source get librarySource {
-    throw StateError('Unexpected invocation of librarySource');
-  }
-
-  @override
-  int get modificationStamp {
-    throw StateError('Unexpected invocation of modificationStamp');
-  }
-
-  @override
-  String get shortName {
-    throw StateError('Unexpected invocation of shortName');
-  }
-
-  @override
-  Source get source {
-    throw StateError('Unexpected invocation of source');
-  }
-
-  @override
-  Uri get uri {
-    throw StateError('Unexpected invocation of uri');
-  }
-
-  @override
-  UriKind get uriKind => null; //UriKind.FILE_URI;
-
-  @override
-  bool exists() {
-    throw StateError('Unexpected invocation of exists');
-  }
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

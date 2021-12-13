@@ -27,6 +27,13 @@ dependencies:
       name: transmogrify
       url: http://your-package-server.com
     version: '>=0.4.0 <1.0.0'
+  transmogrify_optional_name:
+    hosted:
+      url: http://your-package-server.com
+    version: '>=0.4.0 <1.0.0'
+  transmogrify_short_form:
+    hosted: http://your-package-server.com
+    version: '>=0.4.0 <1.0.0'
   analyzer: '0.24.0-dev.1'
   cli_util: '>=0.0.1 <0.1.0'
   semver: '>=0.2.0 <0.3.0'
@@ -43,6 +50,8 @@ dev_dependencies:
   unittest: '>=0.11.0 <0.12.0'
 dependency_overrides:
   foo: 1.2.0
+repository: https://github.com/dart-lang/linter
+issue_tracker: https://github.com/dart-lang/linter/issues
 """;
 
   Pubspec ps = Pubspec.parse(src);
@@ -65,6 +74,10 @@ dependency_overrides:
       });
       testValue('homepage', ps.homepage,
           equals('https://github.com/dart-lang/linter'));
+      testValue('repository', ps.repository,
+          equals('https://github.com/dart-lang/linter'));
+      testValue('issue_tracker', ps.issueTracker,
+          equals('https://github.com/dart-lang/linter/issues'));
       testValue(
           'description', ps.description, equals('Style linter for Dart.'));
       testValue('version', ps.version, equals('0.0.1'));
@@ -106,6 +119,26 @@ dependency_overrides:
         testValue('url', host.url, equals('http://your-package-server.com'));
         testKeySpan('name', host.name, startOffset: 237, endOffset: 241);
         testValueSpan('name', host.name, startOffset: 243, endOffset: 255);
+      });
+
+      group('hosted (optional name)', () {
+        PSDependency dep =
+            findDependency(ps.dependencies, name: 'transmogrify_optional_name');
+        PSHost host = dep.host!;
+        test('name', () => expect(host.name, isNull));
+        testValue('url', host.url, equals('http://your-package-server.com'));
+        testKeySpan('url', host.url, startOffset: 376, endOffset: 379);
+        testValueSpan('url', host.url, startOffset: 381, endOffset: 411);
+      });
+
+      group('hosted (short-form)', () {
+        PSDependency dep =
+            findDependency(ps.dependencies, name: 'transmogrify_short_form');
+        PSHost host = dep.host!;
+        test('name', () => expect(host.name, isNull));
+        testValue('url', host.url, equals('http://your-package-server.com'));
+        testKeySpan('url', host.url, startOffset: 473, endOffset: 479);
+        testValueSpan('url', host.url, startOffset: 481, endOffset: 511);
       });
 
       group('git', () {

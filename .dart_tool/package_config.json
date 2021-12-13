@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-10-26T10:20:01.277340",
+  "generated": "2021-11-15T17:34:02.415038",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -88,7 +88,7 @@
       "name": "analyzer_cli",
       "rootUri": "../pkg/analyzer_cli",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.14"
     },
     {
       "name": "analyzer_plugin",
@@ -124,7 +124,7 @@
       "name": "bazel_worker",
       "rootUri": "../third_party/pkg/bazel_worker",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "benchmark_harness",
@@ -659,7 +659,7 @@
       "name": "stream_channel",
       "rootUri": "../third_party/pkg/stream_channel",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.14"
     },
     {
       "name": "string_scanner",
@@ -707,6 +707,11 @@
       "name": "test_descriptor",
       "rootUri": "../third_party/pkg/test_descriptor",
       "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "test_package",
+      "rootUri": "../pkg/vm_service/test/test_package",
       "languageVersion": "2.12"
     },
     {

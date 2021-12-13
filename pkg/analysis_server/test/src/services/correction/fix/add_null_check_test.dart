@@ -363,7 +363,7 @@ f(List<String>? args) {
 }
 ''',
         errorFilter: (AnalysisError error) =>
-            error.errorCode != CompileTimeErrorCode.YIELD_OF_INVALID_TYPE);
+            error.errorCode != CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE);
   }
 
   Future<void> test_yieldEach_localFunction() async {
@@ -402,7 +402,7 @@ class C {
 }
 ''',
         errorFilter: (AnalysisError error) =>
-            error.errorCode != CompileTimeErrorCode.YIELD_OF_INVALID_TYPE);
+            error.errorCode != CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE);
   }
 
   Future<void> test_yieldEach_topLevel() async {
@@ -417,6 +417,6 @@ Iterable<String> f(List<String>? args) sync* {
 }
 ''',
         errorFilter: (AnalysisError error) =>
-            error.errorCode != CompileTimeErrorCode.YIELD_OF_INVALID_TYPE);
+            error.errorCode != CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE);
   }
 }

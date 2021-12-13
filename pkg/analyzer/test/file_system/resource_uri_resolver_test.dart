@@ -29,6 +29,12 @@ class ResourceUriResolverTest with ResourceProviderMixin {
     expect(resolver, isNotNull);
   }
 
+  void test_pathToUri() {
+    var path = convertPath('/test.dart');
+    var uri = toUri(path);
+    expect(resolver.pathToUri(path), uri);
+  }
+
   void test_resolveAbsolute_file() {
     var uri = toUri('/test.dart');
 
@@ -59,14 +65,15 @@ class ResourceUriResolverTest with ResourceProviderMixin {
     expect(source, isNull);
   }
 
+  @Deprecated('Use pathToUri() instead')
   void test_restoreAbsolute() {
     var uri = toUri('/test.dart');
 
     var source = resolver.resolveAbsolute(uri)!;
     expect(resolver.restoreAbsolute(source), uri);
     expect(
-        resolver.restoreAbsolute(NonExistingSource(
-            source.fullName, Uri.parse('dart:math'), UriKind.DART_URI)),
+        resolver.restoreAbsolute(
+            NonExistingSource(source.fullName, Uri.parse('dart:math'))),
         uri);
   }
 }

@@ -39,21 +39,22 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.15.0-82.0.dev",
+  "sdk_tag": "version:2.15.0-268.8.beta",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "73545b2bf6c7f8e4eb931bb04d86e38d6485deee",
+  "co19_rev": "4ef349830b971c22d8ddb2970c4ba9002806fd85",
   # This line prevents conflicts when both packages are rolled simultaneously.
-  "co19_2_rev": "52d3d2a6d2550ccd69c8facf8a36099be66f1493",
+  "co19_2_rev": "995745937abffe9fc3a6441f9f0db27b2d706e4c",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "076df10d9b77af337f2d8029725787155eb1cd52",
   "checkout_benchmarks_internal": False,
 
   # Checkout Android dependencies only on Mac and Linux.
-  "download_android_deps": 'host_os == "mac" or host_os == "linux"',
+  "download_android_deps":
+    "(host_os == mac or host_os == linux) and host_cpu == x64",
 
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.
@@ -64,8 +65,8 @@ vars = {
   # The list of revisions for these tools comes from Fuchsia, here:
   # https://fuchsia.googlesource.com/integration/+/HEAD/prebuilts
   # If there are problems with the toolchain, contact fuchsia-toolchain@.
-  "clang_revision": "f37e8b0b831e61d3b6033829fff05d6d193ab735",
-  "gn_revision": "693f9fb87e4febdd4299db9f73d8d2c958e63148",
+  "clang_revision": "e3a7f0e2f9ab566bd9b71fb54fe77e947b061a12",
+  "gn_revision": "b79031308cc878488202beb99883ec1f2efd9a6d",
 
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "c09c8deeac31f05bd801995c475e7c8070f9ecda",
@@ -75,11 +76,11 @@ vars = {
   # Revisions of /third_party/* dependencies.
   "args_rev": "3b3f55766af13d895d2020ec001a28e8dc147f91",
   "async_rev": "80886150a5e6c58006c8ae5a6c2aa7108638e2a9",
-  "bazel_worker_rev": "0885637b037979afbf5bcd05fd748b309fd669c0",
+  "bazel_worker_rev": "ceeba0982d4ff40d32371c9d35f3d2dc1868de20",
   "benchmark_harness_rev": "c546dbd9f639f75cd2f75de8df2eb9f8ea15e8e7",
   "boolean_selector_rev": "665e6921ab246569420376f827bff4585dff0b14",
-  "boringssl_gen_rev": "7322fc15cc065d8d2957fccce6b62a509dc4d641",
-  "boringssl_rev" : "1607f54fed72c6589d560254626909a64124f091",
+  "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
+  "boringssl_rev" : "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "v1.0.22",
   "browser_launcher_rev": "c6cc1025d6901926cf022e144ba109677e3548f1",
   "characters_rev": "6ec389c4dfa8fce14820dc5cbf6e693202e7e052",
@@ -90,7 +91,7 @@ vars = {
   "collection_rev": "a4c941ab94044d118b2086a3f261c30377604127",
   "convert_rev": "e063fdca4bebffecbb5e6aa5525995120982d9ce",
   "crypto_rev": "b5024e4de2b1c474dd558bef593ddbf0bfade152",
-  "csslib_rev": "6f35da3d93eb56eb25925779d235858d4090ce6f",
+  "csslib_rev": "02abc1ddf93092efef2be365300f15504d23cd23",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
@@ -106,8 +107,8 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_rev": "08b0294d0a500d5c02168ef57dcb8868d0c3cb48",
 
-  "dartdoc_rev" : "520e64977de7a87b2fd5be56e5c2e1a58d55bdad",
-  "devtools_rev" : "3a2f570813200e6dee141f3e7a9edcae5f31c2e8",
+  "dartdoc_rev" : "ff0d94bdb87f11c04a7e0ddab811bf94211b08a4",
+  "devtools_rev" : "f2ede24a4ea666d4832d78b813c7d4e376aa77d0",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
@@ -122,11 +123,11 @@ vars = {
   "intl_tag": "0.17.0-nullsafety",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
-  "linter_tag": "1.14.0",
+  "linter_tag": "1.15.0",
   "lints_tag": "f9670df2a66e0ec12eb51554e70c1cbf56c8f5d0",
   "logging_rev": "575781ef196e4fed4fb737e38fb4b73d62727187",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "markdown_rev": "9c4beaac96d8f008078e00b027915f81b665d2de",
+  "markdown_rev": "7479783f0493f6717e1d7ae31cb37d39a91026b2",
   "matcher_rev": "6ba4a6d68bdfacff3d572c9ea98333dfc66fd6bf",
   "mime_rev": "c931f4bed87221beaece356494b43731445ce7b8",
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
@@ -139,7 +140,7 @@ vars = {
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
   "protobuf_rev": "c1eb6cb51af39ccbaa1a8e19349546586a5c8e31",
-  "pub_rev": "96404e0749864c9fbf8b12e1d424e8078809e00a",
+  "pub_rev": "dcb6abac2d7d43258c03b348be42bf4aab9529b1",
   "pub_semver_rev": "a43ad72fb6b7869607581b5fedcb186d1e74276a",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "rust_revision": "b7856f695d65a8ebc846754f97d15814bcb1c244",
@@ -153,8 +154,8 @@ vars = {
   "source_maps_rev": "6499ee3adac8d469e2953e2e8ba4bdb4c2fbef90",
   "source_span_rev": "1be3c44045a06dff840d2ed3a13e6082d7a03a23",
   "sse_rev": "9084339389eb441d0c0518cddac211a097e78657",
-  "stack_trace_rev": "6788afc61875079b71b3d1c3e65aeaa6a25cbc2f",
-  "stream_channel_rev": "d7251e61253ec389ee6e045ee1042311bced8f1d",
+  "stack_trace_rev": "5220580872625ddee41e9ca9a5f3364789b2f0f6",
+  "stream_channel_rev": "3fa3e40c75c210d617b8b943b9b8f580e9866a89",
   "string_scanner_rev": "1b63e6e5db5933d7be0a45da6e1129fe00262734",
   "sync_http_rev": "b59c134f2e34d12acac110d4f17f83e5a7db4330",
   "test_descriptor_rev": "ead23c1e7df079ac0f6457a35f7a71432892e527",
@@ -651,6 +652,15 @@ deps = {
           {
               "package": "dart/benchmarks/fficall",
               "version": "ebF5aRXKDananlaN4Y8b0bbCNHT1MnkGbWqfpCpiND4C",
+          },
+      ],
+          "dep_type": "cipd",
+  },
+  Var("dart_root") + "/benchmarks/NativeCall/native/out/": {
+      "packages": [
+          {
+              "package": "dart/benchmarks/nativecall",
+              "version": "w1JKzCIHSfDNIjqnioMUPq0moCXKwX67aUfhyrvw4E0C",
           },
       ],
           "dep_type": "cipd",

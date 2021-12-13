@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show AbstractScanner;
@@ -22,11 +20,11 @@ void main() {
 @reflectiveTest
 class PrecedenceInfoTest {
   void assertInfo(check(String source, Token token)) {
-    void assertLexeme(String source) {
+    void assertLexeme(String? source) {
       if (source == null || source.isEmpty) return;
       var token = scanString(source, includeComments: true).tokens;
       while (token is ErrorToken) {
-        token = token.next;
+        token = token.next!;
       }
       check(source, token);
     }
@@ -290,11 +288,11 @@ class PrecedenceInfoTest {
   }
 
   void test_name() {
-    void assertName(String source, String name, {int offset: 0}) {
+    void assertName(String? source, String name, {int offset: 0}) {
       if (source == null || source.isEmpty) return;
       var token = scanString(source, includeComments: true).tokens;
       while (token is ErrorToken || token.offset < offset) {
-        token = token.next;
+        token = token.next!;
       }
       expect(token.type.name, name,
           reason: 'source: $source\ntoken: ${token.lexeme}');
@@ -393,7 +391,7 @@ class PrecedenceInfoTest {
       for (String source in lexemes) {
         var token = scanString(source, includeComments: true).tokens;
         while (token is ErrorToken) {
-          token = token.next;
+          token = token.next!;
         }
         expect(token.type.precedence, precedence, reason: source);
       }

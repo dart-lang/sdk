@@ -12,8 +12,8 @@ import 'utils.dart';
 
 void main() {
   group('_embedder.yaml', () {
-    StringSink savedOutSink, savedErrorSink;
-    int savedExitCode;
+    late StringSink savedOutSink, savedErrorSink;
+    late int savedExitCode;
 
     setUp(() {
       savedOutSink = outSink;

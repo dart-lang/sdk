@@ -53,9 +53,21 @@ class BazelPackageUriResolver extends UriResolver {
         _context = workspace.provider.pathContext;
 
   @override
-  void clearCache() {
-    _sourceCache.clear();
-    _workspace.clearCache();
+  Uri? pathToUri(String path) {
+    // Search in each root.
+    for (var root in [
+      ..._workspace.binPaths,
+      _workspace.genfiles,
+      _workspace.readonly,
+      _workspace.root
+    ]) {
+      var uriParts = _restoreUriParts(root, path);
+      if (uriParts != null) {
+        return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -68,26 +80,6 @@ class BazelPackageUriResolver extends UriResolver {
       }
     }
     return source;
-  }
-
-  @override
-  Uri? restoreAbsolute(Source source) {
-    String filePath = source.fullName;
-
-    // Search in each root.
-    for (var root in [
-      ..._workspace.binPaths,
-      _workspace.genfiles,
-      _workspace.readonly,
-      _workspace.root
-    ]) {
-      var uriParts = _restoreUriParts(root, filePath);
-      if (uriParts != null) {
-        return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
-      }
-    }
-
-    return null;
   }
 
   Source? _resolveAbsolute(Uri uri) {
@@ -148,7 +140,7 @@ class BazelPackageUriResolver extends UriResolver {
         String pathInLib = components.skip(4).join('/');
         return [packageName, pathInLib];
       } else {
-        for (int i = 2; i < components.length - 1; i++) {
+        for (int i = components.length - 2; i >= 2; i--) {
           String component = components[i];
           if (component == 'lib') {
             String packageName = components.getRange(0, i).join('.');
@@ -237,10 +229,6 @@ class BazelWorkspace extends Workspace
 
   @override
   UriResolver get packageUriResolver => BazelPackageUriResolver(this);
-
-  void clearCache() {
-    _directoryToPackage.clear();
-  }
 
   @override
   SourceFactory createSourceFactory(
@@ -370,6 +358,8 @@ class BazelWorkspace extends Workspace
         return packageRootedAt(folder);
       }
     }
+
+    return null;
   }
 
   /// In some distributed build environments, BUILD files are not preserved.
@@ -509,10 +499,9 @@ class BazelWorkspace extends Workspace
             context.join(root, '$symlinkPrefix-genfiles'),
             lookForBuildFileSubstitutes: lookForBuildFileSubstitutes);
       }
-
-      // // Go up the folder.
-      // folder = parent;
     }
+
+    return null;
   }
 
   /// Find the "bin" folder path, by searching for it.
@@ -599,6 +588,8 @@ class BazelWorkspace extends Workspace
     for (var match in pattern.allMatches(content)) {
       return Version.parse('${match.group(1)}.0');
     }
+
+    return null;
   }
 }
 

@@ -166,15 +166,9 @@ class FileTracker {
     return _logger.run('Verify API signature of $path', () {
       _logger.writeln('Work in ${_fsState.contextName}');
 
-      bool anyApiChanged = false;
-      List<FileState> files = _fsState.getFilesForPath(path);
-      for (FileState file in files) {
-        bool apiChanged = file.refresh();
-        if (apiChanged) {
-          anyApiChanged = true;
-        }
-      }
-      if (anyApiChanged) {
+      var file = _fsState.getFileForPath(path);
+      var apiChanged = file.refresh();
+      if (apiChanged) {
         _logger.writeln('API signatures mismatch found.');
         // TODO(scheglov) schedule analysis of only affected files
         var pendingChangedFiles = <String>{};
@@ -190,10 +184,8 @@ class FileTracker {
         // Add files that directly import the changed file.
         for (String addedPath in addedFiles) {
           FileState addedFile = _fsState.getFileForPath(addedPath);
-          for (FileState changedFile in files) {
-            if (addedFile.importedFiles.contains(changedFile)) {
-              pendingImportFiles.add(addedPath);
-            }
+          if (addedFile.importedFiles.contains(file)) {
+            pendingImportFiles.add(addedPath);
           }
         }
 
@@ -220,7 +212,7 @@ class FileTracker {
         _pendingErrorFiles = pendingErrorFiles;
         _pendingFiles = pendingFiles;
       }
-      return files[0];
+      return file;
     });
   }
 

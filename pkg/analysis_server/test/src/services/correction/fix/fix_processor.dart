@@ -87,9 +87,11 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
   late String resultCode;
 
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, or `null` if there are no experiments that should be enabled.
-  List<String>? get experiments => null;
+  /// The processor used to compute bulk fixes.
+  late BulkFixProcessor processor;
+
+  @override
+  List<String> get experiments => const [];
 
   /// Return the lint code being tested.
   String? get lintCode => null;
@@ -140,7 +142,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
   /// Returns the source change for computed fixes in the specified [testUnit].
   Future<SourceChange> _computeSourceChange() async {
-    var processor = await computeFixes();
+    processor = await computeFixes();
     return processor.builder.sourceChange;
   }
 

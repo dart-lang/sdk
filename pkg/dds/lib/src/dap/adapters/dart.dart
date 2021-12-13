@@ -8,11 +8,11 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
-import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../../dds.dart';
+import '../../rpc_error_codes.dart';
 import '../base_debug_adapter.dart';
 import '../exceptions.dart';
 import '../isolate_manager.dart';
@@ -48,6 +48,16 @@ const maxToStringsPerEvaluation = 10;
 /// evaluate it as an expression and the current thread has an exception, it
 /// will work.
 const threadExceptionExpression = r'$_threadException';
+
+/// Typedef for handlers of VM Service stream events.
+typedef _StreamEventHandler<T> = FutureOr<void> Function(T data);
+
+/// A null result passed to `sendResponse` functions when there is no result.
+///
+/// Because the signature of `sendResponse` is generic, an argument must be
+/// provided even when the generic type is `void`. This value is used to make
+/// it clearer in calling code that the result is unused.
+const _noResult = null;
 
 /// Pattern for extracting useful error messages from an evaluation exception.
 final _evalErrorMessagePattern = RegExp('Error: (.*)');
@@ -139,6 +149,9 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   final String? name;
   final String? cwd;
 
+  /// Environment variables to pass to the launched process.
+  final Map<String, String>? env;
+
   /// Paths that should be considered the users local code.
   ///
   /// These paths will generally be all of the open folders in the users editor
@@ -189,6 +202,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
     required this.restart,
     required this.name,
     required this.cwd,
+    // TODO(dantup): This can be made required after Flutter DAP is passing it.
+    this.env,
     required this.additionalProjectPaths,
     required this.debugSdkLibraries,
     required this.debugExternalPackageLibraries,
@@ -201,6 +216,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
       : restart = obj['restart'],
         name = obj['name'] as String?,
         cwd = obj['cwd'] as String?,
+        env = obj['env'] as Map<String, String>?,
         additionalProjectPaths =
             (obj['additionalProjectPaths'] as List?)?.cast<String>(),
         debugSdkLibraries = obj['debugSdkLibraries'] as bool?,
@@ -216,6 +232,7 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         if (restart != null) 'restart': restart,
         if (name != null) 'name': name,
         if (cwd != null) 'cwd': cwd,
+        if (env != null) 'env': env,
         if (additionalProjectPaths != null)
           'additionalProjectPaths': additionalProjectPaths,
         if (debugSdkLibraries != null) 'debugSdkLibraries': debugSdkLibraries,
@@ -353,6 +370,17 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   bool _hasSentTerminatedEvent = false;
 
   late final sendLogsToClient = args.sendLogsToClient ?? false;
+
+  /// Whether or not the DAP is terminating.
+  ///
+  /// When set to `true`, some requests that return "Service Disappeared" errors
+  /// will be caught and dropped as these are expected if the process is
+  /// terminating.
+  ///
+  /// This flag may be set by incoming requests from the client
+  /// (terminateRequest/disconnectRequest) or when a process terminates, or the
+  /// VM Service disconnects.
+  bool isTerminating = false;
 
   DartDebugAdapter(
     ByteStreamServerChannel channel, {
@@ -531,16 +559,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     this.vmService = vmService;
 
     unawaited(vmService.onDone.then((_) => _handleVmServiceClosed()));
+
+    // Handlers must be wrapped to handle Service Disappeared errors if async
+    // code tries to call the VM Service after termination begins.
+    final wrap = _wrapHandlerWithErrorHandling;
     _subscriptions.addAll([
-      vmService.onIsolateEvent.listen(handleIsolateEvent),
-      vmService.onDebugEvent.listen(handleDebugEvent),
-      vmService.onLoggingEvent.listen(handleLoggingEvent),
-      vmService.onExtensionEvent.listen(handleExtensionEvent),
-      vmService.onServiceEvent.listen(handleServiceEvent),
+      vmService.onIsolateEvent.listen(wrap(handleIsolateEvent)),
+      vmService.onDebugEvent.listen(wrap(handleDebugEvent)),
+      vmService.onLoggingEvent.listen(wrap(handleLoggingEvent)),
+      vmService.onExtensionEvent.listen(wrap(handleExtensionEvent)),
+      vmService.onServiceEvent.listen(wrap(handleServiceEvent)),
       if (_subscribeToOutputStreams)
-        vmService.onStdoutEvent.listen(_handleStdoutEvent),
+        vmService.onStdoutEvent.listen(wrap(_handleStdoutEvent)),
       if (_subscribeToOutputStreams)
-        vmService.onStderrEvent.listen(_handleStderrEvent),
+        vmService.onStderrEvent.listen(wrap(_handleStderrEvent)),
     ]);
     await Future.wait([
       vmService.streamListen(vm.EventStreams.kIsolate),
@@ -558,8 +590,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // Let the subclass do any existing setup once we have a connection.
     await debuggerConnected(vmInfo);
 
-    // Process any existing isolates that may have been created before the
-    // streams above were set up.
+    await _withErrorHandling(
+      () => _configureExistingIsolates(vmService, vmInfo, resumeIfStarting),
+    );
+
+    _debuggerInitializedCompleter.complete();
+  }
+
+  /// Process any existing isolates that may have been created before the
+  /// streams above were set up.
+  Future<void> _configureExistingIsolates(
+    vm.VmService vmService,
+    vm.VM vmInfo,
+    bool resumeIfStarting,
+  ) async {
     final existingIsolateRefs = vmInfo.isolates;
     final existingIsolates = existingIsolateRefs != null
         ? await Future.wait(existingIsolateRefs
@@ -596,8 +640,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         }
       }
     }));
-
-    _debuggerInitializedCompleter.complete();
   }
 
   /// Handles the clients "continue" ("resume") request for the thread in
@@ -632,26 +674,26 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ) async {
     switch (request.command) {
 
-      /// Used by tests to validate available protocols (e.g. DDS). There may be
-      /// value in making this available to clients in future, but for now it's
-      /// internal.
+      // Used by tests to validate available protocols (e.g. DDS). There may be
+      // value in making this available to clients in future, but for now it's
+      // internal.
       case '_getSupportedProtocols':
         final protocols = await vmService?.getSupportedProtocols();
         sendResponse(protocols?.toJson());
         break;
 
-      /// Used to toggle debug settings such as whether SDK/Packages are
-      /// debuggable while the session is in progress.
+      // Used to toggle debug settings such as whether SDK/Packages are
+      // debuggable while the session is in progress.
       case 'updateDebugOptions':
         if (args != null) {
           await _updateDebugOptions(args.args);
         }
-        sendResponse(null);
+        sendResponse(_noResult);
         break;
 
-      /// Allows an editor to call a service/service extension that it was told
-      /// about via a custom 'dart.serviceRegistered' or
-      /// 'dart.serviceExtensionAdded' event.
+      // Allows an editor to call a service/service extension that it was told
+      // about via a custom 'dart.serviceRegistered' or
+      // 'dart.serviceExtensionAdded' event.
       case 'callService':
         final method = args?.args['method'] as String?;
         if (method == null) {
@@ -665,6 +707,15 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           args: params,
         );
         sendResponse(response?.json);
+        break;
+
+      // Used to reload sources for all isolates. This supports Hot Reload for
+      // Dart apps. Flutter's DAP handles this command itself (and sends it
+      // through the run daemon) as it needs to perform additional work to
+      // rebuild widgets afterwards.
+      case 'hotReload':
+        await _isolateManager.reloadSources();
+        sendResponse(_noResult);
         break;
 
       default:
@@ -695,6 +746,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     DisconnectArguments? args,
     void Function() sendResponse,
   ) async {
+    isTerminating = true;
+
     await disconnectImpl();
     await shutdown();
     sendResponse();
@@ -839,6 +892,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return;
     }
 
+    isTerminating = true;
     _hasSentTerminatedEvent = true;
     // Always add a leading newline since the last written text might not have
     // had one.
@@ -901,12 +955,13 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// 'additionalProjectPaths' in the launch arguments. An editor should include
   /// the paths of all open workspace folders in 'additionalProjectPaths' to
   /// support this feature correctly.
-  bool isExternalPackageLibrary(Uri uri) {
+  Future<bool> isExternalPackageLibrary(ThreadInfo thread, Uri uri) async {
     if (!uri.isScheme('package')) {
       return false;
     }
-    final libraryPath = resolvePackageUri(uri);
-    if (libraryPath == null) {
+
+    final packagePath = await thread.resolveUriToPackageLibPath(uri);
+    if (packagePath == null) {
       return false;
     }
 
@@ -914,9 +969,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     // may have returned different casing (e.g. Windows drive letters). It's
     // almost certain a user wouldn't have a "local" package and an "external"
     // package with paths differing only be case.
-    final libraryPathLower = libraryPath.toLowerCase();
-    return !projectPaths.any((projectPath) =>
-        path.isWithin(projectPath.toLowerCase(), libraryPathLower));
+    final packagePathLower = packagePath.toLowerCase();
+    return !projectPaths
+        .map((projectPath) => projectPath.toLowerCase())
+        .any((projectPath) => path.isWithin(projectPath, packagePathLower));
   }
 
   /// Checks whether this library is from the SDK.
@@ -954,10 +1010,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   ///
   /// Initial values are provided in the launch arguments, but may be updated
   /// by the `updateDebugOptions` custom request.
-  bool libaryIsDebuggable(Uri uri) {
+  Future<bool> libraryIsDebuggable(ThreadInfo thread, Uri uri) async {
     if (isSdkLibrary(uri)) {
       return _isolateManager.debugSdkLibraries;
-    } else if (isExternalPackageLibrary(uri)) {
+    } else if (await isExternalPackageLibrary(thread, uri)) {
       return _isolateManager.debugExternalPackageLibraries;
     } else {
       return true;
@@ -975,12 +1031,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     await _isolateManager.resumeThread(args.threadId, vm.StepOption.kOver);
     sendResponse();
   }
-
-  /// Resolves a `package: URI` to the real underlying source path.
-  ///
-  /// Returns `null` if no mapping was possible, for example if the package is
-  /// not in the package mapping file.
-  String? resolvePackageUri(Uri uri) => _converter.resolvePackageUri(uri);
 
   /// restart is called by the client when the user invokes a restart (for
   /// example with the button on the debug toolbar).
@@ -1248,6 +1298,15 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           (frame) => frame.kind == vm.FrameKind.kAsyncSuspensionMarker,
         );
 
+        // Pre-resolve all URIs in batch so the call below does not trigger
+        // many requests to the server.
+        final allUris = frames
+            .map((frame) => frame.location?.script?.uri)
+            .whereNotNull()
+            .map(Uri.parse)
+            .toList();
+        await thread.resolveUrisToPathsBatch(allUris);
+
         Future<StackFrame> convert(int index, vm.Frame frame) async {
           return _converter.convertVmToDapStackFrame(
             thread,
@@ -1318,6 +1377,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     TerminateArguments? args,
     void Function() sendResponse,
   ) async {
+    isTerminating = true;
+
     await terminateImpl();
     await shutdown();
     sendResponse();
@@ -1346,14 +1407,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   /// Sets the package config file to use for `package: URI` resolution.
   ///
-  /// TODO(dantup): Remove this once
-  ///   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
-  ///   necessary.
+  /// It is no longer necessary to call this method as the package config file
+  /// is no longer used. URI lookups are done via the VM Service.
+  @Deprecated('No longer necessary, URI lookups are done via VM Service')
   void usePackageConfigFile(File packageConfig) {
-    _converter.packageConfig = PackageConfig.parseString(
-      packageConfig.readAsStringSync(),
-      Uri.file(packageConfig.path),
-    );
+    // TODO(dantup): Remove this method after Flutter DA is updated not to use
+    // it.
   }
 
   /// [variablesRequest] is called by the client to request child variables for
@@ -1661,6 +1720,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   }
 
   Future<void> _handleVmServiceClosed() async {
+    isTerminating = true;
     if (terminateOnVmServiceClose) {
       handleSessionTerminate();
     }
@@ -1767,6 +1827,40 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       streamClosed: streamClosedCompleter.future,
     );
   }
+
+  /// Wraps a function with an error handler that handles errors that occur when
+  /// the VM Service/DDS shuts down.
+  ///
+  /// When the debug adapter is terminating, it's possible in-flight requests
+  /// triggered by handlers will fail with "Service Disappeared". This is
+  /// normal and such errors can be ignored, rather than allowed to pass
+  /// uncaught.
+  _StreamEventHandler<T> _wrapHandlerWithErrorHandling<T>(
+    _StreamEventHandler<T> handler,
+  ) {
+    return (data) => _withErrorHandling(() => handler(data));
+  }
+
+  /// Calls a function with an error handler that handles errors that occur when
+  /// the VM Service/DDS shuts down.
+  ///
+  /// When the debug adapter is terminating, it's possible in-flight requests
+  /// will fail with "Service Disappeared". This is normal and such errors can
+  /// be ignored, rather than allowed to pass uncaught.
+  FutureOr<T?> _withErrorHandling<T>(FutureOr<T> Function() func) async {
+    try {
+      return await func();
+    } on vm.RPCError catch (e) {
+      // If we're been asked to shut down while this request was occurring,
+      // it's normal to get kServiceDisappeared so we should handle this
+      // silently.
+      if (isTerminating && e.code == RpcErrorCodes.kServiceDisappeared) {
+        return null;
+      }
+
+      rethrow;
+    }
+  }
 }
 
 /// An implementation of [LaunchRequestArguments] that includes all fields used
@@ -1794,6 +1888,15 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
   /// the VM or Flutter tool).
   final List<String>? toolArgs;
 
+  /// Arguments to be passed directly to the Dart VM that will run [program].
+  ///
+  /// Unlike [toolArgs] which always go after the complete tool, these args
+  /// always go directly after `dart`:
+  ///
+  ///   - dart {vmAdditionalArgs} {toolArgs}
+  ///   - dart {vmAdditionalArgs} run test:test {toolArgs}
+  final List<String>? vmAdditionalArgs;
+
   final int? vmServicePort;
 
   final bool? enableAsserts;
@@ -1810,17 +1913,39 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
   /// simplest) way, but prevents the user from being able to type into `stdin`.
   final String? console;
 
+  /// An optional tool to run instead of "dart".
+  ///
+  /// In combination with [customToolReplacesArgs] allows invoking a custom
+  /// tool instead of "dart" to launch scripts/tests. The custom tool must be
+  /// completely compatible with the tool/command it is replacing.
+  ///
+  /// This field should be a full absolute path if the tool may not be available
+  /// in `PATH`.
+  final String? customTool;
+
+  /// The number of arguments to delete from the beginning of the argument list
+  /// when invoking [customTool].
+  ///
+  /// For example, setting [customTool] to `dart_test` and
+  /// `customToolReplacesArgs` to `2` for a test run would invoke
+  /// `dart_test foo_test.dart` instead of `dart run test:test foo_test.dart`.
+  final int? customToolReplacesArgs;
+
   DartLaunchRequestArguments({
     this.noDebug,
     required this.program,
     this.args,
     this.vmServicePort,
     this.toolArgs,
+    this.vmAdditionalArgs,
     this.console,
     this.enableAsserts,
+    this.customTool,
+    this.customToolReplacesArgs,
     Object? restart,
     String? name,
     String? cwd,
+    Map<String, String>? env,
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
@@ -1831,6 +1956,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
           restart: restart,
           name: name,
           cwd: cwd,
+          env: env,
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
           debugExternalPackageLibraries: debugExternalPackageLibraries,
@@ -1844,9 +1970,12 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         program = obj['program'] as String,
         args = (obj['args'] as List?)?.cast<String>(),
         toolArgs = (obj['toolArgs'] as List?)?.cast<String>(),
+        vmAdditionalArgs = (obj['vmAdditionalArgs'] as List?)?.cast<String>(),
         vmServicePort = obj['vmServicePort'] as int?,
         console = obj['console'] as String?,
         enableAsserts = obj['enableAsserts'] as bool?,
+        customTool = obj['customTool'] as String?,
+        customToolReplacesArgs = obj['customToolReplacesArgs'] as int?,
         super.fromMap(obj);
 
   @override
@@ -1856,9 +1985,13 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         'program': program,
         if (args != null) 'args': args,
         if (toolArgs != null) 'toolArgs': toolArgs,
+        if (vmAdditionalArgs != null) 'vmAdditionalArgs': vmAdditionalArgs,
         if (vmServicePort != null) 'vmServicePort': vmServicePort,
         if (console != null) 'console': console,
         if (enableAsserts != null) 'enableAsserts': enableAsserts,
+        if (customTool != null) 'customTool': customTool,
+        if (customToolReplacesArgs != null)
+          'customToolReplacesArgs': customToolReplacesArgs,
       };
 
   static DartLaunchRequestArguments fromJson(Map<String, Object?> obj) =>

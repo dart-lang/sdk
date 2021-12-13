@@ -14,17 +14,46 @@ import 'package:analyzer/src/dart/micro/utils.dart';
 class CanRenameResponse {
   final LineInfo lineInfo;
   final RenameRefactoringElement refactoringElement;
-  final String oldName;
+  final FileResolver _fileResolver;
+  final String filePath;
 
-  CanRenameResponse(this.lineInfo, this.refactoringElement, this.oldName);
+  CanRenameResponse(this.lineInfo, this.refactoringElement, this._fileResolver,
+      this.filePath);
+
+  String get oldName => refactoringElement.element.displayName;
+
+  CheckNameResponse? checkNewName(String name) {
+    var element = refactoringElement.element;
+    RefactoringStatus? status;
+    if (element is LocalVariableElement) {
+      status = validateVariableName(name);
+    } else if (element is ParameterElement) {
+      status = validateParameterName(name);
+    } else if (element is FunctionElement) {
+      status = validateFunctionName(name);
+    }
+    if (status == null) {
+      return null;
+    }
+    return CheckNameResponse(status, this);
+  }
 }
 
 class CheckNameResponse {
-  final LineInfo lineInfo;
   final RefactoringStatus status;
-  final String oldName;
+  final CanRenameResponse canRename;
 
-  CheckNameResponse(this.lineInfo, this.status, this.oldName);
+  CheckNameResponse(this.status, this.canRename);
+
+  LineInfo get lineInfo => canRename.lineInfo;
+
+  String get oldName => canRename.refactoringElement.element.displayName;
+
+  RenameResponse? computeRenameRanges() {
+    var matches = canRename._fileResolver
+        .findReferences(canRename.refactoringElement.element);
+    return RenameResponse(matches, this);
+  }
 }
 
 class CiderRenameComputer {
@@ -45,7 +74,7 @@ class CiderRenameComputer {
     if (node == null || element == null) {
       return null;
     }
-    if (element.source != null && element.source!.isInSystemLibrary) {
+    if (element.source != null && element.source!.uri.isScheme('dart')) {
       return null;
     }
     if (element is MethodElement && element.isOperator) {
@@ -56,11 +85,12 @@ class CiderRenameComputer {
     }
     var refactoring = RenameRefactoring.getElementToRename(node, element);
     if (refactoring != null) {
-      return CanRenameResponse(lineInfo, refactoring, element.displayName);
+      return CanRenameResponse(lineInfo, refactoring, _fileResolver, filePath);
     }
     return null;
   }
 
+  @deprecated
   CheckNameResponse? checkNewName(
       String filePath, int line, int column, String name) {
     var resolvedUnit = _fileResolver.resolve(path: filePath);
@@ -74,6 +104,10 @@ class CiderRenameComputer {
       return null;
     }
 
+    var refactoring = RenameRefactoring.getElementToRename(node, element);
+    if (refactoring == null) {
+      return null;
+    }
     RefactoringStatus? status;
     if (element is LocalVariableElement) {
       status = validateVariableName(name);
@@ -85,7 +119,9 @@ class CiderRenameComputer {
     if (status == null) {
       return null;
     }
-    return CheckNameResponse(lineInfo, status, element.displayName);
+
+    return CheckNameResponse(status,
+        CanRenameResponse(lineInfo, refactoring, _fileResolver, filePath));
   }
 
   bool _canRenameElement(Element element) {
@@ -102,4 +138,11 @@ class CiderRenameComputer {
     }
     return false;
   }
+}
+
+class RenameResponse {
+  final List<CiderSearchMatch> matches;
+  final CheckNameResponse checkName;
+
+  RenameResponse(this.matches, this.checkName);
 }

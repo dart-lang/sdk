@@ -82,6 +82,9 @@ enum OutputType {
   /// Deferred map output.
   deferredMap,
 
+  /// Unused libraries output.
+  dumpUnusedLibraries,
+
   /// Implementation specific output used for debugging the compiler.
   debug,
 }

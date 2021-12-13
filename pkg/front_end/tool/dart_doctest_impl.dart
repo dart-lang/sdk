@@ -28,6 +28,7 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
@@ -160,8 +161,9 @@ class DartDocTest {
     incrementalCompiler!.invalidate(processedOpts.packagesUri);
 
     Stopwatch stopwatch = new Stopwatch()..start();
-    kernel.Component component =
+    IncrementalCompilerResult compilerResult =
         await incrementalCompiler!.computeDelta(entryPoints: [uri]);
+    kernel.Component component = compilerResult.component;
     if (errors) {
       _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
       return [
@@ -181,8 +183,9 @@ class DartDocTest {
         .writeAsStringSync(mainFileContent);
 
     incrementalCompiler!.invalidate(dartDocMainUri);
-    kernel.Component componentMain = await incrementalCompiler!
+    IncrementalCompilerResult compilerMainResult = await incrementalCompiler!
         .computeDelta(entryPoints: [dartDocMainUri], fullComponent: true);
+    kernel.Component componentMain = compilerMainResult.component;
     if (errors) {
       _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
       return [
@@ -794,37 +797,40 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
 
   Future<kernel.Component> compileDartDocTestLibrary(
       String dartDocTestCode, Uri libraryUri) async {
-    assert(dillLoadedData != null && userCode != null);
+    assert(dillTargetForTesting != null && kernelTargetForTesting != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder libraryBuilder = userCode!.loader
-          .read(libraryUri, -1, accessor: userCode!.loader.first);
+      LibraryBuilder libraryBuilder = kernelTargetForTesting!.loader.read(
+          libraryUri, -1,
+          accessorUri: kernelTargetForTesting!.loader.firstUri);
 
-      userCode!.loader.resetSeenMessages();
+      kernelTargetForTesting!.loader.resetSeenMessages();
 
       _dartDocTestLibraryBuilder = libraryBuilder;
       _dartDocTestCode = dartDocTestCode;
 
       invalidate(dartDocTestUri);
-      kernel.Component result = await computeDelta(
+      IncrementalCompilerResult compilerResult = await computeDelta(
           entryPoints: [dartDocTestUri], fullComponent: true);
+      kernel.Component result = compilerResult.component;
       _dartDocTestLibraryBuilder = null;
       _dartDocTestCode = null;
 
-      userCode!.uriToSource.remove(dartDocTestUri);
-      userCode!.loader.sourceBytes.remove(dartDocTestUri);
+      kernelTargetForTesting!.uriToSource.remove(dartDocTestUri);
+      kernelTargetForTesting!.loader.sourceBytes.remove(dartDocTestUri);
 
       return result;
     });
   }
 
-  SourceLibraryBuilder createDartDocTestLibrary(LibraryBuilder libraryBuilder) {
+  SourceLibraryBuilder createDartDocTestLibrary(
+      SourceLoader loader, LibraryBuilder libraryBuilder) {
     SourceLibraryBuilder dartDocTestLibrary = new SourceLibraryBuilder(
       dartDocTestUri,
       dartDocTestUri,
       /*packageUri*/ null,
       new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
-      userCode!.loader,
+      loader,
       null,
       scope: libraryBuilder.scope.createNestedScope("dartdoctest"),
       nameOrigin: libraryBuilder,
@@ -901,13 +907,13 @@ class DocTestSourceLoader extends SourceLoader {
       kernel.Library? referencesFrom,
       bool? referenceIsPartOwner) {
     if (uri == DocTestIncrementalCompiler.dartDocTestUri) {
-      HybridFileSystem hfs = compiler.userCode!.fileSystem as HybridFileSystem;
+      HybridFileSystem hfs = target.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;
       fs
           .entityForUri(DocTestIncrementalCompiler.dartDocTestUri)
           .writeAsStringSync(compiler._dartDocTestCode!);
-      return compiler
-          .createDartDocTestLibrary(compiler._dartDocTestLibraryBuilder!);
+      return compiler.createDartDocTestLibrary(
+          this, compiler._dartDocTestLibraryBuilder!);
     }
     return super.createLibraryBuilder(uri, fileUri, packageUri,
         packageLanguageVersion, origin, referencesFrom, referenceIsPartOwner);

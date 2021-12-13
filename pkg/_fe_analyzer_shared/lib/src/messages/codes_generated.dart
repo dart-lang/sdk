@@ -2768,6 +2768,16 @@ const MessageCode messageEnumDeclarationEmpty = const MessageCode(
     problemMessage: r"""An enum declaration can't be empty.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumDeclaresFactory = messageEnumDeclaresFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumDeclaresFactory = const MessageCode(
+    "EnumDeclaresFactory",
+    problemMessage: r"""Enums can't declare factory constructors.""",
+    correctionMessage:
+        r"""Try removing the factory constructor declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumInClass = messageEnumInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5659,6 +5669,17 @@ Message _withArgumentsInternalProblemNotFoundIn(String name, String name2) {
       problemMessage: """Couldn't find '${name}' in '${name2}'.""",
       arguments: {'name': name, 'name2': name2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemOmittedTypeNameInConstructorReference =
+    messageInternalProblemOmittedTypeNameInConstructorReference;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemOmittedTypeNameInConstructorReference =
+    const MessageCode("InternalProblemOmittedTypeNameInConstructorReference",
+        severity: Severity.internalProblem,
+        problemMessage:
+            r"""Unsupported omission of the type name in a constructor reference outside of an enum element declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemPreviousTokenNotFound =
@@ -9387,7 +9408,7 @@ const Code<Null> codeSuperInitializerNotLast = messageSuperInitializerNotLast;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperInitializerNotLast = const MessageCode(
     "SuperInitializerNotLast",
-    analyzerCodes: <String>["INVALID_SUPER_INVOCATION"],
+    analyzerCodes: <String>["SUPER_INVOCATION_NOT_LAST"],
     problemMessage: r"""Can't have initializers after 'super'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

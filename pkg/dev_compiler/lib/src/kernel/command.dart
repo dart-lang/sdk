@@ -338,10 +338,16 @@ Future<CompilerResult> _compile(List<String> args,
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
     compilerState.options.onDiagnostic = diagnosticMessageHandler;
-    var incrementalComponent = await incrementalCompiler.computeDelta(
-        entryPoints: inputs, fullComponent: true);
-    result = fe.DdcResult(incrementalComponent, cachedSdkInput.component,
-        doneAdditionalDills, incrementalCompiler.userCode.loader.hierarchy);
+    var incrementalCompilerResult = await incrementalCompiler.computeDelta(
+        entryPoints: inputs,
+        fullComponent: true,
+        trackNeededDillLibraries: recordUsedInputs);
+    result = fe.DdcResult(
+        incrementalCompilerResult.component,
+        cachedSdkInput.component,
+        doneAdditionalDills,
+        incrementalCompilerResult.classHierarchy,
+        incrementalCompilerResult.neededDillLibraries);
   }
   compilerState.options.onDiagnostic = null; // See http://dartbug.com/36983.
 
@@ -476,9 +482,10 @@ Future<CompilerResult> _compile(List<String> args,
   if (recordUsedInputs) {
     var usedOutlines = <Uri>{};
     if (useIncrementalCompiler) {
-      compilerState.incrementalCompiler
-          .updateNeededDillLibrariesWithHierarchy(result.classHierarchy, null);
-      for (var lib in compilerState.incrementalCompiler.neededDillLibraries) {
+      var neededDillLibraries = result.neededDillLibraries;
+      compilerState.incrementalCompiler.updateNeededDillLibrariesWithHierarchy(
+          neededDillLibraries, result.classHierarchy);
+      for (var lib in neededDillLibraries) {
         if (lib.importUri.scheme == 'dart') continue;
         var uri = compilerState.libraryToInputDill[lib.importUri];
         if (uri == null) {

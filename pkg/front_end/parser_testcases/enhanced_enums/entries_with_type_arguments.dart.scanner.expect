@@ -1,0 +1,19 @@
+enum E<X, Y> {
+one<int, String>(),
+two<double, num>(),
+three<int, int>.named(42);
+
+const E();
+const E.named(int value);
+}
+
+
+enum[KeywordToken] E[StringToken]<[BeginToken]X[StringToken],[SimpleToken] Y[StringToken]>[SimpleToken] {[BeginToken]
+one[StringToken]<[BeginToken]int[StringToken],[SimpleToken] String[StringToken]>[SimpleToken]([BeginToken])[SimpleToken],[SimpleToken]
+two[StringToken]<[BeginToken]double[StringToken],[SimpleToken] num[StringToken]>[SimpleToken]([BeginToken])[SimpleToken],[SimpleToken]
+three[StringToken]<[BeginToken]int[StringToken],[SimpleToken] int[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken]42[StringToken])[SimpleToken];[SimpleToken]
+
+const[KeywordToken] E[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] E[StringToken].[SimpleToken]named[StringToken]([BeginToken]int[StringToken] value[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

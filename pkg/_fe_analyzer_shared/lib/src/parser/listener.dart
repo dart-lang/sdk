@@ -137,12 +137,11 @@ class Listener implements UnescapeErrorListener {
     logEvent("ClassExtends");
   }
 
-  /// Handle an implements clause in a class or mixin declaration.
+  /// Handle an implements clause in a class, mixin or enum declaration.
   /// Substructures:
   /// - implemented types
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
-    logEvent("ClassImplements");
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
+    logEvent("Implements");
   }
 
   /// Handle a show clause in an extension declaration.
@@ -306,12 +305,55 @@ class Listener implements UnescapeErrorListener {
   void beginEnum(Token enumKeyword) {}
 
   /// Handle the end of an enum declaration.  Substructures:
+  /// - [memberCount] times:
+  ///   - Enum member
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+    logEvent("Enum");
+  }
+
+  /// Handle the end of an enum constructor declaration.  Substructures:
+  /// - metadata
+  /// - return type
+  /// - method name (identifier, possibly qualified)
+  /// - type variables
+  /// - formal parameters
+  /// - initializers
+  /// - async marker
+  /// - body
+  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    // TODO(danrubel): push implementation into subclasses
+    endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  /// Handle the enum elements. Substructures:
+  /// - [elementsCount] times:
+  ///   - Enum element
+  void handleEnumElements(Token elementsEndToken, int elementsCount) {
+    logEvent("EnumElements");
+  }
+
+  /// Handle the header of an enum declaration.  Substructures:
   /// - Metadata
   /// - Enum name (identifier)
-  /// - [count] times:
-  ///   - Enum value (identifier)
-  void endEnum(Token enumKeyword, Token leftBrace, int count) {
-    logEvent("Enum");
+  /// - type variables
+  /// - with clause
+  /// - implemented types
+  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+    logEvent("EnumHeader");
+  }
+
+  /// Handle the enum element. Substructures:
+  /// - Metadata
+  /// - Enum value (identifier)
+  void handleEnumElement(Token beginToken) {
+    logEvent("EnumElement");
+  }
+
+  void endEnumFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
   }
 
   void beginExport(Token token) {}
@@ -363,7 +405,8 @@ class Listener implements UnescapeErrorListener {
 
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,
@@ -445,6 +488,42 @@ class Listener implements UnescapeErrorListener {
     // TODO(danrubel): push implementation into subclasses
     endClassFields(abstractToken, externalToken, staticToken, covariantToken,
         lateToken, varFinalOrConst, count, beginToken, endToken);
+  }
+
+  /// Handle the end of an enum field declaration.  Substructures:
+  /// - Metadata
+  /// - Modifiers
+  /// - Type
+  /// - Variable declarations (count times)
+  ///
+  /// Started by [beginFields].
+  void endEnumFields(
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
+  }
+
+  /// Handle the end of an enum method declaration.  Substructures:
+  /// - metadata
+  /// - return type
+  /// - method name (identifier, possibly qualified)
+  /// - type variables
+  /// - formal parameters
+  /// - initializers
+  /// - async marker
+  /// - body
+  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and
@@ -608,16 +687,31 @@ class Listener implements UnescapeErrorListener {
     logEvent("FunctionTypeAlias");
   }
 
-  /// Handle the end of a with clause (e.g. "with B, C").
+  /// Handle the end of a class with clause (e.g. "with B, C").
   /// Substructures:
   /// - mixin types (TypeList)
   void handleClassWithClause(Token withKeyword) {
     logEvent("ClassWithClause");
   }
 
-  /// Handle the absence of a with clause.
+  /// Handle the absence of a class with clause.
   void handleClassNoWithClause() {
     logEvent("ClassNoWithClause");
+  }
+
+  /// Handle the end of an enum with clause (e.g. "with B, C").
+  /// Substructures:
+  /// - mixin types (TypeList)
+  ///
+  /// This method is separated from [handleClassWithClause] to simplify
+  /// handling the different objects in the context.
+  void handleEnumWithClause(Token withKeyword) {
+    logEvent("EnumWithClause");
+  }
+
+  /// Handle the absence of an enum with clause.
+  void handleEnumNoWithClause() {
+    logEvent("EnumNoWithClause");
   }
 
   /// Handle the beginning of a named mixin application.
@@ -1564,6 +1658,10 @@ class Listener implements UnescapeErrorListener {
 
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
     logEvent("NoConstructorReferenceContinuationAfterTypeArguments");
+  }
+
+  void handleNoTypeNameInConstructorReference(Token token) {
+    logEvent("NoTypeNameInConstructorReference");
   }
 
   void handleNoType(Token lastConsumed) {

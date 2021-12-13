@@ -7483,7 +7483,7 @@ FunctionPtr Function::GetOutermostFunction() const {
 
 FunctionPtr Function::implicit_closure_function() const {
   if (IsClosureFunction() || IsDispatcherOrImplicitAccessor() ||
-      IsFieldInitializer() || IsFfiTrampoline()) {
+      IsFieldInitializer() || IsFfiTrampoline() || IsMethodExtractor()) {
     return Function::null();
   }
   const Object& obj = Object::Handle(data());
@@ -7553,12 +7553,26 @@ bool Function::FfiCSignatureContainsHandles() const {
          kFfiHandleCid;
 }
 
+// Keep consistent with BaseMarshaller::IsCompound.
 bool Function::FfiCSignatureReturnsStruct() const {
   ASSERT(IsFfiTrampoline());
-  const FunctionType& c_signature = FunctionType::Handle(FfiCSignature());
-  const auto& return_type = AbstractType::Handle(c_signature.result_type());
-  const bool predefined = IsFfiTypeClassId(return_type.type_class_id());
-  return !predefined;
+  Zone* zone = Thread::Current()->zone();
+  const auto& c_signature = FunctionType::Handle(zone, FfiCSignature());
+  const auto& type = AbstractType::Handle(zone, c_signature.result_type());
+  if (IsFfiTypeClassId(type.type_class_id())) {
+    return false;
+  }
+  // TODO(http://dartbug.com/42563): Implement AbiSpecificInt.
+#ifdef DEBUG
+  const auto& cls = Class::Handle(zone, type.type_class());
+  const auto& superClass = Class::Handle(zone, cls.SuperClass());
+  const bool is_struct = String::Handle(zone, superClass.UserVisibleName())
+                             .Equals(Symbols::Struct());
+  const bool is_union = String::Handle(zone, superClass.UserVisibleName())
+                            .Equals(Symbols::Union());
+  RELEASE_ASSERT(is_struct || is_union);
+#endif
+  return true;
 }
 
 int32_t Function::FfiCallbackId() const {
@@ -9600,6 +9614,10 @@ bool FunctionType::IsInstantiated(Genericity genericity,
   return true;
 }
 
+bool Function::IsPrivate() const {
+  return Library::IsPrivate(String::Handle(name()));
+}
+
 ClassPtr Function::Owner() const {
   ASSERT(untag()->owner() != Object::null());
   if (untag()->owner()->IsClass()) {
@@ -10144,8 +10162,7 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
   }
 
   // If table dispatch is disabled, all instance calls use switchable calls.
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions &&
-        FLAG_use_table_dispatch)) {
+  if (!(FLAG_precompiled_mode && FLAG_use_table_dispatch)) {
     return true;
   }
 
@@ -15527,7 +15544,6 @@ MonomorphicSmiableCallPtr MonomorphicSmiableCall::New(classid_t expected_cid,
   result ^= Object::Allocate(
       MonomorphicSmiableCall::kClassId, MonomorphicSmiableCall::InstanceSize(),
       Heap::kOld, MonomorphicSmiableCall::ContainsCompressedPointers());
-  result.untag()->set_target(target.ptr());
   result.StoreNonPointer(&result.untag()->expected_cid_, expected_cid);
   result.StoreNonPointer(&result.untag()->entrypoint_, target.EntryPoint());
   return result.ptr();
@@ -16902,7 +16918,7 @@ void Code::set_static_calls_target_table(const Array& value) const {
 
 ObjectPoolPtr Code::GetObjectPool() const {
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     return IsolateGroup::Current()->object_store()->global_object_pool();
   }
 #endif
@@ -25510,8 +25526,7 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
     result.untag()->set_function(function.ptr());
     result.untag()->set_context(context.ptr());
 #if defined(DART_PRECOMPILED_RUNTIME)
-    result.set_entry_point(FLAG_use_bare_instructions ? function.entry_point()
-                                                      : 0);
+    result.set_entry_point(function.entry_point());
 #endif
   }
   return result.ptr();
@@ -25851,6 +25866,15 @@ const char* StackTrace::ToCString() const {
       // A visible frame ends any gap we might be in.
       in_gap = false;
 
+      // Zero pc_offset can only occur in the frame produced by the async
+      // unwinding and it corresponds to the next future listener in the
+      // chain. This function is not yet called (it will be called when
+      // the future completes) hence pc_offset is set to 0. This frame
+      // is very different from other frames which have pc_offsets
+      // corresponding to call- or yield-sites in the generated code and
+      // should be handled specially.
+      const bool is_future_listener = pc_offset == 0;
+
 #if defined(DART_PRECOMPILED_RUNTIME)
       // When printing non-symbolic frames, we normally print call
       // addresses, not return addresses, by subtracting one from the PC to
@@ -25861,7 +25885,6 @@ const char* StackTrace::ToCString() const {
       // is invoked with the value of the resolved future. Thus, we must
       // report the return address, as returning a value before the closure
       // payload will cause failures to decode the frame using DWARF info.
-      const bool is_future_listener = pc_offset == 0;
       const uword call_addr = is_future_listener ? pc : pc - 1;
 
       if (FLAG_dwarf_stack_traces_mode) {
@@ -25887,7 +25910,11 @@ const char* StackTrace::ToCString() const {
       }
 #endif
 
-      if (code.is_optimized() && stack_trace.expand_inlined()) {
+      if (code.is_optimized() && stack_trace.expand_inlined() &&
+          (FLAG_precompiled_mode || !is_future_listener)) {
+        // Note: In AOT mode EmitFunctionEntrySourcePositionDescriptorIfNeeded
+        // will take care of emitting a descriptor that would allow us to
+        // symbolize stack frame with 0 offset.
         code.GetInlinedFunctionsAtReturnAddress(pc_offset, &inlined_functions,
                                                 &inlined_token_positions);
         ASSERT(inlined_functions.length() >= 1);
@@ -25901,7 +25928,8 @@ const char* StackTrace::ToCString() const {
         continue;
       }
 
-      auto const pos = code.GetTokenIndexOfPC(pc);
+      auto const pos = is_future_listener ? function.token_pos()
+                                          : code.GetTokenIndexOfPC(pc);
       PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
       frame_index++;
     }

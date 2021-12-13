@@ -549,7 +549,7 @@ intptr_t CodeRelocator::FindDestinationInText(const InstructionsPtr destination,
 }
 
 intptr_t CodeRelocator::AdjustPayloadOffset(intptr_t payload_offset) {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     return payload_offset;
   }
   return compiler::target::Instructions::HeaderSize() + payload_offset;

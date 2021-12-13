@@ -93,11 +93,11 @@ void UntaggedFrame::Init() {
   compiler::target::frame_layout = default_frame_layout;
   runtime_frame_layout = default_frame_layout;
 
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     compiler::target::frame_layout = bare_instructions_frame_layout;
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     compiler::target::frame_layout = invalid_frame_layout;
     runtime_frame_layout = bare_instructions_frame_layout;
   }
@@ -105,7 +105,7 @@ void UntaggedFrame::Init() {
 }
 
 bool StackFrame::IsBareInstructionsDartFrame() const {
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     return false;
   }
   NoSafepointScope no_safepoint;
@@ -123,7 +123,7 @@ bool StackFrame::IsBareInstructionsDartFrame() const {
 }
 
 bool StackFrame::IsBareInstructionsStubFrame() const {
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     return false;
   }
   NoSafepointScope no_safepoint;
@@ -141,7 +141,7 @@ bool StackFrame::IsBareInstructionsStubFrame() const {
 }
 
 bool StackFrame::IsStubFrame() const {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     return IsBareInstructionsStubFrame();
   }
 
@@ -208,7 +208,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   CompressedStackMaps maps;
   uword code_start;
 
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     maps = ReversePc::FindCompressedStackMaps(isolate_group(), pc(),
                                               /*is_return_address=*/true,
                                               &code_start);
@@ -290,7 +290,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     // to an osr function. In each of these cases, all stack slots contain
     // tagged pointers, so fall through.
 #if defined(DEBUG)
-    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (FLAG_precompiled_mode) {
       ASSERT(IsStubFrame());
     } else {
       ASSERT(!code.is_optimized() ||
@@ -337,7 +337,7 @@ CodePtr StackFrame::LookupDartCode() const {
 
 CodePtr StackFrame::GetCodeObject() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     NoSafepointScope no_safepoint;
     CodePtr code = ReversePc::Lookup(isolate_group(), pc(),
                                      /*is_return_address=*/true);

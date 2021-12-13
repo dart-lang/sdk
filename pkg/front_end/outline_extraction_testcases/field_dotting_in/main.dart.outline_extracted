@@ -1,0 +1,32 @@
+org-dartlang-testcase:///main.dart:
+import "b.dart";
+var x = A.b().c().d;
+class A {
+  static B b() {}
+}
+
+
+
+
+org-dartlang-testcase:///b.dart:
+import "c.dart";
+class B {
+  C c() {}
+}
+
+
+
+
+org-dartlang-testcase:///c.dart:
+import "d.dart";
+class C {
+  D d() {}
+}
+
+
+
+
+org-dartlang-testcase:///d.dart:
+class D {
+  String d() {}
+}

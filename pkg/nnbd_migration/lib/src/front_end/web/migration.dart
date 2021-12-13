@@ -492,7 +492,7 @@ void loadNavigationTree() async {
 
   // Request the navigation tree, then do work with the response.
   try {
-    final response = await doGet<List<Object?>>(path);
+    final response = (await doGet<List<Object?>>(path))!;
     var navTree = document.querySelector('.nav-tree')!;
     navTree.innerHtml = '';
     navigationTree = NavigationTreeNode.listFromJson(response);

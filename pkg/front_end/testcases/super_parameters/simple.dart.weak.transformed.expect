@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/super_parameters/simple.dart:11:3: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+//   B(super.foo);
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int foo;
+  constructor •(core::int foo) → self::A
+    : self::A::foo = foo, super core::Object::•()
+    ;
+}
+class B extends self::A {
+  constructor •(dynamic foo) → self::B
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/super_parameters/simple.dart:11:3: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+  B(super.foo);
+  ^"
+    ;
+}
+static method main() → dynamic {}

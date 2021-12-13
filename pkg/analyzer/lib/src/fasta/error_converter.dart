@@ -191,10 +191,6 @@ class FastaErrorReporter {
         _reportByCode(ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, message,
             offset, length);
         return;
-      case "INVALID_SUPER_INVOCATION":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_SUPER_INVOCATION, offset, length);
-        return;
       case "MISSING_DIGIT":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_DIGIT, offset, length);
@@ -264,6 +260,10 @@ class FastaErrorReporter {
       case "RETURN_IN_GENERATOR":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length);
+        return;
+      case "SUPER_INVOCATION_NOT_LAST":
+        errorReporter?.reportErrorForOffset(
+            CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, offset, length);
         return;
       case "SUPER_IN_REDIRECTING_CONSTRUCTOR":
         errorReporter?.reportErrorForOffset(

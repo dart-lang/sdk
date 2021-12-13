@@ -57,9 +57,11 @@ class NativeCompoundType;
 class NativeType : public ZoneAllocated {
  public:
 #if !defined(FFI_UNIT_TESTS)
-  static NativeType& FromAbstractType(Zone* zone, const AbstractType& type);
+  static const NativeType* FromAbstractType(Zone* zone,
+                                            const AbstractType& type,
+                                            const char** error);
 #endif
-  static NativeType& FromTypedDataClassId(Zone* zone, classid_t class_id);
+  static const NativeType& FromTypedDataClassId(Zone* zone, classid_t class_id);
 
 #if !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
   static NativePrimitiveType& FromUnboxedRepresentation(Zone* zone,

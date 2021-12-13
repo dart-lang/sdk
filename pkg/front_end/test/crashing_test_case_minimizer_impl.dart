@@ -34,6 +34,9 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
+
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 import 'package:front_end/src/fasta/builder/library_builder.dart';
@@ -47,8 +50,8 @@ import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/messages.dart' show Message;
 import 'package:front_end/src/fasta/source/diet_parser.dart'
     show useImplicitCreationExpressionInCfe;
-import 'package:front_end/src/fasta/util/direct_parser_ast.dart';
-import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
+import 'package:front_end/src/fasta/util/parser_ast.dart';
+import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 
 import 'package:front_end/src/fasta/util/textual_outline.dart'
     show textualOutline;
@@ -536,7 +539,7 @@ class TestMinimizer {
       if (inlinableUri == uri) continue;
       final Uint8List? originalBytes = _fs.data[uri];
       if (originalBytes == null || originalBytes.isEmpty) continue;
-      DirectParserASTContentCompilationUnitEnd ast = getAST(originalBytes,
+      CompilationUnitEnd ast = getAST(originalBytes,
           includeBody: false,
           includeComments: false,
           enableExtensionMethods: true,
@@ -549,7 +552,7 @@ class TestMinimizer {
       // * if that *doesn't* work and we've inserted an export,
       //   try converting that to an import instead.
       List<_Replacement> replacements = [];
-      for (DirectParserASTContentImportEnd import in ast.getImports()) {
+      for (ImportEnd import in ast.getImports()) {
         Token importUriToken = import.importKeyword.next!;
         Uri importUri = _getUri(importUriToken, uri);
         if (inlinableUri == importUri) {
@@ -557,7 +560,7 @@ class TestMinimizer {
               import.importKeyword.offset - 1, import.semicolon!.offset + 1));
         }
       }
-      for (DirectParserASTContentExportEnd export in ast.getExports()) {
+      for (ExportEnd export in ast.getExports()) {
         Token exportUriToken = export.exportKeyword.next!;
         Uri exportUri = _getUri(exportUriToken, uri);
         if (inlinableUri == exportUri) {
@@ -582,10 +585,10 @@ class TestMinimizer {
           includeComments: false,
           enableExtensionMethods: true,
           enableNonNullable: _isUriNnbd(uri));
-      for (DirectParserASTContentImportEnd import in ast.getImports()) {
+      for (ImportEnd import in ast.getImports()) {
         offsetOfLast = max(offsetOfLast, import.semicolon!.offset + 1);
       }
-      for (DirectParserASTContentExportEnd export in ast.getExports()) {
+      for (ExportEnd export in ast.getExports()) {
         offsetOfLast = max(offsetOfLast, export.semicolon.offset + 1);
       }
 
@@ -683,17 +686,17 @@ class TestMinimizer {
   Uint8List _rewriteImportsExportsToUri(
       Uint8List oldData, Uri newUri, Uri oldUri, bool nnbd,
       {bool convertExportToImport: false}) {
-    DirectParserASTContentCompilationUnitEnd ast = getAST(oldData,
+    CompilationUnitEnd ast = getAST(oldData,
         includeBody: false,
         includeComments: false,
         enableExtensionMethods: true,
         enableNonNullable: nnbd);
     List<_Replacement> replacements = [];
-    for (DirectParserASTContentImportEnd import in ast.getImports()) {
+    for (ImportEnd import in ast.getImports()) {
       _rewriteImportsExportsToUriInternal(
           import.importKeyword.next!, oldUri, replacements, newUri);
     }
-    for (DirectParserASTContentExportEnd export in ast.getExports()) {
+    for (ExportEnd export in ast.getExports()) {
       if (convertExportToImport) {
         replacements.add(new _Replacement(
           export.exportKeyword.offset - 1,
@@ -802,7 +805,7 @@ worlds:
     Uri uriTokenUri = uri.resolve(uriString);
     if (resolvePackage && uriTokenUri.scheme == "package") {
       Package package = _latestCrashingIncrementalCompiler!
-          .currentPackagesMap![uriTokenUri.pathSegments.first]!;
+          .getPackageForPackageName(uriTokenUri.pathSegments.first)!;
       uriTokenUri = package.packageUriRoot
           .resolve(uriTokenUri.pathSegments.skip(1).join("/"));
     }
@@ -810,7 +813,7 @@ worlds:
   }
 
   Uri _getImportUri(Uri uri) {
-    return _latestCrashingIncrementalCompiler!.userCode!
+    return _latestCrashingIncrementalCompiler!.kernelTargetForTesting!
         .getEntryPointUri(uri, issueProblem: false);
   }
 
@@ -1251,7 +1254,7 @@ worlds:
     if (!uri.toString().endsWith(".dart")) return;
 
     Uint8List data = _fs.data[uri]!;
-    DirectParserASTContentCompilationUnitEnd ast = getAST(data,
+    CompilationUnitEnd ast = getAST(data,
         includeBody: true,
         includeComments: false,
         enableExtensionMethods: true,
@@ -1260,64 +1263,60 @@ worlds:
     _CompilationHelperClass helper = new _CompilationHelperClass(data);
 
     // Try to remove top level things one at a time.
-    for (DirectParserASTContent child in ast.children!) {
+    for (ParserAstNode child in ast.children!) {
       bool shouldCompile = false;
       String what = "";
       if (child.isClass()) {
-        DirectParserASTContentClassDeclarationEnd cls = child.asClass();
+        ClassDeclarationEnd cls = child.asClass();
         helper.replacements.add(new _Replacement(
             cls.beginToken.offset - 1, cls.endToken.offset + 1));
         shouldCompile = true;
         what = "class";
       } else if (child.isMixinDeclaration()) {
-        DirectParserASTContentMixinDeclarationEnd decl =
-            child.asMixinDeclaration();
+        MixinDeclarationEnd decl = child.asMixinDeclaration();
         helper.replacements.add(new _Replacement(
             decl.mixinKeyword.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
         what = "mixin";
       } else if (child.isNamedMixinDeclaration()) {
-        DirectParserASTContentNamedMixinApplicationEnd decl =
-            child.asNamedMixinDeclaration();
+        NamedMixinApplicationEnd decl = child.asNamedMixinDeclaration();
         helper.replacements.add(
             new _Replacement(decl.begin.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
         what = "named mixin";
       } else if (child.isExtension()) {
-        DirectParserASTContentExtensionDeclarationEnd decl =
-            child.asExtension();
+        ExtensionDeclarationEnd decl = child.asExtension();
         helper.replacements.add(new _Replacement(
             decl.extensionKeyword.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
         what = "extension";
       } else if (child.isTopLevelFields()) {
-        DirectParserASTContentTopLevelFieldsEnd decl = child.asTopLevelFields();
+        TopLevelFieldsEnd decl = child.asTopLevelFields();
         helper.replacements.add(new _Replacement(
             decl.beginToken.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
         what = "toplevel fields";
       } else if (child.isTopLevelMethod()) {
-        DirectParserASTContentTopLevelMethodEnd decl = child.asTopLevelMethod();
+        TopLevelMethodEnd decl = child.asTopLevelMethod();
         helper.replacements.add(new _Replacement(
             decl.beginToken.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
         what = "toplevel method";
       } else if (child.isEnum()) {
-        DirectParserASTContentEnumEnd decl = child.asEnum();
+        EnumEnd decl = child.asEnum();
         helper.replacements.add(new _Replacement(
             decl.enumKeyword.offset - 1, decl.leftBrace.endGroup!.offset + 1));
         shouldCompile = true;
         what = "enum";
       } else if (child.isTypedef()) {
-        DirectParserASTContentTypedefEnd decl = child.asTypedef();
+        TypedefEnd decl = child.asTypedef();
         helper.replacements.add(new _Replacement(
             decl.typedefKeyword.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
         what = "typedef";
       } else if (child.isMetadata()) {
-        DirectParserASTContentMetadataStarEnd decl = child.asMetadata();
-        List<DirectParserASTContentMetadataEnd> metadata =
-            decl.getMetadataEntries();
+        MetadataStarEnd decl = child.asMetadata();
+        List<MetadataEnd> metadata = decl.getMetadataEntries();
         if (metadata.isNotEmpty) {
           helper.replacements.add(new _Replacement(
               metadata.first.beginToken.offset - 1,
@@ -1326,31 +1325,31 @@ worlds:
         }
         what = "metadata";
       } else if (child.isImport()) {
-        DirectParserASTContentImportEnd decl = child.asImport();
+        ImportEnd decl = child.asImport();
         helper.replacements.add(new _Replacement(
             decl.importKeyword.offset - 1, decl.semicolon!.offset + 1));
         shouldCompile = true;
         what = "import";
       } else if (child.isExport()) {
-        DirectParserASTContentExportEnd decl = child.asExport();
+        ExportEnd decl = child.asExport();
         helper.replacements.add(new _Replacement(
             decl.exportKeyword.offset - 1, decl.semicolon.offset + 1));
         shouldCompile = true;
         what = "export";
       } else if (child.isLibraryName()) {
-        DirectParserASTContentLibraryNameEnd decl = child.asLibraryName();
+        LibraryNameEnd decl = child.asLibraryName();
         helper.replacements.add(new _Replacement(
             decl.libraryKeyword.offset - 1, decl.semicolon.offset + 1));
         shouldCompile = true;
         what = "library name";
       } else if (child.isPart()) {
-        DirectParserASTContentPartEnd decl = child.asPart();
+        PartEnd decl = child.asPart();
         helper.replacements.add(new _Replacement(
             decl.partKeyword.offset - 1, decl.semicolon.offset + 1));
         shouldCompile = true;
         what = "part";
       } else if (child.isPartOf()) {
-        DirectParserASTContentPartOfEnd decl = child.asPartOf();
+        PartOfEnd decl = child.asPartOf();
         helper.replacements.add(new _Replacement(
             decl.partKeyword.offset - 1, decl.semicolon.offset + 1));
         shouldCompile = true;
@@ -1370,8 +1369,8 @@ worlds:
         if (!success) {
           if (child.isClass()) {
             // Also try to remove all content of the class.
-            DirectParserASTContentClassDeclarationEnd decl = child.asClass();
-            DirectParserASTContentClassOrMixinOrExtensionBodyEnd body =
+            ClassDeclarationEnd decl = child.asClass();
+            ClassOrMixinOrExtensionBodyEnd body =
                 decl.getClassOrMixinOrExtensionBody();
             if (body.beginToken.offset + 2 < body.endToken.offset) {
               helper.replacements.add(new _Replacement(
@@ -1384,11 +1383,11 @@ worlds:
 
             if (!success) {
               // Also try to remove members one at a time.
-              for (DirectParserASTContent child in body.children!) {
+              for (ParserAstNode child in body.children!) {
                 shouldCompile = false;
-                if (child is DirectParserASTContentMemberEnd) {
+                if (child is MemberEnd) {
                   if (child.isClassConstructor()) {
-                    DirectParserASTContentClassConstructorEnd memberDecl =
+                    ClassConstructorEnd memberDecl =
                         child.getClassConstructor();
                     helper.replacements.add(new _Replacement(
                         memberDecl.beginToken.offset - 1,
@@ -1396,23 +1395,21 @@ worlds:
                     what = "class constructor";
                     shouldCompile = true;
                   } else if (child.isClassFields()) {
-                    DirectParserASTContentClassFieldsEnd memberDecl =
-                        child.getClassFields();
+                    ClassFieldsEnd memberDecl = child.getClassFields();
                     helper.replacements.add(new _Replacement(
                         memberDecl.beginToken.offset - 1,
                         memberDecl.endToken.offset + 1));
                     what = "class fields";
                     shouldCompile = true;
                   } else if (child.isClassMethod()) {
-                    DirectParserASTContentClassMethodEnd memberDecl =
-                        child.getClassMethod();
+                    ClassMethodEnd memberDecl = child.getClassMethod();
                     helper.replacements.add(new _Replacement(
                         memberDecl.beginToken.offset - 1,
                         memberDecl.endToken.offset + 1));
                     what = "class method";
                     shouldCompile = true;
                   } else if (child.isClassFactoryMethod()) {
-                    DirectParserASTContentClassFactoryMethodEnd memberDecl =
+                    ClassFactoryMethodEnd memberDecl =
                         child.getClassFactoryMethod();
                     helper.replacements.add(new _Replacement(
                         memberDecl.beginToken.offset - 1,
@@ -1424,10 +1421,8 @@ worlds:
                     continue;
                   }
                 } else if (child.isMetadata()) {
-                  DirectParserASTContentMetadataStarEnd decl =
-                      child.asMetadata();
-                  List<DirectParserASTContentMetadataEnd> metadata =
-                      decl.getMetadataEntries();
+                  MetadataStarEnd decl = child.asMetadata();
+                  List<MetadataEnd> metadata = decl.getMetadataEntries();
                   if (metadata.isNotEmpty) {
                     helper.replacements.add(new _Replacement(
                         metadata.first.beginToken.offset - 1,
@@ -1441,8 +1436,8 @@ worlds:
                       helper, uri, initialComponent, what);
                   if (helper.shouldQuit) return;
                   if (!success) {
-                    DirectParserASTContentBlockFunctionBodyEnd? decl;
-                    if (child is DirectParserASTContentMemberEnd) {
+                    BlockFunctionBodyEnd? decl;
+                    if (child is MemberEnd) {
                       if (child.isClassMethod()) {
                         decl = child.getClassMethod().getBlockFunctionBody();
                       } else if (child.isClassConstructor()) {
@@ -1498,9 +1493,8 @@ worlds:
             }
           } else if (child.isMixinDeclaration()) {
             // Also try to remove all content of the mixin.
-            DirectParserASTContentMixinDeclarationEnd decl =
-                child.asMixinDeclaration();
-            DirectParserASTContentClassOrMixinOrExtensionBodyEnd body =
+            MixinDeclarationEnd decl = child.asMixinDeclaration();
+            ClassOrMixinOrExtensionBodyEnd body =
                 decl.getClassOrMixinOrExtensionBody();
             if (body.beginToken.offset + 2 < body.endToken.offset) {
               helper.replacements.add(new _Replacement(
@@ -1513,11 +1507,11 @@ worlds:
 
             if (!success) {
               // Also try to remove members one at a time.
-              for (DirectParserASTContent child in body.children!) {
+              for (ParserAstNode child in body.children!) {
                 shouldCompile = false;
-                if (child is DirectParserASTContentMemberEnd) {
+                if (child is MemberEnd) {
                   if (child.isMixinConstructor()) {
-                    DirectParserASTContentMixinConstructorEnd memberDecl =
+                    MixinConstructorEnd memberDecl =
                         child.getMixinConstructor();
                     helper.replacements.add(new _Replacement(
                         memberDecl.beginToken.offset - 1,
@@ -1525,23 +1519,21 @@ worlds:
                     what = "mixin constructor";
                     shouldCompile = true;
                   } else if (child.isMixinFields()) {
-                    DirectParserASTContentMixinFieldsEnd memberDecl =
-                        child.getMixinFields();
+                    MixinFieldsEnd memberDecl = child.getMixinFields();
                     helper.replacements.add(new _Replacement(
                         memberDecl.beginToken.offset - 1,
                         memberDecl.endToken.offset + 1));
                     what = "mixin fields";
                     shouldCompile = true;
                   } else if (child.isMixinMethod()) {
-                    DirectParserASTContentMixinMethodEnd memberDecl =
-                        child.getMixinMethod();
+                    MixinMethodEnd memberDecl = child.getMixinMethod();
                     helper.replacements.add(new _Replacement(
                         memberDecl.beginToken.offset - 1,
                         memberDecl.endToken.offset + 1));
                     what = "mixin method";
                     shouldCompile = true;
                   } else if (child.isMixinFactoryMethod()) {
-                    DirectParserASTContentMixinFactoryMethodEnd memberDecl =
+                    MixinFactoryMethodEnd memberDecl =
                         child.getMixinFactoryMethod();
                     helper.replacements.add(new _Replacement(
                         memberDecl.beginToken.offset - 1,
@@ -1553,10 +1545,8 @@ worlds:
                     continue;
                   }
                 } else if (child.isMetadata()) {
-                  DirectParserASTContentMetadataStarEnd decl =
-                      child.asMetadata();
-                  List<DirectParserASTContentMetadataEnd> metadata =
-                      decl.getMetadataEntries();
+                  MetadataStarEnd decl = child.asMetadata();
+                  List<MetadataEnd> metadata = decl.getMetadataEntries();
                   if (metadata.isNotEmpty) {
                     helper.replacements.add(new _Replacement(
                         metadata.first.beginToken.offset - 1,
@@ -1570,8 +1560,8 @@ worlds:
                       helper, uri, initialComponent, what);
                   if (helper.shouldQuit) return;
                   if (!success) {
-                    DirectParserASTContentBlockFunctionBodyEnd? decl;
-                    if (child is DirectParserASTContentMemberEnd) {
+                    BlockFunctionBodyEnd? decl;
+                    if (child is MemberEnd) {
                       if (child.isClassMethod()) {
                         decl = child.getClassMethod().getBlockFunctionBody();
                       } else if (child.isClassConstructor()) {
@@ -1767,7 +1757,7 @@ worlds:
 
   bool _knownByCompiler(Uri uri) {
     LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
-        .userCode!.loader
+        .kernelTargetForTesting!.loader
         .lookupLibraryBuilder(_getImportUri(uri));
     if (libraryBuilder != null) {
       return true;
@@ -1786,14 +1776,14 @@ worlds:
   bool _isUriNnbd(Uri uri, {bool crashOnFail: true}) {
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder? libraryBuilder = _latestCrashingIncrementalCompiler!
-        .userCode!.loader
+        .kernelTargetForTesting!.loader
         .lookupLibraryBuilder(asImportUri);
     if (libraryBuilder != null) {
       return libraryBuilder.isNonNullableByDefault;
     }
     print("Couldn't lookup $uri");
     for (LibraryBuilder libraryBuilder in _latestCrashingIncrementalCompiler!
-        .userCode!.loader.libraryBuilders) {
+        .kernelTargetForTesting!.loader.libraryBuilders) {
       if (libraryBuilder.importUri == uri) {
         print("Found $uri as ${libraryBuilder.importUri} (!= ${asImportUri})");
         return libraryBuilder.isNonNullableByDefault;
@@ -1826,7 +1816,9 @@ worlds:
     }
     incrementalCompiler.invalidate(_mainUri);
     try {
-      _latestComponent = await incrementalCompiler.computeDelta();
+      IncrementalCompilerResult incrementalCompilerResult =
+          await incrementalCompiler.computeDelta();
+      _latestComponent = incrementalCompilerResult.component;
       if (_settings.serialize) {
         // We're asked to serialize, probably because it crashes in
         // serialization.
@@ -1839,7 +1831,9 @@ worlds:
 
       for (Uri uri in _settings.invalidate) {
         incrementalCompiler.invalidate(uri);
-        Component delta = await incrementalCompiler.computeDelta();
+        IncrementalCompilerResult deltaResult =
+            await incrementalCompiler.computeDelta();
+        Component delta = deltaResult.component;
         if (_settings.serialize) {
           // We're asked to serialize, probably because it crashes in
           // serialization.
@@ -1926,7 +1920,9 @@ worlds:
   Future<Component> _getInitialComponent() async {
     IncrementalCompiler incrementalCompiler =
         new IncrementalCompiler(_setupCompilerContext());
-    Component originalComponent = await incrementalCompiler.computeDelta();
+    IncrementalCompilerResult incrementalCompilerResult =
+        await incrementalCompiler.computeDelta();
+    Component originalComponent = incrementalCompilerResult.component;
     return originalComponent;
   }
 

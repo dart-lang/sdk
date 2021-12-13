@@ -122,8 +122,8 @@ class ClassTypeAliasTest extends ParserTestCase {
                 "A",
                 null,
                 null,
-                AstTestFactory.typeName4('B'),
-                AstTestFactory.withClause([AstTestFactory.typeName4('M')]),
+                AstTestFactory.namedType4('B'),
+                AstTestFactory.withClause([AstTestFactory.namedType4('M')]),
                 null)
             .isAbstract,
         isFalse);
@@ -132,8 +132,8 @@ class ClassTypeAliasTest extends ParserTestCase {
                 "B",
                 null,
                 Keyword.ABSTRACT,
-                AstTestFactory.typeName4('A'),
-                AstTestFactory.withClause([AstTestFactory.typeName4('M')]),
+                AstTestFactory.namedType4('A'),
+                AstTestFactory.withClause([AstTestFactory.namedType4('M')]),
                 null)
             .isAbstract,
         isTrue);
@@ -1142,7 +1142,7 @@ class SimpleIdentifierTest extends ParserTestCase {
 
   void test_isQualified_inConstructorName() {
     ConstructorName constructor = AstTestFactory.constructorName(
-        AstTestFactory.typeName4('MyClass'), "test");
+        AstTestFactory.namedType4('MyClass'), "test");
     SimpleIdentifier name = constructor.name!;
     expect(name.isQualified, isTrue);
   }
@@ -1684,6 +1684,21 @@ class StringInterpolationTest extends ParserTestCase {
       StringInterpolation node = AstTestFactory.string([a, b, c]);
       expect(node.isSingleQuoted, isTrue);
     }
+  }
+}
+
+@reflectiveTest
+class SuperFormalParameterTest {
+  void test_endToken_noParameters() {
+    SuperFormalParameter parameter =
+        AstTestFactory.superFormalParameter2('field');
+    expect(parameter.endToken, parameter.identifier.endToken);
+  }
+
+  void test_endToken_parameters() {
+    SuperFormalParameter parameter = AstTestFactory.superFormalParameter(
+        null, null, 'field', AstTestFactory.formalParameterList([]));
+    expect(parameter.endToken, parameter.parameters!.endToken);
   }
 }
 

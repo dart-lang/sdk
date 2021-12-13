@@ -1020,9 +1020,11 @@ abstract class IntegrationTestMixin {
   ///   True if the number of suggestions after filtering was greater than the
   ///   requested maxResults.
   Future<CompletionGetSuggestions2Result> sendCompletionGetSuggestions2(
-      String file, int offset, int maxResults) async {
-    var params =
-        CompletionGetSuggestions2Params(file, offset, maxResults).toJson();
+      String file, int offset, int maxResults,
+      {int? timeout}) async {
+    var params = CompletionGetSuggestions2Params(file, offset, maxResults,
+            timeout: timeout)
+        .toJson();
     var result = await server.send('completion.getSuggestions2', params);
     var decoder = ResponseDecoder(null);
     return CompletionGetSuggestions2Result.fromJson(decoder, 'result', result);

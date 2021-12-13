@@ -1228,6 +1228,19 @@ class Assembler : public AssemblerBase {
                                            Register array,
                                            Register index);
 
+  void LoadStaticFieldAddress(Register address,
+                              Register field,
+                              Register scratch) {
+    LoadCompressedSmi(
+        scratch, compiler::FieldAddress(
+                     field, target::Field::host_offset_or_field_id_offset()));
+    const intptr_t field_table_offset =
+        compiler::target::Thread::field_table_values_offset();
+    LoadMemoryValue(address, THR, static_cast<int32_t>(field_table_offset));
+    static_assert(kSmiTagShift == 1, "adjust scale factor");
+    leaq(address, Address(address, scratch, TIMES_HALF_WORD_SIZE, 0));
+  }
+
   void LoadFieldAddressForRegOffset(Register address,
                                     Register instance,
                                     Register offset_in_words_as_smi) {

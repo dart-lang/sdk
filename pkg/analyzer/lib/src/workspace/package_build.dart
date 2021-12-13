@@ -60,6 +60,18 @@ class PackageBuildPackageUriResolver extends UriResolver {
   Map<String, List<Folder>> get packageMap => _workspace.packageMap;
 
   @override
+  Uri? pathToUri(String path) {
+    if (_context.isWithin(_workspace.root, path)) {
+      var uriParts = _restoreUriParts(path);
+      if (uriParts != null) {
+        return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
+      }
+    }
+
+    return _normalUriResolver.pathToUri(path);
+  }
+
+  @override
   Source? resolveAbsolute(Uri uri) {
     if (uri.scheme != 'package') {
       return null;
@@ -88,20 +100,6 @@ class PackageBuildPackageUriResolver extends UriResolver {
       return file.createSource(uri);
     }
     return basicResolverSource;
-  }
-
-  @override
-  Uri? restoreAbsolute(Source source) {
-    String filePath = source.fullName;
-
-    if (_context.isWithin(_workspace.root, filePath)) {
-      var uriParts = _restoreUriParts(filePath);
-      if (uriParts != null) {
-        return Uri.parse('package:${uriParts[0]}/${uriParts[1]}');
-      }
-    }
-
-    return _normalUriResolver.restoreAbsolute(source);
   }
 
   List<String>? _restoreUriParts(String filePath) {
@@ -330,13 +328,16 @@ class PackageBuildWorkspace extends Workspace implements PubWorkspace {
         return null;
       }
     }
+    return null;
   }
 
   /// Return the content of the [file], `null` if cannot be read.
   static String? _fileContentOrNull(File file) {
     try {
       return file.readAsStringSync();
-    } catch (_) {}
+    } catch (_) {
+      return null;
+    }
   }
 }
 

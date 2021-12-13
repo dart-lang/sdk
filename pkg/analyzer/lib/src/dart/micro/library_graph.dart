@@ -335,10 +335,7 @@ class FileSystemState {
       return file;
     }
 
-    var fileUri = _resourceProvider.pathContext.toUri(path);
-    var uri = _sourceFactory.restoreUri(
-      _FakeSource(path, fileUri),
-    );
+    var uri = _sourceFactory.pathToUri(path);
     if (uri == null) {
       throw StateError('Unable to convert path to URI: $path');
     }
@@ -428,11 +425,7 @@ class FileSystemState {
   }
 
   String? getPathForUri(Uri uri) {
-    var source = _sourceFactory.forUri2(uri);
-    if (source == null) {
-      return null;
-    }
-    return source.fullName;
+    return _sourceFactory.forUri2(uri)?.fullName;
   }
 
   /// Computes the set of [FileState]'s used/not used to analyze the given
@@ -593,19 +586,6 @@ class _ContentWithDigest {
   });
 }
 
-class _FakeSource implements Source {
-  @override
-  final String fullName;
-
-  @override
-  final Uri uri;
-
-  _FakeSource(this.fullName, this.uri);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 class _FileStateFiles {
   final List<FileState> imported = [];
   final List<FileState> exported = [];
@@ -712,19 +692,28 @@ class _FileStateLocation {
     return _fsState._resourceProvider.getFile(path);
   }
 
+  Uri? resolveRelativeUriStr(String relativeUriStr) {
+    if (relativeUriStr.isEmpty) {
+      return null;
+    }
+
+    Uri relativeUri;
+    try {
+      relativeUri = Uri.parse(relativeUriStr);
+    } on FormatException {
+      return null;
+    }
+
+    return resolveRelativeUri(uri, relativeUri);
+  }
+
   FileState? _fileForRelativeUri({
     FileState? containingLibrary,
     required String relativeUri,
     required OperationPerformanceImpl performance,
   }) {
-    if (relativeUri.isEmpty) {
-      return null;
-    }
-
-    Uri absoluteUri;
-    try {
-      absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
-    } on FormatException {
+    var absoluteUri = resolveRelativeUriStr(relativeUri);
+    if (absoluteUri == null) {
       return null;
     }
 
@@ -760,6 +749,7 @@ class _FileStateLocation {
         }
       }
     }
+    return null;
   }
 
   _ContentWithDigest _getContent() {
@@ -890,51 +880,46 @@ class _FileStateUnlinked {
     }
 
     var libraryUri = unlinked.unit.partOfUri;
-    if (libraryUri != null) {
-      location._fsState.testView.partsDiscoveredLibraries.add(location.path);
-      return _partOfLibrary = location._fileForRelativeUri(
-        relativeUri: libraryUri,
-        performance: performance,
-      );
+    if (libraryUri == null) {
+      return null;
     }
+    location._fsState.testView.partsDiscoveredLibraries.add(location.path);
+    return _partOfLibrary = location._fileForRelativeUri(
+      relativeUri: libraryUri,
+      performance: performance,
+    );
   }
 
   void _prefetchDirectReferences() {
-    if (location._fsState.prefetchFiles == null) {
+    var prefetchFiles = location._fsState.prefetchFiles;
+    if (prefetchFiles == null) {
       return;
     }
 
     var paths = <String>{};
 
-    /// TODO(scheglov) This is duplicate.
-    void findPathForUri(String relativeUri) {
-      if (relativeUri.isEmpty) {
-        return;
-      }
-      Uri absoluteUri;
-      try {
-        absoluteUri = resolveRelativeUri(location.uri, Uri.parse(relativeUri));
-      } on FormatException {
-        return;
-      }
-      var p = location._fsState.getPathForUri(absoluteUri);
-      if (p != null) {
-        paths.add(p);
+    void addRelativeUri(String relativeUri) {
+      var absoluteUri = location.resolveRelativeUriStr(relativeUri);
+      if (absoluteUri != null) {
+        var path = location._fsState.getPathForUri(absoluteUri);
+        if (path != null) {
+          paths.add(path);
+        }
       }
     }
 
     var unlinkedUnit = unlinked.unit;
     for (var directive in unlinkedUnit.imports) {
-      findPathForUri(directive.uri);
+      addRelativeUri(directive.uri);
     }
     for (var directive in unlinkedUnit.exports) {
-      findPathForUri(directive.uri);
+      addRelativeUri(directive.uri);
     }
     for (var uri in unlinkedUnit.parts) {
-      findPathForUri(uri);
+      addRelativeUri(uri);
     }
 
-    location._fsState.prefetchFiles!(paths.toList());
+    prefetchFiles(paths.toList());
   }
 
   static CompilationUnitImpl parse(AnalysisErrorListener errorListener,

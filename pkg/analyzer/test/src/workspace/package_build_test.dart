@@ -20,23 +20,25 @@ main() {
 
 class MockUriResolver implements UriResolver {
   Map<Uri, File> uriToFile = {};
-  Map<String, Uri> pathToUri = {};
+  Map<String, Uri> pathToUriMap = {};
 
   void add(Uri uri, File file) {
     uriToFile[uri] = file;
-    pathToUri[file.path] = uri;
+    pathToUriMap[file.path] = uri;
   }
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
-  Source? resolveAbsolute(Uri uri) {
-    return uriToFile[uri]?.createSource(uri);
+  Uri? pathToUri(String path) {
+    return pathToUriMap[path];
   }
 
   @override
-  Uri? restoreAbsolute(Source source) => pathToUri[source.fullName];
+  Source? resolveAbsolute(Uri uri) {
+    return uriToFile[uri]?.createSource(uri);
+  }
 }
 
 @reflectiveTest
@@ -59,6 +61,12 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
     newFile('/workspace/test.dart');
     newFile('/workspace/.dart_tool/build/generated/project/gen.dart');
     expect(workspace.isBazel, isFalse);
+  }
+
+  void test_pathToUri() {
+    var uri = toUri('/workspace/test.dart');
+    var source = resolver.resolveAbsolute(uri)!;
+    expect(resolver.pathToUri(source.fullName), uri);
   }
 
   void test_resolveAbsolute_doesNotExist() {
@@ -98,6 +106,7 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
     expect(source, isNull);
   }
 
+  @Deprecated('Use pathToUri() instead')
   void test_restoreAbsolute() {
     Uri uri =
         resourceProvider.pathContext.toUri(convertPath('/workspace/test.dart'));
@@ -105,8 +114,8 @@ class PackageBuildFileUriResolverTest with ResourceProviderMixin {
     expect(source, isNotNull);
     expect(resolver.restoreAbsolute(source), uri);
     expect(
-        resolver.restoreAbsolute(NonExistingSource(source.fullName,
-            Uri.parse('package:test/test.dart'), UriKind.PACKAGE_URI)),
+        resolver.restoreAbsolute(NonExistingSource(
+            source.fullName, Uri.parse('package:test/test.dart'))),
         uri);
   }
 
@@ -207,13 +216,15 @@ class PackageBuildPackageUriResolverTest with ResourceProviderMixin {
   Source _assertResolveUri(Uri uri, String posixPath,
       {bool exists = true, bool restore = true}) {
     var source = resolver.resolveAbsolute(uri)!;
-    expect(source.fullName, convertPath(posixPath));
+    var path = source.fullName;
+    expect(path, convertPath(posixPath));
     expect(source.uri, uri);
     expect(source.exists(), exists);
     // If enabled, test also "restoreAbsolute".
     if (restore) {
-      var restoredUri = resolver.restoreAbsolute(source);
-      expect(restoredUri.toString(), uri.toString());
+      expect(resolver.pathToUri(path), uri);
+      // ignore: deprecated_member_use_from_same_package
+      expect(resolver.restoreAbsolute(source), uri);
     }
     return source;
   }

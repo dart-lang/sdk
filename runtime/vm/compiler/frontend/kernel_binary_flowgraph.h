@@ -199,7 +199,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       const InferredTypeMetadata* result_type = nullptr,
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr,
-      bool receiver_is_not_smi = false);
+      bool receiver_is_not_smi = false,
+      bool is_call_on_this = false);
 
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
@@ -254,6 +255,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildImplicitClosureCreation(const Function& target);
   Fragment CheckBoolean(TokenPosition position);
   Fragment CheckArgumentType(LocalVariable* variable, const AbstractType& type);
+  Fragment RecordCoverage(TokenPosition position);
   Fragment EnterScope(intptr_t kernel_offset,
                       const LocalScope** scope = nullptr);
   Fragment ExitScope(intptr_t kernel_offset);

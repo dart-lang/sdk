@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart';
 
 import 'package:front_end/src/fasta/kernel/type_labeler.dart';
@@ -24,7 +22,7 @@ void main() {
       }
     });
     expectations.forEach((Node node, String expected) {
-      Expect.stringEquals(expected, conversions[node].join());
+      Expect.stringEquals(expected, conversions[node]!.join());
     });
     int newlines = "\n".allMatches(labeler.originMessages).length;
     Expect.equals(bulletCount, newlines);

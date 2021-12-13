@@ -35,6 +35,7 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/util/either.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -94,6 +95,9 @@ class FileState {
   /// The absolute URI of the file.
   final Uri uri;
 
+  /// Properties of the [uri].
+  final FileUriProperties uriProperties;
+
   /// The [Source] of the file with the [uri].
   final Source source;
 
@@ -126,6 +130,9 @@ class FileState {
 
   UnlinkedUnit? _unlinked2;
 
+  /// Files that reference this file.
+  final List<FileState> referencingFiles = [];
+
   List<FileState?>? _importedFiles;
   List<FileState?>? _exportedFiles;
   List<FileState?>? _partedFiles;
@@ -148,7 +155,7 @@ class FileState {
     this.workspacePackage,
     this._contextFeatureSet,
     this.packageLanguageVersion,
-  );
+  ) : uriProperties = FileUriProperties(uri);
 
   /// The unlinked API signature of the file.
   Uint8List get apiSignature => _apiSignature!;
@@ -196,7 +203,10 @@ class FileState {
     return _exportedFiles ??= _unlinked2!.exports.map((directive) {
       var uri = _selectRelativeUri(directive);
       return _fileForRelativeUri(uri).map(
-        (file) => file,
+        (file) {
+          file?.referencingFiles.add(this);
+          return file;
+        },
         (_) => null,
       );
     }).toList();
@@ -210,7 +220,10 @@ class FileState {
     return _importedFiles ??= _unlinked2!.imports.map((directive) {
       var uri = _selectRelativeUri(directive);
       return _fileForRelativeUri(uri).map(
-        (file) => file,
+        (file) {
+          file?.referencingFiles.add(this);
+          return file;
+        },
         (_) => null,
       );
     }).toList();
@@ -276,6 +289,7 @@ class FileState {
       return _fileForRelativeUri(uri).map(
         (file) {
           if (file != null) {
+            file.referencingFiles.add(this);
             _fsState._partToLibraries
                 .putIfAbsent(file, () => <FileState>[])
                 .add(this);
@@ -336,6 +350,11 @@ class FileState {
 
   void internal_setLibraryCycle(LibraryCycle? cycle) {
     _libraryCycle = cycle;
+  }
+
+  void invalidateLibraryCycle() {
+    _libraryCycle?.invalidate();
+    _libraryCycle = null;
   }
 
   /// Return a new parsed unresolved [CompilationUnit].
@@ -419,6 +438,9 @@ class FileState {
         _fsState._partToLibraries[part]?.remove(this);
       }
     }
+
+    // It is possible that this file does not reference these files.
+    _stopReferencingByThisFile();
 
     // Read imports/exports on demand.
     _importedFiles = null;
@@ -559,6 +581,20 @@ class FileState {
     return directive.uri;
   }
 
+  void _stopReferencingByThisFile() {
+    void removeForOne(List<FileState?>? referencedFiles) {
+      if (referencedFiles != null) {
+        for (var referenced in referencedFiles) {
+          referenced?.referencingFiles.remove(this);
+        }
+      }
+    }
+
+    removeForOne(_importedFiles);
+    removeForOne(_exportedFiles);
+    removeForOne(_partedFiles);
+  }
+
   static UnlinkedUnit serializeAstUnlinked2(CompilationUnit unit) {
     var exports = <UnlinkedNamespaceDirective>[];
     var imports = <UnlinkedNamespaceDirective>[];
@@ -686,11 +722,8 @@ class FileSystemState {
   /// Mapping from a path to the flag whether there is a URI for the path.
   final Map<String, bool> _hasUriForPath = {};
 
-  /// Mapping from a path to the corresponding [FileState]s, canonical or not.
-  final Map<String, List<FileState>> _pathToFiles = {};
-
-  /// Mapping from a path to the corresponding canonical [FileState].
-  final Map<String, FileState> _pathToCanonicalFile = {};
+  /// Mapping from a path to the corresponding [FileState].
+  final Map<String, FileState> _pathToFile = {};
 
   /// We don't read parts until requested, but if we need to know the
   /// library for a file, we need to read parts of every file to know
@@ -737,28 +770,24 @@ class FileSystemState {
   /// Collected files that transitively reference a file with the [path].
   /// These files are potentially affected by the change.
   void collectAffected(String path, Set<FileState> affected) {
-    final knownFiles = this.knownFiles.toList();
-
-    final fileToReferences = <FileState, List<FileState>>{};
-    for (var file in knownFiles) {
-      for (var referenced in file.directReferencedFiles) {
-        var references = fileToReferences[referenced] ??= [];
-        references.add(file);
-      }
+    // TODO(scheglov) This should not be necessary.
+    // We use affected files to remove library elements, and we can only get
+    // these library elements when we link or load them, using library cycles.
+    // And we get library cycles by asking `directReferencedFiles`.
+    for (var file in knownFiles.toList()) {
+      file.directReferencedFiles;
     }
 
     collectAffected(FileState file) {
       if (affected.add(file)) {
-        var references = fileToReferences[file];
-        if (references != null) {
-          for (var other in references) {
-            collectAffected(other);
-          }
+        for (var other in file.referencingFiles) {
+          collectAffected(other);
         }
       }
     }
 
-    for (var file in _pathToFiles[path] ?? <FileState>[]) {
+    var file = _pathToFile[path];
+    if (file != null) {
       collectAffected(file);
     }
   }
@@ -791,36 +820,14 @@ class FileSystemState {
     return featureSetProvider.getLanguageVersion(path, uri);
   }
 
-  /// Return the canonical [FileState] for the given absolute [path]. The
-  /// returned file has the last known state since if was last refreshed.
-  ///
-  /// Here "canonical" means that if the [path] is in a package `lib` then the
-  /// returned file will have the `package:` style URI.
+  /// Return the [FileState] for the given absolute [path]. The returned file
+  /// has the last known state since if was last refreshed.
   FileState getFileForPath(String path) {
-    FileState? file = _pathToCanonicalFile[path];
+    var file = _pathToFile[path];
     if (file == null) {
       File resource = _resourceProvider.getFile(path);
-      Source fileSource = resource.createSource();
-      Uri? uri = _sourceFactory.restoreUri(fileSource);
-      // Try to get the existing instance.
-      file = _uriToFile[uri];
-      // If we have a file, call it the canonical one and return it.
-      if (file != null) {
-        _pathToCanonicalFile[path] = file;
-        return file;
-      }
-      // Create a new file.
-      FileSource uriSource = FileSource(resource, uri!);
-      WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
-      FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
-      Version packageLanguageVersion =
-          contextLanguageVersion(path, uri, workspacePackage);
-      file = FileState._(this, path, uri, uriSource, workspacePackage,
-          featureSet, packageLanguageVersion);
-      _uriToFile[uri] = file;
-      _addFileWithPath(path, file);
-      _pathToCanonicalFile[path] = file;
-      file.refresh();
+      Uri uri = _sourceFactory.pathToUri(path)!;
+      file = _newFile(resource, path, uri);
     }
     return file;
   }
@@ -847,7 +854,7 @@ class FileSystemState {
 
     FileState? file = _uriToFile[uri];
     if (file == null) {
-      Source? uriSource = _sourceFactory.resolveUri(null, uri.toString());
+      Source? uriSource = _sourceFactory.forUri2(uri);
 
       // If the URI cannot be resolved, for example because the factory
       // does not understand the scheme, return the unresolved file instance.
@@ -856,32 +863,24 @@ class FileSystemState {
       }
 
       String path = uriSource.fullName;
+
+      // Check if already resolved to this path via different URI.
+      // That different URI must be the canonical one.
+      file = _pathToFile[path];
+      if (file != null) {
+        return Either2.t1(file);
+      }
+
       File resource = _resourceProvider.getFile(path);
-      FileSource source = FileSource(resource, uri);
-      WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
-      FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
-      Version packageLanguageVersion =
-          contextLanguageVersion(path, uri, workspacePackage);
-      file = FileState._(this, path, uri, source, workspacePackage, featureSet,
-          packageLanguageVersion);
-      _uriToFile[uri] = file;
-      _addFileWithPath(path, file);
-      file.refresh();
+
+      var rewrittenUri = rewriteFileToPackageUri(_sourceFactory, uri);
+      if (rewrittenUri == null) {
+        return Either2.t1(null);
+      }
+
+      file = _newFile(resource, path, rewrittenUri);
     }
     return Either2.t1(file);
-  }
-
-  /// Return the list of all [FileState]s corresponding to the given [path]. The
-  /// list has at least one item, and the first item is the canonical file.
-  List<FileState> getFilesForPath(String path) {
-    FileState canonicalFile = getFileForPath(path);
-    List<FileState> allFiles = _pathToFiles[path]!.toList();
-    if (allFiles.length == 1) {
-      return allFiles;
-    }
-    return allFiles
-      ..remove(canonicalFile)
-      ..insert(0, canonicalFile);
   }
 
   /// Return files where the given [name] is subtyped, i.e. used in `extends`,
@@ -898,10 +897,8 @@ class FileSystemState {
   bool hasUri(String path) {
     bool? flag = _hasUriForPath[path];
     if (flag == null) {
-      File resource = _resourceProvider.getFile(path);
-      Source fileSource = resource.createSource();
-      Uri? uri = _sourceFactory.restoreUri(fileSource);
-      Source? uriSource = _sourceFactory.forUri2(uri!);
+      Uri uri = _sourceFactory.pathToUri(path)!;
+      Source? uriSource = _sourceFactory.forUri2(uri);
       flag = uriSource?.fullName == path;
       _hasUriForPath[path] = flag;
     }
@@ -933,29 +930,33 @@ class FileSystemState {
     _clearFiles();
   }
 
-  void _addFileWithPath(String path, FileState file) {
-    var files = _pathToFiles[path];
-    if (files == null) {
-      knownFilePaths.add(path);
-      knownFiles.add(file);
-      files = <FileState>[];
-      _pathToFiles[path] = files;
-      fileStamp++;
-    }
-    files.add(file);
-  }
-
   /// Clear all [FileState] data - all maps from path or URI, etc.
   void _clearFiles() {
     _uriToFile.clear();
     knownFilePaths.clear();
     knownFiles.clear();
     _hasUriForPath.clear();
-    _pathToFiles.clear();
-    _pathToCanonicalFile.clear();
+    _pathToFile.clear();
     _librariesWithoutPartsRead.clear();
     _partToLibraries.clear();
     _subtypedNameToFiles.clear();
+  }
+
+  FileState _newFile(File resource, String path, Uri uri) {
+    FileSource uriSource = FileSource(resource, uri);
+    WorkspacePackage? workspacePackage = _workspace?.findPackageFor(path);
+    FeatureSet featureSet = contextFeatureSet(path, uri, workspacePackage);
+    Version packageLanguageVersion =
+        contextLanguageVersion(path, uri, workspacePackage);
+    var file = FileState._(this, path, uri, uriSource, workspacePackage,
+        featureSet, packageLanguageVersion);
+    _pathToFile[path] = file;
+    _uriToFile[uri] = file;
+    knownFilePaths.add(path);
+    knownFiles.add(file);
+    fileStamp++;
+    file.refresh();
+    return file;
   }
 }
 
@@ -970,4 +971,47 @@ class FileSystemStateTestView {
         .where((f) => f._libraryCycle == null)
         .toSet();
   }
+}
+
+/// Precomputed properties of a file URI, used because [Uri] is relatively
+/// expensive to work with, if we do this thousand times.
+class FileUriProperties {
+  static const int _isDart = 1 << 0;
+  static const int _isSrc = 1 << 1;
+
+  final int _flags;
+  final String? packageName;
+
+  factory FileUriProperties(Uri uri) {
+    if (uri.isScheme('dart')) {
+      return const FileUriProperties._dart();
+    } else if (uri.isScheme('package')) {
+      var segments = uri.pathSegments;
+      if (segments.length >= 2) {
+        return FileUriProperties._package(
+          packageName: segments[0],
+          isSrc: segments[1] == 'src',
+        );
+      }
+    }
+    return const FileUriProperties._unknown();
+  }
+
+  const FileUriProperties._dart()
+      : _flags = _isDart,
+        packageName = null;
+
+  FileUriProperties._package({
+    required String packageName,
+    required bool isSrc,
+  })  : _flags = isSrc ? _isSrc : 0,
+        packageName = packageName;
+
+  const FileUriProperties._unknown()
+      : _flags = 0,
+        packageName = null;
+
+  bool get isDart => (_flags & _isDart) != 0;
+
+  bool get isSrc => (_flags & _isSrc) != 0;
 }

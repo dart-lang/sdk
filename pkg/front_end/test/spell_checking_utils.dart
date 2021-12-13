@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show File, stdin, stdout;
 
 import "utils/io_utils.dart";
@@ -19,17 +17,17 @@ enum Dictionaries {
   denylist,
 }
 
-Map<Dictionaries, Set<String>> loadedDictionaries;
+Map<Dictionaries, Set<String>>? loadedDictionaries;
 
 SpellingResult spellcheckString(String s,
-    {List<Dictionaries> dictionaries, bool splitAsCode: false}) {
+    {List<Dictionaries>? dictionaries, bool splitAsCode: false}) {
   dictionaries ??= const [Dictionaries.common];
   ensureDictionariesLoaded(dictionaries);
 
-  List<String> wrongWords;
-  List<List<String>> wrongWordsAlternatives;
-  List<int> wrongWordsOffset;
-  List<bool> wrongWordDenylisted;
+  List<String>? wrongWords;
+  List<List<String>?>? wrongWordsAlternatives;
+  List<int>? wrongWordsOffset;
+  List<bool>? wrongWordDenylisted;
   List<int> wordOffsets = <int>[];
   List<String> words =
       splitStringIntoWords(s, wordOffsets, splitAsCode: splitAsCode);
@@ -37,7 +35,7 @@ SpellingResult spellcheckString(String s,
   for (int j = 0; j < dictionaries.length; j++) {
     Dictionaries dictionaryType = dictionaries[j];
     if (dictionaryType == Dictionaries.denylist) continue;
-    Set<String> dictionary = loadedDictionaries[dictionaryType];
+    Set<String> dictionary = loadedDictionaries![dictionaryType]!;
     dictionariesUnpacked.add(dictionary);
   }
   for (int i = 0; i < words.length; i++) {
@@ -53,15 +51,15 @@ SpellingResult spellcheckString(String s,
       }
     }
     if (!found) {
-      wrongWords ??= <String>[];
+      wrongWords ??= [];
       wrongWords.add(word);
-      wrongWordsAlternatives ??= <List<String>>[];
+      wrongWordsAlternatives ??= [];
       wrongWordsAlternatives.add(findAlternatives(word, dictionariesUnpacked));
-      wrongWordsOffset ??= <int>[];
+      wrongWordsOffset ??= [];
       wrongWordsOffset.add(offset);
-      wrongWordDenylisted ??= <bool>[];
+      wrongWordDenylisted ??= [];
       wrongWordDenylisted
-          .add(loadedDictionaries[Dictionaries.denylist].contains(word));
+          .add(loadedDictionaries![Dictionaries.denylist]!.contains(word));
     }
   }
 
@@ -69,8 +67,8 @@ SpellingResult spellcheckString(String s,
       wrongWordsAlternatives);
 }
 
-List<String> findAlternatives(String word, List<Set<String>> dictionaries) {
-  List<String> result;
+List<String>? findAlternatives(String word, List<Set<String>> dictionaries) {
+  List<String>? result;
 
   bool check(String w) {
     for (int j = 0; j < dictionaries.length; j++) {
@@ -81,8 +79,7 @@ List<String> findAlternatives(String word, List<Set<String>> dictionaries) {
   }
 
   void ok(String w) {
-    result ??= <String>[];
-    result.add(w);
+    (result ??= <String>[]).add(w);
   }
 
   // Delete a letter, insert a letter or change a letter and lookup.
@@ -111,10 +108,10 @@ List<String> findAlternatives(String word, List<Set<String>> dictionaries) {
 }
 
 class SpellingResult {
-  final List<String> misspelledWords;
-  final List<int> misspelledWordsOffset;
-  final List<bool> misspelledWordsDenylisted;
-  final List<List<String>> misspelledWordsAlternatives;
+  final List<String>? misspelledWords;
+  final List<int>? misspelledWordsOffset;
+  final List<bool>? misspelledWordsDenylisted;
+  final List<List<String>?>? misspelledWordsAlternatives;
 
   SpellingResult(this.misspelledWords, this.misspelledWordsOffset,
       this.misspelledWordsDenylisted, this.misspelledWordsAlternatives);
@@ -140,19 +137,19 @@ void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
 
   loadedDictionaries ??= new Map<Dictionaries, Set<String>>();
   // Ensure the denylist is loaded.
-  Set<String> denylistDictionary = loadedDictionaries[Dictionaries.denylist];
+  Set<String>? denylistDictionary = loadedDictionaries![Dictionaries.denylist];
   if (denylistDictionary == null) {
     denylistDictionary = new Set<String>();
-    loadedDictionaries[Dictionaries.denylist] = denylistDictionary;
+    loadedDictionaries![Dictionaries.denylist] = denylistDictionary;
     addWords(dictionaryToUri(Dictionaries.denylist), denylistDictionary);
   }
 
   for (int j = 0; j < dictionaries.length; j++) {
     Dictionaries dictionaryType = dictionaries[j];
-    Set<String> dictionary = loadedDictionaries[dictionaryType];
+    Set<String>? dictionary = loadedDictionaries![dictionaryType];
     if (dictionary == null) {
       dictionary = new Set<String>();
-      loadedDictionaries[dictionaryType] = dictionary;
+      loadedDictionaries![dictionaryType] = dictionary;
       addWords(dictionaryToUri(dictionaryType), dictionary);
       // Check that no good words occur in the denylist.
       for (String s in dictionary) {
@@ -182,7 +179,6 @@ Uri dictionaryToUri(Dictionaries dictionaryType) {
       return repoDir
           .resolve("pkg/front_end/test/spell_checking_list_denylist.txt");
   }
-  throw "Unknown Dictionary";
 }
 
 List<String> splitStringIntoWords(String s, List<int> splitOffsets,
@@ -370,7 +366,7 @@ void spellSummarizeAndInteractiveMode(
     print("The following word(s) were reported as unknown:");
     print("----------------");
 
-    Dictionaries dictionaryToUse;
+    Dictionaries? dictionaryToUse;
     if (dictionaries.contains(Dictionaries.cfeTests)) {
       dictionaryToUse = Dictionaries.cfeTests;
     } else if (dictionaries.contains(Dictionaries.cfeMessages)) {
@@ -391,11 +387,11 @@ void spellSummarizeAndInteractiveMode(
       for (String s in reportedWords) {
         print("- $s");
         String answer;
-        bool add;
+        bool? add;
         while (true) {
           stdout.write("Do you want to add the word to the dictionary "
               "$dictionaryToUse (y/n)? ");
-          answer = stdin.readLineSync().trim().toLowerCase();
+          answer = stdin.readLineSync()!.trim().toLowerCase();
           switch (answer) {
             case "y":
             case "yes":

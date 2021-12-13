@@ -29,10 +29,15 @@ DEFINE_FLAG(bool,
 // Quick access to the current zone.
 #define Z (zone())
 
-class CSEInstructionMap : public ValueObject {
+// A set of Instructions used by CSE pass.
+//
+// Instructions are compared as if all redefinitions were removed from the
+// graph, with the exception of LoadField instruction which gets special
+// treatment.
+class CSEInstructionSet : public ValueObject {
  public:
-  CSEInstructionMap() : map_() {}
-  explicit CSEInstructionMap(const CSEInstructionMap& other)
+  CSEInstructionSet() : map_() {}
+  explicit CSEInstructionSet(const CSEInstructionSet& other)
       : ValueObject(), map_(other.map_) {}
 
   Instruction* Lookup(Instruction* other) const {
@@ -46,7 +51,59 @@ class CSEInstructionMap : public ValueObject {
   }
 
  private:
-  PointerSet<Instruction> map_;
+  static Definition* OriginalDefinition(Value* value) {
+    return value->definition()->OriginalDefinition();
+  }
+
+  static bool EqualsIgnoringRedefinitions(const Instruction& a,
+                                          const Instruction& b) {
+    const auto tag = a.tag();
+    if (tag != b.tag()) return false;
+    const auto input_count = a.InputCount();
+    if (input_count != b.InputCount()) return false;
+
+    // We would like to avoid replacing a load from a redefinition with a
+    // load from an original definition because that breaks the dependency
+    // on the redefinition and enables potentially incorrect code motion.
+    if (tag != Instruction::kLoadField) {
+      for (intptr_t i = 0; i < input_count; ++i) {
+        if (OriginalDefinition(a.InputAt(i)) !=
+            OriginalDefinition(b.InputAt(i))) {
+          return false;
+        }
+      }
+    } else {
+      for (intptr_t i = 0; i < input_count; ++i) {
+        if (!a.InputAt(i)->Equals(*b.InputAt(i))) return false;
+      }
+    }
+    return a.AttributesEqual(b);
+  }
+
+  class Trait {
+   public:
+    typedef Instruction* Value;
+    typedef Instruction* Key;
+    typedef Instruction* Pair;
+
+    static Key KeyOf(Pair kv) { return kv; }
+    static Value ValueOf(Pair kv) { return kv; }
+
+    static inline uword Hash(Key key) {
+      uword result = key->tag();
+      for (intptr_t i = 0; i < key->InputCount(); ++i) {
+        result = CombineHashes(
+            result, OriginalDefinition(key->InputAt(i))->ssa_temp_index());
+      }
+      return FinalizeHash(result, kBitsPerInt32 - 1);
+    }
+
+    static inline bool IsKeyEqual(Pair kv, Key key) {
+      return EqualsIgnoringRedefinitions(*kv, *key);
+    }
+  };
+
+  DirectChainedHashMap<Trait> map_;
 };
 
 // Place describes an abstract location (e.g. field) that IR can load
@@ -432,8 +489,6 @@ class Place : public ValueObject {
     switch (kind()) {
       case kInstanceField:
         return instance_field().is_immutable();
-      case kStaticField:
-        return static_field().is_final() && !FLAG_fields_may_be_reset;
       default:
         return false;
     }
@@ -1542,7 +1597,7 @@ void LICM::Optimize() {
         // we should not move them around unless the field is initialized.
         // Otherwise we might move load past the initialization.
         if (LoadStaticFieldInstr* load = current->AsLoadStaticField()) {
-          if (load->AllowsCSE() && !load->IsFieldInitialized()) {
+          if (load->AllowsCSE()) {
             seen_visible_effect = true;
             continue;
           }
@@ -1923,6 +1978,72 @@ class LoadOptimizer : public ValueObject {
             (array_store->class_id() == kTypedDataFloat32x4ArrayCid));
   }
 
+  static bool AlreadyPinnedByRedefinition(Definition* replacement,
+                                          Definition* redefinition) {
+    Definition* defn = replacement;
+    if (auto load_field = replacement->AsLoadField()) {
+      defn = load_field->instance()->definition();
+    } else if (auto load_indexed = replacement->AsLoadIndexed()) {
+      defn = load_indexed->array()->definition();
+    }
+
+    Value* unwrapped;
+    while ((unwrapped = defn->RedefinedValue()) != nullptr) {
+      if (defn == redefinition) {
+        return true;
+      }
+      defn = unwrapped->definition();
+    }
+
+    return false;
+  }
+
+  Definition* ReplaceLoad(Definition* load, Definition* replacement) {
+    // When replacing a load from a generic field or from an array element
+    // check if instance we are loading from is redefined. If it is then
+    // we need to ensure that replacement is not going to break the
+    // dependency chain.
+    Definition* redef = nullptr;
+    if (auto load_field = load->AsLoadField()) {
+      auto instance = load_field->instance()->definition();
+      if (instance->RedefinedValue() != nullptr) {
+        if ((load_field->slot().kind() ==
+                 Slot::Kind::kGrowableObjectArray_data ||
+             (load_field->slot().IsDartField() &&
+              !AbstractType::Handle(load_field->slot().field().type())
+                   .IsInstantiated()))) {
+          redef = instance;
+        }
+      }
+    } else if (auto load_indexed = load->AsLoadIndexed()) {
+      if (load_indexed->class_id() == kArrayCid ||
+          load_indexed->class_id() == kImmutableArrayCid) {
+        auto instance = load_indexed->array()->definition();
+        if (instance->RedefinedValue() != nullptr) {
+          redef = instance;
+        }
+      }
+    }
+    if (redef != nullptr && !AlreadyPinnedByRedefinition(replacement, redef)) {
+      // Original load had a redefined instance and replacement does not
+      // depend on the same redefinition. Create a redefinition
+      // of the replacement to keep the dependency chain.
+      auto replacement_redefinition =
+          new (zone()) RedefinitionInstr(new (zone()) Value(replacement));
+      if (redef->IsDominatedBy(replacement)) {
+        graph_->InsertAfter(redef, replacement_redefinition, /*env=*/nullptr,
+                            FlowGraph::kValue);
+      } else {
+        graph_->InsertBefore(load, replacement_redefinition, /*env=*/nullptr,
+                             FlowGraph::kValue);
+      }
+      replacement = replacement_redefinition;
+    }
+
+    load->ReplaceUsesWith(replacement);
+    return replacement;
+  }
+
   // Compute sets of loads generated and killed by each block.
   // Additionally compute upwards exposed and generated loads for each block.
   // Exposed loads are those that can be replaced if a corresponding
@@ -2144,7 +2265,7 @@ class LoadOptimizer : public ValueObject {
                       defn->ssa_temp_index(), replacement->ssa_temp_index());
           }
 
-          defn->ReplaceUsesWith(replacement);
+          ReplaceLoad(defn, replacement);
           instr_it.RemoveCurrentFromGraph();
           forwarded_ = true;
           continue;
@@ -2517,7 +2638,7 @@ class LoadOptimizer : public ValueObject {
                       load->ssa_temp_index(), replacement->ssa_temp_index());
           }
 
-          load->ReplaceUsesWith(replacement);
+          replacement = ReplaceLoad(load, replacement);
           load->RemoveFromGraph();
           load->SetReplacement(replacement);
           forwarded_ = true;
@@ -2806,13 +2927,14 @@ class LoadOptimizer : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(LoadOptimizer);
 };
 
-bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
+bool DominatorBasedCSE::Optimize(FlowGraph* graph,
+                                 bool run_load_optimization /* = true */) {
   bool changed = false;
-  if (FLAG_load_cse) {
+  if (FLAG_load_cse && run_load_optimization) {
     changed = LoadOptimizer::OptimizeGraph(graph) || changed;
   }
 
-  CSEInstructionMap map;
+  CSEInstructionSet map;
   changed = OptimizeRecursive(graph, graph->graph_entry(), &map) || changed;
 
   return changed;
@@ -2820,7 +2942,7 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
 
 bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
                                           BlockEntryInstr* block,
-                                          CSEInstructionMap* map) {
+                                          CSEInstructionSet* map) {
   bool changed = false;
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
@@ -2848,7 +2970,7 @@ bool DominatorBasedCSE::OptimizeRecursive(FlowGraph* graph,
     BlockEntryInstr* child = block->dominated_blocks()[i];
     if (i < num_children - 1) {
       // Copy map.
-      CSEInstructionMap child_map(*map);
+      CSEInstructionSet child_map(*map);
       changed = OptimizeRecursive(graph, child, &child_map) || changed;
     } else {
       // Reuse map for the last child.

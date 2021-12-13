@@ -34,8 +34,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart'
     show Namespace, NamespaceBuilder;
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
@@ -1572,9 +1571,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// of formal parameters, are evaluated.
   void computeConstantDependencies() {
     if (!isConstantEvaluated) {
-      var analysisOptions = context.analysisOptions as AnalysisOptionsImpl;
       computeConstants(library.typeProvider, library.typeSystem,
-          context.declaredVariables, [this], analysisOptions.experimentStatus);
+          context.declaredVariables, [this], library.featureSet);
     }
   }
 }
@@ -1650,9 +1648,8 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// of this variable could not be computed because of errors.
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      var analysisOptions = context.analysisOptions as AnalysisOptionsImpl;
       computeConstants(library!.typeProvider, library!.typeSystem,
-          context.declaredVariables, [this], analysisOptions.experimentStatus);
+          context.declaredVariables, [this], library!.featureSet);
     }
     return evaluationResult?.value;
   }
@@ -1982,10 +1979,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      var analysisOptions = context.analysisOptions as AnalysisOptionsImpl;
       var library = compilationUnit.library;
       computeConstants(library.typeProvider, library.typeSystem,
-          context.declaredVariables, [this], analysisOptions.experimentStatus);
+          context.declaredVariables, [this], library.featureSet);
     }
     return evaluationResult?.value;
   }
@@ -2033,6 +2029,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
 /// A base class for concrete implementations of an [Element].
 abstract class ElementImpl implements Element {
+  static const _metadataFlag_isReady = 1 << 0;
+  static const _metadataFlag_hasDeprecated = 1 << 1;
+  static const _metadataFlag_hasOverride = 1 << 2;
+
   /// An Unicode right arrow.
   @deprecated
   static final String RIGHT_ARROW = " \u2192 ";
@@ -2060,6 +2060,9 @@ abstract class ElementImpl implements Element {
 
   /// A list containing all of the metadata associated with this element.
   List<ElementAnnotation> _metadata = const [];
+
+  /// Cached flags denoting presence of specific annotations in [_metadata].
+  int _metadataFlags = 0;
 
   /// A cached copy of the calculated hashCode for this element.
   int? _cachedHashCode;
@@ -2138,14 +2141,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasDeprecated {
-    final metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isDeprecated) {
-        return true;
-      }
-    }
-    return false;
+    return (_getMetadataFlags() & _metadataFlag_hasDeprecated) != 0;
   }
 
   @override
@@ -2277,14 +2273,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasOverride {
-    final metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isOverride) {
-        return true;
-      }
-    }
-    return false;
+    return (_getMetadataFlags() & _metadataFlag_hasOverride) != 0;
   }
 
   /// Return `true` if this element has an annotation of the form
@@ -2586,6 +2575,29 @@ abstract class ElementImpl implements Element {
   @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
+  }
+
+  /// Return flags that denote presence of a few specific annotations.
+  int _getMetadataFlags() {
+    var result = _metadataFlags;
+
+    // Has at least `_metadataFlag_isReady`.
+    if (result != 0) {
+      return result;
+    }
+
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isDeprecated) {
+        result |= _metadataFlag_hasDeprecated;
+      } else if (annotation.isOverride) {
+        result |= _metadataFlag_hasOverride;
+      }
+    }
+
+    result |= _metadataFlag_isReady;
+    return _metadataFlags = result;
   }
 }
 
@@ -5482,6 +5494,34 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   CompilationUnitElement get enclosingElement =>
       super.enclosingElement as CompilationUnitElement;
 
+  /// Returns whether this alias is a "proper rename" of [aliasedClass], as
+  /// defined in the constructor-tearoffs specification.
+  bool get isProperRename {
+    var aliasedType_ = aliasedType;
+    if (aliasedType_ is! InterfaceType) {
+      return false;
+    }
+    var aliasedClass = aliasedType_.element;
+    var typeArguments = aliasedType_.typeArguments;
+    var typeParameterCount = typeParameters.length;
+    if (typeParameterCount != aliasedClass.typeParameters.length) {
+      return false;
+    }
+    for (var i = 0; i < typeParameterCount; i++) {
+      var bound = typeParameters[i].bound ?? library.typeProvider.dynamicType;
+      var aliasedBound = aliasedClass.typeParameters[i].bound ??
+          library.typeProvider.dynamicType;
+      if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
+          !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
+        return false;
+      }
+      if (typeParameters[i] != typeArguments[i].element) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @override
   ElementKind get kind {
     if (isNonFunctionTypeAliasesEnabled) {
@@ -5580,37 +5620,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     } else {
       return (type as TypeImpl).withNullability(resultNullability);
     }
-  }
-
-  /// Returns whether this alias is a "proper rename" of [aliasedClass], as
-  /// defined in the constructor-tearoffs specification.
-  bool isProperRename() {
-    var aliasedType_ = aliasedType;
-    if (aliasedType_ is! InterfaceType) {
-      return false;
-    }
-    var aliasedClass = aliasedType_.element;
-    var typeArguments = aliasedType_.typeArguments;
-    var typeParameterCount = typeParameters.length;
-    if (typeParameterCount != aliasedClass.typeParameters.length) {
-      return false;
-    }
-    if (typeParameterCount != typeArguments.length) {
-      return false;
-    }
-    for (var i = 0; i < typeParameterCount; i++) {
-      var bound = typeParameters[i].bound ?? library.typeProvider.dynamicType;
-      var aliasedBound = aliasedClass.typeParameters[i].bound ??
-          library.typeProvider.dynamicType;
-      if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
-          !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
-        return false;
-      }
-      if (typeParameters[i] != typeArguments[i].element) {
-        return false;
-      }
-    }
-    return true;
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {

@@ -1,0 +1,11 @@
+org-dartlang-testcase:///main.dart:
+import "test16.dart" as test16;
+class Test16ClassHelper {
+  final test16toplevel = test16.test16toplevel("hello");
+}
+
+
+
+
+org-dartlang-testcase:///test16.dart:
+String test16toplevel(String s) {}

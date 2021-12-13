@@ -147,6 +147,32 @@ class DeferredHolderExpression extends js.DeferredExpression
   }
 
   @override
+  String nonfinalizedDebugText() {
+    switch (kind) {
+      case DeferredHolderExpressionKind.globalObjectForClass:
+        return 'Holder"${_className(data)}"';
+      case DeferredHolderExpressionKind.globalObjectForMember:
+        return 'Holder"${_qualifiedStaticName(data)}"';
+      case DeferredHolderExpressionKind.globalObjectForInterceptors:
+        return 'J';
+      case DeferredHolderExpressionKind.globalObjectForConstant:
+        return 'Holder"constants"';
+      case DeferredHolderExpressionKind.globalObjectForStaticState:
+        return r'$';
+    }
+    return super.nonfinalizedDebugText();
+  }
+
+  String _className(ClassEntity cls) => cls.name.replaceAll('&', '_');
+
+  String _qualifiedStaticName(MemberEntity member) {
+    if (member.isConstructor || member.isStatic) {
+      return '${_className(member.enclosingClass)}.${member.name}';
+    }
+    return member.name;
+  }
+
+  @override
   Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
 }
 

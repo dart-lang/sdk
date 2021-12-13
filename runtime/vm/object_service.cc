@@ -248,22 +248,36 @@ void PatchClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
-static void AddFunctionServiceId(const JSONObject& jsobj,
-                                 const Function& f,
-                                 const Class& cls) {
-  ASSERT(!cls.IsNull());
+void Function::AddFunctionServiceId(const JSONObject& jsobj) const {
+  Class& cls = Class::Handle(Owner());
   // Special kinds of functions use indices in their respective lists.
   intptr_t id = -1;
   const char* selector = NULL;
-  if (f.IsNonImplicitClosureFunction()) {
-    id = ClosureFunctionsCache::FindClosureIndex(f);
+  // Regular functions known to their owner use their name (percent-encoded).
+  String& name = String::Handle(this->name());
+
+  if (IsNonImplicitClosureFunction()) {
+    id = ClosureFunctionsCache::FindClosureIndex(*this);
     selector = "closures";
-  } else if (f.IsImplicitClosureFunction()) {
-    id = cls.FindImplicitClosureFunctionIndex(f);
+  } else if (IsImplicitClosureFunction()) {
+    id = cls.FindImplicitClosureFunctionIndex(*this);
     selector = "implicit_closures";
-  } else if (f.IsNoSuchMethodDispatcher() || f.IsInvokeFieldDispatcher()) {
-    id = cls.FindInvocationDispatcherFunctionIndex(f);
+  } else if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher()) {
+    id = cls.FindInvocationDispatcherFunctionIndex(*this);
     selector = "dispatchers";
+  } else if (IsFieldInitializer()) {
+    name ^= Field::NameFromInit(name);
+    const char* encoded_field_name = String::EncodeIRI(name);
+    if (cls.IsTopLevel()) {
+      const auto& library = Library::Handle(cls.library());
+      const auto& private_key = String::Handle(library.private_key());
+      jsobj.AddFixedServiceId("libraries/%s/field_inits/%s",
+                              private_key.ToCString(), encoded_field_name);
+    } else {
+      jsobj.AddFixedServiceId("classes/%" Pd "/field_inits/%s", cls.id(),
+                              encoded_field_name);
+    }
+    return;
   }
   if (id != -1) {
     ASSERT(selector != NULL);
@@ -278,10 +292,8 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
     }
     return;
   }
-  // Regular functions known to their owner use their name (percent-encoded).
-  String& name = String::Handle(f.name());
   Thread* thread = Thread::Current();
-  if (Resolver::ResolveFunction(thread->zone(), cls, name) == f.ptr()) {
+  if (Resolver::ResolveFunction(thread->zone(), cls, name) == ptr()) {
     const char* encoded_name = String::EncodeIRI(name);
     if (cls.IsTopLevel()) {
       const auto& library = Library::Handle(cls.library());
@@ -297,7 +309,7 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
   // Oddball functions (not known to their owner) fall back to use the object
   // id ring. Current known examples are signature functions of closures
   // and stubs like 'megamorphic_call_miss'.
-  jsobj.AddServiceId(f);
+  jsobj.AddServiceId(*this);
 }
 
 void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
@@ -308,7 +320,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ASSERT(err.IsNull());
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Function", ref);
-  AddFunctionServiceId(jsobj, *this, cls);
+  AddFunctionServiceId(jsobj);
   const char* user_name = UserVisibleNameCString();
   const String& vm_name = String::Handle(name());
   AddNameProperties(&jsobj, user_name, vm_name.ToCString());
@@ -825,7 +837,6 @@ void MonomorphicSmiableCall::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("_target", Code::Handle(target()));
 }
 
 void CallSiteData::PrintJSONImpl(JSONStream* stream, bool ref) const {

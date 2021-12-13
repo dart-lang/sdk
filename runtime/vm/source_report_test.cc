@@ -819,6 +819,252 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue35453_NoSuchMethod) {
       buffer);
 }
 
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47017_Assert) {
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript =
+      "void foo(Object? bar) {\n"
+      "  assert(bar == null);\n"
+      "}\n"
+      "void main() {\n"
+      "  foo(null);\n"
+      "}\n";
+
+  Library& lib = Library::Handle();
+  const bool old_asserts = IsolateGroup::Current()->asserts();
+  IsolateGroup::Current()->set_asserts(true);
+  lib ^= ExecuteScript(kScript);
+  IsolateGroup::Current()->set_asserts(old_asserts);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // Foo is hit, and the assert is hit.
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":47,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[0,33],\"misses\":[]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":49,\"endPos\":76,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[49,65],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_Issue47021_StaticOnlyClasses) {
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 2048;
+  char buffer[kBufferSize];
+  const char* kScript =
+      "abstract class AllStatic {\n"
+      "  AllStatic._();\n"
+      "  static int test() => 123;\n"
+      "  static int foo = 456;\n"
+      "}\n"
+      "class NotAbstract {\n"
+      "  NotAbstract._();\n"
+      "  static int test() => 123;\n"
+      "  static int foo = 456;\n"
+      "}\n"
+      "abstract class NotConstructor {\n"
+      "  void _() {}\n"
+      "  static int test() => 123;\n"
+      "}\n"
+      "abstract class NotPrivate {\n"
+      "  NotPrivate();\n"
+      "  static int test() => 123;\n"
+      "}\n"
+      "abstract class HasParams {\n"
+      "  HasParams._(int i);\n"
+      "  static int test() => 123;\n"
+      "}\n"
+      "abstract class HasFields {\n"
+      "  HasFields._();\n"
+      "  static int test() => 123;\n"
+      "  int foo = 0;\n"
+      "}\n"
+      "abstract class HasNonStaticFunction {\n"
+      "  HasNonStaticFunction._();\n"
+      "  static int test() => 123;\n"
+      "  int foo() => 456;\n"
+      "}\n"
+      "abstract class HasSubclass {\n"
+      "  HasSubclass._();\n"
+      "  static int test() => 123;\n"
+      "  static int foo = 456;\n"
+      "}\n"
+      "abstract class Subclass extends HasSubclass {\n"
+      "  Subclass() : super._();\n"
+      "}\n"
+      "void main() {\n"
+      "  AllStatic.test();\n"
+      "  NotAbstract.test();\n"
+      "  NotConstructor.test();\n"
+      "  NotPrivate.test();\n"
+      "  HasParams.test();\n"
+      "  HasFields.test();\n"
+      "  HasNonStaticFunction.test();\n"
+      "  HasSubclass.test();\n"
+      "}\n";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // Subclass() is missed.
+      "{\"scriptIndex\":0,\"startPos\":775,\"endPos\":797,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[775,794]}},"
+
+      // AllStatic.test() is hit. AllStatic._() is ignored (would be pos: 29).
+      "{\"scriptIndex\":0,\"startPos\":46,\"endPos\":70,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[46],\"misses\":[]}},"
+
+      // HasSubclass._() is missed, not ignored.
+      "{\"scriptIndex\":0,\"startPos\":656,\"endPos\":671,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[656]}},"
+
+      // HasSubclass.test() is hit.
+      "{\"scriptIndex\":0,\"startPos\":675,\"endPos\":699,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[675],\"misses\":[]}},"
+
+      // HasParams._(int i) is missed, not ignored.
+      "{\"scriptIndex\":0,\"startPos\":370,\"endPos\":388,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[370]}},"
+
+      // HasParams.test() is hit.
+      "{\"scriptIndex\":0,\"startPos\":392,\"endPos\":416,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[392],\"misses\":[]}},"
+
+      // NotAbstract._() is missed, not ignored.
+      "{\"scriptIndex\":0,\"startPos\":120,\"endPos\":135,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[120]}},"
+
+      // NotAbstract.test() is hit.
+      "{\"scriptIndex\":0,\"startPos\":139,\"endPos\":163,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[139],\"misses\":[]}},"
+
+      // HasFields._() is missed, not ignored.
+      "{\"scriptIndex\":0,\"startPos\":449,\"endPos\":462,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[449]}},"
+
+      // HasFields.test() is hit.
+      "{\"scriptIndex\":0,\"startPos\":466,\"endPos\":490,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[466],\"misses\":[]}},"
+
+      // NotPrivate() is missed, not ignored.
+      "{\"scriptIndex\":0,\"startPos\":297,\"endPos\":309,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[297]}},"
+
+      // NotPrivate.test() is hit.
+      "{\"scriptIndex\":0,\"startPos\":313,\"endPos\":337,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[313],\"misses\":[]}},"
+
+      // HasNonStaticFunction._() is missed, not ignored.
+      "{\"scriptIndex\":0,\"startPos\":549,\"endPos\":573,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[549]}},"
+
+      // HasNonStaticFunction.test() is hit.
+      "{\"scriptIndex\":0,\"startPos\":577,\"endPos\":601,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[577],\"misses\":[]}},"
+
+      // HasNonStaticFunction.foo() is missed.
+      "{\"scriptIndex\":0,\"startPos\":605,\"endPos\":621,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[605]}},"
+
+      // NotConstructor._() is missed, not ignored.
+      "{\"scriptIndex\":0,\"startPos\":225,\"endPos\":235,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[],\"misses\":[225]}},"
+
+      // NotConstructor.test() is hit.
+      "{\"scriptIndex\":0,\"startPos\":239,\"endPos\":263,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[239],\"misses\":[]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":801,\"endPos\":996,\"compiled\":true,"
+      "\"coverage\":{\"hits\":"
+      "[801,827,849,874,895,915,935,966,988],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
+ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov341_LateFinalVars) {
+  // https://github.com/dart-lang/coverage/issues/341
+  // WARNING: This MUST be big enough for the serialised JSON string.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript =
+      "int foo(bool bar) {\n"
+      "  late final int baz;\n"
+      "  if (bar) {\n"
+      "    baz = 123;\n"
+      "  } else {\n"
+      "    baz = 456;\n"
+      "  }\n"
+      "  return baz;\n"
+      "}\n"
+      "main() {\n"
+      "  foo(true);\n"
+      "  foo(false);\n"
+      "}\n";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // foo is hit, but the late variable sets and gets are ignored.
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":114,\"compiled\":true,"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":116,\"endPos\":152,\"compiled\":true,\""
+      "coverage\":{\"hits\":[116,127,140],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+      buffer);
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart

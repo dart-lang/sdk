@@ -35,7 +35,7 @@ class AnalysisOptionsProvider {
   /// Return the analysis options file from which options should be read, or
   /// `null` if there is no analysis options file for code in the given [root].
   ///
-  /// The given [root] directory will be searched first. If no file is found ,
+  /// The given [root] directory will be searched first. If no file is found,
   /// then enclosing directories will be searched.
   File? getOptionsFile(Folder root) {
     for (var current in root.withAncestors) {
@@ -44,6 +44,7 @@ class AnalysisOptionsProvider {
         return file;
       }
     }
+    return null;
   }
 
   /// Provide the options found in [file].

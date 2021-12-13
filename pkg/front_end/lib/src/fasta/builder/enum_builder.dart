@@ -120,7 +120,8 @@ class EnumBuilder extends SourceClassBuilder {
       int startCharOffset,
       int charOffset,
       int charEndOffset,
-      IndexedClass? referencesFromIndexed) {
+      IndexedClass? referencesFromIndexed,
+      Scope scope) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
 
     Uri fileUri = parent.fileUri;
@@ -170,6 +171,7 @@ class EnumBuilder extends SourceClassBuilder {
         reference: referencesFromIndexed?.cls.reference,
         fileUri: fileUri);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
+    Map<String, MemberBuilder> setters = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     NamedTypeBuilder selfType = new NamedTypeBuilder(
         name,
@@ -357,11 +359,18 @@ class EnumBuilder extends SourceClassBuilder {
     }
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
+    scope.forEachLocalMember((name, member) {
+      members[name] = member as MemberBuilder;
+    });
+    scope.forEachLocalSetter((name, member) {
+      setters[name] = member;
+    });
     EnumBuilder enumBuilder = new EnumBuilder.internal(
         metadata,
         name,
         new Scope(
             local: members,
+            setters: setters,
             parent: parent.scope,
             debugName: "enum $name",
             isModifiable: false),

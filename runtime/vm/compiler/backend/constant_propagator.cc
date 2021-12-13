@@ -588,9 +588,17 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
   const Object& left = left_defn->constant_value();
   const Object& right = right_defn->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
-    // TODO(vegorov): incorporate nullability information into the lattice.
-    if ((left.IsNull() && instr->right()->Type()->HasDecidableNullability()) ||
-        (right.IsNull() && instr->left()->Type()->HasDecidableNullability())) {
+    if ((left.ptr() == Object::sentinel().ptr() &&
+         !instr->right()->Type()->can_be_sentinel()) ||
+        (right.ptr() == Object::sentinel().ptr() &&
+         !instr->left()->Type()->can_be_sentinel())) {
+      // Handle provably false (EQ_STRICT) or true (NE_STRICT) sentinel checks.
+      SetValue(instr, Bool::Get(instr->kind() != Token::kEQ_STRICT));
+    } else if ((left.IsNull() &&
+                instr->right()->Type()->HasDecidableNullability()) ||
+               (right.IsNull() &&
+                instr->left()->Type()->HasDecidableNullability())) {
+      // TODO(vegorov): incorporate nullability information into the lattice.
       bool result = left.IsNull() ? instr->right()->Type()->IsNull()
                                   : instr->left()->Type()->IsNull();
       if (instr->kind() == Token::kNE_STRICT) {
@@ -845,17 +853,9 @@ void ConstantPropagator::VisitLoadIndexedUnsafe(LoadIndexedUnsafeInstr* instr) {
 }
 
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
-  if (!FLAG_fields_may_be_reset) {
-    const Field& field = instr->field();
-    ASSERT(field.is_static());
-    auto& obj = Object::Handle(Z);
-    if (field.is_final() && instr->IsFieldInitialized(&obj)) {
-      if (obj.IsSmi() || (obj.IsOld() && obj.IsCanonical())) {
-        SetValue(instr, obj);
-        return;
-      }
-    }
-  }
+  // Cannot treat an initialized field as constant because the same code will be
+  // used when the AppAOT or AppJIT starts over with everything uninitialized or
+  // another isolate in the isolate group starts with everything uninitialized.
   SetValue(instr, non_constant_);
 }
 

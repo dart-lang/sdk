@@ -27,6 +27,7 @@ import 'package:kernel/class_hierarchy.dart'
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/type_environment.dart';
+import 'package:kernel/util/graph.dart';
 import 'package:package_config/package_config.dart' as package_config;
 
 import '../../api_prototype/experimental_flags.dart';
@@ -34,7 +35,9 @@ import '../../api_prototype/file_system.dart';
 import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
+import '../dill/dill_class_builder.dart';
 import '../dill/dill_library_builder.dart';
+import '../builder_graph.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
@@ -64,6 +67,7 @@ import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart'
     show SynthesizedFunctionNode, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
+import '../kernel/macro.dart';
 import '../kernel/transform_collections.dart' show CollectionTransformer;
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
@@ -193,11 +197,21 @@ class SourceLoader extends Loader {
 
   /// The first library that we've been asked to compile. When compiling a
   /// program (aka script), this is the library that should have a main method.
-  LibraryBuilder? first;
+  Uri? _firstUri;
+
+  LibraryBuilder? get first => _builders[_firstUri];
+
+  Uri? get firstUri => _firstUri;
+
+  void set firstUri(Uri? value) {
+    _firstUri = value;
+  }
 
   int byteCount = 0;
 
   Uri? currentUriForCrashReporting;
+
+  ClassBuilder? _macroClassBuilder;
 
   SourceLoader(this.fileSystem, this.includeComments, this.target)
       : dataForTesting =
@@ -367,7 +381,7 @@ class SourceLoader extends Loader {
     // firstSourceUri and first library should be done as early as
     // possible.
     firstSourceUri ??= uri;
-    first ??= libraryBuilder;
+    firstUri ??= libraryBuilder.importUri;
 
     _checkForDartCore(uri, libraryBuilder);
 
@@ -467,6 +481,7 @@ class SourceLoader extends Loader {
   LibraryBuilder read(Uri uri, int charOffset,
       {Uri? fileUri,
       LibraryBuilder? accessor,
+      Uri? accessorUri,
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner}) {
@@ -486,6 +501,7 @@ class SourceLoader extends Loader {
 
       _builders[uri] = libraryBuilder;
     }
+    accessor ??= _builders[accessorUri];
     if (accessor == null) {
       if (libraryBuilder.loader == this && first != libraryBuilder) {
         unhandled("null", "accessor", charOffset, uri);
@@ -505,11 +521,11 @@ class SourceLoader extends Loader {
 
   void _ensureCoreLibrary() {
     if (_coreLibrary == null) {
-      read(Uri.parse("dart:core"), 0, accessor: first);
+      read(Uri.parse("dart:core"), 0, accessorUri: firstUri);
       // TODO(askesc): When all backends support set literals, we no longer
       // need to index dart:collection, as it is only needed for desugaring of
       // const sets. We can remove it from this list at that time.
-      read(Uri.parse("dart:collection"), 0, accessor: first);
+      read(Uri.parse("dart:collection"), 0, accessorUri: firstUri);
       assert(_coreLibrary != null);
     }
   }
@@ -828,7 +844,7 @@ severity: $severity
     _typeInferenceEngine!.typeDependencies[member] = typeDependency;
   }
 
-  Future<Null> buildOutlines() async {
+  Future<void> buildOutlines() async {
     _ensureCoreLibrary();
     while (_unparsedLibraries.isNotEmpty) {
       LibraryBuilder library = _unparsedLibraries.removeFirst();
@@ -1061,7 +1077,10 @@ severity: $severity
     }
     for (Uri uri in parts) {
       if (usedParts.contains(uri)) {
-        _builders.remove(uri);
+        LibraryBuilder? part = _builders.remove(uri);
+        if (_firstUri == uri) {
+          firstUri = part!.partOfLibrary!.importUri;
+        }
       } else {
         SourceLibraryBuilder part =
             lookupLibraryBuilder(uri) as SourceLibraryBuilder;
@@ -1166,6 +1185,191 @@ severity: $severity
       }
     }
     ticker.logMs("Resolved $typeCount types");
+  }
+
+  void computeMacroDeclarations(List<SourceClassBuilder> sourceClassBuilders) {
+    if (!enableMacros) return;
+
+    LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
+    if (macroLibraryBuilder == null) return;
+
+    Builder? macroClassBuilder =
+        macroLibraryBuilder.lookupLocalMember(macroClassName);
+    if (macroClassBuilder is! ClassBuilder) {
+      // TODO(johnniwinther): Report this when the actual macro builder package
+      // exists. It should at least be a warning.
+      return;
+    }
+
+    _macroClassBuilder = macroClassBuilder;
+    if (retainDataForTesting) {
+      dataForTesting!.macroDeclarationData.macrosAreAvailable = true;
+    }
+
+    Set<ClassBuilder> macroClasses = {macroClassBuilder};
+    Set<Uri> macroLibraries = {macroLibraryBuilder.importUri};
+
+    bool isMacroClass(TypeDeclarationBuilder? typeDeclarationBuilder) {
+      if (typeDeclarationBuilder == null) return false;
+      while (typeDeclarationBuilder is TypeAliasBuilder) {
+        typeDeclarationBuilder =
+            typeDeclarationBuilder.unaliasDeclaration(null);
+      }
+      if (typeDeclarationBuilder is ClassBuilder) {
+        if (macroClasses.contains(typeDeclarationBuilder)) return true;
+        if (typeDeclarationBuilder is DillClassBuilder) {
+          // TODO(johnniwinther): Recognize macro classes from dill.
+        }
+      }
+      return false;
+    }
+
+    for (SourceClassBuilder sourceClassBuilder in sourceClassBuilders) {
+      bool isMacro =
+          isMacroClass(sourceClassBuilder.supertypeBuilder?.declaration);
+      if (!isMacro && sourceClassBuilder.interfaceBuilders != null) {
+        for (TypeBuilder interfaceBuilder
+            in sourceClassBuilder.interfaceBuilders!) {
+          if (isMacroClass(interfaceBuilder.declaration)) {
+            isMacro = true;
+            break;
+          }
+        }
+      }
+      isMacro = isMacro ||
+          isMacroClass(sourceClassBuilder.mixedInTypeBuilder?.declaration);
+      if (isMacro) {
+        macroClasses.add(sourceClassBuilder);
+        macroLibraries.add(sourceClassBuilder.library.importUri);
+        if (retainDataForTesting) {
+          (dataForTesting!.macroDeclarationData.macroDeclarations[
+                  sourceClassBuilder.library.importUri] ??= [])
+              .add(sourceClassBuilder.name);
+        }
+      }
+    }
+
+    bool isDillLibrary(Uri uri) => _builders[uri]?.loader != this;
+
+    List<List<Uri>> computeCompilationSequence(Graph<Uri> libraryGraph,
+        {required bool Function(Uri) filter}) {
+      List<List<Uri>> stronglyConnectedComponents =
+          computeStrongComponents(libraryGraph);
+
+      Graph<List<Uri>> strongGraph =
+          new StrongComponentGraph(libraryGraph, stronglyConnectedComponents);
+      List<List<List<Uri>>> componentLayers =
+          topologicalSort(strongGraph).layers;
+      List<List<Uri>> layeredComponents = [];
+      List<Uri> currentLayer = [];
+      for (List<List<Uri>> layer in componentLayers) {
+        bool declaresMacro = false;
+        for (List<Uri> component in layer) {
+          for (Uri uri in component) {
+            if (filter(uri)) continue;
+            if (macroLibraries.contains(uri)) {
+              declaresMacro = true;
+            }
+            currentLayer.add(uri);
+          }
+        }
+        if (declaresMacro) {
+          layeredComponents.add(currentLayer);
+          currentLayer = [];
+        }
+      }
+      if (currentLayer.isNotEmpty) {
+        layeredComponents.add(currentLayer);
+      }
+      return layeredComponents;
+    }
+
+    List<List<Uri>> compilationSteps = computeCompilationSequence(
+        new BuilderGraph(_builders),
+        filter: isDillLibrary);
+    if (retainDataForTesting) {
+      dataForTesting!.macroDeclarationData.compilationSequence =
+          compilationSteps;
+    }
+  }
+
+  void computeMacroApplications() {
+    if (!enableMacros || _macroClassBuilder == null) return;
+    Class macroClass = _macroClassBuilder!.cls;
+
+    Class? computeApplication(Expression expression) {
+      if (expression is ConstructorInvocation) {
+        Class cls = expression.target.enclosingClass;
+        if (hierarchy.isSubtypeOf(cls, macroClass)) {
+          return cls;
+        }
+      }
+      return null;
+    }
+
+    MacroApplications? computeApplications(List<Expression> annotations) {
+      List<Class> macros = [];
+      for (Expression annotation in annotations) {
+        Class? cls = computeApplication(annotation);
+        if (cls != null) {
+          macros.add(cls);
+        }
+      }
+      return macros.isNotEmpty ? new MacroApplications(macros) : null;
+    }
+
+    for (LibraryBuilder libraryBuilder in libraryBuilders) {
+      if (libraryBuilder.loader != this) continue;
+      LibraryMacroApplicationData libraryMacroApplicationData =
+          new LibraryMacroApplicationData();
+      Library library = libraryBuilder.library;
+      libraryMacroApplicationData.libraryApplications =
+          computeApplications(library.annotations);
+      for (Class cls in library.classes) {
+        ClassMacroApplicationData classMacroApplicationData =
+            new ClassMacroApplicationData();
+        classMacroApplicationData.classApplications =
+            computeApplications(cls.annotations);
+        for (Member member in cls.members) {
+          MacroApplications? macroApplications =
+              computeApplications(member.annotations);
+          if (macroApplications != null) {
+            classMacroApplicationData.memberApplications[member] =
+                macroApplications;
+          }
+        }
+        if (classMacroApplicationData.classApplications != null ||
+            classMacroApplicationData.memberApplications.isNotEmpty) {
+          libraryMacroApplicationData.classData[cls] =
+              classMacroApplicationData;
+        }
+      }
+      for (Member member in library.members) {
+        MacroApplications? macroApplications =
+            computeApplications(member.annotations);
+        if (macroApplications != null) {
+          libraryMacroApplicationData.memberApplications[member] =
+              macroApplications;
+        }
+      }
+      for (Typedef typedef in library.typedefs) {
+        MacroApplications? macroApplications =
+            computeApplications(typedef.annotations);
+        if (macroApplications != null) {
+          libraryMacroApplicationData.typedefApplications[typedef] =
+              macroApplications;
+        }
+      }
+      if (libraryMacroApplicationData.libraryApplications != null ||
+          libraryMacroApplicationData.classData.isNotEmpty ||
+          libraryMacroApplicationData.typedefApplications.isNotEmpty ||
+          libraryMacroApplicationData.memberApplications.isNotEmpty) {
+        if (retainDataForTesting) {
+          dataForTesting!.macroApplicationData.libraryData[library] =
+              libraryMacroApplicationData;
+        }
+      }
+    }
   }
 
   void finishDeferredLoadTearoffs() {
@@ -1289,20 +1493,6 @@ severity: $severity
   /// pipeline (including backends) can assume that there are no hierarchy
   /// cycles.
   List<SourceClassBuilder> handleHierarchyCycles(ClassBuilder objectClass) {
-    // Compute the initial work list of all classes declared in this loader.
-    List<SourceClassBuilder> workList = <SourceClassBuilder>[];
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        Iterator<Builder> members = library.iterator;
-        while (members.moveNext()) {
-          Builder member = members.current;
-          if (member is SourceClassBuilder) {
-            workList.add(member);
-          }
-        }
-      }
-    }
-
     Set<ClassBuilder> denyListedClasses = new Set<ClassBuilder>();
     for (int i = 0; i < denylistedCoreClasses.length; i++) {
       denyListedClasses.add(coreLibrary.lookupLocalMember(
@@ -1319,42 +1509,16 @@ severity: $severity
     }
 
     // Sort the classes topologically.
-    Set<SourceClassBuilder> topologicallySortedClasses =
-        new Set<SourceClassBuilder>();
-    List<SourceClassBuilder> previousWorkList;
-    do {
-      previousWorkList = workList;
-      workList = <SourceClassBuilder>[];
-      for (int i = 0; i < previousWorkList.length; i++) {
-        SourceClassBuilder cls = previousWorkList[i];
-        Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypeMap =
-            cls.computeDirectSupertypes(objectClass);
-        List<TypeDeclarationBuilder?> directSupertypes =
-            directSupertypeMap.keys.toList();
-        bool allSupertypesProcessed = true;
-        for (int i = 0; i < directSupertypes.length; i++) {
-          Builder? supertype = directSupertypes[i];
-          if (supertype is SourceClassBuilder &&
-              supertype.library.loader == this &&
-              !topologicallySortedClasses.contains(supertype)) {
-            allSupertypesProcessed = false;
-            break;
-          }
-        }
-        if (allSupertypesProcessed && cls.isPatch) {
-          allSupertypesProcessed =
-              topologicallySortedClasses.contains(cls.origin);
-        }
-        if (allSupertypesProcessed) {
-          topologicallySortedClasses.add(cls);
-          checkClassSupertypes(cls, directSupertypeMap, denyListedClasses);
-        } else {
-          workList.add(cls);
-        }
-      }
-    } while (previousWorkList.length != workList.length);
-    List<SourceClassBuilder> classes = topologicallySortedClasses.toList();
-    List<SourceClassBuilder> classesWithCycles = previousWorkList;
+    _SourceClassGraph classGraph = new _SourceClassGraph(this, objectClass);
+    TopologicalSortResult<SourceClassBuilder> result =
+        topologicalSort(classGraph);
+    List<SourceClassBuilder> classes = result.sortedVertices;
+    for (SourceClassBuilder cls in classes) {
+      checkClassSupertypes(
+          cls, classGraph.directSupertypeMap[cls]!, denyListedClasses);
+    }
+
+    List<SourceClassBuilder> classesWithCycles = result.cyclicVertices;
 
     // Once the work list doesn't change in size, it's either empty, or
     // contains all classes with cycles.
@@ -1970,7 +2134,7 @@ severity: $severity
     _typeInferenceEngine = null;
     _builders.clear();
     libraries.clear();
-    first = null;
+    firstUri = null;
     sourceBytes.clear();
     target.releaseAncillaryResources();
     _coreTypes = null;
@@ -2268,5 +2432,50 @@ class SourceLoaderDataForTesting {
   /// as an alias.
   TreeNode toOriginal(TreeNode alias) {
     return _aliasMap[alias] ?? alias;
+  }
+
+  final MacroDeclarationData macroDeclarationData = new MacroDeclarationData();
+
+  final MacroApplicationData macroApplicationData = new MacroApplicationData();
+}
+
+class _SourceClassGraph implements Graph<SourceClassBuilder> {
+  @override
+  final List<SourceClassBuilder> vertices = [];
+  final ClassBuilder _objectClass;
+  final Map<SourceClassBuilder, Map<TypeDeclarationBuilder?, TypeAliasBuilder?>>
+      directSupertypeMap = {};
+  final Map<SourceClassBuilder, List<SourceClassBuilder>> _supertypeMap = {};
+
+  _SourceClassGraph(SourceLoader loader, this._objectClass) {
+    // Compute the vertices as all classes declared in this loader.
+    for (LibraryBuilder library in loader.libraryBuilders) {
+      if (library.loader == loader) {
+        Iterator<Builder> members = library.iterator;
+        while (members.moveNext()) {
+          Builder member = members.current;
+          if (member is SourceClassBuilder && !member.isPatch) {
+            vertices.add(member);
+          }
+        }
+      }
+    }
+  }
+
+  List<SourceClassBuilder> computeSuperClasses(SourceClassBuilder cls) {
+    Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypes =
+        directSupertypeMap[cls] = cls.computeDirectSupertypes(_objectClass);
+    List<SourceClassBuilder> superClasses = [];
+    for (TypeDeclarationBuilder? directSupertype in directSupertypes.keys) {
+      if (directSupertype is SourceClassBuilder) {
+        superClasses.add(directSupertype);
+      }
+    }
+    return superClasses;
+  }
+
+  @override
+  Iterable<SourceClassBuilder> neighborsOf(SourceClassBuilder vertex) {
+    return _supertypeMap[vertex] ??= computeSuperClasses(vertex);
   }
 }

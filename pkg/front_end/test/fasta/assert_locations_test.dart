@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.test.assert_locations_test;
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
@@ -47,7 +45,7 @@ Test generateTest() {
   // parenthesis of the assert statement to the first character of the
   // condition.
   void makeAssertWithMessage(String condition,
-      {String message, bool trailingComma: false, int additionalOffset: 0}) {
+      {String? message, bool trailingComma: false, int additionalOffset: 0}) {
     final name = 'testCase${spans.length}';
     sb.writeln('void $name(x) {');
     sb.write('assert(');
@@ -110,7 +108,7 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   /// When [AssertStatement] is reached it is checked against this
   /// span.
-  ConditionSpan expectedSpan;
+  ConditionSpan? expectedSpan;
 
   VerifyingVisitor(this.test);
 
@@ -126,8 +124,8 @@ class VerifyingVisitor extends RecursiveVisitor {
 
   @override
   void visitAssertStatement(AssertStatement node) {
-    Expect.equals(expectedSpan.startOffset, node.conditionStartOffset);
-    Expect.equals(expectedSpan.endOffset, node.conditionEndOffset);
+    Expect.equals(expectedSpan!.startOffset, node.conditionStartOffset);
+    Expect.equals(expectedSpan!.endOffset, node.conditionEndOffset);
   }
 }
 
@@ -139,12 +137,12 @@ void main() {
         Expect.fail(
             "Unexpected message: ${message.plainTextFormatted.join('\n')}");
       };
-    Component p = (await compileScript(test.source,
+    Component? p = (await compileScript(test.source,
             options: options, fileName: 'synthetic-test.dart'))
         ?.component;
     Expect.isNotNull(p);
     VerifyingVisitor visitor = new VerifyingVisitor(test);
-    p.mainMethod.enclosingLibrary.accept(visitor);
+    p!.mainMethod!.enclosingLibrary.accept(visitor);
     Expect.setEquals(test.spans.keys, visitor.verified);
   });
 }

@@ -23,8 +23,8 @@ class IncrementalCompiler {
 
   // Component that reflect the state that was most recently accepted by the
   // client. Is [null], if no compilation results were accepted by the client.
-  Component? _lastKnownGood;
-  late List<Component> _pendingDeltas;
+  IncrementalCompilerResult? _lastKnownGood;
+  late List<IncrementalCompilerResult> _pendingDeltas;
   CompilerOptions _compilerOptions;
   bool initialized = false;
   bool fullComponent = false;
@@ -34,7 +34,7 @@ class IncrementalCompiler {
 
   Uri get entryPoint => _entryPoint;
   IncrementalKernelGenerator get generator => _generator;
-  Component? get lastKnownGoodComponent => _lastKnownGood;
+  IncrementalCompilerResult? get lastKnownGoodResult => _lastKnownGood;
 
   IncrementalCompiler(this._compilerOptions, this._entryPoint,
       {this.initializeFromDillUri, bool incrementalSerialization: true})
@@ -44,7 +44,7 @@ class IncrementalCompiler {
     }
     _generator = new IncrementalKernelGenerator(_compilerOptions, _entryPoint,
         initializeFromDillUri, false, incrementalSerializer);
-    _pendingDeltas = <Component>[];
+    _pendingDeltas = <IncrementalCompilerResult>[];
   }
 
   IncrementalCompiler.forExpressionCompilationOnly(
@@ -52,41 +52,46 @@ class IncrementalCompiler {
       : forExpressionCompilationOnly = true {
     _generator = new IncrementalKernelGenerator.forExpressionCompilationOnly(
         _compilerOptions, _entryPoint, component);
-    _pendingDeltas = <Component>[];
+    _pendingDeltas = <IncrementalCompilerResult>[];
   }
 
   /// Recompiles invalidated files, produces incremental component.
   ///
   /// If [entryPoint] is specified, that points to new entry point for the
   /// compilation. Otherwise, previously set entryPoint is used.
-  Future<Component> compile({Uri? entryPoint}) async {
+  Future<IncrementalCompilerResult> compile({Uri? entryPoint}) async {
     final task = new TimelineTask();
     try {
       task.start("IncrementalCompiler.compile");
       _entryPoint = entryPoint ?? _entryPoint;
       List<Uri>? entryPoints;
       if (entryPoint != null) entryPoints = [entryPoint];
-      Component component = await _generator.computeDelta(
+      IncrementalCompilerResult compilerResult = await _generator.computeDelta(
           entryPoints: entryPoints, fullComponent: fullComponent);
       initialized = true;
       fullComponent = false;
-      _pendingDeltas.add(component);
+      _pendingDeltas.add(compilerResult);
       return _combinePendingDeltas(false);
     } finally {
       task.finish();
     }
   }
 
-  _combinePendingDeltas(bool includePlatform) {
+  IncrementalCompilerResult _combinePendingDeltas(bool includePlatform) {
     Procedure? mainMethod;
     NonNullableByDefaultCompiledMode compilationMode =
         NonNullableByDefaultCompiledMode.Invalid;
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = new Map<Uri, Source>();
-    for (Component delta in _pendingDeltas) {
+    ClassHierarchy? classHierarchy;
+    CoreTypes? coreTypes;
+    for (IncrementalCompilerResult deltaResult in _pendingDeltas) {
+      Component delta = deltaResult.component;
       if (delta.mainMethod != null) {
         mainMethod = delta.mainMethod;
       }
+      classHierarchy ??= deltaResult.classHierarchy;
+      coreTypes ??= deltaResult.coreTypes;
       compilationMode = delta.mode;
       uriToSource.addAll(delta.uriToSource);
       for (Library library in delta.libraries) {
@@ -98,13 +103,13 @@ class IncrementalCompiler {
     }
 
     // TODO(vegorov) this needs to merge metadata repositories from deltas.
-    return new Component(
-        libraries: combined.values.toList(), uriToSource: uriToSource)
-      ..setMainMethodAndMode(mainMethod?.reference, true, compilationMode);
+    return new IncrementalCompilerResult(
+        new Component(
+            libraries: combined.values.toList(), uriToSource: uriToSource)
+          ..setMainMethodAndMode(mainMethod?.reference, true, compilationMode),
+        classHierarchy: classHierarchy,
+        coreTypes: coreTypes);
   }
-
-  CoreTypes? getCoreTypes() => _generator.getCoreTypes();
-  ClassHierarchy? getClassHierarchy() => _generator.getClassHierarchy();
 
   /// This lets incremental compiler know that results of last [compile] call
   /// were accepted, don't need to be included into subsequent [compile] calls
@@ -117,29 +122,33 @@ class IncrementalCompiler {
     Map<Uri, Library> combined = <Uri, Library>{};
     Map<Uri, Source> uriToSource = <Uri, Source>{};
 
-    Component? lastKnownGood = _lastKnownGood;
+    IncrementalCompilerResult? lastKnownGood = _lastKnownGood;
     if (lastKnownGood != null) {
       // TODO(aam): Figure out how to skip no-longer-used libraries from
       // [_lastKnownGood] libraries.
-      for (Library library in lastKnownGood.libraries) {
+      for (Library library in lastKnownGood.component.libraries) {
         combined[library.importUri] = library;
       }
-      uriToSource.addAll(lastKnownGood.uriToSource);
+      uriToSource.addAll(lastKnownGood.component.uriToSource);
     }
 
-    Component candidate = _combinePendingDeltas(true);
+    IncrementalCompilerResult result = _combinePendingDeltas(true);
+    Component candidate = result.component;
     for (Library library in candidate.libraries) {
       combined[library.importUri] = library;
     }
     uriToSource.addAll(candidate.uriToSource);
 
-    _lastKnownGood = lastKnownGood = new Component(
-      libraries: combined.values.toList(),
-      uriToSource: uriToSource,
-    )..setMainMethodAndMode(
-        candidate.mainMethod?.reference, true, candidate.mode);
+    _lastKnownGood = lastKnownGood = new IncrementalCompilerResult(
+        new Component(
+          libraries: combined.values.toList(),
+          uriToSource: uriToSource,
+        )..setMainMethodAndMode(
+            candidate.mainMethod?.reference, true, candidate.mode),
+        classHierarchy: result.classHierarchy,
+        coreTypes: result.coreTypes);
     for (final repo in candidate.metadata.values) {
-      lastKnownGood.addMetadataRepository(repo);
+      lastKnownGood.component.addMetadataRepository(repo);
     }
     _pendingDeltas.clear();
   }
@@ -164,10 +173,10 @@ class IncrementalCompiler {
     // sure it's "updated back".
     // Note that if accept was never called [_lastKnownGood] is null (and
     // loading from it below is basically nonsense, it will just start over).
-    _lastKnownGood?.relink();
+    _lastKnownGood?.component.relink();
 
     _generator = new IncrementalKernelGenerator.fromComponent(_compilerOptions,
-        _entryPoint, _lastKnownGood, false, incrementalSerializer);
+        _entryPoint, _lastKnownGood?.component, false, incrementalSerializer);
     await _generator.computeDelta(entryPoints: [_entryPoint]);
   }
 

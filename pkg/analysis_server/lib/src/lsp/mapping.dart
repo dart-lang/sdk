@@ -20,12 +20,12 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
-import 'package:analysis_server/src/search/workspace_symbols.dart' as server
-    show DeclarationKind;
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/source/source_range.dart' as server;
+import 'package:analyzer/src/dart/analysis/search.dart' as server
+    show DeclarationKind;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;
@@ -1225,12 +1225,12 @@ lsp.Location toLocation(server.Location location, server.LineInfo lineInfo) =>
 ErrorOr<int> toOffset(
   server.LineInfo lineInfo,
   lsp.Position pos, {
-  failureIsCritial = false,
+  bool failureIsCritical = false,
 }) {
   // line is zero-based so cannot equal lineCount
   if (pos.line >= lineInfo.lineCount) {
     return ErrorOr<int>.error(lsp.ResponseError(
-        code: failureIsCritial
+        code: failureIsCritical
             ? lsp.ServerErrorCodes.ClientServerInconsistentState
             : lsp.ServerErrorCodes.InvalidFileLineCol,
         message: 'Invalid line number',

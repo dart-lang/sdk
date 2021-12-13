@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show File;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
@@ -18,6 +16,9 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
+
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
@@ -41,7 +42,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
         codeInitializeFromDillUnknownProblemNoDump;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
+    show IncrementalCompiler, RecorderForTesting;
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeComponent;
 
@@ -57,21 +58,21 @@ Future<Null> main() async {
 }
 
 class Tester {
-  Uri sdkRoot;
-  Uri base;
-  Uri sdkSummary;
-  Uri initializeFrom;
-  Uri helperFile;
-  Uri helper2File;
-  Uri entryPoint;
-  Uri entryPointImportDartFoo;
-  Uri platformUri;
-  List<int> sdkSummaryData;
-  List<DiagnosticMessage> errorMessages;
-  List<DiagnosticMessage> warningMessages;
-  MemoryFileSystem fs;
-  CompilerOptions options;
-  IncrementalCompiler compiler;
+  late Uri sdkRoot;
+  late Uri base;
+  late Uri sdkSummary;
+  late Uri initializeFrom;
+  late Uri helperFile;
+  late Uri helper2File;
+  late Uri entryPoint;
+  late Uri entryPointImportDartFoo;
+  late Uri platformUri;
+  late List<int> sdkSummaryData;
+  late List<DiagnosticMessage> errorMessages;
+  late List<DiagnosticMessage> warningMessages;
+  late MemoryFileSystem fs;
+  late CompilerOptions options;
+  late IncrementalCompiler compiler;
 
   Future<void> compileExpectInitializeFailAndSpecificWarning(
       Code expectedWarningCode, bool writeFileOnCrashReport) async {
@@ -83,7 +84,7 @@ class Tester {
             new ProcessedOptions(options: options, inputs: [entryPoint])),
         initializeFrom);
     await compiler.computeDelta();
-    if (compiler.initializedFromDill) {
+    if (compiler.initializedFromDillForTesting) {
       Expect.fail("Expected to not be able to initialized from dill, but did.");
     }
     if (errorMessages.isNotEmpty) {
@@ -108,11 +109,12 @@ class Tester {
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [compileThis])),
         initializeFrom);
-    Component component = await compiler.computeDelta();
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+    Component component = compilerResult.component;
 
-    if (compiler.initializedFromDill != initializedFromDill) {
+    if (compiler.initializedFromDillForTesting != initializedFromDill) {
       Expect.fail("Expected initializedFromDill to be $initializedFromDill "
-          "but was ${compiler.initializedFromDill}");
+          "but was ${compiler.initializedFromDillForTesting}");
     }
     if (errorMessages.isNotEmpty) {
       Expect.fail("Got unexpected errors: " + joinMessages(errorMessages));
@@ -183,7 +185,9 @@ main() {
             new ProcessedOptions(options: options, inputs: [entryPoint])),
         initializeFrom);
 
-    Component componentGood = await compiler.computeDelta();
+    IncrementalCompilerResult compilerGoodResult =
+        await compiler.computeDelta();
+    Component componentGood = compilerGoodResult.component;
     List<int> dataGood = serializeComponent(componentGood);
     fs.entityForUri(initializeFrom).writeAsBytesSync(dataGood);
 
@@ -193,7 +197,9 @@ main() {
         new CompilerContext(
             new ProcessedOptions(options: options, inputs: [helper2File])),
         initializeFrom);
-    Component componentHelper = await compiler.computeDelta();
+    IncrementalCompilerResult compilerHelperResult =
+        await compiler.computeDelta();
+    Component componentHelper = compilerHelperResult.component;
     Library helper2Lib = componentHelper.libraries
         .firstWhere((lib) => lib.importUri == helper2File);
     helper2Lib.importUri = new Uri(scheme: "dart", path: "foo");
@@ -216,7 +222,8 @@ main() {
 
     // Create a partial dill file.
     compiler.invalidate(entryPoint);
-    component = await compiler.computeDelta();
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+    component = compilerResult.component;
     if (component.libraries.length != 1) {
       Expect.fail("Expected 1 library, got ${component.libraries.length}: "
           "${component.libraries}");
@@ -248,7 +255,7 @@ main() {
     List<int> mixedPart1;
     {
       // Create a component that is compiled without NNBD.
-      Map<ExperimentalFlag, bool> prevTesting =
+      Map<ExperimentalFlag, bool>? prevTesting =
           options.defaultExperimentFlagsForTesting;
       options.defaultExperimentFlagsForTesting = {
         ExperimentalFlag.nonNullable: false
@@ -259,7 +266,9 @@ main() {
           new CompilerContext(
               new ProcessedOptions(options: options, inputs: [helper2File])),
           null);
-      Component c = await compiler.computeDelta();
+
+      IncrementalCompilerResult result = await compiler.computeDelta();
+      Component c = result.component;
       c.setMainMethodAndMode(
           null, false, NonNullableByDefaultCompiledMode.Weak);
       mixedPart1 = serializeComponent(c);
@@ -270,7 +279,7 @@ main() {
     List<int> mixedPart2;
     {
       // Create a component that is compiled with strong NNBD.
-      Map<ExperimentalFlag, bool> prevTesting =
+      Map<ExperimentalFlag, bool>? prevTesting =
           options.defaultExperimentFlagsForTesting;
       options.defaultExperimentFlagsForTesting = {
         ExperimentalFlag.nonNullable: true
@@ -281,7 +290,8 @@ main() {
           new CompilerContext(
               new ProcessedOptions(options: options, inputs: [helperFile])),
           null);
-      Component c = await compiler.computeDelta();
+      IncrementalCompilerResult result = await compiler.computeDelta();
+      Component c = result.component;
       c.setMainMethodAndMode(
           null, false, NonNullableByDefaultCompiledMode.Strong);
       mixedPart2 = serializeComponent(c);
@@ -302,11 +312,19 @@ main() {
 
 class DeleteTempFilesIncrementalCompiler extends IncrementalCompiler {
   DeleteTempFilesIncrementalCompiler(CompilerContext context,
-      [Uri initializeFromDillUri])
+      [Uri? initializeFromDillUri])
       : super(context, initializeFromDillUri);
 
   @override
-  void recordTemporaryFileForTesting(Uri uri) {
+  final RecorderForTesting recorderForTesting =
+      const DeleteTempFilesRecorderForTesting();
+}
+
+class DeleteTempFilesRecorderForTesting extends RecorderForTesting {
+  const DeleteTempFilesRecorderForTesting();
+
+  @override
+  void recordTemporaryFile(Uri uri) {
     File f = new File.fromUri(uri);
     if (f.existsSync()) f.deleteSync();
   }

@@ -9,5 +9,7 @@ dependencies:
   analyzer:
     path: ../analyzer
   html: any
+  meta:
+    path: ../meta
   path: any
   test: any

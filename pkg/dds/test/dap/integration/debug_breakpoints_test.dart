@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'test_client.dart';
@@ -22,6 +25,18 @@ main() {
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       await client.hitBreakpoint(testFile, breakpointLine);
+    });
+
+    test('stops at a line breakpoint in the SDK set via local sources',
+        () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+
+      // Add the breakpoint to the first line inside the SDK's print function.
+      final sdkFile = File(path.join(sdkRoot, 'lib', 'core', 'print.dart'));
+      final breakpointLine = lineWith(sdkFile, 'print(Object? object) {') + 1;
+
+      await client.hitBreakpoint(sdkFile, breakpointLine, entryFile: testFile);
     });
 
     test('stops at a line breakpoint and can be resumed', () async {

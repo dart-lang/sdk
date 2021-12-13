@@ -123,7 +123,7 @@ mixin ArgListContributorMixin on DartCompletionContributorTest {
 class ArgListContributorTest extends DartCompletionContributorTest
     with ArgListContributorMixin {
   Future<void> test_Annotation_imported_constructor_named_param() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
     addTestSource('import "a.dart"; @A(^) main() { }');
     await computeSuggestions();
@@ -132,7 +132,7 @@ library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
   }
 
   Future<void> test_Annotation_importedConstructor_prefixed() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class A {
   const A({int value});
 }
@@ -581,7 +581,8 @@ foo({String children}) {}
 
   Future<void> test_ArgumentList_imported_constructor_named_param() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource('/home/test/lib/a.dart', 'library libA; class A{A({int one}); }');
+    addSource(
+        '$testPackageLibPath/a.dart', 'library libA; class A{A({int one}); }');
     addTestSource('import "a.dart"; main() { new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
@@ -589,8 +590,8 @@ foo({String children}) {}
 
   Future<void> test_ArgumentList_imported_constructor_named_param2() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource(
-        '/home/test/lib/a.dart', 'library libA; class A{A.foo({int one}); }');
+    addSource('$testPackageLibPath/a.dart',
+        'library libA; class A{A.foo({int one}); }');
     addTestSource('import "a.dart"; main() { new A.foo(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
@@ -599,7 +600,7 @@ foo({String children}) {}
   Future<void>
       test_ArgumentList_imported_constructor_named_typed_param() async {
     // ArgumentList  InstanceCreationExpression  VariableDeclaration
-    addSource('/home/test/lib/a.dart',
+    addSource('$testPackageLibPath/a.dart',
         'library libA; class A { A({int i, String s, d}) {} }}');
     addTestSource('import "a.dart"; main() { var a = new A(^);}');
     await computeSuggestions();
@@ -609,7 +610,7 @@ foo({String children}) {}
 
   Future<void> test_ArgumentList_imported_factory_named_param() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource('/home/test/lib/a.dart',
+    addSource('$testPackageLibPath/a.dart',
         'library libA; class A{factory A({int one}) => throw 0;}');
     addTestSource('import "a.dart"; main() { new A(^);}');
     await computeSuggestions();
@@ -618,7 +619,7 @@ foo({String children}) {}
 
   Future<void> test_ArgumentList_imported_factory_named_param2() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource('/home/test/lib/a.dart',
+    addSource('$testPackageLibPath/a.dart',
         'library libA; abstract class A{factory A.foo({int one});}');
     addTestSource('import "a.dart"; main() { new A.foo(^);}');
     await computeSuggestions();
@@ -627,7 +628,7 @@ foo({String children}) {}
 
   Future<void> test_ArgumentList_imported_factory_named_typed_param() async {
     // ArgumentList  InstanceCreationExpression  VariableDeclaration
-    addSource('/home/test/lib/a.dart',
+    addSource('$testPackageLibPath/a.dart',
         'library libA; class A {factory A({int i, String s, d}) {} }}');
     addTestSource('import "a.dart"; main() { var a = new A(^);}');
     await computeSuggestions();
@@ -637,7 +638,7 @@ foo({String children}) {}
 
   Future<void> test_ArgumentList_imported_function_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect() { }
@@ -653,7 +654,7 @@ foo({String children}) {}
 
   Future<void> test_ArgumentList_imported_function_3a() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -669,7 +670,7 @@ foo({String children}) {}
 
   Future<void> test_ArgumentList_imported_function_3b() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -685,7 +686,7 @@ foo({String children}) {}
 
   Future<void> test_ArgumentList_imported_function_3c() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -701,7 +702,7 @@ foo({String children}) {}
 
   Future<void> test_ArgumentList_imported_function_3d() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       expect(String arg1, int arg2, {bool arg3}) { }
@@ -1084,7 +1085,7 @@ main() { f("16", radix: ^);}''');
 
   Future<void> test_ArgumentList_local_method_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
       library A;
       bool hasLength(int expected) { }
       void baz() { }''');
@@ -1111,7 +1112,7 @@ main() { f(^);}');
   }
 
   Future<void> test_ArgumentList_nnbd_function_named_param_imported() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 f({int? nullable, int nonnullable}) {}''');
     createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
     addTestSource(r'''
@@ -1126,7 +1127,7 @@ main() { f(^);}');
   }
 
   Future<void> test_ArgumentList_nnbd_function_named_param_legacy() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 // @dart = 2.8
 f({int named}) {}''');
     addTestSource(r'''

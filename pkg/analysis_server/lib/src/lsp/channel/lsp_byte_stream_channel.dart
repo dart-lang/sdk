@@ -80,7 +80,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
       return;
     }
     _instrumentationService.logRequest(data);
-    final Map<String, Object?> json = jsonDecode(data);
+    final json = jsonDecode(data) as Map<String, Object?>;
     if (RequestMessage.canParse(json, nullLspJsonReporter)) {
       onMessage(RequestMessage.fromJson(json));
     } else if (NotificationMessage.canParse(json, nullLspJsonReporter)) {

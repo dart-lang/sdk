@@ -39,7 +39,7 @@ main() {
   }
 
   Future<void> test_withExtension() async {
-    addSource('/home/test/lib/lib.dart', '''
+    addSource('$testPackageLibPath/lib.dart', '''
 class C {}
 extension E on int {
   static String m() => '';

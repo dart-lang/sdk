@@ -19,11 +19,16 @@ void testStat() {
   Expect.equals(FileSystemEntityType.notFound, fileStat.type);
   Expect.equals(FileSystemEntityType.notFound, fileStatDirect.type);
   file.writeAsStringSync("Dart IO library test of FileStat");
+  Link link = new Link(join(directory.path, "link"));
+  link.createSync(file.path);
   new Timer(const Duration(seconds: 2), () {
     file.readAsStringSync();
     directory.listSync();
     FileStat fileStat = FileStat.statSync(file.path);
     FileStat fileStatDirect = file.statSync();
+    FileStat linkStat = FileStat.statSync(link.path);
+    FileStat linkStatDirect = link.statSync();
+
     Expect.equals(FileSystemEntityType.file, fileStat.type);
     Expect.equals(32, fileStat.size);
     Expect.equals(FileSystemEntityType.file, fileStatDirect.type);
@@ -44,6 +49,13 @@ void testStat() {
           directoryStat.changed.compareTo(directoryStat.accessed) < 0);
     }
     Expect.equals(7 << 6, directoryStat.mode & (7 << 6)); // Includes +urwx.
+
+    // Verify that statSync resolves the link.
+    Expect.equals(FileSystemEntityType.file, linkStat.type);
+    Expect.equals(32, linkStat.size);
+    Expect.equals(FileSystemEntityType.file, linkStatDirect.type);
+    Expect.equals(32, linkStatDirect.size);
+
     directory.deleteSync(recursive: true);
   });
 }

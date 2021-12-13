@@ -68,6 +68,10 @@ late int? aa;
 */
 late int? _a;
 
+/*member: Class._#new#tearOff:
+ tearoffConstructor,
+ tearoffLowering
+*/
 class Class {
   /*member: Class._#Class#a:
    lateField,
@@ -198,6 +202,10 @@ class Class {
   static late int? _b;
 }
 
+/*member: _Class._#new#tearOff:
+ tearoffConstructor,
+ tearoffLowering
+*/
 class _Class {
   /*member: _Class._#_Class#a:
    lateField,

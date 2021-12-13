@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_http" as _ht;
+
+import "dart:io" as a;
+import "org-dartlang-testcase:///conditional_import.dart" as b;
+
+class HttpRequest extends core::Object {
+  synthetic constructor •() → self::HttpRequest
+    ;
+  static method _#new#tearOff() → self::HttpRequest
+    return new self::HttpRequest::•();
+}
+static method testA(_ht::HttpRequest request) → dynamic
+  ;
+static method testB(self::HttpRequest request) → dynamic
+  ;
+static method main() → void
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

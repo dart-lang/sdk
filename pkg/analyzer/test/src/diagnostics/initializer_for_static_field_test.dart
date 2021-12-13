@@ -33,7 +33,8 @@ class A {
   A() : x = 0 {}
 }
 ''', [
-      error(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, 38, 5),
+      error(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD, 38, 5,
+          messageContains: ["'x'"]),
     ]);
   }
 }

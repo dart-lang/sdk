@@ -159,18 +159,18 @@ class MockSource implements Source {
   @override
   TimestampedData<String> get contents => TimestampedData(0, '');
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => '';
 
   @override
   String get fullName => '/pkg/lib/test.dart';
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => false;
 
-  @override
-  Source get librarySource => this;
-
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp => 0;
 
@@ -178,11 +178,9 @@ class MockSource implements Source {
   String get shortName => 'test.dart';
 
   @override
-  Source get source => this;
-
-  @override
   Uri get uri => Uri.parse('package:test/test.dart');
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind => UriKind.PACKAGE_URI;
 

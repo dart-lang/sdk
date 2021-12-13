@@ -14,7 +14,7 @@
 
 namespace dart {
 
-class CSEInstructionMap;
+class CSEInstructionSet;
 
 class AllocationSinking : public ZoneAllocated {
  public:
@@ -88,12 +88,12 @@ class DominatorBasedCSE : public AllStatic {
  public:
   // Return true, if the optimization changed the flow graph.
   // False, if nothing changed.
-  static bool Optimize(FlowGraph* graph);
+  static bool Optimize(FlowGraph* graph, bool run_load_optimization = true);
 
  private:
   static bool OptimizeRecursive(FlowGraph* graph,
                                 BlockEntryInstr* entry,
-                                CSEInstructionMap* map);
+                                CSEInstructionSet* map);
 };
 
 class DeadStoreElimination : public AllStatic {

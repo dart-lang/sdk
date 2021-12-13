@@ -71,7 +71,7 @@ class B extends A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit('/home/test/lib/lib.dart', '''
+    await indexUnit('$testPackageLibPath/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -112,7 +112,7 @@ class A {
     await indexTestUnit('''
 class Test {}
 ''');
-    await indexUnit('/home/test/lib/lib.dart', '''
+    await indexUnit('$testPackageLibPath/lib.dart', '''
 library my.lib;
 import 'test.dart';
 class A {
@@ -610,7 +610,7 @@ void f() {
   }
 
   Future<void> test_createChange_FunctionElement_imported() async {
-    await indexUnit('/home/test/lib/foo.dart', r'''
+    await indexUnit('$testPackageLibPath/foo.dart', r'''
 test() {}
 foo() {}
 ''');
@@ -637,7 +637,7 @@ void f() {
   foo();
 }
 ''');
-    assertFileChangeResult('/home/test/lib/foo.dart', '''
+    assertFileChangeResult('$testPackageLibPath/foo.dart', '''
 newName() {}
 foo() {}
 ''');

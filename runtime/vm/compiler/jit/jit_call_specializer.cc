@@ -162,57 +162,6 @@ void JitCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 }
 
-void JitCallSpecializer::VisitStoreInstanceField(
-    StoreInstanceFieldInstr* instr) {
-  if (instr->IsUnboxedDartFieldStore()) {
-    // Determine if this field should be unboxed based on the usage of getter
-    // and setter functions: The heuristic requires that the setter has a
-    // usage count of at least 1/kGetterSetterRatio of the getter usage count.
-    // This is to avoid unboxing fields where the setter is never or rarely
-    // executed.
-    const Field& field = instr->slot().field();
-    const String& field_name = String::Handle(Z, field.name());
-    const Class& owner = Class::Handle(Z, field.Owner());
-    const Function& getter =
-        Function::Handle(Z, owner.LookupGetterFunction(field_name));
-    const Function& setter =
-        Function::Handle(Z, owner.LookupSetterFunction(field_name));
-    bool unboxed_field = false;
-    if (!getter.IsNull() && !setter.IsNull()) {
-      if (field.is_double_initialized()) {
-        unboxed_field = true;
-      } else if ((setter.usage_counter() > 0) &&
-                 ((FLAG_getter_setter_ratio * setter.usage_counter()) >=
-                  getter.usage_counter())) {
-        unboxed_field = true;
-      }
-    }
-    if (!unboxed_field) {
-      if (FLAG_trace_optimization || FLAG_trace_field_guards) {
-        THR_Print("Disabling unboxing of %s\n", field.ToCString());
-        if (!setter.IsNull()) {
-          THR_Print("  setter usage count: %" Pd "\n", setter.usage_counter());
-        }
-        if (!getter.IsNull()) {
-          THR_Print("  getter usage count: %" Pd "\n", getter.usage_counter());
-        }
-      }
-      // We determined it's not beneficial for performance to unbox the
-      // field, therefore we mark it as boxed here.
-      //
-      // Calling `DisableFieldUnboxing` will cause transition the field to
-      // boxed and deoptimize dependent code.
-      //
-      // NOTE: It will also, as a side-effect, change our field clone's
-      // `is_unboxing_candidate()` bit. So we assume the compiler has so far
-      // not relied on this bit.
-      field.DisableFieldUnboxing();
-    } else {
-      flow_graph()->parsed_function().AddToGuardedFields(&field);
-    }
-  }
-}
-
 // Replace generic context allocation or cloning with a sequence of inlined
 // allocation and explicit initializing stores.
 // If context_value is not NULL then newly allocated context is a populated

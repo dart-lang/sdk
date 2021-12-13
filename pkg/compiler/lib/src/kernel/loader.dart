@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
@@ -20,7 +19,6 @@ import '../commandline_options.dart' show Flags;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../common.dart';
 import '../options.dart';
-import '../util/sink_adapter.dart';
 
 import 'front_end_adapter.dart';
 import 'dart2js_target.dart' show Dart2jsTarget;
@@ -34,7 +32,6 @@ class KernelLoaderTask extends CompilerTask {
   final DiagnosticReporter _reporter;
 
   final api.CompilerInput _compilerInput;
-  final api.CompilerOutput _compilerOutput;
 
   final CompilerOptions _options;
 
@@ -47,39 +44,13 @@ class KernelLoaderTask extends CompilerTask {
   /// This is used for testing.
   bool forceSerialization = false;
 
-  KernelLoaderTask(this._options, this._compilerInput, this._compilerOutput,
-      this._reporter, Measurer measurer)
+  KernelLoaderTask(
+      this._options, this._compilerInput, this._reporter, Measurer measurer)
       : initializedCompilerState = _options.kernelInitializedCompilerState,
         super(measurer);
 
   @override
   String get name => 'kernel loader';
-
-  ir.Reference findMainMethod(Component component, Uri entryUri) {
-    var entryLibrary = component.libraries
-        .firstWhere((l) => l.fileUri == entryUri, orElse: () => null);
-    if (entryLibrary == null) {
-      throw ArgumentError('Entry uri $entryUri not found in dill.');
-    }
-    var mainMethod = entryLibrary.procedures
-        .firstWhere((p) => p.name.text == 'main', orElse: () => null);
-
-    // In some cases, a main method is defined in another file, and then
-    // exported. In these cases, we search for the main method in
-    // [additionalExports].
-    ir.Reference mainMethodReference;
-    if (mainMethod == null) {
-      mainMethodReference = entryLibrary.additionalExports.firstWhere(
-          (p) => p.canonicalName.name == 'main',
-          orElse: () => null);
-    } else {
-      mainMethodReference = mainMethod.reference;
-    }
-    if (mainMethodReference == null) {
-      throw ArgumentError('Entry uri $entryUri has no main method.');
-    }
-    return mainMethodReference;
-  }
 
   /// Loads an entire Kernel [Component] from a file on disk.
   Future<KernelResult> load() {
@@ -97,9 +68,6 @@ class KernelLoaderTask extends CompilerTask {
       var resolvedUri = _options.compilationTarget;
       ir.Component component;
       List<Uri> moduleLibraries = const [];
-      var isDill = resolvedUri.path.endsWith('.dill') ||
-          resolvedUri.path.endsWith('.gdill') ||
-          resolvedUri.path.endsWith('.mdill');
 
       void inferNullSafetyMode(bool isSound) {
         if (_options.nullSafetyMode == NullSafetyMode.unspecified) {
@@ -112,7 +80,7 @@ class KernelLoaderTask extends CompilerTask {
         assert(_options.nullSafetyMode != NullSafetyMode.unspecified);
       }
 
-      if (isDill) {
+      if (_options.fromDill) {
         component = ir.Component();
         Future<void> read(Uri uri) async {
           api.Input input = await _compilerInput.readFromUri(uri,
@@ -121,13 +89,6 @@ class KernelLoaderTask extends CompilerTask {
         }
 
         await read(resolvedUri);
-
-        // If an entryUri is supplied, we use it to manually select the main
-        // method.
-        if (_options.entryUri != null) {
-          var mainMethod = findMainMethod(component, _options.entryUri);
-          component.setMainMethodAndMode(mainMethod, true, component.mode);
-        }
 
         if (_options.modularMode) {
           moduleLibraries =
@@ -161,24 +122,11 @@ class KernelLoaderTask extends CompilerTask {
           if (platformUri != resolvedUri) await read(platformUri);
         }
 
-        // Concatenate dills and then reset main method.
-        var mainMethod = component.mainMethodName;
-        var mainMode = component.mode;
+        // Concatenate dills.
         if (_options.dillDependencies != null) {
           for (Uri dependency in _options.dillDependencies) {
             await read(dependency);
           }
-        }
-        component.setMainMethodAndMode(mainMethod, true, mainMode);
-
-        // This is not expected to be null when creating a whole-program .dill
-        // file, but needs to be checked for modular inputs.
-        if (component.mainMethod == null && !_options.modularMode) {
-          // TODO(sigmund): move this so that we use the same error template
-          // from the CFE.
-          _reporter.reportError(_reporter.createMessage(NO_LOCATION_SPANNABLE,
-              MessageKind.GENERIC, {'text': "No 'main' method found."}));
-          return null;
         }
       } else {
         bool verbose = false;
@@ -232,18 +180,6 @@ class KernelLoaderTask extends CompilerTask {
         validateNullSafetyMode();
       }
 
-      if (_options.cfeOnly) {
-        measureSubtask('serialize dill', () {
-          _reporter.log('Writing dill to ${_options.outputUri}');
-          api.BinaryOutputSink dillOutput =
-              _compilerOutput.createBinarySink(_options.outputUri);
-          BinaryOutputSinkAdapter irSink = BinaryOutputSinkAdapter(dillOutput);
-          BinaryPrinter printer = BinaryPrinter(irSink);
-          printer.writeComponentFile(component);
-          irSink.close();
-        });
-      }
-
       if (forceSerialization) {
         // TODO(johnniwinther): Remove this when #34942 is fixed.
         List<int> data = serializeComponent(component);
@@ -290,7 +226,7 @@ class KernelLoaderTask extends CompilerTask {
 
 /// Result of invoking the CFE to produce the kernel IR.
 class KernelResult {
-  final ir.Component component;
+  ir.Component component;
 
   /// The [Uri] of the root library containing main.
   /// Note: rootLibraryUri will be null for some modules, for example in the
@@ -313,6 +249,55 @@ class KernelResult {
 
   KernelResult(this.component, this.rootLibraryUri, this.libraries,
       this.moduleLibraries);
+
+  static Library _findEntryLibrary(Component component, Uri entryUri) {
+    var entryLibrary = component.libraries
+        .firstWhere((l) => l.fileUri == entryUri, orElse: () => null);
+    if (entryLibrary == null) {
+      throw ArgumentError('Entry uri $entryUri not found in dill.');
+    }
+    return entryLibrary;
+  }
+
+  static ir.Reference _findMainMethod(Library entryLibrary) {
+    var mainMethod = entryLibrary.procedures
+        .firstWhere((p) => p.name.text == 'main', orElse: () => null);
+
+    // In some cases, a main method is defined in another file, and then
+    // exported. In these cases, we search for the main method in
+    // [additionalExports].
+    ir.Reference mainMethodReference;
+    if (mainMethod == null) {
+      mainMethodReference = entryLibrary.additionalExports.firstWhere(
+          (p) => p.canonicalName.name == 'main',
+          orElse: () => null);
+    } else {
+      mainMethodReference = mainMethod.reference;
+    }
+    if (mainMethodReference == null) {
+      throw ArgumentError(
+          'Entry uri ${entryLibrary.fileUri} has no main method.');
+    }
+    return mainMethodReference;
+  }
+
+  void setMainAndTrimComponent(Uri entryUri) {
+    var entryLibrary = _findEntryLibrary(component, entryUri);
+    var mainMethod = _findMainMethod(entryLibrary);
+    var irLibraryMap = <Uri, Library>{};
+    var irLibraries = <Library>[];
+    for (var library in component.libraries) {
+      irLibraryMap[library.importUri] = library;
+    }
+    for (var library in libraries) {
+      irLibraries.add(irLibraryMap[library]);
+    }
+    component = ir.Component(
+        libraries: irLibraries,
+        uriToSource: component.uriToSource,
+        nameRoot: component.root);
+    component.setMainMethodAndMode(mainMethod, true, component.mode);
+  }
 
   @override
   String toString() =>

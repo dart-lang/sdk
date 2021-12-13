@@ -57,7 +57,7 @@ f() {
   }
 
   Future<void> test_privateType() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class A {
   _B b => _B();
 }

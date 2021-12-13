@@ -25,9 +25,9 @@ void run() {
 
   tearDown(() => p?.dispose());
 
-  test('--help', () {
+  test('--help', () async {
     p = project();
-    var result = p.runSync(['run', '--help']);
+    var result = await p.run(['run', '--help']);
 
     expect(result.stdout, contains('Run a Dart program.'));
     expect(result.stdout, contains('Debugging options:'));
@@ -41,9 +41,9 @@ void run() {
     expect(result.exitCode, 0);
   });
 
-  test('--help --verbose', () {
+  test('--help --verbose', () async {
     p = project();
-    var result = p.runSync(['run', '--help', '--verbose']);
+    var result = await p.run(['run', '--help', '--verbose']);
 
     expect(result.stdout, contains('Run a Dart program.'));
     expect(result.stdout, contains('Debugging options:'));
@@ -57,30 +57,30 @@ void run() {
     expect(result.exitCode, 0);
   });
 
-  test("'Hello World'", () {
+  test("'Hello World'", () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
-    ProcessResult result = p.runSync(['run', p.relativeFilePath]);
+    ProcessResult result = await p.run(['run', p.relativeFilePath]);
 
     expect(result.stdout, contains('Hello World'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
 
-  test('no such file', () {
+  test('no such file', () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     ProcessResult result =
-        p.runSync(['run', 'no/such/file/${p.relativeFilePath}']);
+        await p.run(['run', 'no/such/file/${p.relativeFilePath}']);
 
     expect(result.stderr, isNotEmpty);
     expect(result.exitCode, isNot(0));
   });
 
-  test('implicit packageName.dart', () {
+  test('implicit packageName.dart', () async {
     // TODO(jwren) circle back to reimplement this test if possible, the file
     // name (package name) will be the name of the temporary directory on disk
     p = project(mainSrc: "void main() { print('Hello World'); }");
     p.file('bin/main.dart', "void main() { print('Hello main.dart'); }");
-    ProcessResult result = p.runSync(['run']);
+    ProcessResult result = await p.run(['run']);
 
     expect(result.stdout, contains('Hello main.dart'));
     expect(result.stderr, isEmpty);
@@ -88,10 +88,10 @@ void run() {
   }, skip: true);
 
   // Could not find the implicit file to run: bin
-  test('missing implicit packageName.dart', () {
+  test('missing implicit packageName.dart', () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
     p.file('bin/foo.dart', "void main() { print('Hello main.dart'); }");
-    ProcessResult result = p.runSync(['run']);
+    ProcessResult result = await p.run(['run']);
 
     expect(result.stdout, isEmpty);
     expect(
@@ -101,10 +101,10 @@ void run() {
     expect(result.exitCode, 255);
   });
 
-  test('arguments are properly passed', () {
+  test('arguments are properly passed', () async {
     p = project();
     p.file('main.dart', 'void main(args) { print(args); }');
-    ProcessResult result = p.runSync([
+    ProcessResult result = await p.run([
       'run',
       '--enable-experiment=test-experiment',
       'main.dart',
@@ -118,7 +118,7 @@ void run() {
     expect(result.exitCode, 0);
   });
 
-  test('from path-dependency with cyclic dependency', () {
+  test('from path-dependency with cyclic dependency', () async {
     p = project(name: 'foo');
     final bar = TestProject(name: 'bar');
     p.file('pubspec.yaml', '''
@@ -141,7 +141,7 @@ import 'package:foo/foo.dart';
 void main(List<String> args) => print("$b $args");
 ''');
 
-      ProcessResult result = p.runSync(['run', 'bar:main', '--arg1', 'arg2']);
+      ProcessResult result = await p.run(['run', 'bar:main', '--arg1', 'arg2']);
 
       expect(result.stderr, isEmpty);
       expect(result.stdout, contains('FOO BAR [--arg1, arg2]'));
@@ -156,7 +156,7 @@ void main(List<String> args) => print("$b $args");
     p.file('main.dart', 'void main(args) { print(args); }');
     // Test with absolute path
     final name = path.join(p.dirPath, 'main.dart');
-    final result = p.runSync([
+    final result = await p.run([
       'run',
       '--enable-experiment=test-experiment',
       name,
@@ -175,7 +175,7 @@ void main(List<String> args) => print("$b $args");
     p.file('main.dart', 'void main(args) { print(args); }');
     // Test with File uri
     final name = path.join(p.dirPath, 'main.dart');
-    final result = p.runSync([
+    final result = await p.run([
       'run',
       Uri.file(name).toString(),
       '--argument1',
@@ -199,7 +199,7 @@ void main(List<String> args) => print("$b $args");
     //
     // This test ensures that allowed arguments for dart run which are valid VM
     // arguments are properly handled by the VM.
-    ProcessResult result = p.runSync([
+    ProcessResult result = await p.run([
       'run',
       '--observe',
       '--pause-isolates-on-start',
@@ -220,7 +220,7 @@ void main(List<String> args) => print("$b $args");
     expect(result.exitCode, 0);
 
     // Again, with --disable-service-auth-codes.
-    result = p.runSync([
+    result = await p.run([
       'run',
       '--observe',
       '--pause-isolates-on-start',
@@ -242,7 +242,7 @@ void main(List<String> args) => print("$b $args");
     expect(result.exitCode, 0);
 
     // Again, with IPv6.
-    result = p.runSync([
+    result = await p.run([
       'run',
       '--observe=8181/::1',
       '--pause-isolates-on-start',
@@ -269,7 +269,7 @@ void main(List<String> args) => print("$b $args");
 
     // Any VM flags not listed under 'dart run help --verbose' should be passed
     // before a dartdev command.
-    ProcessResult result = p.runSync([
+    ProcessResult result = await p.run([
       'run',
       '--vm-name=foo',
       p.relativeFilePath,
@@ -288,7 +288,7 @@ void main(List<String> args) => print("$b $args");
 
     // Any VM flags not listed under 'dart run help --verbose' should be passed
     // before a dartdev command.
-    ProcessResult result = p.runSync([
+    ProcessResult result = await p.run([
       'run',
       '--verbose_gc',
       p.relativeFilePath,
@@ -307,7 +307,7 @@ void main(List<String> args) => print("$b $args");
 
     // Ensure --enable-asserts doesn't cause the dartdev isolate to fail to
     // load. Regression test for: https://github.com/dart-lang/sdk/issues/42831
-    ProcessResult result = p.runSync([
+    ProcessResult result = await p.run([
       'run',
       '--enable-asserts',
       p.relativeFilePath,
@@ -322,7 +322,7 @@ void main(List<String> args) => print("$b $args");
     p = project(mainSrc: 'void main() { assert(false); }');
 
     // Any VM flags passed after the script shouldn't be interpreted by the VM.
-    ProcessResult result = p.runSync([
+    ProcessResult result = await p.run([
       'run',
       p.relativeFilePath,
       '--enable-asserts',
@@ -333,10 +333,10 @@ void main(List<String> args) => print("$b $args");
     expect(result.exitCode, 0);
   });
 
-  test('without verbose CFE info', () {
+  test('without verbose CFE info', () async {
     final p = project(mainSrc: '''void main() {}''');
 
-    var result = p.runSync(
+    var result = await p.run(
       [
         'run',
         '--verbosity=warning',
@@ -352,9 +352,9 @@ void main(List<String> args) => print("$b $args");
 
   group('DDS', () {
     group('disable', () {
-      test('dart run simple', () {
+      test('dart run simple', () async {
         p = project(mainSrc: "void main() { print('Hello World'); }");
-        ProcessResult result = p.runSync([
+        ProcessResult result = await p.run([
           'run',
           '--no-dds',
           '--enable-vm-service',
@@ -364,9 +364,9 @@ void main(List<String> args) => print("$b $args");
         expect(result.stdout, contains(observatoryMessagePrefix));
       });
 
-      test('dart simple', () {
+      test('dart simple', () async {
         p = project(mainSrc: "void main() { print('Hello World'); }");
-        ProcessResult result = p.runSync([
+        ProcessResult result = await p.run([
           '--no-dds',
           '--enable-vm-service',
           p.relativeFilePath,
@@ -377,9 +377,9 @@ void main(List<String> args) => print("$b $args");
     });
 
     group('explicit enable', () {
-      test('dart run simple', () {
+      test('dart run simple', () async {
         p = project(mainSrc: "void main() { print('Hello World'); }");
-        ProcessResult result = p.runSync([
+        ProcessResult result = await p.run([
           'run',
           '--dds',
           '--enable-vm-service',
@@ -389,9 +389,9 @@ void main(List<String> args) => print("$b $args");
         expect(result.stdout, contains(observatoryMessagePrefix));
       });
 
-      test('dart simple', () {
+      test('dart simple', () async {
         p = project(mainSrc: "void main() { print('Hello World'); }");
-        ProcessResult result = p.runSync([
+        ProcessResult result = await p.run([
           '--dds',
           '--enable-vm-service',
           p.relativeFilePath,
@@ -405,7 +405,7 @@ void main(List<String> args) => print("$b $args");
   group('DevTools', () {
     test('dart run simple', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = p.runSync([
+      ProcessResult result = await p.run([
         'run',
         '--enable-vm-service',
         p.relativeFilePath,
@@ -415,7 +415,7 @@ void main(List<String> args) => print("$b $args");
 
     test('dart simple', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = p.runSync([
+      ProcessResult result = await p.run([
         '--enable-vm-service',
         p.relativeFilePath,
       ]);
@@ -424,7 +424,7 @@ void main(List<String> args) => print("$b $args");
 
     test('dart run explicit', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = p.runSync([
+      ProcessResult result = await p.run([
         'run',
         '--serve-devtools',
         '--enable-vm-service',
@@ -435,7 +435,7 @@ void main(List<String> args) => print("$b $args");
 
     test('dart explicit', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = p.runSync([
+      ProcessResult result = await p.run([
         '--serve-devtools',
         '--enable-vm-service',
         p.relativeFilePath,
@@ -445,7 +445,7 @@ void main(List<String> args) => print("$b $args");
 
     test('dart run disabled', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = p.runSync([
+      ProcessResult result = await p.run([
         'run',
         '--enable-vm-service',
         '--no-serve-devtools',
@@ -456,7 +456,7 @@ void main(List<String> args) => print("$b $args");
 
     test('dart disabled', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = p.runSync([
+      ProcessResult result = await p.run([
         '--enable-vm-service',
         '--no-serve-devtools',
         p.relativeFilePath,
@@ -466,7 +466,7 @@ void main(List<String> args) => print("$b $args");
 
     test('dart run VM service not enabled', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = p.runSync([
+      ProcessResult result = await p.run([
         'run',
         '--serve-devtools',
         p.relativeFilePath,
@@ -476,7 +476,7 @@ void main(List<String> args) => print("$b $args");
 
     test('dart VM service not enabled', () async {
       p = project(mainSrc: "void main() { print('Hello World'); }");
-      ProcessResult result = p.runSync([
+      ProcessResult result = await p.run([
         '--serve-devtools',
         p.relativeFilePath,
       ]);

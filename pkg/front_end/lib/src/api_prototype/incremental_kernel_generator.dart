@@ -10,7 +10,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/kernel.dart'
-    show Component, Procedure, DartType, TypeParameter;
+    show Component, Library, Procedure, DartType, TypeParameter;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 
@@ -70,17 +70,13 @@ abstract class IncrementalKernelGenerator {
         component);
   }
 
-  /// Returns a component whose libraries are the recompiled libraries,
-  /// or - in the case of [fullComponent] - a full Component.
-  Future<Component> computeDelta({List<Uri>? entryPoints, bool fullComponent});
-
-  /// Returns [CoreTypes] used during compilation.
-  /// Valid after [computeDelta] is called.
-  CoreTypes? getCoreTypes();
-
-  /// Returns [ClassHierarchy] used during compilation.
-  /// Valid after [computeDelta] is called.
-  ClassHierarchy? getClassHierarchy();
+  /// Returns an [IncrementalCompilerResult] with the component whose libraries
+  /// are the recompiled libraries, or - in the case of [fullComponent] - a full
+  /// Component.
+  Future<IncrementalCompilerResult> computeDelta(
+      {List<Uri>? entryPoints,
+      bool fullComponent: false,
+      bool trackNeededDillLibraries: false});
 
   /// Remove the file associated with the given file [uri] from the set of
   /// valid files.  This guarantees that those files will be re-read on the
@@ -148,4 +144,14 @@ abstract class IncrementalKernelGenerator {
 
 bool isLegalIdentifier(String identifier) {
   return StringScanner.isLegalIdentifier(identifier);
+}
+
+class IncrementalCompilerResult {
+  final Component component;
+  final ClassHierarchy? classHierarchy;
+  final CoreTypes? coreTypes;
+  final Set<Library>? neededDillLibraries;
+
+  IncrementalCompilerResult(this.component,
+      {this.classHierarchy, this.coreTypes, this.neededDillLibraries});
 }

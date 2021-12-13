@@ -6,9 +6,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--no-enable-isolate-groups
-// VMOptions=--enable-isolate-groups
-
 import "dart:developer";
 import "dart:isolate";
 

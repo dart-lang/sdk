@@ -20,49 +20,32 @@ Message::Message(Dart_Port dest_port,
                  uint8_t* snapshot,
                  intptr_t snapshot_length,
                  MessageFinalizableData* finalizable_data,
-                 Priority priority,
-                 Dart_Port delivery_failure_port)
+                 Priority priority)
     : dest_port_(dest_port),
-      delivery_failure_port_(delivery_failure_port),
       payload_(snapshot),
       snapshot_length_(snapshot_length),
       finalizable_data_(finalizable_data),
       priority_(priority) {
-  ASSERT((priority == kNormalPriority) ||
-         (delivery_failure_port == kIllegalPort));
   ASSERT(IsSnapshot());
 }
 
-Message::Message(Dart_Port dest_port,
-                 ObjectPtr raw_obj,
-                 Priority priority,
-                 Dart_Port delivery_failure_port)
-    : dest_port_(dest_port),
-      delivery_failure_port_(delivery_failure_port),
-      payload_(raw_obj),
-      priority_(priority) {
+Message::Message(Dart_Port dest_port, ObjectPtr raw_obj, Priority priority)
+    : dest_port_(dest_port), payload_(raw_obj), priority_(priority) {
   ASSERT(!raw_obj->IsHeapObject() || raw_obj->untag()->InVMIsolateHeap());
-  ASSERT((priority == kNormalPriority) ||
-         (delivery_failure_port == kIllegalPort));
   ASSERT(IsRaw());
 }
 
 Message::Message(Dart_Port dest_port,
                  PersistentHandle* handle,
-                 Priority priority,
-                 Dart_Port delivery_failure_port)
+                 Priority priority)
     : dest_port_(dest_port),
-      delivery_failure_port_(delivery_failure_port),
       payload_(handle),
       snapshot_length_(kPersistentHandleSnapshotLen),
       priority_(priority) {
-  ASSERT((priority == kNormalPriority) ||
-         (delivery_failure_port == kIllegalPort));
   ASSERT(IsPersistentHandle());
 }
 
 Message::~Message() {
-  ASSERT(delivery_failure_port_ == kIllegalPort);
   if (IsSnapshot()) {
     free(payload_.snapshot_);
   }
@@ -72,15 +55,6 @@ Message::~Message() {
     isolate_group->api_state()->FreePersistentHandle(
         payload_.persistent_handle_);
   }
-}
-
-bool Message::RedirectToDeliveryFailurePort() {
-  if (delivery_failure_port_ == kIllegalPort) {
-    return false;
-  }
-  dest_port_ = delivery_failure_port_;
-  delivery_failure_port_ = kIllegalPort;
-  return true;
 }
 
 intptr_t Message::Id() const {
@@ -179,9 +153,6 @@ void MessageQueue::Clear() {
   tail_ = nullptr;
   while (cur != nullptr) {
     std::unique_ptr<Message> next(cur->next_);
-    if (cur->RedirectToDeliveryFailurePort()) {
-      PortMap::PostMessage(std::move(cur));
-    }
     cur = std::move(next);
   }
 }

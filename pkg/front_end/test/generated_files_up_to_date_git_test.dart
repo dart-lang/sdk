@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import "dart:io" show File, exitCode;
 
 import "../tool/_fasta/generate_messages.dart" as generateMessages;
 import "../tool/_fasta/generate_experimental_flags.dart"
     as generateExperimentalFlags;
-import "../tool/_fasta/direct_parser_ast_helper_creator.dart"
-    as generateDirectParserAstHelper;
+import "../tool/_fasta/parser_ast_helper_creator.dart"
+    as generateParserAstHelper;
 import "parser_test_listener_creator.dart" as generateParserTestListener;
 import "parser_test_parser_creator.dart" as generateParserTestParser;
 import '../tool/ast_model.dart';
@@ -47,11 +45,10 @@ void parserTestListener() {
 }
 
 void directParserAstHelper() {
-  Uri generatedFile =
-      generateDirectParserAstHelper.computeAstHelperUri(repoDir);
-  String generated = generateDirectParserAstHelper.generateAstHelper(repoDir);
+  Uri generatedFile = generateParserAstHelper.computeAstHelperUri(repoDir);
+  String generated = generateParserAstHelper.generateAstHelper(repoDir);
   check(generated, generatedFile,
-      "dart pkg/front_end/tool/_fasta/direct_parser_ast_helper_creator.dart");
+      "dart pkg/front_end/tool/_fasta/parser_ast_helper_creator.dart");
 }
 
 Future<void> astEquivalence(AstModel astModel) async {

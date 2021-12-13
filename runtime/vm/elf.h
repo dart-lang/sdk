@@ -5,13 +5,29 @@
 #ifndef RUNTIME_VM_ELF_H_
 #define RUNTIME_VM_ELF_H_
 
+#include "platform/globals.h"
+
+#if defined(DART_PRECOMPILER)
 #include "vm/allocation.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/datastream.h"
 #include "vm/growable_array.h"
 #include "vm/zone.h"
+#endif
 
 namespace dart {
+
+// The max page size on all supported architectures. Used to determine
+// the alignment of load segments, so that they are guaranteed page-aligned,
+// and no ELF section or segment should have a larger alignment.
+#if defined(DART_TARGET_OS_LINUX) && defined(TARGET_ARCH_ARM64)
+// Some Linux distributions on ARM64 select 64 KB page size.
+// Follow LLVM (https://reviews.llvm.org/D25079) and set maximum page size
+// to 64 KB for ARM64 Linux builds.
+static constexpr intptr_t kElfPageSize = 64 * KB;
+#else
+static constexpr intptr_t kElfPageSize = 16 * KB;
+#endif
 
 #if defined(DART_PRECOMPILER)
 
@@ -33,10 +49,7 @@ class Elf : public ZoneAllocated {
 
   Elf(Zone* zone, BaseWriteStream* stream, Type type, Dwarf* dwarf = nullptr);
 
-  // The max page size on all supported architectures. Used to determine
-  // the alignment of load segments, so that they are guaranteed page-aligned,
-  // and no ELF section or segment should have a larger alignment.
-  static constexpr intptr_t kPageSize = 16 * KB;
+  static constexpr intptr_t kPageSize = kElfPageSize;
 
   bool IsStripped() const { return dwarf_ == nullptr; }
 

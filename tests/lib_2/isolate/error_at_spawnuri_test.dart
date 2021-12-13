@@ -4,13 +4,9 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 library error_at_spawnuri;
 
 import "dart:isolate";
-import "dart:async";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 

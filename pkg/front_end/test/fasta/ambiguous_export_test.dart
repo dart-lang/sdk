@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
@@ -34,7 +32,7 @@ Future<void> main() async {
           await c.options.getUriTranslator(), c.options.target);
       target.loader.appendLibraries(component);
       DillLibraryBuilder builder = target.loader.read(library.importUri, -1);
-      await target.loader.buildOutline(builder);
+      target.loader.buildOutline(builder);
       builder.markAsReadyToFinalizeExports();
       var mainExport =
           builder.exportScope.lookupLocalMember("main", setter: false);

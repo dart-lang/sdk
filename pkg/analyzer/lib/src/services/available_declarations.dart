@@ -504,6 +504,10 @@ class DeclarationsTracker {
   /// The list of changed file paths.
   final List<String> _changedPaths = [];
 
+  /// While processing [_changedPaths] we accumulate libraries here.
+  /// Then we process all of them at once, and reset to the empty set.
+  Set<_File> _invalidatedLibraries = {};
+
   /// The list of files scheduled for processing.  It may include parts and
   /// libraries, but parts are ignored when we detect them.
   final List<_ScheduledFile> _scheduledFiles = [];
@@ -529,7 +533,9 @@ class DeclarationsTracker {
       _whenKnownFilesPulled = now;
       pullKnownFiles();
     }
-    return _changedPaths.isNotEmpty || _scheduledFiles.isNotEmpty;
+    return _changedPaths.isNotEmpty ||
+        _invalidatedLibraries.isNotEmpty ||
+        _scheduledFiles.isNotEmpty;
   }
 
   /// Add the [analysisContext], so that its libraries are reported via the
@@ -593,6 +599,13 @@ class DeclarationsTracker {
       var path = _changedPaths.removeLast();
       _performChangeFile(path);
       return;
+    }
+
+    // There are no more changes as far as we know.
+    // So, recompute exported declarations for all invalidated libraries.
+    if (_invalidatedLibraries.isNotEmpty) {
+      _processInvalidatedLibraries(_invalidatedLibraries);
+      _invalidatedLibraries = {};
     }
 
     if (_scheduledFiles.isNotEmpty) {
@@ -794,10 +807,32 @@ class DeclarationsTracker {
         _invalidateExportedDeclarations(invalidatedLibraries, newLibrary);
       }
     }
-    _computeExportedDeclarations(invalidatedLibraries);
 
-    var changedLibraries = <Library>[];
+    // Don't compute exported declarations now, there might be more changes.
+    // Instead, accumulate invalidated libraries, and recompute all later.
+    _invalidatedLibraries.addAll(invalidatedLibraries);
+
     var removedLibraries = <int>[];
+    for (var libraryFile in invalidatedLibraries) {
+      if (!libraryFile.exists) {
+        _idToLibrary.remove(libraryFile.id);
+        removedLibraries.add(libraryFile.id);
+      }
+    }
+    for (var file in notLibraries) {
+      _idToLibrary.remove(file.id);
+      removedLibraries.add(file.id);
+    }
+    if (removedLibraries.isNotEmpty) {
+      _changesController.add(
+        LibraryChange._([], removedLibraries),
+      );
+    }
+  }
+
+  void _processInvalidatedLibraries(Set<_File> invalidatedLibraries) {
+    _computeExportedDeclarations(invalidatedLibraries);
+    var changedLibraries = <Library>[];
     for (var libraryFile in invalidatedLibraries) {
       if (libraryFile.exists) {
         var library = Library._(
@@ -809,17 +844,10 @@ class DeclarationsTracker {
         );
         _idToLibrary[library.id] = library;
         changedLibraries.add(library);
-      } else {
-        _idToLibrary.remove(libraryFile.id);
-        removedLibraries.add(libraryFile.id);
       }
     }
-    for (var file in notLibraries) {
-      _idToLibrary.remove(file.id);
-      removedLibraries.add(file.id);
-    }
     _changesController.add(
-      LibraryChange._(changedLibraries, removedLibraries),
+      LibraryChange._(changedLibraries, []),
     );
   }
 

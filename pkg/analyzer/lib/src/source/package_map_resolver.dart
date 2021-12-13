@@ -37,6 +37,22 @@ class PackageMapUriResolver extends UriResolver {
   }
 
   @override
+  Uri? pathToUri(String path) {
+    pathos.Context pathContext = resourceProvider.pathContext;
+    for (String pkgName in packageMap.keys) {
+      Folder pkgFolder = packageMap[pkgName]![0];
+      String pkgFolderPath = pkgFolder.path;
+      if (path.startsWith(pkgFolderPath + pathContext.separator)) {
+        String relPath = path.substring(pkgFolderPath.length + 1);
+        List<String> relPathComponents = pathContext.split(relPath);
+        String relUriPath = pathos.posix.joinAll(relPathComponents);
+        return Uri.parse('$PACKAGE_SCHEME:$pkgName/$relUriPath');
+      }
+    }
+    return null;
+  }
+
+  @override
   Source? resolveAbsolute(Uri uri) {
     if (!isPackageUri(uri)) {
       return null;
@@ -57,23 +73,6 @@ class PackageMapUriResolver extends UriResolver {
       String relPath = pathSegments.skip(1).join('/');
       File file = packageDir.getChildAssumingFile(relPath);
       return file.createSource(uri);
-    }
-    return null;
-  }
-
-  @override
-  Uri? restoreAbsolute(Source source) {
-    String sourcePath = source.fullName;
-    pathos.Context pathContext = resourceProvider.pathContext;
-    for (String pkgName in packageMap.keys) {
-      Folder pkgFolder = packageMap[pkgName]![0];
-      String pkgFolderPath = pkgFolder.path;
-      if (sourcePath.startsWith(pkgFolderPath + pathContext.separator)) {
-        String relPath = sourcePath.substring(pkgFolderPath.length + 1);
-        List<String> relPathComponents = pathContext.split(relPath);
-        String relUriPath = pathos.posix.joinAll(relPathComponents);
-        return Uri.parse('$PACKAGE_SCHEME:$pkgName/$relUriPath');
-      }
     }
     return null;
   }

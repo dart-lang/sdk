@@ -29,18 +29,21 @@ class StringSource extends Source {
   TimestampedData<String> get contents =>
       TimestampedData(modificationStamp, _contents);
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => uri.toString();
 
   @override
   int get hashCode => _contents.hashCode ^ fullName.hashCode;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => false;
 
   @override
   String get shortName => fullName;
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind => UriKind.FILE_URI;
 

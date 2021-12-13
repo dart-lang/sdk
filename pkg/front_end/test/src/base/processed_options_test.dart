@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
@@ -36,7 +34,7 @@ class ProcessedOptionsTest {
   MemoryFileSystem fileSystem =
       new MemoryFileSystem(Uri.parse('org-dartlang-test:///'));
 
-  Component _mockOutline;
+  Component? _mockOutline;
 
   Component get mockSummary => _mockOutline ??= new Component(libraries: [
         new Library(Uri.parse('org-dartlang-test:///a/b.dart'),
@@ -87,7 +85,7 @@ class ProcessedOptionsTest {
       ..sdkSummary = uri;
     var processed = new ProcessedOptions(options: raw);
 
-    var bytes = await processed.loadSdkSummaryBytes();
+    var bytes = (await processed.loadSdkSummaryBytes())!;
     expect(bytes, isNotEmpty);
 
     var sdkSummary = loadComponentFromBytes(bytes);
@@ -111,7 +109,8 @@ class ProcessedOptionsTest {
 
   Future<Null> checkMockSummary(CompilerOptions raw) async {
     var processed = new ProcessedOptions(options: raw);
-    var sdkSummary = await processed.loadSdkSummary(new CanonicalName.root());
+    var sdkSummary =
+        (await processed.loadSdkSummary(new CanonicalName.root()))!;
     expect(sdkSummary.libraries.single.importUri,
         mockSummary.libraries.single.importUri);
   }
@@ -130,7 +129,7 @@ class ProcessedOptionsTest {
           Uri.parse('org-dartlang-test:///libraries.json');
     var processed = new ProcessedOptions(options: raw);
     var uriTranslator = await processed.getUriTranslator();
-    expect(uriTranslator.dartLibraries.libraryInfoFor('foo').uri.path,
+    expect(uriTranslator.dartLibraries.libraryInfoFor('foo')!.uri.path,
         '/bar.dart');
   }
 
@@ -149,7 +148,7 @@ class ProcessedOptionsTest {
       ..sdkRoot = Uri.parse('org-dartlang-test:///mysdk/');
     var processed = new ProcessedOptions(options: raw);
     var uriTranslator = await processed.getUriTranslator();
-    expect(uriTranslator.dartLibraries.libraryInfoFor('foo').uri.path,
+    expect(uriTranslator.dartLibraries.libraryInfoFor('foo')!.uri.path,
         '/mysdk/lib/bar.dart');
   }
 

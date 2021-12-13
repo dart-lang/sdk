@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -36,7 +34,7 @@ class NullabilityDataComputer extends DataComputer<String> {
       InternalCompilerResult compilerResult,
       Member member,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     member.accept(new NullabilityDataExtractor(compilerResult, actualMap));
   }
 }
@@ -47,10 +45,10 @@ class NullabilityDataExtractor extends CfeDataExtractor<String> {
       : super(compilerResult, actualMap);
 
   @override
-  String computeNodeValue(Id id, TreeNode node) {
+  String? computeNodeValue(Id id, TreeNode node) {
     if (node is VariableGet && node.promotedType != null) {
       if (node.variable.type.nullability != Nullability.nonNullable &&
-          node.promotedType.nullability == Nullability.nonNullable) {
+          node.promotedType!.nullability == Nullability.nonNullable) {
         return 'nonNullable';
       }
     }

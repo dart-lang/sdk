@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
@@ -17,7 +18,6 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
 import 'package:analyzer/src/dart/micro/library_analyzer.dart';
@@ -46,19 +46,20 @@ const memoryCacheSize = 200 * M;
 
 class CiderSearchMatch {
   final String path;
-  final List<int> offsets;
+  final List<CharacterLocation?> startPositions;
 
-  CiderSearchMatch(this.path, this.offsets);
+  CiderSearchMatch(this.path, this.startPositions);
 
   @override
   bool operator ==(Object object) =>
       object is CiderSearchMatch &&
       path == object.path &&
-      const ListEquality<int>().equals(offsets, object.offsets);
+      const ListEquality<CharacterLocation?>()
+          .equals(startPositions, object.startPositions);
 
   @override
   String toString() {
-    return '($path, $offsets)';
+    return '($path, $startPositions)';
   }
 }
 
@@ -184,29 +185,46 @@ class FileResolver {
     removedCacheIds.addAll(libraryContext!.collectSharedDataIdentifiers());
   }
 
-  /// Looks for references to the Element at the given offset and path. All the
-  /// files currently cached by the resolver are searched, generated files are
-  /// ignored.
-  List<CiderSearchMatch> findReferences(int offset, String path,
+  /// Looks for references to the given Element. All the files currently
+  ///  cached by the resolver are searched, generated files are ignored.
+  List<CiderSearchMatch> findReferences(Element element,
       {OperationPerformanceImpl? performance}) {
-    var references = <CiderSearchMatch>[];
-    var unit = resolve(path: path);
-    var node = NodeLocator(offset).searchWithin(unit.unit);
-    var element = getElementOfNode(node);
-    if (element != null) {
+    return logger.run('findReferences for ${element.name}', () {
+      var references = <CiderSearchMatch>[];
+
+      void collectReferences(
+          String path, OperationPerformanceImpl performance) {
+        performance.run('collectReferences', (_) {
+          var resolved = resolve(path: path);
+          var collector = ReferencesCollector(element);
+          resolved.unit.accept(collector);
+          var offsets = collector.offsets;
+          if (offsets.isNotEmpty) {
+            var lineInfo = resolved.unit.lineInfo;
+            references.add(CiderSearchMatch(
+                path,
+                offsets
+                    .map((offset) => lineInfo?.getLocation(offset))
+                    .toList()));
+          }
+        });
+      }
+
+      performance ??= OperationPerformanceImpl('<default>');
       // TODO(keertip): check if element is named constructor.
-      var result = fsState!.getFilesContaining(element.displayName);
-      result.forEach((filePath) {
-        var resolved = resolve(path: filePath);
-        var collector = ReferencesCollector(element);
-        resolved.unit.accept(collector);
-        var offsets = collector.offsets;
-        if (offsets.isNotEmpty) {
-          references.add(CiderSearchMatch(filePath, offsets));
-        }
-      });
-    }
-    return references;
+      if (element is LocalVariableElement ||
+          (element is ParameterElement && !element.isNamed)) {
+        collectReferences(element.source!.fullName, performance!);
+      } else {
+        var result = performance!.run('getFilesContaining', (performance) {
+          return fsState!.getFilesContaining(element.displayName);
+        });
+        result.forEach((filePath) {
+          collectReferences(filePath, performance!);
+        });
+      }
+      return references;
+    });
   }
 
   ErrorsResult getErrors({
@@ -635,6 +653,7 @@ class FileResolver {
         return file;
       }
     }
+    return null;
   }
 
   /// Return the analysis options.

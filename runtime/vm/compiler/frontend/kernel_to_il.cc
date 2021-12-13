@@ -347,7 +347,8 @@ Fragment FlowGraphBuilder::InstanceCall(
     const InferredTypeMetadata* result_type,
     bool use_unchecked_entry,
     const CallSiteAttributesMetadata* call_site_attrs,
-    bool receiver_is_not_smi) {
+    bool receiver_is_not_smi,
+    bool is_call_on_this) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   InputsArray* arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z) InstanceCallInstr(
@@ -359,6 +360,9 @@ Fragment FlowGraphBuilder::InstanceCall(
   }
   if (use_unchecked_entry) {
     call->set_entry_kind(Code::EntryKind::kUnchecked);
+  }
+  if (is_call_on_this) {
+    call->mark_as_call_on_this();
   }
   if (call_site_attrs != nullptr && call_site_attrs->receiver_type != nullptr &&
       call_site_attrs->receiver_type->IsInstantiated()) {
@@ -864,6 +868,16 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStorePointer:
     case MethodRecognizer::kFfiFromAddress:
     case MethodRecognizer::kFfiGetAddress:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt8:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt16:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt32:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt64:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint8:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint16:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint32:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint64:
+    case MethodRecognizer::kFfiAsExternalTypedDataFloat:
+    case MethodRecognizer::kFfiAsExternalTypedDataDouble:
     case MethodRecognizer::kGetNativeField:
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
@@ -1545,6 +1559,50 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Constant(Bool::False());
 #endif  // defined(ARCH_IS_64_BIT)
     } break;
+    case MethodRecognizer::kFfiAsExternalTypedDataInt8:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt16:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt32:
+    case MethodRecognizer::kFfiAsExternalTypedDataInt64:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint8:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint16:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint32:
+    case MethodRecognizer::kFfiAsExternalTypedDataUint64:
+    case MethodRecognizer::kFfiAsExternalTypedDataFloat:
+    case MethodRecognizer::kFfiAsExternalTypedDataDouble: {
+      const classid_t ffi_type_arg_cid =
+          compiler::ffi::RecognizedMethodTypeArgCid(kind);
+      const classid_t external_typed_data_cid =
+          compiler::ffi::ElementExternalTypedDataCid(ffi_type_arg_cid);
+
+      auto class_table = thread_->isolate_group()->class_table();
+      ASSERT(class_table->HasValidClassAt(external_typed_data_cid));
+      const auto& typed_data_class =
+          Class::ZoneHandle(H.zone(), class_table->At(external_typed_data_cid));
+
+      // We assume that the caller has checked that the arguments are non-null
+      // and length is in the range [0, kSmiMax/elementSize].
+      ASSERT_EQUAL(function.NumParameters(), 2);
+      LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
+      LocalVariable* arg_length = parsed_function_->RawParameterVariable(1);
+
+      body += AllocateObject(TokenPosition::kNoSource, typed_data_class, 0);
+      LocalVariable* typed_data_object = MakeTemporary();
+
+      // Initialize the result's length field.
+      body += LoadLocal(typed_data_object);
+      body += LoadLocal(arg_length);
+      body += StoreNativeField(Slot::TypedDataBase_length(),
+                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               kNoStoreBarrier);
+
+      // Initialize the result's data pointer field.
+      body += LoadLocal(typed_data_object);
+      body += LoadLocal(arg_pointer);
+      body += LoadNativeField(Slot::Pointer_data_field());
+      body += StoreNativeField(Slot::TypedDataBase_data_field(),
+                               StoreInstanceFieldInstr::Kind::kInitializing,
+                               kNoStoreBarrier);
+    } break;
     case MethodRecognizer::kGetNativeField: {
       auto& name = String::ZoneHandle(Z, function.name());
       // Note: This method is force optimized so we can push untagged, etc.
@@ -1769,7 +1827,7 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
   if (auto const alloc = definition->AsAllocateClosure()) {
     return !alloc->known_function().IsNull();
   }
-  return definition->IsLoadLocal();
+  return definition->IsLoadLocal() || definition->IsAssertAssignable();
 }
 
 Fragment FlowGraphBuilder::EvaluateAssertion() {
@@ -3083,7 +3141,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   if (is_closure_call) {
     body += LoadLocal(closure);
-    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+    if (!FLAG_precompiled_mode) {
       // Lookup the function in the closure.
       body += LoadNativeField(Slot::Closure_function());
     }
@@ -4430,7 +4488,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   Fragment function_body(instruction_cursor);
   function_body += CheckStackOverflowInPrologue(function.token_pos());
 
-  const auto& marshaller = *new (Z) compiler::ffi::CallMarshaller(Z, function);
+  const char* error = nullptr;
+  const auto marshaller_ptr =
+      compiler::ffi::CallMarshaller::FromFunction(Z, function, &error);
+  RELEASE_ASSERT(error == nullptr);
+  RELEASE_ASSERT(marshaller_ptr != nullptr);
+  const auto& marshaller = *marshaller_ptr;
 
   const bool signature_contains_handles = marshaller.ContainsHandles();
 
@@ -4576,8 +4639,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
-  const auto& marshaller =
-      *new (Z) compiler::ffi::CallbackMarshaller(Z, function);
+  const char* error = nullptr;
+  const auto marshaller_ptr =
+      compiler::ffi::CallbackMarshaller::FromFunction(Z, function, &error);
+  RELEASE_ASSERT(error == nullptr);
+  RELEASE_ASSERT(marshaller_ptr != nullptr);
+  const auto& marshaller = *marshaller_ptr;
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);

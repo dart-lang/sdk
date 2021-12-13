@@ -42,8 +42,15 @@ void main() {
       final availableCaches = await service.getAvailableCachedCpuSamples();
       expect(availableCaches.cacheNames.length, 0);
 
-      final isolate = (await service.getVM()).isolates!.first;
-
+      IsolateRef isolate;
+      while (true) {
+        final vm = await service.getVM();
+        if (vm.isolates!.isNotEmpty) {
+          isolate = vm.isolates!.first;
+          break;
+        }
+        await Future.delayed(const Duration(seconds: 1));
+      }
       try {
         await service.getCachedCpuSamples(isolate.id!, 'Fake');
         fail('Invalid userTag did not cause an exception');
@@ -73,7 +80,18 @@ void main() {
       expect(availableCaches.cacheNames.length, 1);
       expect(availableCaches.cacheNames.first, kUserTag);
 
-      final isolate = (await service.getVM()).isolates!.first;
+      IsolateRef isolate;
+      while (true) {
+        final vm = await service.getVM();
+        if (vm.isolates!.isNotEmpty) {
+          isolate = vm.isolates!.first;
+          isolate = await service.getIsolate(isolate.id!);
+          if ((isolate as Isolate).runnable!) {
+            break;
+          }
+        }
+        await Future.delayed(const Duration(seconds: 1));
+      }
 
       final completer = Completer<void>();
       int i = 0;

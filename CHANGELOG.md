@@ -1,3 +1,41 @@
+## 2.16.0
+
+### Core libraries
+
+#### `dart:core`
+
+- **Breaking Change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
+  On Windows, `Directory.rename` will no longer delete a directory if
+  `newPath` specifies one. Instead, a `FileSystemException` will be thrown.
+
+- Add `Error.throwWithStackTrace` which can `throw` an
+  error with an existing stack trace, instead of creating
+  a new stack trace.
+
+### Tools
+
+#### Dart command line
+
+- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dartanalyzer` tool has been
+  marked deprecated as previously announced.
+  Its replacement is the `dart analyze` command.
+  Should you find any issues, or missing features, in the replacement
+  command, kindly file [an issue][].
+
+[an issue]: https://github.com/dart-lang/sdk/issues/new
+
+#### Linter
+
+Updated the Linter to `1.15.0`, which includes changes that
+- adds new lint: `use_decorated_box`.
+- adds new lint: `no_leading_underscores_for_library_prefixes`.
+- adds new lint: `no_leading_underscores_for_local_identifiers`.
+- adds new lint: `secure_pubspec_urls`.
+- adds new lint: `sized_box_shrink_expand`.
+- adds new lint: `avoid_final_parameters`.
+- improves docs for `omit_local_variable_types`.
+
 ## 2.15.0
 
 ### Language

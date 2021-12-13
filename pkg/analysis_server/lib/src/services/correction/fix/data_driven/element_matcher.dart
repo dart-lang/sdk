@@ -342,20 +342,27 @@ class ElementMatcher {
           // If the old class has been removed then this might have been a
           // constructor invocation.
           ElementKind.constructorKind,
+          ElementKind.functionKind, // tear-off
           ElementKind.getterKind,
           ElementKind.setterKind,
           ElementKind.variableKind
         ];
       }
       return const [
+        ElementKind.constantKind,
         ElementKind.fieldKind,
+        ElementKind.functionKind, // tear-off
         ElementKind.getterKind,
+        ElementKind.methodKind, // tear-off
         ElementKind.setterKind
       ];
     } else if (node is PropertyAccess) {
       return const [
+        ElementKind.constantKind,
         ElementKind.fieldKind,
+        ElementKind.functionKind, // tear-off, prefixed
         ElementKind.getterKind,
+        ElementKind.methodKind, // tear-off, prefixed
         ElementKind.setterKind
       ];
     } else if (node is SimpleIdentifier) {

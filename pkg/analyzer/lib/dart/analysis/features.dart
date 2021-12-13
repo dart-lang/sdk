@@ -23,6 +23,9 @@ abstract class Feature {
   static final control_flow_collections =
       ExperimentalFeatures.control_flow_collections;
 
+  /// Feature information for enhanced enums.
+  static final enhanced_enums = ExperimentalFeatures.enhanced_enums;
+
   /// Feature information for extension methods.
   static final extension_methods = ExperimentalFeatures.extension_methods;
 
@@ -37,6 +40,9 @@ abstract class Feature {
 
   /// Feature information for set literals.
   static final set_literals = ExperimentalFeatures.set_literals;
+
+  /// Feature information for super parameters.
+  static final super_parameters = ExperimentalFeatures.super_parameters;
 
   /// Feature information for the triple-shift operator.
   static final triple_shift = ExperimentalFeatures.triple_shift;

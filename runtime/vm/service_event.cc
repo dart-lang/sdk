@@ -20,7 +20,9 @@ ServiceEvent::ServiceEvent(IsolateGroup* isolate_group, EventKind event_kind)
     : ServiceEvent(isolate_group, nullptr, event_kind) {}
 
 ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
-    : ServiceEvent(isolate->group(), isolate, event_kind) {}
+    : ServiceEvent(isolate != nullptr ? isolate->group() : nullptr,
+                   isolate,
+                   event_kind) {}
 
 ServiceEvent::ServiceEvent(IsolateGroup* isolate_group,
                            Isolate* isolate,
@@ -307,7 +309,8 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
 
   if (kind() == kCpuSamples) {
     JSONObject cpu_profile(&jsobj, "cpuSamples");
-    cpu_profile_->PrintProfileJSON(&cpu_profile, false);
+    cpu_profile_->PrintProfileJSON(&cpu_profile, /*include_code_samples=*/false,
+                                   /*is_event=*/true);
   }
 }
 

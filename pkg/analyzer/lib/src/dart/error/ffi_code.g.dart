@@ -18,6 +18,34 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  static const FfiCode ABI_SPECIFIC_INTEGER_MAPPING_EXTRA = FfiCode(
+    'ABI_SPECIFIC_INTEGER_MAPPING_EXTRA',
+    "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a 'NativeType' integer with a fixed size.",
+    correctionMessage: "Try removing the extra annotation.",
+  );
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode ABI_SPECIFIC_INTEGER_MAPPING_MISSING = FfiCode(
+    'ABI_SPECIFIC_INTEGER_MAPPING_MISSING',
+    "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a 'NativeType' integer with a fixed size.",
+    correctionMessage: "Try adding an annotation.",
+  );
+
+  /**
+   * No parameters.
+   */
+  static const FfiCode ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED = FfiCode(
+    'ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED',
+    "Only mappings to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', and 'Uint64' are supported.",
+    correctionMessage:
+        "Try changing the value to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', 'Uint16', 'UInt32', or 'Uint64'.",
+  );
+
+  /**
+   * No parameters.
+   */
   static const FfiCode ANNOTATION_ON_POINTER_FIELD = FfiCode(
     'ANNOTATION_ON_POINTER_FIELD',
     "Fields in a struct class whose type is 'Pointer' should not have any annotations.",
@@ -302,9 +330,9 @@ class FfiCode extends AnalyzerErrorCode {
    */
   static const FfiCode NON_SIZED_TYPE_ARGUMENT = FfiCode(
     'NON_SIZED_TYPE_ARGUMENT',
-    "Type arguments to '{0}' can't have the type '{1}'. They can only be declared as native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct' or 'Union'.",
+    "Type arguments to '{0}' can't have the type '{1}'. They can only be declared as native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.",
     correctionMessage:
-        "Try using a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct' or 'Union'.",
+        "Try using a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'.",
   );
 
   /**

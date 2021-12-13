@@ -66,40 +66,6 @@ GlobalTypeInferenceResults deserializeGlobalTypeInferenceResultsFromSource(
       closedWorld.elementMap, closedWorld, globalLocalsMap, inferredData);
 }
 
-void serializeGlobalTypeInferenceResultsToSinkLegacy(
-    GlobalTypeInferenceResults results, DataSink sink) {
-  JsClosedWorld closedWorld = results.closedWorld;
-  GlobalLocalsMap globalLocalsMap = results.globalLocalsMap;
-  InferredData inferredData = results.inferredData;
-  closedWorld.writeToDataSink(sink);
-  globalLocalsMap.writeToDataSink(sink);
-  inferredData.writeToDataSink(sink);
-  results.writeToDataSink(sink, closedWorld.elementMap);
-  sink.close();
-}
-
-GlobalTypeInferenceResults
-    deserializeGlobalTypeInferenceResultsFromSourceLegacy(
-        CompilerOptions options,
-        DiagnosticReporter reporter,
-        Environment environment,
-        AbstractValueStrategy abstractValueStrategy,
-        ir.Component component,
-        DataSource source) {
-  JsClosedWorld newClosedWorld = JsClosedWorld.readFromDataSource(
-      options, reporter, environment, abstractValueStrategy, component, source);
-  GlobalLocalsMap newGlobalLocalsMap = GlobalLocalsMap.readFromDataSource(
-      newClosedWorld.closureDataLookup.getEnclosingMember, source);
-  InferredData newInferredData =
-      InferredData.readFromDataSource(source, newClosedWorld);
-  return GlobalTypeInferenceResults.readFromDataSource(
-      source,
-      newClosedWorld.elementMap,
-      newClosedWorld,
-      newGlobalLocalsMap,
-      newInferredData);
-}
-
 void serializeClosedWorldToSink(JsClosedWorld closedWorld, DataSink sink) {
   closedWorld.writeToDataSink(sink);
   sink.close();
@@ -321,39 +287,6 @@ class SerializationTask extends CompilerTask {
     });
   }
 
-  // TODO(joshualitt) get rid of legacy functions after Google3 roll.
-  void serializeGlobalTypeInferenceLegacy(GlobalTypeInferenceResults results) {
-    JsClosedWorld closedWorld = results.closedWorld;
-    ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
-    serializeComponent(component);
-
-    measureSubtask('serialize data', () {
-      _reporter.log('Writing data to ${_options.writeDataUri}');
-      api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(_options.writeDataUri);
-      DataSink sink = BinarySink(BinaryOutputSinkAdapter(dataOutput));
-      serializeGlobalTypeInferenceResultsToSinkLegacy(results, sink);
-    });
-  }
-
-  Future<GlobalTypeInferenceResults> deserializeGlobalTypeInferenceLegacy(
-      Environment environment,
-      AbstractValueStrategy abstractValueStrategy) async {
-    ir.Component component = await deserializeComponentAndUpdateOptions();
-
-    return await measureIoSubtask('deserialize data', () async {
-      _reporter.log('Reading data from ${_options.readDataUri}');
-      api.Input<List<int>> dataInput = await _provider
-          .readFromUri(_options.readDataUri, inputKind: api.InputKind.binary);
-      DataSource source =
-          BinarySourceImpl(dataInput.data, stringInterner: _stringInterner);
-      return deserializeGlobalTypeInferenceResultsFromSourceLegacy(_options,
-          _reporter, environment, abstractValueStrategy, component, source);
-    });
-  }
-
-  // TODO(joshualitt): Investigate whether closed world indices can be shared
-  // with codegen.
   void serializeCodegen(BackendStrategy backendStrategy,
       CodegenResults codegenResults, DataSourceIndices indices) {
     GlobalTypeInferenceResults globalTypeInferenceResults =

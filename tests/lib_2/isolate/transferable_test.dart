@@ -4,9 +4,8 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy
-// VMOptions=--no-enable-isolate-groups
+// VMOptions=--no-enable-fast-object-copy
+// VMOptions=--enable-fast-object-copy
 
 import "dart:async";
 import "dart:collection";

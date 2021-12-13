@@ -94,7 +94,6 @@ static void PrecompilationModeHandler(bool value) {
 
     FLAG_background_compilation = false;
     FLAG_enable_mirrors = false;
-    FLAG_fields_may_be_reset = true;
     FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
     FLAG_link_natives_lazily = true;
@@ -212,7 +211,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   ASSERT(thread->IsMutatorThread());
   const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
 
-  if (FLAG_enable_isolate_groups) {
+  {
     // Another isolate's mutator thread may have created [function] and
     // published it via an ICData, MegamorphicCache etc. Entering the lock below
     // is an acquire operation that pairs with the release operation when the
@@ -220,12 +219,6 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
     // [function] are visible in the current thread.
     SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   }
-
-  // In single-isolate scenarios the lazy compile stub is only invoked if
-  // there's no existing code. In multi-isolate scenarios with shared JITed code
-  // we can end up in the lazy compile runtime entry here with code being
-  // installed.
-  ASSERT(!function.HasCode() || FLAG_enable_isolate_groups);
 
   // Will throw if compilation failed (e.g. with compile-time error).
   function.EnsureHasCode();
@@ -511,6 +504,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       CompilerState compiler_state(thread(), /*is_aot=*/false, optimized(),
                                    CompilerState::ShouldTrace(function));
+      compiler_state.set_function(function);
 
       {
         // Extract type feedback before the graph is built, as the graph
@@ -584,10 +578,9 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           &speculative_policy, pass_state.inline_id_to_function,
           pass_state.inline_id_to_token_pos, pass_state.caller_inline_id,
           ic_data_array);
-      {
-        TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
-        graph_compiler.CompileGraph();
-      }
+      pass_state.graph_compiler = &graph_compiler;
+      CompilerPass::GenerateCode(&pass_state);
+
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
 

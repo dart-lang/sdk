@@ -1,8 +1,8 @@
 include: package:lints/recommended.yaml
 
 analyzer:
-  strong-mode:
-    implicit-casts: false
+  language:
+    strict-casts: true
   errors:
     todo: ignore
     avoid_function_literals_in_foreach_calls: ignore

@@ -3741,7 +3741,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Restore pool pointer.
   int64_t code =
       *reinterpret_cast<int64_t*>(fp + kPcMarkerSlotFromFp * kWordSize);
-  int64_t pp = (FLAG_precompiled_mode && FLAG_use_bare_instructions)
+  int64_t pp = FLAG_precompiled_mode
                    ? static_cast<int64_t>(thread->global_object_pool())
                    : *reinterpret_cast<int64_t*>(
                          code + Code::object_pool_offset() - kHeapObjectTag);
@@ -3752,7 +3752,7 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
       NULL, HEAP_BITS,
       (thread->write_barrier_mask() << 32) | (thread->heap_base() >> 32));
   set_register(NULL, NULL_REG, static_cast<int64_t>(Object::null()));
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     set_register(NULL, DISPATCH_TABLE_REG,
                  reinterpret_cast<int64_t>(thread->dispatch_table_array()));
   }

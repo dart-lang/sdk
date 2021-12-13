@@ -36,10 +36,11 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   // CodeAction class).
   final codeActionPriorities = Expando<int>();
 
-  /// A comparator that can be used to sort [CodeActions]s using priorties
-  /// in [codeActionPriorities]. The highest number priority will be sorted
-  /// before lower number priorityies. Items with the same relevance are sorted
-  /// alphabetically by their title.
+  /// A comparator that can be used to sort [CodeActions]s using priorities
+  /// in [codeActionPriorities].
+  ///
+  /// The highest number priority will be sorted before lower number priorities.
+  /// Items with the same priority are sorted alphabetically by their title.
   late final Comparator<CodeAction> _codeActionComparator =
       (CodeAction a, CodeAction b) {
     // We should never be sorting actions without priorities.

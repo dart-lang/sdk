@@ -7,6 +7,7 @@ import 'dart:io' as io;
 
 import 'package:analysis_server_client/protocol.dart' hide AnalysisError;
 import 'package:intl/intl.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../analysis_server.dart';
@@ -25,6 +26,12 @@ class FixCommand extends DartdevCommand {
 This tool looks for and fixes analysis issues that have associated automated fixes.
 
 To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed changes for a project, or ['dart fix --apply'] to apply the changes.''';
+
+  /// The maximum number of times that fixes will be requested from the server.
+  static const maxPasses = 4;
+
+  /// A map from the absolute path of a file to the updated content of the file.
+  final Map<String, String> fileContentCache = {};
 
   FixCommand({bool verbose = false}) : super(cmdName, cmdDescription, verbose) {
     argParser.addFlag('dry-run',
@@ -86,7 +93,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     var modeText = dryRun ? ' (dry run)' : '';
 
     final projectName = path.basename(dirPath);
-    var progress = log.progress(
+    var computeFixesProgress = log.progress(
         'Computing fixes in ${log.ansi.emphasized(projectName)}$modeText');
 
     var server = AnalysisServer(
@@ -99,53 +106,60 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
     await server.start();
 
-    EditBulkFixesResult fixes;
     server.onExit.then((int exitCode) {
-      if (fixes == null && exitCode != 0) {
-        progress?.cancel();
+      if (computeFixesProgress != null && exitCode != 0) {
+        computeFixesProgress?.cancel();
+        computeFixesProgress = null;
         io.exitCode = exitCode;
       }
     });
 
-    fixes = await server.requestBulkFixes(dirPath, inTestMode);
-    final List<SourceFileEdit> edits = fixes.edits;
+    Future<Map<String, BulkFix>> _applyAllEdits() async {
+      var detailsMap = <String, BulkFix>{};
+      List<SourceFileEdit> edits;
+      var pass = 0;
+      do {
+        var fixes = await server.requestBulkFixes(dirPath, inTestMode);
+        _mergeDetails(detailsMap, fixes.details);
+        edits = fixes.edits;
+        _applyEdits(server, edits);
+        pass++;
+        // TODO(brianwilkerson) Be more intelligent about detecting infinite
+        //  loops so that we can increase [maxPasses].
+      } while (pass < maxPasses && edits.isNotEmpty);
+      return detailsMap;
+    }
 
+    var detailsMap = await _applyAllEdits();
     await server.shutdown();
 
-    progress.finish(showTiming: true);
+    if (computeFixesProgress != null) {
+      computeFixesProgress.finish(showTiming: true);
+      computeFixesProgress = null;
+    }
 
     if (inTestMode) {
-      var result = _compareFixesInDirectory(dir, edits);
+      var result = _compareFixesInDirectory(dir);
       log.stdout('Passed: ${result.passCount}, Failed: ${result.failCount}');
       return result.failCount > 0 ? 1 : 0;
-    } else if (edits.isEmpty) {
+    } else if (detailsMap.isEmpty) {
       log.stdout('Nothing to fix!');
     } else {
-      var details = fixes.details;
-      details.sort((f1, f2) => path
-          .relative(f1.path, from: dirPath)
-          .compareTo(path.relative(f2.path, from: dirPath)));
-
-      var fileCount = 0;
-      var fixCount = 0;
-
-      for (var d in details) {
-        ++fileCount;
-        for (var f in d.fixes) {
-          fixCount += f.occurrences;
-        }
-      }
+      var fileCount = detailsMap.length;
+      var fixCount = detailsMap.values
+          .expand((detail) => detail.fixes)
+          .fold(0, (previousValue, fixes) => previousValue + fixes.occurrences);
 
       if (dryRun) {
         log.stdout('');
         log.stdout('${_format(fixCount)} proposed ${_pluralFix(fixCount)} '
             'in ${_format(fileCount)} ${pluralize("file", fileCount)}.');
-        _printDetails(details, dir);
+        _printDetails(detailsMap, dir);
       } else {
-        progress = log.progress('Applying fixes');
-        _applyFixes(edits);
-        progress.finish(showTiming: true);
-        _printDetails(details, dir);
+        var applyFixesProgress = log.progress('Applying fixes');
+        _writeFiles();
+        applyFixesProgress.finish(showTiming: true);
+        _printDetails(detailsMap, dir);
         log.stdout('${_format(fixCount)} ${_pluralFix(fixCount)} made in '
             '${_format(fileCount)} ${pluralize("file", fileCount)}.');
       }
@@ -154,20 +168,24 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     return 0;
   }
 
-  void _applyFixes(List<SourceFileEdit> edits) {
+  void _applyEdits(AnalysisServer server, List<SourceFileEdit> edits) {
+    var overlays = <String, AddContentOverlay>{};
     for (var edit in edits) {
-      var fileName = edit.file;
-      var file = io.File(fileName);
-      var code = file.existsSync() ? file.readAsStringSync() : '';
-      code = SourceEdit.applySequence(code, edit.edits);
-      file.writeAsStringSync(code);
+      var filePath = edit.file;
+      var content = fileContentCache.putIfAbsent(filePath, () {
+        var file = io.File(filePath);
+        return file.existsSync() ? file.readAsStringSync() : '';
+      });
+      var newContent = SourceEdit.applySequence(content, edit.edits);
+      fileContentCache[filePath] = newContent;
+      overlays[filePath] = AddContentOverlay(newContent);
     }
+    server.updateContent(overlays);
   }
 
   /// Return `true` if any of the fixes fail to create the same content as is
   /// found in the golden file.
-  _TestResult _compareFixesInDirectory(
-      io.Directory directory, List<SourceFileEdit> edits) {
+  _TestResult _compareFixesInDirectory(io.Directory directory) {
     var result = _TestResult();
     //
     // Gather the files of interest in this directory and process
@@ -177,7 +195,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     var expectFileMap = <String, io.File>{};
     for (var child in directory.listSync()) {
       if (child is io.Directory) {
-        var childResult = _compareFixesInDirectory(child, edits);
+        var childResult = _compareFixesInDirectory(child);
         result.passCount += childResult.passCount;
         result.failCount += childResult.failCount;
       } else if (child is io.File) {
@@ -188,10 +206,6 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
           expectFileMap[child.path] = child;
         }
       }
-    }
-    var editMap = <String, SourceFileEdit>{};
-    for (var edit in edits) {
-      editMap[edit.file] = edit;
     }
     for (var originalFile in dartFiles) {
       var filePath = originalFile.path;
@@ -205,19 +219,24 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
             'No corresponding expect file for the Dart file at "$filePath".');
         continue;
       }
-      var edit = editMap[filePath];
       try {
-        var originalCode = originalFile.readAsStringSync();
         var expectedCode = expectFile.readAsStringSync();
-        var actualCode = edit == null
-            ? originalCode
-            : SourceEdit.applySequence(originalCode, edit.edits);
+        var actualIsOriginal = !fileContentCache.containsKey(filePath);
+        var actualCode = actualIsOriginal
+            ? originalFile.readAsStringSync()
+            : fileContentCache[filePath];
         // Use a whitespace insensitive comparison.
         if (_compressWhitespace(actualCode) !=
             _compressWhitespace(expectedCode)) {
           result.failCount++;
-          _reportFailure(filePath, actualCode, expectedCode);
-          _printEdits(edits);
+          // TODO(brianwilkerson) Do a better job of displaying the differences.
+          //  It's very hard to see the diff with large files.
+          _reportFailure(
+            filePath,
+            actualCode,
+            expectedCode,
+            actualIsOriginal: actualIsOriginal,
+          );
         } else {
           result.passCount++;
         }
@@ -243,15 +262,54 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
   String _compressWhitespace(String code) =>
       code.replaceAll(RegExp(r'\s+'), ' ');
 
+  /// Merge the fixes from the current round's [details] into the [detailsMap].
+  void _mergeDetails(Map<String, BulkFix> detailsMap, List<BulkFix> details) {
+    for (var detail in details) {
+      var previousDetail = detailsMap[detail.path];
+      if (previousDetail != null) {
+        _mergeFixCounts(previousDetail.fixes, detail.fixes);
+      } else {
+        detailsMap[detail.path] = detail;
+      }
+    }
+  }
+
+  void _mergeFixCounts(
+      List<BulkFixDetail> oldFixes, List<BulkFixDetail> newFixes) {
+    var originalOldLength = oldFixes.length;
+    newFixLoop:
+    for (var newFix in newFixes) {
+      var newCode = newFix.code;
+      // Iterate over the original content of the list, not any of the newly
+      // added fixes, because the newly added fixes can't be a match.
+      for (var i = 0; i < originalOldLength; i++) {
+        var oldFix = oldFixes[i];
+        if (oldFix.code == newCode) {
+          oldFix.occurrences += newFix.occurrences;
+          continue newFixLoop;
+        }
+      }
+      oldFixes.add(newFix);
+    }
+  }
+
   String _pluralFix(int count) => count == 1 ? 'fix' : 'fixes';
 
-  void _printDetails(List<BulkFix> details, io.Directory workingDir) {
+  void _printDetails(Map<String, BulkFix> detailsMap, io.Directory workingDir) {
+    String relative(String absolutePath) {
+      return path.relative(absolutePath, from: workingDir.path);
+    }
+
     log.stdout('');
 
     final bullet = log.ansi.bullet;
 
-    for (var detail in details) {
-      log.stdout(path.relative(detail.path, from: workingDir.path));
+    var modifiedFilePaths = detailsMap.keys.toList();
+    modifiedFilePaths
+        .sort((first, second) => relative(first).compareTo(relative(second)));
+    for (var filePath in modifiedFilePaths) {
+      var detail = detailsMap[filePath];
+      log.stdout(relative(detail.path));
       final fixes = detail.fixes.toList();
       fixes.sort((a, b) => a.code.compareTo(b.code));
       for (var fix in fixes) {
@@ -262,25 +320,28 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     }
   }
 
-  void _printEdits(List<SourceFileEdit> edits) {
-    log.stdout('Edits returned from server:');
-    for (var fileEdit in edits) {
-      log.stdout('  ${fileEdit.file}');
-      for (var edit in fileEdit.edits) {
-        log.stdout("    ${edit.offset} - ${edit.end}, '${edit.replacement}'");
-      }
-    }
-  }
-
   /// Report that the [actualCode] produced by applying fixes to the content of
   /// [filePath] did not match the [expectedCode].
-  void _reportFailure(String filePath, String actualCode, String expectedCode) {
+  void _reportFailure(String filePath, String actualCode, String expectedCode,
+      {@required bool actualIsOriginal}) {
     log.stdout('Failed when applying fixes to $filePath');
     log.stdout('Expected:');
     log.stdout(expectedCode);
     log.stdout('');
-    log.stdout('Actual:');
+    if (actualIsOriginal) {
+      log.stdout('Actual (original code was unchanged):');
+    } else {
+      log.stdout('Actual:');
+    }
     log.stdout(actualCode);
+  }
+
+  /// Write the modified contents of files in the [fileContentCache] to disk.
+  void _writeFiles() {
+    for (var entry in fileContentCache.entries) {
+      var file = io.File(entry.key);
+      file.writeAsStringSync(entry.value);
+    }
   }
 
   static String _format(int value) => _numberFormat.format(value);

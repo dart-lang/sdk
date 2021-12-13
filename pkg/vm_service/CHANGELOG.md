@@ -1,5 +1,20 @@
 # Changelog
 
+## 8.0.0
+- *breaking* Updated type of `Event.cpuSamples` from `CpuSamples` to
+  `CpuSamplesEvent`, which is less expensive to generate and serialize.
+- Added `CpuSamplesEvent` object.
+
+## 7.5.0
+- Update to version `3.53` of the spec.
+- Added `setIsolatePauseMode` RPC.
+- Deprecated `setExceptionPauseMode` in favor of `setIsolatePauseMode`.
+
+## 7.4.0
+- Update to version `3.52` of the spec.
+- Added `lookupResolvedPackageUris` and `lookupPackageUris` RPCs and `UriList`
+  type.
+
 ## 7.3.0
 - Update to version `3.51` of the spec.
 - Added optional `reportLines` parameter to `getSourceReport` RPC.

@@ -285,16 +285,14 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int count) {
+  void endConstructorReference(Token start, Token? periodBeforeName,
+      Token endToken, ConstructorReferenceContext constructorReferenceContext) {
+    debugEvent("ConstructorReference");
+  }
+
+  @override
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
     debugEvent("Enum");
-    var constants =
-        List<EnumConstantDeclaration?>.filled(count, null, growable: true);
-    popList(count, constants);
-    var name = pop() as String;
-    var metadata = popTypedList<Annotation>();
-    var comment = pop() as Comment?;
-    compilationUnit.declarations.add(EnumDeclaration(
-        comment, metadata, name, constants.whereNotNull().toList()));
   }
 
   @override
@@ -306,7 +304,8 @@ class MiniAstBuilder extends StackListener {
   @override
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,
@@ -418,6 +417,37 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleClassWithClause(Token withKeyword) {
     debugEvent("ClassWithClause");
+  }
+
+  @override
+  void handleEnumElement(Token beginToken) {
+    debugEvent("EnumElement");
+    pop(); // Arguments.
+    pop(); // Type arguments.
+  }
+
+  @override
+  void handleEnumElements(Token endToken, int count) {
+    debugEvent("EnumElements");
+    var constants =
+        List<EnumConstantDeclaration?>.filled(count, null, growable: true);
+    popList(count, constants);
+    pop(); // Type variables.
+    var name = pop() as String;
+    var metadata = popTypedList<Annotation>();
+    var comment = pop() as Comment?;
+    compilationUnit.declarations.add(EnumDeclaration(
+        comment, metadata, name, constants.whereNotNull().toList()));
+  }
+
+  @override
+  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+    debugEvent("EnumHeader");
+  }
+
+  @override
+  void handleEnumNoWithClause() {
+    debugEvent("NoEnumWithClause");
   }
 
   @override
@@ -536,6 +566,11 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleNonNullAssertExpression(Token bang) {
     reportNonNullAssertExpressionNotEnabled(bang);
+  }
+
+  @override
+  void handleNoTypeNameInConstructorReference(Token token) {
+    debugEvent("NoTypeNameInConstructorReference");
   }
 
   @override

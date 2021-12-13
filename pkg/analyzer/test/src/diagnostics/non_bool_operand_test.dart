@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolOperandTest);
     defineReflectiveTests(NonBoolOperandWithNullSafetyTest);
+    defineReflectiveTests(NonBoolOperandWithStrictCastsTest);
   });
 }
 
@@ -25,6 +26,34 @@ bool f(int left, bool right) {
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_OPERAND, 40, 4),
     ]);
+  }
+
+  test_and_left_implicitCast_fromInstanceCreationExpression() async {
+    await assertErrorsInCode('''
+main() {
+  new Object() && true;
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 11, 12),
+    ]);
+  }
+
+  test_and_left_implicitCast_fromLiteral() async {
+    await assertErrorsInCode('''
+bool f(List<int> left, bool right) {
+  return left && right;
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 46, 4),
+    ]);
+  }
+
+  test_and_left_implicitCast_fromSupertype() async {
+    await assertNoErrorsInCode('''
+bool f(Object left, bool right) {
+  return left && right;
+}
+''');
   }
 
   test_and_right() async {
@@ -79,6 +108,20 @@ m() {
 }
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonBoolOperandWithStrictCastsTest extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
+  test_and() async {
+    await assertErrorsWithStrictCasts('''
+void f(dynamic a) {
+  if(a && true) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_OPERAND, 25, 1),
     ]);
   }
 }

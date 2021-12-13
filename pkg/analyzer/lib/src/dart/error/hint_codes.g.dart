@@ -3140,7 +3140,7 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode UNDEFINED_REFERENCED_PARAMETER = HintCode(
     'UNDEFINED_REFERENCED_PARAMETER',
-    "The parameter '{0}' is not defined by '{1}'.",
+    "The parameter '{0}' isn't defined by '{1}'.",
     hasPublishedDocs: true,
   );
 

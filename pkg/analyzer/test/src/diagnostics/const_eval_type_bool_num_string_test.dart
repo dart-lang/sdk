@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,21 +16,14 @@ main() {
 @reflectiveTest
 class ConstEvalTypeBoolNumStringTest extends PubPackageResolutionTest {
   test_equal() async {
-    await assertErrorsInCode(
-        r'''
+    await assertNoErrorsInCode(r'''
 class A {
   const A();
 }
 
 const num a = 0;
 const b = a == const A();
-''',
-        IsEnabledByDefault.constant_update_2018
-            ? []
-            : [
-                error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 53,
-                    14),
-              ]);
+''');
   }
 
   test_notEqual() async {

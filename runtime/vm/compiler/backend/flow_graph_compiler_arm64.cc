@@ -28,7 +28,7 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
 void FlowGraphCompiler::ArchSpecificInitialization() {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     auto object_store = isolate_group()->object_store();
 
     const auto& stub =
@@ -278,7 +278,7 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
   // R1 = extracted function
   // R4 = offset of type argument vector (or 0 if class is not generic)
   intptr_t pp_offset = 0;
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     // PP is not tagged on arm64.
     kPoolReg = PP;
     pp_offset = kHeapObjectTag;
@@ -332,7 +332,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
       ASSERT(StackSize() >= 0);
       __ EnterDartFrame(StackSize() * kWordSize);
     }
-  } else if (FLAG_use_bare_instructions) {
+  } else if (FLAG_precompiled_mode) {
     assembler()->set_constant_pool_allowed(true);
   }
 }
@@ -360,50 +360,16 @@ void FlowGraphCompiler::EmitPrologue() {
     }
 
     __ Comment("Initialize spill slots");
-    if (num_locals > 1 || (num_locals == 1 && args_desc_slot == -1)) {
-      __ LoadObject(R0, Object::null_object());
-    }
     for (intptr_t i = 0; i < num_locals; ++i) {
       const intptr_t slot_index =
           compiler::target::frame_layout.FrameSlotForVariableIndex(-i);
-      Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : R0;
+      Register value_reg =
+          slot_index == args_desc_slot ? ARGS_DESC_REG : NULL_REG;
       __ StoreToOffset(value_reg, FP, slot_index * kWordSize);
     }
   }
 
   EndCodeSourceRange(PrologueSource());
-}
-
-// Input parameters:
-//   LR: return address.
-//   SP: address of last argument.
-//   FP: caller's frame pointer.
-//   PP: caller's pool pointer.
-//   R4: arguments descriptor array.
-void FlowGraphCompiler::CompileGraph() {
-  InitCompiler();
-
-  // For JIT we have multiple entrypoints functionality which moved the frame
-  // setup into the [TargetEntryInstr] (which will set the constant pool
-  // allowed bit to true).  Despite this we still have to set the
-  // constant pool allowed bit to true here as well, because we can generate
-  // code for [CatchEntryInstr]s, which need the pool.
-  __ set_constant_pool_allowed(true);
-
-  VisitBlocks();
-
-#if defined(DEBUG)
-  __ brk(0);
-#endif
-
-  if (!skip_body_compilation()) {
-    ASSERT(assembler()->constant_pool_allowed());
-    GenerateDeferredCode();
-  }
-
-  for (intptr_t i = 0; i < indirect_gotos_.length(); ++i) {
-    indirect_gotos_[i]->ComputeOffsetTable(this);
-  }
 }
 
 void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
@@ -576,7 +542,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   const intptr_t stub_index = op.AddObject(
       StubCode::MegamorphicCall(), ObjectPool::Patchability::kPatchable);
   ASSERT((data_index + 1) == stub_index);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
     CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(R5, LR, data_index));
@@ -636,7 +602,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
       op.AddObject(initial_stub, ObjectPool::Patchability::kPatchable);
   ASSERT((data_index + 1) == initial_stub_index);
 
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
     CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(R5, LR, data_index));
@@ -687,7 +653,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   if (function.HasOptionalParameters() || function.IsGeneric()) {
     __ LoadObject(R4, arguments_descriptor);
   } else {
-    if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    if (!FLAG_precompiled_mode) {
       __ LoadImmediate(R4, 0);  // GC safe smi zero because of stub.
     }
   }

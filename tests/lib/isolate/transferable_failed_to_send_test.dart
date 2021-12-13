@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy
-// VMOptions=--no-enable-isolate-groups
+// VMOptions=--no-enable-fast-object-copy
+// VMOptions=--enable-fast-object-copy
 
 import "dart:io" show ServerSocket;
 import "dart:isolate";
 import "dart:typed_data" show ByteData;
 
 import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
 
 void main() async {
   final port = new ReceivePort();

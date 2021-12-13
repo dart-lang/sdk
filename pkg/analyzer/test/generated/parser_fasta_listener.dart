@@ -732,9 +732,56 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
     end('Enum');
-    super.endEnum(enumKeyword, leftBrace, count);
+    super.endEnum(enumKeyword, leftBrace, memberCount);
+  }
+
+  @override
+  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    end('Method');
+    super.endEnumConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endEnumFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    end('FactoryMethod');
+    super.endEnumFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endEnumFields(
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    expectIn('Member');
+    super.endEnumFields(
+        abstractToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
+  }
+
+  @override
+  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    end('Method');
+    super.endEnumMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -838,15 +885,16 @@ class ForwardingTestListener extends ForwardingListener {
   @override
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
     end('FormalParameter');
-    super.endFormalParameter(thisKeyword, periodAfterThis, nameToken,
-        initializerStart, initializerEnd, kind, memberKind);
+    super.endFormalParameter(thisKeyword, superKeyword, periodAfterThisOrSuper,
+        nameToken, initializerStart, initializerEnd, kind, memberKind);
   }
 
   @override
@@ -1283,22 +1331,51 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
-    expectInOneOf(['ClassDeclaration', 'MixinDeclaration']);
-    listener?.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
-  }
-
-  @override
   void handleDottedName(int count, Token firstIdentifier) {
     expectIn('ConditionalUri');
     super.handleDottedName(count, firstIdentifier);
   }
 
   @override
+  void handleEnumElement(Token beginToken) {
+    expectIn('Enum');
+    super.handleEnumElement(beginToken);
+  }
+
+  @override
+  void handleEnumElements(Token elementsEndToken, int elementsCount) {
+    expectIn('Enum');
+    super.handleEnumElements(elementsEndToken, elementsCount);
+  }
+
+  @override
+  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+    expectIn('Enum');
+    super.handleEnumHeader(enumKeyword, leftBrace);
+  }
+
+  @override
+  void handleEnumNoWithClause() {
+    expectIn('Enum');
+    super.handleEnumNoWithClause();
+  }
+
+  @override
+  void handleEnumWithClause(Token withKeyword) {
+    expectIn('Enum');
+    super.handleEnumWithClause(withKeyword);
+  }
+
+  @override
   void handleIdentifierList(int count) {
     expectInOneOf(['Hide', 'Show']);
     super.handleIdentifierList(count);
+  }
+
+  @override
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
+    expectInOneOf(['ClassDeclaration', 'MixinDeclaration', 'Enum']);
+    listener?.handleImplements(implementsKeyword, interfacesCount);
   }
 
   @override
@@ -1343,6 +1420,12 @@ class ForwardingTestListener extends ForwardingListener {
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     expectInOneOf(['Method']);
     listener?.handleNativeFunctionBodySkipped(nativeToken, semicolon);
+  }
+
+  @override
+  void handleNoTypeNameInConstructorReference(Token token) {
+    expectIn('Enum');
+    super.handleNoTypeNameInConstructorReference(token);
   }
 
   @override

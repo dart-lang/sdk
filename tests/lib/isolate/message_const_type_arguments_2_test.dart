@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // https://github.com/dart-lang/sdk/issues/35778
 
 import "dart:async";
 import "dart:isolate";
-import "dart:typed_data";
+
 import "package:expect/expect.dart";
 
 void child(replyPort) {

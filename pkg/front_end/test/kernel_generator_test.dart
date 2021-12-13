@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/ast.dart'
     show EmptyStatement, Component, ReturnStatement, StaticInvocation;
 
@@ -45,7 +43,7 @@ void main() {
         ..compileSdk = true // To prevent FE from loading an sdk-summary.
         ..onDiagnostic = errors.add;
 
-      Component component =
+      Component? component =
           (await compileScript('main() => print("hi");', options: options))
               ?.component;
       expect(component, isNotNull);
@@ -59,7 +57,7 @@ void main() {
             Uri.parse('org-dartlang-test:///not_existing_summary_file')
         ..onDiagnostic = errors.add;
 
-      Component component =
+      Component? component =
           (await compileScript('main() => print("hi");', options: options))
               ?.component;
       expect(component, isNotNull);
@@ -74,14 +72,14 @@ void main() {
         // sources of the sdk directly.
         ..librariesSpecificationUri = invalidCoreLibsSpecUri;
       Component component =
-          (await compileScript('main() => print("hi");', options: options))
-              ?.component;
+          (await compileScript('main() => print("hi");', options: options))!
+              .component!;
       var core = component.libraries.firstWhere(isDartCoreLibrary);
       var printMember = core.members.firstWhere((m) => m.name.text == 'print');
 
       // Note: summaries created by the SDK today contain empty statements as
       // method bodies.
-      expect(printMember.function.body is! EmptyStatement, isTrue);
+      expect(printMember.function!.body is! EmptyStatement, isTrue);
     });
 
     test('compiler requires a main method', () async {
@@ -95,8 +93,8 @@ void main() {
     test('generated program contains source-info', () async {
       Component component = (await compileScript(
               'a() => print("hi"); main() {}',
-              fileName: 'a.dart'))
-          ?.component;
+              fileName: 'a.dart'))!
+          .component!;
       // Kernel always store an empty '' key in the map, so there is always at
       // least one. Having more means that source-info is added.
       expect(component.uriToSource.keys.length, greaterThan(1));
@@ -139,13 +137,13 @@ void main() {
 
       var unitA = await compileUnit(['a.dart'], sources);
       // Pretend that the compiled code is a summary
-      sources['a.dill'] = serializeComponent(unitA);
+      sources['a.dill'] = serializeComponent(unitA!);
 
       var unitBC = await compileUnit(['b.dart', 'c.dart'], sources,
           additionalDills: ['a.dill']);
 
       // Pretend that the compiled code is a summary
-      sources['bc.dill'] = serializeComponent(unitBC);
+      sources['bc.dill'] = serializeComponent(unitBC!);
 
       void checkDCallsC(Component component) {
         var dLib = findLibrary(component, 'd.dart');
@@ -160,11 +158,11 @@ void main() {
 
       var unitD1 = await compileUnit(['d.dart'], sources,
           additionalDills: ['a.dill', 'bc.dill']);
-      checkDCallsC(unitD1);
+      checkDCallsC(unitD1!);
 
       var unitD2 = await compileUnit(['d.dart'], sources,
           additionalDills: ['bc.dill', 'a.dill']);
-      checkDCallsC(unitD2);
+      checkDCallsC(unitD2!);
     });
 
     // TODO(sigmund): add tests with trimming dependencies

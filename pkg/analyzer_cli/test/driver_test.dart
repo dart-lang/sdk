@@ -34,16 +34,16 @@ void main() {
 class BaseTest {
   static const emptyOptionsFile = 'data/empty_options.yaml';
 
-  StringSink _savedOutSink, _savedErrorSink;
-  int _savedExitCode;
-  ExitHandler _savedExitHandler;
+  late StringSink _savedOutSink, _savedErrorSink;
+  late int _savedExitCode;
+  late ExitHandler _savedExitHandler;
 
-  Driver driver;
+  late Driver driver;
 
-  AnalysisOptions get analysisOptions => driver.analysisDriver.analysisOptions;
+  AnalysisOptions get analysisOptions => driver.analysisDriver!.analysisOptions;
 
   /// Normalize text with bullets.
-  String bulletToDash(StringSink item) => '$item'.replaceAll('•', '-');
+  String bulletToDash(StringSink? item) => '$item'.replaceAll('•', '-');
 
   /// Start a driver for the given [source], optionally providing additional
   /// [args] and an [options] file path. The value of [options] defaults to an
@@ -60,7 +60,7 @@ class BaseTest {
   /// Like [drive], but takes an array of sources.
   Future<void> driveMany(
     List<String> sources, {
-    String options = emptyOptionsFile,
+    String? options = emptyOptionsFile,
     List<String> args = const <String>[],
   }) async {
     options = _posixToPlatformPath(options);
@@ -112,7 +112,7 @@ class BaseTest {
   ///
   /// This is a utility method for testing; paths passed in to other methods in
   /// this class are never converted automatically.
-  String _posixToPlatformPath(String filePath) {
+  String? _posixToPlatformPath(String? filePath) {
     if (filePath == null) {
       return null;
     }
@@ -359,7 +359,7 @@ analyzer:
       expect(
           bulletToDash(outSink),
           contains(
-              'warning - The feature android.software.home_screen is not supported on Chrome OS'));
+              "warning - The feature android.software.home_screen isn't supported on Chrome OS"));
       expect(exitCode, 0);
     });
   }
@@ -464,7 +464,7 @@ class OptionsTest extends BaseTest {
     ]);
     expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
     expect(bulletToDash(outSink),
-        contains("error - This function has a return type of 'int'"));
+        contains("error - The body might complete normally"));
     expect(outSink.toString(), contains('1 error and 1 warning found.'));
   }
 

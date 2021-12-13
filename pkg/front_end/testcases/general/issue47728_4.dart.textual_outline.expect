@@ -1,0 +1,6 @@
+typedef A = Function()?;
+
+class B {}
+
+class C = A with B;
+main() {}

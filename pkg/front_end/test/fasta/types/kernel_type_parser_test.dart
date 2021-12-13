@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "package:expect/expect.dart" show Expect;
 
 import "package:kernel/ast.dart" show Component, DartType, Library;
@@ -147,7 +145,7 @@ class KernelSubtypeTest extends SubtypeTest<DartType, TypeParserEnvironment> {
   }
 
   @override
-  TypeParserEnvironment extend(String typeParameters) {
+  TypeParserEnvironment extend(String? typeParameters) {
     return environment.extendWithTypeParameters(typeParameters);
   }
 }

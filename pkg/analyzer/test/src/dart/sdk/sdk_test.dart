@@ -122,17 +122,6 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 
 @reflectiveTest
 class FolderBasedDartSdkTest with ResourceProviderMixin {
-  void test_addExtensions() {
-    FolderBasedDartSdk sdk = _createDartSdk();
-    String uri = 'dart:my.internal';
-    sdk.addExtensions({uri: '/Users/user/dart/my.dart'});
-    expect(sdk.mapDartUri(uri), isNotNull);
-    // The `shortName` property must include the `dart:` prefix.
-    expect(sdk.sdkLibraries, contains(predicate((SdkLibrary library) {
-      return library.shortName == uri;
-    })));
-  }
-
   void test_creation() {
     FolderBasedDartSdk sdk = _createDartSdk();
     expect(sdk, isNotNull);
@@ -150,7 +139,6 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
         .getChildAssumingFile("core.dart")
         .toUri())!;
     expect(source, isNotNull);
-    expect(source.isInSystemLibrary, isTrue);
     expect(source.uri.toString(), "dart:core");
   }
 
@@ -161,7 +149,6 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     File file = dirDartium.getChildAssumingFile("html_dart2js.dart");
     var source = sdk.fromFileUri(file.toUri())!;
     expect(source, isNotNull);
-    expect(source.isInSystemLibrary, isTrue);
     expect(source.uri.toString(), "dart:html");
   }
 
@@ -172,7 +159,6 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     File file = dirCommon.getChildAssumingFile("html_common_dart2js.dart");
     var source = sdk.fromFileUri(file.toUri())!;
     expect(source, isNotNull);
-    expect(source.isInSystemLibrary, isTrue);
     expect(source.uri.toString(), "dart:html_common");
   }
 
@@ -183,7 +169,6 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
         .getChildAssumingFile("num.dart")
         .toUri())!;
     expect(source, isNotNull);
-    expect(source.isInSystemLibrary, isTrue);
     expect(source.uri.toString(), "dart:core/num.dart");
   }
 

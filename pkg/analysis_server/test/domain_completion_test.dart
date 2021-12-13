@@ -11,7 +11,6 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
-import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -21,12 +20,15 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_utilities/check/check.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'domain_completion_util.dart';
 import 'mocks.dart';
 import 'src/plugin/plugin_manager_test.dart';
+import 'utils/change_check.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -42,30 +44,31 @@ class CompletionDomainHandlerGetSuggestionDetails2Test
   Future<void> test_alreadyImported() async {
     await _configureWithWorkspaceRoot();
 
-    var validator = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails('''
 import 'dart:math';
 void f() {
   Rand^
 }
 ''', completion: 'Random', libraryUri: 'dart:math');
-    validator
-      ..hasCompletion('Random')
-      ..hasChange().assertNoFileEdits();
+    check(details)
+      ..completion.isEqualTo('Random')
+      ..change.edits.isEmpty;
   }
 
   Future<void> test_import_dart() async {
     await _configureWithWorkspaceRoot();
 
-    var validator = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails('''
 void f() {
   R^
 }
 ''', completion: 'Random', libraryUri: 'dart:math');
-    validator
-      ..hasCompletion('Random')
-      ..hasChange()
+    check(details)
+      ..completion.isEqualTo('Random')
+      ..change
           .hasFileEdit(testFilePathPlatform)
-          .whenApplied(testFileContent, r'''
+          .appliedTo(testFileContent)
+          .isEqualTo(r'''
 import 'dart:math';
 
 void f() {
@@ -75,8 +78,7 @@ void f() {
   }
 
   Future<void> test_import_package_dependencies() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 dependencies:
   aaa: any
@@ -94,16 +96,17 @@ class Test {}
 
     await _configureWithWorkspaceRoot();
 
-    var validator = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails('''
 void f() {
   T^
 }
 ''', completion: 'Test', libraryUri: 'package:aaa/a.dart');
-    validator
-      ..hasCompletion('Test')
-      ..hasChange()
+    check(details)
+      ..completion.isEqualTo('Test')
+      ..change
           .hasFileEdit(testFilePathPlatform)
-          .whenApplied(testFileContent, r'''
+          .appliedTo(testFileContent)
+          .isEqualTo(r'''
 import 'package:aaa/a.dart';
 
 void f() {
@@ -119,16 +122,17 @@ class Test {}
 
     await _configureWithWorkspaceRoot();
 
-    var validator = await _getTestCodeDetails('''
+    var details = await _getTestCodeDetails('''
 void f() {
   T^
 }
 ''', completion: 'Test', libraryUri: 'package:test/a.dart');
-    validator
-      ..hasCompletion('Test')
-      ..hasChange()
+    check(details)
+      ..completion.isEqualTo('Test')
+      ..change
           .hasFileEdit(testFilePathPlatform)
-          .whenApplied(testFileContent, r'''
+          .appliedTo(testFileContent)
+          .isEqualTo(r'''
 import 'package:test/a.dart';
 
 void f() {
@@ -160,7 +164,7 @@ void f() {
     expect(response.error?.code, RequestErrorCode.INVALID_FILE_PATH_FORMAT);
   }
 
-  Future<GetSuggestionDetails2Validator> _getCodeDetails({
+  Future<CompletionGetSuggestionDetails2Result> _getCodeDetails({
     required String path,
     required String content,
     required String completion,
@@ -184,7 +188,7 @@ void f() {
     );
   }
 
-  Future<GetSuggestionDetails2Validator> _getDetails({
+  Future<CompletionGetSuggestionDetails2Result> _getDetails({
     required String path,
     required int completionOffset,
     required String completion,
@@ -198,11 +202,10 @@ void f() {
     ).toRequest('0');
 
     var response = await _handleSuccessfulRequest(request);
-    var result = CompletionGetSuggestionDetails2Result.fromResponse(response);
-    return GetSuggestionDetails2Validator(result);
+    return CompletionGetSuggestionDetails2Result.fromResponse(response);
   }
 
-  Future<GetSuggestionDetails2Validator> _getTestCodeDetails(
+  Future<CompletionGetSuggestionDetails2Result> _getTestCodeDetails(
     String content, {
     required String completion,
     required String libraryUri,
@@ -225,24 +228,75 @@ class CompletionDomainHandlerGetSuggestions2Test
     completionDomain.budgetDuration = const Duration(seconds: 30);
   }
 
-  void tearDown() {
-    NotImportedContributor.onFile = null;
-  }
+  Future<void> test_abort_onAnotherCompletionRequest() async {
+    var abortedIdSet = <String>{};
+    server.discardedRequests.stream.listen((request) {
+      abortedIdSet.add(request.id);
+    });
 
-  Future<void> test_notImported_abort() async {
+    newFile(testFilePath, content: '');
+
     await _configureWithWorkspaceRoot();
 
-    NotImportedContributor.onFile = (file) {
-      if (file.uriStr == 'dart:math') {
-        unawaited(
-          _getSuggestions(
-            path: convertPath(testFilePath),
-            completionOffset: 0,
-            maxResults: 100,
-          ),
-        );
-      }
-    };
+    // Send three requests, the first two should be aborted.
+    var response0 = _sendTestCompletionRequest('0', 0);
+    var response1 = _sendTestCompletionRequest('1', 0);
+    var response2 = _sendTestCompletionRequest('2', 0);
+
+    // Wait for all three.
+    var validator0 = await response0.toResult();
+    var validator1 = await response1.toResult();
+    var validator2 = await response2.toResult();
+
+    // The first two should be aborted.
+    expect(abortedIdSet, {'0', '1'});
+
+    validator0
+      ..assertIncomplete()
+      ..suggestions.assertEmpty();
+
+    validator1
+      ..assertIncomplete()
+      ..suggestions.assertEmpty();
+
+    validator2
+      ..assertComplete()
+      ..suggestions.assertCompletionsContainsAll(
+        ['int', 'double', 'Future', 'Directory'],
+      );
+  }
+
+  Future<void> test_abort_onUpdateContent() async {
+    var abortedIdSet = <String>{};
+    server.discardedRequests.stream.listen((request) {
+      abortedIdSet.add(request.id);
+    });
+
+    newFile(testFilePath, content: '');
+
+    await _configureWithWorkspaceRoot();
+
+    // Schedule a completion request.
+    var response = _sendTestCompletionRequest('0', 0);
+
+    // Simulate typing in the IDE.
+    await _handleSuccessfulRequest(
+      AnalysisUpdateContentParams({
+        testFilePathPlatform: AddContentOverlay('void f() {}'),
+      }).toRequest('1'),
+    );
+
+    // The request should be aborted.
+    var validator = await response.toResult();
+    expect(abortedIdSet, {'0'});
+
+    validator
+      ..assertIncomplete()
+      ..suggestions.assertEmpty();
+  }
+
+  Future<void> test_notImported_dart() async {
+    await _configureWithWorkspaceRoot();
 
     var responseValidator = await _getTestCodeSuggestions('''
 void f() {
@@ -251,14 +305,21 @@ void f() {
 ''');
 
     responseValidator
-      ..assertIncomplete()
+      ..assertComplete()
       ..assertReplacementBack(4)
-      ..assertLibrariesToImport(includes: [], excludes: [
-        'dart:core',
+      ..assertLibrariesToImport(includes: [
         'dart:math',
+      ], excludes: [
+        'dart:async',
+        'dart:core',
+        'package:test/test.dart',
       ]);
 
-    responseValidator.suggestions.assertEmpty();
+    var classes = responseValidator.suggestions.withElementClass();
+    classes.assertCompletions(['Random']);
+    classes.withCompletion('Random').assertSingle()
+      ..assertClass()
+      ..assertLibraryToImport('dart:math');
   }
 
   Future<void> test_notImported_emptyBudget() async {
@@ -285,8 +346,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_dependencies_inLib() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 dependencies:
   aaa: any
@@ -343,8 +403,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_dependencies_inTest() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 dependencies:
   aaa: any
@@ -407,8 +466,6 @@ void f() {
       ..assertLibraryToImport('package:bbb/f.dart');
   }
 
-  /// TODO(scheglov) Only lib/ libraries in lib/, no test/.
-  /// TODO(scheglov) Suggestions from available Pub packages.
   Future<void> test_notImported_pub_this() async {
     newFile('$testPackageLibPath/a.dart', content: '''
 class A01 {}
@@ -430,12 +487,12 @@ void f() {
       ..assertComplete()
       ..assertReplacementBack(2)
       ..assertLibrariesToImport(includes: [
-        'dart:async',
-        'dart:math',
         'package:test/a.dart',
         'package:test/b.dart',
       ], excludes: [
+        'dart:async',
         'dart:core',
+        'dart:math',
         'package:test/test.dart',
       ]);
 
@@ -473,11 +530,11 @@ void f() {
       ..assertComplete()
       ..assertReplacementBack(2)
       ..assertLibrariesToImport(includes: [
-        'dart:async',
-        'dart:math',
         'package:test/b.dart',
       ], excludes: [
+        'dart:async',
         'dart:core',
+        'dart:math',
         'package:test/a.dart',
         'package:test/test.dart',
       ]);
@@ -519,12 +576,12 @@ void f() {
       ..assertComplete()
       ..assertReplacementBack(2)
       ..assertLibrariesToImport(includes: [
-        'dart:async',
-        'dart:math',
         'package:test/a.dart',
         'package:test/b.dart',
       ], excludes: [
+        'dart:async',
         'dart:core',
+        'dart:math',
         'package:test/test.dart',
       ]);
 
@@ -542,8 +599,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inLib_excludesTest() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -582,8 +638,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inLib_includesThisSrc() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -625,8 +680,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inTest_includesTest() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -673,8 +727,7 @@ void f() {
   }
 
   Future<void> test_notImported_pub_this_inTest_includesThisSrc() async {
-    // TODO(scheglov) Switch to PubspecYamlFileConfig
-    newPubspecYamlFile(testPackageRootPath, r'''
+    writeTestPackagePubspecYamlFile(r'''
 name: test
 ''');
 
@@ -1398,6 +1451,71 @@ void f() {
     suggestionsValidator.assertCompletions(['foo02', 'foo01']);
   }
 
+  Future<void> test_yaml_analysisOptions_root() async {
+    await _configureWithWorkspaceRoot();
+
+    var path = convertPath('$testPackageRootPath/analysis_options.yaml');
+    var responseValidator = await _getCodeSuggestions(
+      path: path,
+      content: '^',
+    );
+
+    responseValidator
+      ..assertComplete()
+      ..assertEmptyReplacement();
+
+    responseValidator.suggestions
+        .withKindIdentifier()
+        .assertCompletionsContainsAll([
+      'analyzer: ',
+      'include: ',
+      'linter: ',
+    ]);
+  }
+
+  Future<void> test_yaml_fixData_root() async {
+    await _configureWithWorkspaceRoot();
+
+    var path = convertPath('$testPackageRootPath/fix_data.yaml');
+    var responseValidator = await _getCodeSuggestions(
+      path: path,
+      content: '^',
+    );
+
+    responseValidator
+      ..assertComplete()
+      ..assertEmptyReplacement();
+
+    responseValidator.suggestions
+        .withKindIdentifier()
+        .assertCompletionsContainsAll([
+      'version: ',
+      'transforms:',
+    ]);
+  }
+
+  Future<void> test_yaml_pubspec_root() async {
+    await _configureWithWorkspaceRoot();
+
+    var path = convertPath('$testPackageRootPath/pubspec.yaml');
+    var responseValidator = await _getCodeSuggestions(
+      path: path,
+      content: '^',
+    );
+
+    responseValidator
+      ..assertComplete()
+      ..assertEmptyReplacement();
+
+    responseValidator.suggestions
+        .withKindIdentifier()
+        .assertCompletionsContainsAll([
+      'name: ',
+      'dependencies: ',
+      'dev_dependencies: ',
+    ]);
+  }
+
   Future<CompletionGetSuggestions2ResponseValidator> _getCodeSuggestions({
     required String path,
     required String content,
@@ -1445,6 +1563,16 @@ void f() {
       content: content,
       maxResults: maxResults,
     );
+  }
+
+  RequestWithFutureResponse _sendTestCompletionRequest(String id, int offset) {
+    var request = CompletionGetSuggestions2Params(
+      testFilePathPlatform,
+      0,
+      1 << 10,
+    ).toRequest(id);
+    var futureResponse = _handleRequest(request);
+    return RequestWithFutureResponse(offset, request, futureResponse);
   }
 }
 
@@ -2387,20 +2515,6 @@ class CompletionGetSuggestions2ResponseValidator {
   }
 }
 
-class GetSuggestionDetails2Validator {
-  final CompletionGetSuggestionDetails2Result result;
-
-  GetSuggestionDetails2Validator(this.result);
-
-  SourceChangeValidator hasChange() {
-    return SourceChangeValidator(result.change);
-  }
-
-  void hasCompletion(Object completion) {
-    expect(result.completion, completion);
-  }
-}
-
 class PubPackageAnalysisServerTest with ResourceProviderMixin {
   late final MockServerChannel serverChannel;
   late final AnalysisServer server;
@@ -2493,6 +2607,10 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     writePackageConfig(testPackageRoot, config);
   }
 
+  void writeTestPackagePubspecYamlFile(String content) {
+    newPubspecYamlFile(testPackageRootPath, content);
+  }
+
   Future<void> _configureWithWorkspaceRoot() async {
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
@@ -2507,6 +2625,21 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     var response = await _handleRequest(request);
     expect(response, isResponseSuccess(request.id));
     return response;
+  }
+}
+
+class RequestWithFutureResponse {
+  final int offset;
+  final Request request;
+  final Future<Response> futureResponse;
+
+  RequestWithFutureResponse(this.offset, this.request, this.futureResponse);
+
+  Future<CompletionGetSuggestions2ResponseValidator> toResult() async {
+    var response = await futureResponse;
+    expect(response, isResponseSuccess(request.id));
+    var result = CompletionGetSuggestions2Result.fromResponse(response);
+    return CompletionGetSuggestions2ResponseValidator(offset, result);
   }
 }
 
@@ -2559,32 +2692,6 @@ class SingleSuggestionValidator {
   }
 }
 
-class SourceChangeValidator {
-  final SourceChange change;
-
-  SourceChangeValidator(this.change);
-
-  void assertNoFileEdits() {
-    expect(change.edits, isEmpty);
-  }
-
-  SourceFileEditValidator hasFileEdit(String path) {
-    var edit = change.edits.singleWhere((e) => e.file == path);
-    return SourceFileEditValidator(edit);
-  }
-}
-
-class SourceFileEditValidator {
-  final SourceFileEdit edit;
-
-  SourceFileEditValidator(this.edit);
-
-  void whenApplied(String applyTo, Object expected) {
-    var actual = SourceEdit.applySequence(applyTo, edit.edits);
-    expect(actual, expected);
-  }
-}
-
 class SuggestionsValidator {
   final List<CompletionSuggestion> suggestions;
   final List<String>? libraryUrisToImport;
@@ -2605,8 +2712,17 @@ class SuggestionsValidator {
     expect(actual, completions);
   }
 
+  /// Assert that this has suggestions with all [expected] completions.
+  /// There might be more suggestions, with other completions.
+  ///
+  /// Does not check the order, kinds, elements, etc.
+  void assertCompletionsContainsAll(Iterable<String> expected) {
+    var actual = suggestions.map((e) => e.completion).toSet();
+    expect(actual, containsAll(expected));
+  }
+
   void assertEmpty() {
-    expect(suggestions, isEmpty);
+    check(suggestions).isEmpty;
   }
 
   void assertLength(Object matcher) {
@@ -2648,6 +2764,37 @@ class SuggestionsValidator {
         return suggestion.element?.kind == kind;
       }).toList(),
       libraryUrisToImport: libraryUrisToImport,
+    );
+  }
+
+  SuggestionsValidator withKind(CompletionSuggestionKind kind) {
+    return SuggestionsValidator(
+      suggestions.where((suggestion) {
+        return suggestion.kind == kind;
+      }).toList(),
+      libraryUrisToImport: libraryUrisToImport,
+    );
+  }
+
+  SuggestionsValidator withKindIdentifier() {
+    return withKind(CompletionSuggestionKind.IDENTIFIER);
+  }
+}
+
+extension on CheckTarget<CompletionGetSuggestionDetails2Result> {
+  @useResult
+  CheckTarget<String> get completion {
+    return nest(
+      value.completion,
+      (selected) => 'has completion ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<SourceChange> get change {
+    return nest(
+      value.change,
+      (selected) => 'has change ${valueStr(selected)}',
     );
   }
 }

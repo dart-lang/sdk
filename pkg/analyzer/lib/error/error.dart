@@ -256,7 +256,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
   CompileTimeErrorCode.INVALID_OVERRIDE,
   CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,
-  CompileTimeErrorCode.INVALID_SUPER_INVOCATION,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET,
@@ -407,6 +406,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
   CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT,
+  CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST,
   CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
   CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
   CompileTimeErrorCode.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
@@ -475,7 +475,11 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
   CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
+  CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
   CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+  FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA,
+  FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING,
+  FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
   FfiCode.ANNOTATION_ON_POINTER_FIELD,
   FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
   FfiCode.CREATION_OF_STRUCT_OR_UNION,
@@ -1134,8 +1138,7 @@ class AnalysisError implements Diagnostic {
     return errors.toList();
   }
 
-  static List<Object?>? _translateNamedArguments(
-      Map<String, dynamic> arguments) {
+  static Null _translateNamedArguments(Map<String, dynamic> arguments) {
     // All analyzer errors now use positional arguments, so if this method is
     // being called, either no arguments were provided to the
     // AnalysisError.withNamedArguments constructor, or the client was

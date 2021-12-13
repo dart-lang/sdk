@@ -18,6 +18,7 @@ enum NullSafetyMode {
 }
 
 enum FeatureStatus {
+  shipped,
   shipping,
   canary,
 }
@@ -31,6 +32,10 @@ enum FeatureStatus {
 /// passed. The [isNegativeFlag] bool flips things around so while in [canary]
 /// the [FeatureOption] is enabled unless explicitly disabled, and while in
 /// [staging] it is disabled unless explicitly enabled.
+///
+/// Finally, mature features can be moved to [shipped], at which point we ignore
+/// the flag, but throw if the value of the flag is unexpected(i.e. if a
+/// positive flag is disabled, or a negative flag is enabled).
 class FeatureOption {
   final String flag;
   final bool isNegativeFlag;
@@ -71,6 +76,9 @@ class FeatureOptions {
   /// Whether to generate code compliant with Content Security Policy.
   FeatureOption useContentSecurityPolicy = FeatureOption('csp');
 
+  /// [FeatureOption]s which are shipped and cannot be toggled.
+  late final List<FeatureOption> shipped = [];
+
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
     legacyJavaScript,
@@ -107,6 +115,7 @@ class FeatureOptions {
 
   /// Parses a [List<String>] and enables / disables features as necessary.
   void parse(List<String> options) {
+    _verifyShippedFeatures(options, shipped);
     _extractFeatures(options, shipping, FeatureStatus.shipping);
     _extractFeatures(options, canary, FeatureStatus.canary);
   }
@@ -151,6 +160,13 @@ class CompilerOptions implements DiagnosticOptions {
   /// Returns the compilation target specified by these options.
   Uri? get compilationTarget => inputDillUri ?? entryUri;
 
+  bool get fromDill {
+    var targetPath = compilationTarget!.path;
+    return targetPath.endsWith('.dill') ||
+        targetPath.endsWith('.gdill') ||
+        targetPath.endsWith('.mdill');
+  }
+
   /// Location of the package configuration file.
   ///
   /// If not null then [packageRoot] should be null.
@@ -175,6 +191,8 @@ class CompilerOptions implements DiagnosticOptions {
   bool get modularMode => writeModularAnalysisUri != null;
 
   List<Uri>? modularAnalysisInputs;
+
+  bool get hasModularAnalysisInputs => modularAnalysisInputs != null;
 
   /// Location from which serialized inference data is read.
   ///
@@ -546,6 +564,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Verbosity level used for filtering messages during compilation.
   fe.Verbosity verbosity = fe.Verbosity.all;
 
+  // Whether or not to dump a list of unused libraries.
+  bool dumpUnusedLibraries = false;
+
   late FeatureOptions features;
 
   // -------------------------------------------------
@@ -672,6 +693,7 @@ class CompilerOptions implements DiagnosticOptions {
       .._noSoundNullSafety = _hasOption(options, Flags.noSoundNullSafety)
       .._mergeFragmentsThreshold =
           _extractIntOption(options, '${Flags.mergeFragmentsThreshold}=')
+      ..dumpUnusedLibraries = _hasOption(options, Flags.dumpUnusedLibraries)
       ..cfeInvocationModes = fe.InvocationMode.parseArguments(
           _extractStringOption(options, '${Flags.cfeInvocationModes}=', '')!,
           onError: onError)
@@ -905,6 +927,30 @@ void _extractFeatures(
         (status == FeatureStatus.shipping && !hasNoShippingFlag);
     globalEnable = feature.isNegativeFlag ? !globalEnable : globalEnable;
     feature.state = (enableFeature || globalEnable) && !disableFeature;
+  }
+}
+
+void _verifyShippedFeatures(
+    List<String> options, List<FeatureOption> features) {
+  for (var feature in features) {
+    String featureFlag = feature.flag;
+    String enableFeatureFlag = '--$featureFlag';
+    String disableFeatureFlag = '--no-$featureFlag';
+    bool enableFeature = _hasOption(options, enableFeatureFlag);
+    bool disableFeature = _hasOption(options, disableFeatureFlag);
+    if (enableFeature && disableFeature) {
+      throw ArgumentError("'$enableFeatureFlag' incompatible with "
+          "'$disableFeatureFlag'");
+    }
+    if (enableFeature && feature.isNegativeFlag) {
+      throw ArgumentError(
+          "$disableFeatureFlag has already shipped and cannot be enabled.");
+    }
+    if (disableFeature && !feature.isNegativeFlag) {
+      throw ArgumentError(
+          "$enableFeatureFlag has already shipped and cannot be disabled.");
+    }
+    feature.state = !feature.isNegativeFlag;
   }
 }
 

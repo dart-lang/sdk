@@ -6,6 +6,8 @@
 # Run dartanalyzer.dart on the Dart VM. This script assumes the Dart repo's
 # directory structure.
 
+echo "Warning: 'dartanalyzer' is deprecated. Please use 'dart analyze'." 1>&2
+
 function follow_links() {
   file="$1"
   while [ -h "$file" ]; do

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -540,7 +538,7 @@ class CollectionElementTest {
   }
 
   void parseEntry(String source, List<String> expectedCalls,
-      {bool inAsync, List<ExpectedError> errors, String expectAfter}) {
+      {bool? inAsync, List<ExpectedError>? errors, String? expectAfter}) {
     final start = scanString(source).tokens;
     final listener = new TestInfoListener();
     final parser = new Parser(listener,
@@ -556,9 +554,9 @@ class CollectionElementTest {
       throw e;
     }
     if (expectAfter != null) {
-      expect(lastConsumed.next.lexeme, expectAfter);
+      expect(lastConsumed.next!.lexeme, expectAfter);
     } else {
-      expect(lastConsumed.next.isEof, isTrue, reason: lastConsumed.lexeme);
+      expect(lastConsumed.next!.isEof, isTrue, reason: lastConsumed.lexeme);
     }
   }
 }
@@ -838,7 +836,7 @@ class MapElementTest {
   }
 
   void parseEntry(String source, List<String> expectedCalls,
-      {bool inAsync, List<ExpectedError> errors, String expectAfter}) {
+      {bool? inAsync, List<ExpectedError>? errors, String? expectAfter}) {
     final start = scanString(source).tokens;
     final listener = new TestInfoListener();
     final parser = new Parser(listener,
@@ -854,16 +852,16 @@ class MapElementTest {
       throw e;
     }
     if (expectAfter != null) {
-      expect(lastConsumed.next.lexeme, expectAfter);
+      expect(lastConsumed.next!.lexeme, expectAfter);
     } else {
-      expect(lastConsumed.next.isEof, isTrue, reason: lastConsumed.lexeme);
+      expect(lastConsumed.next!.isEof, isTrue, reason: lastConsumed.lexeme);
     }
   }
 }
 
 class TestInfoListener implements Listener {
   List<String> calls = <String>[];
-  List<ExpectedError> errors;
+  List<ExpectedError>? errors;
 
   @override
   void beginBinaryExpression(Token token) {
@@ -876,7 +874,7 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void beginForControlFlow(Token awaitToken, Token forToken) {
+  void beginForControlFlow(Token? awaitToken, Token forToken) {
     calls.add('beginForControlFlow $awaitToken $forToken');
   }
 
@@ -907,7 +905,7 @@ class TestInfoListener implements Listener {
 
   @override
   void beginVariablesDeclaration(
-      Token token, Token lateToken, Token varFinalOrConst) {
+      Token token, Token? lateToken, Token? varFinalOrConst) {
     // TODO(danrubel): update to include lateToken
     calls.add('beginVariablesDeclaration $token $varFinalOrConst');
   }
@@ -963,7 +961,7 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void endVariablesDeclaration(int count, Token endToken) {
+  void endVariablesDeclaration(int count, Token? endToken) {
     calls.add('endVariablesDeclaration $count $endToken');
   }
 
@@ -998,7 +996,7 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void handleForInLoopParts(Token awaitToken, Token forToken,
+  void handleForInLoopParts(Token? awaitToken, Token forToken,
       Token leftParenthesis, Token inKeyword) {
     calls.add('handleForInLoopParts '
         '$awaitToken $forToken $leftParenthesis $inKeyword');
@@ -1028,7 +1026,7 @@ class TestInfoListener implements Listener {
 
   @override
   void handleLiteralList(
-      int count, Token leftBracket, Token constKeyword, Token rightBracket) {
+      int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
     calls.add(
         'handleLiteralList $count, $leftBracket, $constKeyword, $rightBracket');
   }
@@ -1037,7 +1035,7 @@ class TestInfoListener implements Listener {
   void handleLiteralSetOrMap(
     int count,
     Token leftBrace,
-    Token constKeyword,
+    Token? constKeyword,
     Token rightBrace,
     // TODO(danrubel): hasSetEntry parameter exists for replicating existing
     // behavior and will be removed once unified collection has been enabled
@@ -1080,9 +1078,9 @@ class TestInfoListener implements Listener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    errors ??= <ExpectedError>[];
     int offset = startToken.charOffset;
-    errors.add(error(message.code, offset, endToken.charEnd - offset));
+    (errors ??= <ExpectedError>[])
+        .add(error(message.code, offset, endToken.charEnd - offset));
   }
 
   @override

@@ -636,8 +636,66 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int count) {
-    listener?.endEnum(enumKeyword, leftBrace, count);
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+    listener?.endEnum(enumKeyword, leftBrace, memberCount);
+  }
+
+  @override
+  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    listener?.endEnumConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void handleEnumElement(Token beginToken) {
+    listener?.handleEnumElement(beginToken);
+  }
+
+  @override
+  void handleEnumElements(Token elementsEndToken, int elementsCount) {
+    listener?.handleEnumElements(elementsEndToken, elementsCount);
+  }
+
+  @override
+  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+    listener?.handleEnumHeader(enumKeyword, leftBrace);
+  }
+
+  @override
+  void endEnumFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    listener?.endEnumFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endEnumFields(
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    listener?.endClassFields(
+        abstractToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
+  }
+
+  @override
+  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    listener?.endEnumMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -728,14 +786,22 @@ class ForwardingListener implements Listener {
   @override
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
-    listener?.endFormalParameter(thisKeyword, periodAfterThis, nameToken,
-        initializerStart, initializerEnd, kind, memberKind);
+    listener?.endFormalParameter(
+        thisKeyword,
+        superKeyword,
+        periodAfterThisOrSuper,
+        nameToken,
+        initializerStart,
+        initializerEnd,
+        kind,
+        memberKind);
   }
 
   @override
@@ -1165,9 +1231,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
-    listener?.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
+  void handleEnumNoWithClause() {
+    listener?.handleEnumNoWithClause();
+  }
+
+  @override
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
+    listener?.handleImplements(implementsKeyword, interfacesCount);
   }
 
   @override
@@ -1180,6 +1250,11 @@ class ForwardingListener implements Listener {
   @override
   void handleClassWithClause(Token withKeyword) {
     listener?.handleClassWithClause(withKeyword);
+  }
+
+  @override
+  void handleEnumWithClause(Token withKeyword) {
+    listener?.handleEnumWithClause(withKeyword);
   }
 
   @override
@@ -1537,6 +1612,11 @@ class ForwardingListener implements Listener {
   @override
   void handleNoTypeArguments(Token token) {
     listener?.handleNoTypeArguments(token);
+  }
+
+  @override
+  void handleNoTypeNameInConstructorReference(Token token) {
+    listener?.handleNoTypeNameInConstructorReference(token);
   }
 
   @override

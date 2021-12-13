@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -106,14 +104,14 @@ class TestParser extends Parser {
 class ParserCreatorListener extends Listener {
   final StringSink out;
   bool insideParserClass = false;
-  String currentMethodName;
-  List<String> parameters = <String>[];
-  List<String> parametersNamed = <String>[];
+  String? currentMethodName;
+  List<String> parameters = [];
+  List<String?> parametersNamed = [];
 
   ParserCreatorListener(this.out);
 
   @override
-  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
+  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
     if (name.lexeme == "Parser") insideParserClass = true;
   }
 
@@ -125,29 +123,29 @@ class ParserCreatorListener extends Listener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
-      Token externalToken,
-      Token staticToken,
-      Token covariantToken,
-      Token varFinalOrConst,
-      Token getOrSet,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? varFinalOrConst,
+      Token? getOrSet,
       Token name) {
     currentMethodName = name.lexeme;
   }
 
   @override
-  void endClassConstructor(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
+  void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     parameters.clear();
     parametersNamed.clear();
     currentMethodName = null;
   }
 
   @override
-  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
-    if (insideParserClass && !currentMethodName.startsWith("_")) {
+  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    if (insideParserClass && !currentMethodName!.startsWith("_")) {
       Token token = beginToken;
-      Token latestToken;
+      Token? latestToken;
       out.writeln("  @override");
       out.write("  ");
       while (true) {
@@ -156,7 +154,7 @@ class ParserCreatorListener extends Listener {
             out.write(" ");
           }
           out.write("dynamic");
-          token = troubleParameterTokens[token];
+          token = troubleParameterTokens[token]!;
         }
         if (latestToken != null && latestToken.charEnd < token.charOffset) {
           out.write(" ");
@@ -169,16 +167,15 @@ class ParserCreatorListener extends Listener {
         out.write(token.lexeme);
         if (token is BeginToken &&
             token.type == TokenType.OPEN_CURLY_BRACKET &&
-            (beginParam == null ||
-                beginParam.endGroup == endToken ||
-                token.charOffset > beginParam.endGroup.charOffset)) {
+            (beginParam.endGroup == endToken ||
+                token.charOffset > beginParam.endGroup!.charOffset)) {
           break;
         }
         if (token == endToken) {
           throw token.runtimeType;
         }
         latestToken = token;
-        token = token.next;
+        token = token.next!;
       }
 
       out.write("\n    ");
@@ -244,17 +241,17 @@ class ParserCreatorListener extends Listener {
     formalParametersNestLevel--;
   }
 
-  Token currentFormalParameterToken;
+  Token? currentFormalParameterToken;
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
-      Token covariantToken, Token varFinalOrConst) {
+  void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
+      Token? covariantToken, Token? varFinalOrConst) {
     if (formalParametersNestLevel == 1) {
       currentFormalParameterToken = token;
     }
   }
 
-  Map<Token, Token> troubleParameterTokens = {};
+  Map<Token?, Token?> troubleParameterTokens = {};
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
@@ -265,11 +262,12 @@ class ParserCreatorListener extends Listener {
 
   @override
   void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
+      Token? thisKeyword,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
-      Token initializerStart,
-      Token initializerEnd,
+      Token? initializerStart,
+      Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
     if (formalParametersNestLevel != 1) {

@@ -438,7 +438,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
             node,
-            [superType, name]);
+            [superType, name.name]);
       } else {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,

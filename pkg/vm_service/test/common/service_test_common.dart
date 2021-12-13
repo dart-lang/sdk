@@ -6,6 +6,7 @@ library service_test_common;
 
 import 'dart:async';
 
+import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -131,6 +132,16 @@ IsolateTest setBreakpointAtLine(int line) {
   };
 }
 
+IsolateTest setBreakpointAtUriAndLine(String uri, int line) {
+  return (VmService service, IsolateRef isolateRef) async {
+    print("Setting breakpoint for line $line in $uri");
+    Breakpoint bpt =
+        await service.addBreakpointWithScriptUri(isolateRef.id!, uri, line);
+    print("Breakpoint is $bpt");
+    expect(bpt, isNotNull);
+  };
+}
+
 IsolateTest stoppedAtLine(int line) {
   return (VmService service, IsolateRef isolateRef) async {
     print("Checking we are at line $line");
@@ -220,4 +231,155 @@ Future<void> stepOut(VmService service, IsolateRef isolateRef) async {
   await service.resume(isolateRef.id!, step: 'Out');
   await hasStoppedAtBreakpoint(service, isolateRef);
   await _unsubscribeDebugStream(service);
+}
+
+IsolateTest resumeProgramRecordingStops(
+    List<String> recordStops, bool includeCaller) {
+  return (VmService service, IsolateRef isolateRef) async {
+    final completer = Completer<void>();
+
+    late StreamSubscription subscription;
+    subscription = service.onDebugEvent.listen((event) async {
+      if (event.kind == EventKind.kPauseBreakpoint) {
+        final stack = await service.getStack(isolateRef.id!);
+        final frames = stack.frames!;
+        expect(frames.length, greaterThanOrEqualTo(2));
+
+        String brokeAt =
+            await _locationToString(service, isolateRef, frames[0]);
+        if (includeCaller) {
+          brokeAt =
+              '$brokeAt (${await _locationToString(service, isolateRef, frames[1])})';
+        }
+        recordStops.add(brokeAt);
+        await service.resume(isolateRef.id!);
+      } else if (event.kind == EventKind.kPauseExit) {
+        await subscription.cancel();
+        await service.streamCancel(EventStreams.kDebug);
+        completer.complete();
+      }
+    });
+
+    await service.streamListen(EventStreams.kDebug);
+    await service.resume(isolateRef.id!);
+    return completer.future;
+  };
+}
+
+Future<String> _locationToString(
+  VmService service,
+  IsolateRef isolateRef,
+  Frame frame,
+) async {
+  final location = frame.location!;
+  Script script =
+      await service.getObject(isolateRef.id!, location.script!.id!) as Script;
+  final scriptName = basename(script.uri!);
+  final tokenPos = location.tokenPos!;
+  final line = script.getLineNumberFromTokenPos(tokenPos);
+  final column = script.getColumnNumberFromTokenPos(tokenPos);
+  return '$scriptName:$line:$column';
+}
+
+IsolateTest runStepThroughProgramRecordingStops(List<String> recordStops) {
+  return (VmService service, IsolateRef isolateRef) async {
+    final completer = Completer<void>();
+
+    late StreamSubscription subscription;
+    subscription = service.onDebugEvent.listen((event) async {
+      if (event.kind == EventKind.kPauseBreakpoint) {
+        final isolate = await service.getIsolate(isolateRef.id!);
+        final frame = isolate.pauseEvent!.topFrame!;
+        recordStops.add(await _locationToString(service, isolateRef, frame));
+        if (event.atAsyncSuspension ?? false) {
+          await service.resume(isolateRef.id!,
+              step: StepOption.kOverAsyncSuspension);
+        } else {
+          await service.resume(isolateRef.id!, step: StepOption.kOver);
+        }
+      } else if (event.kind == EventKind.kPauseExit) {
+        await subscription.cancel();
+        await service.streamCancel(EventStreams.kDebug);
+        completer.complete();
+      }
+    });
+
+    await service.streamListen(EventStreams.kDebug);
+    await service.resume(isolateRef.id!);
+    return completer.future;
+  };
+}
+
+IsolateTest checkRecordedStops(
+    List<String> recordStops, List<String> expectedStops,
+    {bool removeDuplicates = false,
+    bool debugPrint = false,
+    String? debugPrintFile,
+    int? debugPrintLine}) {
+  return (VmService service, IsolateRef isolate) async {
+    if (debugPrint) {
+      for (int i = 0; i < recordStops.length; i++) {
+        String line = recordStops[i];
+        String output = line;
+        int firstColon = line.indexOf(":");
+        int lastColon = line.lastIndexOf(":");
+        if (debugPrintFile != null &&
+            debugPrintLine != null &&
+            firstColon > 0 &&
+            lastColon > 0) {
+          int lineNumber = int.parse(line.substring(firstColon + 1, lastColon));
+          int relativeLineNumber = lineNumber - debugPrintLine;
+          var columnNumber = line.substring(lastColon + 1);
+          var file = line.substring(0, firstColon);
+          if (file == debugPrintFile) {
+            output = '\$file:\${LINE+$relativeLineNumber}:$columnNumber';
+          }
+        }
+        String comma = i == recordStops.length - 1 ? "" : ",";
+        print('"$output"$comma');
+      }
+    }
+    if (removeDuplicates) {
+      recordStops = removeAdjacentDuplicates(recordStops);
+      expectedStops = removeAdjacentDuplicates(expectedStops);
+    }
+
+    // Single stepping may record extra stops.
+    // Allow the extra ones as long as the expected ones are recorded.
+    int i = 0;
+    int j = 0;
+    while (i < recordStops.length && j < expectedStops.length) {
+      if (recordStops[i] != expectedStops[j]) {
+        // Check if recordStops[i] is an extra stop.
+        int k = i + 1;
+        while (k < recordStops.length && recordStops[k] != expectedStops[j]) {
+          k++;
+        }
+        if (k < recordStops.length) {
+          // Allow and ignore extra recorded stops from i to k-1.
+          i = k;
+        } else {
+          // This will report an error.
+          expect(recordStops[i], expectedStops[j]);
+        }
+      }
+      i++;
+      j++;
+    }
+
+    expect(recordStops.length >= expectedStops.length, true,
+        reason: "Expects at least ${expectedStops.length} breaks, "
+            "got ${recordStops.length}.");
+  };
+}
+
+List<String> removeAdjacentDuplicates(List<String> fromList) {
+  List<String> result = <String>[];
+  String? latestLine;
+  for (String s in fromList) {
+    if (s == latestLine) continue;
+    latestLine = s;
+    result.add(s);
+  }
+  return result;
 }

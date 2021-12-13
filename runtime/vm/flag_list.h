@@ -66,7 +66,6 @@ constexpr bool FLAG_support_il_printer = false;
     "Use --[no-]dwarf-stack-traces instead.")                                  \
   P(lazy_async_stacks, bool, true, "Reconstruct async stacks from listeners")  \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
-  P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
   R(dedup_instructions, true, bool, false,                                     \
     "Canonicalize instructions when precompiling.")
 
@@ -124,12 +123,8 @@ constexpr bool FLAG_support_il_printer = false;
   P(enable_mirrors, bool, true,                                                \
     "Disable to make importing dart:mirrors an error.")                        \
   P(enable_ffi, bool, true, "Disable to make importing dart:ffi an error.")    \
-  P(fields_may_be_reset, bool, false,                                          \
-    "Don't optimize away static field initialization")                         \
   P(force_clone_compiler_objects, bool, false,                                 \
     "Force cloning of objects needed in compiler (ICData and Field).")         \
-  P(getter_setter_ratio, int, 13,                                              \
-    "Ratio of getter/setter usage used for double field unboxing heuristics")  \
   P(guess_icdata_cid, bool, true,                                              \
     "Artificially create type feedback for arithmetic etc. operations")        \
   P(huge_method_cutoff_in_tokens, int, 20000,                                  \
@@ -196,7 +191,6 @@ constexpr bool FLAG_support_il_printer = false;
   P(retain_code_objects, bool, true,                                           \
     "Serialize all code objects even if not otherwise "                        \
     "needed in the precompiled runtime.")                                      \
-  P(enable_isolate_groups, bool, true, "Enable isolate group support.")        \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
   D(trace_cha, bool, false, "Trace CHA operations")                            \

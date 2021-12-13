@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
@@ -26,6 +27,102 @@ Element _getEnclosingElement(CompilationUnitElement unitElement, int offset) {
     );
   }
   return element;
+}
+
+DeclarationKind? _getSearchElementKind(Element element) {
+  if (element is ClassElement) {
+    if (element.isEnum) {
+      return DeclarationKind.ENUM;
+    }
+    if (element.isMixin) return DeclarationKind.MIXIN;
+    if (element.isMixinApplication) return DeclarationKind.CLASS_TYPE_ALIAS;
+    return DeclarationKind.CLASS;
+  }
+
+  if (element is ConstructorElement) {
+    return DeclarationKind.CONSTRUCTOR;
+  }
+
+  if (element is ExtensionElement) {
+    return DeclarationKind.EXTENSION;
+  }
+
+  if (element is FieldElement) {
+    if (element.isEnumConstant) return DeclarationKind.ENUM_CONSTANT;
+    return DeclarationKind.FIELD;
+  }
+
+  if (element is FunctionElement) {
+    return DeclarationKind.FUNCTION;
+  }
+
+  if (element is MethodElement) {
+    return DeclarationKind.METHOD;
+  }
+
+  if (element is PropertyAccessorElement) {
+    return element.isGetter ? DeclarationKind.GETTER : DeclarationKind.SETTER;
+  }
+
+  if (element is TypeAliasElement) {
+    return DeclarationKind.TYPE_ALIAS;
+  }
+
+  if (element is VariableElement) {
+    return DeclarationKind.VARIABLE;
+  }
+
+  return null;
+}
+
+/// An element declaration.
+class Declaration {
+  final int fileIndex;
+  final LineInfo lineInfo;
+  final String name;
+  final DeclarationKind kind;
+  final int offset;
+  final int line;
+  final int column;
+  final int codeOffset;
+  final int codeLength;
+  final String? className;
+  final String? mixinName;
+  final String? parameters;
+
+  Declaration(
+    this.fileIndex,
+    this.lineInfo,
+    this.name,
+    this.kind,
+    this.offset,
+    this.line,
+    this.column,
+    this.codeOffset,
+    this.codeLength,
+    this.className,
+    this.mixinName,
+    this.parameters,
+  );
+}
+
+/// The kind of a [Declaration].
+enum DeclarationKind {
+  CLASS,
+  CLASS_TYPE_ALIAS,
+  CONSTRUCTOR,
+  ENUM,
+  ENUM_CONSTANT,
+  EXTENSION,
+  FIELD,
+  FUNCTION,
+  FUNCTION_TYPE_ALIAS,
+  GETTER,
+  METHOD,
+  MIXIN,
+  SETTER,
+  TYPE_ALIAS,
+  VARIABLE
 }
 
 /// Search support for an [AnalysisDriver].
@@ -62,6 +159,114 @@ class Search {
       }
     }
     return elements;
+  }
+
+  /// Add matching declarations to the [result].
+  Future<void> declarations(
+      WorkspaceSymbols result, RegExp? regExp, int? maxResults,
+      {String? onlyForFile}) async {
+    if (result.hasMoreDeclarationsThan(maxResults)) {
+      return;
+    }
+
+    void addDeclaration(LineInfo lineInfo, Element element) {
+      if (result.hasMoreDeclarationsThan(maxResults)) {
+        throw const _MaxNumberOfDeclarationsError();
+      }
+
+      if (element.isSynthetic) {
+        return;
+      }
+
+      var source = element.source;
+      if (source == null) {
+        return;
+      }
+
+      var path = source.fullName;
+      if (onlyForFile != null && path != onlyForFile) {
+        return;
+      }
+
+      var name = element.name;
+      if (name == null || name.isEmpty) {
+        return;
+      }
+      if (name.endsWith('=')) {
+        name = name.substring(0, name.length - 1);
+      }
+      if (regExp != null && !regExp.hasMatch(name)) {
+        return;
+      }
+
+      var enclosing = element.enclosingElement;
+
+      String? className;
+      String? mixinName;
+      if (enclosing is ClassElement) {
+        if (enclosing.isEnum) {
+          // skip
+        } else if (enclosing.isMixin) {
+          mixinName = enclosing.name;
+        } else {
+          className = enclosing.name;
+        }
+      }
+
+      var kind = _getSearchElementKind(element);
+      if (kind == null) {
+        return;
+      }
+
+      String? parameters;
+      if (element is ExecutableElement) {
+        var displayString = element.getDisplayString(withNullability: true);
+        var parameterIndex = displayString.indexOf('(');
+        if (parameterIndex > 0) {
+          parameters = displayString.substring(parameterIndex);
+        }
+      }
+
+      element as ElementImpl; // to access codeOffset/codeLength
+      var locationOffset = element.nameOffset;
+      var locationStart = lineInfo.getLocation(locationOffset);
+
+      result.declarations.add(
+        Declaration(
+          result._getPathIndex(path),
+          lineInfo,
+          name,
+          kind,
+          locationOffset,
+          locationStart.lineNumber,
+          locationStart.columnNumber,
+          element.codeOffset ?? 0,
+          element.codeLength ?? 0,
+          className,
+          mixinName,
+          parameters,
+        ),
+      );
+    }
+
+    await _driver.discoverAvailableFiles();
+    var knownFiles = _driver.fsState.knownFiles.toList();
+    for (var file in knownFiles) {
+      var libraryElement = _driver.getLibraryByFile(file);
+      if (libraryElement != null) {
+        for (var unitElement in libraryElement.units) {
+          try {
+            unitElement.accept(
+              _FunctionElementVisitor((element) {
+                addDeclaration(unitElement.lineInfo!, element);
+              }),
+            );
+          } on _MaxNumberOfDeclarationsError {
+            return;
+          }
+        }
+      }
+    }
   }
 
   /// Returns references to the [element].
@@ -604,6 +809,26 @@ class SubtypeResult {
   String toString() => id;
 }
 
+class WorkspaceSymbols {
+  final List<Declaration> declarations = [];
+  final List<String> files = [];
+  final Map<String, int> _pathToIndex = {};
+
+  bool hasMoreDeclarationsThan(int? maxResults) {
+    return maxResults != null && declarations.length >= maxResults;
+  }
+
+  int _getPathIndex(String path) {
+    var index = _pathToIndex[path];
+    if (index == null) {
+      index = files.length;
+      files.add(path);
+      _pathToIndex[path] = index;
+    }
+    return index;
+  }
+}
+
 /// A visitor that finds the deep-most [Element] that contains the [offset].
 class _ContainingElementFinder extends GeneralizingElementVisitor<void> {
   final int offset;
@@ -621,6 +846,19 @@ class _ContainingElementFinder extends GeneralizingElementVisitor<void> {
         super.visitElement(element);
       }
     }
+  }
+}
+
+/// A visitor that handles any element with a function.
+class _FunctionElementVisitor extends GeneralizingElementVisitor<void> {
+  final void Function(Element element) process;
+
+  _FunctionElementVisitor(this.process);
+
+  @override
+  void visitElement(Element element) {
+    process(element);
+    super.visitElement(element);
   }
 }
 
@@ -949,4 +1187,9 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
     results.add(SearchResult._(
         enclosingElement, kind, node.offset, node.length, true, isQualified));
   }
+}
+
+/// The marker class that is thrown to stop adding declarations.
+class _MaxNumberOfDeclarationsError {
+  const _MaxNumberOfDeclarationsError();
 }

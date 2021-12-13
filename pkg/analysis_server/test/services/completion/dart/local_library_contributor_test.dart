@@ -28,7 +28,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_partFile_Constructor() async {
-    // SimpleIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  NamedType  ConstructorName
     newFile('$testPackageLibPath/b.dart', content: '''
         lib B;
         int T1;
@@ -63,7 +63,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
   }
 
   Future<void> test_partFile_Constructor2() async {
-    // SimpleIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  NamedType  ConstructorName
     newFile('$testPackageLibPath/b.dart', content: '''
         lib B;
         int T1;

@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/modify_p
 import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename_parameter.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/replaced_by.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
@@ -64,6 +65,7 @@ class TransformSetParser {
   static const String _methodKey = 'method';
   static const String _mixinKey = 'mixin';
   static const String _nameKey = 'name';
+  static const String _newElementKey = 'newElement';
   static const String _newNameKey = 'newName';
   static const String _oldNameKey = 'oldName';
   static const String _oneOfKey = 'oneOf';
@@ -97,6 +99,7 @@ class TransformSetParser {
   static const String _removeParameterKind = 'removeParameter';
   static const String _renameKind = 'rename';
   static const String _renameParameterKind = 'renameParameter';
+  static const String _replacedByKind = 'replacedBy';
 
   /// The valid values for the [_styleKey] in an [_addParameterKind] change.
   static const List<String> validStyles = [
@@ -105,6 +108,11 @@ class TransformSetParser {
     'required_named',
     'required_positional'
   ];
+
+  /// A table mapping the kinds of elements that can be replaced by a different
+  /// element to a set of the kinds of elements with which they can be replaced.
+  static final Map<ElementKind, Set<ElementKind>> compatibleReplacementTypes =
+      _createCompatibleReplacementTypes();
 
   static const String _openComponent = '{%';
   static const String _closeComponent = '%}';
@@ -124,6 +132,12 @@ class TransformSetParser {
   /// The name of the package from which the data file being translated was
   /// found.
   final String packageName;
+
+  /// The description of the element that is being transformed by the current
+  /// transformation, or `null` if we are not in the process of parsing a
+  /// transformation or if the element associated with the transformation is not
+  /// valid.
+  ElementDescriptor? elementBeingTransformed;
 
   /// The variable scope defined for the current transform.
   VariableScope transformVariableScope = VariableScope.empty;
@@ -145,6 +159,13 @@ class TransformSetParser {
       return null;
     }
     return _translateTransformSet(map);
+  }
+
+  bool _equalUris(List<Uri> oldUris, List<Uri> newUris) {
+    var oldSet = oldUris.toSet();
+    var newSet = newUris.toSet();
+    return oldSet.difference(newSet).isEmpty &&
+        newSet.difference(oldSet).isEmpty;
   }
 
   /// Convert the given [template] into a list of components. Variable
@@ -446,6 +467,8 @@ class TransformSetParser {
         return _translateRenameChange(node);
       } else if (kind == _renameParameterKind) {
         return _translateRenameParameterChange(node);
+      } else if (kind == _replacedByKind) {
+        return _translateReplacedByChange(node);
       }
       return _reportInvalidValueOneOf(kindNode, kindContext, [
         _addParameterKind,
@@ -453,6 +476,7 @@ class TransformSetParser {
         _removeParameterKind,
         _renameKind,
         _renameParameterKind,
+        _replacedByKind,
       ]);
     } else {
       return _reportInvalidValue(node, context, 'Map');
@@ -821,6 +845,41 @@ class TransformSetParser {
     return RenameParameter(newName: newName, oldName: oldName);
   }
 
+  /// Translate the [node] into a replaced_by change. Return the resulting
+  /// change, or `null` if the [node] does not represent a valid replaced_by
+  /// change.
+  ReplacedBy? _translateReplacedByChange(YamlMap node) {
+    _reportUnsupportedKeys(node, const {_kindKey, _newElementKey});
+    var newElement = _translateElement(node.valueAt(_newElementKey),
+        ErrorContext(key: _newElementKey, parentNode: node));
+    if (newElement == null) {
+      // The error has already been reported.
+      return null;
+    }
+    var oldElement = elementBeingTransformed;
+    if (oldElement != null) {
+      if (!_equalUris(oldElement.libraryUris, newElement.libraryUris)) {
+        _reportError(TransformSetErrorCode.unsupportedUriChange,
+            (node.valueAt(_newElementKey) as YamlMap).valueAt(_urisKey)!);
+      }
+      var compatibleTypes = compatibleReplacementTypes[oldElement.kind];
+      if (compatibleTypes == null) {
+        _reportError(
+            TransformSetErrorCode.invalidChangeForKind,
+            node.valueAt(_newElementKey)!,
+            [_replacedByKind, oldElement.kind.displayName]);
+        return null;
+      } else if (!compatibleTypes.contains(newElement.kind)) {
+        _reportError(
+            TransformSetErrorCode.incompatibleElementKind,
+            node.valueAt(_newElementKey)!,
+            [oldElement.kind.displayName, newElement.kind.displayName]);
+        return null;
+      }
+    }
+    return ReplacedBy(newElement: newElement);
+  }
+
   /// Translate the [node] into a string. Return the resulting string, or `null`
   /// if the [node] doesn't represent a valid string. If the [node] isn't valid,
   /// use the [context] to report the error. If the [node] doesn't exist and
@@ -893,6 +952,7 @@ class TransformSetParser {
           true;
       var element = _translateElement(node.valueAt(_elementKey),
           ErrorContext(key: _elementKey, parentNode: node));
+      elementBeingTransformed = element;
       transformVariableScope = _translateTemplateVariables(
           node.valueAt(_variablesKey),
           ErrorContext(key: _variablesKey, parentNode: node));
@@ -1031,5 +1091,44 @@ class TransformSetParser {
     } else {
       return _reportInvalidValue(node, context, 'Map');
     }
+  }
+
+  static Map<ElementKind, Set<ElementKind>>
+      _createCompatibleReplacementTypes() {
+    var types = <ElementKind, Set<ElementKind>>{};
+
+    void addSet(Set<ElementKind> set) {
+      for (var kind in set) {
+        types.putIfAbsent(kind, () => {}).addAll(set);
+      }
+    }
+
+    // Constructors can replace constructors.
+    addSet({
+      ElementKind.constructorKind,
+    });
+    // Static methods and top-level functions can replace each other.
+    addSet({
+      ElementKind.functionKind,
+      ElementKind.methodKind,
+    });
+    // Static getters and getter-inducing elements can replace each other.
+    addSet({
+      ElementKind.constantKind,
+      ElementKind.fieldKind,
+      ElementKind.getterKind,
+      ElementKind.variableKind,
+    });
+    // Static setters and setter-inducing elements can replace each other.
+    // TODO(brianwilkerson) We can't currently distinguish between final and
+    //  non-final elements, but we don't support replacing setters with final
+    //  elements, nor vice versa. We need a way to distinguish these cases if we
+    //  want to be able to report an error.
+    addSet({
+      ElementKind.fieldKind,
+      ElementKind.setterKind,
+      ElementKind.variableKind,
+    });
+    return types;
   }
 }

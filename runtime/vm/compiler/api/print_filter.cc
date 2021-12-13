@@ -7,23 +7,45 @@
 #include "vm/compiler/api/print_filter.h"
 
 #include "vm/flags.h"
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/compiler/compiler_pass.h"
 #include "vm/object.h"
+#endif
+#include "vm/symbols.h"
 
 namespace dart {
 
 DEFINE_FLAG(charp,
             print_flow_graph_filter,
-            NULL,
+            nullptr,
             "Print only IR of functions with matching names");
 
 namespace compiler {
 
 // Checks whether function's name matches the given filter, which is
 // a comma-separated list of strings.
-static bool PassesFilter(const char* filter, const Function& function) {
-  if (filter == NULL) {
+static bool PassesFilter(const char* filter,
+                         const Function& function,
+                         uint8_t** compiler_pass_filter) {
+  if (filter == nullptr) {
     return true;
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (strcmp(filter, "@pragma") == 0) {
+    Object& pass_filter = Object::Handle();
+    const auto has_pragma =
+        Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
+                            function, Symbols::vm_testing_print_flow_graph(),
+                            /*multiple=*/false, &pass_filter);
+    if (has_pragma && !pass_filter.IsNull() &&
+        compiler_pass_filter != nullptr) {
+      *compiler_pass_filter = dart::CompilerPass::ParseFiltersFromPragma(
+          String::Cast(pass_filter).ToCString());
+    }
+    return has_pragma;
+  }
+#endif
 
   char* save_ptr;  // Needed for strtok_r.
   const char* scrubbed_name =
@@ -36,9 +58,9 @@ static bool PassesFilter(const char* filter, const Function& function) {
   strncpy(filter_buffer, filter, len);  // strtok modifies arg 1.
   char* token = strtok_r(filter_buffer, ",", &save_ptr);
   bool found = false;
-  while (token != NULL) {
-    if ((strstr(function_name, token) != NULL) ||
-        (strstr(scrubbed_name, token) != NULL)) {
+  while (token != nullptr) {
+    if ((strstr(function_name, token) != nullptr) ||
+        (strstr(scrubbed_name, token) != nullptr)) {
       found = true;
       break;
     }
@@ -53,15 +75,17 @@ static bool PassesFilter(const char* filter, const Function& function) {
         }
       }
     }
-    token = strtok_r(NULL, ",", &save_ptr);
+    token = strtok_r(nullptr, ",", &save_ptr);
   }
   delete[] filter_buffer;
 
   return found;
 }
 
-bool PrintFilter::ShouldPrint(const Function& function) {
-  return PassesFilter(FLAG_print_flow_graph_filter, function);
+bool PrintFilter::ShouldPrint(const Function& function,
+                              uint8_t** compiler_pass_filter /* = nullptr */) {
+  return PassesFilter(FLAG_print_flow_graph_filter, function,
+                      compiler_pass_filter);
 }
 
 }  // namespace compiler

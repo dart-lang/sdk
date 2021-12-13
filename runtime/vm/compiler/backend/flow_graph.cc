@@ -56,7 +56,10 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       loop_invariant_loads_(nullptr),
       captured_parameters_(new (zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
-      should_print_(FlowGraphPrinter::ShouldPrint(parsed_function.function())) {
+      should_print_(false) {
+  should_print_ = FlowGraphPrinter::ShouldPrint(parsed_function.function(),
+                                                &compiler_pass_filters_);
+
   direct_parameters_size_ = ParameterOffsetAt(
       function(), num_direct_parameters_, /*last_slot*/ false);
   DiscoverBlocks();
@@ -126,20 +129,6 @@ Representation FlowGraph::ReturnRepresentationOf(const Function& function) {
   } else {
     ASSERT(!function.has_unboxed_return());
     return kTagged;
-  }
-}
-
-Representation FlowGraph::UnboxedFieldRepresentationOf(const Field& field) {
-  switch (field.UnboxedFieldCid()) {
-    case kDoubleCid:
-      return kUnboxedDouble;
-    case kFloat32x4Cid:
-      return kUnboxedFloat32x4;
-    case kFloat64x2Cid:
-      return kUnboxedFloat64x2;
-    default:
-      RELEASE_ASSERT(field.is_non_nullable_integer());
-      return kUnboxedInt64;
   }
 }
 
@@ -2878,6 +2867,10 @@ void FlowGraph::InsertPushArguments() {
       }
     }
   }
+}
+
+void FlowGraph::Print(const char* phase) {
+  FlowGraphPrinter::PrintGraph(phase, this);
 }
 
 }  // namespace dart

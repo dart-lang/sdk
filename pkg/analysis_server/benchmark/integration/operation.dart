@@ -70,8 +70,8 @@ class RequestOperation extends Operation {
   @override
   Future<void>? perform(Driver driver) {
     var stopwatch = Stopwatch();
-    String originalId = json['id'];
-    String method = json['method'];
+    var originalId = json['id'] as String;
+    var method = json['method'] as String;
     json['clientRequestTime'] = DateTime.now().millisecondsSinceEpoch;
     driver.logger.log(Level.FINE, 'Sending request: $method\n  $json');
     stopwatch.start();

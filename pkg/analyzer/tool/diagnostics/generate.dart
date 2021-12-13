@@ -39,6 +39,9 @@ class DiagnosticInformation {
   /// The messages associated with the diagnostic.
   List<String> messages;
 
+  /// The previous names by which this diagnostic has been known.
+  List<String> previousNames = [];
+
   /// The documentation text associated with the diagnostic.
   String? documentation;
 
@@ -56,10 +59,22 @@ class DiagnosticInformation {
     }
   }
 
+  void addPreviousName(String previousName) {
+    if (!previousNames.contains(previousName)) {
+      previousNames.add(previousName);
+    }
+  }
+
   /// Return the full documentation for this diagnostic.
   void writeOn(StringSink sink) {
     messages.sort();
     sink.writeln('### ${name.toLowerCase()}');
+    for (var previousName in previousNames) {
+      sink.writeln();
+      var previousInLowerCase = previousName.toLowerCase();
+      sink.writeln('<a id="$previousInLowerCase" aria-hidden="true"></a>'
+          '_(Previously known as `$previousInLowerCase`)_');
+    }
     for (String message in messages) {
       sink.writeln();
       for (String line in _split('_${_escape(message)}_')) {
@@ -120,7 +135,6 @@ class DocumentationGenerator {
     _writeHeader(sink);
     _writeGlossary(sink);
     _writeDiagnostics(sink);
-    _writeForwards(sink);
   }
 
   /// Extract documentation from all of the files containing the definitions of
@@ -139,6 +153,10 @@ class DocumentationGenerator {
         infoByName[name] = info;
       } else {
         info.addMessage(message);
+      }
+      var previousName = errorCodeInfo.previousName;
+      if (previousName != null) {
+        info.addPreviousName(previousName);
       }
       var docs = _extractDoc('$className.$errorName', errorCodeInfo);
       if (docs.isNotEmpty) {
@@ -183,17 +201,6 @@ that might work in unexpected ways.
         info.writeOn(sink);
       }
     }
-  }
-
-  /// Write the forwarding documentation for all of the diagnostics that have
-  /// been renamed.
-  void _writeForwards(StringSink sink) {
-    sink.write('''
-
-### undefined_super_method
-
-See [undefined_super_member](#undefined_super_member).
-''');
   }
 
   /// Write the glossary.

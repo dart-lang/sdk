@@ -229,6 +229,17 @@
       "exclude": []
     },
     {
+      "name": "outline_extractor",
+      "kind": "Chain",
+      "source": "test/outline_extractor_suite.dart",
+      "path": "outline_extraction_testcases/",
+      "status": "outline_extraction_testcases/outline_extractor.status",
+      "pattern": [
+        "main\\.dart$"
+      ],
+      "exclude": []
+    },
+    {
       "name": "parser_equivalence",
       "kind": "Chain",
       "source": "test/parser_equivalence_suite.dart",
@@ -466,6 +477,7 @@
       "test/extensions/data/",
       "test/id_testing/data/",
       "test/language_versioning/data/",
+      "test/macros/data/",
       "test/patching/data",
       "test/predicates/data",
       "test/static_types/data/",

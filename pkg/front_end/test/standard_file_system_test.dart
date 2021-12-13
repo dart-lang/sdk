@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // SharedOptions=--supermixin
 
-// @dart = 2.9
-
 library front_end.test.standard_file_system_test;
 
 import 'dart:convert';
@@ -31,8 +29,8 @@ final Matcher _throwsFileSystemException =
 
 @reflectiveTest
 class DirectoryTest extends _BaseTest {
-  String path;
-  FileSystemEntity dir;
+  late String path;
+  late FileSystemEntity dir;
 
   @override
   void setUp() {
@@ -70,8 +68,8 @@ class DirectoryTest extends _BaseTest {
 
 @reflectiveTest
 class FileTest extends _BaseTest {
-  String path;
-  FileSystemEntity file;
+  late String path;
+  late FileSystemEntity file;
 
   @override
   void setUp() {
@@ -146,7 +144,7 @@ class FileTest extends _BaseTest {
 
 @reflectiveTest
 class StandardFileSystemTest extends _BaseTest {
-  Uri tempUri;
+  late Uri tempUri;
 
   @override
   void setUp() {
@@ -231,8 +229,8 @@ class StandardFileSystemTest extends _BaseTest {
 }
 
 class _BaseTest {
-  io.Directory tempDirectory;
-  String tempPath;
+  late io.Directory tempDirectory;
+  late String tempPath;
 
   FileSystemEntity entityForPath(String path) =>
       StandardFileSystem.instance.entityForUri(p.toUri(path));

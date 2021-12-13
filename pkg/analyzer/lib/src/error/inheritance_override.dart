@@ -327,7 +327,7 @@ class _ClassVerifier {
 
     // The SDK implementation may implement disallowed types. For example,
     // JSNumber in dart2js and _Smi in Dart VM both implement int.
-    if (library.source.isInSystemLibrary) {
+    if (library.source.uri.isScheme('dart')) {
       return false;
     }
 

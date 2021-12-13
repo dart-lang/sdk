@@ -166,6 +166,35 @@ class ParsedFunction;
   NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                       \
   UNBOXED_NATIVE_SLOTS_LIST(V)
 
+class FieldGuardState {
+ public:
+  FieldGuardState() : state_(0) {}
+  explicit FieldGuardState(const Field& field);
+
+  intptr_t guarded_cid() const { return GuardedCidBits::decode(state_); }
+  bool is_non_nullable_integer() const {
+    return IsNonNullableIntegerBit::decode(state_);
+  }
+  bool is_unboxing_candidate() const {
+    return IsUnboxingCandidateBit::decode(state_);
+  }
+  bool is_nullable() const { return IsNullableBit::decode(state_); }
+
+  bool IsUnboxed() const;
+  bool IsPotentialUnboxed() const;
+
+ private:
+  using GuardedCidBits = BitField<int32_t, ClassIdTagType, 0, 16>;
+  using IsNonNullableIntegerBit =
+      BitField<int32_t, bool, GuardedCidBits::kNextBit, 1>;
+  using IsUnboxingCandidateBit =
+      BitField<int32_t, bool, IsNonNullableIntegerBit::kNextBit, 1>;
+  using IsNullableBit =
+      BitField<int32_t, bool, IsUnboxingCandidateBit::kNextBit, 1>;
+
+  const int32_t state_;
+};
+
 // Slot is an abstraction that describes an readable (and possibly writeable)
 // location within an object.
 //
@@ -298,6 +327,10 @@ class Slot : public ZoneAllocated {
     return kind() == Kind::kCapturedVariable || kind() == Kind::kContext_parent;
   }
 
+  bool IsUnboxed() const;
+  bool IsPotentialUnboxed() const;
+  Representation UnboxedRepresentation() const;
+
  private:
   friend class FlowGraphDeserializer;  // For GetNativeSlot.
 
@@ -307,12 +340,14 @@ class Slot : public ZoneAllocated {
        intptr_t offset_in_bytes,
        const void* data,
        const AbstractType* static_type,
-       Representation representation)
+       Representation representation,
+       const FieldGuardState& field_guard_state = FieldGuardState())
       : kind_(kind),
         flags_(bits),
         cid_(cid),
         offset_in_bytes_(offset_in_bytes),
         representation_(representation),
+        field_guard_state_(field_guard_state),
         data_(data),
         static_type_(static_type) {}
 
@@ -323,7 +358,8 @@ class Slot : public ZoneAllocated {
              other.offset_in_bytes_,
              other.data_,
              other.static_type_,
-             other.representation_) {}
+             other.representation_,
+             other.field_guard_state_) {}
 
   using IsImmutableBit = BitField<int8_t, bool, 0, 1>;
   using IsNullableBit = BitField<int8_t, bool, IsImmutableBit::kNextBit, 1>;
@@ -342,12 +378,18 @@ class Slot : public ZoneAllocated {
   static AcqRelAtomic<Slot*> native_fields_;
   static const Slot& GetNativeSlot(Kind kind);
 
+  const FieldGuardState& field_guard_state() const {
+    return field_guard_state_;
+  }
+
   const Kind kind_;
   const int8_t flags_;        // is_immutable, is_nullable
   const ClassIdTagType cid_;  // Concrete cid of a value or kDynamicCid.
 
   const intptr_t offset_in_bytes_;
   const Representation representation_;
+
+  const FieldGuardState field_guard_state_;
 
   // Kind dependent data:
   //   - name as a Dart String object for local variables;

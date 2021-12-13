@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -11,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// A runner that can request code completion at the location of each identifier
@@ -60,7 +60,6 @@ class CompletionRunner {
     var contributor = DartCompletionManager(
       budget: CompletionBudget(const Duration(seconds: 30)),
     );
-    var statistics = CompletionPerformance();
     var stamp = 1;
 
     var fileCount = 0;
@@ -100,17 +99,13 @@ class CompletionRunner {
           }
 
           timer.start();
-          var dartRequest = DartCompletionRequest(
+          var dartRequest = DartCompletionRequest.forResolvedUnit(
             resolvedUnit: result,
             offset: offset,
           );
-          var suggestions = await statistics.runRequestOperation(
-            (performance) async {
-              return await contributor.computeSuggestions(
-                dartRequest,
-                performance,
-              );
-            },
+          var suggestions = await contributor.computeSuggestions(
+            dartRequest,
+            OperationPerformanceImpl('<root>'),
           );
           timer.stop();
 

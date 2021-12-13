@@ -7,7 +7,7 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analysis_server/src/search/workspace_symbols.dart' as search;
+import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
 class WorkspaceSymbolHandler
     extends MessageHandler<WorkspaceSymbolParams, List<SymbolInformation>> {
@@ -52,24 +52,19 @@ class WorkspaceSymbolHandler
     // huge numbers on large projects.
     var remainingResults = 500;
 
-    final filePathsHashSet = <String>{};
-    final tracker = server.declarationsTracker!;
-    final declarations = search.WorkspaceSymbols(tracker).declarations(
-      regex,
-      remainingResults,
-      filePathsHashSet,
-    );
-
-    // Convert the file paths to something we can quickly index into since
-    // we'll be looking things up by index a lot.
-    final filePaths = filePathsHashSet.toList();
+    var workspaceSymbols = search.WorkspaceSymbols();
+    var analysisDrivers = server.driverMap.values.toList();
+    for (var analysisDriver in analysisDrivers) {
+      await analysisDriver.search
+          .declarations(workspaceSymbols, regex, remainingResults);
+    }
 
     // Map the results to SymbolInformations and flatten the list of lists.
-    final symbols = declarations
+    final symbols = workspaceSymbols.declarations
         .map((declaration) => _asSymbolInformation(
               declaration,
               supportedSymbolKinds,
-              filePaths,
+              workspaceSymbols.files,
             ))
         .toList();
 

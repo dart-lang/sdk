@@ -262,14 +262,34 @@ class JSInvocationMirror implements Invocation {
 }
 
 class Primitives {
+  static Object? _identityHashCodeProperty;
+
   static int objectHashCode(object) {
-    int? hash = JS('int|Null', r'#.$identityHash', object);
+    Object property =
+        _identityHashCodeProperty ??= _computeIdentityHashCodeProperty();
+    int? hash = JS('int|Null', r'#[#]', object, property);
     if (hash == null) {
       hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
-      JS('void', r'#.$identityHash = #', object, hash);
+      JS('void', r'#[#] = #', object, property, hash);
     }
     return JS('int', '#', hash);
   }
+
+  static Object _computeIdentityHashCodeProperty() =>
+      JS_GET_FLAG('LEGACY_JAVASCRIPT')
+          ? _computeIdentityHashCodePropertyLegacy()
+          : _computeIdentityHashCodePropertyModern();
+
+  static Object _computeIdentityHashCodePropertyLegacy() {
+    if (JS<bool>('bool', 'typeof Symbol == "function"') ||
+        JS<bool>('bool', 'typeof Symbol() == "symbol"')) {
+      return _computeIdentityHashCodePropertyModern();
+    }
+    return r'$identityHashCode';
+  }
+
+  static Object _computeIdentityHashCodePropertyModern() =>
+      JS('', 'Symbol("identityHashCode")');
 
   static int? parseInt(String source, int? radix) {
     checkString(source);

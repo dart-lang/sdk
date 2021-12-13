@@ -17,6 +17,8 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart'
     show TypeEnvironment, SubtypeCheckMode;
 
+import 'abi.dart';
+
 /// Represents the (instantiated) ffi.NativeType.
 enum NativeType {
   kNativeType,
@@ -105,78 +107,6 @@ const Map<NativeType, int> nativeTypeSizes = <NativeType, int>{
   NativeType.kStruct: UNKNOWN,
   NativeType.kHandle: WORD_SIZE,
   NativeType.kBool: 1,
-};
-
-/// The struct layout in various ABIs.
-///
-/// ABIs differ per architectures and with different compilers.
-/// We pick the default struct layout based on the architecture and OS.
-///
-/// Compilers _can_ deviate from the default layout, but this prevents
-/// executables from making system calls. So this seems rather uncommon.
-///
-/// In the future, we might support custom struct layouts. For more info see
-/// https://github.com/dart-lang/sdk/issues/35768.
-enum Abi {
-  /// Layout in all 64bit ABIs (x64 and arm64).
-  wordSize64,
-
-  /// Layout in System V ABI for x386 (ia32 on Linux) and in iOS Arm 32 bit.
-  wordSize32Align32,
-
-  /// Layout in both the Arm 32 bit ABI and the Windows ia32 ABI.
-  wordSize32Align64,
-}
-
-/// WORD_SIZE in bytes.
-const wordSize = <Abi, int>{
-  Abi.wordSize64: 8,
-  Abi.wordSize32Align32: 4,
-  Abi.wordSize32Align64: 4,
-};
-
-/// Elements that are not aligned to their size.
-///
-/// Has an entry for all Abis. Empty entries document that every native
-/// type is aligned to it's own size in this ABI.
-///
-/// See runtime/vm/ffi/abi.cc for asserts in the VM that verify these
-/// alignments.
-///
-/// TODO(37470): Add uncommon primitive data types when we want to support them.
-const nonSizeAlignment = <Abi, Map<NativeType, int>>{
-  Abi.wordSize64: {},
-
-  // x86 System V ABI:
-  // > uint64_t | size 8 | alignment 4
-  // > double   | size 8 | alignment 4
-  // https://github.com/hjl-tools/x86-psABI/wiki/intel386-psABI-1.1.pdf page 8.
-  //
-  // iOS 32 bit alignment:
-  // https://developer.apple.com/documentation/uikit/app_and_environment/updating_your_app_from_32-bit_to_64-bit_architecture/updating_data_structures
-  Abi.wordSize32Align32: {
-    NativeType.kDouble: 4,
-    NativeType.kInt64: 4,
-    NativeType.kUint64: 4
-  },
-
-  // The default for MSVC x86:
-  // > The alignment-requirement for all data except structures, unions, and
-  // > arrays is either the size of the object or the current packing size
-  // > (specified with either /Zp or the pack pragma, whichever is less).
-  // https://docs.microsoft.com/en-us/cpp/c-language/padding-and-alignment-of-structure-members?view=vs-2019
-  //
-  // GCC _can_ compile on Linux to this alignment with -malign-double, but does
-  // not do so by default:
-  // > Warning: if you use the -malign-double switch, structures containing the
-  // > above types are aligned differently than the published application
-  // > binary interface specifications for the x86-32 and are not binary
-  // > compatible with structures in code compiled without that switch.
-  // https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
-  //
-  // Arm always requires 8 byte alignment for 8 byte values:
-  // http://infocenter.arm.com/help/topic/com.arm.doc.ihi0042d/IHI0042D_aapcs.pdf 4.1 Fundamental Data Types
-  Abi.wordSize32Align64: {},
 };
 
 /// Load, store, and elementAt are rewired to their static type for these types.
@@ -304,6 +234,7 @@ class FfiTransformer extends Transformer {
   final Procedure lookupFunctionTearoff;
   final Procedure getNativeFieldFunction;
   final Procedure reachabilityFenceFunction;
+  final Procedure checkAbiSpecificIntegerMappingFunction;
 
   late final InterfaceType nativeFieldWrapperClass1Type;
   late final InterfaceType voidType;
@@ -487,7 +418,9 @@ class FfiTransformer extends Transformer {
         getNativeFieldFunction = index.getTopLevelProcedure(
             'dart:nativewrappers', '_getNativeField'),
         reachabilityFenceFunction =
-            index.getTopLevelProcedure('dart:_internal', 'reachabilityFence') {
+            index.getTopLevelProcedure('dart:_internal', 'reachabilityFence'),
+        checkAbiSpecificIntegerMappingFunction = index.getTopLevelProcedure(
+            'dart:ffi', "_checkAbiSpecificIntegerMapping") {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid]!
@@ -523,7 +456,7 @@ class FfiTransformer extends Transformer {
   /// [Bool]                               -> [bool]
   /// [Void]                               -> [void]
   /// [Pointer]<T>                         -> [Pointer]<T>
-  /// T extends [Pointer]                  -> T
+  /// T extends [Compound]                 -> T
   /// [Handle]                             -> [Object]
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
@@ -605,28 +538,41 @@ class FfiTransformer extends Transformer {
   InterfaceType _listOfIntType() => InterfaceType(
       listClass, Nullability.legacy, [coreTypes.intLegacyRawType]);
 
-  ConstantExpression intListConstantExpression(List<int> values) =>
+  ConstantExpression intListConstantExpression(List<int?> values) =>
       ConstantExpression(
-          ListConstant(coreTypes.intLegacyRawType,
-              [for (var v in values) IntConstant(v)]),
+          ListConstant(coreTypes.intLegacyRawType, [
+            for (var v in values)
+              if (v != null) IntConstant(v) else NullConstant()
+          ]),
           _listOfIntType());
 
   /// Expression that queries VM internals at runtime to figure out on which ABI
   /// we are.
-  Expression runtimeBranchOnLayout(Map<Abi, int> values) {
-    return InstanceInvocation(
+  Expression runtimeBranchOnLayout(Map<Abi, int?> values) {
+    final result = InstanceInvocation(
         InstanceAccessKind.Instance,
         intListConstantExpression([
-          values[Abi.wordSize64]!,
-          values[Abi.wordSize32Align32]!,
-          values[Abi.wordSize32Align64]!
+          for (final abi in Abi.values) values[abi],
         ]),
         listElementAt.name,
         Arguments([StaticInvocation(abiMethod, Arguments([]))]),
         interfaceTarget: listElementAt,
         functionType: Substitution.fromInterfaceType(_listOfIntType())
             .substituteType(listElementAt.getterType) as FunctionType);
+    if (values.isPartial) {
+      return checkAbiSpecificIntegerMapping(result);
+    }
+    return result;
   }
+
+  Expression checkAbiSpecificIntegerMapping(Expression nullableExpression) =>
+      StaticInvocation(
+        checkAbiSpecificIntegerMappingFunction,
+        Arguments(
+          [nullableExpression],
+          types: [InterfaceType(intClass, Nullability.nonNullable)],
+        ),
+      );
 
   /// Generates an expression that returns a new `Pointer<dartType>` offset
   /// by [offset] from [pointer].
@@ -797,10 +743,16 @@ class FfiTransformer extends Transformer {
   /// Returns the single element type nested type argument of `Array`.
   ///
   /// `Array<Array<Array<Int8>>>` -> `Int8`.
+  ///
+  /// `Array<Array<Array<Unknown>>>` -> [InvalidType].
   DartType arraySingleElementType(DartType dartType) {
     InterfaceType elementType = dartType as InterfaceType;
     while (elementType.classNode == arrayClass) {
-      elementType = elementType.typeArguments[0] as InterfaceType;
+      final elementTypeAny = elementType.typeArguments[0];
+      if (elementTypeAny is InvalidType) {
+        return elementTypeAny;
+      }
+      elementType = elementTypeAny as InterfaceType;
     }
     return elementType;
   }
@@ -808,11 +760,14 @@ class FfiTransformer extends Transformer {
   /// Returns the number of dimensions of `Array`.
   ///
   /// `Array<Array<Array<Int8>>>` -> 3.
+  ///
+  /// `Array<Array<Array<Unknown>>>` -> 3.
   int arrayDimensions(DartType dartType) {
-    InterfaceType elementType = dartType as InterfaceType;
+    DartType elementType = dartType;
     int dimensions = 0;
-    while (elementType.classNode == arrayClass) {
-      elementType = elementType.typeArguments[0] as InterfaceType;
+    while (
+        elementType is InterfaceType && elementType.classNode == arrayClass) {
+      elementType = elementType.typeArguments[0];
       dimensions++;
     }
     return dimensions;
@@ -881,4 +836,9 @@ bool importsFfi(Component component, List<Library> libraries) {
     }
   }
   return false;
+}
+
+extension on Map<Abi, Object?> {
+  bool get isPartial =>
+      [for (final abi in Abi.values) this[abi]].contains(null);
 }

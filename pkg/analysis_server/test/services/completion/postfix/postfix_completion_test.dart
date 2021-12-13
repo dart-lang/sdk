@@ -738,7 +738,7 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_into_legacy() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 String? x;
 ''');
     await _prepareCompletion('.tryon', '''
@@ -762,7 +762,7 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_into_legacy_nested() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 List<String?> x;
 ''');
     await _prepareCompletion('.tryon', '''
@@ -786,7 +786,7 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_legacy() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.8
 String x;
 ''');
@@ -809,7 +809,7 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_legacy_nested() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.8
 List<String> x;
 ''');

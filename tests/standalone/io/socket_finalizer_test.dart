@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-//
 // This test checks that sockets belonging to an isolate are properly cleaned up
 // when the isolate shuts down abnormally. If the socket is not properly cleaned
 // up, the test will time out.

@@ -4,40 +4,33 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 
 /// A contributor of suggestions from not yet imported libraries.
 class NotImportedContributor extends DartCompletionContributor {
-  /// Tests set this function to abort the current request.
-  @visibleForTesting
-  static void Function(FileState)? onFile;
-
   final CompletionBudget budget;
-  final List<Uri> librariesToImport;
+  final Map<protocol.CompletionSuggestion, Uri> notImportedSuggestions;
 
   NotImportedContributor(
     DartCompletionRequest request,
     SuggestionBuilder builder,
     this.budget,
-    this.librariesToImport,
+    this.notImportedSuggestions,
   ) : super(request, builder);
 
   @override
   Future<void> computeSuggestions() async {
-    var session = request.result.session as AnalysisSessionImpl;
-    var analysisDriver = session.getDriver(); // ignore: deprecated_member_use
+    var analysisDriver = request.analysisContext.driver;
 
     var fsState = analysisDriver.fsState;
     var filter = _buildFilter(fsState);
@@ -53,9 +46,6 @@ class NotImportedContributor extends DartCompletionContributor {
 
     var knownFiles = fsState.knownFiles.toList();
     for (var file in knownFiles) {
-      onFile?.call(file);
-      request.checkAborted();
-
       if (budget.isEmpty) {
         return;
       }
@@ -64,15 +54,18 @@ class NotImportedContributor extends DartCompletionContributor {
         continue;
       }
 
-      var elementResult = await session.getLibraryByUri(file.uriStr);
-      if (elementResult is! LibraryElementResult) {
+      var element = analysisDriver.getLibraryByFile(file);
+      if (element == null) {
         continue;
       }
 
-      var exportNamespace = elementResult.element.exportNamespace;
+      var exportNamespace = element.exportNamespace;
       var exportElements = exportNamespace.definedNames.values.toList();
 
-      var newSuggestions = builder.markSuggestions();
+      builder.laterReplacesEarlier = false;
+      builder.suggestionAdded = (suggestion) {
+        notImportedSuggestions[suggestion] = file.uri;
+      };
 
       if (request.includeIdentifiers) {
         _buildSuggestions(exportElements);
@@ -81,16 +74,14 @@ class NotImportedContributor extends DartCompletionContributor {
       extensionContributor.addExtensions(
         exportElements.whereType<ExtensionElement>().toList(),
       );
-
-      newSuggestions.setLibraryUriToImportIndex(() {
-        librariesToImport.add(file.uri);
-        return librariesToImport.length - 1;
-      });
     }
+
+    builder.laterReplacesEarlier = true;
+    builder.suggestionAdded = null;
   }
 
   _Filter _buildFilter(FileSystemState fsState) {
-    var file = fsState.getFileForPath(request.result.path);
+    var file = fsState.getFileForPath(request.path);
     var workspacePackage = file.workspacePackage;
     if (workspacePackage is PubWorkspacePackage) {
       return _PubFilter(workspacePackage, file.path);
@@ -154,14 +145,15 @@ class _PubFilter implements _Filter {
 
   @override
   bool shouldInclude(FileState file) {
-    var uri = file.uri;
-    if (uri.isScheme('dart')) {
+    var uri = file.uriProperties;
+    if (uri.isDart) {
       return true;
     }
 
     // Normally only package URIs are available.
     // But outside of lib/ we allow any files of this package.
-    if (!uri.isScheme('package')) {
+    var packageName = uri.packageName;
+    if (packageName == null) {
       if (targetInLib) {
         return false;
       } else {
@@ -171,20 +163,13 @@ class _PubFilter implements _Filter {
       }
     }
 
-    // Sanity check.
-    var uriPathSegments = uri.pathSegments;
-    if (uriPathSegments.length < 2) {
-      return false;
-    }
-
     // Any `package:` library from the same package.
-    var packageName = uriPathSegments[0];
     if (packageName == targetPackageName) {
       return true;
     }
 
     // If not the same package, must be public.
-    if (uriPathSegments[1] == 'src') {
+    if (uri.isSrc) {
       return false;
     }
 

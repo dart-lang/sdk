@@ -56,6 +56,9 @@ config("libdart_vm_config") {
     if (!is_android) {
       libs += [ "pthread" ]
     }
+    if (!is_mac && !is_ios) {
+      libs += [ "atomic" ]
+    }
   }
 }
 

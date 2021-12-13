@@ -4,10 +4,40 @@
 
 library fasta.graph;
 
+import 'dart:math';
+
+import '../ast.dart';
+
 abstract class Graph<T> {
   Iterable<T> get vertices;
 
   Iterable<T> neighborsOf(T vertex);
+}
+
+/// [Graph] implementation using a collection of [Library] nodes as the graph
+/// vertices and using library dependencies to compute neighbors.
+///
+/// If [coreLibrary] is provided, it will be included in the neighbor of all
+/// vertices. Otherwise, `dart:core` will only be neighboring libraries that
+/// explicitly dependent on it.
+class LibraryGraph implements Graph<Library> {
+  final Iterable<Library> libraries;
+  final Library? coreLibrary;
+
+  LibraryGraph(this.libraries, {this.coreLibrary});
+
+  @override
+  Iterable<Library> get vertices => libraries;
+
+  @override
+  Iterable<Library> neighborsOf(Library library) sync* {
+    if (coreLibrary != null && library != coreLibrary) {
+      yield coreLibrary!;
+    }
+    for (LibraryDependency dependency in library.dependencies) {
+      yield dependency.targetLibrary;
+    }
+  }
 }
 
 /// Computes the strongly connected components of [graph].
@@ -76,4 +106,105 @@ List<List<T>> computeStrongComponents<T>(Graph<T> graph) {
   }
 
   return result;
+}
+
+/// A [Graph] using strongly connected components, as computed by
+/// [computeStrongComponents], as vertices. Neighbors are computed using the
+/// neighbors of the provided [subgraph] which was used to compute the strongly
+/// connected components.
+class StrongComponentGraph<T> implements Graph<List<T>> {
+  final Graph<T> subgraph;
+  final List<List<T>> components;
+  final Map<T, List<T>> _elementToComponentMap = {};
+  final Map<List<T>, Set<List<T>>> _neighborsMap = {};
+
+  StrongComponentGraph(this.subgraph, this.components) {
+    for (List<T> component in components) {
+      for (T element in component) {
+        _elementToComponentMap[element] = component;
+      }
+    }
+  }
+
+  Set<List<T>> _computeNeighborsOf(List<T> component) {
+    Set<List<T>> neighbors = {};
+    for (T element in component) {
+      for (T neighborElement in subgraph.neighborsOf(element)) {
+        List<T> neighborComponent = _elementToComponentMap[neighborElement]!;
+        if (component != neighborComponent) {
+          neighbors.add(neighborComponent);
+        }
+      }
+    }
+    return neighbors;
+  }
+
+  @override
+  Iterable<List<T>> neighborsOf(List<T> vertex) {
+    return _neighborsMap[vertex] ??= _computeNeighborsOf(vertex);
+  }
+
+  @override
+  Iterable<List<T>> get vertices => components;
+}
+
+const int cyclicMarker = -1;
+
+int _topologicalSortInternal<T>(
+    Graph<T> graph, TopologicalSortResult<T> result, T vertex) {
+  int? index = result.indexMap[vertex];
+  if (index == null) {
+    result.indexMap[vertex] = cyclicMarker;
+    int index = 0;
+    for (T neighbor in graph.neighborsOf(vertex)) {
+      int neighborIndex = _topologicalSortInternal(graph, result, neighbor);
+      if (neighborIndex == cyclicMarker) {
+        result.cyclicVertices.add(vertex);
+        return cyclicMarker;
+      } else {
+        index = max(index, neighborIndex + 1);
+      }
+    }
+    result.sortedVertices.add(vertex);
+    if (index >= result.layers.length) {
+      assert(index == result.layers.length);
+      result.layers.add([vertex]);
+    } else {
+      result.layers[index].add(vertex);
+    }
+    return result.indexMap[vertex] = index;
+  }
+  return index;
+}
+
+/// Perform a topological sorting of the vertices in [graph], returning a
+/// [TopologicalSortResult] object with the result.
+TopologicalSortResult<T> topologicalSort<T>(Graph<T> graph) {
+  TopologicalSortResult<T> result = new TopologicalSortResult();
+
+  for (T vertex in graph.vertices) {
+    _topologicalSortInternal(graph, result, vertex);
+  }
+  return result;
+}
+
+/// The result of computing the [topologicalSort] on a [Graph].
+class TopologicalSortResult<T> {
+  /// The non-cyclic vertices of the graph sorted in topological order.
+  final List<T> sortedVertices = [];
+
+  /// The cyclic vertices of graph, including vertices that have a path to
+  /// a vertex.
+  final List<T> cyclicVertices = [];
+
+  /// The topological index of all non-cyclic vertices of the graph.
+  ///
+  /// The "topological index" of a vertex is the length of the longest path
+  /// through neighbors. For vertices with no neighbors, the index is 0.
+  /// For any other vertex, it is 1 plus max of the index of its neighbors.
+  final Map<T, int> indexMap = {};
+
+  /// The non-cyclic vertices in layers according to their topological index.
+  /// That is, `layers[i]` contain the list of vertices with index `i`.
+  final List<List<T>> layers = [];
 }

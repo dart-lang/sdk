@@ -19,6 +19,14 @@ namespace kernel {
 #define Z (zone_)
 #define IG (thread_->isolate_group())
 
+static bool SupportsCoverage() {
+#if defined(PRODUCT)
+  return false;
+#else
+  return !CompilerState::Current().is_aot();
+#endif
+}
+
 Fragment& Fragment::operator+=(const Fragment& other) {
   if (entry == NULL) {
     entry = other.entry;
@@ -1125,7 +1133,7 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   call_hook += Constant(closure);
   call_hook += Constant(function_name);
   call_hook += LoadLocal(entry_point_num);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     call_hook += Constant(closure);
   } else {
     call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
@@ -1138,25 +1146,11 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   return call_hook;
 }
 
-static bool SupportsCoverage() {
-#if defined(PRODUCT)
-  return false;
-#else
-  return !CompilerState::Current().is_aot();
-#endif
-}
-
 Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
                                            intptr_t type_args_len,
                                            intptr_t argument_count,
                                            const Array& argument_names) {
-  Fragment result;
-
-  if (SupportsCoverage()) {
-    const intptr_t coverage_index = GetCoverageIndexFor(position);
-    result <<= new (Z) RecordCoverageInstr(coverage_array(), coverage_index,
-                                           InstructionSource(position));
-  }
+  Fragment result = RecordCoverage(position);
   const intptr_t total_count =
       (type_args_len > 0 ? 1 : 0) + argument_count +
       /*closure (bare instructions) or function (otherwise)*/ 1;
@@ -1247,6 +1241,16 @@ Fragment BaseFlowGraphBuilder::MathUnary(MathUnaryInstr::MathUnaryKind kind) {
   auto* instr = new (Z) MathUnaryInstr(kind, value, GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
+}
+
+Fragment BaseFlowGraphBuilder::RecordCoverage(TokenPosition position) {
+  Fragment instructions;
+  if (SupportsCoverage()) {
+    const intptr_t coverage_index = GetCoverageIndexFor(position);
+    instructions <<= new (Z) RecordCoverageInstr(
+        coverage_array(), coverage_index, InstructionSource(position));
+  }
+  return instructions;
 }
 
 intptr_t BaseFlowGraphBuilder::GetCoverageIndexFor(TokenPosition token_pos) {

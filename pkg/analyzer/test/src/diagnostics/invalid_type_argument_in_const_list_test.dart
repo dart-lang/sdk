@@ -23,7 +23,8 @@ class A<E> {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST, 39, 1),
+      error(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST, 39, 1,
+          messageContains: ["'E'"]),
     ]);
   }
 

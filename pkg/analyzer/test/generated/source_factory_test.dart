@@ -39,6 +39,16 @@ class SourceFactoryTest with ResourceProviderMixin {
     expect(SourceFactory([]), isNotNull);
   }
 
+  void test_pathToUri() {
+    File file1 = getFile("/some/file1.dart");
+    File file2 = getFile("/some/file2.dart");
+    Uri expected1 = Uri.parse("file:///my_file.dart");
+    SourceFactory factory =
+        SourceFactory([UriResolver_restoreUri(file1.path, expected1)]);
+    expect(factory.pathToUri(file1.path), expected1);
+    expect(factory.pathToUri(file2.path), isNull);
+  }
+
   void test_resolveUri_absolute() {
     UriResolver_absolute resolver = UriResolver_absolute();
     SourceFactory factory = SourceFactory([resolver]);
@@ -95,6 +105,7 @@ class SourceFactoryTest with ResourceProviderMixin {
     expect(result.uri.toString(), 'package:package/dir/second.dart');
   }
 
+  @Deprecated('Use pathToUri() instead')
   void test_restoreUri() {
     File file1 = getFile("/some/file1.dart");
     File file2 = getFile("/some/file2.dart");
@@ -102,7 +113,7 @@ class SourceFactoryTest with ResourceProviderMixin {
     Source source2 = FileSource(file2);
     Uri expected1 = Uri.parse("file:///my_file.dart");
     SourceFactory factory =
-        SourceFactory([UriResolver_restoreUri(source1, expected1)]);
+        SourceFactory([UriResolver_restoreUri(file1.path, expected1)]);
     expect(factory.restoreUri(source1), same(expected1));
     expect(factory.restoreUri(source2), isNull);
   }
@@ -121,20 +132,20 @@ class UriResolver_absolute extends UriResolver {
 }
 
 class UriResolver_restoreUri extends UriResolver {
-  Source source1;
+  String path1;
   Uri expected1;
-  UriResolver_restoreUri(this.source1, this.expected1);
+  UriResolver_restoreUri(this.path1, this.expected1);
 
   @override
-  Source? resolveAbsolute(Uri uri) => null;
-
-  @override
-  Uri? restoreAbsolute(Source source) {
-    if (identical(source, source1)) {
+  Uri? pathToUri(String path) {
+    if (path == path1) {
       return expected1;
     }
     return null;
   }
+
+  @override
+  Source? resolveAbsolute(Uri uri) => null;
 }
 
 class UriResolver_SourceFactoryTest_test_fromEncoding_valid

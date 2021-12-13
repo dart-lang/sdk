@@ -62,6 +62,8 @@ import 'package:analyzer/src/dart/ast/ast.dart'
     show
         ClassDeclarationImpl,
         CompilationUnitImpl,
+        ConstructorNameImpl,
+        EnumDeclarationImpl,
         ExtensionDeclarationImpl,
         ImportDirectiveImpl,
         MethodInvocationImpl,
@@ -103,6 +105,9 @@ class AstBuilder extends StackListener {
 
   /// The extension currently being parsed, or `null` if none.
   ExtensionDeclarationImpl? extensionDeclaration;
+
+  /// The enum currently being parsed, or `null` if none.
+  EnumDeclarationImpl? enumDeclaration;
 
   /// If true, this is building a full AST. Otherwise, only create method
   /// bodies.
@@ -150,6 +155,12 @@ class AstBuilder extends StackListener {
   /// `true` if named arguments anywhere are enabled
   final bool enableNamedArgumentsAnywhere;
 
+  /// `true` if super parameters are enabled
+  final bool enableSuperParameters;
+
+  /// `true` if enhanced enums are enabled
+  final bool enableEnhancedEnums;
+
   final FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter? errorReporter, this.fileUri, this.isFullAst,
@@ -170,6 +181,8 @@ class AstBuilder extends StackListener {
         enableExtensionTypes = _featureSet.isEnabled(Feature.extension_types),
         enableNamedArgumentsAnywhere =
             _featureSet.isEnabled(Feature.named_arguments_anywhere),
+        enableSuperParameters = _featureSet.isEnabled(Feature.super_parameters),
+        enableEnhancedEnums = _featureSet.isEnabled(Feature.enhanced_enums),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -177,8 +190,10 @@ class AstBuilder extends StackListener {
       return classDeclaration!.members;
     } else if (mixinDeclaration != null) {
       return mixinDeclaration!.members;
-    } else {
+    } else if (extensionDeclaration != null) {
       return extensionDeclaration!.members;
+    } else {
+      return enumDeclaration!.members;
     }
   }
 
@@ -187,8 +202,10 @@ class AstBuilder extends StackListener {
       return classDeclaration!.name;
     } else if (mixinDeclaration != null) {
       return mixinDeclaration!.name;
-    } else {
+    } else if (extensionDeclaration != null) {
       return extensionDeclaration!.name;
+    } else {
+      return enumDeclaration!.name;
     }
   }
 
@@ -234,6 +251,9 @@ class AstBuilder extends StackListener {
   void beginCompilationUnit(Token token) {
     push(token);
   }
+
+  @override
+  void beginEnum(Token enumKeyword) {}
 
   @override
   void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
@@ -330,11 +350,7 @@ class AstBuilder extends StackListener {
     }
     if (staticToken != null) {
       assert(staticToken.isModifier);
-      String? className = classDeclaration != null
-          ? classDeclaration!.name.name
-          : (mixinDeclaration != null
-              ? mixinDeclaration!.name.name
-              : extensionDeclaration!.name?.name);
+      String? className = currentDeclarationName?.name;
       if (name.lexeme != className || getOrSet != null) {
         modifiers.staticKeyword = staticToken;
       }
@@ -1173,17 +1189,18 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
     assert(optional('enum', enumKeyword));
     assert(optional('{', leftBrace));
     debugEvent("Enum");
+  }
 
-    var constants = popTypedList2<EnumConstantDeclaration>(count);
-    var name = pop() as SimpleIdentifier;
-    var metadata = pop() as List<Annotation>?;
-    var comment = _findComment(metadata, enumKeyword);
-    declarations.add(ast.enumDeclaration(comment, metadata, enumKeyword, name,
-        leftBrace, constants, leftBrace.endGroup!));
+  @override
+  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    debugEvent("endEnumConstructor");
+    endClassConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -1412,17 +1429,31 @@ class AstBuilder extends StackListener {
   @override
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
     assert(optionalOrNull('this', thisKeyword));
-    assert(thisKeyword == null
-        ? periodAfterThis == null
-        : optional('.', periodAfterThis!));
+    assert(optionalOrNull('super', superKeyword));
+    assert(thisKeyword == null && superKeyword == null
+        ? periodAfterThisOrSuper == null
+        : optional('.', periodAfterThisOrSuper!));
     debugEvent("FormalParameter");
+
+    if (superKeyword != null && !enableSuperParameters) {
+      var feature = ExperimentalFeatures.super_parameters;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        superKeyword,
+        superKeyword,
+      );
+    }
 
     var defaultValue = pop() as _ParameterDefaultValue?;
     var name = pop() as SimpleIdentifier?;
@@ -1443,7 +1474,7 @@ class AstBuilder extends StackListener {
       // This is a temporary AST node that was constructed in
       // [endFunctionTypedFormalParameter]. We now deconstruct it and create
       // the final AST node.
-      if (thisKeyword == null) {
+      if (thisKeyword == null && superKeyword == null) {
         node = ast.functionTypedFormalParameter2(
             identifier: name!,
             comment: comment,
@@ -1454,7 +1485,9 @@ class AstBuilder extends StackListener {
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
             parameters: typeOrFunctionTypedParameter.parameters,
             question: typeOrFunctionTypedParameter.question);
-      } else {
+      } else if (thisKeyword != null) {
+        assert(superKeyword == null,
+            "Can't have both 'this' and 'super' in a parameter.");
         node = ast.fieldFormalParameter2(
             identifier: name!,
             comment: comment,
@@ -1463,7 +1496,21 @@ class AstBuilder extends StackListener {
             requiredKeyword: requiredKeyword,
             type: typeOrFunctionTypedParameter.returnType,
             thisKeyword: thisKeyword,
-            period: periodAfterThis!,
+            period: periodAfterThisOrSuper!,
+            typeParameters: typeOrFunctionTypedParameter.typeParameters,
+            parameters: typeOrFunctionTypedParameter.parameters,
+            question: typeOrFunctionTypedParameter.question);
+      } else {
+        assert(superKeyword != null && thisKeyword == null);
+        node = ast.superFormalParameter(
+            identifier: name!,
+            comment: comment,
+            metadata: metadata,
+            covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
+            type: typeOrFunctionTypedParameter.returnType,
+            superKeyword: superKeyword!,
+            period: periodAfterThisOrSuper!,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
             parameters: typeOrFunctionTypedParameter.parameters,
             question: typeOrFunctionTypedParameter.question);
@@ -2613,20 +2660,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
-    assert(optionalOrNull('implements', implementsKeyword));
-    debugEvent("ClassImplements");
-
-    if (implementsKeyword != null) {
-      var interfaces = popTypedList2<NamedType>(interfacesCount);
-      push(ast.implementsClause(implementsKeyword, interfaces));
-    } else {
-      push(NullValue.IdentifierList);
-    }
-  }
-
-  @override
   void handleClassWithClause(Token withKeyword) {
     assert(optional('with', withKeyword));
     var mixinTypes = pop() as List<NamedType>;
@@ -2699,6 +2732,101 @@ class AstBuilder extends StackListener {
     debugEvent("EmptyStatement");
 
     push(ast.emptyStatement(semicolon));
+  }
+
+  @override
+  void handleEnumElement(Token beginToken) {
+    debugEvent("EnumElement");
+    var arguments = pop() as MethodInvocationImpl?;
+    var constructorName = pop() as ConstructorNameImpl?;
+
+    if (!enableEnhancedEnums &&
+        (arguments != null ||
+            constructorName != null &&
+                (constructorName.type2.typeArguments != null ||
+                    constructorName.name != null))) {
+      Token token = arguments != null
+          ? arguments.argumentList.beginToken
+          : constructorName!.beginToken;
+      var feature = ExperimentalFeatures.enhanced_enums;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        token,
+        token,
+      );
+    }
+  }
+
+  @override
+  void handleEnumElements(Token elementsEndToken, int elementsCount) {
+    debugEvent("EnumElements");
+
+    var constants = popTypedList2<EnumConstantDeclaration>(elementsCount);
+    enumDeclaration!.constants.addAll(constants);
+
+    if (!enableEnhancedEnums && optional(';', elementsEndToken)) {
+      var feature = ExperimentalFeatures.enhanced_enums;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        elementsEndToken,
+        elementsEndToken,
+      );
+    }
+  }
+
+  @override
+  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+    assert(optional('enum', enumKeyword));
+    assert(optional('{', leftBrace));
+    debugEvent("EnumHeader");
+
+    var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
+    var withClause = pop(NullValue.WithClause) as WithClause?;
+    var typeParameters = pop() as TypeParameterList?;
+    var name = pop() as SimpleIdentifier;
+    var metadata = pop() as List<Annotation>?;
+    var comment = _findComment(metadata, enumKeyword);
+
+    if (!enableEnhancedEnums &&
+        (withClause != null ||
+            implementsClause != null ||
+            typeParameters != null)) {
+      var token = withClause != null
+          ? withClause.withKeyword
+          : implementsClause != null
+              ? implementsClause.implementsKeyword
+              : typeParameters!.beginToken;
+      var feature = ExperimentalFeatures.enhanced_enums;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        token,
+        token,
+      );
+    }
+
+    declarations.add(enumDeclaration = ast.enumDeclaration(comment, metadata,
+        enumKeyword, name, leftBrace, [], [], leftBrace.endGroup!));
+  }
+
+  @override
+  void handleEnumNoWithClause() {
+    push(NullValue.WithClause);
+  }
+
+  @override
+  void handleEnumWithClause(Token withKeyword) {
+    assert(optional('with', withKeyword));
+    var mixinTypes = pop() as List<NamedType>;
+    push(ast.withClause(withKeyword, mixinTypes));
   }
 
   @override
@@ -2926,6 +3054,19 @@ class AstBuilder extends StackListener {
     debugEvent("IdentifierList");
 
     push(popTypedList<SimpleIdentifier>(count) ?? NullValue.IdentifierList);
+  }
+
+  @override
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
+    assert(optionalOrNull('implements', implementsKeyword));
+    debugEvent("Implements");
+
+    if (implementsKeyword != null) {
+      var interfaces = popTypedList2<NamedType>(interfacesCount);
+      push(ast.implementsClause(implementsKeyword, interfaces));
+    } else {
+      push(NullValue.IdentifierList);
+    }
   }
 
   @override
@@ -3368,6 +3509,14 @@ class AstBuilder extends StackListener {
     } else {
       push(ast.postfixExpression(pop() as Expression, bang));
     }
+  }
+
+  @override
+  void handleNoTypeNameInConstructorReference(Token token) {
+    debugEvent("NoTypeNameInConstructorReference");
+    assert(enumDeclaration != null);
+
+    push(ast.simpleIdentifier(enumDeclaration!.name.token));
   }
 
   @override

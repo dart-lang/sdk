@@ -929,7 +929,7 @@ RedirectingConstructorWithAnotherInitializer:
 
 SuperInitializerNotLast:
   problemMessage: "Can't have initializers after 'super'."
-  analyzerCode: INVALID_SUPER_INVOCATION
+  analyzerCode: SUPER_INVOCATION_NOT_LAST
   script:
     - "class C { int x; C.bad() : super(), x = 5; }"
 
@@ -2067,6 +2067,10 @@ InternalProblemUnfinishedTypeVariable:
 
 InternalProblemUnsupportedNullability:
   problemMessage: "Unsupported nullability value '#string' on type '#type'."
+  severity: INTERNAL_PROBLEM
+
+InternalProblemOmittedTypeNameInConstructorReference:
+  problemMessage: "Unsupported omission of the type name in a constructor reference outside of an enum element declaration."
   severity: INTERNAL_PROBLEM
 
 IncrementalCompilerIllegalParameter:
@@ -5436,3 +5440,7 @@ NewAsSelector:
   experiments: constructor-tearoffs
   script: |
     method(dynamic d) => d.new;
+
+EnumDeclaresFactory:
+  problemMessage: "Enums can't declare factory constructors."
+  correctionMessage: "Try removing the factory constructor declaration."

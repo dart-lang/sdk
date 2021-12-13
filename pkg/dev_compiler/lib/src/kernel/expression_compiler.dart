@@ -310,7 +310,7 @@ class ExpressionCompiler {
 
       _log('Compiling expression \n$expression');
 
-      var dartScope = await _findScopeAt(Uri.parse(libraryUri), line, column);
+      var dartScope = _findScopeAt(Uri.parse(libraryUri), line, column);
       if (dartScope == null) {
         _log('Scope not found at $libraryUri:$line:$column');
         return null;
@@ -389,14 +389,14 @@ class ExpressionCompiler {
     }
   }
 
-  Future<DartScope> _findScopeAt(Uri libraryUri, int line, int column) async {
+  DartScope _findScopeAt(Uri libraryUri, int line, int column) {
     if (line < 0) {
       onDiagnostic(_createInternalError(
           libraryUri, line, column, 'Invalid source location'));
       return null;
     }
 
-    var library = await _getLibrary(libraryUri);
+    var library = _getLibrary(libraryUri);
     if (library == null) {
       onDiagnostic(_createInternalError(
           libraryUri, line, column, 'Dart library not found for location'));
@@ -415,19 +415,8 @@ class ExpressionCompiler {
     return scope;
   }
 
-  Future<Library> _getLibrary(Uri libraryUri) async {
-    return await _compiler.context.runInContext((_) async {
-      var builder = _compiler.userCode.loader.lookupLibraryBuilder(libraryUri);
-      if (builder != null) {
-        var library =
-            _compiler.userCode.loader.read(libraryUri, -1, accessor: builder);
-
-        return library.library;
-      }
-
-      _log('Loaded library for expression');
-      return null;
-    });
+  Library _getLibrary(Uri libraryUri) {
+    return _compiler.lookupLibrary(libraryUri);
   }
 
   /// Return a JS function that returns the evaluated results when called.

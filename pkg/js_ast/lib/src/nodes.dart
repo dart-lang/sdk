@@ -436,12 +436,12 @@ abstract class Node {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg);
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg);
 
-  // Shallow clone of node.  Does not clone positions since the only use of this
-  // private method is create a copy with a new position.
+  /// Shallow clone of node.  Does not clone positions since the only use of
+  /// this private method is create a copy with a new position.
   Node _clone();
 
-  // Returns a node equivalent to [this], but with new source position and end
-  // source position.
+  /// Returns a node equivalent to [this], but with new source position and end
+  /// source position.
   Node withSourceInformation(
       JavaScriptNodeSourceInformation sourceInformation) {
     if (sourceInformation == _sourceInformation) {
@@ -456,13 +456,23 @@ abstract class Node {
 
   bool get isCommaOperator => false;
 
-  bool get isFinalized => true;
-
   Statement toStatement() {
     throw UnsupportedError('toStatement');
   }
 
   String debugPrint() => DebugPrint(this);
+
+  /// Some nodes, e.g. DeferredExpression, become finalized in a 'linking'
+  /// phase.
+  bool get isFinalized => true;
+
+  /// If a node is not finalized, debug printing can print something indicative
+  /// of the node instead of the finalized AST. This method returns the
+  /// replacement text.
+  String nonfinalizedDebugText() {
+    assert(!isFinalized);
+    return '$runtimeType';
+  }
 }
 
 class Program extends Node {

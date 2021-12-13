@@ -376,7 +376,7 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
   /// passes an unused arg so that `Function()` can be passed to a function
   /// accepting `Function<T>(T x)` where `T` happens to be `void`.
   ///
-  /// This allows handlers to simple call sendResponse() where they have no
+  /// This allows handlers to simply call sendResponse() where they have no
   /// return value but need to send a valid response.
   _VoidArgRequestHandler<TArg> _withVoidResponse<TArg>(
     _VoidNoArgRequestHandler<TArg> handler,

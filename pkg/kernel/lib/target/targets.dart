@@ -918,3 +918,44 @@ class TestTargetWrapper extends TargetWrapper with TestTargetMixin {
 
   TestTargetWrapper(Target target, this.flags) : super(target);
 }
+
+/// Extends a Target to transform outlines to meet the requirements
+/// of summaries in bazel and package-build.
+///
+/// Build systems like package-build may provide the same input file twice to
+/// the summary worker, but only intends to have it in one output summary.  The
+/// convention is that if it is listed as a source, it is intended to be part of
+/// the output, if the source file was loaded as a dependency, then it was
+/// already included in a different summary.  The transformation below ensures
+/// that the output summary doesn't include those implicit inputs.
+///
+/// Note: this transformation is destructive and is only intended to be used
+/// when generating summaries.
+mixin SummaryMixin on Target {
+  List<Uri> get sources;
+  bool get excludeNonSources;
+
+  @override
+  void performOutlineTransformations(Component component) {
+    super.performOutlineTransformations(component);
+    if (!excludeNonSources) return;
+
+    List<Library> libraries = new List.from(component.libraries);
+    component.libraries.clear();
+    Set<Uri> include = sources.toSet();
+    for (Library library in libraries) {
+      if (include.contains(library.importUri)) {
+        component.libraries.add(library);
+      } else {
+        // Excluding the library also means that their canonical names will not
+        // be computed as part of serialization, so we need to do that
+        // preemptively here to avoid errors when serializing references to
+        // elements of these libraries.
+        component.root
+            .getChildFromUri(library.importUri)
+            .bindTo(library.reference);
+        library.computeCanonicalNames();
+      }
+    }
+  }
+}

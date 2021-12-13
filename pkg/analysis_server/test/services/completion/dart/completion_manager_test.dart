@@ -52,12 +52,12 @@ part 'test.dart';
     // Build the request
     var resolvedUnit =
         await session.getResolvedUnit(testFile) as ResolvedUnitResult;
-    request = DartCompletionRequest(
+    request = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: resolvedUnit,
       offset: completionOffset,
     );
 
-    var directives = request.target.unit.directives;
+    var directives = resolvedUnit.unit.directives;
 
     var imports = request.libraryElement.imports;
     expect(imports, hasLength(directives.length + 1));

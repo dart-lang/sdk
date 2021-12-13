@@ -482,6 +482,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
         ShouldLoadVmServiceBit::update(value, isolate_group_flags_);
   }
 
+  void set_asserts(bool value) {
+    isolate_group_flags_ =
+        EnableAssertsBit::update(value, isolate_group_flags_);
+  }
+
 #if !defined(PRODUCT)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool HasAttemptedReload() const {

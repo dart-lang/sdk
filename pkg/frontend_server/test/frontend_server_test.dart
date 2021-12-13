@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
@@ -420,10 +421,12 @@ void main() async {
 
       final _MockedIncrementalCompiler generator = _MockedIncrementalCompiler();
       when(generator.initialized).thenAnswer((_) => false);
-      when(generator.compile())
-          .thenAnswer((_) => Future<Component>.value(Component()));
-      when(generator.compile(entryPoint: anyNamed("entryPoint")))
-          .thenAnswer((_) => Future<Component>.value(Component()));
+      when(generator.compile()).thenAnswer((_) =>
+          Future<IncrementalCompilerResult>.value(
+              IncrementalCompilerResult(Component())));
+      when(generator.compile(entryPoint: anyNamed("entryPoint"))).thenAnswer(
+          (_) => Future<IncrementalCompilerResult>.value(
+              IncrementalCompilerResult(Component())));
       final _MockedBinaryPrinterFactory printerFactory =
           _MockedBinaryPrinterFactory();
       when(printerFactory.newBinaryPrinter(any))

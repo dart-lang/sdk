@@ -1,0 +1,4 @@
+typedef A = ;
+class B {}
+class C = A with B;
+main() {}

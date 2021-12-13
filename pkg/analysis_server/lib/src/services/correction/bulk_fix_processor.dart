@@ -7,10 +7,13 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
+import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_unused_import.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set_parser.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
@@ -226,28 +229,109 @@ class BulkFixProcessor {
     return builder;
   }
 
+  Future<void> _applyProducer(
+      CorrectionProducerContext context, CorrectionProducer producer) async {
+    producer.configure(context);
+    try {
+      var localBuilder = builder.copy();
+      await producer.compute(localBuilder);
+      builder = localBuilder;
+    } on ConflictingEditException {
+      // If a conflicting edit was added in [compute], then the [localBuilder]
+      // is discarded and we revert to the previous state of the builder.
+    }
+  }
+
   /// Use the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
-    for (var unitResult in result.units) {
-      var overrideSet = _readOverrideSet(unitResult);
 
-      var errors = List.from(unitResult.errors, growable: false);
+    Iterable<AnalysisError> filteredErrors(ResolvedUnitResult result) sync* {
+      var errors = result.errors.toList();
       errors.sort((a, b) => a.offset.compareTo(b.offset));
-
+      // Only fix errors not filtered out in analysis options.
       for (var error in errors) {
         var processor = ErrorProcessor.getProcessor(analysisOptions, error);
-        // Only fix errors not filtered out in analysis options.
         if (processor == null || processor.severity != null) {
-          final fixContext = DartFixContextImpl(
-            instrumentationService,
-            workspace,
-            unitResult,
-            error,
-            (name) => [],
-          );
-          await _fixSingleError(fixContext, unitResult, error, overrideSet);
+          yield error;
+        }
+      }
+    }
+
+    DartFixContextImpl fixContext(
+        ResolvedUnitResult result, AnalysisError diagnostic) {
+      return DartFixContextImpl(
+        instrumentationService,
+        workspace,
+        result,
+        diagnostic,
+        (name) => [],
+      );
+    }
+
+    CorrectionProducerContext? correctionContext(
+        ResolvedUnitResult result, AnalysisError diagnostic) {
+      var overrideSet = _readOverrideSet(result);
+      return CorrectionProducerContext.create(
+        applyingBulkFixes: true,
+        dartFixContext: fixContext(result, diagnostic),
+        diagnostic: diagnostic,
+        overrideSet: overrideSet,
+        resolvedResult: result,
+        selectionOffset: diagnostic.offset,
+        selectionLength: diagnostic.length,
+        workspace: workspace,
+      );
+    }
+
+    //
+    // Attempt to apply the fixes that aren't related to directives.
+    //
+    for (var unitResult in result.units) {
+      var overrideSet = _readOverrideSet(unitResult);
+      for (var error in filteredErrors(unitResult)) {
+        await _fixSingleError(
+            fixContext(unitResult, error), unitResult, error, overrideSet);
+      }
+    }
+    //
+    // If there are no such fixes in the defining compilation unit, then apply
+    // the fixes related to directives.
+    //
+    var definingUnit = result.units[0];
+    AnalysisError? directivesOrderingError;
+    var unusedImportErrors = <AnalysisError>[];
+    if (!builder.hasEditsFor(definingUnit.path)) {
+      for (var error in filteredErrors(definingUnit)) {
+        var errorCode = error.errorCode;
+        if (errorCode is LintCode) {
+          var lintName = errorCode.name;
+          if (lintName == LintNames.directives_ordering) {
+            directivesOrderingError = error;
+            break;
+          }
+        } else if (errorCode == HintCode.DUPLICATE_IMPORT ||
+            errorCode == HintCode.UNNECESSARY_IMPORT ||
+            errorCode == HintCode.UNUSED_IMPORT) {
+          unusedImportErrors.add(error);
+        }
+      }
+      if (directivesOrderingError != null) {
+        // `OrganizeImports` will also remove some of the unused imports, so we
+        // apply it first.
+        var context = correctionContext(definingUnit, directivesOrderingError);
+        if (context != null) {
+          await _generateFix(context, OrganizeImports.newInstance(),
+              directivesOrderingError.errorCode.name);
+        }
+      } else {
+        for (var error in unusedImportErrors) {
+          var context = correctionContext(definingUnit, error);
+          if (context != null) {
+            await _generateFix(context, RemoveUnusedImport.newInstance(),
+                error.errorCode.name);
+          }
         }
       }
     }
@@ -275,44 +359,21 @@ class BulkFixProcessor {
       return;
     }
 
-    Future<void> compute(CorrectionProducer producer) async {
-      producer.configure(context);
-      try {
-        var localBuilder = builder.copy();
-        await producer.compute(localBuilder);
-        builder = localBuilder;
-      } on ConflictingEditException {
-        // If a conflicting edit was added in [compute], then the [localBuilder]
-        // is discarded and we revert to the previous state of the builder.
-      }
-    }
-
-    int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
-
-    Future<void> generate(CorrectionProducer producer, String code) async {
-      var oldHash = computeChangeHash();
-      await compute(producer);
-      var newHash = computeChangeHash();
-      if (newHash != oldHash) {
-        changeMap.add(result.path, code);
-      }
-    }
-
     Future<void> bulkApply(
         List<ProducerGenerator> generators, String codeName) async {
       for (var generator in generators) {
         var producer = generator();
         if (producer.canBeAppliedInBulk) {
-          await generate(producer, codeName);
+          await _generateFix(context, producer, codeName);
         }
       }
     }
 
     var errorCode = diagnostic.errorCode;
+    var codeName = errorCode.name;
     try {
-      var codeName = errorCode.name;
       if (errorCode is LintCode) {
-        var generators = FixProcessor.lintProducerMap[errorCode.name] ?? [];
+        var generators = FixProcessor.lintProducerMap[codeName] ?? [];
         await bulkApply(generators, codeName);
       } else {
         var generators = FixProcessor.nonLintProducerMap[errorCode] ?? [];
@@ -323,16 +384,26 @@ class BulkFixProcessor {
             var multiProducer = multiGenerator();
             multiProducer.configure(context);
             for (var producer in multiProducer.producers) {
-              await generate(producer, codeName);
+              await _generateFix(context, producer, codeName);
             }
           }
         }
       }
     } catch (e, s) {
       throw CaughtException.withMessage(
-          'Exception generating fix for ${errorCode.name} in ${result.path}',
-          e,
-          s);
+          'Exception generating fix for $codeName in ${result.path}', e, s);
+    }
+  }
+
+  Future<void> _generateFix(CorrectionProducerContext context,
+      CorrectionProducer producer, String code) async {
+    int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
+
+    var oldHash = computeChangeHash();
+    await _applyProducer(context, producer);
+    var newHash = computeChangeHash();
+    if (newHash != oldHash) {
+      changeMap.add(context.resolvedResult.path, code.toLowerCase());
     }
   }
 

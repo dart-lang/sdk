@@ -34,8 +34,7 @@ Future<void> main() async {
   final rpRun = ReceivePort();
   final int nWarmup = 17; // enough runs to trigger optimized compilation
   final int nWarmupFactorial = 2584;
-  // With --enable-isolate-groups runs for about 8 seconds.
-  // Should not be run witout --enable-isolate-groups as it would be too slow.
+  // Runs for about 8 seconds.
   final int n = 21;
   final int nFactorial = 17711;
   final beforeRss = ProcessInfo.currentRss;
@@ -48,8 +47,7 @@ Future<void> main() async {
   final watch = Stopwatch();
   watch.start();
 
-  // For the benefit of enable-isolate-groups configuration, warm up target
-  // isolate code by running couple iterations in the main isolate.
+  // Warm up code by running a couple iterations in the main isolate.
   await Isolate.spawn(fibonacciRecursive, [rpWarmup.sendPort, nWarmup]);
   Expect.equals(nWarmupFactorial, await rpWarmup.first);
 
@@ -60,7 +58,7 @@ Future<void> main() async {
 
   final done = watch.elapsedMicroseconds;
 
-  print('IsolateFibonacci_$n.Calculation(RunTimeRaw): ${done-warmup} us.');
-  print('IsolateFibonacci_$n.DeltaPeak(MemoryUse): ${maxRss-beforeRss}');
+  print('IsolateFibonacci_$n.Calculation(RunTimeRaw): ${done - warmup} us.');
+  print('IsolateFibonacci_$n.DeltaPeak(MemoryUse): ${maxRss - beforeRss}');
   rssTimer.cancel();
 }

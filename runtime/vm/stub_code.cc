@@ -195,20 +195,18 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     Precompiler* precompiler = Precompiler::Instance();
 
     compiler::ObjectPoolBuilder* wrapper =
-        FLAG_use_bare_instructions && precompiler != NULL
-            ? precompiler->global_object_pool_builder()
-            : &object_pool_builder;
+        precompiler != NULL ? precompiler->global_object_pool_builder()
+                            : &object_pool_builder;
 
-    const auto pool_attachment =
-        FLAG_precompiled_mode && FLAG_use_bare_instructions
-            ? Code::PoolAttachment::kNotAttachPool
-            : Code::PoolAttachment::kAttachPool;
+    const auto pool_attachment = FLAG_precompiled_mode
+                                     ? Code::PoolAttachment::kNotAttachPool
+                                     : Code::PoolAttachment::kAttachPool;
 
     auto zone = thread->zone();
     auto object_store = thread->isolate_group()->object_store();
     auto& allocate_object_stub = Code::ZoneHandle(zone);
     auto& allocate_object_parametrized_stub = Code::ZoneHandle(zone);
-    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (FLAG_precompiled_mode) {
       allocate_object_stub = object_store->allocate_object_stub();
       allocate_object_parametrized_stub =
           object_store->allocate_object_parametrized_stub();

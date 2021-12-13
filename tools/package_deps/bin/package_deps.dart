@@ -321,6 +321,7 @@ class Package implements Comparable<Package> {
         // Skip 'pkg/analyzer_cli/test/data'.
         // Skip 'pkg/front_end/test/id_testing/data/'.
         // Skip 'pkg/front_end/test/language_versioning/data/'.
+        // Skip 'pkg/front_end/outline_extraction_testcases/'.
         if (name == 'data' && path.split(entity.parent.path).contains('test')) {
           continue;
         }
@@ -332,6 +333,11 @@ class Package implements Comparable<Package> {
 
         // Skip 'pkg/front_end/testcases'.
         if (name == 'testcases') {
+          continue;
+        }
+
+        // Skip 'pkg/front_end/outline_extraction_testcases'.
+        if (name == 'outline_extraction_testcases') {
           continue;
         }
 

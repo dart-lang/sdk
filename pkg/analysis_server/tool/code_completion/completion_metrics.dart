@@ -10,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
@@ -1227,7 +1226,7 @@ class CompletionMetricsComputer {
         listener: listener,
       ).computeSuggestions(dartRequest, performance);
 
-      computeIncludedSetList(declarationsTracker, dartRequest.result,
+      computeIncludedSetList(declarationsTracker, dartRequest,
           includedSuggestionSetList, includedElementNames);
 
       var includedSuggestionSetMap = {
@@ -1369,27 +1368,19 @@ class CompletionMetricsComputer {
             {required MetricsSuggestionListener listener,
             required CompletionMetrics metrics}) async {
           var stopwatch = Stopwatch()..start();
-          var request = DartCompletionRequest(
+          var request = DartCompletionRequest.forResolvedUnit(
             resolvedUnit: resolvedUnitResult,
             offset: expectedCompletion.offset,
             documentationCache: documentationCache,
           );
 
-          late OpType opType;
-          late List<protocol.CompletionSuggestion> suggestions;
-          await CompletionPerformance().runRequestOperation(
-            (performance) async {
-              opType = OpType.forCompletion(request.target, request.offset);
-              suggestions = await _computeCompletionSuggestions(
-                listener,
-                performance,
-                request,
-                metrics.availableSuggestions ? declarationsTracker : null,
-                metrics.availableSuggestions
-                    ? availableSuggestionsParams
-                    : null,
-              );
-            },
+          var opType = OpType.forCompletion(request.target, request.offset);
+          var suggestions = await _computeCompletionSuggestions(
+            listener,
+            OperationPerformanceImpl('<root>'),
+            request,
+            metrics.availableSuggestions ? declarationsTracker : null,
+            metrics.availableSuggestions ? availableSuggestionsParams : null,
           );
           stopwatch.stop();
 

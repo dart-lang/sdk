@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, File, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
@@ -45,7 +43,7 @@ Future<void> main(List<String> args) async {
 }
 
 // Ugly hack.
-CompilerOptions stashedOptions;
+late CompilerOptions stashedOptions;
 
 class TestConfigWithLanguageVersion extends TestConfig {
   TestConfigWithLanguageVersion(String marker, String name)
@@ -110,7 +108,7 @@ Language version API (import URI): ${lvImportUri}
       InternalCompilerResult compilerResult,
       Library library,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     new LanguageVersioningDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
   }
@@ -141,7 +139,7 @@ class LanguageVersioningDataExtractor extends CfeDataExtractor<Features> {
     Features features = new Features();
     features[Tags.languageVersion] =
         "${library.languageVersion.major}.${library.languageVersion.minor}";
-    LibraryBuilder libraryBuilder =
+    LibraryBuilder? libraryBuilder =
         lookupLibraryBuilder(compilerResult, library);
     if (libraryBuilder is SourceLibraryBuilder &&
         libraryBuilder.packageUriForTesting != null) {

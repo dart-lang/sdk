@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart';
 import 'text_representation_test.dart';
 
 void testExpression(Expression node, String normal,
-    {String verbose, String limited}) {
+    {String? verbose, String? limited}) {
   Expect.stringEquals(normal, node.toText(normalStrategy),
       "Unexpected normal strategy text for ${node.runtimeType}");
   Expect.stringEquals(verbose ?? normal, node.toText(verboseStrategy),
@@ -18,7 +16,8 @@ void testExpression(Expression node, String normal,
       "Unexpected limited strategy text for ${node.runtimeType}");
 }
 
-void testType(DartType node, String normal, {String verbose, String limited}) {
+void testType(DartType node, String normal,
+    {String? verbose, String? limited}) {
   Expect.stringEquals(normal, node.toText(normalStrategy),
       "Unexpected normal strategy text for ${node.runtimeType}");
   Expect.stringEquals(verbose ?? normal, node.toText(verboseStrategy),
@@ -33,11 +32,6 @@ void main() {
 }
 
 void testTypes() {
-  testType(new InterfaceType.byReference(null, Nullability.nonNullable, []),
-      '<missing-class-reference>');
-  testType(new TypedefType.byReference(null, Nullability.nonNullable, []),
-      '<missing-typedef-reference>');
-
   Reference unlinkedClassName = new Reference();
   testType(
       new InterfaceType.byReference(
@@ -83,9 +77,6 @@ void testTypes() {
 }
 
 void testMembers() {
-  testExpression(new StaticGet.byReference(null), '''
-<missing-member-reference>''');
-
   Reference unlinkedMemberName = new Reference();
   testExpression(
       new InstanceGet.byReference(

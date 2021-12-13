@@ -344,6 +344,10 @@ class FindNode {
     return _node(search, (n) => n is SuperConstructorInvocation);
   }
 
+  SuperFormalParameter superFormalParameter(String search) {
+    return _node(search, (n) => n is SuperFormalParameter);
+  }
+
   SwitchStatement switchStatement(String search) {
     return _node(search, (n) => n is SwitchStatement);
   }

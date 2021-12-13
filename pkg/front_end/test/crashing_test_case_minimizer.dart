@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show File;
@@ -20,8 +18,8 @@ import 'crashing_test_case_minimizer_impl.dart';
 // parser on it and verifies that no syntax errors have been introduced.
 
 Future<void> main(List<String> arguments) async {
-  String filename;
-  Uri loadJson;
+  String? filename;
+  Uri? loadJson;
   for (String arg in arguments) {
     if (arg.startsWith("--json=")) {
       String json = arg.substring("--json=".length);
@@ -92,7 +90,7 @@ Future<void> main(List<String> arguments) async {
     if (settings.noPlatform) {
       int i = 0;
       while (settings.platformUri == null ||
-          new File.fromUri(settings.platformUri).existsSync()) {
+          new File.fromUri(settings.platformUri!).existsSync()) {
         settings.platformUri = Uri.base.resolve("nonexisting_$i");
         i++;
       }
@@ -100,7 +98,7 @@ Future<void> main(List<String> arguments) async {
       if (settings.platformUri == null) {
         throw "No platform given. Use --platform=/path/to/platform.dill";
       }
-      if (!new File.fromUri(settings.platformUri).existsSync()) {
+      if (!new File.fromUri(settings.platformUri!).existsSync()) {
         throw "The platform file '${settings.platformUri}' doesn't exist";
       }
     }

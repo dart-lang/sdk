@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequest;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -530,24 +529,21 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
 
   Future computeSuggestions({int times = 200}) async {
     result = await session.getResolvedUnit(testFile) as ResolvedUnitResult;
-    return await CompletionPerformance().runRequestOperation(
-      (performance) async {
-        // Build the request
-        var request = DartCompletionRequest(
-          resolvedUnit: result,
-          offset: completionOffset,
-          dartdocDirectiveInfo: dartdocInfo,
-        );
 
-        var range = request.target.computeReplacementRange(request.offset);
-        replacementOffset = range.offset;
-        replacementLength = range.length;
-
-        // Request completions
-        suggestions = await computeContributedSuggestions(request);
-        expect(suggestions, isNotNull, reason: 'expected suggestions');
-      },
+    // Build the request
+    var request = DartCompletionRequest.forResolvedUnit(
+      resolvedUnit: result,
+      offset: completionOffset,
+      dartdocDirectiveInfo: dartdocInfo,
     );
+
+    var range = request.target.computeReplacementRange(request.offset);
+    replacementOffset = range.offset;
+    replacementLength = range.length;
+
+    // Request completions
+    suggestions = await computeContributedSuggestions(request);
+    expect(suggestions, isNotNull, reason: 'expected suggestions');
   }
 
   Never failedCompletion(String message,
@@ -613,7 +609,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = convertPath('/home/test/lib/test.dart');
+    testFile = convertPath('$testPackageLibPath/test.dart');
   }
 
   CompletionSuggestion suggestionWith(

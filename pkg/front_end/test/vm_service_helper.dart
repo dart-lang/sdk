@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "dart:convert";
 import "dart:io";
 
@@ -14,7 +12,7 @@ export "package:vm_service/vm_service.dart";
 export "package:vm_service/vm_service_io.dart";
 
 class VMServiceHelper {
-  vmService.VmService _serviceClient;
+  late vmService.VmService _serviceClient;
   vmService.VmService get serviceClient => _serviceClient;
 
   VMServiceHelper();
@@ -34,7 +32,7 @@ class VMServiceHelper {
   Future<bool> waitUntilPaused(String isolateId) async {
     int nulls = 0;
     while (true) {
-      bool result = await isPaused(isolateId);
+      bool? result = await isPaused(isolateId);
       if (result == null) {
         nulls++;
         if (nulls > 5) {
@@ -50,11 +48,11 @@ class VMServiceHelper {
     }
   }
 
-  Future<bool> isPaused(String isolateId) async {
+  Future<bool?> isPaused(String isolateId) async {
     dynamic tmp = await _serviceClient.getIsolate(isolateId);
     if (tmp is vmService.Isolate) {
       vmService.Isolate isolate = tmp;
-      if (isolate.pauseEvent.kind != "Resume") return true;
+      if (isolate.pauseEvent!.kind != "Resume") return true;
       return false;
     }
     return null;
@@ -64,7 +62,7 @@ class VMServiceHelper {
     dynamic tmp = await _serviceClient.getIsolate(isolateId);
     if (tmp is vmService.Isolate) {
       vmService.Isolate isolate = tmp;
-      return isolate.pauseEvent.kind == "PauseStart";
+      return isolate.pauseEvent!.kind == "PauseStart";
     }
     return false;
   }
@@ -73,7 +71,7 @@ class VMServiceHelper {
     dynamic tmp = await _serviceClient.getIsolate(isolateId);
     if (tmp is vmService.Isolate) {
       vmService.Isolate isolate = tmp;
-      return isolate.pauseEvent.kind == "PauseExit";
+      return isolate.pauseEvent!.kind == "PauseExit";
     }
     return false;
   }
@@ -91,13 +89,13 @@ class VMServiceHelper {
         rethrow;
       }
       if (allocationProfile.dateLastServiceGC != null &&
-          allocationProfile.dateLastServiceGC >= expectGcAfter) {
+          allocationProfile.dateLastServiceGC! >= expectGcAfter) {
         return allocationProfile;
       }
     }
   }
 
-  Future<bool> isIsolateRunnable(String isolateId) async {
+  Future<bool?> isIsolateRunnable(String isolateId) async {
     dynamic tmp = await _serviceClient.getIsolate(isolateId);
     if (tmp is vmService.Isolate) {
       vmService.Isolate isolate = tmp;
@@ -109,7 +107,7 @@ class VMServiceHelper {
   Future<void> waitUntilIsolateIsRunnable(String isolateId) async {
     int nulls = 0;
     while (true) {
-      bool result = await isIsolateRunnable(isolateId);
+      bool? result = await isIsolateRunnable(isolateId);
       if (result == null) {
         nulls++;
         if (nulls > 5) {
@@ -127,11 +125,11 @@ class VMServiceHelper {
 
   Future<String> getIsolateId() async {
     vmService.VM vm = await _serviceClient.getVM();
-    if (vm.isolates.length != 1) {
-      throw "Expected 1 isolate, got ${vm.isolates.length}";
+    if (vm.isolates!.length != 1) {
+      throw "Expected 1 isolate, got ${vm.isolates!.length}";
     }
-    vmService.IsolateRef isolateRef = vm.isolates.single;
-    return isolateRef.id;
+    vmService.IsolateRef isolateRef = vm.isolates!.single;
+    return isolateRef.id!;
   }
 }
 
@@ -150,14 +148,14 @@ class StdOutLog implements vmService.Log {
 }
 
 abstract class LaunchingVMServiceHelper extends VMServiceHelper {
-  Process _process;
+  late Process _process;
   Process get process => _process;
 
   bool _started = false;
 
   Future<void> start(List<String> scriptAndArgs,
-      {void stdoutReceiver(String line),
-      void stderrReceiver(String line)}) async {
+      {void Function(String line)? stdoutReceiver,
+      void Function(String line)? stderrReceiver}) async {
     if (_started) throw "Already started";
     _started = true;
     _process = await Process.start(

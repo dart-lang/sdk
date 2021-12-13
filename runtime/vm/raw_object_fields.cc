@@ -97,7 +97,7 @@ namespace dart {
   F(UnlinkedCall, target_name_)                                                \
   F(UnlinkedCall, args_descriptor_)                                            \
   F(MonomorphicSmiableCall, expected_cid_)                                     \
-  F(MonomorphicSmiableCall, target_)                                           \
+  F(MonomorphicSmiableCall, entrypoint_)                                       \
   F(CallSiteData, target_name_)                                                \
   F(CallSiteData, args_descriptor_)                                            \
   F(ICData, target_name_)                                                      \

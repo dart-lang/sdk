@@ -1246,8 +1246,7 @@ bbb() {}
     Source generatedSource = _SourceMock(generatedPath, uri);
 
     generatedUriResolver.resolveAbsoluteFunction = (uri) => generatedSource;
-    generatedUriResolver.restoreAbsoluteFunction = (Source source) {
-      String path = source.fullName;
+    generatedUriResolver.pathToUriFunction = (path) {
       if (path == templatePath || path == generatedPath) {
         return uri;
       } else {
@@ -1952,16 +1951,13 @@ String z = "string";
       expect(result.errors, isEmpty);
     }
 
-    // Analysis of my_pkg/bin/b.dart produces the error "A value of type
-    // 'String' can't be assigned to a variable of type 'int'", because
-    // file:///my_pkg/bin/b.dart imports file:///my_pkg/lib/c.dart, which
-    // successfully imports file:///my_pkg/test/d.dart, causing y to have an
-    // inferred type of String.
+    // Analysis of my_pkg/bin/a.dart produces no error because
+    // the import `../lib/c.dart` is resolved to package:my_pkg/c.dart, and
+    // package:my_pkg/c.dart's import is erroneous, causing y's reference to z
+    // to be unresolved (and therefore have type dynamic).
     {
       ResolvedUnitResult result = await driver.getResultValid(b);
-      List<AnalysisError> errors = result.errors;
-      expect(errors, hasLength(1));
-      expect(errors[0].errorCode, CompileTimeErrorCode.INVALID_ASSIGNMENT);
+      expect(result.errors, isEmpty);
     }
   }
 
@@ -2028,8 +2024,10 @@ var VC = new A<double>();
 
     {
       ResolvedUnitResult result = await driver.getResultValid(b);
-      expect(_getImportSource(result.unit, 0).uri.toString(),
-          'package:test/a.dart');
+      expect(
+        _getImportSource(result.unit, 0).uri,
+        Uri.parse('package:test/a.dart'),
+      );
       _assertTopLevelVarType(result.unit, 'VB', 'A<int>');
     }
 
@@ -2037,7 +2035,7 @@ var VC = new A<double>();
       ResolvedUnitResult result = await driver.getResultValid(c);
       expect(
         _getImportSource(result.unit, 0).uri,
-        toUri('/test/lib/a.dart'),
+        Uri.parse('package:test/a.dart'),
       );
       _assertTopLevelVarType(result.unit, 'VC', 'A<double>');
     }
@@ -2922,6 +2920,24 @@ var b = new B();
         .lastWhere((r) => r.path == c);
     expect(result.errors, isEmpty);
     expect(result.unit, isNotNull);
+  }
+
+  test_removeFile_addFile_results() async {
+    var a = convertPath('/test/lib/a.dart');
+    newFile(a, content: 'class A {}');
+
+    driver.addFile(a);
+
+    await waitForIdleWithoutExceptions();
+    expect(allResults.map((e) => e.path).toSet(), {a});
+    allResults.clear();
+
+    driver.removeFile(a);
+    driver.addFile(a);
+
+    // a.dart should be produced again
+    await waitForIdleWithoutExceptions();
+    expect(allResults.map((e) => e.path).toSet(), {a});
   }
 
   test_removeFile_changeFile_implicitlyAnalyzed() async {

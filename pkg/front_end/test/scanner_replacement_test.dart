@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/error_token.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' as analyzer;
@@ -30,7 +28,7 @@ void main() {
 class ScannerTest_Replacement extends ScannerTestBase {
   @override
   analyzer.Token scanWithListener(String source, ErrorListener listener,
-      {fasta.ScannerConfiguration configuration}) {
+      {fasta.ScannerConfiguration? configuration}) {
     // Process the source similar to
     // pkg/analyzer/lib/src/dart/scanner/scanner.dart
     // to simulate replacing the analyzer scanner
@@ -49,9 +47,9 @@ class ScannerTest_Replacement extends ScannerTestBase {
   }
 
   void _assertOpenClosePair(String source) {
-    analyzer.BeginToken open = _scan(source);
-    fasta.Token close = open.next;
-    expect(close.next.isEof, isTrue);
+    analyzer.BeginToken open = _scan(source) as analyzer.BeginToken;
+    fasta.Token close = open.next!;
+    expect(close.next!.isEof, isTrue);
     expect(open.endGroup, close);
     expect(open.isSynthetic, isFalse);
     expect(close.isSynthetic, isFalse);
@@ -59,9 +57,10 @@ class ScannerTest_Replacement extends ScannerTestBase {
 
   void _assertOpenOnly(String source, String expectedCloser) {
     ErrorListener listener = new ErrorListener();
-    analyzer.BeginToken open = scanWithListener(source, listener);
-    fasta.Token close = open.next;
-    expect(close.next.isEof, isTrue);
+    analyzer.BeginToken open =
+        scanWithListener(source, listener) as analyzer.BeginToken;
+    fasta.Token close = open.next!;
+    expect(close.next!.isEof, isTrue);
     expect(open.endGroup, close);
     expect(open.isSynthetic, isFalse);
     expect(close.isSynthetic, isTrue);
@@ -82,7 +81,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     // ... but the length does *not* include the additional character
     // so as to be true to the original source.
     expect(token.length, source.length);
-    expect(token.next.isEof, isTrue);
+    expect(token.next!.isEof, isTrue);
     expect(listener.errors, hasLength(1));
     TestError error = listener.errors[0];
     expect(error.errorCode, ScannerErrorCode.MISSING_DIGIT);
@@ -93,8 +92,8 @@ class ScannerTest_Replacement extends ScannerTestBase {
   void test_lt() {
     // fasta does not automatically insert a closer for '<'
     // because it could be part of an expression rather than an opener
-    analyzer.BeginToken lt = _scan('<');
-    expect(lt.next.isEof, isTrue);
+    analyzer.BeginToken lt = _scan('<') as analyzer.BeginToken;
+    expect(lt.next!.isEof, isTrue);
     expect(lt.isSynthetic, isFalse);
   }
 
@@ -138,16 +137,18 @@ class ScannerTest_Replacement extends ScannerTestBase {
     // where both ')' are synthetic
     ErrorListener listener = new ErrorListener();
     var stringStart = scanWithListener(r'"${({(}}"', listener);
-    analyzer.BeginToken interpolationStart = stringStart.next;
-    analyzer.BeginToken openParen1 = interpolationStart.next;
-    analyzer.BeginToken openBrace = openParen1.next;
-    analyzer.BeginToken openParen2 = openBrace.next;
-    var closeParen2 = openParen2.next;
-    var closeBrace = closeParen2.next;
-    var closeParen1 = closeBrace.next;
-    var interpolationEnd = closeParen1.next;
-    var stringEnd = interpolationEnd.next;
-    var eof = stringEnd.next;
+    analyzer.BeginToken interpolationStart =
+        stringStart.next as analyzer.BeginToken;
+    analyzer.BeginToken openParen1 =
+        interpolationStart.next as analyzer.BeginToken;
+    analyzer.BeginToken openBrace = openParen1.next as analyzer.BeginToken;
+    analyzer.BeginToken openParen2 = openBrace.next as analyzer.BeginToken;
+    var closeParen2 = openParen2.next!;
+    var closeBrace = closeParen2.next!;
+    var closeParen1 = closeBrace.next!;
+    var interpolationEnd = closeParen1.next!;
+    var stringEnd = interpolationEnd.next!;
+    var eof = stringEnd.next!;
 
     expect(interpolationStart.endToken, same(interpolationEnd));
     expect(interpolationEnd.isSynthetic, isFalse);
@@ -168,14 +169,15 @@ class ScannerTest_Replacement extends ScannerTestBase {
   void test_unmatched_openers() {
     ErrorListener listener = new ErrorListener();
     // fasta inserts missing closers except for '<'
-    analyzer.BeginToken openBrace = scanWithListener('{[(<', listener);
-    analyzer.BeginToken openBracket = openBrace.next;
-    analyzer.BeginToken openParen = openBracket.next;
-    analyzer.BeginToken openLT = openParen.next;
-    var closeParen = openLT.next;
-    var closeBracket = closeParen.next;
-    var closeBrace = closeBracket.next;
-    var eof = closeBrace.next;
+    analyzer.BeginToken openBrace =
+        scanWithListener('{[(<', listener) as analyzer.BeginToken;
+    analyzer.BeginToken openBracket = openBrace.next as analyzer.BeginToken;
+    analyzer.BeginToken openParen = openBracket.next as analyzer.BeginToken;
+    analyzer.BeginToken openLT = openParen.next as analyzer.BeginToken;
+    var closeParen = openLT.next!;
+    var closeBracket = closeParen.next!;
+    var closeBrace = closeBracket.next!;
+    var eof = closeBrace.next!;
 
     expect(openBrace.endGroup, same(closeBrace));
     expect(openBracket.endGroup, same(closeBracket));
@@ -201,13 +203,13 @@ class ScannerTest_Replacement extends ScannerTestBase {
     // The default recovery strategy used by scanString
     // places all error tokens at the head of the stream.
     while (token.type == analyzer.TokenType.BAD_INPUT) {
-      translateErrorToken(token,
-          (ScannerErrorCode errorCode, int offset, List<Object> arguments) {
+      translateErrorToken(token as fasta.ErrorToken,
+          (ScannerErrorCode errorCode, int offset, List<Object>? arguments) {
         listener.errors.add(new TestError(offset, errorCode, arguments));
       });
-      token = token.next;
+      token = token.next!;
     }
-    if (!token.previous.isEof) {
+    if (!token.previous!.isEof) {
       new analyzer.Token.eof(-1).setNext(token);
     }
     return token;
@@ -217,20 +219,20 @@ class ScannerTest_Replacement extends ScannerTestBase {
   void assertValidTokenStream(fasta.Token firstToken,
       {bool errorsFirst: false}) {
     fasta.Token token = firstToken;
-    fasta.Token previous = token.previous;
+    fasta.Token previous = token.previous!;
     expect(previous.isEof, isTrue, reason: 'Missing leading EOF');
     expect(previous.next, token, reason: 'Invalid leading EOF');
     expect(previous.previous, previous, reason: 'Invalid leading EOF');
     if (errorsFirst) {
       while (!token.isEof && token is fasta.ErrorToken) {
-        token = token.next;
+        token = token.next!;
       }
     }
     var isNotErrorToken = isNot(const TypeMatcher<fasta.ErrorToken>());
     while (!token.isEof) {
       if (errorsFirst) expect(token, isNotErrorToken);
       previous = token;
-      token = token.next;
+      token = token.next!;
       expect(token, isNotNull, reason: previous.toString());
       expect(token.previous, previous, reason: token.toString());
     }
@@ -258,7 +260,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
       } else if (token is fasta.UnmatchedToken) {
         errorStack.add(token);
       }
-      token = token.next;
+      token = token.next!;
     }
     expect(openerStack, isEmpty, reason: 'Missing closers');
     expect(errorStack, isEmpty, reason: 'Extra error tokens');

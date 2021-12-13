@@ -512,16 +512,6 @@ bool Directory::Rename(Namespace* namespc,
   }
   const char* prefixed_new_dir = PrefixLongDirectoryPath(new_path);
   Utf8ToWideScope system_new_path(prefixed_new_dir);
-  ExistsResult new_exists = ExistsHelper(system_new_path.wide());
-  // MoveFile does not allow replacing existing directories. Therefore,
-  // if the new_path is currently a directory we need to delete it
-  // first.
-  if (new_exists == EXISTS) {
-    bool success = Delete(namespc, prefixed_new_dir, true);
-    if (!success) {
-      return false;
-    }
-  }
   DWORD flags = MOVEFILE_WRITE_THROUGH;
   int move_status =
       MoveFileExW(system_path.wide(), system_new_path.wide(), flags);

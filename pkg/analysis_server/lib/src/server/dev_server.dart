@@ -165,21 +165,11 @@ class DevChannel implements ServerCommunicationChannel {
   Stream<Notification> get onNotification => _notificationController.stream;
 
   @override
-  void close() {
-    _notificationController.close();
-  }
+  Stream<Request> get requests => _requestController.stream;
 
   @override
-  void listen(
-    void Function(Request request) onRequest, {
-    Function? onError,
-    void Function()? onDone,
-  }) {
-    _requestController.stream.listen(
-      onRequest,
-      onError: onError,
-      onDone: onDone,
-    );
+  void close() {
+    _notificationController.close();
   }
 
   @override

@@ -391,9 +391,17 @@ class AstFactoryImpl extends AstFactory {
           SimpleIdentifier name,
           Token leftBracket,
           List<EnumConstantDeclaration> constants,
+          List<ClassMember> members,
           Token rightBracket) =>
-      EnumDeclarationImpl(comment as CommentImpl?, metadata, enumKeyword,
-          name as SimpleIdentifierImpl, leftBracket, constants, rightBracket);
+      EnumDeclarationImpl(
+          comment as CommentImpl?,
+          metadata,
+          enumKeyword,
+          name as SimpleIdentifierImpl,
+          leftBracket,
+          constants,
+          members,
+          rightBracket);
 
   @override
   ExportDirectiveImpl exportDirective(
@@ -1183,6 +1191,34 @@ class AstFactoryImpl extends AstFactory {
   @override
   SuperExpressionImpl superExpression(Token superKeyword) =>
       SuperExpressionImpl(superKeyword);
+
+  @override
+  SuperFormalParameterImpl superFormalParameter(
+          {Comment? comment,
+          List<Annotation>? metadata,
+          Token? covariantKeyword,
+          Token? requiredKeyword,
+          Token? keyword,
+          TypeAnnotation? type,
+          required Token superKeyword,
+          required Token period,
+          required SimpleIdentifier identifier,
+          TypeParameterList? typeParameters,
+          FormalParameterList? parameters,
+          Token? question}) =>
+      SuperFormalParameterImpl(
+          comment as CommentImpl?,
+          metadata,
+          covariantKeyword,
+          requiredKeyword,
+          keyword,
+          type as TypeAnnotationImpl?,
+          superKeyword,
+          period,
+          identifier as SimpleIdentifierImpl,
+          typeParameters as TypeParameterListImpl?,
+          parameters as FormalParameterListImpl?,
+          question);
 
   @override
   SwitchCaseImpl switchCase(List<Label> labels, Token keyword,

@@ -4,6 +4,7 @@
 
 analyzer:
   exclude:
+    - outline_extraction_testcases/**
     - parser_testcases/**
     - test/analyser_ignored/**
     - test/class_hierarchy/data/**
@@ -11,6 +12,7 @@ analyzer:
     - test/extensions/data/**
     - test/id_testing/data/**
     - test/language_versioning/data/**
+    - test/macros/data/**
     - test/patching/data/**
     - test/predicates/data/**
     - test/static_types/data/**

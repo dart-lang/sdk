@@ -26,10 +26,10 @@ void help() {
       .commands
       .forEach((String commandKey, Command command) {
     if (!_commandsNotTested.contains(commandKey)) {
-      test('(help $commandKey == $commandKey --help)', () {
+      test('(help $commandKey == $commandKey --help)', () async {
         p = project();
-        var result = p.runSync(['help', commandKey]);
-        var verbHelpResult = p.runSync([commandKey, '--help']);
+        var result = await p.run(['help', commandKey]);
+        var verbHelpResult = await p.run([commandKey, '--help']);
 
         expect(result.stdout, contains(verbHelpResult.stdout));
         expect(result.stderr, contains(verbHelpResult.stderr));
@@ -37,20 +37,20 @@ void help() {
     }
   });
 
-  test('(help test ~= test --help) outside project', () {
+  test('(help test ~= test --help) outside project', () async {
     p = project();
     p.deleteFile('pubspec.yaml');
-    var result = p.runSync(['help', 'test']);
-    var testHelpResult = p.runSync(['test', '--help']);
+    var result = await p.run(['help', 'test']);
+    var testHelpResult = await p.run(['test', '--help']);
 
     expect(testHelpResult.stdout, contains(result.stdout));
     expect(testHelpResult.stderr, contains(result.stderr));
   });
 
-  test('(help pub == pub --help)', () {
+  test('(help pub == pub --help)', () async {
     p = project();
-    var result = p.runSync(['help', 'pub']);
-    var pubHelpResult = p.runSync(['pub', '--help']);
+    var result = await p.run(['help', 'pub']);
+    var pubHelpResult = await p.run(['pub', '--help']);
 
     expect(result.stdout, contains(pubHelpResult.stdout));
     expect(result.stderr, contains(pubHelpResult.stderr));

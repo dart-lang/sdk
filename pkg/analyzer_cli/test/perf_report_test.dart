@@ -15,7 +15,7 @@ void main() {
     var options = CommandLineOptions.parse(
       PhysicalResourceProvider.INSTANCE,
       ['somefile.dart'],
-    );
+    )!;
     var encoded = makePerfReport(1000, 1234, options, 0, AnalysisStats());
 
     var jsonData = json.decode(encoded);

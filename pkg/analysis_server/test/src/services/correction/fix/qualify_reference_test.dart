@@ -43,7 +43,7 @@ class D extends C {
   }
 
   Future<void> test_class_imported() async {
-    newFile('/home/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   static void m() {}
 }
@@ -60,7 +60,7 @@ class B extends A {
   }
 
   Future<void> test_class_importedWithPrefix() async {
-    newFile('/home/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   static void m() {}
 }
@@ -104,12 +104,12 @@ class D extends C {
   }
 
   Future<void> test_class_notImported() async {
-    newFile('/home/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   static void m() {}
 }
 ''');
-    newFile('/home/test/lib/b.dart', content: '''
+    newFile('$testPackageLibPath/b.dart', content: '''
 import 'a.dart';
 class B extends A {}
 ''');
@@ -148,7 +148,7 @@ extension E on C {
   }
 
   Future<void> test_extension_imported() async {
-    newFile('/home/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   static void m() {}
 }
@@ -165,7 +165,7 @@ extension E on A {
   }
 
   Future<void> test_extension_importedWithPrefix() async {
-    newFile('/home/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   static void m() {}
 }
@@ -209,12 +209,12 @@ extension E on C {
   }
 
   Future<void> test_extension_notImported() async {
-    newFile('/home/test/lib/a.dart', content: '''
+    newFile('$testPackageLibPath/a.dart', content: '''
 class A {
   static void m() {}
 }
 ''');
-    newFile('/home/test/lib/b.dart', content: '''
+    newFile('$testPackageLibPath/b.dart', content: '''
 import 'a.dart';
 class B extends A {}
 ''');

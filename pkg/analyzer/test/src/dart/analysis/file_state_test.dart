@@ -30,10 +30,68 @@ import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../resolution/context_collection_resolution.dart';
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FileSystemStateTest);
+    defineReflectiveTests(FileSystemState_BazelWorkspaceTest);
   });
+}
+
+@reflectiveTest
+class FileSystemState_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
+  void test_getFileForUri_hasGenerated_askGeneratedFirst() async {
+    var relPath = 'dart/my/test/a.dart';
+    var writablePath = convertPath('$workspaceRootPath/$relPath');
+    var generatedPath = convertPath('$workspaceRootPath/bazel-bin/$relPath');
+
+    // This generated file should be used instead of the writable.
+    newFile(generatedPath);
+
+    var analysisDriver = driverFor(convertPath(testFilePath));
+
+    var fsState = analysisDriver.fsState;
+
+    // The file is the generated file.
+    var generatedUri = toUri(generatedPath);
+    var generatedFile = fsState.getFileForUri(generatedUri).t1!;
+    expect(generatedFile.uri, generatedUri);
+    expect(generatedFile.path, generatedPath);
+
+    // The file is cached under the requested URI.
+    var writableUri = toUri(writablePath);
+    var writableFile1 = fsState.getFileForUri(writableUri).t1!;
+    var writableFile2 = fsState.getFileForUri(writableUri).t1!;
+    expect(writableFile1, same(generatedFile));
+    expect(writableFile2, same(generatedFile));
+  }
+
+  void test_getFileForUri_hasGenerated_askWritableFirst() async {
+    var relPath = 'dart/my/test/a.dart';
+    var writablePath = convertPath('$workspaceRootPath/$relPath');
+    var generatedPath = convertPath('$workspaceRootPath/bazel-bin/$relPath');
+
+    // This generated file should be used instead of the writable.
+    newFile(generatedPath);
+
+    var analysisDriver = driverFor(convertPath(testFilePath));
+
+    var fsState = analysisDriver.fsState;
+
+    // The file is cached under the requested URI.
+    var writableUri = toUri(writablePath);
+    var writableFile1 = fsState.getFileForUri(writableUri).t1!;
+    var writableFile2 = fsState.getFileForUri(writableUri).t1!;
+    expect(writableFile2, same(writableFile1));
+
+    // The file is the generated file.
+    var generatedUri = toUri(generatedPath);
+    var generatedFile = fsState.getFileForUri(generatedUri).t1!;
+    expect(generatedFile.uri, generatedUri);
+    expect(generatedFile.path, generatedPath);
+    expect(writableFile2, same(generatedFile));
+  }
 }
 
 @reflectiveTest
@@ -268,8 +326,6 @@ class A1 {}
     expect(file.libraryFiles, [file, file.partedFiles[0]]);
 
     expect(_excludeSdk(file.directReferencedFiles), hasLength(5));
-
-    expect(fileSystemState.getFilesForPath(a1), [file]);
   }
 
   test_getFileForPath_onlyDartFiles() {
@@ -361,27 +417,6 @@ part 'not-a2.dart';
         fail('Expected null.');
       },
     );
-  }
-
-  test_getFileForUri_packageVsFileUri() {
-    String path = convertPath('/aaa/lib/a.dart');
-    var packageUri = Uri.parse('package:aaa/a.dart');
-    var fileUri = toUri(path);
-
-    // The files with `package:` and `file:` URIs are different.
-    var filePackageUri = fileSystemState.getFileForUri(packageUri).asFileState;
-    var fileFileUri = fileSystemState.getFileForUri(fileUri).asFileState;
-    expect(filePackageUri, isNot(same(fileFileUri)));
-
-    expect(filePackageUri.path, path);
-    expect(filePackageUri.uri, packageUri);
-
-    expect(fileFileUri.path, path);
-    expect(fileFileUri.uri, fileUri);
-
-    // The file with the `package:` style URI is canonical, and is the first.
-    var files = fileSystemState.getFilesForPath(path);
-    expect(files, [filePackageUri, fileFileUri]);
   }
 
   test_getFilesSubtypingName() {
@@ -742,10 +777,10 @@ part of 'a.dart';
   }
 }
 
-class _GeneratedUriResolverMock implements UriResolver {
+class _GeneratedUriResolverMock extends UriResolver {
   Source? Function(Uri)? resolveAbsoluteFunction;
 
-  Uri? Function(Source)? restoreAbsoluteFunction;
+  Uri? Function(String)? pathToUriFunction;
 
   @override
   noSuchMethod(Invocation invocation) {
@@ -753,17 +788,14 @@ class _GeneratedUriResolverMock implements UriResolver {
   }
 
   @override
-  Source? resolveAbsolute(Uri uri) {
-    if (resolveAbsoluteFunction != null) {
-      return resolveAbsoluteFunction!(uri);
-    }
-    return null;
+  Uri? pathToUri(String path) {
+    return pathToUriFunction?.call(path);
   }
 
   @override
-  Uri? restoreAbsolute(Source source) {
-    if (restoreAbsoluteFunction != null) {
-      return restoreAbsoluteFunction!(source);
+  Source? resolveAbsolute(Uri uri) {
+    if (resolveAbsoluteFunction != null) {
+      return resolveAbsoluteFunction!(uri);
     }
     return null;
   }
@@ -784,11 +816,13 @@ class _SourceMock implements Source {
   }
 }
 
-extension on Either2<FileState?, ExternalLibrary> {
-  FileState get asFileState {
-    return map(
-      (file) => file!,
-      (_) => fail('Expected a file'),
+extension _Either2Extension<T1, T2> on Either2<T1, T2> {
+  T1 get t1 {
+    late T1 result;
+    map(
+      (t1) => result = t1,
+      (_) => throw 'Expected T1',
     );
+    return result;
   }
 }

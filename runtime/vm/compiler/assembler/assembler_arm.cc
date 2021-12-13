@@ -1620,7 +1620,7 @@ void Assembler::LoadPoolPointer(Register reg) {
 }
 
 void Assembler::SetupGlobalPoolAndDispatchTable() {
-  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  ASSERT(FLAG_precompiled_mode);
   ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
   if (FLAG_use_table_dispatch) {
     ldr(DISPATCH_TABLE_REG,
@@ -3361,7 +3361,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size, bool load_pool_pointer) {
   COMPILE_ASSERT(CODE_REG < FP);
   COMPILE_ASSERT(FP < LINK_REGISTER.code);
 
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     SPILLS_LR_TO_FRAME(
         EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0));
 
@@ -3391,7 +3391,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 }
 
 void Assembler::LeaveDartFrame() {
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     ldr(PP, Address(FP, target::frame_layout.saved_caller_pp_from_fp *
                             target::kWordSize));
   }
@@ -3403,7 +3403,7 @@ void Assembler::LeaveDartFrame() {
 }
 
 void Assembler::LeaveDartFrameAndReturn() {
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     ldr(PP, Address(FP, target::frame_layout.saved_caller_pp_from_fp *
                             target::kWordSize));
   }
@@ -3745,6 +3745,18 @@ void Assembler::LoadElementAddressForRegIndex(Register address,
   if (offset != 0) {
     AddImmediate(address, offset);
   }
+}
+
+void Assembler::LoadStaticFieldAddress(Register address,
+                                       Register field,
+                                       Register scratch) {
+  LoadCompressedFieldFromOffset(
+      scratch, field, target::Field::host_offset_or_field_id_offset());
+  const intptr_t field_table_offset =
+      compiler::target::Thread::field_table_values_offset();
+  LoadMemoryValue(address, THR, static_cast<int32_t>(field_table_offset));
+  add(address, address,
+      Operand(scratch, LSL, target::kWordSizeLog2 - kSmiTagShift));
 }
 
 void Assembler::LoadFieldAddressForRegOffset(Register address,

@@ -366,9 +366,14 @@ void FlowGraphTypePropagator::VisitGuardFieldClass(
 }
 
 void FlowGraphTypePropagator::VisitAssertAssignable(
-    AssertAssignableInstr* instr) {
-  SetTypeOf(instr->value()->definition(),
-            new (zone()) CompileType(instr->ComputeType()));
+    AssertAssignableInstr* check) {
+  auto defn = check->value()->definition();
+  SetTypeOf(defn, new (zone()) CompileType(check->ComputeType()));
+  if (check->ssa_temp_index() == -1) {
+    flow_graph_->AllocateSSAIndexes(check);
+    GrowTypes(check->ssa_temp_index() + 1);
+  }
+  FlowGraph::RenameDominatedUses(defn, check, check);
 }
 
 void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
@@ -1020,6 +1025,7 @@ CompileType RedefinitionInstr::ComputeType() const {
     // If either type is non-nullable, the resulting type is non-nullable.
     const bool is_nullable =
         value()->Type()->is_nullable() && constrained_type_->is_nullable();
+    // The resulting type can be the sentinel value only if both types can be.
     const bool can_be_sentinel = value()->Type()->can_be_sentinel() &&
                                  constrained_type_->can_be_sentinel();
 
@@ -1032,13 +1038,18 @@ CompileType RedefinitionInstr::ComputeType() const {
       return CompileType(is_nullable, can_be_sentinel,
                          constrained_type_->ToNullableCid(), nullptr);
     }
-    if (value()->Type()->IsSubtypeOf(*constrained_type_->ToAbstractType())) {
-      return is_nullable ? *value()->Type()
-                         : value()->Type()->CopyNonNullable();
-    } else {
-      return is_nullable ? *constrained_type_
-                         : constrained_type_->CopyNonNullable();
+
+    CompileType result(
+        value()->Type()->IsSubtypeOf(*constrained_type_->ToAbstractType())
+            ? *value()->Type()
+            : *constrained_type_);
+    if (!is_nullable) {
+      result = result.CopyNonNullable();
     }
+    if (!can_be_sentinel) {
+      result = result.CopyNonSentinel();
+    }
+    return result;
   }
   return *value()->Type();
 }
@@ -1539,16 +1550,6 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   TraceStrongModeType(this, *abstract_type);
   if (abstract_type->IsStrictlyNonNullable()) {
     is_nullable = false;
-  }
-
-  auto& obj = Object::Handle();
-  const bool is_initialized = IsFieldInitialized(&obj);
-  if (field.is_final() && is_initialized) {
-    if (!obj.IsNull()) {
-      is_nullable = false;
-      cid = obj.GetClassId();
-      abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
-    }
   }
 
   if ((field.guarded_cid() != kIllegalCid) &&

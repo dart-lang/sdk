@@ -114,6 +114,259 @@ mixin B {
         unorderedEquals([a.methods[0], b.fields[0]]));
   }
 
+  test_declarations_class() async {
+    await resolveTestCode('''
+class C {
+  int f;
+  C();
+  C.named();
+  int get g => 0;
+  void set s(_) {}
+  void m() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, null, null);
+    var declarations = results.declarations;
+    declarations.assertHas('C', DeclarationKind.CLASS,
+        offset: 6, codeOffset: 0, codeLength: 91);
+    declarations.assertHas('f', DeclarationKind.FIELD,
+        offset: 16, codeOffset: 12, codeLength: 5, className: 'C');
+    declarations.assertHas('named', DeclarationKind.CONSTRUCTOR,
+        offset: 30, codeOffset: 28, codeLength: 10, className: 'C');
+    declarations.assertHas('g', DeclarationKind.GETTER,
+        offset: 49, codeOffset: 41, codeLength: 15, className: 'C');
+    declarations.assertHas('s', DeclarationKind.SETTER,
+        offset: 68, codeOffset: 59, codeLength: 16, className: 'C');
+    declarations.assertHas('m', DeclarationKind.METHOD,
+        offset: 83, codeOffset: 78, codeLength: 11, className: 'C');
+  }
+
+  test_declarations_discover() async {
+    var aaaPackageRootPath = '$packagesRootPath/aaa';
+    var bbbPackageRootPath = '$packagesRootPath/bbb';
+    var cccPackageRootPath = '$packagesRootPath/ccc';
+    var aaaFilePath = convertPath('$aaaPackageRootPath/lib/a.dart');
+    var bbbFilePath = convertPath('$bbbPackageRootPath/lib/b.dart');
+    var cccFilePath = convertPath('$cccPackageRootPath/lib/c.dart');
+
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaPackageRootPath)
+        ..add(name: 'bbb', rootPath: bbbPackageRootPath),
+    );
+
+    newFile(aaaFilePath, content: 'class A {}');
+    newFile(bbbFilePath, content: 'class B {}');
+    newFile(cccFilePath, content: 'class C {}');
+
+    await resolveTestCode('class T {}');
+
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, null, null);
+    var declarations = results.declarations;
+
+    declarations.assertHas('T', DeclarationKind.CLASS);
+    declarations.assertHas('A', DeclarationKind.CLASS);
+    declarations.assertHas('B', DeclarationKind.CLASS);
+    declarations.assertNo('C');
+  }
+
+  test_declarations_enum() async {
+    await resolveTestCode('''
+enum E {
+  a, bb, ccc
+}
+''');
+
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, null, null);
+    var declarations = results.declarations;
+
+    declarations.assertHas('E', DeclarationKind.ENUM,
+        offset: 5, codeOffset: 0, codeLength: 23);
+    declarations.assertHas('a', DeclarationKind.ENUM_CONSTANT,
+        offset: 11, codeOffset: 11, codeLength: 1);
+    declarations.assertHas('bb', DeclarationKind.ENUM_CONSTANT,
+        offset: 14, codeOffset: 14, codeLength: 2);
+    declarations.assertHas('ccc', DeclarationKind.ENUM_CONSTANT,
+        offset: 18, codeOffset: 18, codeLength: 3);
+  }
+
+  test_declarations_maxResults() async {
+    await resolveTestCode('''
+class A {}
+class B {}
+class C {}
+''');
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, null, 2);
+    expect(results.declarations, hasLength(2));
+  }
+
+  test_declarations_mixin() async {
+    await resolveTestCode('''
+mixin M {
+  int f;
+  int get g => 0;
+  void set s(_) {}
+  void m() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, null, null);
+    var declarations = results.declarations;
+    declarations.assertHas('M', DeclarationKind.MIXIN,
+        offset: 6, codeOffset: 0, codeLength: 71);
+    declarations.assertHas('f', DeclarationKind.FIELD,
+        offset: 16, codeOffset: 12, codeLength: 5, mixinName: 'M');
+    declarations.assertHas('g', DeclarationKind.GETTER,
+        offset: 29, codeOffset: 21, codeLength: 15, mixinName: 'M');
+    declarations.assertHas('s', DeclarationKind.SETTER,
+        offset: 48, codeOffset: 39, codeLength: 16, mixinName: 'M');
+    declarations.assertHas('m', DeclarationKind.METHOD,
+        offset: 63, codeOffset: 58, codeLength: 11, mixinName: 'M');
+  }
+
+  test_declarations_onlyForFile() async {
+    newFile('$testPackageLibPath/a.dart', content: 'class A {}');
+    var b = newFile('$testPackageLibPath/b.dart', content: 'class B {}').path;
+
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, null, null, onlyForFile: b);
+    var declarations = results.declarations;
+
+    expect(results.files, [b]);
+
+    declarations.assertNo('A');
+    declarations.assertHas('B', DeclarationKind.CLASS);
+  }
+
+  test_declarations_parameters() async {
+    await resolveTestCode('''
+class C {
+  int get g => 0;
+  void m(int a, double b) {}
+}
+void f(bool a, String b) {}
+''');
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, null, null);
+    var declarations = results.declarations;
+
+    var declaration = declarations.assertHas('C', DeclarationKind.CLASS);
+    expect(declaration.parameters, isNull);
+
+    declaration =
+        declarations.assertHas('g', DeclarationKind.GETTER, className: 'C');
+    expect(declaration.parameters, isNull);
+
+    declaration =
+        declarations.assertHas('m', DeclarationKind.METHOD, className: 'C');
+    expect(declaration.parameters, '(int a, double b)');
+
+    declaration = declarations.assertHas('f', DeclarationKind.FUNCTION);
+    expect(declaration.parameters, '(bool a, String b)');
+  }
+
+  test_declarations_parameters_functionTyped() async {
+    await resolveTestCode('''
+void f1(bool a(int b, String c)) {}
+void f2(a(b, c)) {}
+void f3(bool Function(int a, String b) c) {}
+void f4(bool Function(int, String) a) {}
+''');
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, null, null);
+    var declarations = results.declarations;
+
+    var declaration = declarations.assertHas('f1', DeclarationKind.FUNCTION);
+    expect(declaration.parameters, '(bool Function(int, String) a)');
+
+    declaration = declarations.assertHas('f2', DeclarationKind.FUNCTION);
+    expect(declaration.parameters, '(dynamic Function(dynamic, dynamic) a)');
+
+    declaration = declarations.assertHas('f3', DeclarationKind.FUNCTION);
+    expect(declaration.parameters, '(bool Function(int, String) c)');
+
+    declaration = declarations.assertHas('f4', DeclarationKind.FUNCTION);
+    expect(declaration.parameters, '(bool Function(int, String) a)');
+  }
+
+  test_declarations_parameters_typeArguments() async {
+    await resolveTestCode('''
+class A<T, T2> {
+  void m1(Map<int, String> a) {}
+  void m2<U>(Map<T, U> a) {}
+  void m3<U1, U2>(Map<Map<T2, U2>, Map<U1, T>> a) {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, null, null);
+    var declarations = results.declarations;
+
+    var declaration =
+        declarations.assertHas('m1', DeclarationKind.METHOD, className: 'A');
+    expect(declaration.parameters, '(Map<int, String> a)');
+
+    declaration =
+        declarations.assertHas('m2', DeclarationKind.METHOD, className: 'A');
+    expect(declaration.parameters, '(Map<T, U> a)');
+
+    declaration =
+        declarations.assertHas('m3', DeclarationKind.METHOD, className: 'A');
+    expect(declaration.parameters, '(Map<Map<T2, U2>, Map<U1, T>> a)');
+  }
+
+  test_declarations_regExp() async {
+    await resolveTestCode('''
+class A {}
+class B {}
+class C {}
+class D {}
+''');
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, RegExp(r'[A-C]'), null);
+    var declarations = results.declarations;
+
+    declarations.assertHas('A', DeclarationKind.CLASS);
+    declarations.assertHas('B', DeclarationKind.CLASS);
+    declarations.assertHas('C', DeclarationKind.CLASS);
+    declarations.assertNo('D');
+  }
+
+  test_declarations_top() async {
+    await resolveTestCode('''
+int get g => 0;
+void set s(_) {}
+void f(int p) {}
+int v;
+typedef void tf1();
+typedef tf2<T> = int Function<S>(T tp, S sp);
+''');
+    var results = WorkspaceSymbols();
+    await driver.search.declarations(results, null, null);
+    var declarations = results.declarations;
+
+    declarations.assertHas('g', DeclarationKind.GETTER,
+        offset: 8, codeOffset: 0, codeLength: 15);
+    declarations.assertHas('s', DeclarationKind.SETTER,
+        offset: 25, codeOffset: 16, codeLength: 16);
+    declarations.assertHas(
+      'f',
+      DeclarationKind.FUNCTION,
+      offset: 38,
+      codeOffset: 33,
+      codeLength: 16,
+    );
+    declarations.assertHas('v', DeclarationKind.VARIABLE,
+        offset: 54, codeOffset: 50, codeLength: 5);
+    declarations.assertHas('tf1', DeclarationKind.TYPE_ALIAS,
+        offset: 70, codeOffset: 57, codeLength: 19);
+    declarations.assertHas('tf2', DeclarationKind.TYPE_ALIAS,
+        offset: 85, codeOffset: 77, codeLength: 45);
+  }
+
   test_searchMemberReferences_qualified_resolved() async {
     await resolveTestCode('''
 class C {
@@ -1164,6 +1417,25 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ParameterElement_optionalNamed_anywhere() async {
+    await resolveTestCode('''
+foo(int a, int b, {p}) {
+  p;
+}
+main() {
+  foo(0, p: 1, 2);
+}
+''');
+    var element = findElement.parameter('p');
+    var foo = findElement.function('foo');
+    var main = findElement.function('main');
+    var expected = [
+      _expectId(foo, SearchResultKind.READ, 'p;'),
+      _expectIdQ(main, SearchResultKind.REFERENCE, 'p: 1')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_ParameterElement_optionalPositional() async {
     await resolveTestCode('''
 foo([p]) {
@@ -2124,5 +2396,40 @@ class NoMatchABCDEF {}
   static void _assertResults(
       List<SearchResult> matches, List<ExpectedResult> expectedMatches) {
     expect(matches, unorderedEquals(expectedMatches));
+  }
+}
+
+extension on List<Declaration> {
+  void assertNo(String name) {
+    for (var declaration in this) {
+      if (declaration.name == name) {
+        fail('Unexpected declaration $name');
+      }
+    }
+  }
+
+  Declaration assertHas(String name, DeclarationKind kind,
+      {int? offset,
+      int? codeOffset,
+      int? codeLength,
+      String? className,
+      String? mixinName}) {
+    for (var declaration in this) {
+      if (declaration.name == name &&
+          declaration.kind == kind &&
+          (offset == null || declaration.offset == offset) &&
+          (codeOffset == null || declaration.codeOffset == codeOffset) &&
+          (codeLength == null || declaration.codeLength == codeLength) &&
+          declaration.className == className &&
+          declaration.mixinName == mixinName) {
+        return declaration;
+      }
+    }
+    var actual =
+        map((d) => '(name=${d.name}, kind=${d.kind}, offset=${d.offset}, '
+            'codeOffset=${d.codeOffset}, codeLength=${d.codeLength}, '
+            'className=${d.className}, mixinName=${d.mixinName})').join('\n');
+    fail('Expected to find (name=$name, kind=$kind, offset=$offset, '
+        'codeOffset=$codeOffset, codeLength=$codeLength) in\n$actual');
   }
 }

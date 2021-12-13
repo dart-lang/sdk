@@ -230,8 +230,10 @@ testModInverse() {
   var m = BigInt.parse(
       "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
       radix: 16);
-  var r = BigInt.parse("95929095851002583825372225918533539673793386278"
-                       "360575987103577151530201707061", radix: 10);
+  var r = BigInt.parse(
+      "95929095851002583825372225918533539673793386278"
+      "360575987103577151530201707061",
+      radix: 10);
   test(x, m, r);
 }
 
@@ -832,18 +834,10 @@ void testToRadixString() {
     }
   }
 
-  var illegalRadices = [-1, 0, 1, 37];
-  for (var radix in illegalRadices) {
-    try {
-      new BigInt.from(42).toRadixString(radix);
-      Expect.fail("Exception expected");
-    } on ArgumentError catch (e) {
-      // Nothing to do.
-    }
-  }
-
   // Try large numbers (regression test for issue 15316).
   var bignums = [
+    BigInt.parse("0x8"),
+    BigInt.parse("0x80"),
     BigInt.parse("0x80000000"),
     BigInt.parse("0x100000000"),
     BigInt.parse("0x10000000000000"),
@@ -871,6 +865,18 @@ void testToRadixString() {
       BigInt result = BigInt.parse(digits, radix: radix);
       Expect.equals(
           bignum, result, "${bignum.toRadixString(16)} -> $digits/$radix");
+    }
+  }
+
+  const illegalRadices = [-2, -1, 0, 1, 37];
+  for (final bignum in bignums) {
+    for (final radix in illegalRadices) {
+      try {
+        bignum.toRadixString(radix);
+        Expect.fail("Exception expected for .toRadixString($radix)");
+      } on ArgumentError catch (e) {
+        // Nothing to do.
+      }
     }
   }
 }

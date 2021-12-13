@@ -28,7 +28,7 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
 void FlowGraphCompiler::ArchSpecificInitialization() {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     auto object_store = isolate_group()->object_store();
 
     const auto& stub =
@@ -282,7 +282,7 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
 
   // RBX = extracted function
   // RDX = offset of type argument vector (or 0 if class is not generic)
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     kPoolReg = PP;
   } else {
     __ movq(kPoolReg,
@@ -301,7 +301,7 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
 // needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {
   if (!flow_graph().graph_entry()->NeedsFrame()) {
-    if (FLAG_use_bare_instructions) {
+    if (FLAG_precompiled_mode) {
       assembler()->set_constant_pool_allowed(true);
     }
     return;
@@ -376,33 +376,6 @@ void FlowGraphCompiler::EmitPrologue() {
   }
 
   EndCodeSourceRange(PrologueSource());
-}
-
-void FlowGraphCompiler::CompileGraph() {
-  InitCompiler();
-
-  // We have multiple entrypoints functionality which moved the frame
-  // setup into the [FunctionEntryInstr] (which will set the constant pool
-  // allowed bit to true).  Despite this we still have to set the
-  // constant pool allowed bit to true here as well, because we can generate
-  // code for [CatchEntryInstr]s, which need the pool.
-  __ set_constant_pool_allowed(true);
-
-  ASSERT(!block_order().is_empty());
-  VisitBlocks();
-
-#if defined(DEBUG)
-  __ int3();
-#endif
-
-  if (!skip_body_compilation()) {
-    ASSERT(assembler()->constant_pool_allowed());
-    GenerateDeferredCode();
-  }
-
-  for (intptr_t i = 0; i < indirect_gotos_.length(); ++i) {
-    indirect_gotos_[i]->ComputeOffsetTable(this);
-  }
 }
 
 void FlowGraphCompiler::EmitCallToStub(const Code& stub) {
@@ -579,16 +552,9 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 
   // Use same code pattern as instance call so it can be parsed by code patcher.
   if (FLAG_precompiled_mode) {
-    if (FLAG_use_bare_instructions) {
-      // The AOT runtime will replace the slot in the object pool with the
-      // entrypoint address - see app_snapshot.cc.
-      __ LoadUniqueObject(RCX, StubCode::MegamorphicCall());
-    } else {
-      __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
-      __ movq(RCX, compiler::FieldAddress(CODE_REG,
-                                          Code::entry_point_offset(
-                                              Code::EntryKind::kMonomorphic)));
-    }
+    // The AOT runtime will replace the slot in the object pool with the
+    // entrypoint address - see app_snapshot.cc.
+    __ LoadUniqueObject(RCX, StubCode::MegamorphicCall());
     __ LoadUniqueObject(RBX, cache);
     __ call(RCX);
   } else {
@@ -637,7 +603,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   __ Comment("InstanceCallAOT (%s)", switchable_call_mode);
   __ movq(RDX, compiler::Address(
                    RSP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize));
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see app_snapshot.cc.
     __ LoadUniqueObject(RCX, initial_stub);
@@ -670,7 +636,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   if (function.HasOptionalParameters() || function.IsGeneric()) {
     __ LoadObject(R10, arguments_descriptor);
   } else {
-    if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+    if (!FLAG_precompiled_mode) {
       __ xorl(R10, R10);  // GC safe smi zero because of stub.
     }
   }

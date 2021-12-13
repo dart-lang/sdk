@@ -15,7 +15,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 3
-#define SERVICE_PROTOCOL_MINOR_VERSION 52
+#define SERVICE_PROTOCOL_MINOR_VERSION 54
 
 class Array;
 class EmbedderServiceHandler;
@@ -75,15 +75,9 @@ class StreamInfo {
   void set_enabled(bool value) { enabled_ = value; }
   bool enabled() const { return enabled_; }
 
-  void set_consumer(Dart_NativeStreamConsumer consumer) {
-    callback_ = consumer;
-  }
-  Dart_NativeStreamConsumer consumer() const { return callback_; }
-
  private:
   const char* id_;
   bool enabled_;
-  Dart_NativeStreamConsumer callback_;
 };
 
 class Service : public AllStatic {
@@ -115,9 +109,6 @@ class Service : public AllStatic {
   static void SetEmbedderStreamCallbacks(
       Dart_ServiceStreamListenCallback listen_callback,
       Dart_ServiceStreamCancelCallback cancel_callback);
-
-  static void SetNativeServiceStreamCallback(Dart_NativeStreamConsumer consumer,
-                                             const char* stream_id);
 
   static void SetGetServiceAssetsCallback(
       Dart_GetVMServiceAssetsArchive get_service_assets);
@@ -160,6 +151,10 @@ class Service : public AllStatic {
                         const Instance& reply_port,
                         const Instance& id,
                         const Error& error);
+
+  // Enable/Disable timeline categories.
+  // Returns True if the categories were successfully enabled, False otherwise.
+  static bool EnableTimelineStreams(char* categories_list);
 
   // Well-known streams.
   static StreamInfo vm_stream;

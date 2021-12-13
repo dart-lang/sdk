@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// A helper library to connect to an existing VM and trigger a hot-reload via
 /// its service protocol.
 ///
@@ -32,12 +30,12 @@ class RemoteVm {
   /// An peer point used to send service protocol messages. The service
   /// protocol uses JSON rpc on top of web-sockets.
   json_rpc.Peer get rpc => _rpc ??= _createPeer();
-  json_rpc.Peer _rpc;
+  json_rpc.Peer? _rpc;
 
   /// The main isolate ID of the running VM. Needed to indicate to the VM which
   /// isolate to reload.
   FutureOr<String> get mainId async => _mainId ??= await _computeMainId();
-  String _mainId;
+  String? _mainId;
 
   RemoteVm([this.port = 8181]);
 
@@ -91,8 +89,8 @@ class RemoteVm {
   Future disconnect() async {
     if (_rpc == null) return null;
     this._mainId = null;
-    if (!_rpc.isClosed) {
-      var future = _rpc.close();
+    if (!_rpc!.isClosed) {
+      var future = _rpc!.close();
       _rpc = null;
       return future;
     }

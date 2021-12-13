@@ -13099,13 +13099,9 @@ class Element extends Node
   /**
    * Allows access to all custom data attributes (data-*) set on this element.
    *
-   * The keys for the map must follow these rules:
-   *
-   * * The name must not begin with 'xml'.
-   * * The name cannot contain a semi-colon (';').
-   * * The name cannot contain any capital letters.
-   *
-   * Any keys from markup will be converted to camel-cased keys in the map.
+   * Any data attributes in the markup will be converted to camel-cased keys
+   * in the map based on [these conversion
+   * rules](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset).
    *
    * For example, HTML specified as:
    *
@@ -13117,6 +13113,8 @@ class Element extends Node
    *
    * See also:
    *
+   * * [HTML data-* attributes naming
+       restrictions](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/data-*)
    * * [Custom data
    *   attributes](http://dev.w3.org/html5/spec-preview/global-attributes.html#custom-data-attribute)
    */
@@ -23223,13 +23221,13 @@ class Node extends EventTarget {
   }
 
   /**
-   * Inserts all of the nodes into this node directly before refChild.
+   * Inserts all of the nodes into this node directly before child.
    *
    * See also:
    *
    * * [insertBefore]
    */
-  void insertAllBefore(Iterable<Node> newNodes, Node refChild) {
+  void insertAllBefore(Iterable<Node> newNodes, Node child) {
     if (newNodes is _ChildNodeListLazy) {
       _ChildNodeListLazy otherList = newNodes;
       if (identical(otherList._this, this)) {
@@ -23238,11 +23236,11 @@ class Node extends EventTarget {
 
       // Optimized route for copying between nodes.
       for (var i = 0, len = otherList.length; i < len; ++i) {
-        this.insertBefore(otherList._this.firstChild!, refChild);
+        this.insertBefore(otherList._this.firstChild!, child);
       }
     } else {
       for (var node in newNodes) {
-        this.insertBefore(node, refChild);
+        this.insertBefore(node, child);
       }
     }
   }
@@ -23525,7 +23523,9 @@ class Node extends EventTarget {
   bool hasChildNodes() native;
 
   /**
-   * Inserts all of the nodes into this node directly before refChild.
+   * Inserts the given node into this node directly before child.
+   * If child is `null`, then the given node is inserted at the end
+   * of this node's child nodes.
    *
    * ## Other resources
    *

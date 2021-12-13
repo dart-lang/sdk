@@ -211,10 +211,7 @@ class TestFile extends _TestFileBase {
       throw FormatException('Unknown feature "$name" in test $filePath');
     });
 
-    var ilMatches = filePath.endsWith('_il_test.dart')
-        ? _parseStringOption(filePath, contents, r'MatchIL\[AOT\]',
-            allowMultiple: true)
-        : const <String>[];
+    final isVmIntermediateLanguageTest = filePath.endsWith('_il_test.dart');
 
     // VM options.
     var vmOptions = <List<String>>[];
@@ -341,7 +338,7 @@ class TestFile extends _TestFileBase {
         sharedObjects: sharedObjects,
         otherResources: otherResources,
         experiments: experiments,
-        ilMatches: ilMatches);
+        isVmIntermediateLanguageTest: isVmIntermediateLanguageTest);
   }
 
   /// A special fake test file for representing a VM unit test written in C++.
@@ -363,7 +360,7 @@ class TestFile extends _TestFileBase {
         sharedObjects = [],
         otherResources = [],
         experiments = [],
-        ilMatches = [],
+        isVmIntermediateLanguageTest = false,
         super(null, null, []);
 
   TestFile._(Path suiteDirectory, Path path, List<StaticError> expectedErrors,
@@ -384,7 +381,7 @@ class TestFile extends _TestFileBase {
       this.sharedObjects,
       this.otherResources,
       this.experiments,
-      this.ilMatches = const <String>[]})
+      this.isVmIntermediateLanguageTest = false})
       : super(suiteDirectory, path, expectedErrors) {
     assert(!isMultitest || dartOptions.isEmpty);
   }
@@ -403,6 +400,7 @@ class TestFile extends _TestFileBase {
   final bool hasRuntimeError;
   final bool hasStaticWarning;
   final bool hasCrash;
+  final bool isVmIntermediateLanguageTest;
 
   /// The features that a test configuration must support in order to run this
   /// test.
@@ -410,9 +408,6 @@ class TestFile extends _TestFileBase {
   /// If the current configuration does not support one or more of these
   /// requirements, the test is implicitly skipped.
   final List<Feature> requirements;
-
-  /// List of functions which will have their IL verified (in AOT mode).
-  final List<String> ilMatches;
 
   final List<String> sharedOptions;
   final List<String> dartOptions;
@@ -479,6 +474,7 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   final bool hasStaticWarning;
   final bool hasSyntaxError;
   bool get hasCrash => _origin.hasCrash;
+  bool get isVmIntermediateLanguageTest => _origin.isVmIntermediateLanguageTest;
 
   _MultitestFile(this._origin, Path path, this.multitestKey,
       List<StaticError> expectedErrors,
@@ -493,7 +489,6 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   String get packages => _origin.packages;
 
   List<Feature> get requirements => _origin.requirements;
-  List<String> get ilMatches => _origin.ilMatches;
   List<String> get dart2jsOptions => _origin.dart2jsOptions;
   List<String> get dartOptions => _origin.dartOptions;
   List<String> get ddcOptions => _origin.ddcOptions;

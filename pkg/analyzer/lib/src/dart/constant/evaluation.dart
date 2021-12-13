@@ -643,7 +643,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     TypeAliasElement? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl) {
       if (constructorFunctionType.typeFormals.isNotEmpty &&
-          !typeElement.isProperRename()) {
+          !typeElement.isProperRename) {
         // The type alias is not a proper rename of the aliased class, so
         // the constructor tear-off is distinct from the associated
         // constructor function of the aliased class.

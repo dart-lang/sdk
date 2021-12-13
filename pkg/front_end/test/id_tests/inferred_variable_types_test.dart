@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
@@ -45,12 +43,12 @@ class InferredVariableTypesDataComputer extends DataComputer<DartType> {
       InternalCompilerResult compilerResult,
       Member member,
       Map<Id, ActualData<DartType>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     MemberBuilderImpl memberBuilder =
-        lookupMemberBuilder(compilerResult, member);
+        lookupMemberBuilder(compilerResult, member) as MemberBuilderImpl;
     member.accept(new InferredTypeArgumentDataExtractor(
         compilerResult,
-        memberBuilder.dataForTesting.inferenceData.typeInferenceResult,
+        memberBuilder.dataForTesting!.inferenceData.typeInferenceResult,
         actualMap));
   }
 }
@@ -63,7 +61,7 @@ class InferredTypeArgumentDataExtractor extends CfeDataExtractor<DartType> {
       : super(compilerResult, actualMap);
 
   @override
-  DartType computeNodeValue(Id id, TreeNode node) {
+  DartType? computeNodeValue(Id id, TreeNode node) {
     if (node is VariableDeclaration || node is LocalFunction) {
       return typeInferenceResult.inferredVariableTypes[node];
     }
@@ -76,13 +74,13 @@ class _InferredVariableTypesDataInterpreter
   const _InferredVariableTypesDataInterpreter();
 
   @override
-  String getText(DartType actualData, [String indentation]) {
+  String getText(DartType actualData, [String? indentation]) {
     return typeToText(
         actualData, TypeRepresentation.analyzerNonNullableByDefault);
   }
 
   @override
-  String isAsExpected(DartType actualData, String expectedData) {
+  String? isAsExpected(DartType actualData, String? expectedData) {
     if (getText(actualData) == expectedData) {
       return null;
     } else {
@@ -91,5 +89,5 @@ class _InferredVariableTypesDataInterpreter
   }
 
   @override
-  bool isEmpty(DartType actualData) => actualData == null;
+  bool isEmpty(DartType? actualData) => actualData == null;
 }

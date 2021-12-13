@@ -13,7 +13,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
@@ -45,17 +45,6 @@ abstract class AbstractDartSdk implements DartSdk {
 
   @override
   List<String> get uris => libraryMap.uris;
-
-  /// Add the extensions from one or more sdk extension files to this sdk. The
-  /// [extensions] should be a table mapping the names of extensions to the
-  /// paths where those extensions can be found.
-  void addExtensions(Map<String, String> extensions) {
-    extensions.forEach((String uri, String path) {
-      SdkLibraryImpl library = SdkLibraryImpl(uri);
-      library.path = path;
-      libraryMap.setLibrary(uri, library);
-    });
-  }
 
   /// Return info for debugging https://github.com/dart-lang/sdk/issues/35226.
   Map<String, Object> debugInfo() {
@@ -139,6 +128,23 @@ abstract class AbstractDartSdk implements DartSdk {
     return source;
   }
 
+  @override
+  Uri? pathToUri(String path) {
+    var file = resourceProvider.getFile(path);
+
+    var uriStr = _getPath(file);
+    if (uriStr == null) {
+      return null;
+    }
+
+    try {
+      return Uri.parse(uriStr);
+    } on FormatException {
+      return null;
+    }
+  }
+
+  /// TODO(scheglov) This name is misleading, returns `dart:foo/bar.dart`.
   String? _getPath(File file) {
     List<SdkLibrary> libraries = libraryMap.sdkLibraries;
     int length = libraries.length;

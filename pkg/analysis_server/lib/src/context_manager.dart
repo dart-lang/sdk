@@ -18,7 +18,6 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
@@ -222,7 +221,7 @@ class ContextManagerImpl implements ContextManager {
       this._performanceLog,
       this._scheduler,
       this._instrumentationService,
-      {required enableBazelWatcher})
+      {required bool enableBazelWatcher})
       : pathContext = resourceProvider.pathContext {
     if (enableBazelWatcher) {
       bazelWatcherService = BazelFileWatcherService(_instrumentationService);

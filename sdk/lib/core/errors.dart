@@ -92,6 +92,23 @@ class Error {
   /// trace filled in the first time they are thrown by a `throw`
   /// expression.
   external StackTrace? get stackTrace;
+
+  /// Throws [error] with associated stack trace [stackTrace].
+  ///
+  /// If [error] extends [Error] and has not yet been thrown,
+  /// its [stackTrace] is set as well, just as if it was thrown by a `throw`.
+  /// The actual stack trace captured along with the [error],
+  /// or set on [error] if it is an [Error],
+  /// may not be the [stackTrace] object itself,
+  /// but will be a stack trace with the same content.
+  @Since("2.16")
+  static Never throwWithStackTrace(Object error, StackTrace stackTrace) {
+    checkNotNullable(error, "error");
+    checkNotNullable(stackTrace, "stackTrace");
+    _throw(error, stackTrace);
+  }
+
+  external static Never _throw(Object error, StackTrace stackTrace);
 }
 
 /// Error thrown by the runtime system when an assert statement fails.

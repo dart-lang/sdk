@@ -1,7 +1,13 @@
-## 2.8.0-dev
+## 2.8.0
 * Deprecations and renames for `getXyz` methods in `AnalysisDriver`.
 * Removed uppercase named constants from `double` in mock SDK.
 * Deprecated `path` and `uri` from `AnalysisResult`.
+* Deprecated `UriResolver.restoreAbsolute`, use `pathToUri` instead.
+* Deprecated `SourceFactory.restoreAbsolute`, use `pathToUri` instead.
+* Deprecated `UriKind` and `Source.uriKind`.
+* Deprecated `Source.modificationStamp`.
+* Deprecated `Source.isInSystemLibrary`, use `uri.isScheme('dart')` instead.
+* Fixed #47715.
 
 ## 2.7.0
 * Updated `ConstructorElement.displayName` to either `Class` or `Class.constructor`.

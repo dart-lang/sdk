@@ -7,6 +7,7 @@
 
 #include "vm/dart.h"
 
+#include "platform/thread_sanitizer.h"
 #include "vm/app_snapshot.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/runtime_offsets_extracted.h"
@@ -15,6 +16,9 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_TARGET_OS_LINUX)
+#include "vm/elf.h"
+#endif
 #include "vm/flags.h"
 #include "vm/handles.h"
 #include "vm/heap/become.h"
@@ -46,6 +50,13 @@
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
+#if defined(USING_THREAD_SANITIZER)
+// TODO(https://github.com/dart-lang/sdk/issues/46699): Remove.
+// TODO(https://bugs.fuchsia.dev/p/fuchsia/issues/detail?id=83298): Remove.
+#include "unicode/uchar.h"
+#include "unicode/uniset.h"
+#endif
+
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
@@ -66,6 +77,8 @@ Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
 Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
 Dart_EntropySource Dart::entropy_source_callback_ = NULL;
 Dart_GCEventCallback Dart::gc_event_callback_ = nullptr;
+Dart_PostTaskCallback Dart::post_task_callback_ = nullptr;
+void* Dart::post_task_data_ = nullptr;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -256,7 +269,16 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
                      Dart_EntropySource entropy_source,
                      Dart_GetVMServiceAssetsArchive get_service_assets,
                      bool start_kernel_isolate,
-                     Dart_CodeObserver* observer) {
+                     Dart_CodeObserver* observer,
+                     Dart_PostTaskCallback post_task,
+                     void* post_task_data) {
+#if defined(USING_THREAD_SANITIZER)
+  // Trigger lazy initialization in ICU to avoid spurious TSAN warning.
+  // TODO(https://github.com/dart-lang/sdk/issues/46699): Remove.
+  // TODO(https://bugs.fuchsia.dev/p/fuchsia/issues/detail?id=83298): Remove.
+  u_getPropertyValueEnum(UCHAR_SCRIPT, "foo");
+#endif
+
   CheckOffsets();
 
   if (!Flags::Initialized()) {
@@ -291,6 +313,8 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);
+  set_post_task_callback(post_task);
+  set_post_task_data(post_task_data);
   OS::Init();
   NOT_IN_PRODUCT(CodeObservers::Init());
   if (observer != nullptr) {
@@ -298,6 +322,16 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
   }
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::Init();
+
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_TARGET_OS_LINUX)
+  if (VirtualMemory::PageSize() > kElfPageSize) {
+    return Utils::SCreate(
+        "Incompatible page size for AOT compiled ELF: expected at most %" Pd
+        ", got %" Pd "",
+        kElfPageSize, VirtualMemory::PageSize());
+  }
+#endif
+
   OSThread::Init();
   Zone::Init();
 #if defined(SUPPORT_TIMELINE)
@@ -518,18 +552,21 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
                  Dart_EntropySource entropy_source,
                  Dart_GetVMServiceAssetsArchive get_service_assets,
                  bool start_kernel_isolate,
-                 Dart_CodeObserver* observer) {
+                 Dart_CodeObserver* observer,
+                 Dart_PostTaskCallback post_task,
+                 void* post_task_data) {
   if (!init_state_.SetInitializing()) {
     return Utils::StrDup(
         "Bad VM initialization state, "
         "already initialized or "
         "multiple threads initializing the VM.");
   }
-  char* retval = DartInit(vm_isolate_snapshot, instructions_snapshot,
-                          create_group, initialize_isolate, shutdown, cleanup,
-                          cleanup_group, thread_exit, file_open, file_read,
-                          file_write, file_close, entropy_source,
-                          get_service_assets, start_kernel_isolate, observer);
+  char* retval =
+      DartInit(vm_isolate_snapshot, instructions_snapshot, create_group,
+               initialize_isolate, shutdown, cleanup, cleanup_group,
+               thread_exit, file_open, file_read, file_write, file_close,
+               entropy_source, get_service_assets, start_kernel_isolate,
+               observer, post_task, post_task_data);
   if (retval != NULL) {
     init_state_.ResetInitializing();
     return retval;
@@ -582,6 +619,14 @@ void Dart::WaitForApplicationIsolateShutdown() {
 
 // This waits until only the VM isolate remains in the list.
 void Dart::WaitForIsolateShutdown() {
+  int64_t start_time = 0;
+  if (FLAG_trace_shutdown) {
+    start_time = UptimeMillis();
+    OS::PrintErr("[+%" Pd64
+                 "ms] SHUTDOWN: Waiting for service "
+                 "and kernel isolates to shutdown\n",
+                 start_time);
+  }
   ASSERT(!Isolate::creation_enabled_);
   MonitorLocker ml(Isolate::isolate_creation_monitor_);
   intptr_t num_attempts = 0;
@@ -592,6 +637,25 @@ void Dart::WaitForIsolateShutdown() {
       if (num_attempts > 10) {
         DumpAliveIsolates(num_attempts, /*only_application_isolates=*/false);
       }
+      if (FLAG_trace_shutdown) {
+        OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: %" Pd
+                     " time out waiting for "
+                     "service and kernel isolates to shutdown\n",
+                     UptimeMillis(), num_attempts);
+      }
+    }
+  }
+  if (FLAG_trace_shutdown) {
+    int64_t stop_time = UptimeMillis();
+    OS::PrintErr("[+%" Pd64
+                 "ms] SHUTDOWN: Done waiting for service "
+                 "and kernel isolates to shutdown\n",
+                 stop_time);
+    if ((stop_time - start_time) > 500) {
+      OS::PrintErr("[+%" Pd64
+                   "ms] SHUTDOWN: waited too long for service "
+                   "and kernel isolates to shutdown\n",
+                   (stop_time - start_time));
     }
   }
 
@@ -642,6 +706,10 @@ char* Dart::Cleanup() {
                    UptimeMillis());
     }
     WaitForApplicationIsolateShutdown();
+    if (FLAG_trace_shutdown) {
+      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done shutting down app isolates\n",
+                   UptimeMillis());
+    }
   }
 
   // Shutdown the kernel isolate.
@@ -658,12 +726,8 @@ char* Dart::Cleanup() {
   }
   ServiceIsolate::Shutdown();
 
-  // Wait for the remaining isolate (service isolate) to shutdown
+  // Wait for the remaining isolate (service/kernel isolate) to shutdown
   // before shutting down the thread pool.
-  if (FLAG_trace_shutdown) {
-    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Waiting for isolate shutdown\n",
-                 UptimeMillis());
-  }
   WaitForIsolateShutdown();
 
 #if !defined(PRODUCT)
@@ -696,6 +760,10 @@ char* Dart::Cleanup() {
   thread_pool_->Shutdown();
   delete thread_pool_;
   thread_pool_ = NULL;
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Done deleting thread pool\n",
+                 UptimeMillis());
+  }
 
   Api::Cleanup();
   delete predefined_handles_;
@@ -779,6 +847,8 @@ char* Dart::Cleanup() {
   Service::SetEmbedderStreamCallbacks(NULL, NULL);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   VirtualMemory::Cleanup();
+  post_task_callback_ = nullptr;
+  post_task_data_ = nullptr;
   return NULL;
 }
 

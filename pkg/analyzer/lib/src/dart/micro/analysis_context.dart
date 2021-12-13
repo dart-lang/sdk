@@ -208,9 +208,7 @@ class _UriConverterImpl implements UriConverter {
 
   @override
   Uri? pathToUri(String path, {String? containingPath}) {
-    var fileUri = resourceProvider.pathContext.toUri(path);
-    var fileSource = sourceFactory.forUri2(fileUri)!;
-    return sourceFactory.restoreUri(fileSource);
+    return sourceFactory.pathToUri(path);
   }
 
   @override

@@ -699,15 +699,6 @@ class TypeErrorImpl extends Error implements TypeError, CastError {
   String toString() => _message;
 }
 
-/// Thrown by the 'as' operator if the cast isn't valid.
-class CastErrorImpl extends Error implements CastError, TypeError {
-  final String _message;
-
-  CastErrorImpl(this._message);
-
-  String toString() => _message;
-}
-
 class FallThroughErrorImplementation extends FallThroughError {
   String toString() => "Switch case fall-through.";
 }

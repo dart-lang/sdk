@@ -76,7 +76,7 @@ const List<ErrorClassInfo> errorClasses = [
 ];
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
-final Map<String, Map<String, ErrorCodeInfo>> analyzerMessages =
+final Map<String, Map<String, AnalyzerErrorCodeInfo>> analyzerMessages =
     _loadAnalyzerMessages();
 
 /// The path to the `analyzer` package.
@@ -88,7 +88,8 @@ final CfeToAnalyzerErrorCodeTables cfeToAnalyzerErrorCodeTables =
     CfeToAnalyzerErrorCodeTables._(frontEndMessages);
 
 /// Decoded messages from the front end's `messages.yaml` file.
-final Map<String, ErrorCodeInfo> frontEndMessages = _loadFrontEndMessages();
+final Map<String, FrontEndErrorCodeInfo> frontEndMessages =
+    _loadFrontEndMessages();
 
 /// The path to the `front_end` package.
 final String frontEndPkgPath =
@@ -110,13 +111,13 @@ String convertTemplate(Map<String, int> placeholderToIndexMap, String entry) {
 /// Decodes a YAML object (obtained from `pkg/analyzer/messages.yaml`) into a
 /// two-level map of [ErrorCodeInfo], indexed first by class name and then by
 /// error name.
-Map<String, Map<String, ErrorCodeInfo>> decodeAnalyzerMessagesYaml(
+Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
     Object? yaml) {
   Never problem(String message) {
     throw 'Problem in pkg/analyzer/messages.yaml: $message';
   }
 
-  var result = <String, Map<String, ErrorCodeInfo>>{};
+  var result = <String, Map<String, AnalyzerErrorCodeInfo>>{};
   if (yaml is! Map<Object?, Object?>) {
     problem('root node is not a map');
   }
@@ -142,7 +143,7 @@ Map<String, Map<String, ErrorCodeInfo>> decodeAnalyzerMessagesYaml(
       }
       try {
         (result[className] ??= {})[errorName] =
-            ErrorCodeInfo.fromYaml(errorValue);
+            AnalyzerErrorCodeInfo.fromYaml(errorValue);
       } catch (e) {
         problem('while processing '
             '$className.$errorName, $e');
@@ -154,12 +155,12 @@ Map<String, Map<String, ErrorCodeInfo>> decodeAnalyzerMessagesYaml(
 
 /// Decodes a YAML object (obtained from `pkg/front_end/messages.yaml`) into a
 /// map from error name to [ErrorCodeInfo].
-Map<String, ErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
+Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
   Never problem(String message) {
     throw 'Problem in pkg/front_end/messages.yaml: $message';
   }
 
-  var result = <String, ErrorCodeInfo>{};
+  var result = <String, FrontEndErrorCodeInfo>{};
   if (yaml is! Map<Object?, Object?>) {
     problem('root node is not a map');
   }
@@ -172,23 +173,47 @@ Map<String, ErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
     if (errorValue is! Map<Object?, Object?>) {
       problem('value associated with error $errorName is not a map');
     }
-    result[errorName] = ErrorCodeInfo.fromYaml(errorValue);
+    result[errorName] = FrontEndErrorCodeInfo.fromYaml(errorValue);
   }
   return result;
 }
 
 /// Loads analyzer messages from the analyzer's `messages.yaml` file.
-Map<String, Map<String, ErrorCodeInfo>> _loadAnalyzerMessages() {
+Map<String, Map<String, AnalyzerErrorCodeInfo>> _loadAnalyzerMessages() {
   Object? messagesYaml =
       loadYaml(File(join(analyzerPkgPath, 'messages.yaml')).readAsStringSync());
   return decodeAnalyzerMessagesYaml(messagesYaml);
 }
 
 /// Loads front end messages from the front end's `messages.yaml` file.
-Map<String, ErrorCodeInfo> _loadFrontEndMessages() {
+Map<String, FrontEndErrorCodeInfo> _loadFrontEndMessages() {
   Object? messagesYaml =
       loadYaml(File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync());
   return decodeCfeMessagesYaml(messagesYaml);
+}
+
+/// In-memory representation of error code information obtained from the
+/// analyzer's `messages.yaml` file.
+class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
+  AnalyzerErrorCodeInfo(
+      {String? comment,
+      String? correctionMessage,
+      String? documentation,
+      bool hasPublishedDocs = false,
+      bool isUnresolvedIdentifier = false,
+      required String problemMessage,
+      String? sharedName})
+      : super(
+            comment: comment,
+            correctionMessage: correctionMessage,
+            documentation: documentation,
+            hasPublishedDocs: hasPublishedDocs,
+            isUnresolvedIdentifier: isUnresolvedIdentifier,
+            problemMessage: problemMessage,
+            sharedName: sharedName);
+
+  AnalyzerErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
+      : super.fromYaml(yaml);
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically
@@ -218,7 +243,7 @@ class CfeToAnalyzerErrorCodeTables {
   /// automatically generated, and whose values are the front end error name.
   final Map<ErrorCodeInfo, String> infoToFrontEndCode = {};
 
-  CfeToAnalyzerErrorCodeTables._(Map<String, ErrorCodeInfo> messages) {
+  CfeToAnalyzerErrorCodeTables._(Map<String, FrontEndErrorCodeInfo> messages) {
     for (var entry in messages.entries) {
       var errorCodeInfo = entry.value;
       var index = errorCodeInfo.index;
@@ -322,14 +347,10 @@ class ErrorClassInfo {
   String get typeCode => 'ErrorType.$type';
 }
 
-/// In-memory representation of error code information obtained from either a
-/// `messages.yaml` file.  Supports both the analyzer and front_end message file
-/// formats.
-class ErrorCodeInfo {
-  /// For error code information obtained from the CFE, the set of analyzer
-  /// error codes that corresponds to this error code, if any.
-  final List<String> analyzerCode;
-
+/// In-memory representation of error code information obtained from either the
+/// analyzer or the front end's `messages.yaml` file.  This class contains the
+/// common functionality supported by both formats.
+abstract class ErrorCodeInfo {
   /// If present, a documentation comment that should be associated with the
   /// error in code generated output.
   final String? comment;
@@ -345,10 +366,6 @@ class ErrorCodeInfo {
   /// been published.
   final bool hasPublishedDocs;
 
-  /// For error code information obtained from the CFE, the index of the error
-  /// in the analyzer's `fastaAnalyzerErrorCodes` table.
-  final int? index;
-
   /// Indicates whether this error is caused by an unresolved identifier.
   final bool isUnresolvedIdentifier;
 
@@ -360,30 +377,32 @@ class ErrorCodeInfo {
   /// codes.
   final String? sharedName;
 
+  /// If present, indicates that this error code has been renamed from
+  /// [previousName] to its current name (or [sharedName]).
+  final String? previousName;
+
   ErrorCodeInfo(
-      {this.analyzerCode = const [],
-      this.comment,
+      {this.comment,
       this.documentation,
       this.hasPublishedDocs = false,
-      this.index,
       this.isUnresolvedIdentifier = false,
       this.sharedName,
       required this.problemMessage,
-      this.correctionMessage});
+      this.correctionMessage,
+      this.previousName});
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
       : this(
-            analyzerCode: _decodeAnalyzerCode(yaml['analyzerCode']),
             comment: yaml['comment'] as String?,
             correctionMessage: yaml['correctionMessage'] as String?,
             documentation: yaml['documentation'] as String?,
             hasPublishedDocs: yaml['hasPublishedDocs'] as bool? ?? false,
-            index: yaml['index'] as int?,
             isUnresolvedIdentifier:
                 yaml['isUnresolvedIdentifier'] as bool? ?? false,
             problemMessage: yaml['problemMessage'] as String,
-            sharedName: yaml['sharedName'] as String?);
+            sharedName: yaml['sharedName'] as String?,
+            previousName: yaml['previousName'] as String?);
 
   /// Given a messages.yaml entry, come up with a mapping from placeholder
   /// patterns in its message strings to their corresponding indices.
@@ -459,14 +478,36 @@ class ErrorCodeInfo {
   /// Encodes this object into a YAML representation.
   Map<Object?, Object?> toYaml() => {
         if (sharedName != null) 'sharedName': sharedName,
-        if (analyzerCode.isNotEmpty)
-          'analyzerCode': _encodeAnalyzerCode(analyzerCode),
         'problemMessage': problemMessage,
         if (correctionMessage != null) 'correctionMessage': correctionMessage,
         if (isUnresolvedIdentifier) 'isUnresolvedIdentifier': true,
         if (hasPublishedDocs) 'hasPublishedDocs': true,
         if (comment != null) 'comment': comment,
         if (documentation != null) 'documentation': documentation,
+      };
+}
+
+/// In-memory representation of error code information obtained from the front
+/// end's `messages.yaml` file.
+class FrontEndErrorCodeInfo extends ErrorCodeInfo {
+  /// The set of analyzer error codes that corresponds to this error code, if
+  /// any.
+  final List<String> analyzerCode;
+
+  /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
+  final int? index;
+
+  FrontEndErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
+      : analyzerCode = _decodeAnalyzerCode(yaml['analyzerCode']),
+        index = yaml['index'] as int?,
+        super.fromYaml(yaml);
+
+  @override
+  Map<Object?, Object?> toYaml() => {
+        if (analyzerCode.isNotEmpty)
+          'analyzerCode': _encodeAnalyzerCode(analyzerCode),
+        if (index != null) 'index': index,
+        ...super.toYaml(),
       };
 
   static List<String> _decodeAnalyzerCode(Object? value) {

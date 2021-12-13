@@ -357,8 +357,9 @@ class ExpressionCompilerWorker {
     var incrementalCompiler = IncrementalCompiler.forExpressionCompilationOnly(
         CompilerContext(_processedOptions), component, /*resetTicker*/ false);
 
-    var finalComponent = await incrementalCompiler
+    var incrementalCompilerResult = await incrementalCompiler
         .computeDelta(entryPoints: [libraryUri], fullComponent: true);
+    var finalComponent = incrementalCompilerResult.component;
     assert(!duplicateLibrariesReachable(finalComponent.libraries));
     assert(_canSerialize(finalComponent));
 
@@ -374,8 +375,8 @@ class ExpressionCompilerWorker {
       };
     }
 
-    var coreTypes = incrementalCompiler.getCoreTypes();
-    var hierarchy = incrementalCompiler.getClassHierarchy();
+    var coreTypes = incrementalCompilerResult.coreTypes;
+    var hierarchy = incrementalCompilerResult.classHierarchy;
 
     var kernel2jsCompiler = ProgramCompiler(
       finalComponent,

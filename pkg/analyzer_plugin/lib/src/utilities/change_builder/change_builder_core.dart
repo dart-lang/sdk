@@ -242,6 +242,13 @@ class ChangeBuilderImpl implements ChangeBuilder {
   }
 
   @override
+  bool hasEditsFor(String path) {
+    return _dartFileEditBuilders.containsKey(path) ||
+        _genericFileEditBuilders.containsKey(path) ||
+        _yamlFileEditBuilders.containsKey(path);
+  }
+
+  @override
   void setSelection(Position position) {
     _selection = position;
   }

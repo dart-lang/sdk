@@ -24,7 +24,8 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
 
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag, experimentEnabledVersion;
-
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem, MemoryFileSystemEntity;
 
@@ -42,7 +43,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show DiagnosticMessageFromJson, FormattedMessage;
 
 import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
+    show IncrementalCompiler, RecorderForTesting;
 
 import 'package:front_end/src/fasta/incremental_serializer.dart'
     show IncrementalSerializer;
@@ -304,7 +305,8 @@ Future<Map<String, List<int>>> createModules(
     final List<int> sdkSummaryData,
     Target target,
     Target originalTarget,
-    String sdkSummary) async {
+    String sdkSummary,
+    {required bool trackNeededDillLibraries}) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummaryUri = base.resolve(sdkSummary);
 
@@ -355,7 +357,10 @@ Future<Map<String, List<int>>> createModules(
     }
     TestIncrementalCompiler compiler = new TestIncrementalCompiler(
         options, moduleSources.first, /* initializeFrom = */ null, outlineOnly);
-    Component c = await compiler.computeDelta(entryPoints: moduleSources);
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta(
+        entryPoints: moduleSources,
+        trackNeededDillLibraries: trackNeededDillLibraries);
+    Component c = compilerResult.component;
     c.computeCanonicalNames();
     List<Library> wantedLibs = <Library>[];
     for (Library lib in c.libraries) {
@@ -452,7 +457,8 @@ class NewWorldTest {
 
     if (modules != null) {
       moduleData = await createModules(
-          modules, sdkSummaryData, target, originalTarget, sdkSummary);
+          modules, sdkSummaryData, target, originalTarget, sdkSummary,
+          trackNeededDillLibraries: false);
       sdk = newestWholeComponent = new Component();
       new BinaryBuilder(sdkSummaryData,
               filename: null, disableLazyReading: false)
@@ -660,15 +666,16 @@ class NewWorldTest {
       if (modulesToUse != null) {
         compiler!.setModulesToLoadOnNextComputeDelta(modulesToUse);
         compiler.invalidateAllSources();
-        compiler.trackNeededDillLibraries = true;
       }
 
       Stopwatch stopwatch = new Stopwatch()..start();
-      component = await compiler!.computeDelta(
+      IncrementalCompilerResult compilerResult = await compiler!.computeDelta(
           entryPoints: entries,
           fullComponent:
               brandNewWorld ? false : (noFullComponent ? false : true),
+          trackNeededDillLibraries: modulesToUse != null,
           simulateTransformer: world["simulateTransformer"]);
+      component = compilerResult.component;
       if (outlineOnly && !skipOutlineBodyCheck) {
         for (Library lib in component!.libraries) {
           for (Class c in lib.classes) {
@@ -722,7 +729,7 @@ class NewWorldTest {
       Result? contentResult = checkExpectedContent(world, component!);
       if (contentResult != null) return contentResult.copyWithOutput(data);
       result = checkNeededDillLibraries(
-          world, data, compiler.neededDillLibraries, base);
+          world, data, compilerResult.neededDillLibraries, base);
       if (result != null) return result;
 
       Result? nnbdCheck = checkNNBDSettings(component!);
@@ -794,8 +801,7 @@ class NewWorldTest {
       result = checkExpectFile(data, worldNum, "", context, actualSerialized);
       if (result != null) return result;
       if (world["skipClassHierarchyTest"] != true) {
-        result =
-            checkClassHierarchy(compiler, component!, data, worldNum, context);
+        result = checkClassHierarchy(compilerResult, data, worldNum, context);
         if (result != null) return result;
       }
 
@@ -844,7 +850,8 @@ class NewWorldTest {
       }
 
       if (world["expectsRebuildBodiesOnly"] != null) {
-        bool didRebuildBodiesOnly = compiler.rebuildBodiesCount! > 0;
+        bool didRebuildBodiesOnly =
+            compiler.recorderForTesting.rebuildBodiesCount! > 0;
         if (world["expectsRebuildBodiesOnly"] != didRebuildBodiesOnly) {
           return new Result<TestData>(
               data,
@@ -872,19 +879,20 @@ class NewWorldTest {
           }
         }
       }
-      if (compiler.initializedFromDill != expectInitializeFromDill) {
+      if (compiler.initializedFromDillForTesting != expectInitializeFromDill) {
         return new Result<TestData>(
             data,
             InitializedFromDillMismatch,
             "Expected that initializedFromDill would be "
             "$expectInitializeFromDill but was "
-            "${compiler.initializedFromDill}");
+            "${compiler.initializedFromDillForTesting}");
       }
 
-      if (incrementalSerialization == true && compiler.initializedFromDill) {
-        Expect.isTrue(compiler.initializedIncrementalSerializer);
+      if (incrementalSerialization == true &&
+          compiler.initializedFromDillForTesting) {
+        Expect.isTrue(compiler.initializedIncrementalSerializerForTesting);
       } else {
-        Expect.isFalse(compiler.initializedIncrementalSerializer);
+        Expect.isFalse(compiler.initializedIncrementalSerializerForTesting);
       }
 
       if (world["checkInvalidatedFiles"] != false) {
@@ -934,10 +942,11 @@ class NewWorldTest {
 
       if (!noFullComponent) {
         clearPrevErrorsEtc();
-        component2 = await compiler.computeDelta(
+        IncrementalCompilerResult compilerResult2 = await compiler.computeDelta(
             entryPoints: entries,
             fullComponent: true,
             simulateTransformer: world["simulateTransformer"]);
+        component2 = compilerResult2.component;
         Result<TestData>? result = performErrorAndWarningCheck(world, data,
             gotError, formattedErrors, gotWarning, formattedWarnings);
         if (result != null) return result;
@@ -1043,13 +1052,15 @@ class NewWorldTest {
         if (modulesToUse != null) {
           compilerFromScratch.setModulesToLoadOnNextComputeDelta(modulesToUse);
           compilerFromScratch.invalidateAllSources();
-          compilerFromScratch.trackNeededDillLibraries = true;
         }
 
         Stopwatch stopwatch = new Stopwatch()..start();
-        component3 = await compilerFromScratch.computeDelta(
-            entryPoints: entries,
-            simulateTransformer: world["simulateTransformer"]);
+        IncrementalCompilerResult compilerResult3 =
+            await compilerFromScratch.computeDelta(
+                entryPoints: entries,
+                trackNeededDillLibraries: modulesToUse != null,
+                simulateTransformer: world["simulateTransformer"]);
+        component3 = compilerResult3.component;
         compilerFromScratch = null;
         Result<TestData>? result = performErrorAndWarningCheck(world, data,
             gotError, formattedErrors, gotWarning, formattedWarnings);
@@ -1183,10 +1194,10 @@ Result<TestData>? checkExpectFile(TestData data, int worldNum,
 ///
 /// This has the option to do expect files, but it's disabled by default
 /// while we're trying to figure out if it's useful or not.
-Result<TestData>? checkClassHierarchy(TestIncrementalCompiler compiler,
-    Component component, TestData data, int worldNum, Context context,
+Result<TestData>? checkClassHierarchy(IncrementalCompilerResult compilerResult,
+    TestData data, int worldNum, Context context,
     {bool checkExpectFile: false}) {
-  ClassHierarchy? classHierarchy = compiler.getClassHierarchy();
+  ClassHierarchy? classHierarchy = compilerResult.classHierarchy;
   if (classHierarchy is! ClosedWorldClassHierarchy) {
     return new Result<TestData>(
         data,
@@ -1206,6 +1217,7 @@ Result<TestData>? checkClassHierarchy(TestIncrementalCompiler compiler,
     classHierarchyMap[info.classNode] = info;
   }
 
+  Component component = compilerResult.component;
   StringBuffer sb = new StringBuffer();
   for (Library library in component.libraries) {
     if (library.importUri.scheme == "dart") continue;
@@ -1764,7 +1776,7 @@ Future<bool> normalCompile(Uri input, Uri output,
   List<int> bytes =
       await normalCompileToBytes(input, options: options, compiler: compiler);
   new File.fromUri(output).writeAsBytesSync(bytes);
-  return compiler.initializedFromDill;
+  return compiler.initializedFromDillForTesting;
 }
 
 Future<List<int>> normalCompileToBytes(Uri input,
@@ -1787,7 +1799,7 @@ Future<Component> normalCompilePlain(Uri input,
     {CompilerOptions? options, IncrementalCompiler? compiler}) async {
   options ??= getOptions();
   compiler ??= new TestIncrementalCompiler(options, input);
-  return await compiler.computeDelta();
+  return (await compiler.computeDelta()).component;
 }
 
 Future<bool> initializedCompile(
@@ -1799,10 +1811,12 @@ Future<bool> initializedCompile(
   for (Uri invalidateUri in invalidateUris) {
     compiler.invalidate(invalidateUri);
   }
-  Component initializedComponent = await compiler.computeDelta();
+  IncrementalCompilerResult initializedCompilerResult =
+      await compiler.computeDelta();
+  Component initializedComponent = initializedCompilerResult.component;
   util.throwOnEmptyMixinBodies(initializedComponent);
   await util.throwOnInsufficientUriToSource(initializedComponent);
-  bool result = compiler.initializedFromDill;
+  bool result = compiler.initializedFromDillForTesting;
   new File.fromUri(output)
       .writeAsBytesSync(util.postProcess(initializedComponent));
   int actuallyInvalidatedCount = compiler
@@ -1814,8 +1828,9 @@ Future<bool> initializedCompile(
         "got $actuallyInvalidatedCount");
   }
 
-  Component initializedFullComponent =
+  IncrementalCompilerResult initializedFullCompilerResult =
       await compiler.computeDelta(fullComponent: true);
+  Component initializedFullComponent = initializedFullCompilerResult.component;
   util.throwOnEmptyMixinBodies(initializedFullComponent);
   await util.throwOnInsufficientUriToSource(initializedFullComponent);
   Expect.equals(initializedComponent.libraries.length,
@@ -1827,7 +1842,8 @@ Future<bool> initializedCompile(
     compiler.invalidate(invalidateUri);
   }
 
-  Component partialComponent = await compiler.computeDelta();
+  IncrementalCompilerResult partialResult = await compiler.computeDelta();
+  Component partialComponent = partialResult.component;
   util.throwOnEmptyMixinBodies(partialComponent);
   await util.throwOnInsufficientUriToSource(partialComponent);
   actuallyInvalidatedCount = (compiler
@@ -1839,7 +1855,8 @@ Future<bool> initializedCompile(
         "got $actuallyInvalidatedCount");
   }
 
-  Component emptyComponent = await compiler.computeDelta();
+  IncrementalCompilerResult emptyResult = await compiler.computeDelta();
+  Component emptyComponent = emptyResult.component;
   util.throwOnEmptyMixinBodies(emptyComponent);
   await util.throwOnInsufficientUriToSource(emptyComponent);
 
@@ -1860,8 +1877,9 @@ Future<bool> initializedCompile(
 }
 
 class TestIncrementalCompiler extends IncrementalCompiler {
-  Set<Uri>? invalidatedImportUrisForTesting;
-  int? rebuildBodiesCount;
+  @override
+  final TestRecorderForTesting recorderForTesting =
+      new TestRecorderForTesting();
   final Uri entryPoint;
 
   /// Filter out the automatically added entryPoint, unless it's explicitly
@@ -1871,12 +1889,12 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   /// This is not perfect, but works for what it's currently used for.
   Set<Uri>? getFilteredInvalidatedImportUrisForTesting(
       List<Uri> invalidatedUris) {
-    if (invalidatedImportUrisForTesting == null) return null;
+    if (recorderForTesting.invalidatedImportUrisForTesting == null) return null;
 
     Set<String> invalidatedFilenames =
         invalidatedUris.map((uri) => uri.pathSegments.last).toSet();
     Set<Uri> result = new Set<Uri>();
-    for (Uri uri in invalidatedImportUrisForTesting!) {
+    for (Uri uri in recorderForTesting.invalidatedImportUrisForTesting!) {
       if (uri.pathSegments.isNotEmpty &&
           uri.pathSegments.last == "nonexisting.dart") {
         continue;
@@ -1912,12 +1930,42 @@ class TestIncrementalCompiler extends IncrementalCompiler {
             incrementalSerializer);
 
   @override
-  void recordInvalidatedImportUrisForTesting(List<Uri> uris) {
+  Future<IncrementalCompilerResult> computeDelta(
+      {List<Uri>? entryPoints,
+      bool fullComponent = false,
+      bool trackNeededDillLibraries: false,
+      bool? simulateTransformer}) async {
+    IncrementalCompilerResult result = await super.computeDelta(
+        entryPoints: entryPoints,
+        fullComponent: fullComponent,
+        trackNeededDillLibraries: trackNeededDillLibraries);
+
+    // We should at least have the SDK builders available. Slight smoke test.
+    if (!dillTargetForTesting!.loader.libraryImportUris
+        .map((uri) => uri.toString())
+        .contains("dart:core")) {
+      throw "Loaders builder should contain the sdk, "
+          "but didn't even contain dart:core.";
+    }
+
+    if (simulateTransformer == true) {
+      doSimulateTransformer(result.component);
+    }
+    return result;
+  }
+}
+
+class TestRecorderForTesting extends RecorderForTesting {
+  Set<Uri>? invalidatedImportUrisForTesting;
+  int? rebuildBodiesCount;
+
+  @override
+  void recordInvalidatedImportUris(List<Uri> uris) {
     invalidatedImportUrisForTesting = uris.isEmpty ? null : uris.toSet();
   }
 
   @override
-  void recordNonFullComponentForTesting(Component component) {
+  void recordNonFullComponent(Component component) {
     // It should at least contain the sdk. Slight smoke test.
     if (!component.libraries
         .map((lib) => lib.importUri.toString())
@@ -1928,34 +1976,12 @@ class TestIncrementalCompiler extends IncrementalCompiler {
   }
 
   @override
-  void recordRebuildBodiesCountForTesting(int count) {
+  void recordRebuildBodiesCount(int count) {
     rebuildBodiesCount = count;
   }
 
   @override
-  Future<Component> computeDelta(
-      {List<Uri>? entryPoints,
-      bool fullComponent = false,
-      bool? simulateTransformer}) async {
-    Component result = await super
-        .computeDelta(entryPoints: entryPoints, fullComponent: fullComponent);
-
-    // We should at least have the SDK builders available. Slight smoke test.
-    if (!dillLoadedData!.loader.libraryImportUris
-        .map((uri) => uri.toString())
-        .contains("dart:core")) {
-      throw "Loaders builder should contain the sdk, "
-          "but didn't even contain dart:core.";
-    }
-
-    if (simulateTransformer == true) {
-      doSimulateTransformer(result);
-    }
-    return result;
-  }
-
-  @override
-  void recordTemporaryFileForTesting(Uri uri) {
+  void recordTemporaryFile(Uri uri) {
     File f = new File.fromUri(uri);
     if (f.existsSync()) f.deleteSync();
   }

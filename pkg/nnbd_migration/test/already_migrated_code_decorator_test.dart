@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -9,9 +11,11 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/already_migrated_code_decorator.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -29,34 +33,474 @@ main() {
   });
 }
 
-class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
-  final TypeProvider typeProvider;
-
-  final AlreadyMigratedCodeDecorator decorator;
-
-  final NullabilityGraphForTesting graph;
-
+class _AlreadyMigratedCodeDecoratorTestBase {
   final NullabilitySuffix suffix;
-
-  Element element = _MockElement();
 
   final decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
 
-  _AlreadyMigratedCodeDecoratorTestBase(NullabilitySuffix nullabilitySuffix)
-      : this._(
-          nullabilitySuffix,
-          NullabilityGraphForTesting(),
-          TestTypeProvider(),
-        );
+  _AlreadyMigratedCodeDecoratorTestBase(this.suffix);
 
-  _AlreadyMigratedCodeDecoratorTestBase._(
-      this.suffix, this.graph, this.typeProvider)
-      : decorator =
-            AlreadyMigratedCodeDecorator(graph, typeProvider, _getLineInfo);
+  DecoratedType? getDecoratedBound(TypeParameterElement element) =>
+      decoratedTypeParameterBounds.get(element);
+
+  void setUp() {
+    DecoratedTypeParameterBounds.current = decoratedTypeParameterBounds;
+  }
+
+  void tearDown() {
+    DecoratedTypeParameterBounds.current = null;
+  }
+
+  Future<void> test_decorate_dynamic() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+    withElement.checkDynamic(
+        withElement.decorate(withElement.typeProvider.dynamicType),
+        'test type');
+  }
+
+  Future<void> test_decorate_functionType_generic_bounded() async {
+    var withUnit = await _ContextWithFiles().buildUnitElement(
+      'class A<T extends num> {}',
+    );
+    var typeFormal = withUnit.findElement.typeParameter('T');
+    var withElement = withUnit.withElement(typeFormal);
+
+    var decoratedType = withElement.decorate(
+      FunctionTypeImpl(
+        typeFormals: [typeFormal],
+        parameters: const [],
+        returnType: TypeParameterTypeImpl(
+          element: typeFormal,
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
+        nullabilitySuffix: suffix,
+      ),
+    );
+    withElement.checkNum(
+        getDecoratedBound(typeFormal)!,
+        withElement.checkExplicitlyNonNullable,
+        'bound of type formal T of test type');
+    withElement.checkTypeParameter(
+        decoratedType.returnType!,
+        withElement.checkExplicitlyNonNullable,
+        typeFormal,
+        'return type of test type');
+  }
+
+  Future<void> test_decorate_functionType_generic_no_explicit_bound() async {
+    var withUnit = await _ContextWithFiles().buildUnitElement(
+      'class A<T> {}',
+    );
+    var typeFormal = withUnit.findElement.typeParameter('T');
+    var withElement = withUnit.withElement(typeFormal);
+
+    var decoratedType = withElement.decorate(
+      FunctionTypeImpl(
+        typeFormals: [typeFormal],
+        parameters: const [],
+        returnType: TypeParameterTypeImpl(
+          element: typeFormal,
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
+        nullabilitySuffix: suffix,
+      ),
+    );
+    withElement.checkObject(
+        getDecoratedBound(typeFormal)!,
+        withElement.checkExplicitlyNullable,
+        'bound of type formal T of test type');
+    withElement.checkTypeParameter(
+        decoratedType.returnType!,
+        withElement.checkExplicitlyNonNullable,
+        typeFormal,
+        'return type of test type');
+  }
+
+  Future<void> test_decorate_functionType_named_parameter() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    withElement.checkDynamic(
+        withElement
+            .decorate(
+              FunctionTypeImpl(
+                typeFormals: const [],
+                parameters: [
+                  ParameterElementImpl.synthetic(
+                    'x',
+                    withElement.typeProvider.dynamicType,
+                    ParameterKind.NAMED,
+                  )
+                ],
+                returnType: withElement.typeProvider.voidType,
+                nullabilitySuffix: suffix,
+              ),
+            )
+            .namedParameters!['x'],
+        'parameter x of test type');
+  }
+
+  Future<void> test_decorate_functionType_ordinary_parameters() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    var decoratedType = withElement.decorate(
+      FunctionTypeImpl(
+        typeFormals: const [],
+        parameters: [
+          ParameterElementImpl.synthetic(
+            'x',
+            withElement.typeProvider.dynamicType,
+            ParameterKind.REQUIRED,
+          ),
+          ParameterElementImpl.synthetic(
+            'y',
+            withElement.typeProvider.dynamicType,
+            ParameterKind.REQUIRED,
+          )
+        ],
+        returnType: withElement.typeProvider.voidType,
+        nullabilitySuffix: suffix,
+      ),
+    );
+    withElement.checkDynamic(
+        decoratedType.positionalParameters![0], 'parameter 0 of test type');
+    withElement.checkDynamic(
+        decoratedType.positionalParameters![1], 'parameter 1 of test type');
+  }
+
+  Future<void> test_decorate_functionType_positional_parameter() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    withElement.checkDynamic(
+        withElement
+            .decorate(
+              FunctionTypeImpl(
+                typeFormals: const [],
+                parameters: [
+                  ParameterElementImpl.synthetic(
+                    'x',
+                    withElement.typeProvider.dynamicType,
+                    ParameterKind.POSITIONAL,
+                  )
+                ],
+                returnType: withElement.typeProvider.voidType,
+                nullabilitySuffix: suffix,
+              ),
+            )
+            .positionalParameters![0],
+        'parameter 0 of test type');
+  }
+
+  Future<void> test_decorate_functionType_question() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    withElement.checkExplicitlyNullable(
+        withElement
+            .decorate(
+              FunctionTypeImpl(
+                typeFormals: const [],
+                parameters: const [],
+                returnType: withElement.typeProvider.voidType,
+                nullabilitySuffix: NullabilitySuffix.question,
+              ),
+            )
+            .node,
+        'test type');
+  }
+
+  Future<void> test_decorate_functionType_returnType() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    withElement.checkDynamic(
+        withElement
+            .decorate(
+              FunctionTypeImpl(
+                typeFormals: const [],
+                parameters: const [],
+                returnType: withElement.typeProvider.dynamicType,
+                nullabilitySuffix: suffix,
+              ),
+            )
+            .returnType,
+        'return type of test type');
+  }
+
+  Future<void> test_decorate_functionType_star() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    withElement.checkExplicitlyNonNullable(
+        withElement
+            .decorate(
+              FunctionTypeImpl(
+                typeFormals: const [],
+                parameters: const [],
+                returnType: withElement.typeProvider.voidType,
+                nullabilitySuffix: suffix,
+              ),
+            )
+            .node,
+        'test type');
+  }
+
+  Future<void> test_decorate_interfaceType_parameters() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    var decoratedType = withElement.decorate(InterfaceTypeImpl(
+        element: withElement.typeProvider.mapElement,
+        typeArguments: [
+          withElement.typeProvider.intType,
+          withElement.typeProvider.numType
+        ],
+        nullabilitySuffix: suffix));
+    withElement.checkInt(decoratedType.typeArguments[0]!,
+        withElement.checkExplicitlyNonNullable, 'type argument 0 of test type');
+    withElement.checkNum(decoratedType.typeArguments[1]!,
+        withElement.checkExplicitlyNonNullable, 'type argument 1 of test type');
+  }
+
+  Future<void> test_decorate_interfaceType_simple_question() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    withElement.checkInt(
+        withElement.decorate(
+          InterfaceTypeImpl(
+            element: withElement.typeProvider.intElement,
+            typeArguments: const [],
+            nullabilitySuffix: NullabilitySuffix.question,
+          ),
+        ),
+        withElement.checkExplicitlyNullable,
+        'test type');
+  }
+
+  Future<void> test_decorate_interfaceType_simple_star() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    withElement.checkInt(
+        withElement.decorate(
+          InterfaceTypeImpl(
+            element: withElement.typeProvider.intElement,
+            typeArguments: const [],
+            nullabilitySuffix: suffix,
+          ),
+        ),
+        withElement.checkExplicitlyNonNullable,
+        'test type');
+  }
+
+  Future<void> test_decorate_iterable_dynamic() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    var decorated =
+        withElement.decorate(withElement.typeProvider.iterableDynamicType);
+    withElement.checkIterable(decorated, withElement.checkExplicitlyNonNullable,
+        withElement.checkDynamic, 'test type');
+  }
+
+  Future<void> test_decorate_never() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    withElement.checkNever(
+        withElement.decorate(withElement.typeProvider.neverType), 'test type');
+  }
+
+  Future<void> test_decorate_typeParameterType_question() async {
+    var withUnit = await _ContextWithFiles().buildUnitElement(
+      'class A<T> {}',
+    );
+    var element = withUnit.findElement.typeParameter('T');
+    var withElement = withUnit.withElement(element);
+
+    withElement.checkTypeParameter(
+        withElement.decorate(TypeParameterTypeImpl(
+            element: element, nullabilitySuffix: NullabilitySuffix.question)),
+        withElement.checkExplicitlyNullable,
+        element,
+        'test type');
+  }
+
+  Future<void> test_decorate_typeParameterType_star() async {
+    var withUnit = await _ContextWithFiles().buildUnitElement(
+      'class A<T> {}',
+    );
+    var element = withUnit.findElement.typeParameter('T');
+    var withElement = withUnit.withElement(element);
+
+    withElement.checkTypeParameter(
+        withElement.decorate(
+            TypeParameterTypeImpl(element: element, nullabilitySuffix: suffix)),
+        withElement.checkExplicitlyNonNullable,
+        element,
+        'test type');
+  }
+
+  Future<void> test_decorate_void() async {
+    var withElement = await _ContextWithFiles().withEmptyUnit();
+
+    withElement.checkVoid(
+        withElement.decorate(withElement.typeProvider.voidType), 'test type');
+  }
+
+  Future<void> test_getImmediateSupertypes_future() async {
+    var withUnit = await _ContextWithFiles().buildUnitElement('');
+    var element = withUnit.typeProvider.futureElement;
+    var withElement = withUnit.withElement(element);
+
+    // var class_ = element = typeProvider.futureElement;
+    var class_ = withElement.typeProvider.futureElement;
+    var decoratedSupertypes =
+        withElement.decorator.getImmediateSupertypes(class_).toList();
+    var typeParam = class_.typeParameters[0];
+    expect(decoratedSupertypes, hasLength(2));
+    // TODO(scheglov) Use location matcher.
+    withElement.checkObject(decoratedSupertypes[0],
+        withElement.checkExplicitlyNonNullable, 'Future (async.dart:1:79)');
+    // Since Future<T> is a subtype of FutureOr<T>, we consider FutureOr<T> to
+    // be an immediate supertype, even though the class declaration for Future
+    // doesn't mention FutureOr.
+    // TODO(scheglov) Use location matcher.
+    withElement.checkFutureOr(
+        decoratedSupertypes[1],
+        withElement.checkExplicitlyNonNullable,
+        (t, displayName) => withElement.checkTypeParameter(
+            t!, withElement.checkExplicitlyNonNullable, typeParam, displayName),
+        'Future (async.dart:1:79)');
+  }
+
+  Future<void> test_getImmediateSupertypes_generic() async {
+    var withUnit = await _ContextWithFiles().buildUnitElement(
+      'class C<T> extends Iterable<T> {}',
+    );
+    var unitElement = withUnit.unitElement;
+    var class_ = unitElement.classes.single;
+    var t = class_.typeParameters.single;
+
+    var withElement = withUnit.withElement(class_);
+
+    var decoratedSupertypes =
+        withElement.decorator.getImmediateSupertypes(class_).toList();
+    expect(decoratedSupertypes, hasLength(1));
+    withElement.checkIterable(
+        decoratedSupertypes[0],
+        withElement.checkExplicitlyNonNullable,
+        (type, displayName) => withElement.checkTypeParameter(
+            type!, withElement.checkExplicitlyNonNullable, t, displayName),
+        'C (test.dart:1:7)');
+  }
+
+  Future<void> test_getImmediateSupertypes_interface() async {
+    var withUnit = await _ContextWithFiles().buildUnitElement(
+      'class C implements num {}',
+    );
+    var unitElement = withUnit.unitElement;
+    var class_ = unitElement.classes.single;
+
+    var withElement = withUnit.withElement(class_);
+
+    var decoratedSupertypes =
+        withElement.decorator.getImmediateSupertypes(class_).toList();
+    expect(decoratedSupertypes, hasLength(2));
+    withElement.checkObject(decoratedSupertypes[0],
+        withElement.checkExplicitlyNonNullable, 'C (test.dart:1:7)');
+    withElement.checkNum(decoratedSupertypes[1],
+        withElement.checkExplicitlyNonNullable, 'C (test.dart:1:7)');
+  }
+
+  Future<void> test_getImmediateSupertypes_mixin() async {
+    var withUnit = await _ContextWithFiles().buildUnitElement(
+      'class C with num {}',
+    );
+    var unitElement = withUnit.unitElement;
+    var class_ = unitElement.classes.single;
+
+    var withElement = withUnit.withElement(class_);
+
+    var decoratedSupertypes =
+        withElement.decorator.getImmediateSupertypes(class_).toList();
+    expect(decoratedSupertypes, hasLength(2));
+    withElement.checkObject(decoratedSupertypes[0],
+        withElement.checkExplicitlyNonNullable, 'C (test.dart:1:7)');
+    withElement.checkNum(decoratedSupertypes[1],
+        withElement.checkExplicitlyNonNullable, 'C (test.dart:1:7)');
+  }
+
+  Future<void> test_getImmediateSupertypes_superclassConstraint() async {
+    var withUnit = await _ContextWithFiles().buildUnitElement(
+      'mixin C on num {}',
+    );
+    var unitElement = withUnit.unitElement;
+    var mixin_ = unitElement.mixins.single;
+
+    var withElement = withUnit.withElement(mixin_);
+
+    var decoratedSupertypes =
+        withElement.decorator.getImmediateSupertypes(mixin_).toList();
+    expect(decoratedSupertypes, hasLength(1));
+    withElement.checkNum(decoratedSupertypes[0],
+        withElement.checkExplicitlyNonNullable, 'C (test.dart:1:7)');
+  }
+
+  Future<void> test_getImmediateSupertypes_supertype() async {
+    var withUnit = await _ContextWithFiles().buildUnitElement(
+      'class C {}',
+    );
+    var unitElement = withUnit.unitElement;
+    var class_ = unitElement.classes.single;
+
+    var withElement = withUnit.withElement(class_);
+
+    var decoratedSupertypes =
+        withElement.decorator.getImmediateSupertypes(class_).toList();
+    expect(decoratedSupertypes, hasLength(1));
+    // TODO(paulberry): displayName should be 'Object supertype of C'
+    withElement.checkObject(decoratedSupertypes[0],
+        withElement.checkExplicitlyNonNullable, 'C (test.dart:1:7)');
+  }
+}
+
+/// Specialization of [_AlreadyMigratedCodeDecoratorTestBase] for testing the
+/// situation where the already migrated code does not contain star types.  In
+/// the final product, by definition all already-migrated code will be free of
+/// star types.  However, since we do not yet migrate using a fully NNBD-aware
+/// SDK, we need to handle both star and non-star variants on a short term
+/// basis.
+@reflectiveTest
+class _AlreadyMigratedCodeDecoratorTestNormal
+    extends _AlreadyMigratedCodeDecoratorTestBase {
+  _AlreadyMigratedCodeDecoratorTestNormal() : super(NullabilitySuffix.none);
+}
+
+/// Specialization of [_AlreadyMigratedCodeDecoratorTestBase] for testing the
+/// situation where the already migrated code contains star types.  In the final
+/// product, this will never happen.  However, since we do not yet migrate using
+/// a fully NNBD-aware SDK, we need to handle both star and non-star variants on
+/// a short term basis.
+@reflectiveTest
+class _AlreadyMigratedCodeDecoratorTestProvisional
+    extends _AlreadyMigratedCodeDecoratorTestBase {
+  _AlreadyMigratedCodeDecoratorTestProvisional()
+      : super(NullabilitySuffix.star);
+}
+
+class _ContextWithElement with EdgeTester {
+  final _ContextWithUnitElement _withUnit;
+  final Element element;
+
+  final NullabilityGraphForTesting graph = NullabilityGraphForTesting();
+
+  _ContextWithElement(this._withUnit, this.element);
 
   NullabilityNode get always => graph.always;
 
+  AlreadyMigratedCodeDecorator get decorator {
+    return AlreadyMigratedCodeDecorator(
+        graph, typeProvider, (_) => LineInfo([0]));
+  }
+
   NullabilityNode get never => graph.never;
+
+  TypeProvider get typeProvider {
+    return _withUnit.typeProvider;
+  }
 
   void checkAlwaysNullable(NullabilityNode node, String displayName) {
     var edge = assertEdge(always, node, hard: true, checkable: false);
@@ -88,10 +532,11 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   }
 
   void checkFutureOr(
-      DecoratedType decoratedType,
-      void Function(NullabilityNode?, String) checkNullability,
-      void Function(DecoratedType?, String) checkArgument,
-      String displayName) {
+    DecoratedType decoratedType,
+    void Function(NullabilityNode?, String) checkNullability,
+    void Function(DecoratedType?, String) checkArgument,
+    String displayName,
+  ) {
     expect(decoratedType.type!.element, typeProvider.futureOrElement);
     checkNullability(decoratedType.node, displayName);
     checkArgument(
@@ -99,18 +544,20 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   }
 
   void checkInt(
-      DecoratedType decoratedType,
-      void Function(NullabilityNode?, String) checkNullability,
-      String displayName) {
+    DecoratedType decoratedType,
+    void Function(NullabilityNode?, String) checkNullability,
+    String displayName,
+  ) {
     expect(decoratedType.type!.element, typeProvider.intType.element);
     checkNullability(decoratedType.node, displayName);
   }
 
   void checkIterable(
-      DecoratedType decoratedType,
-      void Function(NullabilityNode?, String) checkNullability,
-      void Function(DecoratedType?, String) checkArgument,
-      String displayName) {
+    DecoratedType decoratedType,
+    void Function(NullabilityNode?, String) checkNullability,
+    void Function(DecoratedType?, String) checkArgument,
+    String displayName,
+  ) {
     expect(
         decoratedType.type!.element, typeProvider.iterableDynamicType.element);
     checkNullability(decoratedType.node, displayName);
@@ -124,26 +571,29 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   }
 
   void checkNum(
-      DecoratedType decoratedType,
-      void Function(NullabilityNode?, String) checkNullability,
-      String displayName) {
+    DecoratedType decoratedType,
+    void Function(NullabilityNode?, String) checkNullability,
+    String displayName,
+  ) {
     expect(decoratedType.type!.element, typeProvider.numType.element);
     checkNullability(decoratedType.node, displayName);
   }
 
   void checkObject(
-      DecoratedType decoratedType,
-      void Function(NullabilityNode?, String) checkNullability,
-      String displayName) {
+    DecoratedType decoratedType,
+    void Function(NullabilityNode?, String) checkNullability,
+    String displayName,
+  ) {
     expect(decoratedType.type!.element, typeProvider.objectType.element);
     checkNullability(decoratedType.node, displayName);
   }
 
   void checkTypeParameter(
-      DecoratedType decoratedType,
-      void Function(NullabilityNode?, String) checkNullability,
-      TypeParameterElement expectedElement,
-      String displayName) {
+    DecoratedType decoratedType,
+    void Function(NullabilityNode?, String) checkNullability,
+    TypeParameterElement expectedElement,
+    String displayName,
+  ) {
     var type = decoratedType.type as TypeParameterTypeImpl;
     expect(type.element, same(expectedElement));
     checkNullability(decoratedType.node, displayName);
@@ -160,397 +610,57 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     expect(decoratedType.type, same(type));
     return decoratedType;
   }
+}
 
-  DecoratedType? getDecoratedBound(TypeParameterElement element) =>
-      decoratedTypeParameterBounds.get(element);
+class _ContextWithFiles with ResourceProviderMixin {
+  Future<_ContextWithUnitElement> buildUnitElement(String content) async {
+    var file = newFile('/home/test/lib/test.dart', content: content);
 
-  void setUp() {
-    DecoratedTypeParameterBounds.current = decoratedTypeParameterBounds;
-  }
-
-  void tearDown() {
-    DecoratedTypeParameterBounds.current = null;
-  }
-
-  void test_decorate_dynamic() {
-    checkDynamic(decorate(typeProvider.dynamicType), 'test type');
-  }
-
-  void test_decorate_functionType_generic_bounded() {
-    var typeFormal = element = TypeParameterElementImpl.synthetic('T')
-      ..bound = typeProvider.numType;
-    var decoratedType = decorate(
-      FunctionTypeImpl(
-        typeFormals: [typeFormal],
-        parameters: const [],
-        returnType: TypeParameterTypeImpl(
-          element: typeFormal,
-          nullabilitySuffix: NullabilitySuffix.star,
-        ),
-        nullabilitySuffix: suffix,
-      ),
+    var sdkRoot = newFolder('/sdk');
+    createMockSdk(
+      resourceProvider: resourceProvider,
+      root: sdkRoot,
     );
-    checkNum(getDecoratedBound(typeFormal)!, checkExplicitlyNonNullable,
-        'bound of type formal T of test type');
-    checkTypeParameter(decoratedType.returnType!, checkExplicitlyNonNullable,
-        typeFormal, 'return type of test type');
-  }
 
-  void test_decorate_functionType_generic_no_explicit_bound() {
-    var typeFormal = element = TypeParameterElementImpl.synthetic('T');
-    var decoratedType = decorate(
-      FunctionTypeImpl(
-        typeFormals: [typeFormal],
-        parameters: const [],
-        returnType: TypeParameterTypeImpl(
-          element: typeFormal,
-          nullabilitySuffix: NullabilitySuffix.star,
-        ),
-        nullabilitySuffix: suffix,
-      ),
+    var contextCollection = AnalysisContextCollection(
+      resourceProvider: resourceProvider,
+      includedPaths: [file.path],
+      sdkPath: sdkRoot.path,
     );
-    checkObject(getDecoratedBound(typeFormal)!, checkExplicitlyNullable,
-        'bound of type formal T of test type');
-    checkTypeParameter(decoratedType.returnType!, checkExplicitlyNonNullable,
-        typeFormal, 'return type of test type');
+    var analysisContext = contextCollection.contextFor(file.path);
+    var analysisSession = analysisContext.currentSession;
+    var result = await analysisSession.getResolvedUnit(file.path);
+    return _ContextWithUnitElement(result as ResolvedUnitResult);
   }
 
-  void test_decorate_functionType_named_parameter() {
-    checkDynamic(
-        decorate(
-          FunctionTypeImpl(
-            typeFormals: const [],
-            parameters: [
-              ParameterElementImpl.synthetic(
-                'x',
-                typeProvider.dynamicType,
-                ParameterKind.NAMED,
-              )
-            ],
-            returnType: typeProvider.voidType,
-            nullabilitySuffix: suffix,
-          ),
-        ).namedParameters!['x'],
-        'parameter x of test type');
+  Future<_ContextWithElement> withEmptyUnit() async {
+    var withUnit = await buildUnitElement('');
+    return withUnit.withElement(withUnit.unitElement);
   }
-
-  void test_decorate_functionType_ordinary_parameters() {
-    var decoratedType = decorate(
-      FunctionTypeImpl(
-        typeFormals: const [],
-        parameters: [
-          ParameterElementImpl.synthetic(
-            'x',
-            typeProvider.dynamicType,
-            ParameterKind.REQUIRED,
-          ),
-          ParameterElementImpl.synthetic(
-            'y',
-            typeProvider.dynamicType,
-            ParameterKind.REQUIRED,
-          )
-        ],
-        returnType: typeProvider.voidType,
-        nullabilitySuffix: suffix,
-      ),
-    );
-    checkDynamic(
-        decoratedType.positionalParameters![0], 'parameter 0 of test type');
-    checkDynamic(
-        decoratedType.positionalParameters![1], 'parameter 1 of test type');
-  }
-
-  void test_decorate_functionType_positional_parameter() {
-    checkDynamic(
-        decorate(
-          FunctionTypeImpl(
-            typeFormals: const [],
-            parameters: [
-              ParameterElementImpl.synthetic(
-                'x',
-                typeProvider.dynamicType,
-                ParameterKind.POSITIONAL,
-              )
-            ],
-            returnType: typeProvider.voidType,
-            nullabilitySuffix: suffix,
-          ),
-        ).positionalParameters![0],
-        'parameter 0 of test type');
-  }
-
-  void test_decorate_functionType_question() {
-    checkExplicitlyNullable(
-        decorate(
-          FunctionTypeImpl(
-            typeFormals: const [],
-            parameters: const [],
-            returnType: typeProvider.voidType,
-            nullabilitySuffix: NullabilitySuffix.question,
-          ),
-        ).node,
-        'test type');
-  }
-
-  void test_decorate_functionType_returnType() {
-    checkDynamic(
-        decorate(
-          FunctionTypeImpl(
-            typeFormals: const [],
-            parameters: const [],
-            returnType: typeProvider.dynamicType,
-            nullabilitySuffix: suffix,
-          ),
-        ).returnType,
-        'return type of test type');
-  }
-
-  void test_decorate_functionType_star() {
-    checkExplicitlyNonNullable(
-        decorate(
-          FunctionTypeImpl(
-            typeFormals: const [],
-            parameters: const [],
-            returnType: typeProvider.voidType,
-            nullabilitySuffix: suffix,
-          ),
-        ).node,
-        'test type');
-  }
-
-  void test_decorate_interfaceType_parameters() {
-    var decoratedType = decorate(InterfaceTypeImpl(
-        element: typeProvider.mapElement,
-        typeArguments: [typeProvider.intType, typeProvider.numType],
-        nullabilitySuffix: suffix));
-    checkInt(decoratedType.typeArguments[0]!, checkExplicitlyNonNullable,
-        'type argument 0 of test type');
-    checkNum(decoratedType.typeArguments[1]!, checkExplicitlyNonNullable,
-        'type argument 1 of test type');
-  }
-
-  void test_decorate_interfaceType_simple_question() {
-    checkInt(
-        decorate(
-          InterfaceTypeImpl(
-            element: typeProvider.intElement,
-            typeArguments: const [],
-            nullabilitySuffix: NullabilitySuffix.question,
-          ),
-        ),
-        checkExplicitlyNullable,
-        'test type');
-  }
-
-  void test_decorate_interfaceType_simple_star() {
-    checkInt(
-        decorate(
-          InterfaceTypeImpl(
-            element: typeProvider.intElement,
-            typeArguments: const [],
-            nullabilitySuffix: suffix,
-          ),
-        ),
-        checkExplicitlyNonNullable,
-        'test type');
-  }
-
-  void test_decorate_iterable_dynamic() {
-    var decorated = decorate(typeProvider.iterableDynamicType);
-    checkIterable(
-        decorated, checkExplicitlyNonNullable, checkDynamic, 'test type');
-  }
-
-  void test_decorate_never() {
-    checkNever(decorate(typeProvider.neverType), 'test type');
-  }
-
-  void test_decorate_typeParameterType_question() {
-    var element = TypeParameterElementImpl.synthetic('T');
-    checkTypeParameter(
-        decorate(TypeParameterTypeImpl(
-            element: element, nullabilitySuffix: NullabilitySuffix.question)),
-        checkExplicitlyNullable,
-        element,
-        'test type');
-  }
-
-  void test_decorate_typeParameterType_star() {
-    var element = TypeParameterElementImpl.synthetic('T');
-    checkTypeParameter(
-        decorate(
-            TypeParameterTypeImpl(element: element, nullabilitySuffix: suffix)),
-        checkExplicitlyNonNullable,
-        element,
-        'test type');
-  }
-
-  void test_decorate_void() {
-    checkVoid(decorate(typeProvider.voidType), 'test type');
-  }
-
-  void test_getImmediateSupertypes_future() {
-    var class_ = element = typeProvider.futureElement;
-    var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
-    var typeParam = class_.typeParameters[0];
-    expect(decoratedSupertypes, hasLength(2));
-    // Note: the bogus location `async:1:1` is because we're using a
-    // TestTypeProvider.
-    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable,
-        'Future (async:1:1)');
-    // Since Future<T> is a subtype of FutureOr<T>, we consider FutureOr<T> to
-    // be an immediate supertype, even though the class declaration for Future
-    // doesn't mention FutureOr.
-    // Note: the bogus location `async:1:1` is because we're using a
-    // TestTypeProvider.
-    checkFutureOr(
-        decoratedSupertypes[1],
-        checkExplicitlyNonNullable,
-        (t, displayName) => checkTypeParameter(
-            t!, checkExplicitlyNonNullable, typeParam, displayName),
-        'Future (async:1:1)');
-  }
-
-  void test_getImmediateSupertypes_generic() {
-    var library = _LibraryElementMock();
-    var t = ElementFactory.typeParameterElement('T');
-    var class_ = element = ElementFactory.classElement3(
-      name: 'C',
-      typeParameters: [t],
-      supertype: typeProvider.iterableType(
-        t.instantiate(nullabilitySuffix: suffix),
-      ),
-    );
-    class_.enclosingElement = library.definingCompilationUnit;
-    var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
-    expect(decoratedSupertypes, hasLength(1));
-    checkIterable(
-        decoratedSupertypes[0],
-        checkExplicitlyNonNullable,
-        (type, displayName) => checkTypeParameter(
-            type!, checkExplicitlyNonNullable, t, displayName),
-        'C (test.dart:1:1)');
-  }
-
-  void test_getImmediateSupertypes_interface() {
-    var library = _LibraryElementMock();
-    var class_ =
-        element = ElementFactory.classElement('C', typeProvider.objectType);
-    class_.interfaces = [typeProvider.numType];
-    class_.enclosingElement = library.definingCompilationUnit;
-    var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
-    expect(decoratedSupertypes, hasLength(2));
-    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable,
-        'C (test.dart:1:1)');
-    checkNum(decoratedSupertypes[1], checkExplicitlyNonNullable,
-        'C (test.dart:1:1)');
-  }
-
-  void test_getImmediateSupertypes_mixin() {
-    var library = _LibraryElementMock();
-    var class_ =
-        element = ElementFactory.classElement('C', typeProvider.objectType);
-    class_.mixins = [typeProvider.numType];
-    class_.enclosingElement = library.definingCompilationUnit;
-    var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
-    expect(decoratedSupertypes, hasLength(2));
-    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable,
-        'C (test.dart:1:1)');
-    checkNum(decoratedSupertypes[1], checkExplicitlyNonNullable,
-        'C (test.dart:1:1)');
-  }
-
-  void test_getImmediateSupertypes_superclassConstraint() {
-    var library = _LibraryElementMock();
-    var class_ = element = ElementFactory.mixinElement(
-        name: 'C', constraints: [typeProvider.numType]);
-    class_.enclosingElement = library.definingCompilationUnit;
-    var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
-    expect(decoratedSupertypes, hasLength(1));
-    checkNum(decoratedSupertypes[0], checkExplicitlyNonNullable,
-        'C (test.dart:1:1)');
-  }
-
-  void test_getImmediateSupertypes_supertype() {
-    var library = _LibraryElementMock();
-    var class_ =
-        element = ElementFactory.classElement('C', typeProvider.objectType);
-    class_.enclosingElement = library.definingCompilationUnit;
-    var decoratedSupertypes = decorator.getImmediateSupertypes(class_).toList();
-    expect(decoratedSupertypes, hasLength(1));
-    // TODO(paulberry): displayName should be 'Object supertype of C'
-    checkObject(decoratedSupertypes[0], checkExplicitlyNonNullable,
-        'C (test.dart:1:1)');
-  }
-
-  static LineInfo _getLineInfo(String path) => LineInfo([0]);
 }
 
-/// Specialization of [_AlreadyMigratedCodeDecoratorTestBase] for testing the
-/// situation where the already migrated code does not contain star types.  In
-/// the final product, by definition all already-migrated code will be free of
-/// star types.  However, since we do not yet migrate using a fully NNBD-aware
-/// SDK, we need to handle both star and non-star variants on a short term
-/// basis.
-@reflectiveTest
-class _AlreadyMigratedCodeDecoratorTestNormal
-    extends _AlreadyMigratedCodeDecoratorTestBase {
-  _AlreadyMigratedCodeDecoratorTestNormal() : super(NullabilitySuffix.none);
-}
+class _ContextWithUnitElement {
+  final ResolvedUnitResult _unitResult;
 
-/// Specialization of [_AlreadyMigratedCodeDecoratorTestBase] for testing the
-/// situation where the already migrated code contains star types.  In the final
-/// product, this will never happen.  However, since we do not yet migrate using
-/// a fully NNBD-aware SDK, we need to handle both star and non-star variants on
-/// a short term basis.
-@reflectiveTest
-class _AlreadyMigratedCodeDecoratorTestProvisional
-    extends _AlreadyMigratedCodeDecoratorTestBase {
-  _AlreadyMigratedCodeDecoratorTestProvisional()
-      : super(NullabilitySuffix.star);
-}
+  _ContextWithUnitElement(this._unitResult);
 
-class _CompilationUnitElementMock implements CompilationUnitElementImpl {
-  @override
-  final LibraryElement enclosingElement;
-
-  @override
-  final Source source;
-
-  _CompilationUnitElementMock(this.enclosingElement, this.source);
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _LibraryElementMock implements LibraryElementImpl {
-  @override
-  late CompilationUnitElement definingCompilationUnit;
-
-  @override
-  late Source source;
-
-  _LibraryElementMock() {
-    source = _SourceMock();
-    definingCompilationUnit = _CompilationUnitElementMock(this, source);
+  FindElement get findElement {
+    return FindElement(_unitResult.unit);
   }
 
-  @override
-  Element? get enclosingElement => null;
+  FindNode get findNode {
+    return FindNode(_unitResult.content, _unitResult.unit);
+  }
 
-  @override
-  bool get isNonNullableByDefault => false;
+  TypeProvider get typeProvider {
+    return unitElement.library.typeProvider;
+  }
 
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+  CompilationUnitElement get unitElement {
+    return _unitResult.unit.declaredElement!;
+  }
 
-class _MockElement implements Element {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _SourceMock implements Source {
-  String get fullName => '/test.dart';
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  _ContextWithElement withElement(Element element) {
+    return _ContextWithElement(this, element);
+  }
 }

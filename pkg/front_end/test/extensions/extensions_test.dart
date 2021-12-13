@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -45,7 +43,7 @@ class ExtensionsDataComputer extends DataComputer<Features> {
       InternalCompilerResult compilerResult,
       Member member,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     member.accept(new ExtensionsDataExtractor(compilerResult, actualMap));
   }
 
@@ -55,7 +53,7 @@ class ExtensionsDataComputer extends DataComputer<Features> {
       InternalCompilerResult compilerResult,
       Class cls,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     new ExtensionsDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
@@ -65,7 +63,7 @@ class ExtensionsDataComputer extends DataComputer<Features> {
       InternalCompilerResult compilerResult,
       Library library,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     new ExtensionsDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
   }
@@ -76,7 +74,7 @@ class ExtensionsDataComputer extends DataComputer<Features> {
       InternalCompilerResult compilerResult,
       Extension extension,
       Map<Id, ActualData<Features>> actualMap,
-      {bool verbose}) {
+      {bool? verbose}) {
     new ExtensionsDataExtractor(compilerResult, actualMap)
         .computeForExtension(extension);
   }
@@ -146,9 +144,9 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
   Features computeLibraryValue(Id id, Library library) {
     Features features = new Features();
     SourceLibraryBuilder libraryBuilder =
-        lookupLibraryBuilder(compilerResult, library);
+        lookupLibraryBuilder(compilerResult, library) as SourceLibraryBuilder;
     libraryBuilder.forEachExtensionInScope((ExtensionBuilder extension) {
-      LibraryBuilder library = extension.parent;
+      LibraryBuilder library = extension.parent as LibraryBuilder;
       String libraryPrefix = '';
       if (library != libraryBuilder) {
         libraryPrefix = '${library.fileUri.pathSegments.last}.';
@@ -159,28 +157,32 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
   }
 
   @override
-  Features computeClassValue(Id id, Class cls) {
-    ClassBuilder clsBuilder = lookupClassBuilder(compilerResult, cls);
+  Features? computeClassValue(Id id, Class cls) {
+    ClassBuilder clsBuilder =
+        lookupClassBuilder(compilerResult, cls) as ClassBuilder;
     if (!clsBuilder.isExtension) {
       return null;
     }
     Features features = new Features();
     features[Tags.builderName] = clsBuilder.name;
     if (clsBuilder.typeVariables != null) {
-      for (TypeVariableBuilder typeVariable in clsBuilder.typeVariables) {
+      for (TypeVariableBuilder typeVariable in clsBuilder.typeVariables!) {
         features.addElement(Tags.builderTypeParameters,
             typeVariableBuilderToText(typeVariable));
       }
     }
 
-    features[Tags.builderSupertype] = clsBuilder.supertypeBuilder?.name;
+    if (clsBuilder.supertypeBuilder != null) {
+      features[Tags.builderSupertype] =
+          clsBuilder.supertypeBuilder!.name as String;
+    }
     if (clsBuilder.interfaceBuilders != null) {
-      for (TypeBuilder superinterface in clsBuilder.interfaceBuilders) {
+      for (TypeBuilder superinterface in clsBuilder.interfaceBuilders!) {
         features.addElement(Tags.builderInterfaces, superinterface.name);
       }
     }
     if (clsBuilder.onTypes != null) {
-      for (TypeBuilder onType in clsBuilder.onTypes) {
+      for (TypeBuilder onType in clsBuilder.onTypes!) {
         features.addElement(Tags.builderOnTypes, typeBuilderToText(onType));
       }
     }
@@ -190,7 +192,9 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
       features.addElement(
           Tags.clsTypeParameters, typeParameterToText(typeParameter));
     }
-    features[Tags.clsSupertype] = cls.supertype?.classNode?.name;
+    if (cls.supertype != null) {
+      features[Tags.clsSupertype] = cls.supertype!.classNode.name;
+    }
     for (Supertype superinterface in cls.implementedTypes) {
       features.addElement(Tags.clsInterfaces, superinterface.classNode.name);
     }
@@ -198,9 +202,9 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
   }
 
   @override
-  Features computeExtensionValue(Id id, Extension extension) {
+  Features? computeExtensionValue(Id id, Extension extension) {
     ExtensionBuilder extensionBuilder =
-        lookupExtensionBuilder(compilerResult, extension);
+        lookupExtensionBuilder(compilerResult, extension)!;
     if (!extensionBuilder.isExtension) {
       return null;
     }
@@ -208,19 +212,14 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     features[Tags.builderName] = extensionBuilder.name;
     if (extensionBuilder.typeParameters != null) {
       for (TypeVariableBuilder typeVariable
-          in extensionBuilder.typeParameters) {
+          in extensionBuilder.typeParameters!) {
         features.addElement(Tags.builderTypeParameters,
             typeVariableBuilderToText(typeVariable));
       }
     }
-    if (extensionBuilder.onType != null) {
-      features[Tags.builderOnType] = typeBuilderToText(extensionBuilder.onType);
-    }
-
+    features[Tags.builderOnType] = typeBuilderToText(extensionBuilder.onType);
     features[Tags.extensionName] = extension.name;
-    if (extension.onType != null) {
-      features[Tags.extensionOnType] = typeToText(extension.onType);
-    }
+    features[Tags.extensionOnType] = typeToText(extension.onType);
     for (TypeParameter typeParameter in extension.typeParameters) {
       features.addElement(
           Tags.extensionTypeParameters, typeParameterToText(typeParameter));
@@ -233,17 +232,17 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
   }
 
   @override
-  Features computeMemberValue(Id id, Member member) {
+  Features? computeMemberValue(Id id, Member member) {
     if (!member.isExtensionMember) {
       return null;
     }
 
-    MemberBuilder memberBuilder = lookupMemberBuilder(compilerResult, member);
+    MemberBuilder memberBuilder = lookupMemberBuilder(compilerResult, member)!;
     Features features = new Features();
     features[Tags.builderName] = memberBuilder.name;
     if (memberBuilder is FunctionBuilder) {
       if (memberBuilder.formals != null) {
-        for (FormalParameterBuilder parameter in memberBuilder.formals) {
+        for (FormalParameterBuilder parameter in memberBuilder.formals!) {
           if (parameter.isRequired) {
             features.addElement(Tags.builderRequiredParameters, parameter.name);
           } else if (parameter.isPositional) {
@@ -259,7 +258,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
         features.markAsUnsorted(Tags.builderNamedParameters);
       }
       if (memberBuilder.typeVariables != null) {
-        for (TypeVariableBuilder typeVariable in memberBuilder.typeVariables) {
+        for (TypeVariableBuilder typeVariable in memberBuilder.typeVariables!) {
           features.addElement(Tags.builderTypeParameters,
               typeVariableBuilderToText(typeVariable));
         }
@@ -269,23 +268,23 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     features[Tags.memberName] = getMemberName(member);
     if (member.function != null) {
       for (int index = 0;
-          index < member.function.positionalParameters.length;
+          index < member.function!.positionalParameters.length;
           index++) {
         VariableDeclaration parameter =
-            member.function.positionalParameters[index];
-        if (index < member.function.requiredParameterCount) {
+            member.function!.positionalParameters[index];
+        if (index < member.function!.requiredParameterCount) {
           features.addElement(Tags.memberRequiredParameters, parameter.name);
         } else {
           features.addElement(Tags.memberPositionalParameters, parameter.name);
         }
       }
-      for (VariableDeclaration parameter in member.function.namedParameters) {
+      for (VariableDeclaration parameter in member.function!.namedParameters) {
         features.addElement(Tags.memberNamedParameters, parameter.name);
       }
       features.markAsUnsorted(Tags.memberRequiredParameters);
       features.markAsUnsorted(Tags.memberPositionalParameters);
       features.markAsUnsorted(Tags.memberNamedParameters);
-      for (TypeParameter typeParameter in member.function.typeParameters) {
+      for (TypeParameter typeParameter in member.function!.typeParameters) {
         features.addElement(
             Tags.memberTypeParameters, typeParameterToText(typeParameter));
       }
@@ -295,7 +294,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
   }
 
   @override
-  Features computeNodeValue(Id id, TreeNode node) {
+  Features? computeNodeValue(Id id, TreeNode node) {
     if (node is ThisExpression) {
       Features features = new Features();
       features.add(Tags.hasThis);

@@ -311,11 +311,31 @@ class A<T> {
 var x = A.foo<int>;
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 42,
-          5),
+          5,
+          messageContains: ["'A.foo'"]),
     ]);
 
     assertFunctionReference(findNode.functionReference('A.foo<int>;'),
         findElement.constructor('foo'), 'dynamic');
+  }
+
+  test_constructorReference_prefixed() async {
+    await assertErrorsInCode('''
+import 'dart:async' as a;
+var x = a.Future.delayed<int>;
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR, 50,
+          5,
+          messageContains: ["'a.Future.delayed'"]),
+    ]);
+    assertFunctionReference(
+        findNode.functionReference('a.Future.delayed<int>;'),
+        findElement
+            .import('dart:async')
+            .importedLibrary!
+            .getType('Future')!
+            .getNamedConstructor('delayed'),
+        'dynamic');
   }
 
   test_dynamicTyped() async {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.test.textual_outline_test;
 
 import 'dart:io';
@@ -89,7 +87,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
       // TODO(jensj): NNBD should be configured correctly.
-      String result = textualOutline(
+      String? result = textualOutline(
         bytes,
         const ScannerConfiguration(enableExtensionMethods: true),
         throwOnUnexpected: true,
@@ -118,7 +116,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       result = sb.toString().trim();
 
       dynamic formatterException;
-      StackTrace formatterExceptionSt;
+      StackTrace? formatterExceptionSt;
       if (!containsUnknownChunk) {
         // Try to format only if it doesn't contain the unknown chunk marker.
         try {
@@ -134,8 +132,9 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         filename = ".textual_outline_modelled.expect";
       }
 
-      Result expectMatch = await context.match<TestDescription>(
-          filename, result, description.uri, description);
+      Result<TestDescription> expectMatch =
+          await context.match<TestDescription>(
+              filename, result!, description.uri, description);
       if (expectMatch.outcome != Expectation.Pass) return expectMatch;
 
       if (formatterException != null) {

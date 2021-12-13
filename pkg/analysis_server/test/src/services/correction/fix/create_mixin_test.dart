@@ -35,7 +35,7 @@ main() {
     var libCode = r'''
 class A {}
 ''';
-    addSource('/home/test/lib/lib.dart', libCode);
+    addSource('$testPackageLibPath/lib.dart', libCode);
     await resolveTestCode('''
 import 'lib.dart' as lib;
 
@@ -50,7 +50,7 @@ class A {}
 
 mixin Test {
 }
-''', target: '/home/test/lib/lib.dart');
+''', target: '$testPackageLibPath/lib.dart');
     expect(change.linkedEditGroups, hasLength(1));
   }
 
