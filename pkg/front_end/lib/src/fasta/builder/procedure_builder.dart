@@ -224,6 +224,7 @@ class SourceProcedureBuilder extends FunctionBuilderImpl
         return procedure;
       case ProcedureKind.Operator:
       case ProcedureKind.Setter:
+        return null;
     }
   }
 

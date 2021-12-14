@@ -1137,6 +1137,7 @@ extension ImportExtension on ImportEnd {
         }
       }
     }
+    return null;
   }
 
   String getImportUriString() {
