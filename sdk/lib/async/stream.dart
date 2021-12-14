@@ -326,11 +326,7 @@ abstract class Stream<T> {
   /// Example:
   /// ```dart
   /// final numbers = [1, 2, 3, 5, 6, 7];
-  ///
   /// final stream = Stream.fromIterable(numbers);
-  /// stream.listen((event) {
-  ///   print(event);
-  /// });
   /// ```
   factory Stream.fromIterable(Iterable<T> elements) {
     return new _GeneratedStreamImpl<T>(
@@ -588,7 +584,7 @@ abstract class Stream<T> {
   /// }, onDone: () => print('Done'));
   ///
   /// await Future.delayed(const Duration(seconds: 5));
-  /// print('cancel listeners');
+  /// // Cancel listeners.
   /// oddListener.cancel();
   /// evenListener.cancel();
   /// ```
@@ -649,7 +645,7 @@ abstract class Stream<T> {
   /// will individually perform the `test`.
   ///
   /// Example:
-  /// ``dart
+  /// ```dart
   /// final stream =
   ///     Stream<int>.periodic(const Duration(seconds: 1), (count) => count)
   ///         .take(10);
@@ -687,7 +683,7 @@ abstract class Stream<T> {
   /// independently.
   ///
   /// Example:
-  /// ``dart
+  /// ```dart
   /// final stream =
   ///     Stream<int>.periodic(const Duration(seconds: 1), (count) => count)
   ///         .take(5);
@@ -1079,7 +1075,6 @@ abstract class Stream<T> {
   /// ```dart
   /// final result = await Stream.fromIterable(['Year', 2021, 12, 24, 'Dart'])
   ///     .contains('Dart');
-  ///
   /// print(result); // true
   /// ```
   Future<bool> contains(Object? needle) {
@@ -1357,7 +1352,7 @@ abstract class Stream<T> {
   /// the returned stream is listened to.
   ///
   /// Example:
-  /// ``dart
+  /// ```dart
   /// final stream =
   ///     Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
   ///         .take(60);
