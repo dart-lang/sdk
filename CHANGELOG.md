@@ -1,4 +1,15 @@
-## 2.15.0
+## 2.15.1 - 2021-12-14
+
+This is a patch release that fixes:
+
+- an AOT compilation failure in some Flutter apps (issue [#47878][]).
+- `dart pub publish` for servers with a path in the URL (pr
+  [dart-lang/pub#3244][]).
+
+[#47878]: https://github.com/dart-lang/sdk/issues/47878
+[dart-lang/pub#3244]: https://github.com/dart-lang/pub/pull/3244
+
+## 2.15.0 - 2021-12-08
 
 ### Language
 

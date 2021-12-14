@@ -985,6 +985,7 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor {
     if (parent is Class) {
       shaker.addClassUsedInType(parent);
     }
+    node.visitChildren(this);
   }
 }
 
