@@ -832,6 +832,16 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// If a broadcast stream is listened to more than once, each subscription
   /// will individually perform the `test` and handle the error.
+  ///
+  /// Example:
+  /// ```dart
+  /// Stream.periodic(const Duration(seconds: 1), (count) {
+  ///   if (count == 2) {
+  ///     throw Exception('custom error');
+  ///   }
+  ///   return count;
+  /// }).take(10).handleError((error) => print(error)).listen(print);
+  /// ```
   Stream<T> handleError(Function onError, {bool test(error)?}) {
     if (onError is! void Function(Object, StackTrace) &&
         onError is! void Function(Object)) {
