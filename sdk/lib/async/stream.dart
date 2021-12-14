@@ -152,12 +152,12 @@ abstract class Stream<T> {
   /// ```dart
   /// const stream = Stream.empty();
   /// stream.listen(
-  /// (value) {
-  ///   print(value);
-  /// },
-  /// onDone: () {
-  ///   print('onDone');
-  /// },
+  ///   (value) {
+  ///     print(value);
+  ///   },
+  ///   onDone: () {
+  ///     print('onDone');
+  ///   },
   /// );
   /// ```
   const factory Stream.empty() = _EmptyStream<T>;
@@ -322,6 +322,16 @@ abstract class Stream<T> {
   /// the stream emits that error and then it closes.
   /// If reading [Iterator.current] on `elements.iterator` throws,
   /// the stream emits that error, but keeps iterating.
+  ///
+  /// Example:
+  /// ```dart
+  /// final numbers = [1, 2, 3, 5, 6, 7];
+  ///
+  /// final stream = Stream.fromIterable(numbers);
+  /// stream.listen((event) {
+  ///   print(event);
+  /// });
+  /// ```
   factory Stream.fromIterable(Iterable<T> elements) {
     return new _GeneratedStreamImpl<T>(
         () => new _IterablePendingEvents<T>(elements));
@@ -411,13 +421,11 @@ abstract class Stream<T> {
   ///
   /// Example:
   /// ```dart
-  /// var stream =
+  /// final stream =
   ///     Stream<int>.periodic(const Duration(
   ///         seconds: 1), (count) => count * count).take(5);
   ///
-  /// stream.listen((event) {
-  ///   print(event);
-  /// });
+  /// stream.listen(print); // Outputs event values 0,1,4,9,16.
   /// ```
   factory Stream.periodic(Duration period,
       [T computation(int computationCount)?]) {
@@ -547,6 +555,43 @@ abstract class Stream<T> {
   /// If the subscription passed to `onListen` or `onCancel` is cancelled,
   /// then no further events are ever emitted by current subscriptions on
   /// the returned broadcast stream, not even a done event.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream =
+  ///     Stream<int>.periodic(const Duration(seconds: 1), (count) => count)
+  ///         .take(10);
+  ///
+  /// final broadCastStream = stream.asBroadcastStream(
+  ///   onCancel: (event) {
+  ///     print('Stream cancelled');
+  ///     event.cancel();
+  ///   },
+  ///   onListen: (event) async {
+  ///     await Future.delayed(const Duration(seconds: 3));
+  ///     event.pause();
+  ///     print('Stream paused: ${event.isPaused}');
+  ///    },
+  /// );
+  ///
+  /// final oddStream = broadCastStream.where((event) => event.isOdd);
+  /// final oddListener = oddStream.listen(
+  ///       (event) {
+  ///     print('Odd: $event');
+  ///   },
+  ///   onDone: () => print('Done'),
+  /// );
+  ///
+  /// final evenStream = broadCastStream.where((event) => event.isEven);
+  /// final evenListener = evenStream.listen((event) {
+  ///   print('Even: $event');
+  /// }, onDone: () => print('Done'));
+  ///
+  /// await Future.delayed(const Duration(seconds: 5));
+  /// print('cancel listeners');
+  /// oddListener.cancel();
+  /// evenListener.cancel();
+  /// ```
   Stream<T> asBroadcastStream(
       {void onListen(StreamSubscription<T> subscription)?,
       void onCancel(StreamSubscription<T> subscription)?}) {
@@ -610,10 +655,7 @@ abstract class Stream<T> {
   ///         .take(10);
   ///
   /// final customStream = stream.where((event) => event > 3 && event <= 6);
-  /// customStream.listen((event) {
-  ///   print(event);
-  /// });
-  /// // Outputs values: 4,5,6
+  /// customStream.listen(print); // Outputs event values: 4,5,6.
   /// ```
   Stream<T> where(bool test(T event)) {
     return new _WhereStream<T>(this, test);
@@ -650,9 +692,8 @@ abstract class Stream<T> {
   ///     Stream<int>.periodic(const Duration(seconds: 1), (count) => count)
   ///         .take(5);
   ///
-  /// final mappedStream = stream.map((event) => event * event);
-  /// mappedStream.forEach(print);
-  /// // Outputs: 0, 1, 4, 9, 16
+  /// final calculationStream = stream.map((event) => event * event);
+  /// calculationStream.forEach(print); // Outputs event values: 0, 1, 4, 9, 16.
   /// ```
   Stream<S> map<S>(S convert(T event)) {
     return new _MapStream<T, S>(this, convert);
@@ -888,6 +929,13 @@ abstract class Stream<T> {
   /// If this stream emits an error, or the call to [combine] throws,
   /// the returned future is completed with that error,
   /// and processing is stopped.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream = Stream.fromIterable([2, 6, 10, 8, 2])
+  ///     .reduce((previous, element) => previous + element);
+  /// stream.then((value) => print(value)); // 28
+  /// ```
   Future<T> reduce(T combine(T previous, T element)) {
     _Future<T> result = new _Future<T>();
     bool seenFirst = false;
@@ -935,6 +983,13 @@ abstract class Stream<T> {
   /// If this stream emits an error, or the call to [combine] throws,
   /// the returned future is completed with that error,
   /// and processing is stopped.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream = Stream.fromIterable([2, 6, 10, 8, 2])
+  ///     .fold<int>(10, (previous, element) => previous + element);
+  /// stream.then((value) => print(value)); // 38
+  /// ```
   Future<S> fold<S>(S initialValue, S combine(S previous, T element)) {
     _Future<S> result = new _Future<S>();
     S value = initialValue;
@@ -962,6 +1017,12 @@ abstract class Stream<T> {
   /// If this stream emits an error, or the call to [Object.toString] throws,
   /// the returned future is completed with that error,
   /// and processing stops.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream = Stream.fromIterable(['Mars', 'Venus', 'Earth']).join('--');
+  /// stream.then((value) => print(value)); // 'Mars--Venus--Earth'
+  /// ```
   Future<String> join([String separator = ""]) {
     _Future<String> result = new _Future<String>();
     StringBuffer buffer = new StringBuffer();
@@ -1219,6 +1280,13 @@ abstract class Stream<T> {
   /// [futureValue].
   ///
   /// The [futureValue] must not be omitted if `null` is not assignable to [E].
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream = Stream.fromIterable([1, 2, 3])
+  ///     .drain(100)
+  ///     .then((value) => print(value)); // Outputs: 100
+  /// ```
   Future<E> drain<E>([E? futureValue]) {
     if (futureValue == null) {
       futureValue = futureValue as E;
@@ -1245,6 +1313,14 @@ abstract class Stream<T> {
   /// If this is a broadcast stream, the returned stream is a broadcast stream.
   /// In that case, the events are only counted from the time
   /// the returned stream is listened to.
+  ///
+  /// Example:
+  /// ``dart
+  /// final stream =
+  ///     Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
+  ///         .take(60);
+  /// stream.forEach(print); // Outputs events: 0, ... 59.
+  /// ```
   Stream<T> take(int count) {
     return new _TakeStream<T>(this, count);
   }
@@ -1269,6 +1345,13 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// For a broadcast stream, the events are only tested from the time
   /// the returned stream is listened to.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream = Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
+  ///     .takeWhile((event) => event < 6);
+  /// stream.forEach(print); // Outputs events 0 - 5.
+  /// ```
   Stream<T> takeWhile(bool test(T element)) {
     return new _TakeWhileStream<T>(this, test);
   }
@@ -1286,6 +1369,13 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// For a broadcast stream, the events are only counted from the time
   /// the returned stream is listened to.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream =
+  ///     Stream<int>.periodic(const Duration(seconds: 1), (i) => i).skip(7);
+  /// stream.forEach(print); // Outputs events after first 7.
+  /// ```
   Stream<T> skip(int count) {
     return new _SkipStream<T>(this, count);
   }
@@ -1306,6 +1396,14 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// For a broadcast stream, the events are only tested from the time
   /// the returned stream is listened to.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream = Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
+  ///     .take(10)
+  ///     .skipWhile((x) => x < 5);
+  /// stream.listen(print); // Outputs events from 5 to 9
+  /// ```
   Stream<T> skipWhile(bool test(T element)) {
     return new _SkipWhileStream<T>(this, test);
   }
@@ -1329,6 +1427,12 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// If a broadcast stream is listened to more than once, each subscription
   /// will individually perform the `equals` test.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream = Stream.fromIterable([2, 6, 6, 8, 12, 8, 8, 2]).distinct();
+  /// stream.listen((event) => print(event)); // Outputs events: 2,6,8,12,8,2.
+  /// ```
   Stream<T> distinct([bool equals(T previous, T next)?]) {
     return new _DistinctStream<T>(this, equals);
   }
@@ -1461,6 +1565,17 @@ abstract class Stream<T> {
   /// If an error occurs, or if this stream ends without finding a match and
   /// with no [orElse] function provided,
   /// the returned future is completed with an error.
+  ///
+  /// Example:
+  /// ```dart
+  /// Stream.fromIterable([1, 3, 4, 9, 12])
+  ///     .firstWhere((element) => element % 6 == 0, orElse: () => -1)
+  ///     .then((value) => print(value)); // 12
+  ///
+  /// Stream.fromIterable([1, 2, 3, 4, 5])
+  ///     .firstWhere((element) => element % 6 == 0, orElse: () => -1)
+  ///     .then((value) => print(value)); // -1
+  /// ```
   Future<T> firstWhere(bool test(T element), {T orElse()?}) {
     _Future<T> future = new _Future();
     StreamSubscription<T> subscription =
@@ -1496,6 +1611,17 @@ abstract class Stream<T> {
   /// instead of the first.
   /// That means that a non-error result cannot be provided before this stream
   /// is done.
+  ///
+  /// Example:
+  /// ```dart
+  /// Stream.fromIterable([1, 3, 4, 7, 12, 24, 32])
+  ///     .lastWhere((element) => element % 6 == 0, orElse: () => -1)
+  ///     .then((value) => print(value)); // 24
+  ///
+  /// Stream.fromIterable([1, 3, 4, 7, 12, 24, 32])
+  ///     .lastWhere((element) => element % 10 == 0, orElse: () => -1)
+  ///     .then((value) => print(value)); // -1
+  /// ```
   Future<T> lastWhere(bool test(T element), {T orElse()?}) {
     _Future<T> future = new _Future();
     late T result;
@@ -1532,6 +1658,17 @@ abstract class Stream<T> {
   ///
   /// Like [lastWhere], except that it is an error if more than one
   /// matching element occurs in this stream.
+  ///
+  /// Example:
+  /// ```dart
+  /// Stream.fromIterable([1, 2, 3, 6, 9, 12])
+  ///     .singleWhere((element) => element % 4 == 0, orElse: () => -1)
+  ///     .then((value) => print(value)); // 12
+  ///
+  /// Stream.fromIterable([2, 6, 8, 12, 24, 32])
+  ///     .singleWhere((element) => element % 6 == 0, orElse: () => -1)
+  ///     .then((value) => print(value)); // Throws.
+  /// ```
   Future<T> singleWhere(bool test(T element), {T orElse()?}) {
     _Future<T> future = new _Future<T>();
     late T result;
@@ -1640,6 +1777,27 @@ abstract class Stream<T> {
   /// If a broadcast stream is listened to more than once, each subscription
   /// will have its individually timer that starts counting on listen,
   /// and the subscriptions' timers can be paused individually.
+  ///
+  /// Example:
+  /// ```dart
+  /// Future<String> waitTask() async {
+  ///   return await Future.delayed(
+  ///       const Duration(seconds: 4), () => 'Complete');
+  /// }
+  /// final stream = Stream<String>.fromFuture(waitTask())
+  ///     .timeout(const Duration(seconds: 2), onTimeout: (event) {
+  ///   print('TimeOut occurred');
+  ///   event.close();
+  /// });
+  ///
+  /// stream.listen((event) {
+  ///   print(event);
+  /// }, onDone: () => print('Done'));
+  ///
+  /// // Outputs:
+  /// // TimeOut occurred
+  /// // Done
+  /// ```
   Stream<T> timeout(Duration timeLimit, {void onTimeout(EventSink<T> sink)?}) {
     _StreamControllerBase<T> controller;
     if (isBroadcast) {
