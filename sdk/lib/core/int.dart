@@ -22,7 +22,7 @@ part of dart.core;
 /// Classes cannot extend, implement, or mix in `int`.
 ///
 /// **See also:**
-/// * [num] is a super class for [int].
+/// * [num] the super class for [int].
 /// * [Numbers](https://dart.dev/guides/language/numbers)  in
 /// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
 abstract class int extends num {
@@ -136,12 +136,11 @@ abstract class int extends num {
   ///
   /// Shifting to the right makes the number smaller and drops the least
   /// significant bits, effectively doing an integer division by
-  ///`pow(2, shiftIndex)`.
+  /// `pow(2, shiftIndex)`.
   ///
   /// It is an error if [shiftAmount] is negative.
   ///
   /// Example:
-  ///
   /// ```dart
   /// print((3 >> 1).toRadixString(2)); // 0011 -> 0001
   /// print((9 >> 2).toRadixString(2)); // 1001 -> 0010
@@ -158,7 +157,6 @@ abstract class int extends num {
   /// The [shiftAmount] must be non-negative.
   ///
   /// Example:
-  ///
   /// ```dart
   /// print((3 >>> 1).toRadixString(2)); // 0011 -> 0001
   /// print((9 >>> 2).toRadixString(2)); // 1001 -> 0010
@@ -251,8 +249,8 @@ abstract class int extends num {
   int toUnsigned(int width);
 
   /// Returns the least significant [width] bits of this integer, extending the
-  /// highest retained bit to the sign.  This is the same as truncating the value
-  /// to fit in [width] bits using an signed 2-s complement representation.  The
+  /// highest retained bit to the sign. This is the same as truncating the value
+  /// to fit in [width] bits using an signed 2-s complement representation. The
   /// returned value has the same bit value in all positions higher than [width].
   ///
   /// ```dart
@@ -331,7 +329,7 @@ abstract class int extends num {
   /// Converts [this] to a string representation in the given [radix].
   ///
   /// In the string representation, lower-case letters are used for digits above
-  /// '9', with 'a' being 10 an 'z' being 35.
+  /// '9', with 'a' being 10 and 'z' being 35.
   ///
   /// The [radix] argument must be an integer in the range 2 to 36.
   ///
@@ -380,6 +378,7 @@ abstract class int extends num {
   ///
   /// Instead of throwing and immediately catching the [FormatException],
   /// instead use [tryParse] to handle a parsing error.
+  ///
   /// Example:
   /// ```dart
   /// var value = int.tryParse(text);
@@ -409,7 +408,6 @@ abstract class int extends num {
   /// ```dart
   /// print(int.tryParse('2021')); // 2021
   /// print(int.tryParse('1f')); // null
-  ///
   /// // From binary (base 2) value.
   /// print(int.tryParse('1100', radix: 2)); // 12
   /// print(int.tryParse('00011111', radix: 2)); // 31
