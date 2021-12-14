@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
@@ -275,11 +274,11 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// The library containing the code being resolved.
   late LibraryElementImpl _definingLibrary;
 
+  /// The compilation unit containing the code being resolved.
+  late CompilationUnitElementImpl _definingCompilationUnit;
+
   /// The resolver visitor that maintains the state for the resolver.
   late ResolverVisitor _visitor;
-
-  /// The resolver being used to resolve the test cases.
-  late ElementResolver _resolver;
 
   @override
   TypeProvider get typeProvider => _typeProvider;
@@ -568,6 +567,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitInstanceCreationExpression_named() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _definingCompilationUnit.classes = [classA];
     String constructorName = "a";
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
@@ -583,6 +583,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitInstanceCreationExpression_unnamed() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _definingCompilationUnit.classes = [classA];
     String constructorName = 'named';
     ConstructorElement constructor =
         ElementFactory.constructorElement2(classA, constructorName);
@@ -598,6 +599,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitInstanceCreationExpression_unnamed_namedParameter() async {
     ClassElementImpl classA = ElementFactory.classElement2("A");
+    _definingCompilationUnit.classes = [classA];
     String constructorName = 'named';
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classA, constructorName);
@@ -625,8 +627,10 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
 
   test_visitMethodInvocation() async {
     InterfaceType numType = _typeProvider.numType;
-    var left = AstTestFactory.identifier3("i");
-    left.staticType = numType;
+    var iGetter = ElementFactory.getterElement('i', true, numType);
+    _definingCompilationUnit.accessors = [iGetter];
+    var left = AstTestFactory.identifier3("i")
+      ..scopeLookupResult = ScopeLookupResult(iGetter, null);
     String methodName = "abs";
     MethodInvocation invocation =
         AstTestFactory.methodInvocation(left, methodName);
@@ -669,6 +673,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
       AstTestFactory.constructorDeclaration(AstTestFactory.identifier3('C'),
           null, AstTestFactory.formalParameterList(), [invocation])
     ]);
+    _definingCompilationUnit.classes = [superclass, subclass];
     _resolveInClass(invocation, subclass);
     expect(invocation.staticElement, superConstructor);
     _listener.assertNoErrors();
@@ -680,7 +685,8 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     ConstructorElementImpl superConstructor =
         ElementFactory.constructorElement2(superclass, null);
     String parameterName = "p";
-    ParameterElement parameter = ElementFactory.namedParameter(parameterName);
+    ParameterElement parameter = ElementFactory.namedParameter(parameterName)
+      ..type = _typeProvider.dynamicType;
     superConstructor.parameters = <ParameterElement>[parameter];
     superclass.constructors = <ConstructorElement>[superConstructor];
     ClassElementImpl subclass =
@@ -697,6 +703,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
       AstTestFactory.constructorDeclaration(AstTestFactory.identifier3('C'),
           null, AstTestFactory.formalParameterList(), [invocation])
     ]);
+    _definingCompilationUnit.classes = [superclass, subclass];
     _resolveInClass(invocation, subclass);
     expect(invocation.staticElement, superConstructor);
     expect(
@@ -714,10 +721,11 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _typeProvider = context.typeProviderLegacy;
 
     Source source = FileSource(getFile("/test.dart"));
-    CompilationUnitElementImpl unit = CompilationUnitElementImpl();
-    unit.librarySource = unit.source = source;
+    _definingCompilationUnit = CompilationUnitElementImpl();
+    _definingCompilationUnit.librarySource =
+        _definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
-    _definingLibrary.definingCompilationUnit = unit;
+    _definingLibrary.definingCompilationUnit = _definingCompilationUnit;
 
     _definingLibrary.typeProvider = context.typeProviderLegacy;
     _definingLibrary.typeSystem = context.typeSystemLegacy;
@@ -729,7 +737,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
         featureSet: featureSet,
         flowAnalysisHelper:
             FlowAnalysisHelper(context.typeSystemLegacy, false, featureSet));
-    _resolver = _visitor.elementResolver;
   }
 
   void _encloseElement(ElementImpl element) {
@@ -773,7 +780,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   void _resolveInClass(AstNode node, ClassElement enclosingClass) {
     try {
       _visitor.enclosingClass = enclosingClass;
-      node.accept(_resolver);
+      node.accept(_visitor);
     } finally {
       _visitor.enclosingClass = null;
     }
@@ -787,7 +794,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   ///          which the element is being resolved
   /// @return the element to which the expression was resolved
   void _resolveNode(AstNode node) {
-    node.accept(_resolver);
+    node.accept(_visitor);
   }
 
   /// Return the element associated with the label of the given statement after
@@ -799,7 +806,7 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
   /// @return the element to which the statement's label was resolved
   void _resolveStatement(Statement statement, LabelElementImpl? labelElement,
       AstNode? labelTarget) {
-    statement.accept(_resolver);
+    statement.accept(_visitor);
   }
 }
 
