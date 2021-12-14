@@ -165,6 +165,10 @@ void main() {
         _fails(() => check('abc' as dynamic).isA<int>());
       });
     });
+    test('which', () {
+      check(0).which((e) => e.isZero);
+      _fails(() => check(1).which((e) => e.isZero));
+    });
   });
 }
 
