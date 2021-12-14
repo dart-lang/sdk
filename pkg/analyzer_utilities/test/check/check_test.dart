@@ -97,6 +97,18 @@ void main() {
         _fails(() => check(<int>{}).isNotEmpty);
       });
     });
+    group('nullability', () {
+      const int? notNullable = 0;
+      const int? nullable = null;
+      test('isNotNull', () {
+        check(notNullable).isNotNull;
+        _fails(() => check(nullable).isNotNull.isZero);
+      });
+      test('isNull', () {
+        check(nullable).isNull;
+        _fails(() => check(notNullable).isNull);
+      });
+    });
     group('String', () {
       test('contains', () {
         check('abc').contains('a');
