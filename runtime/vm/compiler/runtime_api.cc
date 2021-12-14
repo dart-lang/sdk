@@ -99,7 +99,7 @@ bool IsInOldSpace(const Object& obj) {
 
 intptr_t ObjectHash(const Object& obj) {
   if (obj.IsNull()) {
-    return 2011;
+    return kNullIdentityHash;
   }
   if (obj.IsInstance()) {
     return Instance::Cast(obj).CanonicalizeHash();

@@ -29,7 +29,7 @@ class Notification {
 
   /// A table mapping the names of notification parameters to their values, or
   /// `null` if there are no notification parameters.
-  final Map<String, Object>? params;
+  final Map<String, Object?>? params;
 
   /// Initialize a newly created [Notification] to have the given [event] name.
   /// If [params] is provided, it will be used as the params; otherwise no
@@ -39,7 +39,7 @@ class Notification {
   /// Initialize a newly created instance based on the given JSON data.
   factory Notification.fromJson(Map json) {
     return Notification(json[Notification.EVENT] as String,
-        json[Notification.PARAMS] as Map<String, Object>?);
+        json[Notification.PARAMS] as Map<String, Object?>?);
   }
 
   /// Return a table representing the structure of the Json object that will be

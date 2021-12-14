@@ -60,7 +60,7 @@ class DartFixContextImpl implements DartFixContext {
       this.resolveResult, this.error);
 
   @override
-  Future<Map<LibraryElement, List<Element>>> getTopLevelDeclarations(
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
       String name) async {
     return TopLevelDeclarations(resolveResult).withName(name);
   }

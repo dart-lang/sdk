@@ -142,20 +142,17 @@ class ModuleSymbols implements SymbolTableElement {
   ModuleSymbols.fromJson(Map<String, dynamic> json)
       : version = _readAndValidateVersionFromJson(json['version']),
         moduleName = _createValue(json['moduleName']),
-        libraries = _createObjectList(
-            json['libraries'], (json) => LibrarySymbol.fromJson(json)),
-        scripts =
-            _createObjectList(json['scripts'], (json) => Script.fromJson(json)),
-        classes = _createObjectList(
-            json['classes'], (json) => ClassSymbol.fromJson(json)),
+        libraries =
+            _createObjectList(json['libraries'], LibrarySymbol.fromJson),
+        scripts = _createObjectList(json['scripts'], Script.fromJson),
+        classes = _createObjectList(json['classes'], ClassSymbol.fromJson),
         functionTypes = _createObjectList(
-            json['functionTypes'], (json) => FunctionTypeSymbol.fromJson(json)),
-        functions = _createObjectList(
-            json['functions'], (json) => FunctionSymbol.fromJson(json)),
-        scopes = _createObjectList(
-            json['scopes'], (json) => ScopeSymbol.fromJson(json)),
-        variables = _createObjectList(
-            json['variables'], (json) => VariableSymbol.fromJson(json));
+            json['functionTypes'], FunctionTypeSymbol.fromJson),
+        functions =
+            _createObjectList(json['functions'], FunctionSymbol.fromJson),
+        scopes = _createObjectList(json['scopes'], ScopeSymbol.fromJson),
+        variables =
+            _createObjectList(json['variables'], VariableSymbol.fromJson);
 
   @override
   Map<String, dynamic> toJson() {
@@ -208,8 +205,8 @@ class Symbol implements SymbolTableElement {
   Symbol.fromJson(Map<String, dynamic> json)
       : localId = _createValue(json['localId']),
         scopeId = _createValue(json['scopeId']),
-        location = _createNullableObject(
-            json['location'], (json) => SourceLocation.fromJson(json));
+        location =
+            _createNullableObject(json['location'], SourceLocation.fromJson);
 
   @override
   Map<String, dynamic> toJson() {
@@ -527,8 +524,8 @@ class LibrarySymbol extends ScopeSymbol {
       : name = _createValue(json['name'], ifNull: ''),
         uri = _createValue(json['uri']),
         scriptIds = _createValueList(json['scriptIds']),
-        dependencies = _createObjectList(json['dependencies'],
-            (json) => LibrarySymbolDependency.fromJson(json)),
+        dependencies = _createObjectList(
+            json['dependencies'], LibrarySymbolDependency.fromJson),
         super.fromJson(json);
 
   @override

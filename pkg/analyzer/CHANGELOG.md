@@ -1,4 +1,4 @@
-## 3.0.0 (Not yet released - breaking changes)
+## 3.0.0
 * Removed deprecated `DartType.aliasElement/aliasArguments`.
 * Removed deprecated constructors from `FeatureSet`.
 * Removed `UnitElementResult.signature` - unused by clients.

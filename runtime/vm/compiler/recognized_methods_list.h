@@ -290,7 +290,6 @@ namespace dart {
   V(_FunctionType, get:hashCode, FunctionType_getHashCode, 0x75e0d454)         \
   V(_FunctionType, ==, FunctionType_equality, 0x465868ae)                      \
   V(::, _getHash, Object_getHash, 0xc60ff758)                                  \
-  V(::, _setHashIfNotSetYet, Object_setHashIfNotSetYet, 0x4e17c2f5)            \
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
   V(_IntegerImplementation, >, Integer_greaterThan, 0xf741693b)                \

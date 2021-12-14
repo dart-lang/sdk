@@ -1344,8 +1344,13 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
         // Some classes have identity hash codes that depend on their contents,
         // not per object.
         ASSERT(!obj->IsStringInstance());
-        if (!obj->IsMint() && !obj->IsDouble() && !obj->IsRawNull() &&
-            !obj->IsBool()) {
+        if (obj == Object::null()) {
+          Object::SetCachedHashIfNotSet(obj, kNullIdentityHash);
+        } else if (obj == Object::bool_true().ptr()) {
+          Object::SetCachedHashIfNotSet(obj, kTrueIdentityHash);
+        } else if (obj == Object::bool_false().ptr()) {
+          Object::SetCachedHashIfNotSet(obj, kFalseIdentityHash);
+        } else if (!obj->IsMint() && !obj->IsDouble()) {
           counter_ += 2011;  // The year Dart was announced and a prime.
           counter_ &= 0x3fffffff;
           if (counter_ == 0) counter_++;
@@ -9520,15 +9525,6 @@ FunctionPtr Function::ImplicitClosureTarget(Zone* zone) const {
   }
 
   return target.ptr();
-}
-
-intptr_t Function::ComputeClosureHash() const {
-  ASSERT(IsClosureFunction());
-  const Class& cls = Class::Handle(Owner());
-  uintptr_t result = String::Handle(name()).Hash();
-  result += String::Handle(InternalSignature()).Hash();
-  result += String::Handle(cls.Name()).Hash();
-  return result;
 }
 
 void FunctionType::Print(NameVisibility name_visibility,
@@ -18995,8 +18991,45 @@ ObjectPtr Instance::HashCode() const {
   return DartLibraryCalls::HashCode(*this);
 }
 
-ObjectPtr Instance::IdentityHashCode() const {
-  return DartLibraryCalls::IdentityHashCode(*this);
+// Keep in sync with AsmIntrinsifier::Object_getHash.
+IntegerPtr Instance::IdentityHashCode(Thread* thread) const {
+  if (IsInteger()) return Integer::Cast(*this).ptr();
+
+#if defined(HASH_IN_OBJECT_HEADER)
+  intptr_t hash = Object::GetCachedHash(ptr());
+#else
+  intptr_t hash = thread->heap()->GetHash(ptr());
+#endif
+  if (hash == 0) {
+    if (IsNull()) {
+      hash = kNullIdentityHash;
+    } else if (IsBool()) {
+      hash = Bool::Cast(*this).value() ? kTrueIdentityHash : kFalseIdentityHash;
+    } else if (IsDouble()) {
+      double val = Double::Cast(*this).value();
+      if ((val >= kMinInt64RepresentableAsDouble) &&
+          (val <= kMaxInt64RepresentableAsDouble)) {
+        int64_t ival = static_cast<int64_t>(val);
+        if (static_cast<double>(ival) == val) {
+          return Integer::New(ival);
+        }
+      }
+
+      uint64_t uval = bit_cast<uint64_t>(val);
+      hash = ((uval >> 32) ^ (uval)) & kSmiMax;
+    } else {
+      do {
+        hash = thread->random()->NextUInt32() & 0x3FFFFFFF;
+      } while (hash == 0);
+    }
+
+#if defined(HASH_IN_OBJECT_HEADER)
+    hash = Object::SetCachedHashIfNotSet(ptr(), hash);
+#else
+    hash = thread->heap()->SetHashIfNotSet(ptr(), hash);
+#endif
+  }
+  return Smi::New(hash);
 }
 
 bool Instance::CanonicalizeEquals(const Instance& other) const {
@@ -19058,7 +19091,7 @@ uint32_t Symbol::CanonicalizeHash(Thread* thread, const Instance& instance) {
 
 uint32_t Instance::CanonicalizeHash() const {
   if (GetClassId() == kNullCid) {
-    return 2011;  // Matches null_patch.dart.
+    return kNullIdentityHash;
   }
   Thread* thread = Thread::Current();
   uint32_t hash = thread->heap()->GetCanonicalHash(ptr());
@@ -25457,7 +25490,7 @@ uword Closure::ComputeHash() const {
     // Implicit instance closures are not unique, so combine function's hash
     // code, delayed type arguments hash code (if generic), and identityHashCode
     // of cached receiver.
-    result = static_cast<uint32_t>(func.ComputeClosureHash());
+    result = static_cast<uint32_t>(func.Hash());
     if (func.IsGeneric()) {
       const TypeArguments& delayed_type_args =
           TypeArguments::Handle(zone, delayed_type_arguments());
@@ -25466,23 +25499,15 @@ uword Closure::ComputeHash() const {
     const Context& context = Context::Handle(zone, this->context());
     const Instance& receiver =
         Instance::Handle(zone, Instance::RawCast(context.At(0)));
-    const Object& receiverHash =
-        Object::Handle(zone, receiver.IdentityHashCode());
-    if (receiverHash.IsError()) {
-      Exceptions::PropagateError(Error::Cast(receiverHash));
-      UNREACHABLE();
-    }
-    result = CombineHashes(
-        result, Integer::Cast(receiverHash).AsTruncatedUint32Value());
+    const Integer& receiverHash =
+        Integer::Handle(zone, receiver.IdentityHashCode(thread));
+    result = CombineHashes(result, receiverHash.AsTruncatedUint32Value());
   } else {
     // Explicit closures and implicit static closures are unique,
     // so identityHashCode of closure object is good enough.
-    const Object& identityHash = Object::Handle(zone, this->IdentityHashCode());
-    if (identityHash.IsError()) {
-      Exceptions::PropagateError(Error::Cast(identityHash));
-      UNREACHABLE();
-    }
-    result = Integer::Cast(identityHash).AsTruncatedUint32Value();
+    const Integer& identityHash =
+        Integer::Handle(zone, this->IdentityHashCode(thread));
+    result = identityHash.AsTruncatedUint32Value();
   }
   return FinalizeHash(result, String::kHashBits);
 }

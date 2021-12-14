@@ -486,12 +486,14 @@ abstract class _AbstractCorrectionProducer {
     return utils.getRangeText(range);
   }
 
-  /// Return the top-level declarations with the [name] in libraries that are
-  /// available to this context.
-  Future<Map<LibraryElement, List<Element>>> getTopLevelDeclarations(
-    String name,
+  /// Return the mapping from a library (that is available to this context) to
+  /// a top-level declaration that is exported (not necessary declared) by this
+  /// library, and has the requested base name. For getters and setters the
+  /// corresponding top-level variable is returned.
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
+    String baseName,
   ) {
-    return _context.dartFixContext!.getTopLevelDeclarations(name);
+    return _context.dartFixContext!.getTopLevelDeclarations(baseName);
   }
 
   /// Return `true` the lint with the given [name] is enabled.

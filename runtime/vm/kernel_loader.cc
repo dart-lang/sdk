@@ -1952,6 +1952,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   }
   function.set_kernel_offset(procedure_offset);
   function.set_is_extension_member(is_extension_member);
+  function.set_is_redirecting_factory(procedure_helper.IsRedirectingFactory());
   if ((library.is_dart_scheme() &&
        H.IsPrivate(procedure_helper.canonical_name_)) ||
       (function.is_static() && (library.ptr() == Library::InternalLibrary()))) {
