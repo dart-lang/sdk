@@ -51,9 +51,9 @@ abstract class Pattern {
 /// ```
 /// The output of the example is:
 /// ```
-/// 'Parse'
-/// 'my'
-/// 'string'
+/// Parse
+/// my
+/// string
 /// ```
 /// Some patterns, regular expressions in particular, may record substrings
 /// that were part of the matching. These are called _groups_ in the `Match`
@@ -101,7 +101,8 @@ abstract class Match {
   /// final string = '[00:13.37] This is a chat message.';
   /// final regExp = RegExp(r'^\[\s*([\d]+):([\d]+)\.([\d]+)\]\s*(.*)$');
   /// final match = regExp.firstMatch(string)!;
-  /// final message = jsonEncode(match.groups([1,2,3,4])); // ['00','13','37','This is a chat message.']
+  /// final message = jsonEncode(match.groups([1,2,3,4]));
+  /// // ['00','13','37','This is a chat message.']
   /// ```
   List<String?> groups(List<int> groupIndices);
 
