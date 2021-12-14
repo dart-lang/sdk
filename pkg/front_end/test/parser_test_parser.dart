@@ -2494,19 +2494,30 @@ class TestParser extends Parser {
       Token begin,
       int referenceOffset,
       Token? newKeyword,
-      Token? prefix,
-      Token? period,
+      Token? firstToken,
+      Token? firstPeriod,
+      Token? secondToken,
+      Token? secondPeriod,
       Token identifierOrOperator) {
     doPrint('parseOneCommentReferenceRest('
         '$begin, '
         '$referenceOffset, '
         '$newKeyword, '
-        '$prefix, '
-        '$period, '
+        '$firstToken, '
+        '$firstPeriod, '
+        '$secondToken, '
+        '$secondPeriod, '
         '$identifierOrOperator)');
     indent++;
-    var result = super.parseOneCommentReferenceRest(begin, referenceOffset,
-        newKeyword, prefix, period, identifierOrOperator);
+    var result = super.parseOneCommentReferenceRest(
+        begin,
+        referenceOffset,
+        newKeyword,
+        firstToken,
+        firstPeriod,
+        secondToken,
+        secondPeriod,
+        identifierOrOperator);
     indent--;
     return result;
   }

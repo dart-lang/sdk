@@ -1253,7 +1253,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   @override
   void visitCommentReference(CommentReference node) {
     //
-    // We do not visit the identifier because it needs to be visited in the
+    // We do not visit the expression because it needs to be visited in the
     // context of the reference.
     //
     node.accept(elementResolver);
