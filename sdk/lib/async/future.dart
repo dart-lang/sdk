@@ -383,7 +383,7 @@ abstract class Future<T> {
   /// Example:
   /// ```dart
   /// Future.delayed(const Duration(seconds: 1), () {
-  ///   print("One second has passed."); // After 1 second this is printed.
+  ///   print('One second has passed.'); // After 1 second this is printed.
   /// });
   /// ```
   factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
@@ -436,7 +436,7 @@ abstract class Future<T> {
   ///
   /// Example:
   /// ```dart
-  /// void main() async{
+  /// void main() async {
   ///   var value = await Future.wait([getFuture1(), getFuture2()]);
   ///   print(value); // [2, result]
   /// }
@@ -560,13 +560,12 @@ abstract class Future<T> {
   ///
   /// Example:
   /// ```dart
-  /// void main() async{
+  /// void main() async {
   ///   final result =
   ///       await Future.any([getFuture1(), getFuture2(), getFuture3()]);
   ///   // getFuture3 is finished first, others are discarded.
   ///   print(result); // 3
   /// }
-  ///
   /// Future<int> getFuture1() async {
   ///   return await Future.delayed(const Duration(seconds: 10), () => 2);
   /// }
@@ -644,6 +643,23 @@ abstract class Future<T> {
   /// The only restriction is a new call to [action] won't happen before
   /// the previous call has returned, and if it returned a `Future<bool>`, not
   /// until that future has completed.
+  ///
+  /// Example:
+  /// ```dart
+  /// void main() async {
+  ///   var value = 0;
+  ///   await Future.doWhile(() async {
+  ///     value++;
+  ///     await Future.delayed(const Duration(seconds: 1));
+  ///     if (value == 3) {
+  ///       print('finished to $value');
+  ///       return false;
+  ///     }
+  ///   return true;
+  ///   });
+  /// }
+  /// // Outputs: 'finished to 3'
+  /// ```
   static Future doWhile(FutureOr<bool> action()) {
     _Future<void> doneSignal = new _Future<void>();
     late void Function(bool) nextIteration;
@@ -801,7 +817,6 @@ abstract class Future<T> {
   ///   await Future.value(
   ///       waitTask().whenComplete(() => print('do some work here')));
   /// }
-  ///
   /// Future<String> waitTask() async {
   ///   return await Future.delayed(
   ///       const Duration(seconds: 5), () => 'completed');
@@ -836,14 +851,14 @@ abstract class Future<T> {
   /// void main() async {
   ///   var result = await Future.value(waitTask()
   ///       .timeout(const Duration(seconds: 10)));
-  ///   print(result); // completed
+  ///   print(result); // 'completed'
   ///
   ///   result = await Future.value(waitTask()
   ///       .timeout(const Duration(seconds: 1), onTimeout: () => 'timeout'));
-  ///   print(result); // timeout
+  ///   print(result); // 'timeout'
   ///
   ///   result = await Future.value(waitTask()
-  ///       .timeout(const Duration(seconds: 2))); // Throws TimeoutException.
+  ///       .timeout(const Duration(seconds: 2))); // Throws.
   /// }
   ///
   /// Future<String> waitTask() async {
