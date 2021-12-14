@@ -595,7 +595,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var node = export.node;
     if (node is Procedure && node.name.text == 'main') {
       // Don't allow redefining names from this library.
-      var name = _emitTopLevelName(export.node);
+      var name = _emitTopLevelName(node);
       moduleItems.add(js.statement(
           '#.# = #;', [emitLibraryName(library), name.selector, name]));
     }
