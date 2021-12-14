@@ -942,9 +942,9 @@ abstract class Stream<T> {
   ///
   /// Example:
   /// ```dart
-  /// final stream = Stream.fromIterable([2, 6, 10, 8, 2])
+  /// final result = await Stream.fromIterable([2, 6, 10, 8, 2])
   ///     .reduce((previous, element) => previous + element);
-  /// stream.then((value) => print(value)); // 28
+  /// print(result); // 28
   /// ```
   Future<T> reduce(T combine(T previous, T element)) {
     _Future<T> result = new _Future<T>();
@@ -996,9 +996,9 @@ abstract class Stream<T> {
   ///
   /// Example:
   /// ```dart
-  /// final stream = Stream.fromIterable([2, 6, 10, 8, 2])
+  /// final result = await Stream.fromIterable([2, 6, 10, 8, 2])
   ///     .fold<int>(10, (previous, element) => previous + element);
-  /// stream.then((value) => print(value)); // 38
+  /// print(result); // 38
   /// ```
   Future<S> fold<S>(S initialValue, S combine(S previous, T element)) {
     _Future<S> result = new _Future<S>();
@@ -1030,8 +1030,9 @@ abstract class Stream<T> {
   ///
   /// Example:
   /// ```dart
-  /// final stream = Stream.fromIterable(['Mars', 'Venus', 'Earth']).join('--');
-  /// stream.then((value) => print(value)); // 'Mars--Venus--Earth'
+  /// final result = await Stream.fromIterable(['Mars', 'Venus', 'Earth'])
+  ///     .join('--');
+  /// print(result); // 'Mars--Venus--Earth'
   /// ```
   Future<String> join([String separator = ""]) {
     _Future<String> result = new _Future<String>();
@@ -1073,6 +1074,14 @@ abstract class Stream<T> {
   /// If this stream emits an error, or the call to [Object.==] throws,
   /// the returned future is completed with that error,
   /// and processing stops.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await Stream.fromIterable(['Year', 2021, 12, 24, 'Dart'])
+  ///     .contains('Dart');
+  ///
+  /// print(result); // true
+  /// ```
   Future<bool> contains(Object? needle) {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription<T> subscription =
@@ -1122,6 +1131,20 @@ abstract class Stream<T> {
   /// If this stream emits an error, or if the call to [test] throws,
   /// the returned future is completed with that error,
   /// and processing stops.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result =
+  ///     await Stream.periodic(const Duration(seconds: 1), (count) => count)
+  ///         .take(15)
+  ///         .every((x) {
+  ///   if (x > 5) {
+  ///     return false;
+  ///   }
+  ///   return true;
+  /// });
+  /// print(result); // false
+  /// ```
   Future<bool> every(bool test(T element)) {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription<T> subscription =
@@ -1150,6 +1173,16 @@ abstract class Stream<T> {
   /// If this stream emits an error, or if the call to [test] throws,
   /// the returned future is completed with that error,
   /// and processing stops.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result =
+  ///     await Stream.periodic(const Duration(seconds: 1), (count) => count)
+  ///         .take(15)
+  ///         .any((element) => element >= 5);
+  ///
+  /// print(result); // true
+  /// ```
   Future<bool> any(bool test(T element)) {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription<T> subscription =
@@ -1293,9 +1326,8 @@ abstract class Stream<T> {
   ///
   /// Example:
   /// ```dart
-  /// final stream = Stream.fromIterable([1, 2, 3])
-  ///     .drain(100)
-  ///     .then((value) => print(value)); // Outputs: 100
+  /// final result = await Stream.fromIterable([1, 2, 3]).drain(100);
+  /// print(result); // Outputs: 100
   /// ```
   Future<E> drain<E>([E? futureValue]) {
     if (futureValue == null) {
@@ -1578,13 +1610,13 @@ abstract class Stream<T> {
   ///
   /// Example:
   /// ```dart
-  /// Stream.fromIterable([1, 3, 4, 9, 12])
-  ///     .firstWhere((element) => element % 6 == 0, orElse: () => -1)
-  ///     .then((value) => print(value)); // 12
+  /// var result = await Stream.fromIterable([1, 3, 4, 9, 12])
+  ///     .firstWhere((element) => element % 6 == 0, orElse: () => -1);
+  /// print(result); // 12
   ///
-  /// Stream.fromIterable([1, 2, 3, 4, 5])
-  ///     .firstWhere((element) => element % 6 == 0, orElse: () => -1)
-  ///     .then((value) => print(value)); // -1
+  /// result = await Stream.fromIterable([1, 2, 3, 4, 5])
+  ///     .firstWhere((element) => element % 6 == 0, orElse: () => -1);
+  /// print(result); // -1
   /// ```
   Future<T> firstWhere(bool test(T element), {T orElse()?}) {
     _Future<T> future = new _Future();
@@ -1624,13 +1656,13 @@ abstract class Stream<T> {
   ///
   /// Example:
   /// ```dart
-  /// Stream.fromIterable([1, 3, 4, 7, 12, 24, 32])
-  ///     .lastWhere((element) => element % 6 == 0, orElse: () => -1)
-  ///     .then((value) => print(value)); // 24
+  /// var result = await Stream.fromIterable([1, 3, 4, 7, 12, 24, 32])
+  ///     .lastWhere((element) => element % 6 == 0, orElse: () => -1);
+  /// print(result); // 24
   ///
-  /// Stream.fromIterable([1, 3, 4, 7, 12, 24, 32])
-  ///     .lastWhere((element) => element % 10 == 0, orElse: () => -1)
-  ///     .then((value) => print(value)); // -1
+  /// result = await Stream.fromIterable([1, 3, 4, 7, 12, 24, 32])
+  ///     .lastWhere((element) => element % 10 == 0, orElse: () => -1);
+  /// print(result); // -1
   /// ```
   Future<T> lastWhere(bool test(T element), {T orElse()?}) {
     _Future<T> future = new _Future();
@@ -1671,13 +1703,13 @@ abstract class Stream<T> {
   ///
   /// Example:
   /// ```dart
-  /// Stream.fromIterable([1, 2, 3, 6, 9, 12])
-  ///     .singleWhere((element) => element % 4 == 0, orElse: () => -1)
-  ///     .then((value) => print(value)); // 12
+  /// var result = await Stream.fromIterable([1, 2, 3, 6, 9, 12])
+  ///     .singleWhere((element) => element % 4 == 0, orElse: () => -1);
+  /// print(result); // 12
   ///
-  /// Stream.fromIterable([2, 6, 8, 12, 24, 32])
-  ///     .singleWhere((element) => element % 6 == 0, orElse: () => -1)
-  ///     .then((value) => print(value)); // Throws.
+  /// result = await Stream.fromIterable([2, 6, 8, 12, 24, 32])
+  ///     .singleWhere((element) => element % 6 == 0, orElse: () => -1);
+  /// // Throws.
   /// ```
   Future<T> singleWhere(bool test(T element), {T orElse()?}) {
     _Future<T> future = new _Future<T>();
@@ -1891,6 +1923,31 @@ abstract class Stream<T> {
 /// and holds the callbacks used to handle the events.
 /// The subscription can also be used to unsubscribe from the events,
 /// or to temporarily pause the events from the stream.
+///
+/// Example:
+/// ```dart
+/// final stream = Stream.periodic(const Duration(seconds: 1), (i) => i * i)
+///     .take(10);
+///
+/// final streamSubscription = stream.listen(print); // StreamSubscription.
+/// ```
+/// To pause the subscription, use [pause].
+/// ```dart continued
+/// await Future.delayed(const Duration(seconds: 2));
+/// streamSubscription.pause();
+/// print(streamSubscription.isPaused); // true
+/// ```
+/// To resume after the pause, use [resume].
+/// ```dart continued
+/// await Future.delayed(const Duration(seconds: 4));
+/// streamSubscription.resume();
+/// print(streamSubscription.isPaused); // false
+/// ```
+/// To cancel the subscription, use [cancel].
+/// ```dart continued
+/// await Future.delayed(const Duration(seconds: 2));
+/// streamSubscription.cancel();
+/// ```
 abstract class StreamSubscription<T> {
   /// Cancels this subscription.
   ///
