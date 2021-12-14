@@ -192,6 +192,46 @@ Map<String, FrontEndErrorCodeInfo> _loadFrontEndMessages() {
   return decodeCfeMessagesYaml(messagesYaml);
 }
 
+/// Splits [text] on spaces using the given [maxWidth] (and [firstLineWidth] if
+/// given).
+List<String> _splitText(
+  String text, {
+  required int maxWidth,
+  int? firstLineWidth,
+}) {
+  firstLineWidth ??= maxWidth;
+  var lines = <String>[];
+  // The character width to use as a maximum width. This starts as
+  // [firstLineWidth] but becomes [maxWidth] on every iteration after the first.
+  var width = firstLineWidth;
+  var lineMaxEndIndex = width;
+  var lineStartIndex = 0;
+
+  while (true) {
+    if (lineMaxEndIndex >= text.length) {
+      lines.add(text.substring(lineStartIndex, text.length));
+      break;
+    } else {
+      var lastSpaceIndex = text.lastIndexOf(' ', lineMaxEndIndex);
+      if (lastSpaceIndex == -1 || lastSpaceIndex <= lineStartIndex) {
+        // No space between [lineStartIndex] and [lineMaxEndIndex]. Get the
+        // _next_ space.
+        lastSpaceIndex = text.indexOf(' ', lineMaxEndIndex);
+        if (lastSpaceIndex == -1) {
+          // No space at all after [lineStartIndex].
+          lines.add(text.substring(lineStartIndex));
+          break;
+        }
+      }
+      lines.add(text.substring(lineStartIndex, lastSpaceIndex + 1));
+      lineStartIndex = lastSpaceIndex + 1;
+      width = maxWidth;
+    }
+    lineMaxEndIndex = lineStartIndex + maxWidth;
+  }
+  return lines;
+}
+
 /// In-memory representation of error code information obtained from the
 /// analyzer's `messages.yaml` file.
 class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
@@ -431,16 +471,21 @@ abstract class ErrorCodeInfo {
     var out = StringBuffer();
     out.writeln('$className(');
     out.writeln("'${sharedName ?? errorCode}',");
+    var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     final placeholderToIndexMap = computePlaceholderToIndexMap();
-    out.writeln(
-        json.encode(convertTemplate(placeholderToIndexMap, problemMessage)) +
-            ',');
+    var messageAsCode = convertTemplate(placeholderToIndexMap, problemMessage);
+    out.writeln(_splitText(messageAsCode,
+                maxWidth: maxWidth, firstLineWidth: maxWidth + 4)
+            .map(json.encode)
+            .join('\n') +
+        ',');
     final correctionMessage = this.correctionMessage;
     if (correctionMessage is String) {
       out.write('correctionMessage: ');
-      out.writeln(json.encode(
-              convertTemplate(placeholderToIndexMap, correctionMessage)) +
-          ',');
+      var code = convertTemplate(placeholderToIndexMap, correctionMessage);
+      out.writeln(
+          _splitText(code, maxWidth: maxWidth).map(json.encode).join('\n') +
+              ',');
     }
     if (hasPublishedDocs) {
       out.writeln('hasPublishedDocs:true,');
