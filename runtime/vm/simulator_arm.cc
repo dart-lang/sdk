@@ -916,25 +916,21 @@ DART_FORCE_INLINE void Simulator::set_pc(int32_t value) {
 
 // Accessors for VFP register state.
 DART_FORCE_INLINE void Simulator::set_sregister(SRegister reg, float value) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   sregisters_[reg] = bit_cast<int32_t, float>(value);
 }
 
 DART_FORCE_INLINE float Simulator::get_sregister(SRegister reg) const {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   return bit_cast<float, int32_t>(sregisters_[reg]);
 }
 
 DART_FORCE_INLINE void Simulator::set_dregister(DRegister reg, double value) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   dregisters_[reg] = bit_cast<int64_t, double>(value);
 }
 
 DART_FORCE_INLINE double Simulator::get_dregister(DRegister reg) const {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   return bit_cast<double, int64_t>(dregisters_[reg]);
 }
@@ -958,25 +954,21 @@ void Simulator::get_qregister(QRegister reg, simd_value_t* value) const {
 }
 
 void Simulator::set_sregister_bits(SRegister reg, int32_t value) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   sregisters_[reg] = value;
 }
 
 int32_t Simulator::get_sregister_bits(SRegister reg) const {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
   return sregisters_[reg];
 }
 
 void Simulator::set_dregister_bits(DRegister reg, int64_t value) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   dregisters_[reg] = value;
 }
 
 int64_t Simulator::get_dregister_bits(DRegister reg) const {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   return dregisters_[reg];
 }
@@ -1500,7 +1492,6 @@ void Simulator::SupervisorCall(Instr* instr) {
         set_register(R3, icount_);
         set_register(IP, icount_);
         set_register(LR, icount_);
-        if (TargetCPUFeatures::vfp_supported()) {
           double zap_dvalue = static_cast<double>(icount_);
           // Do not zap D0, as it may contain a float result.
           for (int i = D1; i <= D7; i++) {
@@ -1513,7 +1504,6 @@ void Simulator::SupervisorCall(Instr* instr) {
             set_dregister(static_cast<DRegister>(i), zap_dvalue);
           }
 #endif
-        }
 
         // Return.
         set_pc(saved_lr);
@@ -3519,7 +3509,6 @@ int64_t Simulator::Call(int32_t entry,
 
   // Setup parameters.
   if (fp_args) {
-    ASSERT(TargetCPUFeatures::vfp_supported());
     set_sregister(S0, bit_cast<float, int32_t>(parameter0));
     set_sregister(S1, bit_cast<float, int32_t>(parameter1));
     set_sregister(S2, bit_cast<float, int32_t>(parameter2));
@@ -3569,7 +3558,6 @@ int64_t Simulator::Call(int32_t entry,
   double d14_val = 0.0;
   double d15_val = 0.0;
 
-  if (TargetCPUFeatures::vfp_supported()) {
     d8_val = get_dregister(D8);
     d9_val = get_dregister(D9);
     d10_val = get_dregister(D10);
@@ -3578,7 +3566,6 @@ int64_t Simulator::Call(int32_t entry,
     d13_val = get_dregister(D13);
     d14_val = get_dregister(D14);
     d15_val = get_dregister(D15);
-  }
 
   // Setup the callee-saved registers with a known value. To be able to check
   // that they are preserved properly across dart execution.
@@ -3595,7 +3582,6 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R11, callee_saved_value);
 
   double callee_saved_dvalue = 0.0;
-  if (TargetCPUFeatures::vfp_supported()) {
     callee_saved_dvalue = static_cast<double>(icount_);
     set_dregister(D8, callee_saved_dvalue);
     set_dregister(D9, callee_saved_dvalue);
@@ -3605,7 +3591,6 @@ int64_t Simulator::Call(int32_t entry,
     set_dregister(D13, callee_saved_dvalue);
     set_dregister(D14, callee_saved_dvalue);
     set_dregister(D15, callee_saved_dvalue);
-  }
 
   // Start the simulation
   Execute();
@@ -3622,7 +3607,6 @@ int64_t Simulator::Call(int32_t entry,
   ASSERT(callee_saved_value == get_register(R10));
   ASSERT(callee_saved_value == get_register(R11));
 
-  if (TargetCPUFeatures::vfp_supported()) {
     ASSERT(callee_saved_dvalue == get_dregister(D8));
     ASSERT(callee_saved_dvalue == get_dregister(D9));
     ASSERT(callee_saved_dvalue == get_dregister(D10));
@@ -3631,7 +3615,6 @@ int64_t Simulator::Call(int32_t entry,
     ASSERT(callee_saved_dvalue == get_dregister(D13));
     ASSERT(callee_saved_dvalue == get_dregister(D14));
     ASSERT(callee_saved_dvalue == get_dregister(D15));
-  }
 
   // Restore callee-saved registers with the original value.
   set_register(R4, r4_val);
@@ -3645,7 +3628,6 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R10, r10_val);
   set_register(R11, r11_val);
 
-  if (TargetCPUFeatures::vfp_supported()) {
     set_dregister(D8, d8_val);
     set_dregister(D9, d9_val);
     set_dregister(D10, d10_val);
@@ -3654,13 +3636,11 @@ int64_t Simulator::Call(int32_t entry,
     set_dregister(D13, d13_val);
     set_dregister(D14, d14_val);
     set_dregister(D15, d15_val);
-  }
 
   // Restore the SP register and return R1:R0.
   set_register(SP, sp_before_call);
   int64_t return_value;
   if (fp_return) {
-    ASSERT(TargetCPUFeatures::vfp_supported());
     return_value = bit_cast<int64_t, double>(get_dregister(D0));
   } else {
     return_value = Utils::LowHighTo64Bits(get_register(R0), get_register(R1));

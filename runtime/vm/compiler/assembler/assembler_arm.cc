@@ -702,7 +702,6 @@ void Assembler::nop(Condition cond) {
 }
 
 void Assembler::vmovsr(SRegister sn, Register rt, Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sn != kNoSRegister);
   ASSERT(rt != kNoRegister);
   ASSERT(rt != SP);
@@ -716,7 +715,6 @@ void Assembler::vmovsr(SRegister sn, Register rt, Condition cond) {
 }
 
 void Assembler::vmovrs(Register rt, SRegister sn, Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sn != kNoSRegister);
   ASSERT(rt != kNoRegister);
   ASSERT(rt != SP);
@@ -733,7 +731,6 @@ void Assembler::vmovsrr(SRegister sm,
                         Register rt,
                         Register rt2,
                         Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sm != kNoSRegister);
   ASSERT(sm != S31);
   ASSERT(rt != kNoRegister);
@@ -755,7 +752,6 @@ void Assembler::vmovrrs(Register rt,
                         Register rt2,
                         SRegister sm,
                         Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sm != kNoSRegister);
   ASSERT(sm != S31);
   ASSERT(rt != kNoRegister);
@@ -775,7 +771,6 @@ void Assembler::vmovrrs(Register rt,
 }
 
 void Assembler::vmovdr(DRegister dn, int i, Register rt, Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT((i == 0) || (i == 1));
   ASSERT(rt != kNoRegister);
   ASSERT(rt != SP);
@@ -793,7 +788,6 @@ void Assembler::vmovdrr(DRegister dm,
                         Register rt,
                         Register rt2,
                         Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dm != kNoDRegister);
   ASSERT(rt != kNoRegister);
   ASSERT(rt != SP);
@@ -814,7 +808,6 @@ void Assembler::vmovrrd(Register rt,
                         Register rt2,
                         DRegister dm,
                         Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dm != kNoDRegister);
   ASSERT(rt != kNoRegister);
   ASSERT(rt != SP);
@@ -833,7 +826,6 @@ void Assembler::vmovrrd(Register rt,
 }
 
 void Assembler::vldrs(SRegister sd, Address ad, Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sd != kNoSRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
@@ -844,7 +836,6 @@ void Assembler::vldrs(SRegister sd, Address ad, Condition cond) {
 }
 
 void Assembler::vstrs(SRegister sd, Address ad, Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(static_cast<Register>(ad.encoding_ & (0xf << kRnShift)) != PC);
   ASSERT(sd != kNoSRegister);
   ASSERT(cond != kNoCondition);
@@ -856,7 +847,6 @@ void Assembler::vstrs(SRegister sd, Address ad, Condition cond) {
 }
 
 void Assembler::vldrd(DRegister dd, Address ad, Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dd != kNoDRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
@@ -867,7 +857,6 @@ void Assembler::vldrd(DRegister dd, Address ad, Condition cond) {
 }
 
 void Assembler::vstrd(DRegister dd, Address ad, Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(static_cast<Register>(ad.encoding_ & (0xf << kRnShift)) != PC);
   ASSERT(dd != kNoDRegister);
   ASSERT(cond != kNoCondition);
@@ -884,7 +873,6 @@ void Assembler::EmitMultiVSMemOp(Condition cond,
                                  Register base,
                                  SRegister start,
                                  uint32_t count) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(base != kNoRegister);
   ASSERT(cond != kNoCondition);
   ASSERT(start != kNoSRegister);
@@ -904,7 +892,6 @@ void Assembler::EmitMultiVDMemOp(Condition cond,
                                  Register base,
                                  DRegister start,
                                  int32_t count) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(base != kNoRegister);
   ASSERT(cond != kNoCondition);
   ASSERT(start != kNoDRegister);
@@ -966,7 +953,6 @@ void Assembler::EmitVFPsss(Condition cond,
                            SRegister sd,
                            SRegister sn,
                            SRegister sm) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sd != kNoSRegister);
   ASSERT(sn != kNoSRegister);
   ASSERT(sm != kNoSRegister);
@@ -986,7 +972,6 @@ void Assembler::EmitVFPddd(Condition cond,
                            DRegister dd,
                            DRegister dn,
                            DRegister dm) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dd != kNoDRegister);
   ASSERT(dn != kNoDRegister);
   ASSERT(dm != kNoDRegister);
@@ -1149,7 +1134,6 @@ void Assembler::EmitVFPsd(Condition cond,
                           int32_t opcode,
                           SRegister sd,
                           DRegister dm) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(sd != kNoSRegister);
   ASSERT(dm != kNoDRegister);
   ASSERT(cond != kNoCondition);
@@ -1165,7 +1149,6 @@ void Assembler::EmitVFPds(Condition cond,
                           int32_t opcode,
                           DRegister dd,
                           SRegister sm) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(dd != kNoDRegister);
   ASSERT(sm != kNoSRegister);
   ASSERT(cond != kNoCondition);
@@ -1234,7 +1217,6 @@ void Assembler::vcmpdz(DRegister dd, Condition cond) {
 }
 
 void Assembler::vmrs(Register rd, Condition cond) {
-  ASSERT(TargetCPUFeatures::vfp_supported());
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
                      B26 | B25 | B23 | B22 | B21 | B20 | B16 |
@@ -2526,24 +2508,16 @@ void Assembler::PushNativeCalleeSavedRegisters() {
   PushList(kAbiPreservedCpuRegs);
 
   const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
-  if (TargetCPUFeatures::vfp_supported()) {
     ASSERT(2 * kAbiPreservedFpuRegCount < 16);
     // Save FPU registers. 2 D registers per Q register.
     vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
-  } else {
-    sub(SP, SP, Operand(kAbiPreservedFpuRegCount * kFpuRegisterSize));
-  }
 }
 
 void Assembler::PopNativeCalleeSavedRegisters() {
   const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
   // Restore C++ ABI callee-saved registers.
-  if (TargetCPUFeatures::vfp_supported()) {
-    // Restore FPU registers. 2 D registers per Q register.
-    vldmd(IA_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
-  } else {
-    AddImmediate(SP, kAbiPreservedFpuRegCount * kFpuRegisterSize);
-  }
+  // Restore FPU registers. 2 D registers per Q register.
+  vldmd(IA_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
   // Restore CPU registers.
   PopList(kAbiPreservedCpuRegs);
 }
@@ -3000,17 +2974,8 @@ void Assembler::CopyDoubleField(Register dst,
                                 Register tmp1,
                                 Register tmp2,
                                 DRegister dtmp) {
-  if (TargetCPUFeatures::vfp_supported()) {
     LoadDFromOffset(dtmp, src, target::Double::value_offset() - kHeapObjectTag);
     StoreDToOffset(dtmp, dst, target::Double::value_offset() - kHeapObjectTag);
-  } else {
-    LoadFieldFromOffset(tmp1, src, target::Double::value_offset());
-    LoadFieldFromOffset(tmp2, src,
-                        target::Double::value_offset() + target::kWordSize);
-    StoreFieldToOffset(tmp1, dst, target::Double::value_offset());
-    StoreFieldToOffset(tmp2, dst,
-                       target::Double::value_offset() + target::kWordSize);
-  }
 }
 
 void Assembler::CopyFloat32x4Field(Register dst,
@@ -3215,7 +3180,6 @@ void Assembler::IntegerDivide(Register result,
   if (TargetCPUFeatures::integer_division_supported()) {
     sdiv(result, left, right);
   } else {
-    ASSERT(TargetCPUFeatures::vfp_supported());
     SRegister stmpl = EvenSRegisterOf(tmpl);
     SRegister stmpr = EvenSRegisterOf(tmpr);
     vmovsr(stmpl, left);
@@ -3298,7 +3262,6 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
 
   // Preserve all volatile FPU registers.
-  if (TargetCPUFeatures::vfp_supported()) {
     DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
     DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
     if ((lastv - firstv + 1) >= 16) {
@@ -3308,7 +3271,6 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
     } else {
       vstmd(DB_W, SP, firstv, lastv - firstv + 1);
     }
-  }
 
   ReserveAlignedFrameSpace(frame_space);
 }
@@ -3318,9 +3280,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   // and ensure proper alignment of the stack frame.
   // We need to restore it before restoring registers.
   const intptr_t kPushedFpuRegisterSize =
-      TargetCPUFeatures::vfp_supported()
-          ? kDartVolatileFpuRegCount * kFpuRegisterSize
-          : 0;
+      kDartVolatileFpuRegCount * kFpuRegisterSize;
 
   COMPILE_ASSERT(PP < FP);
   COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
@@ -3331,7 +3291,6 @@ void Assembler::LeaveCallRuntimeFrame() {
   AddImmediate(SP, FP, -kPushedRegistersSize);
 
   // Restore all volatile FPU registers.
-  if (TargetCPUFeatures::vfp_supported()) {
     DRegister firstv = EvenDRegisterOf(kDartFirstVolatileFpuReg);
     DRegister lastv = OddDRegisterOf(kDartLastVolatileFpuReg);
     if ((lastv - firstv + 1) >= 16) {
@@ -3341,7 +3300,6 @@ void Assembler::LeaveCallRuntimeFrame() {
     } else {
       vldmd(IA_W, SP, firstv, lastv - firstv + 1);
     }
-  }
 
   // Restore volatile CPU registers.
   RESTORES_LR_FROM_FRAME(

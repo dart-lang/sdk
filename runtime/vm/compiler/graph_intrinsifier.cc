@@ -966,20 +966,10 @@ bool GraphIntrinsifier::Build_Integer_mul(FlowGraph* flow_graph) {
 }
 
 bool GraphIntrinsifier::Build_Integer_mod(FlowGraph* flow_graph) {
-#if defined(TARGET_ARCH_ARM)
-  if (!TargetCPUFeatures::can_divide()) {
-    return false;
-  }
-#endif
   return BuildBinarySmiOp(flow_graph, Token::kMOD);
 }
 
 bool GraphIntrinsifier::Build_Integer_truncDivide(FlowGraph* flow_graph) {
-#if defined(TARGET_ARCH_ARM)
-  if (!TargetCPUFeatures::can_divide()) {
-    return false;
-  }
-#endif
   return BuildBinarySmiOp(flow_graph, Token::kTRUNCDIV);
 }
 

@@ -48,10 +48,6 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return FLAG_enable_simd_inline;
 }
 
-bool FlowGraphCompiler::SupportsHardwareDivision() {
-  return true;
-}
-
 bool FlowGraphCompiler::CanConvertInt64ToDouble() {
   return true;
 }

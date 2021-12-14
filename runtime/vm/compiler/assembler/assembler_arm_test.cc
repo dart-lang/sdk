@@ -273,81 +273,68 @@ ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(Vmov, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ mov(R3, Operand(43));
-    __ mov(R1, Operand(41));
-    __ vmovsrr(S1, R1, R3);       // S1:S2 = 41:43
-    __ vmovs(S0, S2);             // S0 = S2, S0:S1 == 43:41
-    __ vmovd(D2, D0);             // D2 = D0, S4:S5 == 43:41
-    __ vmovrs(R3, S5);            // R3 = S5, R3 == 41
-    __ vmovrrs(R1, R2, S4);       // R1:R2 = S4:S5, R1:R2 == 43:41
-    __ vmovdrr(D3, R3, R2);       // D3 = R3:R2, S6:S7 == 41:41
-    __ vmovdr(D3, 1, R1);         // D3[1] == S7 = R1, S6:S7 == 41:43
-    __ vmovrrd(R0, R1, D3);       // R0:R1 = D3, R0:R1 == 41:43
-    __ sub(R0, R1, Operand(R0));  // 43-41
-  }
+  __ mov(R3, Operand(43));
+  __ mov(R1, Operand(41));
+  __ vmovsrr(S1, R1, R3);       // S1:S2 = 41:43
+  __ vmovs(S0, S2);             // S0 = S2, S0:S1 == 43:41
+  __ vmovd(D2, D0);             // D2 = D0, S4:S5 == 43:41
+  __ vmovrs(R3, S5);            // R3 = S5, R3 == 41
+  __ vmovrrs(R1, R2, S4);       // R1:R2 = S4:S5, R1:R2 == 43:41
+  __ vmovdrr(D3, R3, R2);       // D3 = R3:R2, S6:S7 == 41:41
+  __ vmovdr(D3, 1, R1);         // D3[1] == S7 = R1, S6:S7 == 41:43
+  __ vmovrrd(R0, R1, D3);       // R0:R1 = D3, R0:R1 == 41:43
+  __ sub(R0, R1, Operand(R0));  // 43-41
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(Vmov, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*Vmov)() DART_UNUSED;
-    EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(Vmov, test->entry()));
-  }
+  typedef int (*Vmov)() DART_UNUSED;
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(Vmov, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(SingleVLoadStore, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ LoadImmediate(R0, bit_cast<int32_t, float>(12.3f));
-    __ mov(R2, Operand(SP));
-    __ str(R0, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
-    __ vldrs(S0, Address(R2, (-target::kWordSize * 30)));
-    __ vadds(S0, S0, S0);
-    __ vstrs(S0, Address(R2, (-target::kWordSize * 30)));
-    __ ldr(R0, Address(SP, (target::kWordSize * 30), Address::PostIndex));
-  }
+  __ LoadImmediate(R0, bit_cast<int32_t, float>(12.3f));
+  __ mov(R2, Operand(SP));
+  __ str(R0, Address(SP, (-target::kWordSize * 30), Address::PreIndex));
+  __ vldrs(S0, Address(R2, (-target::kWordSize * 30)));
+  __ vadds(S0, S0, S0);
+  __ vstrs(S0, Address(R2, (-target::kWordSize * 30)));
+  __ ldr(R0, Address(SP, (target::kWordSize * 30), Address::PostIndex));
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(SingleVLoadStore, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef float (*SingleVLoadStore)() DART_UNUSED;
-    float res = EXECUTE_TEST_CODE_FLOAT(SingleVLoadStore, test->entry());
-    EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
-  }
+  typedef float (*SingleVLoadStore)() DART_UNUSED;
+  float res = EXECUTE_TEST_CODE_FLOAT(SingleVLoadStore, test->entry());
+  EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
 }
 
 ASSEMBLER_TEST_GENERATE(SingleVShiftLoadStore, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ LoadImmediate(R0, bit_cast<int32_t, float>(12.3f));
-    __ mov(R2, Operand(SP));
-    // Expressing __str(R0, Address(SP, (-kWordSize * 32), Address::PreIndex));
-    // as:
-    __ mov(R1, Operand(target::kWordSize));
-    __ str(R0, Address(SP, R1, LSL, 5, Address::NegPreIndex));
-    __ vldrs(S0, Address(R2, (-target::kWordSize * 32)));
-    __ vadds(S0, S0, S0);
-    __ vstrs(S0, Address(R2, (-target::kWordSize * 32)));
-    // Expressing __ldr(R0, Address(SP, (kWordSize * 32), Address::PostIndex));
-    // as:
-    __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
-  }
+  __ LoadImmediate(R0, bit_cast<int32_t, float>(12.3f));
+  __ mov(R2, Operand(SP));
+  // Expressing __str(R0, Address(SP, (-kWordSize * 32), Address::PreIndex));
+  // as:
+  __ mov(R1, Operand(target::kWordSize));
+  __ str(R0, Address(SP, R1, LSL, 5, Address::NegPreIndex));
+  __ vldrs(S0, Address(R2, (-target::kWordSize * 32)));
+  __ vadds(S0, S0, S0);
+  __ vstrs(S0, Address(R2, (-target::kWordSize * 32)));
+  // Expressing __ldr(R0, Address(SP, (kWordSize * 32), Address::PostIndex));
+  // as:
+  __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(SingleVShiftLoadStore, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef float (*SingleVLoadStore)() DART_UNUSED;
-    float res = EXECUTE_TEST_CODE_FLOAT(SingleVLoadStore, test->entry());
-    EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
-  }
+  typedef float (*SingleVLoadStore)() DART_UNUSED;
+  float res = EXECUTE_TEST_CODE_FLOAT(SingleVLoadStore, test->entry());
+  EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
     int64_t value = bit_cast<int64_t, double>(12.3);
     __ LoadImmediate(R0, Utils::Low32Bits(value));
     __ LoadImmediate(R1, Utils::High32Bits(value));
@@ -359,69 +346,57 @@ ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
     __ vstrd(D0, Address(R2, (-target::kWordSize * 30)));
     __ ldr(R1, Address(R2, (-target::kWordSize * 29)));
     __ ldr(R0, Address(SP, (target::kWordSize * 30), Address::PostIndex));
-  }
-  __ Ret();
+    __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleVLoadStore, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef double (*DoubleVLoadStore)() DART_UNUSED;
-    float res = EXECUTE_TEST_CODE_DOUBLE(DoubleVLoadStore, test->entry());
-    EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
-  }
+  typedef double (*DoubleVLoadStore)() DART_UNUSED;
+  float res = EXECUTE_TEST_CODE_DOUBLE(DoubleVLoadStore, test->entry());
+  EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
 }
 
 ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ LoadSImmediate(S0, 12.3f);
-    __ LoadSImmediate(S1, 3.4f);
-    __ vnegs(S0, S0);      // -12.3f
-    __ vabss(S0, S0);      // 12.3f
-    __ vadds(S0, S0, S1);  // 15.7f
-    __ vmuls(S0, S0, S1);  // 53.38f
-    __ vsubs(S0, S0, S1);  // 49.98f
-    __ vdivs(S0, S0, S1);  // 14.7f
-    __ vsqrts(S0, S0);     // 3.8340579f
-  }
+  __ LoadSImmediate(S0, 12.3f);
+  __ LoadSImmediate(S1, 3.4f);
+  __ vnegs(S0, S0);      // -12.3f
+  __ vabss(S0, S0);      // 12.3f
+  __ vadds(S0, S0, S1);  // 15.7f
+  __ vmuls(S0, S0, S1);  // 53.38f
+  __ vsubs(S0, S0, S1);  // 49.98f
+  __ vdivs(S0, S0, S1);  // 14.7f
+  __ vsqrts(S0, S0);     // 3.8340579f
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(SingleFPOperations, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef float (*SingleFPOperations)() DART_UNUSED;
-    float res = EXECUTE_TEST_CODE_FLOAT(SingleFPOperations, test->entry());
-    EXPECT_FLOAT_EQ(3.8340579f, res, 0.001f);
-  }
+  typedef float (*SingleFPOperations)() DART_UNUSED;
+  float res = EXECUTE_TEST_CODE_FLOAT(SingleFPOperations, test->entry());
+  EXPECT_FLOAT_EQ(3.8340579f, res, 0.001f);
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ LoadDImmediate(D0, 12.3, R0);
-    __ LoadDImmediate(D1, 3.4, R0);
-    __ vnegd(D0, D0);      // -12.3
-    __ vabsd(D0, D0);      // 12.3
-    __ vaddd(D0, D0, D1);  // 15.7
-    __ vmuld(D0, D0, D1);  // 53.38
-    __ vsubd(D0, D0, D1);  // 49.98
-    __ vdivd(D0, D0, D1);  // 14.7
-    __ vsqrtd(D0, D0);     // 3.8340579
-  }
+  __ LoadDImmediate(D0, 12.3, R0);
+  __ LoadDImmediate(D1, 3.4, R0);
+  __ vnegd(D0, D0);      // -12.3
+  __ vabsd(D0, D0);      // 12.3
+  __ vaddd(D0, D0, D1);  // 15.7
+  __ vmuld(D0, D0, D1);  // 53.38
+  __ vsubd(D0, D0, D1);  // 49.98
+  __ vdivd(D0, D0, D1);  // 14.7
+  __ vsqrtd(D0, D0);     // 3.8340579
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleFPOperations, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef double (*DoubleFPOperations)() DART_UNUSED;
-    double res = EXECUTE_TEST_CODE_DOUBLE(DoubleFPOperations, test->entry());
-    EXPECT_FLOAT_EQ(3.8340579, res, 0.001);
-  }
+  typedef double (*DoubleFPOperations)() DART_UNUSED;
+  double res = EXECUTE_TEST_CODE_DOUBLE(DoubleFPOperations, test->entry());
+  EXPECT_FLOAT_EQ(3.8340579, res, 0.001);
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleSqrtNeg, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
     // Check that sqrt of a negative double gives NaN.
     __ LoadDImmediate(D1, -1.0, R0);
     __ vsqrtd(D0, D1);
@@ -429,161 +404,128 @@ ASSEMBLER_TEST_GENERATE(DoubleSqrtNeg, assembler) {
     __ vmstat();
     __ mov(R0, Operand(1), VS);
     __ mov(R0, Operand(0), VC);
-  }
-  __ Ret();
+    __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleSqrtNeg, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*DoubleSqrtNeg)() DART_UNUSED;
-    EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(DoubleSqrtNeg, test->entry()));
-  }
+  typedef int (*DoubleSqrtNeg)() DART_UNUSED;
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(DoubleSqrtNeg, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ mov(R3, Operand(6));
-    __ vmovsr(S3, R3);
-    __ vcvtdi(D0, S3);
-  }
+  __ mov(R3, Operand(6));
+  __ vmovsr(S3, R3);
+  __ vcvtdi(D0, S3);
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef double (*IntToDoubleConversionCode)() DART_UNUSED;
-    double res =
-        EXECUTE_TEST_CODE_DOUBLE(IntToDoubleConversionCode, test->entry());
-    EXPECT_FLOAT_EQ(6.0, res, 0.001);
-  }
+  typedef double (*IntToDoubleConversionCode)() DART_UNUSED;
+  double res =
+      EXECUTE_TEST_CODE_DOUBLE(IntToDoubleConversionCode, test->entry());
+  EXPECT_FLOAT_EQ(6.0, res, 0.001);
 }
 
 ASSEMBLER_TEST_GENERATE(LongToDoubleConversion, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    int64_t value = 60000000000LL;
-    __ LoadImmediate(R0, Utils::Low32Bits(value));
-    __ LoadImmediate(R1, Utils::High32Bits(value));
-    __ vmovsr(S0, R0);
-    __ vmovsr(S2, R1);
-    __ vcvtdu(D0, S0);
-    __ vcvtdi(D1, S2);
-    __ LoadDImmediate(D2, 1.0 * (1LL << 32), R0);
-    __ vmlad(D0, D1, D2);
-  }
+  int64_t value = 60000000000LL;
+  __ LoadImmediate(R0, Utils::Low32Bits(value));
+  __ LoadImmediate(R1, Utils::High32Bits(value));
+  __ vmovsr(S0, R0);
+  __ vmovsr(S2, R1);
+  __ vcvtdu(D0, S0);
+  __ vcvtdi(D1, S2);
+  __ LoadDImmediate(D2, 1.0 * (1LL << 32), R0);
+  __ vmlad(D0, D1, D2);
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(LongToDoubleConversion, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef double (*LongToDoubleConversionCode)() DART_UNUSED;
-    double res =
-        EXECUTE_TEST_CODE_DOUBLE(LongToDoubleConversionCode, test->entry());
-    EXPECT_FLOAT_EQ(60000000000.0, res, 0.001);
-  }
+  typedef double (*LongToDoubleConversionCode)() DART_UNUSED;
+  double res =
+      EXECUTE_TEST_CODE_DOUBLE(LongToDoubleConversionCode, test->entry());
+  EXPECT_FLOAT_EQ(60000000000.0, res, 0.001);
 }
 
 ASSEMBLER_TEST_GENERATE(IntToFloatConversion, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ mov(R3, Operand(6));
-    __ vmovsr(S3, R3);
-    __ vcvtsi(S0, S3);
-  }
+  __ mov(R3, Operand(6));
+  __ vmovsr(S3, R3);
+  __ vcvtsi(S0, S3);
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(IntToFloatConversion, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef float (*IntToFloatConversionCode)() DART_UNUSED;
-    float res =
-        EXECUTE_TEST_CODE_FLOAT(IntToFloatConversionCode, test->entry());
-    EXPECT_FLOAT_EQ(6.0, res, 0.001);
-  }
+  typedef float (*IntToFloatConversionCode)() DART_UNUSED;
+  float res = EXECUTE_TEST_CODE_FLOAT(IntToFloatConversionCode, test->entry());
+  EXPECT_FLOAT_EQ(6.0, res, 0.001);
 }
 
 ASSEMBLER_TEST_GENERATE(FloatToIntConversion, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ vcvtis(S1, S0);
-    __ vmovrs(R0, S1);
-  }
+  __ vcvtis(S1, S0);
+  __ vmovrs(R0, S1);
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(FloatToIntConversion, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*FloatToIntConversion)(float arg) DART_UNUSED;
-    EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion, test->entry(),
-                                            12.8f));
-    EXPECT_EQ(INT32_MIN, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
-                                                   test->entry(), -FLT_MAX));
-    EXPECT_EQ(INT32_MAX, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
-                                                   test->entry(), FLT_MAX));
-  }
+  typedef int (*FloatToIntConversion)(float arg) DART_UNUSED;
+  EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion, test->entry(),
+                                          12.8f));
+  EXPECT_EQ(INT32_MIN, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
+                                                 test->entry(), -FLT_MAX));
+  EXPECT_EQ(INT32_MAX, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
+                                                 test->entry(), FLT_MAX));
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToIntConversion, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ vcvtid(S0, D0);
-    __ vmovrs(R0, S0);
-  }
+  __ vcvtid(S0, D0);
+  __ vmovrs(R0, S0);
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleToIntConversion, test) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*DoubleToIntConversion)(double arg) DART_UNUSED;
-    EXPECT(test != NULL);
-    EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
-                                            test->entry(), 12.8));
-    EXPECT_EQ(INT32_MIN, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
-                                                   test->entry(), -DBL_MAX));
-    EXPECT_EQ(INT32_MAX, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
-                                                   test->entry(), DBL_MAX));
-  }
+  typedef int (*DoubleToIntConversion)(double arg) DART_UNUSED;
+  EXPECT(test != NULL);
+  EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion, test->entry(),
+                                          12.8));
+  EXPECT_EQ(INT32_MIN, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
+                                                 test->entry(), -DBL_MAX));
+  EXPECT_EQ(INT32_MAX, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
+                                                 test->entry(), DBL_MAX));
 }
 
 ASSEMBLER_TEST_GENERATE(FloatToDoubleConversion, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ LoadSImmediate(S2, 12.8f);
-    __ vcvtds(D0, S2);
-  }
+  __ LoadSImmediate(S2, 12.8f);
+  __ vcvtds(D0, S2);
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(FloatToDoubleConversion, test) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef double (*FloatToDoubleConversionCode)() DART_UNUSED;
-    EXPECT(test != NULL);
-    double res =
-        EXECUTE_TEST_CODE_DOUBLE(FloatToDoubleConversionCode, test->entry());
-    EXPECT_FLOAT_EQ(12.8, res, 0.001);
-  }
+  typedef double (*FloatToDoubleConversionCode)() DART_UNUSED;
+  EXPECT(test != NULL);
+  double res =
+      EXECUTE_TEST_CODE_DOUBLE(FloatToDoubleConversionCode, test->entry());
+  EXPECT_FLOAT_EQ(12.8, res, 0.001);
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToFloatConversion, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ LoadDImmediate(D1, 12.8, R0);
-    __ vcvtsd(S0, D1);
-  }
+  __ LoadDImmediate(D1, 12.8, R0);
+  __ vcvtsd(S0, D1);
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleToFloatConversion, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef float (*DoubleToFloatConversionCode)() DART_UNUSED;
-    float res =
-        EXECUTE_TEST_CODE_FLOAT(DoubleToFloatConversionCode, test->entry());
-    EXPECT_FLOAT_EQ(12.8, res, 0.001);
-  }
+  typedef float (*DoubleToFloatConversionCode)() DART_UNUSED;
+  float res =
+      EXECUTE_TEST_CODE_FLOAT(DoubleToFloatConversionCode, test->entry());
+  EXPECT_FLOAT_EQ(12.8, res, 0.001);
 }
 
 ASSEMBLER_TEST_GENERATE(FloatCompare, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
     // Test 12.3f vs 12.5f.
     __ LoadSImmediate(S0, 12.3f);
     __ LoadSImmediate(S1, 12.5f);
@@ -605,21 +547,17 @@ ASSEMBLER_TEST_GENERATE(FloatCompare, assembler) {
     __ vmstat();
     // Error if not unordered (not Nan).
     __ add(R0, R0, Operand(16), VC);
-  }
-  // R0 is 0 if all tests passed.
-  __ Ret();
+    // R0 is 0 if all tests passed.
+    __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(FloatCompare, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*FloatCompare)() DART_UNUSED;
-    EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(FloatCompare, test->entry()));
-  }
+  typedef int (*FloatCompare)() DART_UNUSED;
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(FloatCompare, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
     // Test 12.3 vs 12.5.
     __ LoadDImmediate(D0, 12.3, R1);
     __ LoadDImmediate(D1, 12.5, R1);
@@ -641,17 +579,14 @@ ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
     __ vmstat();
     // Error if not unordered (not Nan).
     __ add(R0, R0, Operand(16), VC);
-  }
-  // R0 is 0 if all tests passed.
-  __ Ret();
+    // R0 is 0 if all tests passed.
+    __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(DoubleCompare, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*DoubleCompare)() DART_UNUSED;
-    EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(DoubleCompare, test->entry()));
-  }
+  typedef int (*DoubleCompare)() DART_UNUSED;
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(DoubleCompare, test->entry()));
 }
 
 ASSEMBLER_TEST_GENERATE(Loop, assembler) {
@@ -976,28 +911,24 @@ ASSEMBLER_TEST_RUN(Multiply, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(QuotientRemainder, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ vmovsr(S2, R0);
-    __ vmovsr(S4, R2);
-    __ vcvtdi(D1, S2);
-    __ vcvtdi(D2, S4);
-    __ vdivd(D0, D1, D2);
-    __ vcvtid(S0, D0);
-    __ vmovrs(R1, S0);       // r1 = r0/r2
-    __ mls(R0, R1, R2, R0);  // r0 = r0 - r1*r2
-  }
+  __ vmovsr(S2, R0);
+  __ vmovsr(S4, R2);
+  __ vcvtdi(D1, S2);
+  __ vcvtdi(D2, S4);
+  __ vdivd(D0, D1, D2);
+  __ vcvtid(S0, D0);
+  __ vmovrs(R1, S0);       // r1 = r0/r2
+  __ mls(R0, R1, R2, R0);  // r0 = r0 - r1*r2
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(QuotientRemainder, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int64_t (*QuotientRemainder)(int64_t dividend, int64_t divisor)
-        DART_UNUSED;
-    EXPECT_EQ(0x1000400000da8LL,
-              EXECUTE_TEST_CODE_INT64_LL(QuotientRemainder, test->entry(),
-                                         0x12345678, 0x1234));
-  }
+  typedef int64_t (*QuotientRemainder)(int64_t dividend, int64_t divisor)
+      DART_UNUSED;
+  EXPECT_EQ(0x1000400000da8LL,
+            EXECUTE_TEST_CODE_INT64_LL(QuotientRemainder, test->entry(),
+                                       0x12345678, 0x1234));
 }
 
 ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
@@ -1437,332 +1368,308 @@ ASSEMBLER_TEST_RUN(AddressShiftLdrLSLNegPreIndex, test) {
 
 // Make sure we can store and reload the D registers using vstmd and vldmd
 ASSEMBLER_TEST_GENERATE(VstmdVldmd, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ LoadDImmediate(D0, 0.0, R0);
-    __ LoadDImmediate(D1, 1.0, R0);
-    __ LoadDImmediate(D2, 2.0, R0);
-    __ LoadDImmediate(D3, 3.0, R0);
-    __ LoadDImmediate(D4, 4.0, R0);
-    __ vstmd(DB_W, SP, D0, 5);  // Push D0 - D4 onto the stack, dec SP
-    __ LoadDImmediate(D0, 0.0, R0);
-    __ LoadDImmediate(D1, 0.0, R0);
-    __ LoadDImmediate(D2, 0.0, R0);
-    __ LoadDImmediate(D3, 0.0, R0);
-    __ LoadDImmediate(D4, 0.0, R0);
-    __ vldmd(IA_W, SP, D0, 5);  // Pop stack into D0 - D4, inc SP
+  __ LoadDImmediate(D0, 0.0, R0);
+  __ LoadDImmediate(D1, 1.0, R0);
+  __ LoadDImmediate(D2, 2.0, R0);
+  __ LoadDImmediate(D3, 3.0, R0);
+  __ LoadDImmediate(D4, 4.0, R0);
+  __ vstmd(DB_W, SP, D0, 5);  // Push D0 - D4 onto the stack, dec SP
+  __ LoadDImmediate(D0, 0.0, R0);
+  __ LoadDImmediate(D1, 0.0, R0);
+  __ LoadDImmediate(D2, 0.0, R0);
+  __ LoadDImmediate(D3, 0.0, R0);
+  __ LoadDImmediate(D4, 0.0, R0);
+  __ vldmd(IA_W, SP, D0, 5);  // Pop stack into D0 - D4, inc SP
 
-    // Load success value into R0
-    __ mov(R0, Operand(42));
+  // Load success value into R0
+  __ mov(R0, Operand(42));
 
-    // Check that 4.0 is back in D4
-    __ LoadDImmediate(D5, 4.0, R1);
-    __ vcmpd(D4, D5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
+  // Check that 4.0 is back in D4
+  __ LoadDImmediate(D5, 4.0, R1);
+  __ vcmpd(D4, D5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-    // Check that 3.0 is back in D3
-    __ LoadDImmediate(D5, 3.0, R1);
-    __ vcmpd(D3, D5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
+  // Check that 3.0 is back in D3
+  __ LoadDImmediate(D5, 3.0, R1);
+  __ vcmpd(D3, D5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-    // Check that 2.0 is back in D2
-    __ LoadDImmediate(D5, 2.0, R1);
-    __ vcmpd(D2, D5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
+  // Check that 2.0 is back in D2
+  __ LoadDImmediate(D5, 2.0, R1);
+  __ vcmpd(D2, D5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-    // Check that 1.0 is back in D1
-    __ LoadDImmediate(D5, 1.0, R1);
-    __ vcmpd(D1, D5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
-  }
+  // Check that 1.0 is back in D1
+  __ LoadDImmediate(D5, 1.0, R1);
+  __ vcmpd(D1, D5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmdVldmd, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
+  typedef int (*Tst)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 // Make sure we can store and reload the S registers using vstms and vldms
 ASSEMBLER_TEST_GENERATE(VstmsVldms, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ LoadSImmediate(S0, 0.0);
-    __ LoadSImmediate(S1, 1.0);
-    __ LoadSImmediate(S2, 2.0);
-    __ LoadSImmediate(S3, 3.0);
-    __ LoadSImmediate(S4, 4.0);
-    __ vstms(DB_W, SP, S0, S4);  // Push S0 - S4 onto the stack, dec SP
-    __ LoadSImmediate(S0, 0.0);
-    __ LoadSImmediate(S1, 0.0);
-    __ LoadSImmediate(S2, 0.0);
-    __ LoadSImmediate(S3, 0.0);
-    __ LoadSImmediate(S4, 0.0);
-    __ vldms(IA_W, SP, S0, S4);  // Pop stack into S0 - S4, inc SP
+  __ LoadSImmediate(S0, 0.0);
+  __ LoadSImmediate(S1, 1.0);
+  __ LoadSImmediate(S2, 2.0);
+  __ LoadSImmediate(S3, 3.0);
+  __ LoadSImmediate(S4, 4.0);
+  __ vstms(DB_W, SP, S0, S4);  // Push S0 - S4 onto the stack, dec SP
+  __ LoadSImmediate(S0, 0.0);
+  __ LoadSImmediate(S1, 0.0);
+  __ LoadSImmediate(S2, 0.0);
+  __ LoadSImmediate(S3, 0.0);
+  __ LoadSImmediate(S4, 0.0);
+  __ vldms(IA_W, SP, S0, S4);  // Pop stack into S0 - S4, inc SP
 
-    // Load success value into R0
-    __ mov(R0, Operand(42));
+  // Load success value into R0
+  __ mov(R0, Operand(42));
 
-    // Check that 4.0 is back in S4
-    __ LoadSImmediate(S5, 4.0);
-    __ vcmps(S4, S5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
+  // Check that 4.0 is back in S4
+  __ LoadSImmediate(S5, 4.0);
+  __ vcmps(S4, S5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
-    // Check that 3.0 is back in S3
-    __ LoadSImmediate(S5, 3.0);
-    __ vcmps(S3, S5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
+  // Check that 3.0 is back in S3
+  __ LoadSImmediate(S5, 3.0);
+  __ vcmps(S3, S5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
-    // Check that 2.0 is back in S2
-    __ LoadSImmediate(S5, 2.0);
-    __ vcmps(S2, S5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
+  // Check that 2.0 is back in S2
+  __ LoadSImmediate(S5, 2.0);
+  __ vcmps(S2, S5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
-    // Check that 1.0 is back in S1
-    __ LoadSImmediate(S5, 1.0);
-    __ vcmps(S1, S5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
-  }
+  // Check that 1.0 is back in S1
+  __ LoadSImmediate(S5, 1.0);
+  __ vcmps(S1, S5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmsVldms, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
+  typedef int (*Tst)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 // Make sure we can start somewhere other than D0
 ASSEMBLER_TEST_GENERATE(VstmdVldmd1, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ LoadDImmediate(D1, 1.0, R0);
-    __ LoadDImmediate(D2, 2.0, R0);
-    __ LoadDImmediate(D3, 3.0, R0);
-    __ LoadDImmediate(D4, 4.0, R0);
-    __ vstmd(DB_W, SP, D1, 4);  // Push D1 - D4 onto the stack, dec SP
-    __ LoadDImmediate(D1, 0.0, R0);
-    __ LoadDImmediate(D2, 0.0, R0);
-    __ LoadDImmediate(D3, 0.0, R0);
-    __ LoadDImmediate(D4, 0.0, R0);
-    __ vldmd(IA_W, SP, D1, 4);  // Pop stack into D1 - D4, inc SP
+  __ LoadDImmediate(D1, 1.0, R0);
+  __ LoadDImmediate(D2, 2.0, R0);
+  __ LoadDImmediate(D3, 3.0, R0);
+  __ LoadDImmediate(D4, 4.0, R0);
+  __ vstmd(DB_W, SP, D1, 4);  // Push D1 - D4 onto the stack, dec SP
+  __ LoadDImmediate(D1, 0.0, R0);
+  __ LoadDImmediate(D2, 0.0, R0);
+  __ LoadDImmediate(D3, 0.0, R0);
+  __ LoadDImmediate(D4, 0.0, R0);
+  __ vldmd(IA_W, SP, D1, 4);  // Pop stack into D1 - D4, inc SP
 
-    // Load success value into R0
-    __ mov(R0, Operand(42));
+  // Load success value into R0
+  __ mov(R0, Operand(42));
 
-    // Check that 4.0 is back in D4
-    __ LoadDImmediate(D5, 4.0, R1);
-    __ vcmpd(D4, D5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
+  // Check that 4.0 is back in D4
+  __ LoadDImmediate(D5, 4.0, R1);
+  __ vcmpd(D4, D5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-    // Check that 3.0 is back in D3
-    __ LoadDImmediate(D5, 3.0, R1);
-    __ vcmpd(D3, D5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
+  // Check that 3.0 is back in D3
+  __ LoadDImmediate(D5, 3.0, R1);
+  __ vcmpd(D3, D5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-    // Check that 2.0 is back in D2
-    __ LoadDImmediate(D5, 2.0, R1);
-    __ vcmpd(D2, D5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
+  // Check that 2.0 is back in D2
+  __ LoadDImmediate(D5, 2.0, R1);
+  __ vcmpd(D2, D5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-    // Check that 1.0 is back in D1
-    __ LoadDImmediate(D5, 1.0, R1);
-    __ vcmpd(D1, D5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
-  }
+  // Check that 1.0 is back in D1
+  __ LoadDImmediate(D5, 1.0, R1);
+  __ vcmpd(D1, D5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmdVldmd1, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
+  typedef int (*Tst)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 // Make sure we can start somewhere other than S0
 ASSEMBLER_TEST_GENERATE(VstmsVldms1, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ LoadSImmediate(S1, 1.0);
-    __ LoadSImmediate(S2, 2.0);
-    __ LoadSImmediate(S3, 3.0);
-    __ LoadSImmediate(S4, 4.0);
-    __ vstms(DB_W, SP, S1, S4);  // Push S0 - S4 onto the stack, dec SP
-    __ LoadSImmediate(S1, 0.0);
-    __ LoadSImmediate(S2, 0.0);
-    __ LoadSImmediate(S3, 0.0);
-    __ LoadSImmediate(S4, 0.0);
-    __ vldms(IA_W, SP, S1, S4);  // Pop stack into S0 - S4, inc SP
+  __ LoadSImmediate(S1, 1.0);
+  __ LoadSImmediate(S2, 2.0);
+  __ LoadSImmediate(S3, 3.0);
+  __ LoadSImmediate(S4, 4.0);
+  __ vstms(DB_W, SP, S1, S4);  // Push S0 - S4 onto the stack, dec SP
+  __ LoadSImmediate(S1, 0.0);
+  __ LoadSImmediate(S2, 0.0);
+  __ LoadSImmediate(S3, 0.0);
+  __ LoadSImmediate(S4, 0.0);
+  __ vldms(IA_W, SP, S1, S4);  // Pop stack into S0 - S4, inc SP
 
-    // Load success value into R0
-    __ mov(R0, Operand(42));
+  // Load success value into R0
+  __ mov(R0, Operand(42));
 
-    // Check that 4.0 is back in S4
-    __ LoadSImmediate(S5, 4.0);
-    __ vcmps(S4, S5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
+  // Check that 4.0 is back in S4
+  __ LoadSImmediate(S5, 4.0);
+  __ vcmps(S4, S5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
-    // Check that 3.0 is back in S3
-    __ LoadSImmediate(S5, 3.0);
-    __ vcmps(S3, S5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
+  // Check that 3.0 is back in S3
+  __ LoadSImmediate(S5, 3.0);
+  __ vcmps(S3, S5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
-    // Check that 2.0 is back in S2
-    __ LoadSImmediate(S5, 2.0);
-    __ vcmps(S2, S5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
+  // Check that 2.0 is back in S2
+  __ LoadSImmediate(S5, 2.0);
+  __ vcmps(S2, S5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
-    // Check that 1.0 is back in S1
-    __ LoadSImmediate(S5, 1.0);
-    __ vcmps(S1, S5);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
-  }
+  // Check that 1.0 is back in S1
+  __ LoadSImmediate(S5, 1.0);
+  __ vcmps(S1, S5);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmsVldms1, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
+  typedef int (*Tst)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 // Make sure we can store the D registers using vstmd and
 // load them into a different set using vldmd
 ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    // Save used callee-saved FPU registers.
-    __ vstmd(DB_W, SP, D8, 3);
-    __ LoadDImmediate(D0, 0.0, R0);
-    __ LoadDImmediate(D1, 1.0, R0);
-    __ LoadDImmediate(D2, 2.0, R0);
-    __ LoadDImmediate(D3, 3.0, R0);
-    __ LoadDImmediate(D4, 4.0, R0);
-    __ LoadDImmediate(D5, 5.0, R0);
-    __ vstmd(DB_W, SP, D0, 5);  // Push D0 - D4 onto the stack, dec SP
-    __ vldmd(IA_W, SP, D5, 5);  // Pop stack into D5 - D9, inc SP
+  // Save used callee-saved FPU registers.
+  __ vstmd(DB_W, SP, D8, 3);
+  __ LoadDImmediate(D0, 0.0, R0);
+  __ LoadDImmediate(D1, 1.0, R0);
+  __ LoadDImmediate(D2, 2.0, R0);
+  __ LoadDImmediate(D3, 3.0, R0);
+  __ LoadDImmediate(D4, 4.0, R0);
+  __ LoadDImmediate(D5, 5.0, R0);
+  __ vstmd(DB_W, SP, D0, 5);  // Push D0 - D4 onto the stack, dec SP
+  __ vldmd(IA_W, SP, D5, 5);  // Pop stack into D5 - D9, inc SP
 
-    // Load success value into R0
-    __ mov(R0, Operand(42));
+  // Load success value into R0
+  __ mov(R0, Operand(42));
 
-    // Check that 4.0 is in D9
-    __ LoadDImmediate(D10, 4.0, R1);
-    __ vcmpd(D9, D10);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
+  // Check that 4.0 is in D9
+  __ LoadDImmediate(D10, 4.0, R1);
+  __ vcmpd(D9, D10);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-    // Check that 3.0 is in D8
-    __ LoadDImmediate(D10, 3.0, R1);
-    __ vcmpd(D8, D10);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
+  // Check that 3.0 is in D8
+  __ LoadDImmediate(D10, 3.0, R1);
+  __ vcmpd(D8, D10);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-    // Check that 2.0 is in D7
-    __ LoadDImmediate(D10, 2.0, R1);
-    __ vcmpd(D7, D10);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
+  // Check that 2.0 is in D7
+  __ LoadDImmediate(D10, 2.0, R1);
+  __ vcmpd(D7, D10);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-    // Check that 1.0 is in D6
-    __ LoadDImmediate(D10, 1.0, R1);
-    __ vcmpd(D6, D10);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
+  // Check that 1.0 is in D6
+  __ LoadDImmediate(D10, 1.0, R1);
+  __ vcmpd(D6, D10);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-    // Check that 0.0 is in D5
-    __ LoadDImmediate(D10, 0.0, R1);
-    __ vcmpd(D5, D10);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
+  // Check that 0.0 is in D5
+  __ LoadDImmediate(D10, 0.0, R1);
+  __ vcmpd(D5, D10);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure into R0 if NE
 
-    // Restore used callee-saved FPU registers.
-    __ vldmd(IA_W, SP, D8, 3);
-  }
+  // Restore used callee-saved FPU registers.
+  __ vldmd(IA_W, SP, D8, 3);
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmdVldmd_off, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
+  typedef int (*Tst)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 // Make sure we can start somewhere other than S0
 ASSEMBLER_TEST_GENERATE(VstmsVldms_off, assembler) {
-  if (TargetCPUFeatures::vfp_supported()) {
-    __ LoadSImmediate(S0, 0.0);
-    __ LoadSImmediate(S1, 1.0);
-    __ LoadSImmediate(S2, 2.0);
-    __ LoadSImmediate(S3, 3.0);
-    __ LoadSImmediate(S4, 4.0);
-    __ LoadSImmediate(S5, 5.0);
-    __ vstms(DB_W, SP, S0, S4);  // Push S0 - S4 onto the stack, dec SP
-    __ vldms(IA_W, SP, S5, S9);  // Pop stack into S5 - S9, inc SP
+  __ LoadSImmediate(S0, 0.0);
+  __ LoadSImmediate(S1, 1.0);
+  __ LoadSImmediate(S2, 2.0);
+  __ LoadSImmediate(S3, 3.0);
+  __ LoadSImmediate(S4, 4.0);
+  __ LoadSImmediate(S5, 5.0);
+  __ vstms(DB_W, SP, S0, S4);  // Push S0 - S4 onto the stack, dec SP
+  __ vldms(IA_W, SP, S5, S9);  // Pop stack into S5 - S9, inc SP
 
-    // Load success value into R0
-    __ mov(R0, Operand(42));
+  // Load success value into R0
+  __ mov(R0, Operand(42));
 
-    // Check that 4.0 is in S9
-    __ LoadSImmediate(S10, 4.0);
-    __ vcmps(S9, S10);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
+  // Check that 4.0 is in S9
+  __ LoadSImmediate(S10, 4.0);
+  __ vcmps(S9, S10);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
-    // Check that 3.0 is in S8
-    __ LoadSImmediate(S10, 3.0);
-    __ vcmps(S8, S10);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
+  // Check that 3.0 is in S8
+  __ LoadSImmediate(S10, 3.0);
+  __ vcmps(S8, S10);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
-    // Check that 2.0 is in S7
-    __ LoadSImmediate(S10, 2.0);
-    __ vcmps(S7, S10);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
+  // Check that 2.0 is in S7
+  __ LoadSImmediate(S10, 2.0);
+  __ vcmps(S7, S10);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
-    // Check that 1.0 is back in S6
-    __ LoadSImmediate(S10, 1.0);
-    __ vcmps(S6, S10);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
+  // Check that 1.0 is back in S6
+  __ LoadSImmediate(S10, 1.0);
+  __ vcmps(S6, S10);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
 
-    // Check that 0.0 is back in S5
-    __ LoadSImmediate(S10, 0.0);
-    __ vcmps(S5, S10);
-    __ vmstat();
-    __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
-  }
+  // Check that 0.0 is back in S5
+  __ LoadSImmediate(S10, 0.0);
+  __ vcmps(S5, S10);
+  __ vmstat();
+  __ mov(R0, Operand(0), NE);  // Put failure value into R0 if NE
   __ Ret();
 }
 
 ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
   EXPECT(test != NULL);
-  if (TargetCPUFeatures::vfp_supported()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
+  typedef int (*Tst)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 }
 
 //                                          3         2         1         0
@@ -1942,11 +1849,9 @@ ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
   HostCPUFeatures::set_integer_division_supported(orig);
   __ Ret();
 #else
-  if (TargetCPUFeatures::can_divide()) {
-    __ mov(R0, Operand(27));
-    __ mov(R1, Operand(9));
-    __ IntegerDivide(R0, R0, R1, D0, D1);
-  }
+  __ mov(R0, Operand(27));
+  __ mov(R1, Operand(9));
+  __ IntegerDivide(R0, R0, R1, D0, D1);
   __ Ret();
 #endif
 }
@@ -1956,36 +1861,28 @@ ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
 #if defined(USING_SIMULATOR)
   bool orig = TargetCPUFeatures::integer_division_supported();
   HostCPUFeatures::set_integer_division_supported(true);
-  if (TargetCPUFeatures::can_divide()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
+  typedef int (*Tst)() DART_UNUSED;
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   HostCPUFeatures::set_integer_division_supported(orig);
 #else
-  if (TargetCPUFeatures::can_divide()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
+  typedef int (*Tst)() DART_UNUSED;
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 #endif
 }
 
 ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
 #if defined(USING_SIMULATOR)
-  if (TargetCPUFeatures::can_divide()) {
     bool orig = TargetCPUFeatures::integer_division_supported();
     HostCPUFeatures::set_integer_division_supported(false);
     __ mov(R0, Operand(27));
     __ mov(R1, Operand(9));
     __ IntegerDivide(R0, R0, R1, D0, D1);
     HostCPUFeatures::set_integer_division_supported(orig);
-  }
   __ Ret();
 #else
-  if (TargetCPUFeatures::can_divide()) {
-    __ mov(R0, Operand(27));
-    __ mov(R1, Operand(9));
-    __ IntegerDivide(R0, R0, R1, D0, D1);
-  }
+  __ mov(R0, Operand(27));
+  __ mov(R1, Operand(9));
+  __ IntegerDivide(R0, R0, R1, D0, D1);
   __ Ret();
 #endif
 }
@@ -1995,16 +1892,12 @@ ASSEMBLER_TEST_RUN(IntDiv_unsupported, test) {
 #if defined(USING_SIMULATOR)
   bool orig = TargetCPUFeatures::integer_division_supported();
   HostCPUFeatures::set_integer_division_supported(false);
-  if (TargetCPUFeatures::can_divide()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
+  typedef int (*Tst)() DART_UNUSED;
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   HostCPUFeatures::set_integer_division_supported(orig);
 #else
-  if (TargetCPUFeatures::can_divide()) {
-    typedef int (*Tst)() DART_UNUSED;
-    EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
-  }
+  typedef int (*Tst)() DART_UNUSED;
+  EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
 #endif
 }
 
