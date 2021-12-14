@@ -96,6 +96,9 @@ class KernelLoaderTask extends CompilerTask {
         return "${targetName}_platform$unsoundMarker.dill";
       }
 
+      // If we are passed an [entryUri] and building from dill, then we lookup
+      // the [entryLibrary] in the built component.
+      Library entryLibrary;
       var resolvedUri = _options.compilationTarget;
       ir.Component component;
       List<Uri> moduleLibraries = const [];
@@ -161,15 +164,9 @@ class KernelLoaderTask extends CompilerTask {
         }
 
         if (_options.entryUri != null) {
-          var entryLibrary = _findEntryLibrary(component, _options.entryUri);
+          entryLibrary = _findEntryLibrary(component, _options.entryUri);
           var mainMethod = _findMainMethod(entryLibrary);
           component.setMainMethodAndMode(mainMethod, true, component.mode);
-        }
-        if (!_options.modularMode && component.mainMethod == null) {
-          // TODO(sigmund): move this so that we use the same error template
-          // from the CFE.
-          _reporter.reportError(_reporter.createMessage(NO_LOCATION_SPANNABLE,
-              MessageKind.GENERIC, {'text': "No 'main' method found."}));
         }
       } else {
         bool verbose = false;
@@ -229,15 +226,31 @@ class KernelLoaderTask extends CompilerTask {
         component = ir.Component();
         BinaryBuilder(data).readComponent(component);
       }
-      return _toResult(component, moduleLibraries);
+      return _toResult(entryLibrary, component, moduleLibraries);
     });
   }
 
-  KernelResult _toResult(ir.Component component, List<Uri> moduleLibraries) {
+  KernelResult _toResult(
+      Library entryLibrary, ir.Component component, List<Uri> moduleLibraries) {
     Uri rootLibraryUri = null;
     Iterable<ir.Library> libraries = component.libraries;
-    if (!_options.modularMode && component.mainMethod != null) {
-      var root = component.mainMethod.enclosingLibrary;
+    if (!_options.modularMode) {
+      // For non-modular builds we should always have a [mainMethod] at this
+      // point.
+      if (component.mainMethod == null) {
+        // TODO(sigmund): move this so that we use the same error template
+        // from the CFE.
+        _reporter.reportError(_reporter.createMessage(NO_LOCATION_SPANNABLE,
+            MessageKind.GENERIC, {'text': "No 'main' method found."}));
+      }
+
+      // If we are building from dill and are passed an [entryUri], then we use
+      // that to find the appropriate [entryLibrary]. Otherwise, we fallback to
+      // the [enclosingLibrary] of the [mainMethod].
+      // NOTE: Under some circumstances, the [entryLibrary] exports the
+      // [mainMethod] from another library, and thus the [enclosingLibrary] of
+      // the [mainMethod] may not be the same as the [entryLibrary].
+      var root = entryLibrary ?? component.mainMethod.enclosingLibrary;
       rootLibraryUri = root.importUri;
 
       // Filter unreachable libraries: [Component] was built by linking in the
@@ -293,7 +306,7 @@ class KernelResult {
   KernelResult(this.component, this.rootLibraryUri, this.libraries,
       this.moduleLibraries);
 
-  void trimComponent(Uri entryUri) {
+  void trimComponent() {
     var irLibraryMap = <Uri, Library>{};
     var irLibraries = <Library>[];
     for (var library in component.libraries) {

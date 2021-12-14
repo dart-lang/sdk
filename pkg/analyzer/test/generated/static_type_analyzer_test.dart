@@ -5,7 +5,9 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -16,7 +18,6 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ResolverVisitor;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/source/source_resource.dart';
@@ -54,8 +55,8 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   /// The library containing the code being resolved.
   late final LibraryElementImpl _definingLibrary;
 
-  /// The analyzer being used to analyze the test cases.
-  late final StaticTypeAnalyzer _analyzer;
+  /// The compilation unit containing the code being resolved.
+  late CompilationUnitElementImpl _definingCompilationUnit;
 
   /// The type provider used to access the types.
   late final TypeProvider _typeProvider;
@@ -272,8 +273,9 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
 
   void test_visitCascadeExpression() {
     // a..length
-    Expression node = AstTestFactory.cascadeExpression(
-        _resolvedString("a"), [AstTestFactory.propertyAccess2(null, "length")]);
+    Expression node = AstTestFactory.cascadeExpression(_resolvedString("a"), [
+      AstTestFactory.propertyAccess2(null, "length", TokenType.PERIOD_PERIOD)
+    ]);
     expect(_analyze(node), same(_typeProvider.stringType));
     _listener.assertNoErrors();
   }
@@ -308,15 +310,17 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   void test_visitInstanceCreationExpression_named() {
     // new C.m()
     ClassElementImpl classElement = ElementFactory.classElement2("C");
+    _definingCompilationUnit.classes = [classElement];
     String constructorName = "m";
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classElement, constructorName);
     classElement.constructors = <ConstructorElement>[constructor];
     InstanceCreationExpression node =
         AstTestFactory.instanceCreationExpression2(
-            null,
-            AstTestFactory.namedType(classElement),
-            [AstTestFactory.identifier3(constructorName)]);
+            null, AstTestFactory.namedType(classElement), [
+      AstTestFactory.identifier3(constructorName)
+        ..scopeLookupResult = ScopeLookupResult(constructor, null)
+    ]);
     expect(_analyze(node), interfaceTypeStar(classElement));
     _listener.assertNoErrors();
   }
@@ -334,6 +338,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         typeArguments: [interfaceTypeStar(elementI)]);
     InstanceCreationExpression node =
         AstTestFactory.instanceCreationExpression2(null, typeName);
+    _definingCompilationUnit.classes = [elementC, elementI];
     InterfaceType type = _analyze(node) as InterfaceType;
     List<DartType> typeArgs = type.typeArguments;
     expect(typeArgs.length, 1);
@@ -344,6 +349,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
   void test_visitInstanceCreationExpression_unnamed() {
     // new C()
     ClassElementImpl classElement = ElementFactory.classElement2("C");
+    _definingCompilationUnit.classes = [classElement];
     ConstructorElementImpl constructor =
         ElementFactory.constructorElement2(classElement, null);
     classElement.constructors = <ConstructorElement>[constructor];
@@ -434,6 +440,13 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     InterfaceType thisType =
         interfaceTypeStar(ElementFactory.classElement("B", superType));
     Expression node = AstTestFactory.superExpression();
+    // Place the super expression inside a method declaration
+    // (`test() => super.foo;`) so that we don't provoke a
+    // SUPER_IN_INVALID_CONTEXT error
+    AstTestFactory.methodDeclaration4(
+        name: 'test',
+        body: AstTestFactory.expressionFunctionBody(
+            AstTestFactory.propertyAccess2(node, 'foo')));
     expect(_analyze(node, thisType), same(thisType));
     _listener.assertNoErrors();
   }
@@ -466,7 +479,7 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     if (thisType != null) {
       _visitor.setThisInterfaceType(thisType);
     }
-    node.accept(_analyzer);
+    node.accept(_visitor);
     return node.typeOrThrow;
   }
 
@@ -499,15 +512,14 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
     var context = TestAnalysisContext();
     var inheritance = InheritanceManager3();
     Source source = FileSource(getFile("/lib.dart"));
-    CompilationUnitElementImpl definingCompilationUnit =
-        CompilationUnitElementImpl();
-    definingCompilationUnit.librarySource =
-        definingCompilationUnit.source = source;
+    _definingCompilationUnit = CompilationUnitElementImpl();
+    _definingCompilationUnit.librarySource =
+        _definingCompilationUnit.source = source;
     var featureSet = FeatureSet.latestLanguageVersion();
 
     _definingLibrary = LibraryElementImpl(
         context, _AnalysisSessionMock(), 'name', -1, 0, featureSet);
-    _definingLibrary.definingCompilationUnit = definingCompilationUnit;
+    _definingLibrary.definingCompilationUnit = _definingCompilationUnit;
 
     _definingLibrary.typeProvider = context.typeProviderLegacy;
     _definingLibrary.typeSystem = context.typeSystemLegacy;
@@ -518,7 +530,6 @@ class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
         featureSet: featureSet,
         flowAnalysisHelper:
             FlowAnalysisHelper(context.typeSystemLegacy, false, featureSet));
-    _analyzer = _visitor.typeAnalyzer;
   }
 
   DartType _flatten(DartType type) => _typeSystem.flatten(type);

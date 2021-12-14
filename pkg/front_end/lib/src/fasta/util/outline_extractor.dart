@@ -527,6 +527,7 @@ class _Processor {
         }
       }
     }
+    return null;
   }
 }
 

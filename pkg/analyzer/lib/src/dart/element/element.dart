@@ -1650,8 +1650,17 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// of this variable could not be computed because of errors.
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      computeConstants(library!.typeProvider, library!.typeSystem,
-          context.declaredVariables, [this], library!.featureSet);
+      final library = this.library;
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/47915
+      if (library == null) {
+        throw StateError(
+          '[library: null][this: ($runtimeType) $this]'
+          '[enclosingElement: $enclosingElement]'
+          '[reference: $reference]',
+        );
+      }
+      computeConstants(library.typeProvider, library.typeSystem,
+          context.declaredVariables, [this], library.featureSet);
     }
     return evaluationResult?.value;
   }

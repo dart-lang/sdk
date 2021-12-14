@@ -1049,78 +1049,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       ];
     }
 
-    if (libraryBuilder.enableSuperParametersInLibrary) {
-      if (initializers.isNotEmpty && initializers.last is SuperInitializer) {
-        SuperInitializer superInitializer =
-            initializers.last as SuperInitializer;
-        Arguments arguments = superInitializer.arguments;
-
-        List<VariableDeclaration>? positionalSuperParameters;
-        List<VariableDeclaration>? namedSuperParameters;
-
-        List<FormalParameterBuilder>? formals =
-            (member as ConstructorBuilder).formals;
-        if (formals != null) {
-          for (FormalParameterBuilder formal in formals) {
-            if (formal.isSuperInitializingFormal) {
-              if (formal.isNamed) {
-                (namedSuperParameters ??= <VariableDeclaration>[])
-                    .add(formal.variable!);
-              } else {
-                (positionalSuperParameters ??= <VariableDeclaration>[])
-                    .add(formal.variable!);
-              }
-            }
-          }
-
-          if (positionalSuperParameters != null) {
-            if (arguments.positional.isNotEmpty) {
-              addProblem(fasta.messagePositionalSuperParametersAndArguments,
-                  arguments.fileOffset, noLength,
-                  context: <LocatedMessage>[
-                    fasta.messageSuperInitializerParameter.withLocation(uri,
-                        positionalSuperParameters.first.fileOffset, noLength)
-                  ]);
-            } else {
-              for (VariableDeclaration positional
-                  in positionalSuperParameters) {
-                arguments.positional.add(
-                    new VariableGetImpl(positional, forNullGuardedAccess: false)
-                      ..fileOffset = positional.fileOffset);
-              }
-            }
-          }
-          if (namedSuperParameters != null) {
-            // TODO(cstefantsova): Report name conflicts.
-            for (VariableDeclaration named in namedSuperParameters) {
-              arguments.named.add(new NamedExpression(
-                  named.name!,
-                  new VariableGetImpl(named, forNullGuardedAccess: false)
-                    ..fileOffset = named.fileOffset)
-                ..fileOffset = named.fileOffset);
-            }
-          }
-        }
-
-        LocatedMessage? message = checkArgumentsForFunction(
-            superInitializer.target.function,
-            arguments,
-            arguments.fileOffset, <TypeParameter>[]);
-        if (message != null) {
-          initializers[initializers.length - 1] = buildInvalidInitializer(
-              buildUnresolvedError(
-                  forest.createNullLiteral(superInitializer.fileOffset),
-                  constructorNameForDiagnostics(
-                      superInitializer.target.name.text),
-                  arguments,
-                  superInitializer.fileOffset,
-                  isSuper: true,
-                  message: message,
-                  kind: UnresolvedKind.Constructor));
-        }
-      }
-    }
-
     _initializers ??= <Initializer>[];
     _initializers!.addAll(initializers);
   }
@@ -1748,15 +1676,87 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         typeInferrer.flowAnalysis.declare(parameter.variable!, true);
       }
     }
-    if (_initializers != null) {
+
+    List<Expression>? positionalSuperParametersAsArguments;
+    List<NamedExpression>? namedSuperParametersAsArguments;
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.isSuperInitializingFormal) {
+          if (formal.isNamed) {
+            (namedSuperParametersAsArguments ??= <NamedExpression>[]).add(
+                new NamedExpression(
+                    formal.name,
+                    new VariableGetImpl(formal.variable!,
+                        forNullGuardedAccess: false)
+                      ..fileOffset = formal.charOffset)
+                  ..fileOffset = formal.charOffset);
+          } else {
+            (positionalSuperParametersAsArguments ??= <Expression>[]).add(
+                new VariableGetImpl(formal.variable!,
+                    forNullGuardedAccess: false)
+                  ..fileOffset = formal.charOffset);
+          }
+        }
+      }
+    }
+
+    List<Initializer>? initializers = _initializers;
+    if (initializers != null) {
+      if (libraryBuilder.enableSuperParametersInLibrary) {
+        if (initializers.isNotEmpty && initializers.last is SuperInitializer) {
+          SuperInitializer superInitializer =
+              initializers.last as SuperInitializer;
+          Arguments arguments = superInitializer.arguments;
+
+          if (positionalSuperParametersAsArguments != null) {
+            if (arguments.positional.isNotEmpty) {
+              addProblem(fasta.messagePositionalSuperParametersAndArguments,
+                  arguments.fileOffset, noLength,
+                  context: <LocatedMessage>[
+                    fasta.messageSuperInitializerParameter.withLocation(
+                        uri,
+                        (positionalSuperParametersAsArguments.first
+                                as VariableGet)
+                            .variable
+                            .fileOffset,
+                        noLength)
+                  ]);
+            } else {
+              arguments.positional.addAll(positionalSuperParametersAsArguments);
+            }
+          }
+          if (namedSuperParametersAsArguments != null) {
+            // TODO(cstefantsova): Report name conflicts.
+            arguments.named.addAll(namedSuperParametersAsArguments);
+          }
+
+          LocatedMessage? message = checkArgumentsForFunction(
+              superInitializer.target.function,
+              arguments,
+              arguments.fileOffset, <TypeParameter>[]);
+          if (message != null) {
+            initializers[initializers.length - 1] = buildInvalidInitializer(
+                buildUnresolvedError(
+                    forest.createNullLiteral(superInitializer.fileOffset),
+                    constructorNameForDiagnostics(
+                        superInitializer.target.name.text),
+                    arguments,
+                    superInitializer.fileOffset,
+                    isSuper: true,
+                    message: message,
+                    kind: UnresolvedKind.Constructor));
+          }
+        }
+      }
+
       Map<Initializer, InitializerInferenceResult> inferenceResults =
           <Initializer, InitializerInferenceResult>{};
-      for (Initializer initializer in _initializers!) {
+      for (Initializer initializer in initializers) {
         inferenceResults[initializer] =
             typeInferrer.inferInitializer(this, initializer);
       }
       if (!builder.isExternal) {
-        for (Initializer initializer in _initializers!) {
+        for (Initializer initializer in initializers) {
           builder.addInitializer(initializer, this,
               inferenceResult: inferenceResults[initializer]!);
         }
@@ -1772,7 +1772,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       /// >unless the enclosing class is class Object.
       Constructor? superTarget = lookupConstructor(emptyName, isSuper: true);
       Initializer initializer;
-      Arguments arguments = forest.createArgumentsEmpty(noLocation);
+      Arguments arguments;
+      if (libraryBuilder.enableSuperParametersInLibrary) {
+        arguments = forest.createArguments(
+            noLocation, positionalSuperParametersAsArguments ?? <Expression>[],
+            named: namedSuperParametersAsArguments);
+      } else {
+        arguments = forest.createArgumentsEmpty(noLocation);
+      }
       if (superTarget == null ||
           checkArgumentsForFunction(superTarget.function, arguments,
                   builder.charOffset, const <TypeParameter>[]) !=
