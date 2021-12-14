@@ -75,7 +75,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER =
       HintCode(
     'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
-    "The argument type '{0}' can't be assigned to the parameter type '{1} Function(Object)' or '{1} Function(Object, StackTrace)'.",
+    "The argument type '{0}' can't be assigned to the parameter type '{1} "
+        "Function(Object)' or '{1} Function(Object, StackTrace)'.",
     hasPublishedDocs: true,
   );
 
@@ -84,7 +85,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode ASSIGNMENT_OF_DO_NOT_STORE = HintCode(
     'ASSIGNMENT_OF_DO_NOT_STORE',
-    "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable.",
+    "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
+        "top-level variable.",
     correctionMessage: "Try removing the assignment.",
   );
 
@@ -155,7 +157,8 @@ class HintCode extends AnalyzerErrorCode {
     'DEAD_CODE',
     "Dead code.",
     correctionMessage:
-        "Try removing the code, or fixing the code before it so that it can be reached.",
+        "Try removing the code, or fixing the code before it so that it can be "
+        "reached.",
     hasPublishedDocs: true,
   );
 
@@ -211,9 +214,11 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode DEAD_CODE_CATCH_FOLLOWING_CATCH = HintCode(
     'DEAD_CODE_CATCH_FOLLOWING_CATCH',
-    "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' are never reached.",
+    "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' "
+        "are never reached.",
     correctionMessage:
-        "Try reordering the catch clauses so that they can be reached, or removing the unreachable catch clauses.",
+        "Try reordering the catch clauses so that they can be reached, or "
+        "removing the unreachable catch clauses.",
     hasPublishedDocs: true,
   );
 
@@ -273,9 +278,11 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode DEAD_CODE_ON_CATCH_SUBTYPE = HintCode(
     'DEAD_CODE_ON_CATCH_SUBTYPE',
-    "Dead code: This on-catch block won’t be executed because '{0}' is a subtype of '{1}' and hence will have been caught already.",
+    "Dead code: This on-catch block won’t be executed because '{0}' is a "
+        "subtype of '{1}' and hence will have been caught already.",
     correctionMessage:
-        "Try reordering the catch clauses so that this block can be reached, or removing the unreachable catch clause.",
+        "Try reordering the catch clauses so that this block can be reached, "
+        "or removing the unreachable catch clause.",
     hasPublishedDocs: true,
   );
 
@@ -551,9 +558,11 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode DUPLICATE_IGNORE = HintCode(
     'DUPLICATE_IGNORE',
-    "The diagnostic '{0}' doesn't need to be ignored here because it's already being ignored.",
+    "The diagnostic '{0}' doesn't need to be ignored here because it's already "
+        "being ignored.",
     correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if this is the only name in the list.",
+        "Try removing the name from the list, or removing the whole comment if "
+        "this is the only name in the list.",
     hasPublishedDocs: true,
   );
 
@@ -750,9 +759,11 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE =
       HintCode(
     'FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE',
-    "A file in the 'lib' directory shouldn't import a file outside the 'lib' directory.",
+    "A file in the 'lib' directory shouldn't import a file outside the 'lib' "
+        "directory.",
     correctionMessage:
-        "Try removing the import, or moving the imported file inside the 'lib' directory.",
+        "Try removing the import, or moving the imported file inside the 'lib' "
+        "directory.",
   );
 
   /**
@@ -765,7 +776,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE =
       HintCode(
     'FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE',
-    "A file outside the 'lib' directory shouldn't reference a file inside the 'lib' directory using a relative path.",
+    "A file outside the 'lib' directory shouldn't reference a file inside the "
+        "'lib' directory using a relative path.",
     correctionMessage: "Try using a package: URI instead.",
   );
 
@@ -844,9 +856,11 @@ class HintCode extends AnalyzerErrorCode {
   // with the `@optionalTypeArgs` annotation (from `package:meta`):
   static const HintCode IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION = HintCode(
     'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
-    "The imported library defines a top-level function named 'loadLibrary' that is hidden by deferring this library.",
+    "The imported library defines a top-level function named 'loadLibrary' "
+        "that is hidden by deferring this library.",
     correctionMessage:
-        "Try changing the import to not be deferred, or rename the function in the imported library.",
+        "Try changing the import to not be deferred, or rename the function in "
+        "the imported library.",
     hasPublishedDocs: true,
   );
 
@@ -855,7 +869,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE = HintCode(
     'IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE',
-    "The library '{0}' is legacy, and should not be imported into a null safe library.",
+    "The library '{0}' is legacy, and should not be imported into a null safe "
+        "library.",
     correctionMessage: "Try migrating the imported library.",
   );
 
@@ -898,7 +913,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INFERENCE_FAILURE_ON_GENERIC_INVOCATION = HintCode(
     'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
-    "The type argument(s) of the generic function type '{0}' can't be inferred.",
+    "The type argument(s) of the generic function type '{0}' can't be "
+        "inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
   );
 
@@ -966,7 +982,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY =
       HintCode(
     'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
-    "The member '{0}' can't be exported as a part of a package's public API, but is indirectly exported as part of the signature of '{1}'.",
+    "The member '{0}' can't be exported as a part of a package's public API, "
+        "but is indirectly exported as part of the signature of '{1}'.",
     correctionMessage: "Try using a hide clause to hide '{0}'.",
   );
 
@@ -1016,7 +1033,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INVALID_INTERNAL_ANNOTATION = HintCode(
     'INVALID_INTERNAL_ANNOTATION',
-    "Only public elements in a package's private API can be annotated as being internal.",
+    "Only public elements in a package's private API can be annotated as being "
+        "internal.",
   );
 
   /**
@@ -1035,7 +1053,8 @@ class HintCode extends AnalyzerErrorCode {
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
     "The Dart language version override number must begin with '@dart'",
     correctionMessage:
-        "Specify a Dart language version override with a comment like '// @dart = 2.0'.",
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
   );
 
@@ -1053,22 +1072,26 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The Dart language version override comment must be specified with an '=' character",
+    "The Dart language version override comment must be specified with an '=' "
+        "character",
     correctionMessage:
-        "Specify a Dart language version override with a comment like '// @dart = 2.0'.",
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
   );
 
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The language version override can't specify a version greater than the latest known language version: {0}.{1}",
+    "The language version override can't specify a version greater than the "
+        "latest known language version: {0}.{1}",
     correctionMessage: "Try removing the language version override.",
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
   );
 
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The language version override must be before any declaration or directive.",
+    "The language version override must be before any declaration or "
+        "directive.",
     correctionMessage:
         "Try moving the language version override to the top of the file.",
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
@@ -1088,9 +1111,11 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The Dart language version override comment must be specified with the word 'dart' in all lower case",
+    "The Dart language version override comment must be specified with the "
+        "word 'dart' in all lower case",
     correctionMessage:
-        "Specify a Dart language version override with a comment like '// @dart = 2.0'.",
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
   );
 
@@ -1108,9 +1133,11 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER = HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The Dart language version override comment must be specified with a version number, like '2.0', after the '=' character.",
+    "The Dart language version override comment must be specified with a "
+        "version number, like '2.0', after the '=' character.",
     correctionMessage:
-        "Specify a Dart language version override with a comment like '// @dart = 2.0'.",
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
   );
 
@@ -1130,7 +1157,8 @@ class HintCode extends AnalyzerErrorCode {
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
     "The Dart language version override number can't be prefixed with a letter",
     correctionMessage:
-        "Specify a Dart language version override with a comment like '// @dart = 2.0'.",
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
   );
 
@@ -1149,9 +1177,11 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS =
       HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The Dart language version override comment can't be followed by any non-whitespace characters",
+    "The Dart language version override comment can't be followed by any "
+        "non-whitespace characters",
     correctionMessage:
-        "Specify a Dart language version override with a comment like '// @dart = 2.0'.",
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
   );
 
@@ -1170,9 +1200,11 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES =
       HintCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    "The Dart language version override comment must be specified with exactly two slashes.",
+    "The Dart language version override comment must be specified with exactly "
+        "two slashes.",
     correctionMessage:
-        "Specify a Dart language version override with a comment like '// @dart = 2.0'.",
+        "Specify a Dart language version override with a comment like '// "
+        "@dart = 2.0'.",
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
   );
 
@@ -1245,7 +1277,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INVALID_NON_VIRTUAL_ANNOTATION = HintCode(
     'INVALID_NON_VIRTUAL_ANNOTATION',
-    "The annotation '@nonVirtual' can only be applied to a concrete instance member.",
+    "The annotation '@nonVirtual' can only be applied to a concrete instance "
+        "member.",
     correctionMessage: "Try removing @nonVirtual.",
   );
 
@@ -1259,7 +1292,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER = HintCode(
     'INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
-    "The member '{0}' is declared non-virtual in '{1}' and can't be overridden in subclasses.",
+    "The member '{0}' is declared non-virtual in '{1}' and can't be overridden "
+        "in subclasses.",
   );
 
   /**
@@ -1271,7 +1305,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INVALID_REQUIRED_NAMED_PARAM = HintCode(
     'INVALID_REQUIRED_NAMED_PARAM',
-    "The type parameter '{0}' is annotated with @required but only named parameters without a default value can be annotated with it.",
+    "The type parameter '{0}' is annotated with @required but only named "
+        "parameters without a default value can be annotated with it.",
     correctionMessage: "Remove @required.",
   );
 
@@ -1284,7 +1319,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM = HintCode(
     'INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM',
-    "Incorrect use of the annotation @required on the optional positional parameter '{0}'. Optional positional parameters cannot be required.",
+    "Incorrect use of the annotation @required on the optional positional "
+        "parameter '{0}'. Optional positional parameters cannot be required.",
     correctionMessage: "Remove @required.",
   );
 
@@ -1297,7 +1333,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INVALID_REQUIRED_POSITIONAL_PARAM = HintCode(
     'INVALID_REQUIRED_POSITIONAL_PARAM',
-    "Redundant use of the annotation @required on the required positional parameter '{0}'.",
+    "Redundant use of the annotation @required on the required positional "
+        "parameter '{0}'.",
     correctionMessage: "Remove @required.",
   );
 
@@ -1335,7 +1372,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode INVALID_USE_OF_PROTECTED_MEMBER = HintCode(
     'INVALID_USE_OF_PROTECTED_MEMBER',
-    "The member '{0}' can only be used within instance members of subclasses of '{1}'.",
+    "The member '{0}' can only be used within instance members of subclasses "
+        "of '{1}'.",
   );
 
   /**
@@ -1460,7 +1498,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode INVALID_VISIBILITY_ANNOTATION = HintCode(
     'INVALID_VISIBILITY_ANNOTATION',
-    "The member '{0}' is annotated with '{1}', but this annotation is only meaningful on declarations of public members.",
+    "The member '{0}' is annotated with '{1}', but this annotation is only "
+        "meaningful on declarations of public members.",
     hasPublishedDocs: true,
   );
 
@@ -1495,7 +1534,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION = HintCode(
     'INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
-    "The annotation 'visibleForOverriding' can only be applied to a public instance member that can be overridden.",
+    "The annotation 'visibleForOverriding' can only be applied to a public "
+        "instance member that can be overridden.",
     hasPublishedDocs: true,
   );
 
@@ -1593,7 +1633,8 @@ class HintCode extends AnalyzerErrorCode {
   // `null` is the appropriate value.
   static const HintCode MISSING_RETURN = HintCode(
     'MISSING_RETURN',
-    "This function has a return type of '{0}', but doesn't end with a return statement.",
+    "This function has a return type of '{0}', but doesn't end with a return "
+        "statement.",
     correctionMessage:
         "Try adding a return statement, or changing the return type to 'void'.",
     hasPublishedDocs: true,
@@ -1641,9 +1682,12 @@ class HintCode extends AnalyzerErrorCode {
   // of the sealed class.
   static const HintCode MIXIN_ON_SEALED_CLASS = HintCode(
     'MIXIN_ON_SEALED_CLASS',
-    "The class '{0}' shouldn't be used as a mixin constraint because it is sealed, and any class mixing in this mixin must have '{0}' as a superclass.",
+    "The class '{0}' shouldn't be used as a mixin constraint because it is "
+        "sealed, and any class mixing in this mixin must have '{0}' as a "
+        "superclass.",
     correctionMessage:
-        "Try composing with this class, or refer to its documentation for more information.",
+        "Try composing with this class, or refer to its documentation for more "
+        "information.",
     hasPublishedDocs: true,
   );
 
@@ -1703,7 +1747,9 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode MUST_BE_IMMUTABLE = HintCode(
     'MUST_BE_IMMUTABLE',
-    "This class (or a class that this class inherits from) is marked as '@immutable', but one or more of its instance fields aren't final: {0}",
+    "This class (or a class that this class inherits from) is marked as "
+        "'@immutable', but one or more of its instance fields aren't final: "
+        "{0}",
     hasPublishedDocs: true,
   );
 
@@ -1757,7 +1803,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode MUST_CALL_SUPER = HintCode(
     'MUST_CALL_SUPER',
-    "This method overrides a method annotated as '@mustCallSuper' in '{0}', but doesn't invoke the overridden method.",
+    "This method overrides a method annotated as '@mustCallSuper' in '{0}', "
+        "but doesn't invoke the overridden method.",
     hasPublishedDocs: true,
   );
 
@@ -1807,7 +1854,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR = HintCode(
     'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
-    "This instance creation must be 'const', because the {0} constructor is marked as '@literal'.",
+    "This instance creation must be 'const', because the {0} constructor is "
+        "marked as '@literal'.",
     correctionMessage: "Try adding a 'const' keyword.",
     hasPublishedDocs: true,
   );
@@ -1822,7 +1870,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW =
       HintCode(
     'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
-    "This instance creation must be 'const', because the {0} constructor is marked as '@literal'.",
+    "This instance creation must be 'const', because the {0} constructor is "
+        "marked as '@literal'.",
     correctionMessage: "Try replacing the 'new' keyword with 'const'.",
     hasPublishedDocs: true,
     uniqueName: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
@@ -1866,7 +1915,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode NULLABLE_TYPE_IN_CATCH_CLAUSE = HintCode(
     'NULLABLE_TYPE_IN_CATCH_CLAUSE',
-    "A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression.",
+    "A potentially nullable type can't be used in an 'on' clause because it "
+        "isn't valid to throw a nullable expression.",
     correctionMessage: "Try using a non-nullable type.",
     hasPublishedDocs: true,
   );
@@ -1907,7 +1957,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode NULL_ARGUMENT_TO_NON_NULL_TYPE = HintCode(
     'NULL_ARGUMENT_TO_NON_NULL_TYPE',
-    "'{0}' shouldn't be called with a null argument for the non-nullable type argument '{1}'.",
+    "'{0}' shouldn't be called with a null argument for the non-nullable type "
+        "argument '{1}'.",
     correctionMessage: "Try adding a non-null argument.",
     hasPublishedDocs: true,
   );
@@ -1927,9 +1978,11 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode NULL_AWARE_IN_CONDITION = HintCode(
     'NULL_AWARE_IN_CONDITION',
-    "The value of the '?.' operator can be 'null', which isn't appropriate in a condition.",
+    "The value of the '?.' operator can be 'null', which isn't appropriate in "
+        "a condition.",
     correctionMessage:
-        "Try replacing the '?.' with a '.', testing the left-hand side for null if necessary.",
+        "Try replacing the '?.' with a '.', testing the left-hand side for "
+        "null if necessary.",
   );
 
   /**
@@ -1938,7 +1991,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode NULL_AWARE_IN_LOGICAL_OPERATOR = HintCode(
     'NULL_AWARE_IN_LOGICAL_OPERATOR',
-    "The value of the '?.' operator can be 'null', which isn't appropriate as an operand of a logical operator.",
+    "The value of the '?.' operator can be 'null', which isn't appropriate as "
+        "an operand of a logical operator.",
   );
 
   /**
@@ -1947,7 +2001,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode NULL_CHECK_ALWAYS_FAILS = HintCode(
     'NULL_CHECK_ALWAYS_FAILS',
-    "This null-check will always throw an exception because the expression will always evaluate to 'null'.",
+    "This null-check will always throw an exception because the expression "
+        "will always evaluate to 'null'.",
   );
 
   /**
@@ -1959,7 +2014,8 @@ class HintCode extends AnalyzerErrorCode {
     'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
     "The field doesn't override an inherited getter or setter.",
     correctionMessage:
-        "Try updating this class to match the superclass, or removing the override annotation.",
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
     hasPublishedDocs: true,
     uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_FIELD',
   );
@@ -1973,7 +2029,8 @@ class HintCode extends AnalyzerErrorCode {
     'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
     "The getter doesn't override an inherited getter.",
     correctionMessage:
-        "Try updating this class to match the superclass, or removing the override annotation.",
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
     hasPublishedDocs: true,
     uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_GETTER',
   );
@@ -2021,7 +2078,8 @@ class HintCode extends AnalyzerErrorCode {
     'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
     "The method doesn't override an inherited method.",
     correctionMessage:
-        "Try updating this class to match the superclass, or removing the override annotation.",
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
     hasPublishedDocs: true,
     uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_METHOD',
   );
@@ -2035,7 +2093,8 @@ class HintCode extends AnalyzerErrorCode {
     'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
     "The setter doesn't override an inherited setter.",
     correctionMessage:
-        "Try updating this class to match the superclass, or removing the override annotation.",
+        "Try updating this class to match the superclass, or removing the "
+        "override annotation.",
     hasPublishedDocs: true,
     uniqueName: 'OVERRIDE_ON_NON_OVERRIDING_SETTER',
   );
@@ -2078,7 +2137,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode RETURN_OF_DO_NOT_STORE = HintCode(
     'RETURN_OF_DO_NOT_STORE',
-    "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless '{1}' is also annotated.",
+    "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
+        "'{1}' is also annotated.",
     correctionMessage: "Annotate '{1}' with 'doNotStore'.",
   );
 
@@ -2138,7 +2198,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR = HintCode(
     'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
-    "A value of type '{0}' can't be returned by the 'onError' handler because it must be assignable to '{1}'.",
+    "A value of type '{0}' can't be returned by the 'onError' handler because "
+        "it must be assignable to '{1}'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
   );
@@ -2150,7 +2211,8 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode RETURN_TYPE_INVALID_FOR_CATCH_ERROR = HintCode(
     'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
-    "The return type '{0}' isn't assignable to '{1}', as required by 'Future.catchError'.",
+    "The return type '{0}' isn't assignable to '{1}', as required by "
+        "'Future.catchError'.",
     hasPublishedDocs: true,
     uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
   );
@@ -2204,7 +2266,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = HintCode(
     'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
-    "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this code is required to be able to run on earlier versions.",
+    "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but "
+        "this code is required to be able to run on earlier versions.",
     correctionMessage:
         "Try either importing 'dart:async' or updating the SDK constraints.",
     hasPublishedDocs: true,
@@ -2260,7 +2323,9 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT = HintCode(
     'SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT',
-    "The use of an as expression in a constant expression wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions.",
+    "The use of an as expression in a constant expression wasn't supported "
+        "until version 2.3.2, but this code is required to be able to run on "
+        "earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -2318,7 +2383,9 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT = HintCode(
     'SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT',
-    "The use of the operator '{0}' for 'bool' operands in a constant context wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions.",
+    "The use of the operator '{0}' for 'bool' operands in a constant context "
+        "wasn't supported until version 2.3.2, but this code is required to be "
+        "able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -2376,9 +2443,11 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_CONSTRUCTOR_TEAROFFS = HintCode(
     'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
-    "Tearing off a constructor requires the 'constructor-tearoffs' language feature.",
+    "Tearing off a constructor requires the 'constructor-tearoffs' language "
+        "feature.",
     correctionMessage:
-        "Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.",
+        "Try updating your pubspec.yaml to set the minimum SDK constraint to "
+        "2.15 or higher, and running 'pub get'.",
     hasPublishedDocs: true,
   );
 
@@ -2438,7 +2507,9 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT = HintCode(
     'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
-    "Using the operator '==' for non-primitive types wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions.",
+    "Using the operator '==' for non-primitive types wasn't supported until "
+        "version 2.3.2, but this code is required to be able to run on earlier "
+        "versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -2498,7 +2569,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_EXTENSION_METHODS = HintCode(
     'SDK_VERSION_EXTENSION_METHODS',
-    "Extension methods weren't supported until version 2.6.0, but this code is required to be able to run on earlier versions.",
+    "Extension methods weren't supported until version 2.6.0, but this code is "
+        "required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -2557,7 +2629,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_GT_GT_GT_OPERATOR = HintCode(
     'SDK_VERSION_GT_GT_GT_OPERATOR',
-    "The operator '>>>' wasn't supported until version 2.14.0, but this code is required to be able to run on earlier versions.",
+    "The operator '>>>' wasn't supported until version 2.14.0, but this code "
+        "is required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -2613,7 +2686,9 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT = HintCode(
     'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
-    "The use of an is expression in a constant context wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions.",
+    "The use of an is expression in a constant context wasn't supported until "
+        "version 2.3.2, but this code is required to be able to run on earlier "
+        "versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -2665,7 +2740,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_NEVER = HintCode(
     'SDK_VERSION_NEVER',
-    "The type 'Never' wasn't supported until version 2.12.0, but this code is required to be able to run on earlier versions.",
+    "The type 'Never' wasn't supported until version 2.12.0, but this code is "
+        "required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -2716,7 +2792,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_SET_LITERAL = HintCode(
     'SDK_VERSION_SET_LITERAL',
-    "Set literals weren't supported until version 2.2, but this code is required to be able to run on earlier versions.",
+    "Set literals weren't supported until version 2.2, but this code is "
+        "required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -2776,7 +2853,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_UI_AS_CODE = HintCode(
     'SDK_VERSION_UI_AS_CODE',
-    "The for, if, and spread elements weren't supported until version 2.3.0, but this code is required to be able to run on earlier versions.",
+    "The for, if, and spread elements weren't supported until version 2.3.0, "
+        "but this code is required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -2838,7 +2916,9 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT = HintCode(
     'SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT',
-    "The if and spread elements weren't supported in constant expressions until version 2.5.0, but this code is required to be able to run on earlier versions.",
+    "The if and spread elements weren't supported in constant expressions "
+        "until version 2.5.0, but this code is required to be able to run on "
+        "earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -2907,9 +2987,11 @@ class HintCode extends AnalyzerErrorCode {
   // the same package as the sealed class.
   static const HintCode SUBTYPE_OF_SEALED_CLASS = HintCode(
     'SUBTYPE_OF_SEALED_CLASS',
-    "The class '{0}' shouldn't be extended, mixed in, or implemented because it's sealed.",
+    "The class '{0}' shouldn't be extended, mixed in, or implemented because "
+        "it's sealed.",
     correctionMessage:
-        "Try composing instead of inheriting, or refer to the documentation of '{0}' for more information.",
+        "Try composing instead of inheriting, or refer to the documentation of "
+        "'{0}' for more information.",
     hasPublishedDocs: true,
   );
 
@@ -2951,9 +3033,11 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode TEXT_DIRECTION_CODE_POINT_IN_COMMENT = HintCode(
     'TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
-    "The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.",
+    "The Unicode code point 'U+{0}' changes the appearance of text from how "
+        "it's interpreted by the compiler.",
     correctionMessage:
-        "Try removing the code point or using the Unicode escape sequence '\\u{0}'.",
+        "Try removing the code point or using the Unicode escape sequence "
+        "'\\u{0}'.",
   );
 
   /**
@@ -2994,9 +3078,11 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode TEXT_DIRECTION_CODE_POINT_IN_LITERAL = HintCode(
     'TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
-    "The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.",
+    "The Unicode code point 'U+{0}' changes the appearance of text from how "
+        "it's interpreted by the compiler.",
     correctionMessage:
-        "Try removing the code point or using the Unicode escape sequence '\\u{0}'.",
+        "Try removing the code point or using the Unicode escape sequence "
+        "'\\u{0}'.",
   );
 
   /**
@@ -3190,7 +3276,8 @@ class HintCode extends AnalyzerErrorCode {
     'UNIGNORABLE_IGNORE',
     "The diagnostic '{0}' can't be ignored.",
     correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if this is the only name in the list.",
+        "Try removing the name from the list, or removing the whole comment if "
+        "this is the only name in the list.",
   );
 
   /**
@@ -3238,9 +3325,11 @@ class HintCode extends AnalyzerErrorCode {
    */
   static const HintCode UNNECESSARY_IGNORE = HintCode(
     'UNNECESSARY_IGNORE',
-    "The diagnostic '{0}' isn't produced at this location so it doesn't need to be ignored.",
+    "The diagnostic '{0}' isn't produced at this location so it doesn't need "
+        "to be ignored.",
     correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if this is the only name in the list.",
+        "Try removing the name from the list, or removing the whole comment if "
+        "this is the only name in the list.",
   );
 
   /**
@@ -3292,7 +3381,8 @@ class HintCode extends AnalyzerErrorCode {
   // the missing references to those names.
   static const HintCode UNNECESSARY_IMPORT = HintCode(
     'UNNECESSARY_IMPORT',
-    "The import of '{0}' is unnecessary because all of the used elements are also provided by the import of '{1}'.",
+    "The import of '{0}' is unnecessary because all of the used elements are "
+        "also provided by the import of '{1}'.",
     correctionMessage: "Try removing the import directive.",
     hasPublishedDocs: true,
   );
@@ -3408,7 +3498,8 @@ class HintCode extends AnalyzerErrorCode {
     'UNNECESSARY_NULL_COMPARISON',
     "The operand can't be null, so the condition is always false.",
     correctionMessage:
-        "Try removing the condition, an enclosing condition, or the whole conditional statement.",
+        "Try removing the condition, an enclosing condition, or the whole "
+        "conditional statement.",
     hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NULL_COMPARISON_FALSE',
   );
@@ -3548,7 +3639,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode UNUSED_CATCH_CLAUSE = HintCode(
     'UNUSED_CATCH_CLAUSE',
-    "The exception variable '{0}' isn't used, so the 'catch' clause can be removed.",
+    "The exception variable '{0}' isn't used, so the 'catch' clause can be "
+        "removed.",
     correctionMessage: "Try removing the catch clause.",
     hasPublishedDocs: true,
   );
@@ -3790,7 +3882,8 @@ class HintCode extends AnalyzerErrorCode {
     'UNUSED_LABEL',
     "The label '{0}' isn't used.",
     correctionMessage:
-        "Try removing the label, or using it in either a 'break' or 'continue' statement.",
+        "Try removing the label, or using it in either a 'break' or 'continue' "
+        "statement.",
     hasPublishedDocs: true,
   );
 
@@ -3900,7 +3993,8 @@ class HintCode extends AnalyzerErrorCode {
     'UNUSED_RESULT',
     "The value of '{0}' should be used.",
     correctionMessage:
-        "Try using the result by invoking a member, passing it to a function, or returning it from this function.",
+        "Try using the result by invoking a member, passing it to a function, "
+        "or returning it from this function.",
     hasPublishedDocs: true,
   );
 
@@ -3917,7 +4011,8 @@ class HintCode extends AnalyzerErrorCode {
     'UNUSED_RESULT',
     "'{0}' should be used. {1}.",
     correctionMessage:
-        "Try using the result by invoking a member, passing it to a function, or returning it from this function.",
+        "Try using the result by invoking a member, passing it to a function, "
+        "or returning it from this function.",
     hasPublishedDocs: true,
     uniqueName: 'UNUSED_RESULT_WITH_MESSAGE',
   );
