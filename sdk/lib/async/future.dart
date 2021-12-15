@@ -185,7 +185,7 @@ abstract class FutureOr<T> {
 /// (the value handler) and using a second [catchError] for handling errors.
 /// Each of these will forward the result that they don't handle
 /// to their successors, and together they handle both value and error result.
-/// It also has the additional benefit of the [catchError] handling errors in the
+/// It has the additional benefit of the [catchError] handling errors in the
 /// [then] value callback too.
 /// Using sequential handlers instead of parallel ones often leads to code that
 /// is easier to reason about.
@@ -819,8 +819,9 @@ abstract class Future<T> {
   /// }
   /// Future<String> waitTask() async {
   ///   return await Future.delayed(
-  ///       const Duration(seconds: 5), () => 'completed');
+  ///       const Duration(seconds: 5), () => 'done');
   /// }
+  /// // Outputs: 'do some work here' after waitTask is completed.
   /// ```
   Future<T> whenComplete(FutureOr<void> action());
 
