@@ -18,7 +18,7 @@ part of dart.async;
 /// the [Duration] class):
 /// ```dart
 /// void main(){
-///   startTimeout(5 * 1000); // 5 seconds
+///   startTimeout(5 * 1000); // 5 seconds.
 /// }
 ///
 /// Timer startTimeout([int? milliseconds]) {
@@ -27,7 +27,10 @@ part of dart.async;
 ///
 ///   final duration = milliseconds == null ? timeout : ms * milliseconds;
 ///   print(duration); // 0:00:05.000000
-///   return Timer(duration, () => print('exampleCallback'));
+///   return Timer(duration, handleTimeout);
+/// }
+/// void handleTimeout() {  // callback function
+///   ...
 /// }
 /// ```
 /// **Note:** If Dart code using [Timer] is compiled to JavaScript, the finest
@@ -44,7 +47,7 @@ abstract class Timer {
   /// ```dart
   /// final timer =
   ///     Timer(const Duration(seconds: 5), () => print('Timer finished'));
-  /// // Outputs after 5 seconds: "Timer finished"
+  /// // Outputs after 5 seconds: "Timer finished".
   /// ```
   factory Timer(Duration duration, void Function() callback) {
     if (Zone.current == Zone.root) {
@@ -88,7 +91,7 @@ abstract class Timer {
   /// // 1
   /// // 2
   /// // 3
-  /// // Cancel timer
+  /// // "Cancel timer"
   /// ```
   factory Timer.periodic(Duration duration, void callback(Timer timer)) {
     if (Zone.current == Zone.root) {
