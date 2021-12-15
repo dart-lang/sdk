@@ -162,13 +162,7 @@ class CommentReferenceResolver {
         propertyErrorEntity: identifier,
         nameErrorEntity: identifier,
       );
-      if (identifier.parent is CommentReference) {
-        // TODO(srawlins): Why is the setter preferred? This seems very flawed
-        // as it will only use the setter for a [SimpleIdentifier] comment
-        // reference, and not a [PrefixedIdentifier] or a [PropertyAccess].
-        element = result.setter;
-      }
-      element ??= result.getter;
+      element = result.getter ?? result.setter;
     }
     return element;
   }
