@@ -288,6 +288,20 @@ var v = const A('foo');
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 5),
     ]);
   }
+
+  test_unknown_conditionalExpression_unknownCondition() async {
+    await assertNoErrorsInCode(r'''
+const bool kIsWeb = identical(0, 0.0);
+
+void f() {
+  const A(kIsWeb ? 0 : 1);
+}
+
+class A {
+  const A(int _);
+}
+''');
+  }
 }
 
 @reflectiveTest
