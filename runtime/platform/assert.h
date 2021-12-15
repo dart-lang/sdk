@@ -140,19 +140,19 @@ void Expect::FloatEquals(const E& expected, const A& actual, const T& tol) {
        tols.c_str());
 }
 
-static void Escape(std::ostringstream& dst, const char* src) {
+static void Escape(std::string& dst, const char* src) {
   char c;
   while ((c = *src++) != '\0') {
     if (c == '\n') {
-      dst << "\\n\"\n\"";
+      dst += "\\n\"\n\"";
     } else if (c == '\'') {
-      dst << "\\\'";
+      dst += "\\\'";
     } else if (c == '\"') {
-      dst << "\\\"";
+      dst += "\\\"";
     } else if (c == '\\') {
-      dst << "\\\\";
+      dst += "\\\\";
     } else {
-      dst << c;
+      dst += c;
     }
   }
 }
@@ -163,10 +163,9 @@ inline void Expect::StringEquals(const char* expected, const char* actual) {
     Fail("expected:\n<\"%s\">\nbut was nullptr", expected);
   } else {
     if (strcmp(expected, actual) == 0) return;
-    std::ostringstream ess, ass;
-    Escape(ess, expected);
-    Escape(ass, actual);
-    std::string es = ess.str(), as = ass.str();
+    std::string es, as;
+    Escape(es, expected);
+    Escape(as, actual);
     Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", es.c_str(), as.c_str());
   }
 }
