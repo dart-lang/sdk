@@ -688,8 +688,14 @@ abstract class Stream<T> {
   ///     Stream<int>.periodic(const Duration(seconds: 1), (count) => count)
   ///         .take(5);
   ///
-  /// final calculationStream = stream.map((event) => event * event);
-  /// calculationStream.forEach(print); // Outputs event values: 0, 1, 4, 9, 16.
+  /// final calculationStream =
+  ///     stream.map<String>((event) => 'Sum: ${event * event}');
+  /// calculationStream.forEach(print);
+  /// // Sum: 0
+  /// // Sum: 1
+  /// // Sum: 4
+  /// // Sum: 9
+  /// // Sum: 16
   /// ```
   Stream<S> map<S>(S convert(T event)) {
     return new _MapStream<T, S>(this, convert);
