@@ -278,7 +278,7 @@ deps = {
   Var("dart_root") + "/third_party/gsutil": {
       "packages": [{
           "package": "infra/3pp/tools/gsutil",
-          "version": "version:4.58",
+          "version": "version:2@5.5",
       }],
       "dep_type": "cipd",
   },
