@@ -156,7 +156,7 @@ abstract class Stream<T> {
   ///     print(value);
   ///   },
   ///   onDone: () {
-  ///     print('onDone');
+  ///     print('Done');
   ///   },
   /// );
   /// ```
@@ -222,6 +222,7 @@ abstract class Stream<T> {
   ///
   /// When the future completes, the stream will fire one event, either
   /// data or error, and then close with a done-event.
+  ///
   /// Example:
   /// ```dart
   /// Future<String> futureTask() async {
@@ -232,6 +233,10 @@ abstract class Stream<T> {
   /// final stream = Stream<String>.fromFuture(futureTask());
   /// stream.listen((event) => print(event),
   ///     onDone: () => print('Done'), onError: (error) => print(error));
+  ///
+  /// // Outputs:
+  /// // "Future complete" after 'futureTask' finished.
+  /// // "Done" when stream completed.
   /// ```
   factory Stream.fromFuture(Future<T> future) {
     // Use the controller's buffering to fill in the value even before
@@ -277,6 +282,11 @@ abstract class Stream<T> {
   /// final stream = Stream<Object>.fromFutures([waitTask(), doneTask()]);
   /// stream.listen((event) => print(event),
   ///     onDone: () => print('Done'), onError: (error) => print(error));
+  ///
+  /// // Outputs:
+  /// // 10 after 'waitTask' finished.
+  /// // "Future complete" after 'doneTask' finished.
+  /// // "Done" when stream completed.
   /// ```
   factory Stream.fromFutures(Iterable<Future<T>> futures) {
     _StreamController<T> controller =
@@ -558,7 +568,7 @@ abstract class Stream<T> {
   ///     Stream<int>.periodic(const Duration(seconds: 1), (count) => count)
   ///         .take(10);
   ///
-  /// final broadCastStream = stream.asBroadcastStream(
+  /// final broadcastStream = stream.asBroadcastStream(
   ///   onCancel: (event) {
   ///     print('Stream cancelled');
   ///     event.cancel();
@@ -570,23 +580,30 @@ abstract class Stream<T> {
   ///    },
   /// );
   ///
-  /// final oddStream = broadCastStream.where((event) => event.isOdd);
-  /// final oddListener = oddStream.listen(
+  /// final oddNumberStream = broadcastStream.where((event) => event.isOdd);
+  /// final oddNumberListener = oddNumberStream.listen(
   ///       (event) {
   ///     print('Odd: $event');
   ///   },
   ///   onDone: () => print('Done'),
   /// );
   ///
-  /// final evenStream = broadCastStream.where((event) => event.isEven);
-  /// final evenListener = evenStream.listen((event) {
+  /// final evenNumberStream = broadcastStream.where((event) => event.isEven);
+  /// final evenNumberListener = evenNumberStream.listen((event) {
   ///   print('Even: $event');
   /// }, onDone: () => print('Done'));
   ///
   /// await Future.delayed(const Duration(seconds: 5));
   /// // Cancel listeners.
-  /// oddListener.cancel();
-  /// evenListener.cancel();
+  /// oddNumberListener.cancel();
+  /// evenNumberListener.cancel();
+  ///
+  /// // Outputs:
+  /// // Even: 0
+  /// // Odd: 1
+  /// // Even: 2
+  /// // Stream paused: true
+  /// // Stream cancelled
   /// ```
   Stream<T> asBroadcastStream(
       {void onListen(StreamSubscription<T> subscription)?,
@@ -842,7 +859,14 @@ abstract class Stream<T> {
   ///     throw Exception('custom error');
   ///   }
   ///   return count;
-  /// }).take(10).handleError((error) => print(error)).listen(print);
+  /// }).take(4).handleError((error) => print(error)).listen(print);
+  ///
+  /// // Outputs:
+  /// // 0
+  /// // 1
+  /// // Exception: custom error
+  /// // 3
+  /// // 4
   /// ```
   Stream<T> handleError(Function onError, {bool test(error)?}) {
     if (onError is! void Function(Object, StackTrace) &&
@@ -1328,7 +1352,7 @@ abstract class Stream<T> {
   /// Example:
   /// ```dart
   /// final result = await Stream.fromIterable([1, 2, 3]).drain(100);
-  /// print(result); // Outputs: 100
+  /// print(result); // Outputs: 100.
   /// ```
   Future<E> drain<E>([E? futureValue]) {
     if (futureValue == null) {
