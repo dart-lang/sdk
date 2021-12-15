@@ -23,7 +23,7 @@ part of dart.core;
 ///
 /// **See also:**
 /// * [num] the super class for [int].
-/// * [Numbers](https://dart.dev/guides/language/numbers)  in
+/// * [Numbers](https://dart.dev/guides/language/numbers) in
 /// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
 abstract class int extends num {
   /// Returns the integer value of the given environment declaration [name].
