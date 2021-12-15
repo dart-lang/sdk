@@ -18,8 +18,8 @@ part of dart.core;
 /// double.
 ///
 /// **See also:**
-/// * [num] is a super class for [double].
-/// * [Numbers](https://dart.dev/guides/language/numbers)  in
+/// * [num] the super class for [double].
+/// * [Numbers](https://dart.dev/guides/language/numbers) in
 /// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
 abstract class double extends num {
   static const double nan = 0.0 / 0.0;
@@ -80,7 +80,7 @@ abstract class double extends num {
   /// ```
   int floor();
 
-  /// Returns the least integer which is not smaller than this number.
+  /// Returns the least integer that is not smaller than this number.
   ///
   /// Rounds the number towards infinity.
   ///
@@ -121,7 +121,7 @@ abstract class double extends num {
   ///
   /// For the purpose of rounding, `-0.0` is considered to be below `0.0`,
   /// and `-0.0` is therefore considered closer to negative numbers than `0.0`.
-  /// This means that for a value, `d` in the range `-0.5 < d < 0.0`,
+  /// This means that for a value `d` in the range `-0.5 < d < 0.0`,
   /// the result is `-0.0`.
   /// ```dart
   /// print(2.5.roundToDouble()); // 3.0
@@ -192,7 +192,7 @@ abstract class double extends num {
   /// `d` is NaN).
   String toString();
 
-  /// Parse [source] as an double literal and return its value.
+  /// Parse [source] as a double literal and return its value.
   ///
   /// Accepts an optional sign (`+` or `-`) followed by either the characters
   /// "Infinity", the characters "NaN" or a floating-point representation.
@@ -229,9 +229,9 @@ abstract class double extends num {
   external static double parse(String source,
       [@deprecated double onError(String source)?]);
 
-  /// Parse [source] as an double literal and return its value.
+  /// Parse [source] as a double literal and return its value.
   ///
-  /// Like [parse] except that this function returns `null` for invalid inputs
+  /// Like [parse], except that this function returns `null` for invalid inputs
   /// instead of throwing.
   ///
   /// Example:
