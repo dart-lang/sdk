@@ -17,7 +17,7 @@ part of dart.async;
 /// following example (taking advantage of the multiplication operator of
 /// the [Duration] class):
 /// ```dart
-/// void main(){
+/// void main() {
 ///   startTimeout(5 * 1000); // 5 seconds.
 /// }
 ///
@@ -30,7 +30,7 @@ part of dart.async;
 ///   return Timer(duration, handleTimeout);
 /// }
 /// void handleTimeout() {  // callback function
-///   ...
+///   // Do some work.
 /// }
 /// ```
 /// **Note:** If Dart code using [Timer] is compiled to JavaScript, the finest
