@@ -1954,24 +1954,24 @@ abstract class Stream<T> {
 /// final stream = Stream.periodic(const Duration(seconds: 1), (i) => i * i)
 ///     .take(10);
 ///
-/// final streamSubscription = stream.listen(print); // StreamSubscription.
+/// final subscription = stream.listen(print); // This is StreamSubscription.
 /// ```
 /// To pause the subscription, use [pause].
 /// ```dart continued
-/// await Future.delayed(const Duration(seconds: 2));
-/// streamSubscription.pause();
+/// // Do some work.
+/// subscription.pause();
 /// print(streamSubscription.isPaused); // true
 /// ```
 /// To resume after the pause, use [resume].
 /// ```dart continued
-/// await Future.delayed(const Duration(seconds: 4));
-/// streamSubscription.resume();
+/// // Do some work.
+/// subscription.resume();
 /// print(streamSubscription.isPaused); // false
 /// ```
 /// To cancel the subscription, use [cancel].
 /// ```dart continued
-/// await Future.delayed(const Duration(seconds: 2));
-/// streamSubscription.cancel();
+/// // Do some work.
+/// subscription.cancel();
 /// ```
 abstract class StreamSubscription<T> {
   /// Cancels this subscription.
