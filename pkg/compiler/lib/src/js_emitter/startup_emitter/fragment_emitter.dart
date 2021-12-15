@@ -640,10 +640,8 @@ class FragmentEmitter {
       this._nativeEmitter,
       this._closedWorld,
       this._codegenWorld)
-      : _holderFinalizer = _options.features.newHolders.isEnabled
-            ? DeferredHolderExpressionFinalizerImpl(_closedWorld.commonElements)
-            : LegacyDeferredHolderExpressionFinalizerImpl(
-                _closedWorld.commonElements) {
+      : _holderFinalizer =
+            DeferredHolderExpressionFinalizerImpl(_closedWorld.commonElements) {
     _recipeEncoder = RecipeEncoderImpl(
         _closedWorld,
         _options.disableRtiOptimization
