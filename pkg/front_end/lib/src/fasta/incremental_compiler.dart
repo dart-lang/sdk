@@ -754,9 +754,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         new Map<LibraryBuilder, List<LibraryBuilder>>.identity();
     if (experimentalInvalidation != null) {
       for (LibraryBuilder library in experimentalInvalidation.rebuildBodies) {
-        LibraryBuilder newBuilder = currentKernelTarget.loader.read(
-            library.importUri, -1,
-            accessorUri: currentKernelTarget.loader.firstUri,
+        LibraryBuilder newBuilder = currentKernelTarget.loader.readAsEntryPoint(
+            library.importUri,
             fileUri: library.fileUri,
             referencesFrom: library.library);
         List<LibraryBuilder> builders = [newBuilder];
@@ -1661,9 +1660,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     assert(_dillLoadedData != null && lastGoodKernelTarget != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder libraryBuilder = lastGoodKernelTarget!.loader.read(
-          libraryUri, -1,
-          accessorUri: lastGoodKernelTarget.loader.firstUri);
+      LibraryBuilder libraryBuilder =
+          lastGoodKernelTarget!.loader.readAsEntryPoint(libraryUri);
       _ticker.logMs("Loaded library $libraryUri");
 
       Class? cls;
@@ -2579,9 +2577,11 @@ class _ComponentProblems {
       for (String jsonString in problemsAsJson) {
         DiagnosticMessageFromJson message =
             new DiagnosticMessageFromJson.fromJson(jsonString);
-        assert(message.uri != null ||
-            (message.involvedFiles != null &&
-                message.involvedFiles!.isNotEmpty));
+        assert(
+            message.uri != null ||
+                (message.involvedFiles != null &&
+                    message.involvedFiles!.isNotEmpty),
+            jsonString);
         if (message.uri != null) {
           List<DiagnosticMessageFromJson> messages =
               _remainingComponentProblems[message.uri!] ??=
