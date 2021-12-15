@@ -11,7 +11,7 @@ import 'utils.dart';
 void main() {
   TestProject p;
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
   test("Fallback to dartdev.dill from dartdev.dart.snapshot for 'Hello World'",
       () async {

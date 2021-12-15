@@ -93,8 +93,9 @@ dev_dependencies:
     file.deleteSync();
   }
 
-  void dispose() {
+  Future<void> dispose() async {
     _process?.kill();
+    await _process?.exitCode;
     _process = null;
     if (dir.existsSync()) {
       dir.deleteSync(recursive: true);
@@ -135,7 +136,8 @@ dev_dependencies:
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,
-        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
+        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'})
+      ..then((p) => _process = p);
   }
 
   String _sdkRootPath;

@@ -16,7 +16,7 @@ void main() {
 void format() {
   TestProject p;
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
   test('--help', () async {
     p = project();

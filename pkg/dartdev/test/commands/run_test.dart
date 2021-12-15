@@ -23,7 +23,7 @@ void main() {
 void run() {
   TestProject p;
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
   test('--help', () async {
     p = project();
@@ -147,7 +147,7 @@ void main(List<String> args) => print("$b $args");
       expect(result.stdout, contains('FOO BAR [--arg1, arg2]'));
       expect(result.exitCode, 0);
     } finally {
-      bar.dispose();
+      await bar.dispose();
     }
   });
 
