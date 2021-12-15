@@ -14,18 +14,18 @@ part of dart.math;
 /// To create a non-negative random integer uniformly distributed in the range
 /// from 0, inclusive, to [max], exclusive, use [nextInt(int max)].
 /// ```dart
-/// var value = Random().nextInt(10); // Value between 0 - 9.
-/// value = Random().nextInt(100) + 50; // Value between 50 - 149
+/// var intValue = Random().nextInt(10); // Value between 0 - 9.
+/// intValue = Random().nextInt(100) + 50; // Value between 50 - 149
 /// ```
 /// To create a non-negative random floating point value uniformly distributed
 /// in the range from 0.0, inclusive, to 1.0, exclusive, use [nextDouble].
 /// ```dart continued
-/// value = Random().nextDouble(); // Value between 0.0 - 1.0.
-/// value = Random().nextDouble() + 10; // Value is >= 10.0 and < 11.0
+/// var doubleValue = Random().nextDouble(); // Value between 0.0 - 1.0.
+/// doubleValue = Random().nextDouble() + 10; // Value is >= 10.0 and < 11.0
 /// ```
 /// To create a random boolean value, use [nextBool].
 /// ```dart continued
-/// value = Random().nextBool(); // Value is true or false.
+/// var boolValue = Random().nextBool(); // Value is true or false.
 /// ```
 abstract class Random {
   /// Creates a random number generator.
