@@ -596,6 +596,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
           return;
         }
       }
+    } else if (expression is PropertyAccess) {
+      // Nothing to do?
     } else {
       throw UnimplementedError('Unhandled CommentReference expression type: '
           '${expression.runtimeType}');

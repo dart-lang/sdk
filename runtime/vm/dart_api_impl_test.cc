@@ -8121,6 +8121,64 @@ TEST_CASE(DartAPI_NativePortPostTransferrableTypedData) {
   EXPECT(Dart_CloseNativePort(port_id2));
 }
 
+static const intptr_t kSendLength = 16;
+
+static void NewNativePort_ExternalTypedData(Dart_Port dest_port_id,
+                                            Dart_CObject* message) {
+  // Gets a send port message.
+  EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject_kTypedData, message->type);
+  EXPECT_EQ(Dart_TypedData_kUint8, message->value.as_typed_data.type);
+  EXPECT_EQ(kSendLength, message->value.as_typed_data.length);
+  for (intptr_t i = 0; i < kSendLength; i++) {
+    EXPECT_EQ((0x41 + i), message->value.as_typed_data.values[i]);
+  }
+}
+
+static void FinalizeTypedData(void* isolate_callback_data, void* peer) {
+  delete[] reinterpret_cast<int8_t*>(peer);
+}
+
+TEST_CASE(DartAPI_NativePortPostExternalTypedData) {
+  int8_t* extTypedData = new int8_t[kSendLength];
+  for (int i = 0; i < kSendLength; i++) {
+    extTypedData[i] = 0x41 + i;
+  }
+  const char* kScriptChars =
+      "import 'dart:typed_data';\n"
+      "import 'dart:isolate';\n"
+      "void callPort(SendPort port, Uint8List data) {\n"
+      "  port.send(data);\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  Dart_Port port_id =
+      Dart_NewNativePort("Port123", NewNativePort_ExternalTypedData, true);
+
+  Dart_Handle send_port = Dart_NewSendPort(port_id);
+  EXPECT_VALID(send_port);
+
+  Dart_Handle extdata = Dart_NewExternalTypedDataWithFinalizer(
+      Dart_TypedData_kUint8, extTypedData, kSendLength, extTypedData,
+      kSendLength, FinalizeTypedData);
+  EXPECT_VALID(extdata);
+
+  // Test first port.
+  Dart_Handle dart_args[2];
+  dart_args[0] = send_port;
+  dart_args[1] = extdata;
+  Dart_Handle result = Dart_Invoke(lib, NewString("callPort"), 2, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT_VALID(result);
+
+  Dart_ExitScope();
+
+  // Delete the native ports.
+  EXPECT(Dart_CloseNativePort(port_id));
+}
+
 static void NewNativePort_nativeReceiveNull(Dart_Port dest_port_id,
                                             Dart_CObject* message) {
   EXPECT_NOTNULL(message);

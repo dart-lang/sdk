@@ -2660,16 +2660,25 @@ class ParserTestListener implements Listener {
 
   @override
   void handleCommentReference(
-      Token? newKeyword, Token? prefix, Token? period, Token token) {
+      Token? newKeyword,
+      Token? firstToken,
+      Token? firstPeriod,
+      Token? secondToken,
+      Token? secondPeriod,
+      Token thirdToken) {
     seen(newKeyword);
-    seen(prefix);
-    seen(period);
-    seen(token);
+    seen(firstToken);
+    seen(firstPeriod);
+    seen(secondToken);
+    seen(secondPeriod);
+    seen(thirdToken);
     doPrint('handleCommentReference('
         '$newKeyword, '
-        '$prefix, '
-        '$period, '
-        '$token)');
+        '$firstToken, '
+        '$firstPeriod, '
+        '$secondToken, '
+        '$secondPeriod, '
+        '$thirdToken)');
   }
 
   @override

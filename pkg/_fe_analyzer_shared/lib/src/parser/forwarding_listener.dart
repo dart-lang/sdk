@@ -1259,8 +1259,14 @@ class ForwardingListener implements Listener {
 
   @override
   void handleCommentReference(
-      Token? newKeyword, Token? prefix, Token? period, Token token) {
-    listener?.handleCommentReference(newKeyword, prefix, period, token);
+      Token? newKeyword,
+      Token? firstToken,
+      Token? firstPeriod,
+      Token? secondToken,
+      Token? secondPeriod,
+      Token thirdToken) {
+    listener?.handleCommentReference(newKeyword, firstToken, firstPeriod,
+        secondToken, secondPeriod, thirdToken);
   }
 
   @override

@@ -8355,26 +8355,33 @@ class Parser {
       newKeyword = token;
       token = token.next!;
     }
-    Token? prefix, period;
+    Token? firstToken, firstPeriod, secondToken, secondPeriod;
     if (token.isIdentifier && optional('.', token.next!)) {
-      prefix = token;
-      period = token.next!;
-      Token identifier = period.next!;
+      secondToken = token;
+      secondPeriod = token.next!;
+      if (secondPeriod.next!.isIdentifier &&
+          optional('.', secondPeriod.next!.next!)) {
+        firstToken = secondToken;
+        firstPeriod = secondPeriod;
+        secondToken = secondPeriod.next!;
+        secondPeriod = secondToken.next!;
+      }
+      Token identifier = secondPeriod.next!;
       if (identifier.kind == KEYWORD_TOKEN && optional('new', identifier)) {
         // Treat `new` after `.` is as an identifier so that it can represent an
         // unnamed constructor. This support is separate from the
         // constructor-tearoffs feature.
         rewriter.replaceTokenFollowing(
-            period,
+            secondPeriod,
             new StringToken(TokenType.IDENTIFIER, identifier.lexeme,
                 identifier.charOffset));
       }
-      token = period.next!;
+      token = secondPeriod.next!;
     }
     if (token.isEof) {
       // Recovery: Insert a synthetic identifier for code completion
       token = rewriter.insertSyntheticIdentifier(
-          period ?? newKeyword ?? syntheticPreviousToken(token));
+          secondPeriod ?? newKeyword ?? syntheticPreviousToken(token));
       if (begin == token.next!) {
         begin = token;
       }
@@ -8386,21 +8393,21 @@ class Parser {
     }
     if (token.isUserDefinableOperator) {
       if (token.next!.isEof) {
-        parseOneCommentReferenceRest(
-            begin, referenceOffset, newKeyword, prefix, period, token);
+        parseOneCommentReferenceRest(begin, referenceOffset, newKeyword,
+            firstToken, firstPeriod, secondToken, secondPeriod, token);
         return true;
       }
     } else {
       token = operatorKeyword ?? token;
       if (token.next!.isEof) {
         if (token.isIdentifier) {
-          parseOneCommentReferenceRest(
-              begin, referenceOffset, newKeyword, prefix, period, token);
+          parseOneCommentReferenceRest(begin, referenceOffset, newKeyword,
+              firstToken, firstPeriod, secondToken, secondPeriod, token);
           return true;
         }
         Keyword? keyword = token.keyword;
         if (newKeyword == null &&
-            prefix == null &&
+            secondToken == null &&
             (keyword == Keyword.THIS ||
                 keyword == Keyword.NULL ||
                 keyword == Keyword.TRUE ||
@@ -8421,8 +8428,10 @@ class Parser {
       Token begin,
       int referenceOffset,
       Token? newKeyword,
-      Token? prefix,
-      Token? period,
+      Token? firstToken,
+      Token? firstPeriod,
+      Token? secondToken,
+      Token? secondPeriod,
       Token identifierOrOperator) {
     // Adjust the token offsets to match the enclosing comment token.
     Token token = begin;
@@ -8431,8 +8440,8 @@ class Parser {
       token = token.next!;
     } while (!token.isEof);
 
-    listener.handleCommentReference(
-        newKeyword, prefix, period, identifierOrOperator);
+    listener.handleCommentReference(newKeyword, firstToken, firstPeriod,
+        secondToken, secondPeriod, identifierOrOperator);
   }
 
   /// Given that we have just found bracketed text within the given [comment],

@@ -2668,13 +2668,26 @@ class AstBuilder extends StackListener {
 
   @override
   void handleCommentReference(
-      Token? newKeyword, Token? prefix, Token? period, Token token) {
-    Identifier identifier = ast.simpleIdentifier(token);
-    if (prefix != null) {
-      identifier = ast.prefixedIdentifier(ast.simpleIdentifier(prefix), period!,
-          identifier as SimpleIdentifier);
+    Token? newKeyword,
+    Token? firstToken,
+    Token? firstPeriod,
+    Token? secondToken,
+    Token? secondPeriod,
+    Token thirdToken,
+  ) {
+    var identifier = ast.simpleIdentifier(thirdToken);
+    if (firstToken != null) {
+      var target = ast.prefixedIdentifier(ast.simpleIdentifier(firstToken),
+          firstPeriod!, ast.simpleIdentifier(secondToken!));
+      var expression = ast.propertyAccess(target, secondPeriod!, identifier);
+      push(ast.commentReference(newKeyword, expression));
+    } else if (secondToken != null) {
+      var expression = ast.prefixedIdentifier(
+          ast.simpleIdentifier(secondToken), secondPeriod!, identifier);
+      push(ast.commentReference(newKeyword, expression));
+    } else {
+      push(ast.commentReference(newKeyword, identifier));
     }
-    push(ast.commentReference(newKeyword, identifier));
   }
 
   @override

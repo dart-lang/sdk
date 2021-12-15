@@ -176,7 +176,7 @@ void defineAnalyze() {
 
   setUp(() => p = null);
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
   test('--help', () async {
     p = project();
@@ -201,7 +201,7 @@ void defineAnalyze() {
   group('multiple items', () {
     TestProject secondProject;
 
-    tearDown(() => secondProject?.dispose());
+    tearDown(() async => await secondProject?.dispose());
 
     test('folder and file', () async {
       p = project(mainSrc: "int get foo => 'str';\n");

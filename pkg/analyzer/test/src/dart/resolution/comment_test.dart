@@ -10,7 +10,237 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CommentDriverResolutionTest);
+    defineReflectiveTests(CommentDriverResolution_PropertyAccessTest);
   });
+}
+
+@reflectiveTest
+class CommentDriverResolution_PropertyAccessTest
+    extends PubPackageResolutionTest {
+  test_class_constructor_named() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  A.named();
+}
+
+/// [self.A.named]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.A.named'), findElement.prefix('self'));
+    assertElement(findNode.simple('A.named]'), findElement.class_('A'));
+    // TODO(srawlins): Set the type of named, and test it, here and below.
+    assertElement(findNode.simple('named]'), findElement.constructor('named'));
+  }
+
+  test_class_constructor_unnamedViaNew() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  A();
+}
+
+/// [self.A.new]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.A.new'), findElement.prefix('self'));
+    assertElement(findNode.simple('A.new'), findElement.class_('A'));
+    assertElement(findNode.simple('new]'), findElement.unnamedConstructor('A'));
+  }
+
+  test_class_instanceGetter() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  int get foo => 0;
+}
+
+/// [self.A.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
+    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+  }
+
+  test_class_instanceMethod() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  void foo() {}
+}
+
+/// [self.A.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
+    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+  }
+
+  test_class_instanceSetter() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  set foo(int value) {}
+}
+
+/// [self.A.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
+    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+  }
+
+  test_class_staticGetter() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  static int get foo => 0;
+}
+
+/// [self.A.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
+    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+  }
+
+  test_class_staticMethod() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  static void foo() {}
+}
+
+/// [self.A.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
+    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+  }
+
+  test_class_staticSetter() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+class A {
+  static set foo(int value) {}
+}
+
+/// [self.A.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.A.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('A.foo'), findElement.class_('A'));
+    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+  }
+
+  test_extension_instanceGetter() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+extension E on int {
+  int get foo => 0;
+}
+
+/// [self.E.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
+    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+  }
+
+  test_extension_instanceMethod() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+extension E on int {
+  void foo() {}
+}
+
+/// [self.E.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
+    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+  }
+
+  test_extension_instanceSetter() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+extension E on int {
+  set foo(int value) {}
+}
+
+/// [self.E.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
+    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+  }
+
+  test_extension_staticGetter() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+extension E on int {
+  static int get foo => 0;
+}
+
+/// [self.E.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
+    assertElement(findNode.simple('foo]'), findElement.getter('foo'));
+  }
+
+  test_extension_staticMethod() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+extension E on int {
+  static void foo() {}
+}
+
+/// [self.E.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
+    assertElement(findNode.simple('foo]'), findElement.method('foo'));
+  }
+
+  test_extension_staticSetter() async {
+    await assertNoErrorsInCode('''
+import '' as self;
+extension E on int {
+  static set foo(int value) {}
+}
+
+/// [self.E.foo]
+void f() {}
+''');
+
+    assertElement(findNode.simple('self.E.foo'), findElement.prefix('self'));
+    assertElement(findNode.simple('E.foo'), findElement.extension_('E'));
+    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
+  }
 }
 
 @reflectiveTest
@@ -41,6 +271,37 @@ main() {}
       findNode.simple('named]'),
       findElement.constructor('named', of: 'A'),
     );
+  }
+
+  test_prefixedIdentifier_class_constructor_named() async {
+    // TODO(srawlins): Move PrefixedIdentifier tests into their own class, and
+    // improve coverage regarding getter/setter pairs, constructors, operators,
+    // and the 'new' keyword.
+    await assertNoErrorsInCode('''
+class A {
+  A.named();
+}
+
+/// [A.named]
+void f() {}
+''');
+
+    assertElement(findNode.simple('A.named]'), findElement.class_('A'));
+    assertElement(findNode.simple('named]'), findElement.constructor('named'));
+  }
+
+  test_prefixedIdentifier_class_constructor_unnamedViaNew() async {
+    await assertNoErrorsInCode('''
+class A {
+  A();
+}
+
+/// [A.new]
+void f() {}
+''');
+
+    assertElement(findNode.simple('A.new'), findElement.class_('A'));
+    assertElement(findNode.simple('new]'), findElement.unnamedConstructor('A'));
   }
 
   test_prefixedIdentifier_class_instanceGetter() async {
@@ -346,6 +607,21 @@ abstract class A {
     assertElement(findNode.simple('p3]'), findElement.parameter('p3'));
     assertElement(findNode.simple('p4]'), findElement.parameter('p4'));
     assertElement(findNode.simple('p5]'), findElement.parameter('p5'));
+  }
+
+  test_simpleIdentifier_extension_conflictingSetterAndGetter() async {
+    await assertNoErrorsInCode('''
+extension E1 on int {
+  int get foo => 0;
+}
+
+/// [foo]
+extension E2 on int {
+  set foo(int value) {}
+}
+''');
+
+    assertElement(findNode.simple('foo]'), findElement.setter('foo'));
   }
 
   test_simpleIdentifier_parameter_functionTyped() async {
