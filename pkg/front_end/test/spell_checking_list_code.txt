@@ -339,6 +339,7 @@ deterministic
 dev
 device
 diff
+differs
 diffs
 digest
 digests
@@ -531,6 +532,7 @@ googlesource
 goto
 gotos
 gradually
+granted
 graphs
 growability
 gt

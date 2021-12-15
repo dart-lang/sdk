@@ -504,8 +504,68 @@ class SourceLoader extends Loader {
   /// compile-time error.
   LibraryBuilder read(Uri uri, int charOffset,
       {Uri? fileUri,
-      LibraryBuilder? accessor,
-      Uri? accessorUri,
+      required LibraryBuilder accessor,
+      LibraryBuilder? origin,
+      Library? referencesFrom,
+      bool? referenceIsPartOwner}) {
+    LibraryBuilder libraryBuilder = _read(uri,
+        fileUri: fileUri,
+        origin: origin,
+        referencesFrom: referencesFrom,
+        referenceIsPartOwner: referenceIsPartOwner);
+    libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
+    if (!_hasLibraryAccess(imported: uri, importer: accessor.importUri) &&
+        !accessor.isPatch) {
+      accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
+          noLength, accessor.fileUri);
+    }
+    return libraryBuilder;
+  }
+
+  /// Reads the library [uri] as an entry point. This is used for reading the
+  /// entry point library of a script or the explicitly mention libraries of
+  /// a modular or incremental compilation.
+  ///
+  /// This differs from [read] in that there is no accessor library, meaning
+  /// that access to platform private libraries cannot be granted.
+  LibraryBuilder readAsEntryPoint(Uri uri,
+      {Uri? fileUri, Library? referencesFrom}) {
+    LibraryBuilder libraryBuilder =
+        _read(uri, fileUri: fileUri, referencesFrom: referencesFrom);
+    // TODO(johnniwinther): Avoid using the first library, if present, as the
+    // accessor of [libraryBuilder]. Currently the incremental compiler doesn't
+    // handle errors reported without an accessor, since the messages are not
+    // associated with a library. This currently has the side effect that
+    // the first library is the accessor of itself.
+    LibraryBuilder? firstLibrary = first;
+    if (firstLibrary != null) {
+      libraryBuilder.recordAccess(-1, noLength, firstLibrary.fileUri);
+    }
+    if (!_hasLibraryAccess(imported: uri, importer: firstLibrary?.importUri)) {
+      if (firstLibrary != null) {
+        firstLibrary.addProblem(
+            messagePlatformPrivateLibraryAccess, -1, noLength, firstUri);
+      } else {
+        addProblem(messagePlatformPrivateLibraryAccess, -1, noLength, null);
+      }
+    }
+    return libraryBuilder;
+  }
+
+  bool _hasLibraryAccess({required Uri imported, required Uri? importer}) {
+    if (imported.scheme == "dart" && imported.path.startsWith("_")) {
+      if (importer == null) {
+        return false;
+      } else {
+        return target.backendTarget
+            .allowPlatformPrivateLibraryAccess(importer, imported);
+      }
+    }
+    return true;
+  }
+
+  LibraryBuilder _read(Uri uri,
+      {Uri? fileUri,
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner}) {
@@ -522,33 +582,18 @@ class SourceLoader extends Loader {
             referencesFrom,
             referenceIsPartOwner);
       }
-
       _builders[uri] = libraryBuilder;
-    }
-    accessor ??= _builders[accessorUri];
-    if (accessor == null) {
-      // TODO(johnniwinther): Separate reading of imports/exports/parts from
-      // reading entry points.
-    } else {
-      libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
-      if (!accessor.isPatch &&
-          !accessor.isPart &&
-          !target.backendTarget
-              .allowPlatformPrivateLibraryAccess(accessor.importUri, uri)) {
-        accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
-            noLength, accessor.fileUri);
-      }
     }
     return libraryBuilder;
   }
 
   void _ensureCoreLibrary() {
     if (_coreLibrary == null) {
-      read(Uri.parse("dart:core"), 0, accessorUri: firstUri);
+      readAsEntryPoint(Uri.parse("dart:core"));
       // TODO(askesc): When all backends support set literals, we no longer
       // need to index dart:collection, as it is only needed for desugaring of
       // const sets. We can remove it from this list at that time.
-      read(Uri.parse("dart:collection"), 0, accessorUri: firstUri);
+      readAsEntryPoint(Uri.parse("dart:collection"));
       assert(_coreLibrary != null);
     }
   }

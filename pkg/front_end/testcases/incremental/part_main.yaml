@@ -1,0 +1,53 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+
+type: newworld
+worlds:
+  - entry: first.dart
+    experiments: alternative-invalidation-strategy
+    sources:
+      first.dart: |
+        library first;
+
+        part 'second.dart';
+
+        main() {
+          method1();
+          method2();
+        }
+        method1() {}
+      second.dart: |
+        part of first;
+
+        method2() {}
+    expectedLibraryCount: 1
+  - entry: first.dart
+    experiments: alternative-invalidation-strategy
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      [second.dart, first.dart]
+    sources:
+      first.dart: |
+        library first;
+
+        part 'second.dart';
+
+        main() {
+          method1();
+          method2();
+        }
+        method1() {
+          print('method1');
+        }
+      second.dart: |
+        part of first;
+
+        method2() {
+          print('method2');
+        }
+    expectedLibraryCount: 1
+    expectsRebuildBodiesOnly: true
