@@ -1,5 +1,6 @@
-# <next>
+# 1.17.0
 
+- new lint: `unnecessary_late`
 - fix to `no_leading_underscores_for_local_identifiers` to allow
   underscores in catch clauses
 
