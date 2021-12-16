@@ -260,7 +260,7 @@ abstract class double extends num {
   /// value = double.tryParse('+.12e-9'); // 1.2e-10
   /// value = double.tryParse('-NaN'); // NaN
   /// value = double.tryParse('0xFF'); // null
-  /// value = double.tryParse((2.0 / 0).toString()); // "Infinity"
+  /// value = double.tryParse(double.infinity.toString()); // Infinity
   /// ```
   external static double? tryParse(String source);
 }
