@@ -1036,7 +1036,7 @@ void Object::Init(IsolateGroup* isolate_group) {
         empty_compressed_stackmaps_,
         static_cast<CompressedStackMapsPtr>(address + kHeapObjectTag));
     empty_compressed_stackmaps_->StoreNonPointer(
-        &empty_compressed_stackmaps_->untag()->flags_and_size_, 0);
+        &empty_compressed_stackmaps_->untag()->payload()->flags_and_size, 0);
     empty_compressed_stackmaps_->SetCanonical();
   }
 
@@ -14569,21 +14569,27 @@ void InstructionsTable::set_end_pc(uword value) const {
   StoreNonPointer(&untag()->end_pc_, value);
 }
 
-void InstructionsTable::set_descriptors(const Array& value) const {
-  untag()->set_descriptors(value.ptr());
+void InstructionsTable::set_code_objects(const Array& value) const {
+  untag()->set_code_objects(value.ptr());
+}
+
+void InstructionsTable::set_rodata(uword value) const {
+  StoreNonPointer(
+      &untag()->rodata_,
+      reinterpret_cast<const UntaggedInstructionsTable::Data*>(value));
 }
 
 InstructionsTablePtr InstructionsTable::New(intptr_t length,
                                             uword start_pc,
-                                            uword end_pc) {
+                                            uword end_pc,
+                                            uword rodata) {
   ASSERT(Object::instructions_table_class() != Class::null());
   ASSERT(length >= 0);
   ASSERT(start_pc <= end_pc);
-  ASSERT(Utils::IsAligned(start_pc, kPayloadAlignment));
   Thread* thread = Thread::Current();
   InstructionsTable& result = InstructionsTable::Handle(thread->zone());
   {
-    uword size = InstructionsTable::InstanceSize(length);
+    uword size = InstructionsTable::InstanceSize();
     ObjectPtr raw =
         Object::Allocate(InstructionsTable::kClassId, size, Heap::kOld,
                          InstructionsTable::ContainsCompressedPointers());
@@ -14591,31 +14597,20 @@ InstructionsTablePtr InstructionsTable::New(intptr_t length,
     result ^= raw;
     result.set_length(length);
   }
-  const Array& descriptors =
+  const Array& code_objects =
       (length == 0) ? Object::empty_array()
                     : Array::Handle(Array::New(length, Heap::kOld));
-  result.set_descriptors(descriptors);
+  result.set_code_objects(code_objects);
   result.set_start_pc(start_pc);
   result.set_end_pc(end_pc);
+  result.set_rodata(rodata);
   return result.ptr();
 }
 
-void InstructionsTable::SetEntryAt(intptr_t index,
-                                   uword payload_start,
-                                   bool has_monomorphic_entrypoint,
-                                   ObjectPtr descriptor) const {
-  ASSERT((0 <= index) && (index < length()));
-  ASSERT(ContainsPc(payload_start));
-  ASSERT(Utils::IsAligned(payload_start, kPayloadAlignment));
-
-  const uint32_t pc_offset = ConvertPcToOffset(payload_start);
-  ASSERT((index == 0) || (PcOffsetAt(index - 1) <= pc_offset));
-  ASSERT((pc_offset & kHasMonomorphicEntrypointFlag) == 0);
-
-  untag()->data()[index] =
-      pc_offset |
-      (has_monomorphic_entrypoint ? kHasMonomorphicEntrypointFlag : 0);
-  descriptors()->untag()->set_element(index, descriptor);
+void InstructionsTable::SetCodeAt(intptr_t index, CodePtr code) const {
+  ASSERT((0 <= index) &&
+         (index < Smi::Value(code_objects()->untag()->length())));
+  code_objects()->untag()->set_element(index, code);
 }
 
 bool InstructionsTable::ContainsPc(InstructionsTablePtr table, uword pc) {
@@ -14632,21 +14627,25 @@ uint32_t InstructionsTable::ConvertPcToOffset(InstructionsTablePtr table,
   return pc_offset;
 }
 
-intptr_t InstructionsTable::FindEntry(InstructionsTablePtr table, uword pc) {
+intptr_t InstructionsTable::FindEntry(InstructionsTablePtr table,
+                                      uword pc,
+                                      intptr_t start_index /* = 0 */) {
   // This can run in the middle of GC and must not allocate handles.
   NoSafepointScope no_safepoint;
   if (!InstructionsTable::ContainsPc(table, pc)) return -1;
   const uint32_t pc_offset = InstructionsTable::ConvertPcToOffset(table, pc);
-  intptr_t lo = 0;
-  intptr_t hi = InstructionsTable::length(table) - 1;
+
+  const auto rodata = table.untag()->rodata_;
+  const auto entries = rodata->entries();
+  intptr_t lo = start_index;
+  intptr_t hi = rodata->length - 1;
   while (lo <= hi) {
     intptr_t mid = (hi - lo + 1) / 2 + lo;
     ASSERT(mid >= lo);
     ASSERT(mid <= hi);
-    if (pc_offset < InstructionsTable::PcOffsetAt(table, mid)) {
+    if (pc_offset < entries[mid].pc_offset) {
       hi = mid - 1;
-    } else if ((mid != hi) &&
-               (pc_offset >= InstructionsTable::PcOffsetAt(table, mid + 1))) {
+    } else if ((mid != hi) && (pc_offset >= entries[mid + 1].pc_offset)) {
       lo = mid + 1;
     } else {
       return mid;
@@ -14655,22 +14654,66 @@ intptr_t InstructionsTable::FindEntry(InstructionsTablePtr table, uword pc) {
   return -1;
 }
 
-ObjectPtr InstructionsTable::DescriptorAt(InstructionsTablePtr table,
-                                          intptr_t index) {
-  ASSERT((0 <= index) && (index < InstructionsTable::length(table)));
-  return table->untag()->descriptors()->untag()->element(index);
+const UntaggedCompressedStackMaps::Payload*
+InstructionsTable::GetCanonicalStackMap(InstructionsTablePtr table) {
+  const auto rodata = table.untag()->rodata_;
+  return rodata->canonical_stack_map_entries_offset != 0
+             ? rodata->StackMapAt(rodata->canonical_stack_map_entries_offset)
+             : nullptr;
 }
 
-uword InstructionsTable::PayloadStartAt(InstructionsTablePtr table,
-                                        intptr_t index) {
-  return InstructionsTable::start_pc(table) +
-         InstructionsTable::PcOffsetAt(table, index);
+const UntaggedCompressedStackMaps::Payload* InstructionsTable::FindStackMap(
+    InstructionsTablePtr table,
+    uword pc,
+    uword* start_pc) {
+  // This can run in the middle of GC and must not allocate handles.
+  NoSafepointScope no_safepoint;
+  const intptr_t idx = FindEntry(table, pc);
+  if (idx != -1) {
+    const auto rodata = table.untag()->rodata_;
+    const auto entries = rodata->entries();
+    *start_pc = InstructionsTable::start_pc(table) + entries[idx].pc_offset;
+    return rodata->StackMapAt(entries[idx].stack_map_offset);
+  }
+  return 0;
 }
 
-uword InstructionsTable::EntryPointAt(intptr_t index) const {
-  return PayloadStartAt(index) + (HasMonomorphicEntryPointAt(index)
-                                      ? Instructions::kPolymorphicEntryOffsetAOT
-                                      : 0);
+CodePtr InstructionsTable::FindCode(InstructionsTablePtr table, uword pc) {
+  // This can run in the middle of GC and must not allocate handles.
+  NoSafepointScope no_safepoint;
+  if (!InstructionsTable::ContainsPc(table, pc)) return Code::null();
+
+  const auto rodata = table.untag()->rodata_;
+
+  const auto pc_offset = InstructionsTable::ConvertPcToOffset(table, pc);
+
+  if (pc_offset <= rodata->entries()[rodata->first_entry_with_code].pc_offset) {
+    return StubCode::UnknownDartCode().ptr();
+  }
+
+  const auto idx =
+      FindEntry(table, pc, table.untag()->rodata_->first_entry_with_code);
+  if (idx != -1) {
+    const intptr_t code_index = idx - rodata->first_entry_with_code;
+    ASSERT(code_index >= 0);
+    ASSERT(code_index <
+           Smi::Value(table.untag()->code_objects()->untag()->length()));
+    ObjectPtr result =
+        table.untag()->code_objects()->untag()->element(code_index);
+    ASSERT(result->IsCode());
+    // Note: can't use Code::RawCast(...) here because it allocates handles
+    // in DEBUG mode.
+    return static_cast<CodePtr>(result);
+  }
+
+  return Code::null();
+}
+
+uword InstructionsTable::EntryPointAt(intptr_t code_index) const {
+  ASSERT(0 <= code_index);
+  ASSERT(code_index < static_cast<intptr_t>(rodata()->length));
+  return InstructionsTable::start_pc(this->ptr()) +
+         rodata()->entries()[code_index].pc_offset;
 }
 
 const char* InstructionsTable::ToCString() const {
@@ -14966,7 +15009,7 @@ const char* CodeSourceMap::ToCString() const {
 
 uword CompressedStackMaps::Hash() const {
   NoSafepointScope scope;
-  uint8_t* data = UnsafeMutableNonPointer(&untag()->data()[0]);
+  uint8_t* data = UnsafeMutableNonPointer(&untag()->payload()->data()[0]);
   uint8_t* end = data + payload_size();
   uint32_t hash = payload_size();
   for (uint8_t* cursor = data; cursor < end; cursor++) {
@@ -14975,140 +15018,11 @@ uword CompressedStackMaps::Hash() const {
   return FinalizeHash(hash, kHashBits);
 }
 
-CompressedStackMaps::Iterator::Iterator(const CompressedStackMaps& maps,
-                                        const CompressedStackMaps& global_table)
-    : maps_(maps),
-      bits_container_(maps_.UsesGlobalTable() ? global_table : maps_) {
-  ASSERT(!maps_.IsNull());
-  ASSERT(!bits_container_.IsNull());
-  ASSERT(!maps_.IsGlobalTable());
-  ASSERT(!maps_.UsesGlobalTable() || bits_container_.IsGlobalTable());
-}
-
-CompressedStackMaps::Iterator::Iterator(Thread* thread,
-                                        const CompressedStackMaps& maps)
-    : CompressedStackMaps::Iterator(
-          maps,
-          // Only look up the global table if the map will end up using it.
-          maps.UsesGlobalTable() ? CompressedStackMaps::Handle(
-                                       thread->zone(),
-                                       thread->isolate_group()
-                                           ->object_store()
-                                           ->canonicalized_stack_map_entries())
-                                 : Object::null_compressed_stackmaps()) {}
-
-CompressedStackMaps::Iterator::Iterator(const CompressedStackMaps::Iterator& it)
-    : maps_(it.maps_),
-      bits_container_(it.bits_container_),
-      next_offset_(it.next_offset_),
-      current_pc_offset_(it.current_pc_offset_),
-      current_global_table_offset_(it.current_global_table_offset_),
-      current_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
-      current_non_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
-      current_bits_offset_(it.current_bits_offset_) {}
-
-bool CompressedStackMaps::Iterator::MoveNext() {
-  if (next_offset_ >= maps_.payload_size()) {
-    return false;
-  }
-
-  NoSafepointScope scope;
-  ReadStream stream(maps_.untag()->data(), maps_.payload_size(), next_offset_);
-
-  auto const pc_delta = stream.ReadLEB128();
-  ASSERT(pc_delta <= (kMaxUint32 - current_pc_offset_));
-  current_pc_offset_ += pc_delta;
-
-  // Table-using CSMs have a table offset after the PC offset delta, whereas
-  // the post-delta part of inlined entries has the same information as
-  // global table entries.
-  if (maps_.UsesGlobalTable()) {
-    current_global_table_offset_ = stream.ReadLEB128();
-    ASSERT(current_global_table_offset_ < bits_container_.payload_size());
-
-    // Since generally we only use entries in the GC and the GC only needs
-    // the rest of the entry information if the PC offset matches, we lazily
-    // load and cache the information stored in the global object when it is
-    // actually requested.
-    current_spill_slot_bit_count_ = -1;
-    current_non_spill_slot_bit_count_ = -1;
-    current_bits_offset_ = -1;
-
-    next_offset_ = stream.Position();
-  } else {
-    current_spill_slot_bit_count_ = stream.ReadLEB128();
-    ASSERT(current_spill_slot_bit_count_ >= 0);
-
-    current_non_spill_slot_bit_count_ = stream.ReadLEB128();
-    ASSERT(current_non_spill_slot_bit_count_ >= 0);
-
-    const auto stackmap_bits =
-        current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
-    const uintptr_t stackmap_size =
-        Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
-    ASSERT(stackmap_size <= (maps_.payload_size() - stream.Position()));
-
-    current_bits_offset_ = stream.Position();
-    next_offset_ = current_bits_offset_ + stackmap_size;
-  }
-
-  return true;
-}
-
-intptr_t CompressedStackMaps::Iterator::Length() const {
-  EnsureFullyLoadedEntry();
-  return current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
-}
-intptr_t CompressedStackMaps::Iterator::SpillSlotBitCount() const {
-  EnsureFullyLoadedEntry();
-  return current_spill_slot_bit_count_;
-}
-
-bool CompressedStackMaps::Iterator::IsObject(intptr_t bit_index) const {
-  EnsureFullyLoadedEntry();
-  ASSERT(bit_index >= 0 && bit_index < Length());
-  const intptr_t byte_index = bit_index >> kBitsPerByteLog2;
-  const intptr_t bit_remainder = bit_index & (kBitsPerByte - 1);
-  uint8_t byte_mask = 1U << bit_remainder;
-  const intptr_t byte_offset = current_bits_offset_ + byte_index;
-  NoSafepointScope scope;
-  return (bits_container_.untag()->data()[byte_offset] & byte_mask) != 0;
-}
-
-void CompressedStackMaps::Iterator::LazyLoadGlobalTableEntry() const {
-  ASSERT(maps_.UsesGlobalTable());
-  ASSERT(HasLoadedEntry());
-  ASSERT(current_global_table_offset_ < bits_container_.payload_size());
-
-  NoSafepointScope scope;
-  ReadStream stream(bits_container_.untag()->data(),
-                    bits_container_.payload_size(),
-                    current_global_table_offset_);
-
-  current_spill_slot_bit_count_ = stream.ReadLEB128();
-  ASSERT(current_spill_slot_bit_count_ >= 0);
-
-  current_non_spill_slot_bit_count_ = stream.ReadLEB128();
-  ASSERT(current_non_spill_slot_bit_count_ >= 0);
-
-  const auto stackmap_bits = Length();
-  const uintptr_t stackmap_size =
-      Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
-  ASSERT(stackmap_size <= (bits_container_.payload_size() - stream.Position()));
-
-  current_bits_offset_ = stream.Position();
-}
-
-void CompressedStackMaps::Iterator::WriteToBuffer(BaseTextBuffer* buffer,
-                                                  const char* separator) const {
-  CompressedStackMaps::Iterator it(*this);
-  // If we haven't loaded an entry yet, do so (but don't skip the current
-  // one if we have!)
-  if (!it.HasLoadedEntry()) {
-    if (!it.MoveNext()) return;
-  }
+void CompressedStackMaps::WriteToBuffer(BaseTextBuffer* buffer,
+                                        const char* separator) const {
+  auto it = iterator(Thread::Current());
   bool first_entry = true;
-  do {
+  while (it.MoveNext()) {
     if (!first_entry) {
       buffer->AddString(separator);
     }
@@ -15117,7 +15031,16 @@ void CompressedStackMaps::Iterator::WriteToBuffer(BaseTextBuffer* buffer,
       buffer->AddString(it.IsObject(i) ? "1" : "0");
     }
     first_entry = false;
-  } while (it.MoveNext());
+  }
+}
+
+CompressedStackMaps::Iterator<CompressedStackMaps>
+CompressedStackMaps::iterator(Thread* thread) const {
+  return Iterator<CompressedStackMaps>(
+      *this, CompressedStackMaps::Handle(
+                 thread->zone(), thread->isolate_group()
+                                     ->object_store()
+                                     ->canonicalized_stack_map_entries()));
 }
 
 CompressedStackMapsPtr CompressedStackMaps::New(const void* payload,
@@ -15147,12 +15070,13 @@ CompressedStackMapsPtr CompressedStackMaps::New(const void* payload,
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.StoreNonPointer(
-        &result.untag()->flags_and_size_,
+        &result.untag()->payload()->flags_and_size,
         UntaggedCompressedStackMaps::GlobalTableBit::encode(is_global_table) |
             UntaggedCompressedStackMaps::UsesTableBit::encode(
                 uses_global_table) |
             UntaggedCompressedStackMaps::SizeField::encode(size));
-    auto cursor = result.UnsafeMutableNonPointer(result.untag()->data());
+    auto cursor =
+        result.UnsafeMutableNonPointer(result.untag()->payload()->data());
     memcpy(cursor, payload, size);  // NOLINT
   }
 
@@ -15167,10 +15091,9 @@ const char* CompressedStackMaps::ToCString() const {
     return "CompressedStackMaps()";
   }
   auto const t = Thread::Current();
-  CompressedStackMaps::Iterator it(t, *this);
   ZoneTextBuffer buffer(t->zone(), 100);
   buffer.AddString("CompressedStackMaps(");
-  it.WriteToBuffer(&buffer, ", ");
+  WriteToBuffer(&buffer, ", ");
   buffer.AddString(")");
   return buffer.buffer();
 }

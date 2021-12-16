@@ -891,10 +891,14 @@ class CodeSourceMap : public AllStatic {
 
 class CompressedStackMaps : public AllStatic {
  public:
-  static word HeaderSize();
+  static word HeaderSize() { return ObjectHeaderSize() + PayloadHeaderSize(); }
   static word InstanceSize();
   static word InstanceSize(word payload_size);
   FINAL_CLASS();
+
+ private:
+  static word ObjectHeaderSize();
+  static word PayloadHeaderSize();
 };
 
 class LocalVarDescriptors : public AllStatic {

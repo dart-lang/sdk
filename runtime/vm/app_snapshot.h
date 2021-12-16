@@ -176,6 +176,8 @@ class SerializationRoots {
   virtual void AddBaseObjects(Serializer* serializer) = 0;
   virtual void PushRoots(Serializer* serializer) = 0;
   virtual void WriteRoots(Serializer* serializer) = 0;
+
+  virtual const CompressedStackMaps& canonicalized_stack_map_entries() const;
 };
 
 class DeserializationRoots {
@@ -228,8 +230,11 @@ class Serializer : public ThreadStackResource {
   void AddBaseObject(ObjectPtr base_object,
                      const char* type = nullptr,
                      const char* name = nullptr);
+
   intptr_t AssignRef(ObjectPtr object);
   intptr_t AssignArtificialRef(ObjectPtr object = nullptr);
+
+  intptr_t GetCodeIndex(CodePtr code);
 
   void Push(ObjectPtr object);
 
@@ -418,8 +423,8 @@ class Serializer : public ThreadStackResource {
   }
 
   // Sorts Code objects and reorders instructions before writing snapshot.
-  // Returns length of instructions table (in bare instructions mode).
-  intptr_t PrepareInstructions();
+  // Builds binary search table for stack maps.
+  void PrepareInstructions(const CompressedStackMaps& canonical_smap);
 
   void WriteInstructions(InstructionsPtr instr,
                          uint32_t unchecked_offset,
@@ -508,12 +513,12 @@ class Serializer : public ThreadStackResource {
   intptr_t num_base_objects_;
   intptr_t num_written_objects_;
   intptr_t next_ref_index_;
-  intptr_t previous_text_offset_;
   FieldTable* initial_field_table_;
 
   intptr_t dispatch_table_size_ = 0;
   intptr_t bytes_heap_allocated_ = 0;
   intptr_t instructions_table_len_ = 0;
+  intptr_t instructions_table_rodata_offset_ = 0;
 
   // True if writing VM snapshot, false for Isolate snapshot.
   bool vm_;
@@ -537,6 +542,7 @@ class Serializer : public ThreadStackResource {
 
 #if defined(DART_PRECOMPILER)
   IntMap<intptr_t> deduped_instructions_sources_;
+  IntMap<intptr_t> code_index_;
 #endif
 
   intptr_t current_loading_unit_id_ = 0;
@@ -657,6 +663,16 @@ class Deserializer : public ThreadStackResource {
     return refs_->untag()->element(index);
   }
 
+  CodePtr GetCodeByIndex(intptr_t code_index, uword* entry_point) const;
+  uword GetEntryPointByCodeIndex(intptr_t code_index) const;
+
+  // If |code_index| corresponds to a non-discarded Code object returns
+  // index within the code cluster that corresponds to this Code object.
+  // Otherwise, if |code_index| corresponds to the discarded Code then
+  // returns -1.
+  static intptr_t CodeIndexToClusterIndex(const InstructionsTable& table,
+                                          intptr_t code_index);
+
   ObjectPtr ReadRef() { return Ref(ReadUnsigned()); }
 
   template <typename T, typename... P>
@@ -685,7 +701,7 @@ class Deserializer : public ThreadStackResource {
     return Read<int32_t>();
   }
 
-  void ReadInstructions(CodePtr code, bool deferred, bool discarded);
+  void ReadInstructions(CodePtr code, bool deferred);
   void EndInstructions();
   ObjectPtr GetObjectAt(uint32_t offset) const;
 
@@ -694,10 +710,12 @@ class Deserializer : public ThreadStackResource {
   DeserializationCluster* ReadCluster();
 
   void ReadDispatchTable() {
-    ReadDispatchTable(&stream_, /*deferred=*/false, -1, -1);
+    ReadDispatchTable(&stream_, /*deferred=*/false, InstructionsTable::Handle(),
+                      -1, -1);
   }
   void ReadDispatchTable(ReadStream* stream,
                          bool deferred,
+                         const InstructionsTable& root_instruction_table,
                          intptr_t deferred_code_start_index,
                          intptr_t deferred_code_end_index);
 
@@ -708,10 +726,13 @@ class Deserializer : public ThreadStackResource {
   FieldTable* initial_field_table() const { return initial_field_table_; }
   bool is_non_root_unit() const { return is_non_root_unit_; }
   void set_code_start_index(intptr_t value) { code_start_index_ = value; }
-  intptr_t code_start_index() { return code_start_index_; }
+  intptr_t code_start_index() const { return code_start_index_; }
+  void set_code_stop_index(intptr_t value) { code_stop_index_ = value; }
+  intptr_t code_stop_index() const { return code_stop_index_; }
   const InstructionsTable& instructions_table() const {
     return instructions_table_;
   }
+  intptr_t num_base_objects() const { return num_base_objects_; }
 
  private:
   Heap* heap_;
@@ -724,8 +745,8 @@ class Deserializer : public ThreadStackResource {
   intptr_t num_clusters_;
   ArrayPtr refs_;
   intptr_t next_ref_index_;
-  intptr_t previous_text_offset_;
   intptr_t code_start_index_ = 0;
+  intptr_t code_stop_index_ = 0;
   intptr_t instructions_index_ = 0;
   DeserializationCluster** clusters_;
   FieldTable* initial_field_table_;
