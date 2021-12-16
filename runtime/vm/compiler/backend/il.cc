@@ -1299,12 +1299,15 @@ BlockEntryInstr* Instruction::GetBlock() {
   // TODO(fschneider): Implement a faster way to get the block of an
   // instruction.
   Instruction* result = previous();
-  ASSERT(result != nullptr);
-  while (!result->IsBlockEntry()) {
+  while ((result != nullptr) && !result->IsBlockEntry()) {
     result = result->previous();
-    ASSERT(result != nullptr);
   }
-  return result->AsBlockEntry();
+  // InlineExitCollector::RemoveUnreachableExits may call
+  // Instruction::GetBlock on instructions which are not properly linked
+  // to the flow graph (as collected exits may belong to unreachable
+  // fragments), so this code should gracefully handle the absence of
+  // BlockEntry.
+  return (result != nullptr) ? result->AsBlockEntry() : nullptr;
 }
 
 void ForwardInstructionIterator::RemoveCurrentFromGraph() {
