@@ -6959,7 +6959,7 @@ void Serializer::PrepareInstructions(
     // Write the header out.
     {
       UntaggedInstructionsTable::Data header;
-      header.canonical_stack_map_entries_offset = 0;
+      memset(&header, 0, sizeof(header));
       header.length = total;
       header.first_entry_with_code = first_entry_with_code;
       pc_mapping.WriteFixed<UntaggedInstructionsTable::Data>(header);
