@@ -20,15 +20,11 @@ import 'version.dart';
 
 export 'package:analyzer/dart/element/type_system.dart';
 export 'package:analyzer/src/dart/ast/token.dart';
-export 'package:analyzer/src/dart/constant/evaluation.dart'
-    show ConstantEvaluationEngine, ConstantVisitor;
-export 'package:analyzer/src/dart/constant/value.dart' show DartObjectImpl;
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart'
     show InheritanceManager3, Name;
 export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/dart/resolver/exit_detector.dart';
-export 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisErrorInfo;
+export 'package:analyzer/src/generated/engine.dart' show AnalysisErrorInfo;
 export 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 export 'package:analyzer/src/lint/linter.dart'
     show
@@ -43,8 +39,7 @@ export 'package:analyzer/src/lint/linter.dart'
         NodeLintRule;
 export 'package:analyzer/src/lint/project.dart'
     show DartProject, ProjectVisitor;
-export 'package:analyzer/src/lint/pub.dart'
-    show PubspecVisitor, PSEntry, Pubspec;
+export 'package:analyzer/src/lint/pub.dart' show PubspecVisitor, PSEntry;
 export 'package:analyzer/src/lint/util.dart' show Spelunker;
 export 'package:analyzer/src/services/lint.dart' show lintRegistry;
 export 'package:analyzer/src/workspace/pub.dart' show PubWorkspacePackage;
