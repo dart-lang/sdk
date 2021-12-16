@@ -128,7 +128,7 @@ abstract class int extends num {
   /// ```dart
   /// print((3 << 1).toRadixString(2)); // 0011 -> 0110
   /// print((9 << 2).toRadixString(2)); // 1001 -> 100100
-  /// print((10 << 3).toRadixString(2)); // 1010 -> 01010000
+  /// print((10 << 3).toRadixString(2)); // 1010 -> 1010000
   /// ```
   int operator <<(int shiftAmount);
 
@@ -145,6 +145,8 @@ abstract class int extends num {
   /// print((3 >> 1).toRadixString(2)); // 0011 -> 0001
   /// print((9 >> 2).toRadixString(2)); // 1001 -> 0010
   /// print((10 >> 3).toRadixString(2)); // 1010 -> 0001
+  /// print((-6 >> 2).toRadixString); // 111...1010 -> 111...1110 == -2
+  /// print((-85 >> 3).toRadixString); // 111...10101011 -> 111...11110101 == -11
   /// ```
   int operator >>(int shiftAmount);
 
@@ -160,8 +162,7 @@ abstract class int extends num {
   /// ```dart
   /// print((3 >>> 1).toRadixString(2)); // 0011 -> 0001
   /// print((9 >>> 2).toRadixString(2)); // 1001 -> 0010
-  /// print(((-9) >>> 2).toRadixString(2));
-  /// // 11111111111111111111111111111111111111111111111111111111111101
+  /// print(((-9) >>> 2).toRadixString(2)); // 111...1011 -> 001...1110 (> 0)
   /// ```
   int operator >>>(int shiftAmount);
 
@@ -196,6 +197,8 @@ abstract class int extends num {
   /// print(4.gcd(2)); // 2
   /// print(8.gcd(4)); // 4
   /// print(10.gcd(12)); // 2
+  /// print(10.gcd(0)); // 10
+  /// print((-2).gcd(-3)); // 1
   /// ```
   int gcd(int other);
 
@@ -337,8 +340,9 @@ abstract class int extends num {
   /// ```dart
   /// // Binary (base 2).
   /// print(12.toRadixString(2)); // 1100
-  /// print(31.toRadixString(2)); // 00011111
-  /// print(2021.toRadixString(2)); // 011111100101
+  /// print(31.toRadixString(2)); // 11111
+  /// print(2021.toRadixString(2)); // 11111100101
+  /// print((-12).toRadixString(2)); // -1100
   /// // Octal (base 8).
   /// print(12.toRadixString(8)); // 14
   /// print(31.toRadixString(8)); // 37
@@ -347,6 +351,8 @@ abstract class int extends num {
   /// print(12.toRadixString(16)); // c
   /// print(31.toRadixString(16)); // 1f
   /// print(2021.toRadixString(16)); // 7e5
+  /// // Base 36.
+  /// print((35 * 36 + 1).toRadixString(36)); // z1
   /// ```
   String toRadixString(int radix);
 
@@ -420,6 +426,12 @@ abstract class int extends num {
   /// print(int.tryParse('c', radix: 16)); // 12
   /// print(int.tryParse('1f', radix: 16)); // 31
   /// print(int.tryParse('7e5', radix: 16)); // 2021
+  /// // From base 35 value.
+  /// print(int.tryParse('y1', radix: 35)); // 1191 == 34 * 35 + 1
+  /// print(int.tryParse('z1', radix: 35)); // null
+  /// // From base 36 value.
+  /// print(int.tryParse('y1', radix: 36)); // 1225 == 34 * 36 + 1
+  /// print(int.tryParse('z1', radix: 36)); // 1261 == 35 * 36 + 1
   /// ```
   external static int? tryParse(String source, {int? radix});
 }
