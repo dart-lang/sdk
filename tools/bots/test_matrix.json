@@ -798,7 +798,8 @@
     },
     "dartkp-linux-(debug|product|release)-simarm-crossword": {
       "options": {
-        "builder-tag": "crossword"
+        "builder-tag": "crossword",
+        "use-elf": true
       }
     },
     "dartkp-weak-asserts-linux-(debug|product|release)-simarm-crossword": {

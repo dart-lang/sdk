@@ -50,6 +50,16 @@ group("runtime") {
     "utils/kernel-service:kernel-service",
   ]
 
+  # We do not support AOT on ia32 and should therefore cannot provide native
+  # snapshot tooling.
+  if (dart_target_arch != "ia32") {
+    if (is_product) {
+      deps += [ "runtime/bin:analyze_snapshot_product" ]
+    } else {
+      deps += [ "runtime/bin:analyze_snapshot" ]
+    }
+  }
+
   # TODO(bkonyi): this dep causes a segfault on Android XARM_X64 builds.
   # See issue #41776.
   if (dart_target_arch != "arm") {

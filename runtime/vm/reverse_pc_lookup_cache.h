@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/globals.h"
+#include "vm/raw_object.h"
 #include "vm/tagged_pointer.h"
 
 namespace dart {
@@ -22,24 +23,27 @@ class ReversePc : public AllStatic {
   // given isolate |group| and vm isolate group.
   static CodePtr Lookup(IsolateGroup* group, uword pc, bool is_return_address);
 
-  // Looks for CompressedStackMaps corresponding to |pc| in the
-  // given isolate |group| and vm isolate group.
-  // Sets |code_start| to the beginning of the instructions corresponding
-  // to |pc| (like Code::PayloadStart()).
-  static CompressedStackMapsPtr FindCompressedStackMaps(IsolateGroup* group,
-                                                        uword pc,
-                                                        bool is_return_address,
-                                                        uword* code_start);
+  static const UntaggedCompressedStackMaps::Payload* FindStackMap(
+      IsolateGroup* group,
+      uword pc,
+      bool is_return_address,
+      uword* code_start,
+      const UntaggedCompressedStackMaps::Payload** global_table);
 
  private:
-  static ObjectPtr FindCodeDescriptorInGroup(IsolateGroup* group,
-                                             uword pc,
-                                             bool is_return_address,
-                                             uword* code_start);
-  static ObjectPtr FindCodeDescriptor(IsolateGroup* group,
-                                      uword pc,
-                                      bool is_return_address,
-                                      uword* code_start);
+  static const UntaggedCompressedStackMaps::Payload* FindStackMapInGroup(
+      IsolateGroup* group,
+      uword pc,
+      bool is_return_address,
+      uword* code_start,
+      const UntaggedCompressedStackMaps::Payload** global_table);
+
+  static CodePtr FindCodeInGroup(IsolateGroup* group,
+                                 uword pc,
+                                 bool is_return_address);
+  static CodePtr FindCode(IsolateGroup* group,
+                          uword pc,
+                          bool is_return_address);
 };
 
 }  // namespace dart

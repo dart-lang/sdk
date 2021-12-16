@@ -296,10 +296,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   {
     const auto& stackmaps =
         CompressedStackMaps::Handle(zone, code.compressed_stackmaps());
-    CompressedStackMaps::Iterator it(thread, stackmaps);
     TextBuffer buffer(100);
     buffer.Printf("StackMaps for function '%s' {\n", function_fullname);
-    it.WriteToBuffer(&buffer, "\n");
+    stackmaps.WriteToBuffer(&buffer, "\n");
     buffer.AddString("}\n");
     THR_Print("%s", buffer.buffer());
   }

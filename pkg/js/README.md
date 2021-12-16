@@ -131,6 +131,48 @@ void main() {
 }
 ```
 
+## Interop with native types using `@staticInterop`
+
+Previously, you could not use `@JS()` or `@anonymous` types to interface with
+native types that were reserved within `dart:html` e.g. `Window`.
+
+Using `@staticInterop` will now let you do so. However, it requires that there
+be no instance members within the class (constructors are still allowed). You
+can use static extension methods instead to declare these members. For example:
+
+```dart
+@JS()
+library static_interop;
+
+import 'dart:html' as html;
+
+import 'package:js/js.dart';
+
+@JS()
+@staticInterop
+class JSWindow {}
+
+extension JSWindowExtension on JSWindow {
+  external String get name;
+  String get nameAllCaps => name.toUpperCase();
+}
+
+void main() {
+  var jsWindow = html.window as JSWindow;
+  print(jsWindow.name.toUpperCase() == jsWindow.nameAllCaps);
+}
+```
+
+Note that in the above you can have both `external` and non-`external` members
+in the extension. You can have `external` variables, getters/setters, and
+methods within a static extension currently. These `external` members are
+lowered to their respective `js_util` calls under the hood. For example, the
+`external` `name` getter is equivalent to `js_util.getProperty(this, 'name')`.
+
+In general, it's advised to use `@staticInterop` wherever you can over using
+just `@JS()`. There will be fewer surprises and it's aligned with the statically
+typed future planned for JS interop.
+
 ## Reporting issues
 
 Please file bugs and feature requests on the [SDK issue tracker][issues].

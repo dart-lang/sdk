@@ -312,6 +312,11 @@ class FindNode {
     return _node(search, (n) => n is PropertyAccess);
   }
 
+  RedirectingConstructorInvocation redirectingConstructorInvocation(
+      String search) {
+    return _node(search, (n) => n is RedirectingConstructorInvocation);
+  }
+
   RethrowExpression rethrow_(String search) {
     return _node(search, (n) => n is RethrowExpression);
   }

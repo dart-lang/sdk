@@ -51,7 +51,6 @@
   ARRAY(Context, variable_offset)                                              \
   ARRAY(ContextScope, element_offset)                                          \
   ARRAY(ExceptionHandlers, element_offset)                                     \
-  ARRAY(InstructionsTable, element_offset)                                     \
   ARRAY(ObjectPool, element_offset)                                            \
   ARRAY(OneByteString, element_offset)                                         \
   ARRAY(TypeArguments, type_at_offset)                                         \
@@ -61,7 +60,6 @@
   ARRAY_SIZEOF(Context, InstanceSize, variable_offset)                         \
   ARRAY_SIZEOF(ContextScope, InstanceSize, element_offset)                     \
   ARRAY_SIZEOF(ExceptionHandlers, InstanceSize, element_offset)                \
-  ARRAY_SIZEOF(InstructionsTable, InstanceSize, element_offset)                \
   ARRAY_SIZEOF(ObjectPool, InstanceSize, element_offset)                       \
   ARRAY_SIZEOF(OneByteString, InstanceSize, element_offset)                    \
   ARRAY_SIZEOF(TypeArguments, InstanceSize, type_at_offset)                    \
@@ -350,7 +348,9 @@
   SIZEOF(Closure, InstanceSize, UntaggedClosure)                               \
   SIZEOF(ClosureData, InstanceSize, UntaggedClosureData)                       \
   SIZEOF(CodeSourceMap, HeaderSize, UntaggedCodeSourceMap)                     \
-  SIZEOF(CompressedStackMaps, HeaderSize, UntaggedCompressedStackMaps)         \
+  SIZEOF(CompressedStackMaps, ObjectHeaderSize, UntaggedCompressedStackMaps)   \
+  SIZEOF(CompressedStackMaps, PayloadHeaderSize,                               \
+         UntaggedCompressedStackMaps::Payload)                                 \
   SIZEOF(Context, header_size, UntaggedContext)                                \
   SIZEOF(Double, InstanceSize, UntaggedDouble)                                 \
   SIZEOF(DynamicLibrary, InstanceSize, UntaggedDynamicLibrary)                 \
@@ -370,6 +370,7 @@
   SIZEOF(Instructions, UnalignedHeaderSize, UntaggedInstructions)              \
   SIZEOF(InstructionsSection, UnalignedHeaderSize,                             \
          UntaggedInstructionsSection)                                          \
+  SIZEOF(InstructionsTable, InstanceSize, UntaggedInstructionsTable)           \
   SIZEOF(Int32x4, InstanceSize, UntaggedInt32x4)                               \
   SIZEOF(Integer, InstanceSize, UntaggedInteger)                               \
   SIZEOF(KernelProgramInfo, InstanceSize, UntaggedKernelProgramInfo)           \

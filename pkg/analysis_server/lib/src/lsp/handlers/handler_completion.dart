@@ -65,8 +65,9 @@ class CompletionHandler
     final unit = await path.mapResult(requireResolvedUnit);
 
     final lineInfo = await unit.map(
-      // If we don't have a unit, we can still try to obtain the line info for
-      // plugin contributors.
+      // If we don't have a unit, we can still try to obtain the line info from
+      // the server (this could be because the file is non-Dart, such as YAML or
+      // another handled by a plugin).
       (error) => path.mapResult(getLineInfo),
       (unit) => success(unit.lineInfo),
     );
