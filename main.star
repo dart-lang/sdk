@@ -14,10 +14,7 @@ Generates the Luci configuration for the Dart project.
 
 load("//defaults.star", "defaults")
 
-lucicfg.check_version("1.29.1")
-
-# Enable LUCI Realms support.
-lucicfg.enable_experiment("crbug.com/1085650")
+lucicfg.check_version("1.30.5")
 
 luci.builder.defaults.experiments.set({
     # Launch 100% of Swarming tasks in "realms-aware mode", crbug.com/1170330.
@@ -106,6 +103,7 @@ CHROME = {"custom_vars": {"download_chrome": True}}
 FIREFOX = {"custom_vars": {"download_firefox": True}}
 JS_ENGINES = {"custom_vars": {"checkout_javascript_engines": True}}
 SLOW_SHARDS = {"shard_timeout": (90 * time.minute) // time.second}
+PINNED_XCODE = {"$depot_tools/osx_sdk": {"sdk_version": "12d4e"}}
 
 def to_location_regexp(paths):
     return [".+/[+]/%s" % path for path in paths]
@@ -122,28 +120,30 @@ def windows():
 def linux():
     return {"os": "Linux"}
 
-def union(x, y):
-    """ Creates a new dict with the values from both passed dictionaries
+def union(x, *args):
+    """ Creates a new dict with the values from all passed dictionaries
 
-    If both dicts contain the same keys, their values are assumed to be dicts
-    and merged. Values in y's sub-dicts will overwrite values in x's sub-dicts.
+    If dicts contain the same keys, their values are assumed to be dicts
+    and merged. Values in dicts later in *args sub-dicts will overwrite
+    values in earlier sub-dicts.
 
     Args:
         x (dict): A dict.
-        y (dict): Another dict.
+        *args: dicts to merge with x.
 
     Returns:
         dict: The merged dict.
     """
     z = {}
     z.update(x)
-    for k in y.keys():
-        v = z.get(k)
-        if v:
-            v = dict(v, **y[k])
-            z[k] = v
-        else:
-            z[k] = y[k]
+    for y in args:
+        for k in y.keys():
+            v = z.get(k)
+            if v:
+                v = dict(v, **y[k])
+                z[k] = v
+            else:
+                z[k] = y[k]
     return z
 
 # https://chrome-infra-auth.appspot.com/auth/groups/project-dart-ci-task-accounts
@@ -892,6 +892,7 @@ dart_ci_sandbox_builder(
     "front-end-mac-release-x64",
     category = "cfe|m",
     dimensions = mac(),
+    properties = PINNED_XCODE,
 )
 dart_ci_sandbox_builder(
     "front-end-win-release-x64",
@@ -908,6 +909,7 @@ nightly_builder(
     category = "cfe|nnbd|m",
     channels = ["try"],
     dimensions = mac(),
+    properties = PINNED_XCODE,
 )
 nightly_builder(
     "front-end-nnbd-win-release-x64",
@@ -1001,28 +1003,29 @@ dart_vm_nightly_builder(
     "vm-kernel-nnbd-mac-debug-arm64",
     category = "vm|nnbd|jit|m1d",
     channels = ["try"],
-    properties = union(NO_ANDROID, SLOW_SHARDS),
     dimensions = mac(cpu = "arm64"),
+    properties = union(NO_ANDROID, PINNED_XCODE, SLOW_SHARDS),
 )
 dart_vm_nightly_builder(
     "vm-kernel-nnbd-mac-debug-x64",
     category = "vm|nnbd|jit|md",
     channels = ["try"],
-    properties = SLOW_SHARDS,
     dimensions = mac(),
+    properties = union(PINNED_XCODE, SLOW_SHARDS),
 )
 dart_vm_extra_builder(
     "vm-kernel-nnbd-mac-release-arm64",
     category = "vm|nnbd|jit|m1r",
     channels = ["try"],
     dimensions = mac(cpu = "arm64"),
-    properties = NO_ANDROID,
+    properties = union(NO_ANDROID, PINNED_XCODE),
 )
 dart_vm_nightly_builder(
     "vm-kernel-nnbd-mac-release-x64",
     category = "vm|nnbd|jit|mr",
     channels = ["try"],
     dimensions = mac(),
+    properties = PINNED_XCODE,
 )
 dart_vm_nightly_builder(
     "vm-kernel-nnbd-win-release-ia32",
@@ -1075,14 +1078,14 @@ dart_vm_extra_builder(
     category = "vm|nnbd|aot|m1",
     channels = ["try"],
     dimensions = mac(cpu = "arm64"),
-    properties = union(NO_ANDROID, SLOW_SHARDS),
+    properties = union(NO_ANDROID, PINNED_XCODE, SLOW_SHARDS),
 )
 nightly_builder(
     "vm-kernel-precomp-nnbd-mac-release-simarm64",
     category = "vm|nnbd|aot|ma6",
     channels = ["try"],
     dimensions = mac(),
-    properties = SLOW_SHARDS,
+    properties = union(PINNED_XCODE, SLOW_SHARDS),
 )
 nightly_builder(
     "vm-kernel-precomp-nnbd-win-release-x64",
@@ -1146,6 +1149,7 @@ dart_ci_sandbox_builder(
     "vm-kernel-mac-debug-x64",
     category = "vm|kernel|md",
     dimensions = mac(),
+    properties = PINNED_XCODE,
 )
 dart_ci_sandbox_builder(
     "vm-kernel-mac-release-x64",
@@ -1153,13 +1157,14 @@ dart_ci_sandbox_builder(
     dimensions = mac(),
     on_cq = True,
     experiment_percentage = 5,
+    properties = PINNED_XCODE,
 )
 dart_ci_sandbox_builder(
     "vm-kernel-mac-release-arm64",
     category = "vm|kernel|m1r",
     channels = ["try", "dev"],
     dimensions = mac(cpu = "arm64"),
-    properties = NO_ANDROID,
+    properties = union(NO_ANDROID, PINNED_XCODE),
 )
 dart_vm_nightly_builder(
     "vm-kernel-win-debug-ia32",
@@ -1228,6 +1233,7 @@ dart_vm_extra_builder(
     "vm-kernel-precomp-mac-release-simarm64",
     category = "vm|kernel-precomp|ma",
     dimensions = mac(),
+    properties = PINNED_XCODE,
 )
 dart_vm_extra_builder(
     "vm-kernel-precomp-win-release-x64",
@@ -1269,6 +1275,7 @@ dart_vm_nightly_builder(
     category = "vm|product|m",
     channels = ["try"],
     dimensions = mac(),
+    properties = PINNED_XCODE,
 )
 dart_vm_nightly_builder(
     "vm-kernel-win-product-x64",
@@ -1404,20 +1411,20 @@ dart_ci_sandbox_builder(
     "pkg-linux-release",
     category = "pkg|l",
     on_cq = True,
-    properties = CHROME,
+    properties = union(CHROME, PINNED_XCODE),
 )
 dart_ci_sandbox_builder(
     "pkg-mac-release",
     category = "pkg|m",
     dimensions = mac(),
-    properties = CHROME,
+    properties = union(CHROME, PINNED_XCODE),
 )
 dart_ci_sandbox_builder(
     "pkg-mac-release-arm64",
     category = "pkg|m1",
     channels = ["try"],
     dimensions = mac(cpu = "arm64"),
-    properties = union(CHROME, NO_ANDROID),
+    properties = union(CHROME, NO_ANDROID, PINNED_XCODE),
     experiments = {"dart.use_update_script": 100},
 )
 dart_ci_sandbox_builder(
@@ -1465,7 +1472,7 @@ dart_ci_sandbox_builder(
     "dart2js-strong-mac-x64-chrome",
     category = "dart2js|chrome|m",
     dimensions = mac(),
-    properties = CHROME,
+    properties = union(CHROME, PINNED_XCODE),
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-win-x64-chrome",
@@ -1495,6 +1502,7 @@ dart_ci_sandbox_builder(
     "dart2js-strong-mac-x64-safari",
     category = "dart2js|safari|m",
     dimensions = mac(),
+    properties = PINNED_XCODE,
 )
 
 # analyzer
@@ -1533,6 +1541,7 @@ dart_ci_sandbox_builder(
     category = "analyzer|m",
     channels = CHANNELS,
     dimensions = mac(),
+    properties = PINNED_XCODE,
 )
 dart_ci_sandbox_builder(
     "analyzer-win-release",
@@ -1554,6 +1563,7 @@ nightly_builder(
     category = "analyzer|nnbd|m",
     channels = ["try"],
     dimensions = mac(),
+    properties = PINNED_XCODE,
 )
 nightly_builder(
     "analyzer-nnbd-win-release",
@@ -1580,13 +1590,14 @@ dart_ci_builder(
     channels = CHANNELS,
     dimensions = mac(),
     lkgr = True,
+    properties = PINNED_XCODE,
 )
 dart_ci_builder(
     "dart-sdk-mac-arm64",
     category = "sdk|m1",
     channels = CHANNELS,
     dimensions = mac(cpu = "arm64"),
-    properties = NO_ANDROID,
+    properties = union(NO_ANDROID, PINNED_XCODE),
 )
 
 dart_ci_builder(
@@ -1616,7 +1627,7 @@ dart_ci_sandbox_builder(
     "ddc-mac-release-chrome",
     category = "ddc|m",
     dimensions = mac(),
-    properties = CHROME,
+    properties = union(CHROME, PINNED_XCODE),
 )
 dart_ci_sandbox_builder(
     "ddc-win-release-chrome",
@@ -1693,11 +1704,13 @@ dart_infra_builder(
     "dart-ci-scripts-mac",
     recipe = "dart/package_dart_ci",
     dimensions = mac(),
+    properties = PINNED_XCODE,
 )
 dart_infra_builder(
     "dart-ci-scripts-mac-arm64",
     recipe = "dart/package_dart_ci",
     dimensions = mac(cpu = "arm64"),
+    properties = PINNED_XCODE,
 )
 dart_infra_builder("docker", recipe = "dart/docker")
 dart_infra_builder(
