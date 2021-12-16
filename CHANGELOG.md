@@ -1,3 +1,7 @@
+# 1.17.1
+
+- update to `analyzer` version 3.0
+
 # 1.17.0
 
 - new lint: `unnecessary_late`

@@ -40,9 +40,10 @@ void main() {
             '5:13 [lint] The url should only use secure protocols.',
             '15:12 [lint] The url should only use secure protocols.',
             '20:13 [lint] The url should only use secure protocols.',
+            '25:10 [lint] The url should only use secure protocols.',
             '28:12 [lint] The url should only use secure protocols.',
             '32:12 [lint] The url should only use secure protocols.',
-            '1 file analyzed, 7 issues found',
+            '1 file analyzed, 8 issues found',
           ]));
       expect(exitCode, 1);
     });
