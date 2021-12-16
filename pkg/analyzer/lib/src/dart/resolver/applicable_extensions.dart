@@ -10,139 +10,18 @@ import 'package:analyzer/src/dart/element/generic_inferrer.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 
-/// Extensions that can be applied, within the [targetLibrary], to the
-/// [targetType], and that define a member with the base [memberName].
-class ApplicableExtensions {
-  final LibraryElementImpl targetLibrary;
-  final DartType targetType;
-  final String memberName;
-
-  ApplicableExtensions({
-    required LibraryElement targetLibrary,
-    required this.targetType,
-    required this.memberName,
-  }) : targetLibrary = targetLibrary as LibraryElementImpl;
-
-  bool get _genericMetadataIsEnabled {
-    return targetLibrary.featureSet.isEnabled(
-      Feature.generic_metadata,
-    );
-  }
-
-  TypeSystemImpl get _typeSystem {
-    return targetLibrary.typeSystem;
-  }
-
-  /// Return [extensions] that match the configuration.
-  List<InstantiatedExtension> instantiate(
-    Iterable<ExtensionElement> extensions,
-  ) {
-    if (identical(targetType, NeverTypeImpl.instance)) {
-      return const <InstantiatedExtension>[];
-    }
-
-    var instantiatedExtensions = <InstantiatedExtension>[];
-
-    var candidates = _withMember(extensions);
-    for (var candidate in candidates) {
-      var extension = candidate.extension;
-
-      var freshTypes = getFreshTypeParameters(extension.typeParameters);
-      var freshTypeParameters = freshTypes.freshTypeParameters;
-      var rawExtendedType = freshTypes.substitute(extension.extendedType);
-
-      var inferrer = GenericInferrer(_typeSystem, freshTypeParameters);
-      inferrer.constrainArgument(
-        targetType,
-        rawExtendedType,
-        'extendedType',
-      );
-      var typeArguments = inferrer.infer(
-        freshTypeParameters,
-        failAtError: true,
-        genericMetadataIsEnabled: _genericMetadataIsEnabled,
-      );
-      if (typeArguments == null) {
-        continue;
-      }
-
-      var substitution = Substitution.fromPairs(
-        extension.typeParameters,
-        typeArguments,
-      );
-      var extendedType = substitution.substituteType(
-        extension.extendedType,
-      );
-
-      if (!_typeSystem.isSubtypeOf(targetType, extendedType)) {
-        continue;
-      }
-
-      instantiatedExtensions.add(
-        InstantiatedExtension(candidate, substitution, extendedType),
-      );
-    }
-
-    return instantiatedExtensions;
-  }
-
-  /// Return [extensions] that define a member with the [memberName].
-  List<_CandidateExtension> _withMember(
-    Iterable<ExtensionElement> extensions,
-  ) {
-    var result = <_CandidateExtension>[];
-    for (var extension in extensions) {
-      for (var field in extension.fields) {
-        if (field.name == memberName) {
-          result.add(
-            _CandidateExtension(
-              extension,
-              getter: field.getter,
-              setter: field.setter,
-            ),
-          );
-          break;
-        }
-      }
-      if (memberName == '[]') {
-        ExecutableElement? getter;
-        ExecutableElement? setter;
-        for (var method in extension.methods) {
-          if (method.name == '[]') {
-            getter = method;
-          } else if (method.name == '[]=') {
-            setter = method;
-          }
-        }
-        if (getter != null || setter != null) {
-          result.add(
-            _CandidateExtension(extension, getter: getter, setter: setter),
-          );
-        }
-      } else {
-        for (var method in extension.methods) {
-          if (method.name == memberName) {
-            result.add(
-              _CandidateExtension(extension, getter: method),
-            );
-            break;
-          }
-        }
-      }
-    }
-    return result;
-  }
-}
-
-class InstantiatedExtension {
-  final _CandidateExtension candidate;
+class InstantiatedExtensionWithMember {
+  final _NotInstantiatedExtensionWithMember candidate;
   final MapSubstitution substitution;
   final DartType extendedType;
 
-  InstantiatedExtension(this.candidate, this.substitution, this.extendedType);
+  InstantiatedExtensionWithMember(
+    this.candidate,
+    this.substitution,
+    this.extendedType,
+  );
 
   ResolutionResult get asResolutionResult {
     return ResolutionResult(getter: getter, setter: setter);
@@ -167,11 +46,191 @@ class InstantiatedExtension {
   }
 }
 
-class _CandidateExtension {
+class InstantiatedExtensionWithoutMember {
   final ExtensionElement extension;
+  final MapSubstitution substitution;
+  final DartType extendedType;
+
+  InstantiatedExtensionWithoutMember(
+    this.extension,
+    this.substitution,
+    this.extendedType,
+  );
+}
+
+abstract class _NotInstantiatedExtension<R> {
+  final ExtensionElement extension;
+
+  _NotInstantiatedExtension(this.extension);
+
+  R instantiate({
+    required MapSubstitution substitution,
+    required DartType extendedType,
+  });
+}
+
+class _NotInstantiatedExtensionWithMember
+    extends _NotInstantiatedExtension<InstantiatedExtensionWithMember> {
   final ExecutableElement? getter;
   final ExecutableElement? setter;
 
-  _CandidateExtension(this.extension, {this.getter, this.setter})
-      : assert(getter != null || setter != null);
+  _NotInstantiatedExtensionWithMember(ExtensionElement extension,
+      {this.getter, this.setter})
+      : assert(getter != null || setter != null),
+        super(extension);
+
+  @override
+  InstantiatedExtensionWithMember instantiate({
+    required MapSubstitution substitution,
+    required DartType extendedType,
+  }) {
+    return InstantiatedExtensionWithMember(this, substitution, extendedType);
+  }
+}
+
+/// [_NotInstantiatedExtension] for any [ExtensionElement].
+class _NotInstantiatedExtensionWithoutMember
+    extends _NotInstantiatedExtension<InstantiatedExtensionWithoutMember> {
+  _NotInstantiatedExtensionWithoutMember(ExtensionElement extension)
+      : super(extension);
+
+  @override
+  InstantiatedExtensionWithoutMember instantiate({
+    required MapSubstitution substitution,
+    required DartType extendedType,
+  }) {
+    return InstantiatedExtensionWithoutMember(
+        extension, substitution, extendedType);
+  }
+}
+
+extension ExtensionsExtensions on Iterable<ExtensionElement> {
+  List<_NotInstantiatedExtensionWithMember> hasMemberWithBaseName(
+    String baseName,
+  ) {
+    var result = <_NotInstantiatedExtensionWithMember>[];
+    for (var extension in this) {
+      if (baseName == '[]') {
+        ExecutableElement? getter;
+        ExecutableElement? setter;
+        for (var method in extension.methods) {
+          if (method.name == '[]') {
+            getter = method;
+          } else if (method.name == '[]=') {
+            setter = method;
+          }
+        }
+        if (getter != null || setter != null) {
+          result.add(
+            _NotInstantiatedExtensionWithMember(
+              extension,
+              getter: getter,
+              setter: setter,
+            ),
+          );
+        }
+      } else {
+        for (var field in extension.fields) {
+          if (field.name == baseName) {
+            result.add(
+              _NotInstantiatedExtensionWithMember(
+                extension,
+                getter: field.getter,
+                setter: field.setter,
+              ),
+            );
+            break;
+          }
+        }
+        for (var method in extension.methods) {
+          if (method.name == baseName) {
+            result.add(
+              _NotInstantiatedExtensionWithMember(
+                extension,
+                getter: method,
+              ),
+            );
+            break;
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Extensions that can be applied, within [targetLibrary], to [targetType].
+  List<InstantiatedExtensionWithoutMember> applicableTo({
+    required LibraryElement targetLibrary,
+    required DartType targetType,
+  }) {
+    return map((e) => _NotInstantiatedExtensionWithoutMember(e)).applicableTo(
+      targetLibrary: targetLibrary,
+      targetType: targetType,
+    );
+  }
+}
+
+extension NotInstantiatedExtensionsExtensions<R>
+    on Iterable<_NotInstantiatedExtension<R>> {
+  /// Extensions that can be applied, within [targetLibrary], to [targetType].
+  List<R> applicableTo({
+    required LibraryElement targetLibrary,
+    required DartType targetType,
+  }) {
+    if (identical(targetType, NeverTypeImpl.instance)) {
+      return <R>[];
+    }
+
+    targetLibrary as LibraryElementImpl;
+    var typeSystem = targetLibrary.typeSystem;
+    var genericMetadataIsEnabled = targetLibrary.featureSet.isEnabled(
+      Feature.generic_metadata,
+    );
+
+    var instantiated = <R>[];
+
+    for (var notInstantiated in this) {
+      var extension = notInstantiated.extension;
+
+      var freshTypes = getFreshTypeParameters(extension.typeParameters);
+      var freshTypeParameters = freshTypes.freshTypeParameters;
+      var rawExtendedType = freshTypes.substitute(extension.extendedType);
+
+      var inferrer = GenericInferrer(typeSystem, freshTypeParameters);
+      inferrer.constrainArgument(
+        targetType,
+        rawExtendedType,
+        'extendedType',
+      );
+      var typeArguments = inferrer.infer(
+        freshTypeParameters,
+        failAtError: true,
+        genericMetadataIsEnabled: genericMetadataIsEnabled,
+      );
+      if (typeArguments == null) {
+        continue;
+      }
+
+      var substitution = Substitution.fromPairs(
+        extension.typeParameters,
+        typeArguments,
+      );
+      var extendedType = substitution.substituteType(
+        extension.extendedType,
+      );
+
+      if (!typeSystem.isSubtypeOf(targetType, extendedType)) {
+        continue;
+      }
+
+      instantiated.add(
+        notInstantiated.instantiate(
+          substitution: substitution,
+          extendedType: extendedType,
+        ),
+      );
+    }
+
+    return instantiated;
+  }
 }

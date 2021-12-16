@@ -54,11 +54,12 @@ class ExtensionMemberResolver {
     SyntacticEntity nameEntity,
     String name,
   ) {
-    var extensions = ApplicableExtensions(
-      targetLibrary: _resolver.definingLibrary,
-      targetType: type,
-      memberName: name,
-    ).instantiate(_resolver.definingLibrary.accessibleExtensions);
+    var extensions = _resolver.definingLibrary.accessibleExtensions
+        .hasMemberWithBaseName(name)
+        .applicableTo(
+          targetLibrary: _resolver.definingLibrary,
+          targetType: type,
+        );
 
     if (extensions.isEmpty) {
       return ResolutionResult.none;
@@ -267,10 +268,11 @@ class ExtensionMemberResolver {
 
   /// Return either the most specific extension, or a list of the extensions
   /// that are ambiguous.
-  Either2<InstantiatedExtension, List<InstantiatedExtension>>
-      _chooseMostSpecific(List<InstantiatedExtension> extensions) {
-    InstantiatedExtension? bestSoFar;
-    var noneMoreSpecific = <InstantiatedExtension>[];
+  Either2<InstantiatedExtensionWithMember,
+          List<InstantiatedExtensionWithMember>>
+      _chooseMostSpecific(List<InstantiatedExtensionWithMember> extensions) {
+    InstantiatedExtensionWithMember? bestSoFar;
+    var noneMoreSpecific = <InstantiatedExtensionWithMember>[];
     for (var candidate in extensions) {
       if (noneMoreSpecific.isNotEmpty) {
         var isMostSpecific = true;
@@ -369,7 +371,8 @@ class ExtensionMemberResolver {
   }
 
   /// Return `true` is [e1] is more specific than [e2].
-  bool _isMoreSpecific(InstantiatedExtension e1, InstantiatedExtension e2) {
+  bool _isMoreSpecific(
+      InstantiatedExtensionWithMember e1, InstantiatedExtensionWithMember e2) {
     // 1. The latter extension is declared in a platform library, and the
     //    former extension is not.
     // 2. They are both declared in platform libraries, or both declared in

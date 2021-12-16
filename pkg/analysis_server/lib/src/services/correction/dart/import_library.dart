@@ -153,11 +153,12 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       foundImport = true;
-      var instantiatedExtensions = ApplicableExtensions(
-        targetLibrary: libraryElement,
-        targetType: targetType,
-        memberName: memberName,
-      ).instantiate(importedLibrary.exportedExtensions);
+      var instantiatedExtensions = importedLibrary.exportedExtensions
+          .hasMemberWithBaseName(memberName)
+          .applicableTo(
+            targetLibrary: libraryElement,
+            targetType: targetType,
+          );
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
@@ -454,11 +455,12 @@ class _ImportLibraryContainingExtension extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var instantiatedExtensions = ApplicableExtensions(
-      targetLibrary: libraryElement,
-      targetType: targetType,
-      memberName: memberName,
-    ).instantiate(library.exportedExtensions);
+    var instantiatedExtensions = library.exportedExtensions
+        .hasMemberWithBaseName(memberName)
+        .applicableTo(
+          targetLibrary: libraryElement,
+          targetType: targetType,
+        );
     if (instantiatedExtensions.isNotEmpty) {
       await builder.addDartFileEdit(file, (builder) {
         _uriText = builder.importLibrary(library.source.uri);
