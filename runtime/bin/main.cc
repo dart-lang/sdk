@@ -1242,6 +1242,12 @@ void main(int argc, char** argv) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
+  if (Options::gen_snapshot_kind() == kAppJIT) {
+    // App-jit snapshot can be deployed to another machine,
+    // so generated code should not depend on the CPU features
+    // of the system where snapshot was generated.
+    vm_options.AddArgument("--target-unknown-cpu");
+  }
   // If we need to write an app-jit snapshot or a depfile, then add an exit
   // hook that writes the snapshot and/or depfile as appropriate.
   if ((Options::gen_snapshot_kind() == kAppJIT) ||

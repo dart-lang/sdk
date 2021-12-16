@@ -223,16 +223,14 @@ void FlowGraphCompiler::InitCompiler() {
       BlockEntryInstr* entry = block_order_[i];
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
-        if (current->IsBranch()) {
-          current = current->AsBranch()->comparison();
+        if (auto* branch = current->AsBranch()) {
+          current = branch->comparison();
         }
-        // In optimized code, ICData is always set in the instructions.
-        const ICData* ic_data = NULL;
-        if (current->IsInstanceCall()) {
-          ic_data = current->AsInstanceCall()->ic_data();
-        }
-        if ((ic_data != NULL) && (ic_data->NumberOfUsedChecks() == 0)) {
-          may_reoptimize_ = true;
+        if (auto* instance_call = current->AsInstanceCall()) {
+          const ICData* ic_data = instance_call->ic_data();
+          if ((ic_data == nullptr) || (ic_data->NumberOfUsedChecks() == 0)) {
+            may_reoptimize_ = true;
+          }
         }
       }
     }

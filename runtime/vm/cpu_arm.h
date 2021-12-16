@@ -10,6 +10,7 @@
 #endif
 
 #include "vm/allocation.h"
+#include "vm/flags.h"
 #include "vm/simulator.h"
 
 namespace dart {
@@ -32,7 +33,7 @@ class HostCPUFeatures : public AllStatic {
   }
   static bool integer_division_supported() {
     DEBUG_ASSERT(initialized_);
-    return integer_division_supported_;
+    return integer_division_supported_ && !FLAG_target_unknown_cpu;
   }
   static bool neon_supported() {
     DEBUG_ASSERT(initialized_);

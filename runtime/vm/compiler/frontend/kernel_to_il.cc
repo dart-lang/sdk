@@ -940,7 +940,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kDoubleFloorToInt:
       if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 #if defined(TARGET_ARCH_X64)
-      return CompilerState::Current().is_aot();
+      return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
 #elif defined(TARGET_ARCH_ARM64)
       return true;
 #else

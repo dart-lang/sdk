@@ -5241,11 +5241,12 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddSlowPathCode(slow_path);
 
   if (recognized_kind() != MethodRecognizer::kDoubleToInteger) {
-    // In JIT mode VM knows target CPU features at compile time
-    // and can pick more optimal representation for DoubleToDouble
-    // conversion. In AOT mode we test if roundsd instruction is
-    // available at run time and fall back to stub if it isn't.
-    ASSERT(CompilerState::Current().is_aot());
+    // In JIT mode without --target-unknown-cpu VM knows target CPU features
+    // at compile time and can pick more optimal representation
+    // for DoubleToDouble conversion. In AOT mode and with
+    // --target-unknown-cpu we test if roundsd instruction is available
+    // at run time and fall back to stub if it isn't.
+    ASSERT(CompilerState::Current().is_aot() || FLAG_target_unknown_cpu);
     if (FLAG_use_slow_path) {
       __ jmp(slow_path->entry_label());
       __ Bind(slow_path->exit_label());

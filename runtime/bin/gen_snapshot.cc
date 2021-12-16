@@ -879,6 +879,10 @@ int main(int argc, char** argv) {
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
   } else if ((snapshot_kind == kCoreJIT) || (snapshot_kind == kAppJIT)) {
+    // Core-jit and app-jit snapshot can be deployed to another machine,
+    // so  generated code should not depend on the CPU features
+    // of the system where snapshot was generated.
+    vm_options.AddArgument("--target-unknown-cpu");
 #if !defined(TARGET_ARCH_IA32)
     vm_options.AddArgument("--link_natives_lazily");
 #endif
