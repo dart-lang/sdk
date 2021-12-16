@@ -238,7 +238,6 @@ config("dart_libfuzzer_config") {
 source_set("dart_api") {
   public_configs = [ ":dart_public_config" ]
   sources = [
-    "include/analyze_snapshot_api.h",
     "include/dart_api.h",
     "include/dart_api_dl.c",
     "include/dart_api_dl.h",
@@ -286,11 +285,9 @@ library_for_all_configs("libdart") {
   public_configs = [ ":dart_public_config" ]
   sources = [
     "$target_gen_dir/version.cc",
-    "include/analyze_snapshot_api.h",
     "include/dart_api.h",
     "include/dart_native_api.h",
     "include/dart_tools_api.h",
-    "vm/analyze_snapshot_api_impl.cc",
     "vm/dart_api_impl.cc",
     "vm/native_api_impl.cc",
     "vm/version.h",

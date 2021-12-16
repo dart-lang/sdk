@@ -26,7 +26,6 @@ declare_args() {
   dart_stripped_binary = "dart"
   dart_precompiled_runtime_stripped_binary = "dart_precompiled_runtime_product"
   gen_snapshot_stripped_binary = "gen_snapshot_product"
-  analyze_snapshot_binary = "analyze_snapshot_product"
 }
 
 # The directory layout of the SDK is as follows:
@@ -331,15 +330,6 @@ copy("copy_gen_snapshot") {
   ]
 }
 
-copy("copy_analyze_snapshot") {
-  visibility = [ ":group_dart2native" ]
-  deps = [ "../runtime/bin:analyze_snapshot_product" ]
-  src_dir =
-      get_label_info("../runtime/bin:analyze_snapshot_product", "root_out_dir")
-  sources = [ "$src_dir/${analyze_snapshot_binary}${executable_suffix}" ]
-  outputs = [ "$root_out_dir/$dart_sdk_output/bin/utils/analyze_snapshot${executable_suffix}" ]
-}
-
 copy("copy_vm_platform_strong_product") {
   visibility = [ ":group_dart2native" ]
   deps = [ "../runtime/vm:vm_platform_product" ]
@@ -359,7 +349,6 @@ copy("copy_gen_kernel_snapshot") {
 
 group("group_dart2native") {
   deps = [
-    ":copy_analyze_snapshot",
     ":copy_dartaotruntime",
     ":copy_gen_kernel_snapshot",
     ":copy_gen_snapshot",
