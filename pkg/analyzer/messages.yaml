@@ -13775,6 +13775,10 @@ CompileTimeErrorCode:
       }
       ```
 FfiCode:
+  ABI_SPECIFIC_INTEGER_INVALID:
+    problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments."
+    correctionMessage: Try removing all type arguments, removing all members, and adding one const constructor.
+    comment: No parameters.
   ABI_SPECIFIC_INTEGER_MAPPING_EXTRA:
     problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a 'NativeType' integer with a fixed size."
     correctionMessage: Try removing the extra annotation.
@@ -13978,24 +13982,24 @@ FfiCode:
       1: the name of the class being extended, implemented, or mixed in
   SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
-    problemMessage: "The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct' or 'Union'."
-    correctionMessage: "Try extending 'Struct' or 'Union' directly."
+    problemMessage: "The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
   SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
-    problemMessage: "The class '{0}' can't implement '{1}' because '{1}' is a subtype of 'Struct' or 'Union'."
-    correctionMessage: "Try extending 'Struct' or 'Union' directly."
+    problemMessage: "The class '{0}' can't implement '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
   SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
-    problemMessage: "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct' or 'Union'."
-    correctionMessage: "Try extending 'Struct' or 'Union' directly."
+    problemMessage: "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     comment: |-
       Parameters:
       0: the name of the subclass

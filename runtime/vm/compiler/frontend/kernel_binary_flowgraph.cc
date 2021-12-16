@@ -6,6 +6,7 @@
 
 #include "vm/closure_functions_cache.h"
 #include "vm/compiler/ffi/callback.h"
+#include "vm/compiler/ffi/recognized_method.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
@@ -3416,13 +3417,26 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   }
 
   const auto recognized_kind = target.recognized_kind();
-  if (recognized_kind == MethodRecognizer::kNativeEffect) {
-    return BuildNativeEffect();
-  } else if (recognized_kind == MethodRecognizer::kFfiAsFunctionInternal) {
-    return BuildFfiAsFunctionInternal();
-  } else if (CompilerState::Current().is_aot() &&
-             recognized_kind == MethodRecognizer::kFfiNativeCallbackFunction) {
-    return BuildFfiNativeCallbackFunction();
+  switch (recognized_kind) {
+    case MethodRecognizer::kNativeEffect:
+      return BuildNativeEffect();
+    case MethodRecognizer::kFfiAsFunctionInternal:
+      return BuildFfiAsFunctionInternal();
+    case MethodRecognizer::kFfiNativeCallbackFunction:
+      if (CompilerState::Current().is_aot()) {
+        return BuildFfiNativeCallbackFunction();
+      }
+      break;
+    case MethodRecognizer::kFfiLoadAbiSpecificInt:
+      return BuildLoadAbiSpecificInt(/*at_index=*/false);
+    case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
+      return BuildLoadAbiSpecificInt(/*at_index=*/true);
+    case MethodRecognizer::kFfiStoreAbiSpecificInt:
+      return BuildStoreAbiSpecificInt(/*at_index=*/false);
+    case MethodRecognizer::kFfiStoreAbiSpecificIntAtIndex:
+      return BuildStoreAbiSpecificInt(/*at_index=*/true);
+    default:
+      break;
   }
 
   Fragment instructions;
@@ -5517,6 +5531,109 @@ Fragment StreamingFlowGraphBuilder::BuildNativeEffect() {
   return code;
 }
 
+static void ReportIfNotNull(const char* error) {
+  if (error != nullptr) {
+    const auto& language_error = Error::Handle(
+        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
+                           Report::kError, Heap::kOld));
+    Report::LongJump(language_error);
+  }
+}
+
+Fragment StreamingFlowGraphBuilder::BuildLoadAbiSpecificInt(bool at_index) {
+  const intptr_t argument_count = ReadUInt();     // Read argument count.
+  ASSERT(argument_count == 2);                    // TypedDataBase, offset/index
+  const intptr_t list_length = ReadListLength();  // Read types list length.
+  ASSERT(list_length == 1);                       // AbiSpecificInt.
+  // Read types.
+  const TypeArguments& type_arguments = T.BuildTypeArguments(list_length);
+  const AbstractType& type_argument =
+      AbstractType::Handle(type_arguments.TypeAt(0));
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  const auto* native_type =
+      compiler::ffi::NativeType::FromAbstractType(zone_, type_argument, &error);
+  ReportIfNotNull(error);
+
+  Fragment code;
+  // Read positional argument count.
+  const intptr_t positional_count = ReadListLength();
+  ASSERT(positional_count == 2);
+  code += BuildExpression();  // Argument 1: typedDataBase.
+  code += BuildExpression();  // Argument 2: offsetInBytes or index.
+  if (at_index) {
+    code += IntConstant(native_type->SizeInBytes());
+    code += B->BinaryIntegerOp(Token::kMUL, kTagged, /* truncate= */ true);
+  }
+
+  // Skip (empty) named arguments list.
+  const intptr_t named_args_len = ReadListLength();
+  ASSERT(named_args_len == 0);
+
+  // This call site is not guaranteed to be optimized. So, do a call to the
+  // correct force optimized function instead of compiling the body.
+  MethodRecognizer::Kind kind = compiler::ffi::FfiLoad(*native_type);
+  const char* function_name = MethodRecognizer::KindToFunctionNameCString(kind);
+  const Library& ffi_library = Library::Handle(Z, Library::FfiLibrary());
+  const Function& target = Function::ZoneHandle(
+      Z, ffi_library.LookupFunctionAllowPrivate(
+             String::Handle(Z, String::New(function_name))));
+  Array& argument_names = Array::ZoneHandle(Z);
+  code += StaticCall(TokenPosition::kNoSource, target, argument_count,
+                     argument_names, ICData::kStatic);
+
+  return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildStoreAbiSpecificInt(bool at_index) {
+  const intptr_t argument_count = ReadUInt();
+  ASSERT(argument_count == 3);
+  const intptr_t list_length = ReadListLength();
+  ASSERT(list_length == 1);
+  // Read types.
+  const TypeArguments& type_arguments = T.BuildTypeArguments(list_length);
+  const AbstractType& type_argument =
+      AbstractType::Handle(type_arguments.TypeAt(0));
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  const auto* native_type =
+      compiler::ffi::NativeType::FromAbstractType(zone_, type_argument, &error);
+  ReportIfNotNull(error);
+
+  Fragment code;
+  // Read positional argument count.
+  const intptr_t positional_count = ReadListLength();
+  ASSERT(positional_count == 3);
+  code += BuildExpression();  // Argument 1: typedDataBase.
+  code += BuildExpression();  // Argument 2: offsetInBytes or index.
+  if (at_index) {
+    code += IntConstant(native_type->SizeInBytes());
+    code += B->BinaryIntegerOp(Token::kMUL, kTagged, /* truncate= */ true);
+  }
+  code += BuildExpression();  // Argument 3: value
+
+  // Skip (empty) named arguments list.
+  const intptr_t named_args_len = ReadListLength();
+  ASSERT(named_args_len == 0);
+
+  // This call site is not guaranteed to be optimized. So, do a call to the
+  // correct force optimized function instead of compiling the body.
+  MethodRecognizer::Kind kind = compiler::ffi::FfiStore(*native_type);
+  const char* function_name = MethodRecognizer::KindToFunctionNameCString(kind);
+  const Library& ffi_library = Library::Handle(Z, Library::FfiLibrary());
+  const Function& target = Function::ZoneHandle(
+      Z, ffi_library.LookupFunctionAllowPrivate(
+             String::Handle(Z, String::New(function_name))));
+  ASSERT(!target.IsNull());
+  Array& argument_names = Array::ZoneHandle(Z);
+  code += StaticCall(TokenPosition::kNoSource, target, argument_count,
+                     argument_names, ICData::kStatic);
+
+  return code;
+}
+
 Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
   const intptr_t argc = ReadUInt();               // Read argument count.
   ASSERT(argc == 2);                              // Pointer, isLeaf.
@@ -5594,6 +5711,11 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   const intptr_t named_args_len =
       ReadListLength();  // Skip (empty) named arguments list.
   ASSERT(named_args_len == 0);
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_sig, &error);
+  ReportIfNotNull(error);
 
   const Function& result =
       Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(

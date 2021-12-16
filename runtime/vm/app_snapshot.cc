@@ -6695,6 +6695,10 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
     case kStringCid:
       return new (Z) StringSerializationCluster(
           is_canonical, cluster_represents_canonical_set && !vm_);
+#define CASE_FFI_CID(name) case kFfi##name##Cid:
+      CLASS_LIST_FFI_TYPE_MARKER(CASE_FFI_CID)
+#undef CASE_FFI_CID
+      return new (Z) InstanceSerializationCluster(is_canonical, cid);
     case kWeakSerializationReferenceCid:
 #if defined(DART_PRECOMPILER)
       ASSERT(kind_ == Snapshot::kFullAOT);
@@ -7850,6 +7854,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) StringDeserializationCluster(
           is_canonical,
           !is_non_root_unit_ && isolate_group() != Dart::vm_isolate_group());
+#define CASE_FFI_CID(name) case kFfi##name##Cid:
+      CLASS_LIST_FFI_TYPE_MARKER(CASE_FFI_CID)
+#undef CASE_FFI_CID
+      return new (Z) InstanceDeserializationCluster(cid, is_canonical);
     default:
       break;
   }

@@ -362,6 +362,15 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // Build flow graph for '_nativeEffect'.
   Fragment BuildNativeEffect();
 
+  // Build flow graph for '_loadAbiSpecificInt' and
+  // '_loadAbiSpecificIntAtIndex', '_storeAbiSpecificInt', and
+  // '_storeAbiSpecificIntAtIndex' call sites.
+  //
+  // The second argument is either offsetInBytes (at_index==false), or
+  // index (at_index==true).
+  Fragment BuildLoadAbiSpecificInt(bool at_index);
+  Fragment BuildStoreAbiSpecificInt(bool at_index);
+
   // Build FG for '_asFunctionInternal'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting closure.
   Fragment BuildFfiAsFunctionInternal();

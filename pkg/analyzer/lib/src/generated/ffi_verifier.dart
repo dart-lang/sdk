@@ -92,6 +92,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             _validatePackedAnnotation(node.metadata);
           }
         } else if (className == _abiSpecificIntegerClassName) {
+          _validateAbiSpecificIntegerAnnotation(node);
           _validateAbiSpecificIntegerMappingAnnotation(
               node.name, node.metadata);
         } else if (className != _allocatorClassName &&
@@ -102,7 +103,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               superclass.name,
               [node.name.name, superclass.name.name]);
         }
-      } else if (superclass.isCompoundSubtype) {
+      } else if (superclass.isCompoundSubtype ||
+          superclass.isAbiSpecificIntegerSubtype) {
         _errorReporter.reportErrorForNode(
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
             superclass,
@@ -120,7 +122,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (typename.ffiClass != null) {
         _errorReporter.reportErrorForNode(subtypeOfFfiCode, typename,
             [node.name.name, typename.name.toSource()]);
-      } else if (typename.isCompoundSubtype) {
+      } else if (typename.isCompoundSubtype ||
+          typename.isAbiSpecificIntegerSubtype) {
         _errorReporter.reportErrorForNode(subtypeOfStructCode, typename,
             [node.name.name, typename.name.toSource()]);
       }
@@ -612,6 +615,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return _PrimitiveDartType.none;
+  }
+
+  void _validateAbiSpecificIntegerAnnotation(ClassDeclaration node) {
+    if ((node.typeParameters?.length ?? 0) != 0 ||
+        node.members.length != 1 ||
+        node.members.single is! ConstructorDeclaration ||
+        (node.members.single as ConstructorDeclaration).constKeyword == null) {
+      _errorReporter.reportErrorForNode(
+          FfiCode.ABI_SPECIFIC_INTEGER_INVALID, node.name);
+    }
   }
 
   /// Validate that the [annotations] include at most one mapping annotation.
@@ -1557,6 +1570,17 @@ extension on DartType {
     return false;
   }
 
+  bool get isAbiSpecificInteger {
+    final self = this;
+    if (self is InterfaceType) {
+      final element = self.element;
+      final name = element.name;
+      return name == FfiVerifier._abiSpecificIntegerClassName &&
+          element.isFfiClass;
+    }
+    return false;
+  }
+
   /// Returns `true` iff this is an Abi-specific integer type,
   /// i.e. a subtype of `AbiSpecificInteger`.
   bool get isAbiSpecificIntegerSubtype {
@@ -1623,6 +1647,15 @@ extension on NamedType {
     var element = name.staticElement;
     if (element is ClassElement) {
       return element.allSupertypes.any((e) => e.isCompound);
+    }
+    return false;
+  }
+
+  /// Return `true` if this represents a subtype of `Struct` or `Union`.
+  bool get isAbiSpecificIntegerSubtype {
+    var element = name.staticElement;
+    if (element is ClassElement) {
+      return element.allSupertypes.any((e) => e.isAbiSpecificInteger);
     }
     return false;
   }

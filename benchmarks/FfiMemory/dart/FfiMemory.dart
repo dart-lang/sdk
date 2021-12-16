@@ -15,6 +15,34 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
+/// Represents a native unsigned pointer-sized integer in C.
+///
+/// [UintPtr] is not constructible in the Dart code and serves purely as marker in
+/// type signatures.
+@AbiSpecificIntegerMapping({
+  Abi.androidArm: Uint32(),
+  Abi.androidArm64: Uint64(),
+  Abi.androidIA32: Uint32(),
+  Abi.androidX64: Uint64(),
+  Abi.fuchsiaArm64: Uint64(),
+  Abi.fuchsiaX64: Uint64(),
+  Abi.iosArm: Uint32(),
+  Abi.iosArm64: Uint64(),
+  Abi.iosX64: Uint64(),
+  Abi.linuxArm: Uint32(),
+  Abi.linuxArm64: Uint64(),
+  Abi.linuxIA32: Uint32(),
+  Abi.linuxX64: Uint64(),
+  Abi.macosArm64: Uint64(),
+  Abi.macosX64: Uint64(),
+  Abi.windowsArm64: Uint64(),
+  Abi.windowsIA32: Uint32(),
+  Abi.windowsX64: Uint64(),
+})
+class UintPtr extends AbiSpecificInteger {
+  const UintPtr();
+}
+
 //
 // Pointer store.
 //
@@ -68,6 +96,12 @@ void doStoreInt64(Pointer<Int64> pointer, int length) {
 }
 
 void doStoreUint64(Pointer<Uint64> pointer, int length) {
+  for (int i = 0; i < length; i++) {
+    pointer[i] = 1;
+  }
+}
+
+void doStoreUintPtr(Pointer<UintPtr> pointer, int length) {
   for (int i = 0; i < length; i++) {
     pointer[i] = 1;
   }
@@ -167,6 +201,14 @@ int doLoadInt64(Pointer<Int64> pointer, int length) {
 }
 
 int doLoadUint64(Pointer<Uint64> pointer, int length) {
+  int x = 0;
+  for (int i = 0; i < length; i++) {
+    x += pointer[i];
+  }
+  return x;
+}
+
+int doLoadUintPtr(Pointer<UintPtr> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
     x += pointer[i];
@@ -452,6 +494,25 @@ class PointerUint64 extends BenchmarkBase {
   }
 }
 
+class PointerUintPtr extends BenchmarkBase {
+  Pointer<UintPtr> pointer = nullptr;
+  PointerUintPtr() : super('FfiMemory.PointerUintPtr');
+
+  @override
+  void setup() => pointer = calloc(N);
+  @override
+  void teardown() => calloc.free(pointer);
+
+  @override
+  void run() {
+    doStoreUintPtr(pointer, N);
+    final int x = doLoadUintPtr(pointer, N);
+    if (x != N) {
+      throw Exception('$name: Unexpected result: $x');
+    }
+  }
+}
+
 class PointerFloat extends BenchmarkBase {
   Pointer<Float> pointer = nullptr;
   PointerFloat() : super('FfiMemory.PointerFloat');
@@ -555,6 +616,7 @@ void main() {
     () => PointerInt64(),
     () => PointerInt64Mint(),
     () => PointerUint64(),
+    () => PointerUintPtr(),
     () => PointerFloat(),
     () => PointerDouble(),
     () => PointerPointer(),
