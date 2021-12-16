@@ -28,11 +28,16 @@ static bool SupportsCoverage() {
 }
 
 Fragment& Fragment::operator+=(const Fragment& other) {
-  if (entry == NULL) {
+  if (entry == nullptr) {
     entry = other.entry;
     current = other.current;
-  } else if (current != NULL && other.entry != NULL) {
-    current->LinkTo(other.entry);
+  } else if (other.entry != nullptr) {
+    if (current != nullptr) {
+      current->LinkTo(other.entry);
+    }
+    // Although [other.entry] could be unreachable (if this fragment is
+    // closed), there could be a yield continuation point in the middle of
+    // [other] fragment so [other.current] is still reachable.
     current = other.current;
   }
   return *this;
