@@ -18,12 +18,50 @@ typedef FutureOr<void> ControllerCancelCallback();
 ///
 /// This controller allows sending data, error and done events on
 /// its [stream].
+///
 /// This class can be used to create a simple stream that others
 /// can listen on, and to push events to that stream.
 ///
 /// It's possible to check whether the stream is paused or not, and whether
 /// it has subscribers or not, as well as getting a callback when either of
 /// these change.
+///
+/// Example:
+/// ```dart
+/// final streamController = StreamController(
+///   onPause: () => print('Paused'),
+///   onResume: () => print('Resumed'),
+///   onCancel: () => print('Cancelled'),
+///   onListen: () => print('Listens'),
+/// );
+///
+/// streamController.stream.listen(
+///   (event) => print('Event:  $event'),
+///   onDone: () => print('Done'),
+///   onError: (error) => print(error),
+/// );
+/// ```
+/// To check if there is a subscriber on the stream, use [hasListener].
+/// ```dart continued
+/// var hasListener = streamController.hasListener; // true
+/// ```
+/// To send data event to the stream, use [add] or [addStream].
+/// ```dart continued
+/// streamController.add(999);
+/// final stream = Stream<int>.periodic(
+///     const Duration(milliseconds: 200), (count) => count * count).take(4);
+/// await streamController.addStream(stream);
+/// ```
+/// To send an error event to the stream, use [addError].
+/// ```dart continued
+/// streamController.addError(Exception('Error 101'));
+/// ```
+/// To check is the stream closed, use [isClosed]. To close the stream,
+/// use [close].
+/// ```dart continued
+/// streamController.close();
+/// var isClosed = streamController.isClosed; // true
+/// ```
 abstract class StreamController<T> implements StreamSink<T> {
   /// The stream that this controller is controlling.
   Stream<T> get stream;
