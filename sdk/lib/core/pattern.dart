@@ -101,7 +101,7 @@ abstract class Match {
   /// final string = '[00:13.37] This is a chat message.';
   /// final regExp = RegExp(r'^\[\s*([\d]+):([\d]+)\.([\d]+)\]\s*(.*)$');
   /// final match = regExp.firstMatch(string)!;
-  /// final message = jsonEncode(match.groups([1,2,3,4]));
+  /// final message = jsonEncode(match.groups([1, 2, 3, 4]));
   /// // ['00','13','37','This is a chat message.']
   /// ```
   List<String?> groups(List<int> groupIndices);
