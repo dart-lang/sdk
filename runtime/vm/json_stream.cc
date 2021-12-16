@@ -164,16 +164,16 @@ void JSONStream::PrintError(intptr_t code, const char* details_format, ...) {
     JSONObject data(&jsobj, "data");
     PrintRequest(&data, this);
     if (details_format != NULL) {
-      va_list args;
-      va_start(args, details_format);
-      intptr_t len = Utils::VSNPrint(NULL, 0, details_format, args);
-      va_end(args);
+      va_list measure_args;
+      va_start(measure_args, details_format);
+      intptr_t len = Utils::VSNPrint(NULL, 0, details_format, measure_args);
+      va_end(measure_args);
 
       char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
-      va_list args2;
-      va_start(args2, details_format);
-      Utils::VSNPrint(buffer, (len + 1), details_format, args2);
-      va_end(args2);
+      va_list print_args;
+      va_start(print_args, details_format);
+      Utils::VSNPrint(buffer, (len + 1), details_format, print_args);
+      va_end(print_args);
       data.AddProperty("details", buffer);
     }
   }

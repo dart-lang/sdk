@@ -349,14 +349,16 @@ void TimelineEventArguments::FormatArgument(intptr_t i,
                                             va_list args) {
   ASSERT(i >= 0);
   ASSERT(i < length_);
-  va_list args2;
-  va_copy(args2, args);
-  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, args);
-  va_end(args);
+  va_list measure_args;
+  va_copy(measure_args, args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, measure_args);
+  va_end(measure_args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
-  Utils::VSNPrint(buffer, (len + 1), fmt, args2);
-  va_end(args2);
+  va_list print_args;
+  va_copy(print_args, args);
+  Utils::VSNPrint(buffer, (len + 1), fmt, print_args);
+  va_end(print_args);
 
   SetArgument(i, name, buffer);
 }
@@ -546,6 +548,7 @@ void TimelineEvent::FormatArgument(intptr_t i,
   va_list args;
   va_start(args, fmt);
   arguments_.FormatArgument(i, name, fmt, args);
+  va_end(args);
 }
 
 void TimelineEvent::Complete() {
@@ -846,6 +849,7 @@ void TimelineEventScope::FormatArgument(intptr_t i,
   va_list args;
   va_start(args, fmt);
   arguments_.FormatArgument(i, name, fmt, args);
+  va_end(args);
 }
 
 void TimelineEventScope::StealArguments(TimelineEvent* event) {

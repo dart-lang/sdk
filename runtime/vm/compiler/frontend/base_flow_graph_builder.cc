@@ -1244,33 +1244,44 @@ Fragment BaseFlowGraphBuilder::MathUnary(MathUnaryInstr::MathUnaryKind kind) {
 }
 
 Fragment BaseFlowGraphBuilder::RecordCoverage(TokenPosition position) {
+  return RecordCoverageImpl(position, false /** is_branch_coverage **/);
+}
+
+Fragment BaseFlowGraphBuilder::RecordBranchCoverage(TokenPosition position) {
+  return RecordCoverageImpl(position, true /** is_branch_coverage **/);
+}
+
+Fragment BaseFlowGraphBuilder::RecordCoverageImpl(TokenPosition position,
+                                                  bool is_branch_coverage) {
   Fragment instructions;
-  if (SupportsCoverage()) {
-    const intptr_t coverage_index = GetCoverageIndexFor(position);
-    instructions <<= new (Z) RecordCoverageInstr(
-        coverage_array(), coverage_index, InstructionSource(position));
-  }
+  if (!SupportsCoverage()) return instructions;
+  if (!position.IsReal()) return instructions;
+  if (is_branch_coverage && !IG->branch_coverage()) return instructions;
+
+  const intptr_t coverage_index =
+      GetCoverageIndexFor(position.EncodeCoveragePosition(is_branch_coverage));
+  instructions <<= new (Z) RecordCoverageInstr(coverage_array(), coverage_index,
+                                               InstructionSource(position));
   return instructions;
 }
 
-intptr_t BaseFlowGraphBuilder::GetCoverageIndexFor(TokenPosition token_pos) {
+intptr_t BaseFlowGraphBuilder::GetCoverageIndexFor(intptr_t encoded_position) {
   if (coverage_array_.IsNull()) {
-    // We have not yet created coverage_array, this is the first time
-    // we are building the graph for this function. Collect coverage
-    // positions.
+    // We have not yet created coverage_array, this is the first time we are
+    // building the graph for this function. Collect coverage positions.
     for (intptr_t i = 0; i < coverage_array_positions_.length(); i++) {
-      if (coverage_array_positions_.At(i) == token_pos) {
+      if (coverage_array_positions_.At(i) == encoded_position) {
         return 2 * i + 1;
       }
     }
     const auto index = 2 * coverage_array_positions_.length() + 1;
-    coverage_array_positions_.Add(token_pos);
+    coverage_array_positions_.Add(encoded_position);
     return index;
   }
 
   for (intptr_t i = 0; i < coverage_array_.Length(); i += 2) {
-    if (TokenPosition::Deserialize(Smi::Value(
-            static_cast<SmiPtr>(coverage_array_.At(i)))) == token_pos) {
+    if (Smi::Value(static_cast<SmiPtr>(coverage_array_.At(i))) ==
+        encoded_position) {
       return i + 1;
     }
   }
@@ -1294,7 +1305,7 @@ void BaseFlowGraphBuilder::FinalizeCoverageArray() {
 
   Smi& value = Smi::Handle();
   for (intptr_t i = 0; i < coverage_array_positions_.length(); i++) {
-    value = Smi::New(coverage_array_positions_[i].Serialize());
+    value = Smi::New(coverage_array_positions_[i]);
     coverage_array_.SetAt(2 * i, value);
     value = Smi::New(0);  // no coverage recorded.
     coverage_array_.SetAt(2 * i + 1, value);
