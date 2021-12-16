@@ -70,6 +70,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   Fragment BuildExpression(TokenPosition* position = nullptr);
   Fragment BuildStatement(TokenPosition* position = nullptr);
+  Fragment BuildStatementWithBranchCoverage(TokenPosition* position = nullptr);
 
   // Kernel offset:
   //   start of function expression -> end of function body statement
