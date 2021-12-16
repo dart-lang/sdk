@@ -56,11 +56,14 @@ typedef FutureOr<void> ControllerCancelCallback();
 /// ```dart continued
 /// streamController.addError(Exception('Error 101'));
 /// ```
-/// To check is the stream closed, use [isClosed]. To close the stream,
-/// use [close].
+/// To check if the stream is closed, use [isClosed].
 /// ```dart continued
-/// streamController.close();
-/// var isClosed = streamController.isClosed; // true
+/// var isClosed = streamController.isClosed; // false
+/// ```
+/// To close the stream, use [close].
+/// ```dart continued
+/// await streamController.close();
+/// isClosed = streamController.isClosed; // true
 /// ```
 abstract class StreamController<T> implements StreamSink<T> {
   /// The stream that this controller is controlling.
@@ -324,7 +327,7 @@ abstract class StreamController<T> implements StreamSink<T> {
 /// or microtask. This means that if it throws, the error will be reported as
 /// uncaught as soon as possible.
 /// This is one reason to add the event as the last thing in the original event
-/// handler - any action done after adding the event will delay the report of
+/// handler – any action done after adding the event will delay the report of
 /// errors in the event listener callbacks.
 ///
 /// If an event is added in a setting that isn't known to be another event,
