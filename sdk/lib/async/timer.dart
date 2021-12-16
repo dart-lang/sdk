@@ -18,17 +18,12 @@ part of dart.async;
 /// the [Duration] class):
 /// ```dart
 /// void main() {
-///   startTimeout(5 * 1000); // 5 seconds.
+///   scheduleTimeout(5 * 1000); // 5 seconds.
 /// }
 ///
-/// Timer startTimeout([int? milliseconds]) {
-///   const timeout = Duration(seconds: 10);
-///   const ms = Duration(milliseconds: 1);
+/// Timer scheduleTimeout([int milliseconds = 10000]) =>
+///     Timer(Duration(milliseconds: milliseconds), handleTimeout);
 ///
-///   final duration = milliseconds == null ? timeout : ms * milliseconds;
-///   print(duration); // 0:00:05.000000
-///   return Timer(duration, handleTimeout);
-/// }
 /// void handleTimeout() {  // callback function
 ///   // Do some work.
 /// }
@@ -80,7 +75,7 @@ abstract class Timer {
   /// ```dart
   /// var counter = 3;
   /// Timer.periodic(const Duration(seconds: 2), (timer) {
-  ///   print('${timer.tick}');
+  ///   print(timer.tick);
   ///   counter--;
   ///   if (counter == 0) {
   ///     print('Cancel timer');
@@ -125,7 +120,7 @@ abstract class Timer {
   /// ```dart
   /// final timer =
   ///     Timer(const Duration(seconds: 5), () => print('Timer finished'));
-  /// // Cancel timer, callback not called.
+  /// // Cancel timer, callback never called.
   /// timer.cancel();
   /// ```
   void cancel();
@@ -144,18 +139,21 @@ abstract class Timer {
   ///
   /// Example:
   /// ```dart
-  /// var counter = 3;
-  /// Timer.periodic(const Duration(seconds: 2), (timer) {
-  ///   print('${timer.tick}');
-  ///   counter--;
-  ///   if (counter == 0) {
+  /// final stopwatch = Stopwatch()..start();
+  /// Timer.periodic(const Duration(seconds: 1), (timer) {
+  ///   print(timer.tick);
+  ///   if (timer.tick == 1) {
+  ///     while (stopwatch.elapsedMilliseconds < 4500) {
+  ///       // Run uninterrupted for another 3.5 seconds!
+  ///       // The latest due tick after that is the 4-second tick.
+  ///     }
+  ///   } else {
   ///     timer.cancel();
   ///   }
   /// });
   /// // Outputs:
   /// // 1
-  /// // 2
-  /// // 3
+  /// // 4
   /// ```
   int get tick;
 
