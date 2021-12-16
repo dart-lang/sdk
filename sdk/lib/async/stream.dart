@@ -15,14 +15,14 @@ typedef void _TimerCallback();
 /// A Stream provides a way to receive a sequence of events.
 /// Each event is either a data event, also called an *element* of the stream,
 /// or an error event, which is a notification that something has failed.
-/// When a stream has emitted all its event,
-/// a single "done" event will notify the listener that the end has been reached.
+/// When a stream has emitted all its events,
+/// a single "done" event notifies the listener that the end has been reached.
 ///
 /// You produce a stream by calling an `async*` function, which then returns
 /// a stream. Consuming that stream will lead the function to emit events
 /// until it ends, and the stream closes.
 /// You consume a stream either using an `await for` loop, which is available
-/// inside an `async` or `async*` function, or forwards its events directly
+/// inside an `async` or `async*` function, or by forwarding its events directly
 /// using `yield*` inside an `async*` function.
 /// Example:
 /// ```dart
@@ -55,7 +55,7 @@ typedef void _TimerCallback();
 /// then the `optionalMap` function body completes,
 /// which closes the returned stream.
 /// On an error event from the `source` stream,
-/// the `await for` that error is (re-)thrown which breaks the loop.
+/// the `await for` that error is (re-)thrown, which breaks the loop.
 /// The error then reaches the end of the `optionalMap` function body,
 /// since it's not caught.
 /// That makes the error be emitted on the returned stream, which then closes.
@@ -71,7 +71,7 @@ typedef void _TimerCallback();
 ///
 /// The more low-level [listen] method is what every other method is based on.
 /// You call `listen` on a stream to tell it that you want to receive
-/// events, and to registers the callbacks which will receive those events.
+/// events, and to register the callbacks which will receive those events.
 /// When you call `listen`, you receive a [StreamSubscription] object
 /// which is the active object providing the events,
 /// and which can be used to stop listening again,
@@ -114,7 +114,7 @@ typedef void _TimerCallback();
 /// Listening on a broadcast stream can be treated as listening on a new stream
 /// containing only the events that have not yet been emitted when the [listen]
 /// call occurs.
-/// For example, the [first] getter listens to the stream, then returns the first
+/// For example the [first] getter listens to the stream, then returns the first
 /// event that listener receives.
 /// This is not necessarily the first even emitted by the stream, but the first
 /// of the *remaining* events of the broadcast stream.
@@ -126,7 +126,7 @@ typedef void _TimerCallback();
 /// as possible.
 ///
 /// Stream subscriptions always respect "pause" requests. If necessary they need
-/// to buffer their input, but often, and preferably, they can simply request
+/// to buffer their input, but often, and preferably they can simply request
 /// their input to pause too.
 ///
 /// The default implementation of [isBroadcast] returns false.
@@ -346,7 +346,7 @@ abstract class Stream<T> {
   /// Creates a multi-subscription stream.
   ///
   /// Each time the created stream is listened to,
-  /// the [onListen] callback is invoked with a new [MultiStreamController]
+  /// the [onListen] callback is invoked with a new [MultiStreamController],
   /// which forwards events to the [StreamSubscription]
   /// returned by that [listen] call.
   ///
@@ -418,9 +418,9 @@ abstract class Stream<T> {
   /// this callback is an integer that starts with 0 and is incremented for
   /// every event.
   ///
-  /// The [period] must a non-negative [Duration].
+  /// The [period] must be a non-negative [Duration].
   ///
-  /// If [computation] is omitted the event values will all be `null`.
+  /// If [computation] is omitted, the event values will all be `null`.
   ///
   /// The [computation] must not be omitted if the event type [T] does not
   /// allow `null` as a value.
@@ -550,7 +550,7 @@ abstract class Stream<T> {
   /// using [StreamSubscription.asFuture].
   ///
   /// If [onCancel] is provided, it is called in a similar way to [onListen]
-  /// when the returned stream stops having listener. If it later gets
+  /// when the returned stream stops having listeners. If it later gets
   /// a new listener, the [onListen] function is called again.
   ///
   /// Use the callbacks, for example, for pausing the underlying subscription
@@ -834,8 +834,8 @@ abstract class Stream<T> {
   /// an error without a stack trace.
   ///
   /// An asynchronous error `error` is matched by a test function if
-  ///`test(error)` returns true. If [test] is omitted, every error is considered
-  /// matching.
+  /// `test(error)` returns true. If [test] is omitted, every error is
+  /// considered matching.
   ///
   /// If the error is intercepted, the [onError] function can decide what to do
   /// with it. It can throw if it wants to raise a new (or the same) error,
@@ -1612,9 +1612,9 @@ abstract class Stream<T> {
   /// Finds the first element of this stream matching [test].
   ///
   /// Returns a future that is completed with the first element of this stream
-  /// that [test] returns `true` for.
+  /// for which [test] returns `true`.
   ///
-  /// If no such element is found before this stream is done, and a
+  /// If no such element is found before this stream is done, and an
   /// [orElse] function is provided, the result of calling [orElse]
   /// becomes the value of the future. If [orElse] throws, the returned
   /// future is completed with that error.
@@ -1820,7 +1820,7 @@ abstract class Stream<T> {
   /// the returned stream.
   ///
   /// The countdown starts when the returned stream is listened to,
-  /// and is restarted when an event from the this stream is emitted,
+  /// and is restarted when an event from this stream is emitted,
   /// or when listening on the returned stream is paused and resumed.
   /// The countdown is stopped when listening on the returned stream is
   /// paused or cancelled.
@@ -2548,7 +2548,7 @@ class _ControllerEventSinkWrapper<T> implements EventSink<T> {
 /// As with any synchronous event delivery, the sender should be very careful
 /// to not deliver events at times when a new listener might not
 /// be ready to receive them.
-/// That generally means only delivering events synchronously in response to other
+/// That mostly means only delivering events synchronously in response to other
 /// asynchronous events, because that is a time when an asynchronous event could
 /// happen.
 @Since("2.9")
