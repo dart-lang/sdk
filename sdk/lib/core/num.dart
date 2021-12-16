@@ -10,8 +10,8 @@ part of dart.core;
 /// to attempt to extend or implement `num`.
 ///
 /// **See also:**
-/// * [int] an integer number.
-/// * [double] a double-precision floating point number.
+/// * [int]: An integer number.
+/// * [double]: A double-precision floating point number.
 /// * [Numbers](https://dart.dev/guides/language/numbers) in
 /// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
 
@@ -142,7 +142,15 @@ abstract class num implements Comparable<num> {
   /// The result is an [int], as described by [int.%],
   /// if both this number and [other] are integers,
   /// otherwise the result is a [double].
-  num operator %(num other);
+  ///
+  /// Example:
+  /// ```dart
+  /// print(5 % 3); // 2
+  /// print(-5 % 3); // 1
+  /// print(5 % -3); // 2
+  /// print(-5 % -3); // 1
+  /// ```
+ num operator %(num other);
 
   /// Divides this number by [other].
   double operator /(num other);
@@ -195,9 +203,10 @@ abstract class num implements Comparable<num> {
   ///
   /// Example:
   /// ```dart
-  /// print(3.remainder(1)); // 0
-  /// print(10.remainder(3)); // 1
-  /// print(5.remainder(3.0)); // 2.0
+  /// print(5.remainder(3)); // 2
+  /// print(-5.remainder(3)); // -2
+  /// print(5.remainder(-3)); // 2
+  /// print(-5.remainder(-3)); // -2
   /// ```
   num remainder(num other);
 
@@ -558,7 +567,7 @@ abstract class num implements Comparable<num> {
   /// value = num.parse('+.12e-9'); // 1.2e-10
   /// value = num.parse('-NaN'); // NaN
   /// value = num.parse('0xFF'); // 255
-  /// value = num.parse((2.0 / 0).toString()); // Infinity
+  /// value = num.parse(double.infinity.toString()); // Infinity
   /// value = num.parse('1f'); // Throws.
   /// ```
   static num parse(String input, [@deprecated num onError(String input)?]) {
@@ -585,7 +594,7 @@ abstract class num implements Comparable<num> {
   /// value = num.tryParse('+.12e-9'); // 1.2e-10
   /// value = num.tryParse('-NaN'); // NaN
   /// value = num.tryParse('0xFF'); // 255
-  /// value = num.tryParse((2.0 / 0).toString()); // Infinity
+  /// value = num.tryParse(double.infinity.toString()); // Infinity
   /// value = num.tryParse('1f'); // null
   /// ```
   static num? tryParse(String input) {
