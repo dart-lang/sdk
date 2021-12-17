@@ -26184,6 +26184,7 @@ UserTagPtr UserTag::New(const String& label, Heap::Space space) {
     result ^= raw;
   }
   result.set_label(label);
+  result.set_streamable(UserTags::IsTagNameStreamable(label.ToCString()));
   AddTagToIsolate(thread, result);
   return result.ptr();
 }
@@ -26205,10 +26206,13 @@ UserTagPtr UserTag::DefaultTag() {
   return result.ptr();
 }
 
-UserTagPtr UserTag::FindTagInIsolate(Thread* thread, const String& label) {
-  Isolate* isolate = thread->isolate();
+UserTagPtr UserTag::FindTagInIsolate(Isolate* isolate,
+                                     Thread* thread,
+                                     const String& label) {
   Zone* zone = thread->zone();
-  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  if (isolate->tag_table() == GrowableObjectArray::null()) {
+    return UserTag::null();
+  }
   const GrowableObjectArray& tag_table =
       GrowableObjectArray::Handle(zone, isolate->tag_table());
   UserTag& other = UserTag::Handle(zone);
@@ -26223,6 +26227,11 @@ UserTagPtr UserTag::FindTagInIsolate(Thread* thread, const String& label) {
     }
   }
   return UserTag::null();
+}
+
+UserTagPtr UserTag::FindTagInIsolate(Thread* thread, const String& label) {
+  Isolate* isolate = thread->isolate();
+  return FindTagInIsolate(isolate, thread, label);
 }
 
 void UserTag::AddTagToIsolate(Thread* thread, const UserTag& tag) {
