@@ -365,6 +365,8 @@ namespace dart {
   V(VMService_CancelStream, 1)                                                 \
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
+  V(VMService_AddUserTagsToStreamableSampleList, 1)                            \
+  V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_loadInt8, 2)                                                           \
   V(Ffi_loadInt16, 2)                                                          \
   V(Ffi_loadInt32, 2)                                                          \

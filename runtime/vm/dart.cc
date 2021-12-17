@@ -44,6 +44,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/tags.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
 #include "vm/timeline.h"
@@ -340,6 +341,7 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
 #endif
   IsolateGroup::Init();
   Isolate::InitVM();
+  UserTags::Init();
   PortMap::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
@@ -801,6 +803,7 @@ char* Dart::Cleanup() {
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
   PortMap::Cleanup();
+  UserTags::Cleanup();
   IsolateGroup::Cleanup();
   ICData::Cleanup();
   SubtypeTestCache::Cleanup();

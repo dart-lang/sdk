@@ -955,12 +955,12 @@ class ProfileBuilder : public ValueObject {
     if (!FilterSamples()) {
       return;
     }
-
     Setup();
     BuildCodeTable();
     FinalizeCodeIndexes();
     BuildFunctionTable();
     PopulateFunctionTicks();
+    SanitizeMinMaxTimes();
   }
 
  private:
@@ -1062,7 +1062,6 @@ class ProfileBuilder : public ValueObject {
       TickExitFrame(sample->vm_tag(), sample_index, sample);
       thread_->CheckForSafepoint();
     }
-    SanitizeMinMaxTimes();
   }
 
   void FinalizeCodeIndexes() {

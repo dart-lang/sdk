@@ -3283,10 +3283,14 @@ class UntaggedUserTag : public UntaggedInstance {
   // Isolate unique tag.
   uword tag_;
 
+  // Should CPU samples with this tag be streamed?
+  bool streamable_;
+
   friend class Object;
 
  public:
   uword tag() const { return tag_; }
+  bool streamable() const { return streamable_; }
 };
 
 class UntaggedFutureOr : public UntaggedInstance {

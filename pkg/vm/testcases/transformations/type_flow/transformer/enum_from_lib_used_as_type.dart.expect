@@ -22,6 +22,6 @@ class Class extends core::Object {
   synthetic constructor •() → self::Class
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3304,getterSelectorId:3305]  method method([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::Enum e) → core::int
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3380,getterSelectorId:3381]  method method([@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::Enum e) → core::int
     return [@vm.inferred-type.metadata=!] e.{core::_Enum::index}{core::int};
 }
