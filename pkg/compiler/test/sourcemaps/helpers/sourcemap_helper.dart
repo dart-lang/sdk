@@ -271,7 +271,7 @@ class RecordingSourceInformationStrategy
 /// Visitor that collects all nodes that are within a function. Used by the
 /// [RecordingSourceInformationStrategy] to filter what is recorded in a
 /// [RecordedSourceInformationProcess].
-class FindVisitor extends js.BaseVisitor {
+class FindVisitor extends js.BaseVisitorVoid {
   final js.Node soughtNode;
   bool found = false;
   bool add = false;
@@ -280,7 +280,7 @@ class FindVisitor extends js.BaseVisitor {
   FindVisitor(this.soughtNode);
 
   @override
-  visitNode(js.Node node) {
+  void visitNode(js.Node node) {
     if (node == soughtNode) {
       found = true;
       add = true;

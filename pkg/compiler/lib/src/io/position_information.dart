@@ -364,6 +364,9 @@ class NodeSourceInformation extends js.BaseVisitor<SourceInformation> {
       reader.getSourceInformation(node);
 
   @override
+  SourceInformation visitComment(js.Comment node) => null;
+
+  @override
   SourceInformation visitExpressionStatement(js.ExpressionStatement node) {
     SourceInformation sourceInformation = reader.getSourceInformation(node);
     if (sourceInformation != null) {
@@ -864,7 +867,7 @@ abstract class TraceListener {
 
 /// Visitor that computes the [js.Node]s the are part of the JavaScript
 /// steppable execution and thus needs source mapping locations.
-class JavaScriptTracer extends js.BaseVisitor {
+class JavaScriptTracer extends js.BaseVisitorVoid {
   final CodePositionMap codePositions;
   final SourceInformationReader reader;
   final List<TraceListener> listeners;

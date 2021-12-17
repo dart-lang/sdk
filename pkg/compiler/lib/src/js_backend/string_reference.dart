@@ -422,7 +422,7 @@ class _ReferenceSet {
 /// The state is kept in the finalizer so that this scan could be extended to
 /// look for other deferred expressions in one pass.
 // TODO(sra): Merge with TypeReferenceCollectorVisitor.
-class _StringReferenceCollectorVisitor extends js.BaseVisitor<void> {
+class _StringReferenceCollectorVisitor extends js.BaseVisitorVoid {
   final StringReferenceFinalizerImpl _finalizer;
 
   _StringReferenceCollectorVisitor(this._finalizer);

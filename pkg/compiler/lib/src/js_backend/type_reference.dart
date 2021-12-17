@@ -533,7 +533,7 @@ class _ReferenceSet {
 ///
 /// The state is kept in the finalizer so that this scan could be extended to
 /// look for other deferred expressions in one pass.
-class _TypeReferenceCollectorVisitor extends js.BaseVisitor<void> {
+class _TypeReferenceCollectorVisitor extends js.BaseVisitorVoid {
   final TypeReferenceFinalizerImpl _finalizer;
 
   _TypeReferenceCollectorVisitor(this._finalizer);
