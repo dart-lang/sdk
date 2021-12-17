@@ -29,6 +29,17 @@ abstract class Pattern {
   /// a that point.
   ///
   /// The [start] must be non-negative and no greater than `string.length`.
+  /// ```dart
+  /// final string = 'Dash is a bird';
+  ///
+  /// var regExp = RegExp(r'bird');
+  /// var match = regExp.matchAsPrefix(string, 10); // Match found.
+  /// print(match != null); // true
+  ///
+  /// regExp = RegExp(r'Cat');
+  /// match = regExp.matchAsPrefix(string); // null
+  /// print(match != null); // false
+  /// ```
   Match? matchAsPrefix(String string, [int start = 0]);
 }
 
