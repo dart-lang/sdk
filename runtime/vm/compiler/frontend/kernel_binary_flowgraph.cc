@@ -6,6 +6,7 @@
 
 #include "vm/closure_functions_cache.h"
 #include "vm/compiler/ffi/callback.h"
+#include "vm/compiler/ffi/recognized_method.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
@@ -1291,6 +1292,16 @@ Fragment StreamingFlowGraphBuilder::BuildStatement(TokenPosition* position) {
       UNREACHABLE();
   }
   return Fragment();
+}
+
+Fragment StreamingFlowGraphBuilder::BuildStatementWithBranchCoverage(
+    TokenPosition* position) {
+  TokenPosition pos = TokenPosition::kNoSource;
+  Fragment statement = BuildStatement(&pos);
+  if (position != nullptr) *position = pos;
+  Fragment covered_statement = flow_graph_builder_->RecordBranchCoverage(pos);
+  covered_statement += statement;
+  return covered_statement;
 }
 
 void StreamingFlowGraphBuilder::ReportUnexpectedTag(const char* variant,
@@ -3416,13 +3427,26 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
   }
 
   const auto recognized_kind = target.recognized_kind();
-  if (recognized_kind == MethodRecognizer::kNativeEffect) {
-    return BuildNativeEffect();
-  } else if (recognized_kind == MethodRecognizer::kFfiAsFunctionInternal) {
-    return BuildFfiAsFunctionInternal();
-  } else if (CompilerState::Current().is_aot() &&
-             recognized_kind == MethodRecognizer::kFfiNativeCallbackFunction) {
-    return BuildFfiNativeCallbackFunction();
+  switch (recognized_kind) {
+    case MethodRecognizer::kNativeEffect:
+      return BuildNativeEffect();
+    case MethodRecognizer::kFfiAsFunctionInternal:
+      return BuildFfiAsFunctionInternal();
+    case MethodRecognizer::kFfiNativeCallbackFunction:
+      if (CompilerState::Current().is_aot()) {
+        return BuildFfiNativeCallbackFunction();
+      }
+      break;
+    case MethodRecognizer::kFfiLoadAbiSpecificInt:
+      return BuildLoadAbiSpecificInt(/*at_index=*/false);
+    case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
+      return BuildLoadAbiSpecificInt(/*at_index=*/true);
+    case MethodRecognizer::kFfiStoreAbiSpecificInt:
+      return BuildStoreAbiSpecificInt(/*at_index=*/false);
+    case MethodRecognizer::kFfiStoreAbiSpecificIntAtIndex:
+      return BuildStoreAbiSpecificInt(/*at_index=*/true);
+    default:
+      break;
   }
 
   Fragment instructions;
@@ -4448,7 +4472,7 @@ Fragment StreamingFlowGraphBuilder::BuildWhileStatement(
   if (position != nullptr) *position = pos;
 
   TestFragment condition = TranslateConditionForControl();  // read condition.
-  const Fragment body = BuildStatement();                   // read body
+  const Fragment body = BuildStatementWithBranchCoverage();  // read body
 
   Fragment body_entry(condition.CreateTrueSuccessor(flow_graph_builder_));
   body_entry += body;
@@ -4478,7 +4502,7 @@ Fragment StreamingFlowGraphBuilder::BuildDoStatement(TokenPosition* position) {
   const TokenPosition pos = ReadPosition();  // read position.
   if (position != nullptr) *position = pos;
 
-  Fragment body = BuildStatement();  // read body.
+  Fragment body = BuildStatementWithBranchCoverage();  // read body.
 
   if (body.is_closed()) {
     SkipExpression();  // read condition.
@@ -4542,7 +4566,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement(TokenPosition* position) {
   }
 
   Fragment body(body_entry);
-  body += BuildStatement();  // read body.
+  body += BuildStatementWithBranchCoverage();  // read body.
 
   if (body.is_open()) {
     // We allocated a fresh context before the loop which contains captured
@@ -4625,7 +4649,7 @@ Fragment StreamingFlowGraphBuilder::BuildForInStatement(
   body += StoreLocal(TokenPosition::kNoSource,
                      LookupVariable(variable_kernel_position));
   body += Drop();
-  body += BuildStatement();  // read body.
+  body += BuildStatementWithBranchCoverage();  // read body.
   body += ExitScope(offset);
 
   if (body.is_open()) {
@@ -4685,7 +4709,7 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchStatement(
     bool is_default = ReadBool();  // read is_default.
     if (is_default) default_case = i;
     Fragment& body_fragment = body_fragments[i] =
-        BuildStatement();  // read body.
+        BuildStatementWithBranchCoverage();  // read body.
 
     if (body_fragment.entry == nullptr) {
       // Make a NOP in order to ensure linking works properly.
@@ -4871,11 +4895,11 @@ Fragment StreamingFlowGraphBuilder::BuildIfStatement(TokenPosition* position) {
   TestFragment condition = TranslateConditionForControl();
 
   Fragment then_fragment(condition.CreateTrueSuccessor(flow_graph_builder_));
-  then_fragment += BuildStatement();  // read then.
+  then_fragment += BuildStatementWithBranchCoverage();  // read then.
 
   Fragment otherwise_fragment(
       condition.CreateFalseSuccessor(flow_graph_builder_));
-  otherwise_fragment += BuildStatement();  // read otherwise.
+  otherwise_fragment += BuildStatementWithBranchCoverage();  // read otherwise.
 
   if (then_fragment.is_open()) {
     if (otherwise_fragment.is_open()) {
@@ -4953,7 +4977,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch(TokenPosition* position) {
   try_depth_inc();
   {
     TryCatchBlock block(flow_graph_builder_, try_handler_index);
-    try_body += BuildStatement(position);  // read body.
+    try_body += BuildStatementWithBranchCoverage(position);  // read body.
     try_body += Goto(after_try);
   }
   try_depth_dec();
@@ -5006,7 +5030,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch(TokenPosition* position) {
       CatchBlock block(flow_graph_builder_, CurrentException(),
                        CurrentStackTrace(), try_handler_index);
 
-      catch_handler_body += BuildStatement();  // read body.
+      catch_handler_body += BuildStatementWithBranchCoverage();  // read body.
 
       // Note: ExitScope adjusts context_depth_ so even if catch_handler_body
       // is closed we still need to execute ExitScope for its side effect.
@@ -5107,7 +5131,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
   {
     TryFinallyBlock tfb(flow_graph_builder_, finalizer_offset);
     TryCatchBlock tcb(flow_graph_builder_, try_handler_index);
-    try_body += BuildStatement(position);  // read body.
+    try_body += BuildStatementWithBranchCoverage(position);  // read body.
   }
   try_depth_dec();
 
@@ -5120,7 +5144,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
     try_body += Goto(finally_entry);
 
     Fragment finally_body(finally_entry);
-    finally_body += BuildStatement();  // read finalizer.
+    finally_body += BuildStatementWithBranchCoverage();  // read finalizer.
     finally_body += Goto(after_try);
   }
 
@@ -5133,7 +5157,7 @@ Fragment StreamingFlowGraphBuilder::BuildTryFinally(TokenPosition* position) {
                                           /* needs_stacktrace = */ false,
                                           /* is_synthesized = */ true);
   SetOffset(finalizer_offset);
-  finally_body += BuildStatement();  // read finalizer
+  finally_body += BuildStatementWithBranchCoverage();  // read finalizer
   if (finally_body.is_open()) {
     finally_body += LoadLocal(CurrentException());
     finally_body += LoadLocal(CurrentStackTrace());
@@ -5517,6 +5541,109 @@ Fragment StreamingFlowGraphBuilder::BuildNativeEffect() {
   return code;
 }
 
+static void ReportIfNotNull(const char* error) {
+  if (error != nullptr) {
+    const auto& language_error = Error::Handle(
+        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
+                           Report::kError, Heap::kOld));
+    Report::LongJump(language_error);
+  }
+}
+
+Fragment StreamingFlowGraphBuilder::BuildLoadAbiSpecificInt(bool at_index) {
+  const intptr_t argument_count = ReadUInt();     // Read argument count.
+  ASSERT(argument_count == 2);                    // TypedDataBase, offset/index
+  const intptr_t list_length = ReadListLength();  // Read types list length.
+  ASSERT(list_length == 1);                       // AbiSpecificInt.
+  // Read types.
+  const TypeArguments& type_arguments = T.BuildTypeArguments(list_length);
+  const AbstractType& type_argument =
+      AbstractType::Handle(type_arguments.TypeAt(0));
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  const auto* native_type =
+      compiler::ffi::NativeType::FromAbstractType(zone_, type_argument, &error);
+  ReportIfNotNull(error);
+
+  Fragment code;
+  // Read positional argument count.
+  const intptr_t positional_count = ReadListLength();
+  ASSERT(positional_count == 2);
+  code += BuildExpression();  // Argument 1: typedDataBase.
+  code += BuildExpression();  // Argument 2: offsetInBytes or index.
+  if (at_index) {
+    code += IntConstant(native_type->SizeInBytes());
+    code += B->BinaryIntegerOp(Token::kMUL, kTagged, /* truncate= */ true);
+  }
+
+  // Skip (empty) named arguments list.
+  const intptr_t named_args_len = ReadListLength();
+  ASSERT(named_args_len == 0);
+
+  // This call site is not guaranteed to be optimized. So, do a call to the
+  // correct force optimized function instead of compiling the body.
+  MethodRecognizer::Kind kind = compiler::ffi::FfiLoad(*native_type);
+  const char* function_name = MethodRecognizer::KindToFunctionNameCString(kind);
+  const Library& ffi_library = Library::Handle(Z, Library::FfiLibrary());
+  const Function& target = Function::ZoneHandle(
+      Z, ffi_library.LookupFunctionAllowPrivate(
+             String::Handle(Z, String::New(function_name))));
+  Array& argument_names = Array::ZoneHandle(Z);
+  code += StaticCall(TokenPosition::kNoSource, target, argument_count,
+                     argument_names, ICData::kStatic);
+
+  return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildStoreAbiSpecificInt(bool at_index) {
+  const intptr_t argument_count = ReadUInt();
+  ASSERT(argument_count == 3);
+  const intptr_t list_length = ReadListLength();
+  ASSERT(list_length == 1);
+  // Read types.
+  const TypeArguments& type_arguments = T.BuildTypeArguments(list_length);
+  const AbstractType& type_argument =
+      AbstractType::Handle(type_arguments.TypeAt(0));
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  const auto* native_type =
+      compiler::ffi::NativeType::FromAbstractType(zone_, type_argument, &error);
+  ReportIfNotNull(error);
+
+  Fragment code;
+  // Read positional argument count.
+  const intptr_t positional_count = ReadListLength();
+  ASSERT(positional_count == 3);
+  code += BuildExpression();  // Argument 1: typedDataBase.
+  code += BuildExpression();  // Argument 2: offsetInBytes or index.
+  if (at_index) {
+    code += IntConstant(native_type->SizeInBytes());
+    code += B->BinaryIntegerOp(Token::kMUL, kTagged, /* truncate= */ true);
+  }
+  code += BuildExpression();  // Argument 3: value
+
+  // Skip (empty) named arguments list.
+  const intptr_t named_args_len = ReadListLength();
+  ASSERT(named_args_len == 0);
+
+  // This call site is not guaranteed to be optimized. So, do a call to the
+  // correct force optimized function instead of compiling the body.
+  MethodRecognizer::Kind kind = compiler::ffi::FfiStore(*native_type);
+  const char* function_name = MethodRecognizer::KindToFunctionNameCString(kind);
+  const Library& ffi_library = Library::Handle(Z, Library::FfiLibrary());
+  const Function& target = Function::ZoneHandle(
+      Z, ffi_library.LookupFunctionAllowPrivate(
+             String::Handle(Z, String::New(function_name))));
+  ASSERT(!target.IsNull());
+  Array& argument_names = Array::ZoneHandle(Z);
+  code += StaticCall(TokenPosition::kNoSource, target, argument_count,
+                     argument_names, ICData::kStatic);
+
+  return code;
+}
+
 Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
   const intptr_t argc = ReadUInt();               // Read argument count.
   ASSERT(argc == 2);                              // Pointer, isLeaf.
@@ -5594,6 +5721,11 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   const intptr_t named_args_len =
       ReadListLength();  // Skip (empty) named arguments list.
   ASSERT(named_args_len == 0);
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_sig, &error);
+  ReportIfNotNull(error);
 
   const Function& result =
       Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(

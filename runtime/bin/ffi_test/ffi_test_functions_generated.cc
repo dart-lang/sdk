@@ -566,6 +566,10 @@ union Union16BytesNestedFloat {
   Struct16BytesHomogeneousFloat a2;
 };
 
+struct StructInlineArrayInt {
+  wchar_t a0[10];
+};
+
 // Used for testing structs and unions by value.
 // Smallest struct with data.
 // 10 struct arguments will exhaust available registers.
@@ -4892,6 +4896,46 @@ DART_EXPORT bool PassUint8Struct1ByteBool(uint8_t a0, Struct1ByteBool a1) {
   std::cout << "result = " << result << "\n";
 
   return result % 2 != 0;
+}
+
+// Used for testing structs and unions by value.
+// Returning a wchar.
+DART_EXPORT wchar_t PassWCharStructInlineArrayIntUintPtrx2LongUnsigned(
+    wchar_t a0,
+    StructInlineArrayInt a1,
+    uintptr_t a2,
+    uintptr_t a3,
+    /* NOLINT(runtime/int) */ long a4,
+    /* NOLINT(runtime/int) */ unsigned long a5) {
+  std::cout << "PassWCharStructInlineArrayIntUintPtrx2LongUnsigned"
+            << "(" << a0 << ", ([" << a1.a0[0] << ", " << a1.a0[1] << ", "
+            << a1.a0[2] << ", " << a1.a0[3] << ", " << a1.a0[4] << ", "
+            << a1.a0[5] << ", " << a1.a0[6] << ", " << a1.a0[7] << ", "
+            << a1.a0[8] << ", " << a1.a0[9] << "]), " << a2 << ", " << a3
+            << ", " << a4 << ", " << a5 << ")"
+            << "\n";
+
+  wchar_t result = 0;
+
+  result += a0;
+  result += a1.a0[0];
+  result += a1.a0[1];
+  result += a1.a0[2];
+  result += a1.a0[3];
+  result += a1.a0[4];
+  result += a1.a0[5];
+  result += a1.a0[6];
+  result += a1.a0[7];
+  result += a1.a0[8];
+  result += a1.a0[9];
+  result += a2;
+  result += a3;
+  result += a4;
+  result += a5;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
 }
 
 // Used for testing structs and unions by value.
@@ -12599,21 +12643,85 @@ DART_EXPORT intptr_t TestPassUint8Struct1ByteBool(
 
   std::cout << "result = " << result << "\n";
 
-  CHECK_APPROX(1, result);
+  CHECK_EQ(1, result);
 
   // Pass argument that will make the Dart callback throw.
   a0 = 42;
 
   result = f(a0, a1);
 
-  CHECK_APPROX(0.0, result);
+  CHECK_EQ(0, result);
 
   // Pass argument that will make the Dart callback return null.
   a0 = 84;
 
   result = f(a0, a1);
 
-  CHECK_APPROX(0.0, result);
+  CHECK_EQ(0, result);
+
+  return 0;
+}
+
+// Used for testing structs and unions by value.
+// Returning a wchar.
+DART_EXPORT intptr_t TestPassWCharStructInlineArrayIntUintPtrx2LongUnsigned(
+    // NOLINTNEXTLINE(whitespace/parens)
+    wchar_t (*f)(wchar_t a0,
+                 StructInlineArrayInt a1,
+                 uintptr_t a2,
+                 uintptr_t a3,
+                 /* NOLINT(runtime/int) */ long a4,
+                 /* NOLINT(runtime/int) */ unsigned long a5)) {
+  wchar_t a0;
+  StructInlineArrayInt a1 = {};
+  uintptr_t a2;
+  uintptr_t a3;
+  /* NOLINT(runtime/int) */ long a4;
+  /* NOLINT(runtime/int) */ unsigned long a5;
+
+  a0 = 1;
+  a1.a0[0] = 2;
+  a1.a0[1] = 3;
+  a1.a0[2] = 4;
+  a1.a0[3] = 5;
+  a1.a0[4] = 6;
+  a1.a0[5] = 7;
+  a1.a0[6] = 8;
+  a1.a0[7] = 9;
+  a1.a0[8] = 10;
+  a1.a0[9] = 11;
+  a2 = 12;
+  a3 = 13;
+  a4 = 14;
+  a5 = 15;
+
+  std::cout << "Calling TestPassWCharStructInlineArrayIntUintPtrx2LongUnsigned("
+            << "(" << a0 << ", ([" << a1.a0[0] << ", " << a1.a0[1] << ", "
+            << a1.a0[2] << ", " << a1.a0[3] << ", " << a1.a0[4] << ", "
+            << a1.a0[5] << ", " << a1.a0[6] << ", " << a1.a0[7] << ", "
+            << a1.a0[8] << ", " << a1.a0[9] << "]), " << a2 << ", " << a3
+            << ", " << a4 << ", " << a5 << ")"
+            << ")\n";
+
+  wchar_t result = f(a0, a1, a2, a3, a4, a5);
+
+  std::cout << "result = " << result << "\n";
+
+  CHECK_EQ(120, result);
+
+  // Pass argument that will make the Dart callback throw.
+  a0 = 42;
+
+  result = f(a0, a1, a2, a3, a4, a5);
+
+  CHECK_EQ(0, result);
+
+  // Pass argument that will make the Dart callback return null.
+  a0 = 84;
+
+  result = f(a0, a1, a2, a3, a4, a5);
+
+  CHECK_EQ(0, result);
 
   return 0;
 }

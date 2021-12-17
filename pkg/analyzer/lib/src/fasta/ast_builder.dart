@@ -1474,14 +1474,18 @@ class AstBuilder extends StackListener {
       // This is a temporary AST node that was constructed in
       // [endFunctionTypedFormalParameter]. We now deconstruct it and create
       // the final AST node.
-      if (thisKeyword == null && superKeyword == null) {
-        node = ast.functionTypedFormalParameter2(
+      if (superKeyword != null) {
+        assert(thisKeyword == null,
+            "Can't have both 'this' and 'super' in a parameter.");
+        node = ast.superFormalParameter(
             identifier: name!,
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
             requiredKeyword: requiredKeyword,
-            returnType: typeOrFunctionTypedParameter.returnType,
+            type: typeOrFunctionTypedParameter.returnType,
+            superKeyword: superKeyword,
+            period: periodAfterThisOrSuper!,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
             parameters: typeOrFunctionTypedParameter.parameters,
             question: typeOrFunctionTypedParameter.question);
@@ -1501,32 +1505,35 @@ class AstBuilder extends StackListener {
             parameters: typeOrFunctionTypedParameter.parameters,
             question: typeOrFunctionTypedParameter.question);
       } else {
-        assert(superKeyword != null && thisKeyword == null);
-        node = ast.superFormalParameter(
+        node = ast.functionTypedFormalParameter2(
             identifier: name!,
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
             requiredKeyword: requiredKeyword,
-            type: typeOrFunctionTypedParameter.returnType,
-            superKeyword: superKeyword!,
-            period: periodAfterThisOrSuper!,
+            returnType: typeOrFunctionTypedParameter.returnType,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
             parameters: typeOrFunctionTypedParameter.parameters,
             question: typeOrFunctionTypedParameter.question);
       }
     } else {
       var type = typeOrFunctionTypedParameter as TypeAnnotation?;
-      if (thisKeyword == null) {
-        node = ast.simpleFormalParameter2(
+      if (superKeyword != null) {
+        assert(thisKeyword == null,
+            "Can't have both 'this' and 'super' in a parameter.");
+        node = ast.superFormalParameter(
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
             requiredKeyword: requiredKeyword,
             keyword: keyword,
             type: type,
-            identifier: name);
-      } else {
+            superKeyword: superKeyword,
+            period: periodAfterThisOrSuper!,
+            identifier: name!);
+      } else if (thisKeyword != null) {
+        assert(superKeyword == null,
+            "Can't have both 'this' and 'super' in a parameter.");
         node = ast.fieldFormalParameter2(
             comment: comment,
             metadata: metadata,
@@ -1537,6 +1544,15 @@ class AstBuilder extends StackListener {
             thisKeyword: thisKeyword,
             period: thisKeyword.next!,
             identifier: name!);
+      } else {
+        node = ast.simpleFormalParameter2(
+            comment: comment,
+            metadata: metadata,
+            covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
+            keyword: keyword,
+            type: type,
+            identifier: name);
       }
     }
 

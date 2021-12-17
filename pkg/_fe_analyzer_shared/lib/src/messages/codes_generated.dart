@@ -3836,6 +3836,26 @@ const MessageCode messageFastaUsageShort = const MessageCode("FastaUsageShort",
   -h        Display this message (add -v for information about all options).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiAbiSpecificIntegerInvalid =
+    messageFfiAbiSpecificIntegerInvalid;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiAbiSpecificIntegerInvalid = const MessageCode(
+    "FfiAbiSpecificIntegerInvalid",
+    problemMessage:
+        r"""Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiAbiSpecificIntegerMappingInvalid =
+    messageFfiAbiSpecificIntegerMappingInvalid;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiAbiSpecificIntegerMappingInvalid = const MessageCode(
+    "FfiAbiSpecificIntegerMappingInvalid",
+    problemMessage:
+        r"""Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String string,

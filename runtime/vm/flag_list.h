@@ -193,6 +193,8 @@ constexpr bool FLAG_support_il_printer = false;
     "needed in the precompiled runtime.")                                      \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
+  P(target_unknown_cpu, bool, false,                                           \
+    "Generate code for a generic CPU, unknown at compile time")                \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \
   D(trace_ic, bool, false, "Trace IC handling")                                \

@@ -47,3 +47,9 @@ vmspecific_function_callbacks_exit_test: SkipByDesign
 
 [ $compiler == dart2analyzer || $compiler == fasta ]
 vmspecific_enable_ffi_test: SkipByDesign # This is a check for VM only.
+
+[ $compiler == dartkp || $arch == arm64 && $system == fuchsia ]
+abi_specific_int_incomplete_jit_test: SkipByDesign # Only intended to run in JIT mode.
+
+[ $compiler != dartkp || $arch == arm64 && $system == fuchsia ]
+abi_specific_int_incomplete_aot_test: SkipByDesign # Only intended to run in AOT mode.

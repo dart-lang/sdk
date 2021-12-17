@@ -4,6 +4,8 @@
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show
+        messageFfiAbiSpecificIntegerInvalid,
+        messageFfiAbiSpecificIntegerMappingInvalid,
         messageFfiPackedAnnotationAlignment,
         messageNonPositiveArrayDimensions,
         templateFfiEmptyStruct,
@@ -248,8 +250,36 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return true;
   }
 
+  bool _isUserAbiSpecificInteger(Class node) =>
+      hierarchy.isSubclassOf(node, abiSpecificIntegerClass) &&
+      node != abiSpecificIntegerClass;
+
   @override
   visitClass(Class node) {
+    if (_isUserAbiSpecificInteger(node)) {
+      final nativeTypeCfe = NativeTypeCfe(
+              this, node.getThisType(coreTypes, Nullability.nonNullable))
+          as AbiSpecificNativeTypeCfe;
+      if (nativeTypeCfe.abiSpecificTypes.length == 0) {
+        // Annotation missing, multiple annotations, or invalid mapping.
+        diagnosticReporter.report(messageFfiAbiSpecificIntegerMappingInvalid,
+            node.fileOffset, node.name.length, node.location!.file);
+      }
+      if (node.typeParameters.length != 0 ||
+          node.procedures.where((Procedure e) => !e.isSynthetic).length != 0 ||
+          node.fields.length != 0 ||
+          node.redirectingFactories.length != 0 ||
+          node.constructors.length != 1 ||
+          !node.constructors.single.isConst) {
+        // We want exactly one constructor, no other members and no type arguments.
+        diagnosticReporter.report(messageFfiAbiSpecificIntegerInvalid,
+            node.fileOffset, node.name.length, node.location!.file);
+      }
+      final IndexedClass? indexedClass =
+          currentLibraryIndex?.lookupIndexedClass(node.name);
+      _addSizeOfField(node, indexedClass, nativeTypeCfe.size);
+      _annotateAbiSpecificTypeWithMapping(node, nativeTypeCfe);
+    }
     if (!_isUserCompound(node)) {
       return node;
     }
@@ -594,8 +624,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final nativeTypeAnnos = _getNativeTypeAnnotations(m).toList();
         if (nativeTypeAnnos.length == 1) {
           final clazz = nativeTypeAnnos.first;
-          final nativeType = _getFieldType(clazz)!;
-          type = PrimitiveNativeTypeCfe(nativeType, clazz);
+          if (_isUserAbiSpecificInteger(clazz)) {
+            type = NativeTypeCfe(
+                this, clazz.getThisType(coreTypes, Nullability.nonNullable));
+          } else {
+            final nativeType = _getFieldType(clazz)!;
+            type = PrimitiveNativeTypeCfe(nativeType, clazz);
+          }
         }
       }
 
@@ -791,6 +826,33 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         InterfaceType(pragmaClass, Nullability.nonNullable, [])));
   }
 
+  static const vmFfiAbiSpecificIntMapping = 'vm:ffi:abi-specific-mapping';
+
+  void _annotateAbiSpecificTypeWithMapping(
+      Class node, AbiSpecificNativeTypeCfe nativeTypeCfe) {
+    final constants = [
+      for (final abi in Abi.values)
+        nativeTypeCfe.abiSpecificTypes[abi]?.generateConstant(this) ??
+            NullConstant()
+    ];
+    node.addAnnotation(ConstantExpression(
+        InstanceConstant(pragmaClass.reference, [], {
+          pragmaName.fieldReference: StringConstant(vmFfiAbiSpecificIntMapping),
+          pragmaOptions.fieldReference: InstanceConstant(
+            ffiAbiSpecificMappingClass.reference,
+            [],
+            {
+              ffiAbiSpecificMappingNativeTypesField.fieldReference:
+                  ListConstant(
+                InterfaceType(typeClass, Nullability.nullable),
+                constants,
+              ),
+            },
+          )
+        }),
+        InterfaceType(pragmaClass, Nullability.nonNullable, [])));
+  }
+
   void _generateMethodsForField(
       Class node,
       Field field,
@@ -890,7 +952,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         .map((expr) => expr.constant)
         .whereType<InstanceConstant>()
         .map((constant) => constant.classNode)
-        .where((klass) => _getFieldType(klass) != null);
+        .where((klass) =>
+            _getFieldType(klass) != null || _isUserAbiSpecificInteger(klass));
   }
 
   Iterable<List<int>> _getArraySizeAnnotations(Member node) {

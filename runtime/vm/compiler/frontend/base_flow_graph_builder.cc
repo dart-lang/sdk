@@ -881,6 +881,19 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
   return nsm;
 }
 
+Fragment BaseFlowGraphBuilder::ThrowException(TokenPosition position) {
+  Fragment instructions;
+  Value* exception = Pop();
+  instructions += Fragment(new (Z) ThrowInstr(InstructionSource(position),
+                                              GetNextDeoptId(), exception))
+                      .closed();
+  // Use its side effect of leaving a constant on the stack (does not change
+  // the graph).
+  NullConstant();
+
+  return instructions;
+}
+
 Fragment BaseFlowGraphBuilder::AssertBool(TokenPosition position) {
   Value* value = Pop();
   AssertBooleanInstr* instr = new (Z)
@@ -1000,14 +1013,23 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   ASSERT(signatures.IsInstantiated());
   ASSERT(signatures.Length() == 2);
 
-  const AbstractType& dart_type = AbstractType::Handle(signatures.TypeAt(0));
-  const AbstractType& native_type = AbstractType::Handle(signatures.TypeAt(1));
+  const auto& dart_type =
+      FunctionType::Cast(AbstractType::Handle(signatures.TypeAt(0)));
+  const auto& native_type =
+      FunctionType::Cast(AbstractType::Handle(signatures.TypeAt(1)));
 
-  ASSERT(dart_type.IsFunctionType() && native_type.IsFunctionType());
-  const Function& target =
-      Function::ZoneHandle(compiler::ffi::TrampolineFunction(
-          FunctionType::Cast(dart_type), FunctionType::Cast(native_type),
-          is_leaf));
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_type, &error);
+  if (error != nullptr) {
+    const auto& language_error = Error::Handle(
+        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
+                           Report::kError, Heap::kOld));
+    Report::LongJump(language_error);
+  }
+
+  const Function& target = Function::ZoneHandle(
+      compiler::ffi::TrampolineFunction(dart_type, native_type, is_leaf));
 
   Fragment code;
   // Store the pointer in the context, we cannot load the untagged address

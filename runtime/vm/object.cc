@@ -7567,15 +7567,20 @@ bool Function::FfiCSignatureReturnsStruct() const {
   if (IsFfiTypeClassId(type.type_class_id())) {
     return false;
   }
-  // TODO(http://dartbug.com/42563): Implement AbiSpecificInt.
-#ifdef DEBUG
   const auto& cls = Class::Handle(zone, type.type_class());
   const auto& superClass = Class::Handle(zone, cls.SuperClass());
+  const bool is_abi_specific_int =
+      String::Handle(zone, superClass.UserVisibleName())
+          .Equals(Symbols::AbiSpecificInteger());
+  if (is_abi_specific_int) {
+    return false;
+  }
+#ifdef DEBUG
   const bool is_struct = String::Handle(zone, superClass.UserVisibleName())
                              .Equals(Symbols::Struct());
   const bool is_union = String::Handle(zone, superClass.UserVisibleName())
                             .Equals(Symbols::Union());
-  RELEASE_ASSERT(is_struct || is_union);
+  ASSERT(is_struct || is_union);
 #endif
   return true;
 }

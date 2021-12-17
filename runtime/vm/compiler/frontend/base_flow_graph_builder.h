@@ -348,6 +348,7 @@ class BaseFlowGraphBuilder {
   Fragment TestAnyTypeArgs(Fragment present, Fragment absent);
 
   JoinEntryInstr* BuildThrowNoSuchMethod();
+  Fragment ThrowException(TokenPosition position);
 
   Fragment AssertBool(TokenPosition position);
   Fragment BooleanNegate();

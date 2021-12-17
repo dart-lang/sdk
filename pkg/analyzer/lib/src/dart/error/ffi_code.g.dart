@@ -18,6 +18,18 @@ class FfiCode extends AnalyzerErrorCode {
   /**
    * No parameters.
    */
+  static const FfiCode ABI_SPECIFIC_INTEGER_INVALID = FfiCode(
+    'ABI_SPECIFIC_INTEGER_INVALID',
+    "Classes extending 'AbiSpecificInteger' must have exactly one const "
+        "constructor, no other members, and no type arguments.",
+    correctionMessage:
+        "Try removing all type arguments, removing all members, and adding one "
+        "const constructor.",
+  );
+
+  /**
+   * No parameters.
+   */
   static const FfiCode ABI_SPECIFIC_INTEGER_MAPPING_EXTRA = FfiCode(
     'ABI_SPECIFIC_INTEGER_MAPPING_EXTRA',
     "Classes extending 'AbiSpecificInteger' must have exactly one "
@@ -451,9 +463,10 @@ class FfiCode extends AnalyzerErrorCode {
    */
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
-    "The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct' "
-        "or 'Union'.",
-    correctionMessage: "Try extending 'Struct' or 'Union' directly.",
+    "The class '{0}' can't extend '{1}' because '{1}' is a subtype of "
+        "'Struct', 'Union', or 'AbiSpecificInteger'.",
+    correctionMessage:
+        "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
   );
 
@@ -465,8 +478,9 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
     "The class '{0}' can't implement '{1}' because '{1}' is a subtype of "
-        "'Struct' or 'Union'.",
-    correctionMessage: "Try extending 'Struct' or 'Union' directly.",
+        "'Struct', 'Union', or 'AbiSpecificInteger'.",
+    correctionMessage:
+        "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
   );
 
@@ -477,9 +491,10 @@ class FfiCode extends AnalyzerErrorCode {
    */
   static const FfiCode SUBTYPE_OF_STRUCT_CLASS_IN_WITH = FfiCode(
     'SUBTYPE_OF_STRUCT_CLASS',
-    "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct' "
-        "or 'Union'.",
-    correctionMessage: "Try extending 'Struct' or 'Union' directly.",
+    "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of "
+        "'Struct', 'Union', or 'AbiSpecificInteger'.",
+    correctionMessage:
+        "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
     uniqueName: 'SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
   );
 
