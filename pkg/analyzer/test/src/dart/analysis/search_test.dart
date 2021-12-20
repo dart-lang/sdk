@@ -2400,14 +2400,6 @@ class NoMatchABCDEF {}
 }
 
 extension on List<Declaration> {
-  void assertNo(String name) {
-    for (var declaration in this) {
-      if (declaration.name == name) {
-        fail('Unexpected declaration $name');
-      }
-    }
-  }
-
   Declaration assertHas(String name, DeclarationKind kind,
       {int? offset,
       int? codeOffset,
@@ -2431,5 +2423,13 @@ extension on List<Declaration> {
             'className=${d.className}, mixinName=${d.mixinName})').join('\n');
     fail('Expected to find (name=$name, kind=$kind, offset=$offset, '
         'codeOffset=$codeOffset, codeLength=$codeLength) in\n$actual');
+  }
+
+  void assertNo(String name) {
+    for (var declaration in this) {
+      if (declaration.name == name) {
+        fail('Unexpected declaration $name');
+      }
+    }
   }
 }

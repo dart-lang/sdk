@@ -3425,10 +3425,6 @@ class _SourceMock implements Source {
 }
 
 extension on AnalysisDriver {
-  FileResult getFileSyncValid(String path) {
-    return getFileSync(path) as FileResult;
-  }
-
   Set<String> get loadedLibraryUriSet {
     var elementFactory = this.test.libraryContext!.elementFactory;
     var libraryReferences = elementFactory.rootReference.children;
@@ -3450,11 +3446,15 @@ extension on AnalysisDriver {
     }
   }
 
-  Future<ResolvedUnitResult> getResultValid(String path) async {
-    return await getResult(path) as ResolvedUnitResult;
+  FileResult getFileSyncValid(String path) {
+    return getFileSync(path) as FileResult;
   }
 
   Future<LibraryElementResult> getLibraryByUriValid(String uriStr) async {
     return await getLibraryByUri(uriStr) as LibraryElementResult;
+  }
+
+  Future<ResolvedUnitResult> getResultValid(String path) async {
+    return await getResult(path) as ResolvedUnitResult;
   }
 }
