@@ -66,7 +66,7 @@ class Point<T extends num> {
 
   /// Scale this point by [factor] as if it were a vector.
   ///
-  /// *Important* *Note*: This function accepts a `num` as its argument only so
+  /// **Important Note**: This function accepts a `num` as its argument only so
   /// that you can scale `Point<double>` objects by an `int` factor. Because the
   /// `*` operator always returns the same type of `Point` as it is called on,
   /// passing in a double [factor] on a `Point<int>` _causes_ _a_
@@ -74,8 +74,13 @@ class Point<T extends num> {
   ///
   /// Example:
   /// ```dart
+  /// // Integer values.
   /// var point = const Point(10, 100) * 10; // Point(100, 1000)
   /// point = const Point(-10, -100) * 5; // Point(-50, -500)
+  /// // Double values.
+  /// var doublePoint = Point(10.0, 100.0) * 1.5; // Point(15.0, 150.0)
+  /// // Runtime error due the invalid type cast.
+  /// var newPoint = const Point(10, 100) * 1.5; // Throws.
   /// ```
   Point<T> operator *(num /*T|int*/ factor) {
     return Point<T>((x * factor) as T, (y * factor) as T);
@@ -113,13 +118,13 @@ class Point<T extends num> {
   ///
   /// Example:
   /// ```dart
-  /// var squared =
+  /// var squaredDistance =
   ///     const Point(0, 0).squaredDistanceTo(const Point(0, 0)); // 0.0
-  /// squared =
+  /// squaredDistance =
   ///     const Point(0, 0).squaredDistanceTo(const Point(10, 0)); // 100
-  /// squared =
+  /// squaredDistance =
   ///     const Point(0, 0).squaredDistanceTo(const Point(0, -10)); // 100
-  /// squared =
+  /// squaredDistance =
   ///     const Point(-10, 0).squaredDistanceTo(const Point(100, 0)); // 12100
   /// ```
   T squaredDistanceTo(Point<T> other) {

@@ -165,7 +165,7 @@ external double atan2(num a, num b);
 ///
 /// - if `y` is zero (0.0 or -0.0), the result is always 1.0.
 /// - if `x` is 1.0, the result is always 1.0.
-/// - otherwise, if either `x` or `y` is NaN then the result is NaN.
+/// - otherwise, if either `x` or `y` is NaN, then the result is NaN.
 /// - if `x` is negative (but not -0.0) and `y` is a finite non-integer, the
 ///   result is NaN.
 /// - if `x` is Infinity and `y` is negative, the result is 0.0.
