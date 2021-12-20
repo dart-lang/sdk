@@ -1,3 +1,6 @@
+## 3.1.0-dev
+* New internal API for `package:dart_style`.
+
 ## 3.0.0
 * Removed deprecated `DartType.aliasElement/aliasArguments`.
 * Removed deprecated constructors from `FeatureSet`.
