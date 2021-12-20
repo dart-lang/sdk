@@ -329,7 +329,6 @@ grid-auto-rows
 grid-area
 grid-column
 grid-column-end
-grid-column-gap
 grid-column-start
 grid
 grid-template
@@ -337,7 +336,6 @@ grid-template-columns
 grid-template-rows
 grid-row
 grid-row-end
-grid-row-gap
 grid-row-start
 grid-template-areas
 -webkit-highlight
