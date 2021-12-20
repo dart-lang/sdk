@@ -20,6 +20,20 @@ abstract class Pattern {
   /// and then from the end of the previous match (but always
   /// at least one position later than the *start* of the previous
   /// match, in case the pattern matches an empty substring).
+  /// ```dart
+  /// RegExp exp = RegExp(r"(\w+)");
+  /// String str = "Dash is a bird";
+  /// Iterable<Match> matches = exp.allMatches(str, 8);
+  /// for (Match m in matches) {
+  ///   String match = m[0]!;
+  ///   print(match);
+  /// }
+  /// ```
+  /// The output of the example is:
+  /// ```
+  /// a
+  /// bird
+  /// ```
   Iterable<Match> allMatches(String string, [int start = 0]);
 
   /// Matches this pattern against the start of `string`.
