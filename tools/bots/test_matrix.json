@@ -547,14 +547,6 @@
         "use-sdk": true
       }
     },
-    "dart2js-canary-(linux|mac|win)-chrome": {
-      "options": {
-        "use-sdk": true,
-        "dart2js-options": [
-          "--canary"
-        ]
-      }
-    },
     "dart2js-(linux|mac|win)-chrome-unsound": {
       "options": {
         "use-sdk": true,
@@ -699,7 +691,17 @@
     "dart2js-canary-(linux|mac|win)-d8": {
       "options": {
         "builder-tag": "dart2js_canary",
-        "use-sdk": true,
+        "host-checked": true,
+        "timeout": 240,
+        "dart2js-options": [
+          "--canary"
+        ]
+      }
+    },
+    "dart2js-canary-(linux|mac|win)-chrome": {
+      "options": {
+        "host-checked": true,
+        "timeout": 240,
         "dart2js-options": [
           "--canary"
         ]
