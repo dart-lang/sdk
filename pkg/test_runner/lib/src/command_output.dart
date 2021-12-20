@@ -174,10 +174,12 @@ class BrowserTestJsonResult {
       var events = jsonDecode(content);
       if (events != null) {
         validate("Message must be a List", events is List);
+        // TODO(srawlins): This will promote `events` in null safety.
+        var eventList = events as List<dynamic>;
 
         var messagesByType = {for (var type in _allowedTypes) type: <String>[]};
 
-        for (var entry in events) {
+        for (var entry in eventList) {
           validate("Entry must be a Map", entry is Map);
 
           var type = entry['type'];
@@ -207,7 +209,7 @@ class BrowserTestJsonResult {
         }
 
         return BrowserTestJsonResult(
-            _getOutcome(messagesByType), dom, events as List<dynamic>);
+            _getOutcome(messagesByType), dom, eventList);
       }
     } catch (error) {
       // If something goes wrong, we know the content was not in the correct
