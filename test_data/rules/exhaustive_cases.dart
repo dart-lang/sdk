@@ -111,3 +111,52 @@ void ae(ActualEnum e) {
       print('e');
   }
 }
+
+// Some fields are deprecated.
+class DeprecatedFields {
+  final int i;
+  const DeprecatedFields._(this.i);
+
+  @deprecated
+  static const oldFoo = newFoo;
+  static const newFoo = DeprecatedFields._(1);
+  static const bar = DeprecatedFields._(2);
+  static const baz = DeprecatedFields._(3);
+}
+
+void dep(DeprecatedFields e) {
+  switch (e) {
+    // OK
+    case DeprecatedFields.newFoo:
+      print('newFoo');
+      break;
+    case DeprecatedFields.bar:
+      print('bar');
+      break;
+    case DeprecatedFields.baz:
+      print('baz');
+      break;
+  }
+
+  switch (e) { // LINT
+    case DeprecatedFields.newFoo:
+      print('newFoo');
+      break;
+    case DeprecatedFields.baz:
+      print('baz');
+      break;
+  }
+
+  switch (e) {
+    // OK
+    case DeprecatedFields.oldFoo:
+      print('oldFoo');
+      break;
+    case DeprecatedFields.bar:
+      print('bar');
+      break;
+    case DeprecatedFields.baz:
+      print('baz');
+      break;
+  }
+}

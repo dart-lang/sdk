@@ -115,17 +115,24 @@ class _Visitor extends SimpleAstVisitor {
         return;
       }
 
-      var enumConstantNames = enumDescription.enumConstantNames;
+      var enumConstants = enumDescription.enumConstants;
       for (var member in statement.members) {
         if (member is SwitchCase) {
           var expression = member.expression;
           if (expression is Identifier) {
             var element = expression.staticElement;
             if (element is PropertyAccessorElement) {
-              enumConstantNames.remove(element.name);
+              enumConstants.remove(element.variable.computeConstantValue());
+            } else if (element is VariableElement) {
+              enumConstants.remove(element.computeConstantValue());
             }
           } else if (expression is PropertyAccess) {
-            enumConstantNames.remove(expression.propertyName.name);
+            var element = expression.propertyName.staticElement;
+            if (element is PropertyAccessorElement) {
+              enumConstants.remove(element.variable.computeConstantValue());
+            } else if (element is VariableElement) {
+              enumConstants.remove(element.computeConstantValue());
+            }
           }
         }
         if (member is SwitchDefault) {
@@ -133,14 +140,18 @@ class _Visitor extends SimpleAstVisitor {
         }
       }
 
-      for (var constantName in enumConstantNames) {
-        // Use the same offset as MISSING_ENUM_CONSTANT_IN_SWITCH
+      for (var constant in enumConstants.keys) {
+        // Use the same offset as MISSING_ENUM_CONSTANT_IN_SWITCH.
         var offset = statement.offset;
         var end = statement.rightParenthesis.end;
+        var elements = enumConstants[constant]!;
+        var preferredElement = elements.firstWhere(
+            (element) => !element.hasDeprecated,
+            orElse: () => elements.first);
         rule.reportLintForOffset(
           offset,
           end - offset,
-          arguments: [constantName],
+          arguments: [preferredElement.name],
           errorCode: lintCode,
         );
       }
