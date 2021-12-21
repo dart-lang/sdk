@@ -291,6 +291,11 @@ abstract class Future<T> {
   ///
   /// If calling [computation] returns a non-future value,
   /// a future is returned which has been completed with that value.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await Future<int>.sync(() => 12);
+  /// ```
   factory Future.sync(FutureOr<T> computation()) {
     try {
       var result = computation();
@@ -328,6 +333,15 @@ abstract class Future<T> {
   /// must be provided, otherwise the construction throws.
   ///
   /// Use [Completer] to create a future now and complete it later.
+  ///
+  /// Example:
+  /// ```dart
+  /// Future<int> getFuture() async {
+  ///  return await Future<int>.value(2021);
+  /// }
+  ///
+  /// final result = await getFuture();
+  /// ```
   @pragma("vm:entry-point")
   @pragma("vm:prefer-inline")
   factory Future.value([FutureOr<T>? value]) {
@@ -342,6 +356,15 @@ abstract class Future<T> {
   /// will be considered unhandled.
   ///
   /// Use [Completer] to create a future and complete it later.
+  ///
+  /// Example:
+  /// ```dart
+  /// Future<int> getFuture() async {
+  ///  return Future.error(Exception('error')); // Throws.
+  /// }
+  ///
+  /// final error = await getFuture();
+  /// ```
   factory Future.error(Object error, [StackTrace? stackTrace]) {
     // TODO(40614): Remove once non-nullability is sound.
     checkNotNullable(error, "error");
@@ -770,6 +793,20 @@ abstract class Future<T> {
   /// added. If the first `catchError` (or `then`) call happens after this future
   /// has completed with an error then the error is reported as unhandled error.
   /// See the description on [Future].
+  ///
+  /// Example:
+  /// ```dart
+  /// Future.delayed(
+  ///   const Duration(seconds: 1),
+  ///   () => throw '401',
+  /// ).then((value) {
+  ///   print('do something with result');
+  /// }).catchError((err) {
+  ///   print('Error: $err');
+  /// }, test: (error) {
+  ///   return error as int >= 400;
+  /// });
+  /// ```
   // The `Function` below stands for one of two types:
   // - (dynamic) -> FutureOr<T>
   // - (dynamic, StackTrace) -> FutureOr<T>
