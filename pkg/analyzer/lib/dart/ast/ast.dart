@@ -814,6 +814,9 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   /// Return `true` if this class is declared to be an abstract class.
   bool get isAbstract;
 
+  /// Return the 'macro' keyword, or `null` if the keyword was absent.
+  Token? get macroKeyword;
+
   /// Return the native clause for this class, or `null` if the class does not
   /// have a native clause.
   NativeClause? get nativeClause;
@@ -900,6 +903,10 @@ abstract class ClassTypeAlias implements TypeAlias {
 
   /// Return `true` if this class is declared to be an abstract class.
   bool get isAbstract;
+
+  /// Return the token for the 'macro' keyword, or `null` if this is not
+  /// defining a macro class.
+  Token? get macroKeyword;
 
   @override
   SimpleIdentifier get name;

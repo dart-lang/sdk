@@ -161,6 +161,9 @@ class AstBuilder extends StackListener {
   /// `true` if enhanced enums are enabled
   final bool enableEnhancedEnums;
 
+  /// `true` if macros are enabled
+  final bool enableMacros;
+
   final FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter? errorReporter, this.fileUri, this.isFullAst,
@@ -183,6 +186,7 @@ class AstBuilder extends StackListener {
             _featureSet.isEnabled(Feature.named_arguments_anywhere),
         enableSuperParameters = _featureSet.isEnabled(Feature.super_parameters),
         enableEnhancedEnums = _featureSet.isEnabled(Feature.enhanced_enums),
+        enableMacros = _featureSet.isEnabled(Feature.macros),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -240,11 +244,25 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
+  void beginClassDeclaration(
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     assert(classDeclaration == null &&
         mixinDeclaration == null &&
         extensionDeclaration == null);
     push(_Modifiers()..abstractKeyword = abstractToken);
+    if (macroToken != null && !enableMacros) {
+      var feature = ExperimentalFeatures.macros;
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          macroToken,
+          macroToken);
+      // Pretend that 'macro' didn't occur while this feature is incomplete.
+      macroToken = null;
+    }
+    push(macroToken ?? NullValue.Token);
   }
 
   @override
@@ -375,8 +393,21 @@ class AstBuilder extends StackListener {
 
   @override
   void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token name) {
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     push(_Modifiers()..abstractKeyword = abstractToken);
+    if (macroToken != null && !enableMacros) {
+      var feature = ExperimentalFeatures.macros;
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          macroToken,
+          macroToken);
+      // Pretend that 'macro' didn't occur while this feature is incomplete.
+      macroToken = null;
+    }
+    push(macroToken ?? NullValue.Token);
   }
 
   @override
@@ -2045,6 +2076,7 @@ class AstBuilder extends StackListener {
     }
     var withClause = pop(NullValue.WithClause) as WithClause;
     var superclass = pop() as NamedType;
+    var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
@@ -2059,6 +2091,7 @@ class AstBuilder extends StackListener {
         typeParameters,
         equalsToken,
         abstractKeyword,
+        macroKeyword,
         superclass,
         withClause,
         implementsClause,
@@ -2643,6 +2676,7 @@ class AstBuilder extends StackListener {
     var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
     var withClause = pop(NullValue.WithClause) as WithClause?;
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
+    var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
@@ -2655,6 +2689,7 @@ class AstBuilder extends StackListener {
       comment,
       metadata,
       abstractKeyword,
+      macroKeyword,
       classKeyword,
       name,
       typeParameters,

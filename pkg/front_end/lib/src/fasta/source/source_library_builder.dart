@@ -327,6 +327,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Version? _enableNamedArgumentsAnywhereVersionInLibrary;
   Version? _enableSuperParametersVersionInLibrary;
   Version? _enableEnhancedEnumsVersionInLibrary;
+  Version? _enableMacrosVersionInLibrary;
   bool? _enableTripleShiftInLibrary;
   bool? _enableExtensionMethodsInLibrary;
   bool? _enableGenericMetadataInLibrary;
@@ -335,6 +336,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool? _enableConstructorTearOffsInLibrary;
   bool? _enableNamedArgumentsAnywhereInLibrary;
   bool? _enableSuperParametersInLibrary;
+  bool? _enableMacrosInLibrary;
 
   bool get enableConstFunctionsInLibrary => _enableConstFunctionsInLibrary ??=
       loader.target.isExperimentEnabledInLibraryByVersion(
@@ -443,6 +445,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       _enableEnhancedEnumsVersionInLibrary ??= loader.target
           .getExperimentEnabledVersionInLibrary(
               ExperimentalFlag.enhancedEnums, _packageUri ?? importUri);
+
+  bool get enableMacrosInLibrary => _enableMacrosInLibrary ??= loader.target
+      .isExperimentEnabledInLibraryByVersion(ExperimentalFlag.macros,
+          _packageUri ?? importUri, languageVersion.version);
+
+  Version get enableMacrosVersionInLibrary => _enableMacrosVersionInLibrary ??=
+      loader.target.getExperimentEnabledVersionInLibrary(
+          ExperimentalFlag.macros, _packageUri ?? importUri);
 
   void _updateLibraryNNBDSettings() {
     library.isNonNullableByDefault = isNonNullableByDefault;
