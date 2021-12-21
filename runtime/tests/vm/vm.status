@@ -40,7 +40,9 @@ dart_2/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers
 
 [ $arch == ia32 ]
 dart/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
+dart/print_object_layout_test: SkipByDesign # IA32 does not support AOT.
 dart_2/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
+dart_2/print_object_layout_test: SkipByDesign # IA32 does not support AOT.
 
 [ $builder_tag == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188

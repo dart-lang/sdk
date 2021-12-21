@@ -66,6 +66,15 @@ main() async {
     print('Skipping test on Android');
     return;
   }
+  // No AOT compilation on IA32.
+  if (Platform.executable.contains("IA32")) {
+    print('Skipping test on IA32');
+    return;
+  }
+  if (!File(genSnapshot).existsSync()) {
+    print("Skipping test because ${genSnapshot} doesn't exist");
+    return;
+  }
 
   final testScriptUri =
       Platform.script.resolve('print_object_layout_script.dart');
