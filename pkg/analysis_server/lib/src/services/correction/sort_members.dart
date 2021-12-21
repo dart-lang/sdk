@@ -94,15 +94,17 @@ class MemberSorter {
   void _sortClassesMembers() {
     for (var unitMember in unit.declarations) {
       if (unitMember is ClassOrMixinDeclaration) {
-        _sortClassMembers(unitMember);
+        _sortClassMembers(unitMember.members);
+      } else if (unitMember is ExtensionDeclaration) {
+        _sortClassMembers(unitMember.members);
       }
     }
   }
 
   /// Sorts all members of the given [classDeclaration].
-  void _sortClassMembers(ClassOrMixinDeclaration classDeclaration) {
+  void _sortClassMembers(List<ClassMember> membersToSort) {
     var members = <_MemberInfo>[];
-    for (var member in classDeclaration.members) {
+    for (var member in membersToSort) {
       _MemberKind kind;
       var isStatic = false;
       String name;

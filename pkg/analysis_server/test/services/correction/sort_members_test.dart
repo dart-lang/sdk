@@ -21,7 +21,7 @@ void main() {
 class SortMembersTest extends AbstractSingleUnitTest {
   LineInfo? lineInfo;
 
-  Future<void> test_classMembers_accessor() async {
+  Future<void> test_class_accessor() async {
     await _parseTestUnit(r'''
 class A {
   set c(x) {}
@@ -45,7 +45,7 @@ class A {
 ''');
   }
 
-  Future<void> test_classMembers_accessor_static() async {
+  Future<void> test_class_accessor_static() async {
     await _parseTestUnit(r'''
 class A {
   get a => null;
@@ -65,7 +65,7 @@ class A {
 ''');
   }
 
-  Future<void> test_classMembers_constructor() async {
+  Future<void> test_class_constructor() async {
     await _parseTestUnit(r'''
 class A {
   A.c() {   }
@@ -85,7 +85,7 @@ class A {
 ''');
   }
 
-  Future<void> test_classMembers_external_constructorMethod() async {
+  Future<void> test_class_external_constructorMethod() async {
     await _parseTestUnit(r'''
 class Chart {
   external Pie();
@@ -101,7 +101,7 @@ class Chart {
 ''');
   }
 
-  Future<void> test_classMembers_field() async {
+  Future<void> test_class_field() async {
     await _parseTestUnit(r'''
 class A {
   String c;
@@ -121,7 +121,7 @@ class A {
 ''');
   }
 
-  Future<void> test_classMembers_field_static() async {
+  Future<void> test_class_field_static() async {
     await _parseTestUnit(r'''
 class A {
   int b;
@@ -141,7 +141,7 @@ class A {
 ''');
   }
 
-  Future<void> test_classMembers_method() async {
+  Future<void> test_class_method() async {
     await _parseTestUnit(r'''
 class A {
   c() {}
@@ -159,7 +159,7 @@ class A {
 ''');
   }
 
-  Future<void> test_classMembers_method_emptyLine() async {
+  Future<void> test_class_method_emptyLine() async {
     await _parseTestUnit(r'''
 class A {
   b() {}
@@ -177,7 +177,7 @@ class A {
 ''');
   }
 
-  Future<void> test_classMembers_method_ignoreCase() async {
+  Future<void> test_class_method_ignoreCase() async {
     await _parseTestUnit(r'''
 class A {
   m_C() {}
@@ -195,7 +195,7 @@ class A {
 ''');
   }
 
-  Future<void> test_classMembers_method_static() async {
+  Future<void> test_class_method_static() async {
     await _parseTestUnit(r'''
 class A {
   static a() {}
@@ -211,7 +211,7 @@ class A {
 ''');
   }
 
-  Future<void> test_classMembers_mix() async {
+  Future<void> test_class_mix() async {
     await _parseTestUnit(r'''
 class A {
   /// static field public
@@ -311,7 +311,7 @@ class A {
 ''');
   }
 
-  Future<void> test_classMembers_trailingComments() async {
+  Future<void> test_class_trailingComments() async {
     await _parseTestUnit(r'''
 class A { // classA
   // instanceA
@@ -582,6 +582,398 @@ import 'b.dart'; // b
 // ccc1
 // ccc2
 import 'c.dart'; // c
+''');
+  }
+
+  Future<void> test_extension_accessor() async {
+    await _parseTestUnit(r'''
+extension E on int {
+  set c(x) {}
+  set a(x) {}
+  get a => null;
+  get b => null;
+  set b(x) {}
+  get c => null;
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension E on int {
+  get a => null;
+  set a(x) {}
+  get b => null;
+  set b(x) {}
+  get c => null;
+  set c(x) {}
+}
+''');
+  }
+
+  Future<void> test_extension_accessor_static() async {
+    await _parseTestUnit(r'''
+extension E on int {
+  get a => null;
+  set a(x) {}
+  static get b => null;
+  static set b(x) {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension E on int {
+  static get b => null;
+  static set b(x) {}
+  get a => null;
+  set a(x) {}
+}
+''');
+  }
+
+  Future<void> test_extension_field_static() async {
+    await _parseTestUnit(r'''
+extension E on int {
+  int b;
+  int a;
+  static int d;
+  static int c;
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension E on int {
+  static int d;
+  static int c;
+  int b;
+  int a;
+}
+''');
+  }
+
+  Future<void> test_extension_method() async {
+    await _parseTestUnit(r'''
+extension E on int {
+  c() {}
+  a() {}
+  b() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension E on int {
+  a() {}
+  b() {}
+  c() {}
+}
+''');
+  }
+
+  Future<void> test_extension_method_emptyLine() async {
+    await _parseTestUnit(r'''
+extension E on int {
+  b() {}
+
+  a() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension E on int {
+  a() {}
+
+  b() {}
+}
+''');
+  }
+
+  Future<void> test_extension_method_ignoreCase() async {
+    await _parseTestUnit(r'''
+extension E on int {
+  m_C() {}
+  m_a() {}
+  m_B() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension E on int {
+  m_a() {}
+  m_B() {}
+  m_C() {}
+}
+''');
+  }
+
+  Future<void> test_extension_method_static() async {
+    await _parseTestUnit(r'''
+extension E on int {
+  static a() {}
+  b() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+extension E on int {
+  b() {}
+  static a() {}
+}
+''');
+  }
+
+  Future<void> test_mixin_accessor() async {
+    await _parseTestUnit(r'''
+mixin M {
+  set c(x) {}
+  set a(x) {}
+  get a => null;
+  get b => null;
+  set b(x) {}
+  get c => null;
+}
+''');
+    // validate change
+    _assertSort(r'''
+mixin M {
+  get a => null;
+  set a(x) {}
+  get b => null;
+  set b(x) {}
+  get c => null;
+  set c(x) {}
+}
+''');
+  }
+
+  Future<void> test_mixin_accessor_static() async {
+    await _parseTestUnit(r'''
+mixin M {
+  get a => null;
+  set a(x) {}
+  static get b => null;
+  static set b(x) {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+mixin M {
+  static get b => null;
+  static set b(x) {}
+  get a => null;
+  set a(x) {}
+}
+''');
+  }
+
+  Future<void> test_mixin_field() async {
+    await _parseTestUnit(r'''
+mixin M {
+  String c;
+  int a;
+  void toString() => null;
+  double b;
+}
+''');
+    // validate change
+    _assertSort(r'''
+mixin M {
+  String c;
+  int a;
+  double b;
+  void toString() => null;
+}
+''');
+  }
+
+  Future<void> test_mixin_field_static() async {
+    await _parseTestUnit(r'''
+mixin M {
+  int b;
+  int a;
+  static int d;
+  static int c;
+}
+''');
+    // validate change
+    _assertSort(r'''
+mixin M {
+  static int d;
+  static int c;
+  int b;
+  int a;
+}
+''');
+  }
+
+  Future<void> test_mixin_method() async {
+    await _parseTestUnit(r'''
+mixin M {
+  c() {}
+  a() {}
+  b() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+mixin M {
+  a() {}
+  b() {}
+  c() {}
+}
+''');
+  }
+
+  Future<void> test_mixin_method_emptyLine() async {
+    await _parseTestUnit(r'''
+mixin M {
+  b() {}
+
+  a() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+mixin M {
+  a() {}
+
+  b() {}
+}
+''');
+  }
+
+  Future<void> test_mixin_method_ignoreCase() async {
+    await _parseTestUnit(r'''
+mixin M {
+  m_C() {}
+  m_a() {}
+  m_B() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+mixin M {
+  m_a() {}
+  m_B() {}
+  m_C() {}
+}
+''');
+  }
+
+  Future<void> test_mixin_method_static() async {
+    await _parseTestUnit(r'''
+mixin M {
+  static a() {}
+  b() {}
+}
+''');
+    // validate change
+    _assertSort(r'''
+mixin M {
+  b() {}
+  static a() {}
+}
+''');
+  }
+
+  Future<void> test_mixin_mix() async {
+    await _parseTestUnit(r'''
+mixin M {
+  /// static field public
+  static int nnn;
+  /// static field private
+  static int _nnn;
+  /// instance getter public
+  int get nnn => null;
+  /// instance setter public
+  set nnn(x) {}
+  /// instance getter private
+  int get _nnn => null;
+  /// instance setter private
+  set _nnn(x) {}
+  /// instance method public
+  nnn() {}
+  /// instance method private
+  _nnn() {}
+  /// static method public
+  static nnn() {}
+  /// static method private
+  static _nnn() {}
+  /// static getter public
+  static int get nnn => null;
+  /// static setter public
+  static set nnn(x) {}
+  /// static getter private
+  static int get _nnn => null;
+  /// static setter private
+  static set _nnn(x) {}
+  /// instance field public
+  int nnn;
+  /// instance field private
+  int _nnn;
+}
+''');
+    // validate change
+    _assertSort(r'''
+mixin M {
+  /// static field public
+  static int nnn;
+  /// static field private
+  static int _nnn;
+  /// static getter public
+  static int get nnn => null;
+  /// static setter public
+  static set nnn(x) {}
+  /// static getter private
+  static int get _nnn => null;
+  /// static setter private
+  static set _nnn(x) {}
+  /// instance field public
+  int nnn;
+  /// instance field private
+  int _nnn;
+  /// instance getter public
+  int get nnn => null;
+  /// instance setter public
+  set nnn(x) {}
+  /// instance getter private
+  int get _nnn => null;
+  /// instance setter private
+  set _nnn(x) {}
+  /// instance method public
+  nnn() {}
+  /// instance method private
+  _nnn() {}
+  /// static method public
+  static nnn() {}
+  /// static method private
+  static _nnn() {}
+}
+''');
+  }
+
+  Future<void> test_mixin_trailingComments() async {
+    await _parseTestUnit(r'''
+mixin M { // mixinM
+  // instanceA
+  int instanceA; // instanceA
+  // foo()
+  void foo() {} // foo()
+  // staticA
+  static int staticA; // staticA
+  // static_b
+  static int static_b; // static_b
+}
+''');
+    // validate change
+    _assertSort(r'''
+mixin M { // mixinM
+  // staticA
+  static int staticA; // staticA
+  // static_b
+  static int static_b; // static_b
+  // instanceA
+  int instanceA; // instanceA
+  // foo()
+  void foo() {} // foo()
+}
 ''');
   }
 
