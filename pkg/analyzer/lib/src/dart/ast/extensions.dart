@@ -118,12 +118,12 @@ extension FormalParameterExtension on FormalParameter {
 
 /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
 extension IdentifierExtension on Identifier {
-  Element? get writeElement {
-    return _writeElement(this);
-  }
-
   Element? get readElement {
     return _readElement(this);
+  }
+
+  Element? get writeElement {
+    return _writeElement(this);
   }
 
   Element? get writeOrReadElement {

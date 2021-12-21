@@ -7125,14 +7125,6 @@ abstract class CssStyleDeclarationBase {
     setProperty('grid-column-end', value, '');
   }
 
-  /** Gets the value of "grid-column-gap" */
-  String get gridColumnGap => getPropertyValue('grid-column-gap');
-
-  /** Sets the value of "grid-column-gap" */
-  set gridColumnGap(String value) {
-    setProperty('grid-column-gap', value, '');
-  }
-
   /** Gets the value of "grid-column-start" */
   String get gridColumnStart => getPropertyValue('grid-column-start');
 
@@ -7155,14 +7147,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "grid-row-end" */
   set gridRowEnd(String value) {
     setProperty('grid-row-end', value, '');
-  }
-
-  /** Gets the value of "grid-row-gap" */
-  String get gridRowGap => getPropertyValue('grid-row-gap');
-
-  /** Sets the value of "grid-row-gap" */
-  set gridRowGap(String value) {
-    setProperty('grid-row-gap', value, '');
   }
 
   /** Gets the value of "grid-row-start" */

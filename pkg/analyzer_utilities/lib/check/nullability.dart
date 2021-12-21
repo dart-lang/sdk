@@ -5,17 +5,17 @@
 import 'package:analyzer_utilities/check/check.dart';
 
 extension NullabilityExtension<T> on CheckTarget<T?> {
-  void get isNull {
-    if (value != null) {
-      fail('is not null');
-    }
-  }
-
   CheckTarget<T> get isNotNull {
     final value = this.value;
     if (value == null) {
       fail('is null');
     }
     return nest(value, (value) => 'is not null');
+  }
+
+  void get isNull {
+    if (value != null) {
+      fail('is not null');
+    }
   }
 }

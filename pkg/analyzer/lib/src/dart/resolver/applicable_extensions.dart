@@ -105,6 +105,17 @@ class _NotInstantiatedExtensionWithoutMember
 }
 
 extension ExtensionsExtensions on Iterable<ExtensionElement> {
+  /// Extensions that can be applied, within [targetLibrary], to [targetType].
+  List<InstantiatedExtensionWithoutMember> applicableTo({
+    required LibraryElement targetLibrary,
+    required DartType targetType,
+  }) {
+    return map((e) => _NotInstantiatedExtensionWithoutMember(e)).applicableTo(
+      targetLibrary: targetLibrary,
+      targetType: targetType,
+    );
+  }
+
   List<_NotInstantiatedExtensionWithMember> hasMemberWithBaseName(
     String baseName,
   ) {
@@ -156,17 +167,6 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
       }
     }
     return result;
-  }
-
-  /// Extensions that can be applied, within [targetLibrary], to [targetType].
-  List<InstantiatedExtensionWithoutMember> applicableTo({
-    required LibraryElement targetLibrary,
-    required DartType targetType,
-  }) {
-    return map((e) => _NotInstantiatedExtensionWithoutMember(e)).applicableTo(
-      targetLibrary: targetLibrary,
-      targetType: targetType,
-    );
   }
 }
 

@@ -253,6 +253,52 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitComment(Comment node) {
+    for (var commentReference in node.references) {
+      commentReference.accept(this);
+    }
+
+    var inToolAnnotation = false;
+    for (var token in node.tokens) {
+      if (token.isEof) {
+        break;
+      }
+      var strValue = token.toString();
+      if (strValue.isEmpty) {
+        continue;
+      }
+
+      if (inToolAnnotation) {
+        if (strValue.contains('{@end-tool}')) {
+          inToolAnnotation = false;
+        } else if (strValue.contains('** See code in ')) {
+          var startIndex = strValue.indexOf('** See code in ') + 15;
+          var endIndex = strValue.indexOf('.dart') + 5;
+          var pathSnippet = strValue.substring(startIndex, endIndex);
+          var parentPath =
+              _computeParentWithExamplesAPI(node, resourceProvider);
+          if (parentPath != null) {
+            computer.collector.addRegion(
+                token.offset + startIndex,
+                token.offset + endIndex,
+                protocol.ElementKind.LIBRARY,
+                protocol.Location(
+                    resourceProvider.pathContext.join(parentPath, pathSnippet),
+                    0,
+                    0,
+                    0,
+                    0,
+                    endLine: 0,
+                    endColumn: 0));
+          }
+        }
+      } else if (strValue.contains('{@tool ')) {
+        inToolAnnotation = true;
+      }
+    }
+  }
+
+  @override
   void visitCompilationUnit(CompilationUnit unit) {
     // prepare top-level nodes sorted by their offsets
     var nodes = <AstNode>[];
@@ -475,5 +521,32 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
         computer._addRegionForNode(node.uri, element);
       }
     }
+  }
+
+  /// Given some [Comment], compute and return the parent directory absolute
+  /// path which contains the directories 'examples/api/'. Null is returned if
+  /// such directories are not found.
+  String? _computeParentWithExamplesAPI(
+      Comment node, ResourceProvider resourceProvider) {
+    var source =
+        node.thisOrAncestorOfType<CompilationUnit>()?.declaredElement?.source;
+    if (source == null) {
+      return null;
+    }
+
+    var file = resourceProvider.getFile(source.fullName);
+    if (!file.exists) {
+      return null;
+    }
+    var parent = file.parent2;
+    while (parent != parent.parent2) {
+      var examplesFolder = parent.getChildAssumingFolder('examples');
+      if (examplesFolder.exists &&
+          examplesFolder.getChildAssumingFolder('api').exists) {
+        return parent.path;
+      }
+      parent = parent.parent2;
+    }
+    return null;
   }
 }

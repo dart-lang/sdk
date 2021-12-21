@@ -71,33 +71,30 @@ class AnalysisDriver_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
 
     // Reference "inner" using a non-canonical URI.
     {
-      var path = convertPath('$outerLibPath/a.dart');
-      newFile(path, content: r'''
+      var a = newFile(convertPath('$outerLibPath/a.dart'), content: r'''
 import 'inner/lib/b.dart';
 ''');
-      var result = await analysisSession.getResolvedUnit(path);
+      var result = await analysisSession.getResolvedUnit(a.path);
       result as ResolvedUnitResult;
       assertInnerUri(result);
     }
 
     // Reference "inner" using the canonical URI, via relative.
     {
-      var path = '$outerLibPath/inner/lib/c.dart';
-      newFile(path, content: r'''
+      var c = newFile('$outerLibPath/inner/lib/c.dart', content: r'''
 import 'b.dart';
 ''');
-      var result = await analysisSession.getResolvedUnit(path);
+      var result = await analysisSession.getResolvedUnit(c.path);
       result as ResolvedUnitResult;
       assertInnerUri(result);
     }
 
     // Reference "inner" using the canonical URI, via absolute.
     {
-      var path = '$outerLibPath/inner/lib/d.dart';
-      newFile(path, content: '''
+      var d = newFile('$outerLibPath/inner/lib/d.dart', content: '''
 import '$innerUri';
 ''');
-      var result = await analysisSession.getResolvedUnit(path);
+      var result = await analysisSession.getResolvedUnit(d.path);
       result as ResolvedUnitResult;
       assertInnerUri(result);
     }
@@ -3428,10 +3425,6 @@ class _SourceMock implements Source {
 }
 
 extension on AnalysisDriver {
-  FileResult getFileSyncValid(String path) {
-    return getFileSync(path) as FileResult;
-  }
-
   Set<String> get loadedLibraryUriSet {
     var elementFactory = this.test.libraryContext!.elementFactory;
     var libraryReferences = elementFactory.rootReference.children;
@@ -3453,11 +3446,15 @@ extension on AnalysisDriver {
     }
   }
 
-  Future<ResolvedUnitResult> getResultValid(String path) async {
-    return await getResult(path) as ResolvedUnitResult;
+  FileResult getFileSyncValid(String path) {
+    return getFileSync(path) as FileResult;
   }
 
   Future<LibraryElementResult> getLibraryByUriValid(String uriStr) async {
     return await getLibraryByUri(uriStr) as LibraryElementResult;
+  }
+
+  Future<ResolvedUnitResult> getResultValid(String path) async {
+    return await getResult(path) as ResolvedUnitResult;
   }
 }

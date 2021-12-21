@@ -641,28 +641,28 @@ class B {}
 }
 
 extension on AnalysisSession {
-  Future<UnitElementResult> getUnitElementValid(String path) async {
-    return await getUnitElement(path) as UnitElementResult;
-  }
-
-  ParsedLibraryResult getParsedLibraryValid(String path) {
-    return getParsedLibrary(path) as ParsedLibraryResult;
+  Future<ErrorsResult> getErrorsValid(String path) async {
+    return await getErrors(path) as ErrorsResult;
   }
 
   FileResult getFileValid(String path) {
     return getFile(path) as FileResult;
   }
 
-  ParsedUnitResult getParsedUnitValid(String path) {
-    return getParsedUnit(path) as ParsedUnitResult;
-  }
-
-  Future<ResolvedLibraryResult> getResolvedLibraryValid(String path) async {
-    return await getResolvedLibrary(path) as ResolvedLibraryResult;
-  }
-
   Future<LibraryElementResult> getLibraryByUriValid(String path) async {
     return await getLibraryByUri(path) as LibraryElementResult;
+  }
+
+  ParsedLibraryResult getParsedLibraryByElementValid(LibraryElement element) {
+    return getParsedLibraryByElement(element) as ParsedLibraryResult;
+  }
+
+  ParsedLibraryResult getParsedLibraryValid(String path) {
+    return getParsedLibrary(path) as ParsedLibraryResult;
+  }
+
+  ParsedUnitResult getParsedUnitValid(String path) {
+    return getParsedUnit(path) as ParsedUnitResult;
   }
 
   Future<ResolvedLibraryResult> getResolvedLibraryByElementValid(
@@ -670,11 +670,11 @@ extension on AnalysisSession {
     return await getResolvedLibraryByElement(element) as ResolvedLibraryResult;
   }
 
-  ParsedLibraryResult getParsedLibraryByElementValid(LibraryElement element) {
-    return getParsedLibraryByElement(element) as ParsedLibraryResult;
+  Future<ResolvedLibraryResult> getResolvedLibraryValid(String path) async {
+    return await getResolvedLibrary(path) as ResolvedLibraryResult;
   }
 
-  Future<ErrorsResult> getErrorsValid(String path) async {
-    return await getErrors(path) as ErrorsResult;
+  Future<UnitElementResult> getUnitElementValid(String path) async {
+    return await getUnitElement(path) as UnitElementResult;
   }
 }
