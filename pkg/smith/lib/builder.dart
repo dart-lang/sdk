@@ -73,11 +73,12 @@ class Step {
         throw FormatException("Step tests multiple configurations: $arguments");
       }
     }
+    var environment = map["environment"] as Map<Object?, Object?>?;
     return Step(
         map["name"] as String,
         script,
         arguments,
-        <String, String>{...?map["environment"]},
+        {...?environment?.cast<String, String>()},
         map["fileset"] as String?,
         map["shards"] as int?,
         isTestRunner,
@@ -192,14 +193,17 @@ List<Builder> parseBuilders(
   var names = <String>{};
   for (var builderConfiguration in builderConfigurations) {
     var meta = builderConfiguration["meta"] as Map? ?? <String, String>{};
-    var builderNames = <String>[...?builderConfiguration["builders"]];
-    var steps = <Map>[...?builderConfiguration["steps"]];
-    for (var builderName in builderNames) {
-      if (!names.add(builderName)) {
-        throw FormatException('Duplicate builder name: "$builderName"');
+    var builderNames = builderConfiguration["builders"] as List<Object?>?;
+    if (builderNames != null) {
+      var steps = ((builderConfiguration["steps"] ?? []) as List<Object?>)
+          .cast<Map<Object?, Object?>>();
+      for (var builderName in builderNames.cast<String>()) {
+        if (!names.add(builderName)) {
+          throw FormatException('Duplicate builder name: "$builderName"');
+        }
+        builders.add(Builder.parse(builderName, steps, configurations,
+            meta["description"] as String?));
       }
-      builders.add(Builder.parse(
-          builderName, steps, configurations, meta["description"] as String?));
     }
   }
   return builders;
