@@ -518,8 +518,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
         var resolvedUnit = await server.getResolvedUnit(file);
         if (resolvedUnit == null) {
-          server
-              .sendResponse(Response.fileNotAnalyzed(request, 'params.offset'));
+          server.sendResponse(Response.fileNotAnalyzed(request, file));
           return;
         }
 
