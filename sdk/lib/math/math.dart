@@ -13,7 +13,7 @@
 /// [Random] is a generator of bool, int or double values.
 /// ```dart
 /// var intValue = Random().nextInt(10); // Value between 0 - 9.
-/// var doubleValue = Random().nextDouble(); // Value between 0.0 - 1.0.
+/// var doubleValue = Random().nextDouble(); // Value is >= 0.0 and < 1.0
 /// var boolValue = Random().nextBool(); // Value is true or false.
 /// ```
 ///
@@ -48,6 +48,7 @@
 /// print(rectangle.right); // 320
 /// print(rectangle.bottom); // 650
 /// ```
+/// 
 /// ## MutableRectangle
 /// [MutableRectangle] is a class for representing two-dimensional axis-aligned
 /// rectangles with mutable properties.
