@@ -557,6 +557,15 @@ class ProcessedOptions {
       return _packages = await createPackagesFromFile(_raw.packagesFileUri!);
     }
 
+    if (inputs.isEmpty) {
+      return _packages = PackageConfig.empty;
+    }
+
+    // When compiling the SDK the input files are normally `dart:` URIs.
+    if (inputs.every((uri) => uri.scheme == 'dart')) {
+      return _packages = PackageConfig.empty;
+    }
+
     if (inputs.length > 1) {
       // TODO(sigmund): consider not reporting an error if we would infer
       // the same .packages file from all of the inputs.
@@ -564,14 +573,8 @@ class ProcessedOptions {
           messageCantInferPackagesFromManyInputs, Severity.error);
       return _packages = PackageConfig.empty;
     }
-    if (inputs.isEmpty) {
-      return _packages = PackageConfig.empty;
-    }
 
     Uri input = inputs.first;
-
-    // When compiling the SDK the input files are normally `dart:` URIs.
-    if (input.scheme == 'dart') return _packages = PackageConfig.empty;
 
     if (input.scheme == 'packages') {
       report(
@@ -581,7 +584,7 @@ class ProcessedOptions {
       return _packages = PackageConfig.empty;
     }
 
-    return _packages = await _findPackages(inputs.first);
+    return _packages = await _findPackages(input);
   }
 
   Future<Uint8List?> _readFile(Uri uri, bool reportError) async {
