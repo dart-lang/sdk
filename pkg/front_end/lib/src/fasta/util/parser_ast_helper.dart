@@ -165,9 +165,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
+  void beginClassDeclaration(
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     ClassDeclarationBegin data = new ClassDeclarationBegin(ParserAstType.BEGIN,
-        begin: begin, abstractToken: abstractToken, name: name);
+        begin: begin,
+        abstractToken: abstractToken,
+        macroToken: macroToken,
+        name: name);
     seen(data);
   }
 
@@ -917,11 +921,12 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token name) {
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     NamedMixinApplicationBegin data = new NamedMixinApplicationBegin(
         ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
+        macroToken: macroToken,
         name: name);
     seen(data);
   }
@@ -2825,16 +2830,21 @@ class ClassOrMixinOrNamedMixinApplicationPreludeBegin extends ParserAstNode {
 class ClassDeclarationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
+  final Token? macroToken;
   final Token name;
 
   ClassDeclarationBegin(ParserAstType type,
-      {required this.begin, this.abstractToken, required this.name})
+      {required this.begin,
+      this.abstractToken,
+      this.macroToken,
+      required this.name})
       : super("ClassDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "abstractToken": abstractToken,
+        "macroToken": macroToken,
         "name": name,
       };
 }
@@ -4188,16 +4198,21 @@ class EnumNoWithClauseHandle extends ParserAstNode {
 class NamedMixinApplicationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
+  final Token? macroToken;
   final Token name;
 
   NamedMixinApplicationBegin(ParserAstType type,
-      {required this.begin, this.abstractToken, required this.name})
+      {required this.begin,
+      this.abstractToken,
+      this.macroToken,
+      required this.name})
       : super("NamedMixinApplication", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "abstractToken": abstractToken,
+        "macroToken": macroToken,
         "name": name,
       };
 }

@@ -814,7 +814,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
+  void beginClassDeclaration(
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     debugEvent("beginClassDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -827,6 +828,16 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.setCurrentClassName(name.lexeme);
     inAbstractClass = abstractToken != null;
     push(abstractToken != null ? abstractMask : 0);
+    if (macroToken != null && !libraryBuilder.enableMacrosInLibrary) {
+      // TODO(johnniwinther): We should emit a different message when the
+      // experiment is not released yet. The current message indicates that
+      // changing the sdk version can solve the problem.
+      addProblem(
+          templateExperimentNotEnabled.withArguments(
+              'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
+          macroToken.next!.charOffset,
+          macroToken.next!.length);
+    }
   }
 
   @override
@@ -899,7 +910,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token name) {
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     debugEvent("beginNamedMixinApplication");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -910,6 +921,13 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
         name.lexeme, name.charOffset, typeVariables);
     push(abstractToken != null ? abstractMask : 0);
+    if (macroToken != null && !libraryBuilder.enableMacrosInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments(
+              'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
+          macroToken.next!.charOffset,
+          macroToken.next!.length);
+    }
   }
 
   @override

@@ -1,3 +1,6 @@
+# 2.1.6
+- Improve performance of CPU sample caching.
+
 # 2.1.5
 - Update to new CpuSamplesEvent format for CPU sample caching for improved
   performance.

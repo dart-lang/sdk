@@ -92,6 +92,7 @@ general/issue45700.crash: FormatterCrash
 general/issue47495: FormatterCrash
 general/issue47728_2: FormatterCrash
 general/issue47728_3: FormatterCrash
+general/macro_class: FormatterCrash
 general/many_errors: FormatterCrash
 general/missing_prefix_name: FormatterCrash
 general/new_as_selector: FormatterCrash
@@ -138,6 +139,7 @@ late_lowering/override: FormatterCrash
 late_lowering/override_getter_setter: FormatterCrash
 late_lowering/skip_late_final_uninitialized_instance_fields/main: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
+macros/macro_class: FormatterCrash
 named_arguments_anywhere/redirecting_constructor_initializers: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash

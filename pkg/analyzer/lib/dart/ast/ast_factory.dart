@@ -118,7 +118,8 @@ abstract class AstFactory {
   /// Returns a newly created class declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the class does not have the
   /// corresponding attribute. The [abstractKeyword] can be `null` if the class
-  /// is not abstract. The [typeParameters] can be `null` if the class does not
+  /// is not abstract. The [macroKeyword] can be `null` if the class is not a
+  /// macro class. The [typeParameters] can be `null` if the class does not
   /// have any type parameters. Any or all of the [extendsClause], [withClause],
   /// and [implementsClause] can be `null` if the class does not have the
   /// corresponding clause. The list of [members] can be `null` if the class
@@ -127,6 +128,7 @@ abstract class AstFactory {
       Comment? comment,
       List<Annotation>? metadata,
       Token? abstractKeyword,
+      Token? macroKeyword,
       Token classKeyword,
       SimpleIdentifier name,
       TypeParameterList? typeParameters,
@@ -141,7 +143,8 @@ abstract class AstFactory {
   /// and [metadata] can be `null` if the class type alias does not have the
   /// corresponding attribute. The [typeParameters] can be `null` if the class
   /// does not have any type parameters. The [abstractKeyword] can be `null` if
-  /// the class is not abstract. The [implementsClause] can be `null` if the
+  /// the class is not abstract. The [macroKeyword] can be `null` if the class
+  /// is not a macro class. The [implementsClause] can be `null` if the
   /// class does not implement any interfaces.
   ClassTypeAlias classTypeAlias(
       Comment? comment,
@@ -151,6 +154,7 @@ abstract class AstFactory {
       TypeParameterList? typeParameters,
       Token equals,
       Token? abstractKeyword,
+      Token? macroKeyword,
       NamedType superclass,
       WithClause withClause,
       ImplementsClause? implementsClause,

@@ -494,7 +494,8 @@ class Parser {
     token = parseMetadataStar(token);
     Token next = token.next!;
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(token, next, directiveState);
+      return parseTopLevelKeywordDeclaration(/* start = */ token,
+          /* keyword = */ next, /* macroToken = */ null, directiveState);
     }
     Token start = token;
     // Skip modifiers to find a top level keyword or identifier
@@ -513,8 +514,16 @@ class Parser {
       }
     }
     next = token.next!;
+    Token? macroToken;
+    if (next.isIdentifier &&
+        next.lexeme == 'macro' &&
+        optional('class', next.next!)) {
+      macroToken = next;
+      next = next.next!;
+    }
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(start, next, directiveState);
+      return parseTopLevelKeywordDeclaration(/* start = */ start,
+          /* keyword = */ next, /* macroToken = */ macroToken, directiveState);
     } else if (next.isKeywordOrIdentifier) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
@@ -591,14 +600,16 @@ class Parser {
 
   /// Parse any top-level declaration that begins with a keyword.
   /// [start] is the token before any modifiers preceding [keyword].
-  Token parseTopLevelKeywordDeclaration(
-      Token start, Token keyword, DirectiveContext? directiveState) {
+  Token parseTopLevelKeywordDeclaration(Token start, Token keyword,
+      Token? macroToken, DirectiveContext? directiveState) {
     assert(keyword.isTopLevelKeyword);
     final String? value = keyword.stringValue;
     if (identical(value, 'class')) {
       directiveState?.checkDeclaration();
-      Token? abstractToken = parseClassDeclarationModifiers(start, keyword);
-      return parseClassOrNamedMixinApplication(abstractToken, keyword);
+      Token? abstractToken =
+          parseClassDeclarationModifiers(start, macroToken ?? keyword);
+      return parseClassOrNamedMixinApplication(
+          abstractToken, macroToken, keyword);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
       parseTopLevelKeywordModifiers(start, keyword);
@@ -2055,7 +2066,7 @@ class Parser {
   }
 
   Token parseClassOrNamedMixinApplication(
-      Token? abstractToken, Token classKeyword) {
+      Token? abstractToken, Token? macroToken, Token classKeyword) {
     assert(optional('class', classKeyword));
     Token begin = abstractToken ?? classKeyword;
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(begin);
@@ -2065,10 +2076,11 @@ class Parser {
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
     if (optional('=', token.next!)) {
-      listener.beginNamedMixinApplication(begin, abstractToken, name);
+      listener.beginNamedMixinApplication(
+          begin, abstractToken, macroToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
     } else {
-      listener.beginClassDeclaration(begin, abstractToken, name);
+      listener.beginClassDeclaration(begin, abstractToken, macroToken, name);
       return parseClass(token, begin, classKeyword, name.lexeme);
     }
   }

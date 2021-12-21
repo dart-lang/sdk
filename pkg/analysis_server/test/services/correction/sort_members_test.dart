@@ -977,25 +977,7 @@ mixin M { // mixinM
 ''');
   }
 
-  Future<void> test_mixinMembers_method() async {
-    await _parseTestUnit(r'''
-mixin A {
-  c() {}
-  a() {}
-  b() {}
-}
-''');
-    // validate change
-    _assertSort(r'''
-mixin A {
-  a() {}
-  b() {}
-  c() {}
-}
-''');
-  }
-
-  Future<void> test_unitMembers_class() async {
+  Future<void> test_unit_class() async {
     await _parseTestUnit(r'''
 class C {}
 class A {}
@@ -1009,7 +991,7 @@ class C {}
 ''');
   }
 
-  Future<void> test_unitMembers_class_ignoreCase() async {
+  Future<void> test_unit_class_ignoreCase() async {
     await _parseTestUnit(r'''
 class C {}
 class a {}
@@ -1023,7 +1005,7 @@ class C {}
 ''');
   }
 
-  Future<void> test_unitMembers_classTypeAlias() async {
+  Future<void> test_unit_classTypeAlias() async {
     await _parseTestUnit(r'''
 class M {}
 class C = Object with M;
@@ -1039,7 +1021,7 @@ class M {}
 ''');
   }
 
-  Future<void> test_unitMembers_directive_hasDirective() async {
+  Future<void> test_unit_directive_hasDirective() async {
     await _parseTestUnit(r'''
 library lib;
 class C {}
@@ -1055,7 +1037,7 @@ class C {}
 ''');
   }
 
-  Future<void> test_unitMembers_directive_noDirective_hasComment_line() async {
+  Future<void> test_unit_directive_noDirective_hasComment_line() async {
     await _parseTestUnit(r'''
 // Some comment
 
@@ -1073,7 +1055,7 @@ class B {}
 ''');
   }
 
-  Future<void> test_unitMembers_directive_noDirective_noComment() async {
+  Future<void> test_unit_directive_noDirective_noComment() async {
     await _parseTestUnit(r'''
 
 class B {}
@@ -1089,7 +1071,7 @@ class B {}
 ''');
   }
 
-  Future<void> test_unitMembers_enum() async {
+  Future<void> test_unit_enum() async {
     await _parseTestUnit(r'''
 enum C {x, y}
 enum A {x, y}
@@ -1103,7 +1085,7 @@ enum C {x, y}
 ''');
   }
 
-  Future<void> test_unitMembers_enumClass() async {
+  Future<void> test_unit_enumClass() async {
     await _parseTestUnit(r'''
 enum C {x, y}
 class A {}
@@ -1119,7 +1101,7 @@ class D {}
 ''');
   }
 
-  Future<void> test_unitMembers_extensionClass() async {
+  Future<void> test_unit_extensionClass() async {
     await _parseTestUnit(r'''
 extension E on C {}
 class C {}
@@ -1131,7 +1113,7 @@ extension E on C {}
 ''');
   }
 
-  Future<void> test_unitMembers_extensions() async {
+  Future<void> test_unit_extensions() async {
     await _parseTestUnit(r'''
 extension E2 on String {}
 extension on List {}
@@ -1147,7 +1129,7 @@ extension E2 on String {}
 ''');
   }
 
-  Future<void> test_unitMembers_function() async {
+  Future<void> test_unit_function() async {
     await _parseTestUnit(r'''
 fc() {}
 fa() {}
@@ -1161,7 +1143,7 @@ fc() {}
 ''');
   }
 
-  Future<void> test_unitMembers_functionTypeAlias() async {
+  Future<void> test_unit_functionTypeAlias() async {
     await _parseTestUnit(r'''
 typedef FC();
 typedef FA();
@@ -1175,7 +1157,7 @@ typedef FC();
 ''');
   }
 
-  Future<void> test_unitMembers_genericTypeAlias() async {
+  Future<void> test_unit_genericTypeAlias() async {
     await _parseTestUnit(r'''
 typedef FC = void Function();
 typedef FA = void Function();
@@ -1189,7 +1171,7 @@ typedef FC = void Function();
 ''');
   }
 
-  Future<void> test_unitMembers_importsAndDeclarations() async {
+  Future<void> test_unit_importsAndDeclarations() async {
     await _parseTestUnit(r'''
 import 'dart:a';
 import 'package:b';
@@ -1212,7 +1194,7 @@ foo() {
 ''');
   }
 
-  Future<void> test_unitMembers_mainFirst() async {
+  Future<void> test_unit_mainFirst() async {
     await _parseTestUnit(r'''
 class C {}
 aaa() {}
@@ -1232,7 +1214,7 @@ class C {}
 ''');
   }
 
-  Future<void> test_unitMembers_mix() async {
+  Future<void> test_unit_mix() async {
     await _parseTestUnit(r'''
 _mmm() {}
 typedef nnn();
@@ -1294,7 +1276,7 @@ class _nnn {}
 ''');
   }
 
-  Future<void> test_unitMembers_mixin() async {
+  Future<void> test_unit_mixin() async {
     await _parseTestUnit(r'''
 mixin C {}
 mixin A {}
@@ -1307,7 +1289,7 @@ mixin C {}
 ''');
   }
 
-  Future<void> test_unitMembers_topLevelVariable() async {
+  Future<void> test_unit_topLevelVariable() async {
     await _parseTestUnit(r'''
 int c;
 int a;
@@ -1321,7 +1303,7 @@ int c;
 ''');
   }
 
-  Future<void> test_unitMembers_topLevelVariable_withConst() async {
+  Future<void> test_unit_topLevelVariable_withConst() async {
     await _parseTestUnit(r'''
 int c;
 int a;
@@ -1339,7 +1321,7 @@ int c;
 ''');
   }
 
-  Future<void> test_unitMembers_trailingComments() async {
+  Future<void> test_unit_trailingComments() async {
     await _parseTestUnit(r'''
 // Header
 class B {} // B

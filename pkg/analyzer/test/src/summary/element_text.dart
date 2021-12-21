@@ -385,6 +385,13 @@ class _ElementWriter {
         _writeNode,
       );
 
+      var superConstructor = e.superConstructor;
+      if (superConstructor != null) {
+        if (!superConstructor.enclosingElement.isDartCoreObject) {
+          _writeElementReference('superConstructor', superConstructor);
+        }
+      }
+
       var redirectedConstructor = e.redirectedConstructor;
       if (redirectedConstructor != null) {
         _writeElementReference('redirectedConstructor', redirectedConstructor);

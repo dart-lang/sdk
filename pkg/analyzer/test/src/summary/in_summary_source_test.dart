@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:test/test.dart';
@@ -19,12 +18,12 @@ class InSummarySourceTest {
   test_InSummarySource() {
     var sourceFactory = SourceFactory([
       InSummaryUriResolver(
-          PhysicalResourceProvider.INSTANCE,
-          MockSummaryDataStore.fake({
-            'package:foo/foo.dart': 'foo.sum',
-            'package:foo/src/foo_impl.dart': 'foo.sum',
-            'package:bar/baz.dart': 'bar.sum',
-          }))
+        MockSummaryDataStore.fake({
+          'package:foo/foo.dart': 'foo.sum',
+          'package:foo/src/foo_impl.dart': 'foo.sum',
+          'package:bar/baz.dart': 'bar.sum',
+        }),
+      )
     ]);
 
     var source =
