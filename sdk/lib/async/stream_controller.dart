@@ -565,7 +565,6 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     } else {
       stackTrace ??= AsyncError.defaultStackTrace(error);
     }
-    if (stackTrace == null) throw "unreachable"; // TODO(40088)
     _addError(error, stackTrace);
   }
 
