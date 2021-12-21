@@ -1098,6 +1098,7 @@ library
                   rightParenthesis: ) @92
                 staticElement: self::@class::A::@constructor::•
                 superKeyword: super @78
+            superConstructor: self::@class::A::@constructor::•
 ''');
   }
 
@@ -1142,6 +1143,7 @@ library
                 period: . @73
                 staticElement: self::@class::A::@constructor::aaa
                 superKeyword: super @68
+            superConstructor: self::@class::A::@constructor::aaa
 ''');
   }
 
@@ -1179,6 +1181,7 @@ library
                 period: . @66
                 staticElement: self::@class::A::@constructor::_
                 superKeyword: super @61
+            superConstructor: self::@class::A::@constructor::_
 ''');
   }
 
@@ -1234,6 +1237,7 @@ library
                 period: . @78
                 staticElement: self::@class::A::@constructor::aaa
                 superKeyword: super @73
+            superConstructor: self::@class::A::@constructor::aaa
 ''');
   }
 
@@ -1273,6 +1277,7 @@ library
                   rightParenthesis: ) @76
                 staticElement: self::@class::A::@constructor::•
                 superKeyword: super @68
+            superConstructor: self::@class::A::@constructor::•
 ''');
   }
 
@@ -1491,6 +1496,7 @@ library
           named @70
             periodOffset: 69
             nameEnd: 75
+            superConstructor: self::@class::C::@constructor::_
 ''');
   }
 
@@ -1533,6 +1539,9 @@ library
           named @94
             periodOffset: 93
             nameEnd: 99
+            superConstructor: ConstructorMember
+              base: self::@class::C::@constructor::_
+              substitution: {T: U, U: T}
 ''');
   }
 
@@ -1792,6 +1801,7 @@ library
         supertype: C
         constructors
           @62
+            superConstructor: self::@class::C::@constructor::_
 ''');
   }
 
@@ -1832,6 +1842,9 @@ library
         supertype: C<U, T>
         constructors
           @86
+            superConstructor: ConstructorMember
+              base: self::@class::C::@constructor::_
+              substitution: {T: U, U: T}
 ''');
   }
 
@@ -2125,6 +2138,7 @@ library
         supertype: B
         constructors
           @77
+            superConstructor: self::@class::B::@constructor::_
     typeAliases
       A @8
         aliasedType: C
@@ -2298,6 +2312,130 @@ library
             periodOffset: 20
             nameEnd: 26
             redirectedConstructor: self::@class::C::@constructor::•
+''');
+  }
+
+  test_class_constructor_superConstructor_generic_named() async {
+    var library = await checkLibrary('''
+class A<T> {
+  A.named(T a);
+}
+class B extends A<int> {
+  B() : super.named(0);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          named @17
+            periodOffset: 16
+            nameEnd: 22
+            parameters
+              requiredPositional a @25
+                type: T
+      class B @37
+        supertype: A<int>
+        constructors
+          @58
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::named
+              substitution: {T: int}
+''');
+  }
+
+  test_class_constructor_superConstructor_notGeneric_named() async {
+    var library = await checkLibrary('''
+class A {
+  A.named();
+}
+class B extends A {
+  B() : super.named();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          named @14
+            periodOffset: 13
+            nameEnd: 19
+      class B @31
+        supertype: A
+        constructors
+          @47
+            superConstructor: self::@class::A::@constructor::named
+''');
+  }
+
+  test_class_constructor_superConstructor_notGeneric_unnamed_explicit() async {
+    var library = await checkLibrary('''
+class A {}
+class B extends A {
+  B() : super();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      class B @17
+        supertype: A
+        constructors
+          @33
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_superConstructor_notGeneric_unnamed_implicit() async {
+    var library = await checkLibrary('''
+class A {}
+class B extends A {
+  B();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      class B @17
+        supertype: A
+        constructors
+          @33
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_superConstructor_notGeneric_unnamed_implicit2() async {
+    var library = await checkLibrary('''
+class A {}
+class B extends A {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      class B @17
+        supertype: A
+        constructors
+          synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
 ''');
   }
 
@@ -3118,6 +3256,7 @@ library
             parameters
               requiredPositional final this.v @34
                 type: int
+            superConstructor: self::@class::D::@constructor::•
         accessors
           synthetic get v @-1
             returnType: int
@@ -3244,6 +3383,7 @@ library
             type: int
         constructors
           synthetic @-1
+            superConstructor: self::@class::D::@constructor::•
         accessors
           synthetic get v @-1
             returnType: int
@@ -3306,6 +3446,7 @@ library
                 staticType: List<int>
         constructors
           const @94
+            superConstructor: self::@class::A::@constructor::•
         accessors
           synthetic get f @-1
             returnType: List<int>
@@ -3380,6 +3521,7 @@ library
                 staticType: double
         constructors
           const @80
+            superConstructor: self::@class::A::@constructor::•
         accessors
           synthetic get foo @-1
             returnType: double
@@ -3844,6 +3986,7 @@ library
             type: int
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         accessors
           synthetic get f @-1
             returnType: int
@@ -3885,6 +4028,7 @@ library
             type: int
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         accessors
           synthetic get f @-1
             returnType: int
@@ -4271,6 +4415,7 @@ library
         supertype: D
         constructors
           synthetic @-1
+            superConstructor: self::@class::D::@constructor::•
         methods
           f @25
             parameters
@@ -4306,6 +4451,7 @@ library
         supertype: D
         constructors
           synthetic @-1
+            superConstructor: self::@class::D::@constructor::•
         methods
           f @22
             returnType: int
@@ -4336,6 +4482,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           A @38
             returnType: void
@@ -4533,6 +4680,7 @@ library
           G
         constructors
           synthetic @-1
+            superConstructor: self::@class::D::@constructor::•
       class D @40
         constructors
           synthetic @-1
@@ -4566,6 +4714,7 @@ library
           C<double>
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
       class A @50
         constructors
           synthetic @-1
@@ -5376,6 +5525,7 @@ library
             type: double
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         accessors
           synthetic get t @-1
             returnType: double
@@ -5390,6 +5540,7 @@ library
           B
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
       class D @96
         supertype: C
         fields
@@ -5397,6 +5548,7 @@ library
             type: dynamic
         constructors
           synthetic @-1
+            superConstructor: self::@class::C::@constructor::•
         accessors
           set t @121
             parameters
@@ -5421,6 +5573,7 @@ library
             type: int
         constructors
           synthetic @-1
+            superConstructor: self::@class::D::@constructor::•
         accessors
           set f @29
             parameters
@@ -5643,6 +5796,7 @@ library
         supertype: D
         constructors
           synthetic @-1
+            superConstructor: self::@class::D::@constructor::•
       class D @27
         constructors
           synthetic @-1
@@ -5662,6 +5816,9 @@ library
         supertype: D<int, double>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::D::@constructor::•
+              substitution: {T1: int, T2: double}
       class D @40
         typeParameters
           covariant T1 @42
@@ -5692,6 +5849,9 @@ library
         supertype: A<B>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: B}
 ''');
   }
 
@@ -6308,6 +6468,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::D::@constructor::•
       class D @32
         constructors
           synthetic @-1
@@ -6346,6 +6507,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::D::@constructor::•
       class D @35
         constructors
           synthetic @-1
@@ -6383,6 +6545,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::D::@constructor::•
       class D @43
         constructors
           synthetic @-1
@@ -6420,6 +6583,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::D::@constructor::•
       class D @48
         constructors
           synthetic @-1
@@ -6457,6 +6621,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::D::@constructor::•
       class D @87
         constructors
           synthetic @-1
@@ -6491,6 +6656,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::A::@constructor::•
       class A @42
         constructors
           synthetic @-1
@@ -6536,6 +6702,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::D::@constructor::•
       class D @39
         constructors
           synthetic @-1
@@ -6573,6 +6740,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::D::@constructor::•
       class D @29
         constructors
           synthetic @-1
@@ -6607,6 +6775,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::D::@constructor::•
       class D @26
         constructors
           synthetic @-1
@@ -6652,6 +6821,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::•
                 superKeyword: super @0
+            superConstructor: package:test/a.dart::@class::Base::@constructor::•
           synthetic const named @-1
             constantInitializers
               SuperConstructorInvocation
@@ -6665,6 +6835,7 @@ library
                 period: . @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::named
                 superKeyword: super @0
+            superConstructor: package:test/a.dart::@class::Base::@constructor::named
 ''');
   }
 
@@ -6712,6 +6883,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::•
                 superKeyword: super @0
+            superConstructor: package:test/a.dart::@class::Base::@constructor::•
           synthetic noArgs @-1
             constantInitializers
               SuperConstructorInvocation
@@ -6725,6 +6897,7 @@ library
                 period: . @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::noArgs
                 superKeyword: super @0
+            superConstructor: package:test/a.dart::@class::Base::@constructor::noArgs
           synthetic requiredArg @-1
             parameters
               requiredPositional x @-1
@@ -6746,6 +6919,7 @@ library
                 period: . @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::requiredArg
                 superKeyword: super @0
+            superConstructor: package:test/a.dart::@class::Base::@constructor::requiredArg
           synthetic positionalArg @-1
             parameters
               optionalPositional x @-1
@@ -6771,6 +6945,7 @@ library
                 period: . @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::positionalArg
                 superKeyword: super @0
+            superConstructor: package:test/a.dart::@class::Base::@constructor::positionalArg
           synthetic positionalArg2 @-1
             parameters
               optionalPositional final x @-1
@@ -6796,6 +6971,7 @@ library
                 period: . @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::positionalArg2
                 superKeyword: super @0
+            superConstructor: package:test/a.dart::@class::Base::@constructor::positionalArg2
           synthetic namedArg @-1
             parameters
               optionalNamed x @-1
@@ -6821,6 +6997,7 @@ library
                 period: . @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::namedArg
                 superKeyword: super @0
+            superConstructor: package:test/a.dart::@class::Base::@constructor::namedArg
           synthetic namedArg2 @-1
             parameters
               optionalNamed final x @-1
@@ -6846,6 +7023,7 @@ library
                 period: . @0
                 staticElement: package:test/a.dart::@class::Base::@constructor::namedArg2
                 superKeyword: super @0
+            superConstructor: package:test/a.dart::@class::Base::@constructor::namedArg2
 ''');
   }
 
@@ -6909,6 +7087,9 @@ library
                 period: . @0
                 staticElement: self::@class::Base::@constructor::ctor
                 superKeyword: super @0
+            superConstructor: ConstructorMember
+              base: self::@class::Base::@constructor::ctor
+              substitution: {T: dynamic}
 ''');
   }
 
@@ -6975,6 +7156,9 @@ library
                 period: . @0
                 staticElement: self::@class::Base::@constructor::ctor
                 superKeyword: super @0
+            superConstructor: ConstructorMember
+              base: self::@class::Base::@constructor::ctor
+              substitution: {T: List<U>}
 ''');
   }
 
@@ -7005,6 +7189,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::D::@constructor::•
       class D @26
         constructors
           synthetic @-1
@@ -9600,6 +9785,9 @@ library
         supertype: P<T>
         constructors
           const @64
+            superConstructor: ConstructorMember
+              base: self::@class::P::@constructor::•
+              substitution: {T: T}
       class P2 @79
         typeParameters
           covariant T @82
@@ -9607,6 +9795,9 @@ library
         supertype: P<T>
         constructors
           const @108
+            superConstructor: ConstructorMember
+              base: self::@class::P::@constructor::•
+              substitution: {T: T}
     topLevelVariables
       static const values @131
         type: List<P<dynamic>>
@@ -16051,6 +16242,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::A::@constructor::•
       class alias X @48
         supertype: B
         mixins
@@ -16064,6 +16256,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::B::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::B::@constructor::•
     mixins
       mixin M @68
         superclassConstraints
@@ -17042,6 +17235,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: foo.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -17074,6 +17268,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: foo_io.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -17106,6 +17301,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: foo_html.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -18758,6 +18954,9 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
                 superKeyword: super @0
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: void Function()}
     mixins
       mixin M @20
         superclassConstraints
@@ -18928,6 +19127,7 @@ library
             type: int
         constructors
           synthetic @-1
+            superConstructor: self::@class::D::@constructor::•
         accessors
           get f @24
             returnType: int
@@ -19099,6 +19299,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: foo.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo.dart');
@@ -19129,6 +19330,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: foo_io.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -19159,6 +19361,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: foo_io.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_io.dart');
@@ -19189,6 +19392,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: foo_html.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -19219,6 +19423,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: foo_html.dart::@class::A::@constructor::•
 ''');
     var typeA = library.definingCompilationUnit.getType('B')!.supertype!;
     expect(typeA.element.source.shortName, 'foo_html.dart');
@@ -19419,6 +19624,7 @@ library
         supertype: C
         constructors
           synthetic @-1
+            superConstructor: self::@class::C::@constructor::•
 ''');
   }
 
@@ -19706,6 +19912,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
       class S @40
         typeParameters
           covariant T @42
@@ -19783,6 +19990,7 @@ library
         supertype: C
         constructors
           synthetic @-1
+            superConstructor: self::@class::C::@constructor::•
     topLevelVariables
       static a @111
         type: A
@@ -20180,6 +20388,7 @@ library
               aliasElement: self::@typeAlias::F
         constructors
           synthetic @-1
+            superConstructor: self::@class::D::@constructor::•
         accessors
           synthetic get v @-1
             returnType: int Function(String)
@@ -20335,6 +20544,9 @@ library
             type: Map<T, int>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::D::@constructor::•
+              substitution: {U: int, V: T}
         accessors
           synthetic get v @-1
             returnType: Map<T, int>
@@ -20422,6 +20634,9 @@ library
         supertype: D<U, int>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::D::@constructor::•
+              substitution: {V: U, W: int}
         methods
           f @41
             parameters
@@ -20478,6 +20693,7 @@ library
         supertype: D
         constructors
           synthetic @-1
+            superConstructor: a.dart::@class::D::@constructor::•
         methods
           f @44
             parameters
@@ -20500,6 +20716,7 @@ library
         supertype: D
         constructors
           synthetic @-1
+            superConstructor: self::@class::D::@constructor::•
         methods
           f @25
             parameters
@@ -20605,6 +20822,7 @@ library
             type: int Function(String)
         constructors
           synthetic @-1
+            superConstructor: self::@class::D::@constructor::•
         accessors
           set f @29
             parameters
@@ -20652,6 +20870,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: a.dart::@class::A::@constructor::•
         methods
           m @39
             parameters
@@ -20839,6 +21058,7 @@ library
             type: dynamic
         constructors
           synthetic @-1
+            superConstructor: self::@class::C::@constructor::•
         accessors
           synthetic get f @-1
             returnType: dynamic
@@ -21040,6 +21260,7 @@ library
         supertype: LegacyDefault*
         constructors
           synthetic @-1
+            superConstructor: legacy.dart::@class::LegacyDefault::@constructor::•
         methods
           == @71
             parameters
@@ -21050,6 +21271,7 @@ library
         supertype: LegacyObject*
         constructors
           synthetic @-1
+            superConstructor: legacy.dart::@class::LegacyObject::@constructor::•
         methods
           == @140
             parameters
@@ -21060,6 +21282,7 @@ library
         supertype: LegacyInt*
         constructors
           synthetic @-1
+            superConstructor: legacy.dart::@class::LegacyInt::@constructor::•
         methods
           == @206
             parameters
@@ -21120,6 +21343,7 @@ library
           NullSafeDefault*
         constructors
           synthetic @-1
+            superConstructor: legacy.dart::@class::LegacyDefault::@constructor::•
         methods
           == @136
             parameters
@@ -21132,6 +21356,7 @@ library
           NullSafeObject*
         constructors
           synthetic @-1
+            superConstructor: legacy.dart::@class::LegacyObject::@constructor::•
         methods
           == @231
             parameters
@@ -21144,6 +21369,7 @@ library
           NullSafeInt*
         constructors
           synthetic @-1
+            superConstructor: legacy.dart::@class::LegacyInt::@constructor::•
         methods
           == @320
             parameters
@@ -21187,6 +21413,7 @@ library
         supertype: NullSafeDefault
         constructors
           synthetic @-1
+            superConstructor: nullSafe.dart::@class::NullSafeDefault::@constructor::•
         methods
           == @74
             parameters
@@ -21197,6 +21424,7 @@ library
         supertype: NullSafeObject
         constructors
           synthetic @-1
+            superConstructor: nullSafe.dart::@class::NullSafeObject::@constructor::•
         methods
           == @145
             parameters
@@ -21207,6 +21435,7 @@ library
         supertype: NullSafeInt
         constructors
           synthetic @-1
+            superConstructor: nullSafe.dart::@class::NullSafeInt::@constructor::•
         methods
           == @213
             parameters
@@ -22159,6 +22388,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::C::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::C::@constructor::•
       class C @29
         constructors
           synthetic @-1
@@ -22470,6 +22700,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::D::@constructor::•
       class D @45
         constructors
           synthetic @-1
@@ -22920,6 +23151,7 @@ library
                 period: . @0
                 staticElement: self::@class::A::@constructor::named
                 superKeyword: super @0
+            superConstructor: self::@class::A::@constructor::named
       class D @85
         metadata
           Annotation
@@ -23270,6 +23502,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::A::@constructor::•
       class D @73
         metadata
           Annotation
@@ -24996,6 +25229,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::A::@constructor::•
     mixins
       mixin M @33
         superclassConstraints
@@ -26022,6 +26256,7 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::D::@constructor::•
                 superKeyword: super @0
+            superConstructor: self::@class::D::@constructor::•
       class D @48
         constructors
           synthetic @-1
@@ -26550,6 +26785,9 @@ library
           M<int*>*
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int*}
     mixins
       mixin M @20
         typeParameters
@@ -26584,6 +26822,9 @@ library
           M<int>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int}
     mixins
       mixin M @20
         typeParameters
@@ -26622,6 +26863,9 @@ library
           C<int*>*
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: a.dart::@class::A::@constructor::•
+              substitution: {T: int*}
 ''');
   }
 
@@ -26647,6 +26891,9 @@ library
           M<int*>*
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: a.dart::@class::A::@constructor::•
+              substitution: {T: int*}
 ''');
   }
 
@@ -27936,6 +28183,9 @@ library
         supertype: A<T>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: T}
         methods
           f @75
             parameters
@@ -27971,6 +28221,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @68
             parameters
@@ -28932,6 +29183,9 @@ library
                   rightParenthesis: ) @0
                 staticElement: self::@class::A::@constructor::•
                 superKeyword: super @0
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: T}
       class C @78
         fields
           a @88
@@ -29148,6 +29402,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
       class C @40
         typeParameters
           covariant T @42
@@ -32136,6 +32391,9 @@ library
           aliasElement: self::@typeAlias::X
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int}
     typeAliases
       X @8
         aliasedType: A<int>
@@ -32165,6 +32423,9 @@ library
             A<int>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int}
     typeAliases
       X @8
         typeParameters
@@ -32238,6 +32499,9 @@ library
           aliasElement: self::@typeAlias::X
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int?}
     typeAliases
       X @8
         aliasedType: A<int?>

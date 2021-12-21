@@ -1661,6 +1661,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           foo @52
             returnType: int
@@ -4712,6 +4713,9 @@ library
             type: List<dynamic Function()>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int}
         accessors
           get x @114
             returnType: dynamic Function()
@@ -4898,6 +4902,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @58
             parameters
@@ -4949,6 +4954,7 @@ library
           B
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @100
             typeInferenceError: overrideNoCombinedSuperSignature
@@ -5099,6 +5105,7 @@ library
           B
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @88
             typeInferenceError: overrideNoCombinedSuperSignature
@@ -5152,6 +5159,9 @@ library
           B<double>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {T: int}
         methods
           m @112
             typeInferenceError: overrideNoCombinedSuperSignature
@@ -5210,6 +5220,9 @@ library
           B<double>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {K: int, V: String}
         methods
           m @119
             typeInferenceError: overrideNoCombinedSuperSignature
@@ -5246,6 +5259,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @53
             parameters
@@ -5283,6 +5297,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @53
             parameters
@@ -5320,6 +5335,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @44
             parameters
@@ -5355,6 +5371,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @63
             parameters
@@ -5395,6 +5412,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @48
             parameters
@@ -5439,10 +5457,16 @@ library
         supertype: A<int, T>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {K: int, V: T}
       class C @70
         supertype: B<String>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::B::@constructor::•
+              substitution: {T: String}
         methods
           m @94
             parameters
@@ -5481,6 +5505,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @55
             parameters
@@ -5491,6 +5516,7 @@ library
         supertype: B
         constructors
           synthetic @-1
+            superConstructor: self::@class::B::@constructor::•
         methods
           m @87
             parameters
@@ -5540,6 +5566,7 @@ library
         supertype: B
         constructors
           synthetic @-1
+            superConstructor: self::@class::B::@constructor::•
         methods
           m @90
             parameters
@@ -5590,6 +5617,7 @@ library
         supertype: B
         constructors
           synthetic @-1
+            superConstructor: self::@class::B::@constructor::•
         methods
           m @99
             parameters
@@ -5632,6 +5660,9 @@ library
         supertype: A<int, String>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {K: int, V: String}
         methods
           m @77
             parameters
@@ -5669,6 +5700,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @55
             parameters
@@ -5706,6 +5738,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @67
             parameters
@@ -5745,6 +5778,7 @@ library
         supertype: A
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @67
             parameters
@@ -5791,10 +5825,16 @@ library
         supertype: A<int, T>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {K: int, V: T}
       class C @70
         supertype: B<String>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::B::@constructor::•
+              substitution: {T: String}
         methods
           m @94
             parameters
@@ -5918,6 +5958,9 @@ library
         supertype: A<T2, T1>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {K: T2, V: T1}
       class C @91
         interfaces
           B<int, String>
@@ -5962,6 +6005,7 @@ library
         supertype: A1
         constructors
           synthetic @-1
+            superConstructor: self::@class::A1::@constructor::•
         methods
           _foo @77
             returnType: int
@@ -6053,6 +6097,9 @@ library
           B<String>
         constructors
           synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::•
+              substitution: {K: int, V: String}
         methods
           m @119
             parameters
@@ -6102,6 +6149,7 @@ library
           B
         constructors
           synthetic @-1
+            superConstructor: self::@class::A::@constructor::•
         methods
           m @101
             parameters

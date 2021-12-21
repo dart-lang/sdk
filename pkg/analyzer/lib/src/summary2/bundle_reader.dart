@@ -161,6 +161,7 @@ class ConstructorElementLinkedData
     );
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
+    element.superConstructor = reader.readElement() as ConstructorElement?;
     element.redirectedConstructor = reader.readElement() as ConstructorElement?;
     element.constantInitializers = reader._readNodeList();
     applyConstantOffsets?.perform();

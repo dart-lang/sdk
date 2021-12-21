@@ -162,6 +162,7 @@ class BundleWriter {
 
     _resolutionSink.localElements.withElements(element.parameters, () {
       _writeList(element.parameters, _writeParameterElement);
+      _resolutionSink.writeElement(element.superConstructor);
       _resolutionSink.writeElement(element.redirectedConstructor);
       _resolutionSink._writeNodeList(element.constantInitializers);
     });

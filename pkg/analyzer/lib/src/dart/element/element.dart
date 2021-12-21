@@ -925,6 +925,9 @@ class ClassElementImpl extends AbstractClassElementImpl
         implicitConstructor.parameters = implicitParameters;
       }
       implicitConstructor.enclosingElement = this;
+      // TODO(scheglov) Why do we manually map parameters types above?
+      implicitConstructor.superConstructor =
+          ConstructorMember.from(superclassConstructor, supertype!);
 
       var isNamed = superclassConstructor.name.isNotEmpty;
       implicitConstructor.constantInitializers = [
@@ -1411,6 +1414,14 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 class ConstructorElementImpl extends ExecutableElementImpl
     with ConstructorElementMixin
     implements ConstructorElement {
+  /// The super-constructor which this constructor is invoking, or `null` if
+  /// this constructor is not generative, or is redirecting, or the
+  /// super-constructor is not resolved, or the enclosing class is `Object`.
+  ///
+  /// TODO(scheglov) We cannot have both super and redirecting constructors.
+  /// So, ideally we should have some kind of "either" or "variant" here.
+  ConstructorElement? _superConstructor;
+
   /// The constructor to which this constructor is redirecting.
   ConstructorElement? _redirectedConstructor;
 
@@ -1539,6 +1550,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   InterfaceType get returnTypeInternal {
     return (_returnType ??= enclosingElement.thisType) as InterfaceType;
+  }
+
+  ConstructorElement? get superConstructor {
+    linkedData?.read(this);
+    return _superConstructor;
+  }
+
+  set superConstructor(ConstructorElement? superConstructor) {
+    _superConstructor = superConstructor;
   }
 
   @override
