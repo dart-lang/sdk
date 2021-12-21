@@ -78,22 +78,33 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
+    // This lint rule is only concerned with these operators.
+    if (!node.operator.matchesAny([
+      TokenType.EQ_EQ,
+      TokenType.BANG_EQ,
+      TokenType.GT,
+      TokenType.GT_EQ,
+      TokenType.LT,
+      TokenType.LT_EQ,
+    ])) {
+      return;
+    }
     var value = getIntValue(node.rightOperand, context);
     if (value is int) {
-      if (_isUnassignedIndexOf(node.leftOperand)) {
+      if (value <= 0 && _isUnassignedIndexOf(node.leftOperand)) {
         _checkConstant(node, value, node.operator.type);
       }
     } else {
       value = getIntValue(node.leftOperand, context);
       if (value is int) {
-        if (_isUnassignedIndexOf(node.rightOperand)) {
+        if (value <= 0 && _isUnassignedIndexOf(node.rightOperand)) {
           _checkConstant(node, value, _invertedTokenType(node.operator.type));
         }
       }
     }
   }
 
-  void _checkConstant(Expression expression, int? value, TokenType type) {
+  void _checkConstant(Expression expression, int value, TokenType type) {
     if (value == -1) {
       if (type == TokenType.EQ_EQ ||
           type == TokenType.BANG_EQ ||
@@ -113,7 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (type == TokenType.GT_EQ || type == TokenType.LT) {
         rule.reportLintWithDescription(expression, useContains);
       }
-    } else if (value! < -1) {
+    } else if (value < -1) {
       // 'indexOf' is always >= -1, so comparing with lesser values makes
       // no sense.
       if (type == TokenType.EQ_EQ ||
@@ -147,6 +158,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
+  /// Returns whether [expression] is an invocation of `Iterable.indexOf` or
+  /// `String.indexOf`, which is not assigned to a value.
   bool _isUnassignedIndexOf(Expression expression) {
     // Unwrap parens and `as` expressions.
     var invocation = expression.unParenthesized;
