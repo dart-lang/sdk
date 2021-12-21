@@ -23,6 +23,7 @@ dependencies:
   devtools_server: any
   front_end:
     path: ../front_end
+  intl: any
   meta:
     path: ../meta
   nnbd_migration:

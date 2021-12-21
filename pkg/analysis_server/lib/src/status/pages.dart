@@ -5,11 +5,15 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:intl/intl.dart';
+
+final NumberFormat numberFormat = NumberFormat.decimalPattern();
+
 String escape(String? text) => text == null ? '' : htmlEscape.convert(text);
 
-String printInteger(int value) => '$value';
+String printInteger(int value) => numberFormat.format(value);
 
-String printMilliseconds(int value) => '$value ms';
+String printMilliseconds(num value) => '${numberFormat.format(value)} ms';
 
 String printPercentage(num value, [int fractionDigits = 1]) =>
     '${(value * 100).toStringAsFixed(fractionDigits)}%';

@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart';
 import 'package:args/command_runner.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
 import 'perf/benchmarks_impl.dart';
@@ -87,6 +88,8 @@ abstract class Benchmark {
 }
 
 class BenchMarkResult {
+  static final NumberFormat nf = NumberFormat.decimalPattern();
+
   /// One of 'bytes', 'micros', or 'compound'.
   final String kindName;
 
@@ -101,7 +104,7 @@ class BenchMarkResult {
   Map toJson() => {kindName: value};
 
   @override
-  String toString() => '$kindName: $value';
+  String toString() => '$kindName: ${nf.format(value)}';
 }
 
 class CompoundBenchMarkResult extends BenchMarkResult {

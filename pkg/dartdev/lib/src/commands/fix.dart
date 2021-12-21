@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analysis_server_client/protocol.dart' hide AnalysisError;
+import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
@@ -16,6 +17,8 @@ import '../utils.dart';
 
 class FixCommand extends DartdevCommand {
   static const String cmdName = 'fix';
+
+  static final NumberFormat _numberFormat = NumberFormat.decimalPattern();
 
   static const String cmdDescription =
       '''Apply automated fixes to Dart source code.
@@ -341,7 +344,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
     }
   }
 
-  static String _format(int value) => '$value';
+  static String _format(int value) => _numberFormat.format(value);
 }
 
 /// The result of running tests in a given directory.
