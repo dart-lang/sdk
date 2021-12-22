@@ -10,11 +10,6 @@ import '../analyzer.dart';
 import '../ast.dart';
 import '../util/dart_type_utilities.dart';
 
-const alwaysFalse =
-    'Always false because indexOf is always greater or equal -1.';
-const alwaysTrue = 'Always true because indexOf is always greater or equal -1.';
-const useContains = 'Use contains instead of indexOf';
-
 const _desc = r'Use contains for `List` and `String` instances.';
 const _details = r'''
 
@@ -38,6 +33,15 @@ if (lunchBox.indexOf('sandwich') == -1) return 'so hungry...';
 ''';
 
 class PreferContainsOverIndexOf extends LintRule {
+  static const LintCode alwaysFalse = LintCode('prefer_contains',
+      'Always false because indexOf is always greater or equal -1.');
+
+  static const LintCode alwaysTrue = LintCode('prefer_contains',
+      'Always true because indexOf is always greater or equal -1.');
+
+  static const LintCode useContains =
+      LintCode('prefer_contains', 'Use contains instead of indexOf');
+
   PreferContainsOverIndexOf()
       : super(
             name: 'prefer_contains',
@@ -51,22 +55,6 @@ class PreferContainsOverIndexOf extends LintRule {
     var visitor = _Visitor(this, context);
     registry.addBinaryExpression(this, visitor);
   }
-
-  void reportLintWithDescription(AstNode? node, String description) {
-    if (node != null) {
-      reporter.reportErrorForNode(_LintCode(name, description), node, []);
-    }
-  }
-}
-
-/// TODO create common MultiMessageLintCode class
-class _LintCode extends LintCode {
-  static final registry = <String, _LintCode>{};
-
-  factory _LintCode(String name, String message) =>
-      registry.putIfAbsent(name + message, () => _LintCode._(name, message));
-
-  _LintCode._(String name, String message) : super(name, message);
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -99,19 +87,23 @@ class _Visitor extends SimpleAstVisitor<void> {
           type == TokenType.BANG_EQ ||
           type == TokenType.LT_EQ ||
           type == TokenType.GT) {
-        rule.reportLintWithDescription(expression, useContains);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.useContains);
       } else if (type == TokenType.LT) {
         // indexOf < -1 is always false
-        rule.reportLintWithDescription(expression, alwaysFalse);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.alwaysFalse);
       } else if (type == TokenType.GT_EQ) {
         // indexOf >= -1 is always true
-        rule.reportLintWithDescription(expression, alwaysTrue);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.alwaysTrue);
       }
     } else if (value == 0) {
       // 'indexOf >= 0' is same as 'contains',
       // and 'indexOf < 0' is same as '!contains'
       if (type == TokenType.GT_EQ || type == TokenType.LT) {
-        rule.reportLintWithDescription(expression, useContains);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.useContains);
       }
     } else if (value! < -1) {
       // 'indexOf' is always >= -1, so comparing with lesser values makes
@@ -119,11 +111,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (type == TokenType.EQ_EQ ||
           type == TokenType.LT_EQ ||
           type == TokenType.LT) {
-        rule.reportLintWithDescription(expression, alwaysFalse);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.alwaysFalse);
       } else if (type == TokenType.BANG_EQ ||
           type == TokenType.GT_EQ ||
           type == TokenType.GT) {
-        rule.reportLintWithDescription(expression, alwaysTrue);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.alwaysTrue);
       }
     }
   }

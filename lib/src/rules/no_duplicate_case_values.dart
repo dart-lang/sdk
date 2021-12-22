@@ -38,10 +38,10 @@ switch (v) {
 
 ''';
 
-String message(String value1, String value2) =>
-    'Do not use more than one case with same value ($value1 and $value2)';
-
 class NoDuplicateCaseValues extends LintRule {
+  static const LintCode code = LintCode('no_duplicate_case_values',
+      'Do not use more than one case with same value ({0} and {1}');
+
   NoDuplicateCaseValues()
       : super(
             name: 'no_duplicate_case_values',
@@ -55,19 +55,6 @@ class NoDuplicateCaseValues extends LintRule {
     var visitor = _Visitor(this, context);
     registry.addSwitchStatement(this, visitor);
   }
-
-  void reportLintWithDescription(AstNode node, String description) {
-    reporter.reportErrorForNode(_LintCode(name, description), node, []);
-  }
-}
-
-class _LintCode extends LintCode {
-  static final registry = <String, _LintCode>{};
-
-  factory _LintCode(String name, String message) =>
-      registry.putIfAbsent(name + message, () => _LintCode._(name, message));
-
-  _LintCode._(String name, String message) : super(name, message);
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -94,8 +81,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
         var duplicateValue = values[value];
         if (duplicateValue != null) {
-          rule.reportLintWithDescription(member,
-              message(duplicateValue.toString(), expression.toString()));
+          rule.reportLint(member,
+              errorCode: NoDuplicateCaseValues.code,
+              arguments: [duplicateValue.toString(), expression.toString()]);
         } else {
           values[value] = expression;
         }
