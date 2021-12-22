@@ -108,18 +108,22 @@ import 'a.dart'; // OK
 import 'a/b.dart'; // OK
 ```
 ''';
-const _directiveSectionOrderedAlphabetically =
-    'Sort directive sections alphabetically.';
-
-const _exportDirectiveAfterImportDirectives =
-    'Specify exports in a separate section after all imports.';
 
 const _exportKeyword = 'export';
 
 const _importKeyword = 'import';
 
-String _dartDirectiveGoFirst(String type) =>
-    "Place 'dart:' ${type}s before other ${type}s.";
+/// Compares directives by package then file in package.
+///
+/// Package is everything until the first `/`.
+int compareDirectives(String a, String b) {
+  var indexA = a.indexOf('/');
+  var indexB = b.indexOf('/');
+  if (indexA == -1 || indexB == -1) return a.compareTo(b);
+  var result = a.substring(0, indexA).compareTo(b.substring(0, indexB));
+  if (result != 0) return result;
+  return a.substring(indexA + 1).compareTo(b.substring(indexB + 1));
+}
 
 bool _isAbsoluteDirective(NamespaceDirective node) {
   var uriContent = node.uriContent;
@@ -145,11 +149,21 @@ bool _isPartDirective(Directive node) => node is PartDirective;
 bool _isRelativeDirective(NamespaceDirective node) =>
     !_isAbsoluteDirective(node);
 
-String _packageDirectiveBeforeRelative(String type) =>
-    "Place 'package:' ${type}s before relative ${type}s.";
-
 class DirectivesOrdering extends LintRule
     implements ProjectVisitor, NodeLintRule {
+  static const LintCode dartDirectiveGoFirst =
+      LintCode('directives_ordering', "Place 'dart:' {0}s before other {0}s.");
+
+  static const LintCode directiveSectionOrderedAlphabetically = LintCode(
+      'directives_ordering', 'Sort directive sections alphabetically.');
+
+  static const LintCode exportDirectiveAfterImportDirectives = LintCode(
+      'directives_ordering',
+      'Specify exports in a separate section after all imports.');
+
+  static const LintCode packageDirectiveBeforeRelative = LintCode(
+      'directives_ordering', "Place 'package:' {0}s before relative {0}s.");
+
   DartProject? project;
 
   DirectivesOrdering()
@@ -175,25 +189,26 @@ class DirectivesOrdering extends LintRule
   }
 
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
-    _reportLintWithDescription(node, _dartDirectiveGoFirst(type));
-  }
-
-  void _reportLintWithDescription(AstNode node, String description) {
-    reporter.reportErrorForNode(LintCode(name, description), node, []);
+    reportLint(node,
+        errorCode: DirectivesOrdering.dartDirectiveGoFirst, arguments: [type]);
   }
 
   void _reportLintWithDirectiveSectionOrderedAlphabeticallyMessage(
       AstNode node) {
-    _reportLintWithDescription(node, _directiveSectionOrderedAlphabetically);
+    reportLint(node,
+        errorCode: DirectivesOrdering.directiveSectionOrderedAlphabetically);
   }
 
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
-    _reportLintWithDescription(node, _exportDirectiveAfterImportDirectives);
+    reportLint(node,
+        errorCode: DirectivesOrdering.exportDirectiveAfterImportDirectives);
   }
 
   void _reportLintWithPackageDirectiveBeforeRelativeMessage(
       AstNode node, String type) {
-    _reportLintWithDescription(node, _packageDirectiveBeforeRelative(type));
+    reportLint(node,
+        errorCode: DirectivesOrdering.packageDirectiveBeforeRelative,
+        arguments: [type]);
   }
 }
 
@@ -372,16 +387,4 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   Iterable<ImportDirective> _getImportDirectives(CompilationUnit node) =>
       node.directives.whereType<ImportDirective>();
-}
-
-/// Compares directives by package then file in package.
-///
-/// Package is everything until the first `/`.
-int compareDirectives(String a, String b) {
-  var indexA = a.indexOf('/');
-  var indexB = b.indexOf('/');
-  if (indexA == -1 || indexB == -1) return a.compareTo(b);
-  var result = a.substring(0, indexA).compareTo(b.substring(0, indexB));
-  if (result != 0) return result;
-  return a.substring(indexA + 1).compareTo(b.substring(indexB + 1));
 }
