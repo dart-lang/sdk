@@ -97,9 +97,10 @@ class FeatureSets {
   );
 
   static final FeatureSet latestWithExperiments = FeatureSet.fromEnableFlags2(
-    sdkLanguageVersion: Version.parse('2.15.0'),
+    sdkLanguageVersion: Version.parse('2.16.0'),
     flags: [
       EnableString.constructor_tearoffs,
+      EnableString.super_parameters,
     ],
   );
 }
@@ -1449,6 +1450,234 @@ library
                 type: int
               requiredPositional b @70
                 type: String
+''');
+  }
+
+  test_class_constructor_parameters_super_optionalNamed() async {
+    var library = await checkLibrary('''
+class A {
+  A({required int a, required double b});
+}
+
+class B extends A {
+  B({String o1, super.a, String o2, super.b}) : super();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredName a @28
+                type: int
+              requiredName b @47
+                type: double
+      class B @61
+        supertype: A
+        constructors
+          @77
+            parameters
+              optionalNamed o1 @87
+                type: String
+              optionalNamed final super.a @97
+                type: int
+                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
+              optionalNamed o2 @107
+                type: String
+              optionalNamed final super.b @117
+                type: double
+                superConstructorParameter: self::@class::A::@constructor::•::@parameter::b
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_parameters_super_optionalNamed_unresolved() async {
+    var library = await checkLibrary('''
+class A {
+  A({required int a});
+}
+
+class B extends A {
+  B({super.b});
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredName a @28
+                type: int
+      class B @42
+        supertype: A
+        constructors
+          @58
+            parameters
+              optionalNamed final super.b @67
+                type: dynamic
+                superConstructorParameter: <null>
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_parameters_super_optionalPositional() async {
+    var library = await checkLibrary('''
+class A {
+  A(int a, double b);
+}
+
+class B extends A {
+  B([String o1, super.a, String o2, super.b]) : super();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional a @18
+                type: int
+              requiredPositional b @28
+                type: double
+      class B @41
+        supertype: A
+        constructors
+          @57
+            parameters
+              optionalPositional o1 @67
+                type: String
+              optionalPositional final super.a @77
+                type: int
+                superConstructorParameter: a@18
+              optionalPositional o2 @87
+                type: String
+              optionalPositional final super.b @97
+                type: double
+                superConstructorParameter: b@28
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_parameters_super_requiredNamed() async {
+    var library = await checkLibrary('''
+class A {
+  A({required int a, required double b});
+}
+
+class B extends A {
+  B({
+    required String o1,
+    required super.a,
+    required String o2,
+    required super.b,
+  }) : super();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredName a @28
+                type: int
+              requiredName b @47
+                type: double
+      class B @61
+        supertype: A
+        constructors
+          @77
+            parameters
+              requiredName o1 @101
+                type: String
+              requiredName final super.a @124
+                type: int
+                superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
+              requiredName o2 @147
+                type: String
+              requiredName final super.b @170
+                type: double
+                superConstructorParameter: self::@class::A::@constructor::•::@parameter::b
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_parameters_super_requiredPositional() async {
+    var library = await checkLibrary('''
+class A {
+  A(int a, double b);
+}
+
+class B extends A {
+  B(String o1, super.a, String o2, super.b) : super();
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional a @18
+                type: int
+              requiredPositional b @28
+                type: double
+      class B @41
+        supertype: A
+        constructors
+          @57
+            parameters
+              requiredPositional o1 @66
+                type: String
+              requiredPositional final super.a @76
+                type: int
+                superConstructorParameter: a@18
+              requiredPositional o2 @86
+                type: String
+              requiredPositional final super.b @96
+                type: double
+                superConstructorParameter: b@28
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_parameters_super_requiredPositional_unresolved() async {
+    var library = await checkLibrary('''
+class A {}
+
+class B extends A {
+  B(super.a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          synthetic @-1
+      class B @18
+        supertype: A
+        constructors
+          @34
+            parameters
+              requiredPositional final super.a @42
+                type: dynamic
+                superConstructorParameter: <null>
+            superConstructor: self::@class::A::@constructor::•
 ''');
   }
 
@@ -26150,6 +26379,58 @@ library
               NullLiteral
                 literal: null @26
                 staticType: Null
+        returnType: dynamic
+''');
+  }
+
+  test_metadata_superFormalParameter() async {
+    var library = await checkLibrary('''
+const a = null;
+
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B(@a super.x);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @23
+        constructors
+          @29
+            parameters
+              requiredPositional x @35
+                type: int
+      class B @48
+        supertype: A
+        constructors
+          @64
+            parameters
+              requiredPositional final super.x @75
+                type: int
+                metadata
+                  Annotation
+                    atSign: @ @66
+                    element: self::@getter::a
+                    name: SimpleIdentifier
+                      staticElement: self::@getter::a
+                      staticType: null
+                      token: a @67
+                superConstructorParameter: x@35
+            superConstructor: self::@class::A::@constructor::•
+    topLevelVariables
+      static const a @6
+        type: dynamic
+        constantInitializer
+          NullLiteral
+            literal: null @10
+            staticType: Null
+    accessors
+      synthetic static get a @-1
         returnType: dynamic
 ''');
   }

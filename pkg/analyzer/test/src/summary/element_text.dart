@@ -643,6 +643,8 @@ class _ElementWriter {
 
       if (e is FieldFormalParameterElement) {
         buffer.write('this.');
+      } else if (e is SuperFormalParameterElement) {
+        buffer.write('super.');
       }
 
       _writeName(e);
@@ -656,6 +658,7 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
+      _writeSuperConstructorParameter(e);
     });
   }
 
@@ -761,6 +764,17 @@ class _ElementWriter {
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
     });
+  }
+
+  void _writeSuperConstructorParameter(ParameterElement e) {
+    if (e is SuperFormalParameterElement) {
+      var superParameter = e.superConstructorParameter;
+      if (superParameter != null) {
+        _writeElementReference('superConstructorParameter', superParameter);
+      } else {
+        _writelnWithIndent('superConstructorParameter: <null>');
+      }
+    }
   }
 
   void _writeType(DartType type, {String? name}) {

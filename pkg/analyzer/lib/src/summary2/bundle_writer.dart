@@ -336,6 +336,7 @@ class BundleWriter {
     element as ParameterElementImpl;
     _sink._writeStringReference(element.name);
     _sink.writeBool(element.isInitializingFormal);
+    _sink.writeBool(element.isSuperFormal);
     _sink._writeFormalParameterKind(element);
     ParameterElementFlags.write(_sink, element);
 

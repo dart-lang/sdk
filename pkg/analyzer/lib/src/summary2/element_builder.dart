@@ -352,6 +352,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _enclosingContext.addParameter(null, element);
     }
     element.hasImplicitType = node.type == null && node.parameters == null;
+    // TODO(scheglov) Do we need these two below?
     element.isExplicitlyCovariant = node.covariantKeyword != null;
     element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
@@ -359,6 +360,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     nameNode.staticElement = element;
 
+    // TODO(scheglov) check that we don't set reference for parameters
     var fakeReference = Reference.root();
     var holder = _EnclosingContext(fakeReference, element);
     _withEnclosing(holder, () {
@@ -789,6 +791,62 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     node.declaredElement = element;
     nameNode?.staticElement = element;
+
+    _buildType(node.type);
+  }
+
+  @override
+  void visitSuperFormalParameter(
+    covariant SuperFormalParameterImpl node,
+  ) {
+    var nameNode = node.identifier;
+    var name = nameNode.name;
+    var nameOffset = nameNode.offset;
+
+    SuperFormalParameterElementImpl element;
+    var parent = node.parent;
+    if (parent is DefaultFormalParameter) {
+      element = DefaultSuperFormalParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      )..constantInitializer = parent.defaultValue;
+      _linker.elementNodes[element] = parent;
+      _enclosingContext.addParameter(name, element);
+    } else {
+      element = SuperFormalParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      );
+      _linker.elementNodes[element] = node;
+      _enclosingContext.addParameter(null, element);
+    }
+    element.hasImplicitType = node.type == null && node.parameters == null;
+    // TODO(scheglov) Do we need these two below?
+    // element.isExplicitlyCovariant = node.covariantKeyword != null;
+    // element.isFinal = node.isFinal;
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    nameNode.staticElement = element;
+
+    // TODO(scheglov) check that we don't set reference for parameters
+    var fakeReference = Reference.root();
+    var holder = _EnclosingContext(fakeReference, element);
+    _withEnclosing(holder, () {
+      var formalParameters = node.parameters;
+      if (formalParameters != null) {
+        formalParameters.accept(this);
+        element.parameters = holder.parameters;
+      }
+
+      var typeParameters = node.typeParameters;
+      if (typeParameters != null) {
+        typeParameters.accept(this);
+        element.typeParameters = holder.typeParameters;
+      }
+    });
 
     _buildType(node.type);
   }

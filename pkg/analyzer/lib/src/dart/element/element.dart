@@ -43,6 +43,7 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:collection/collection.dart';
 
 /// A concrete implementation of a [ClassElement].
 abstract class AbstractClassElementImpl extends _ExistingElementImpl
@@ -1714,6 +1715,26 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   /// [nameOffset].
   DefaultParameterElementImpl({
     required String? name,
+    required int nameOffset,
+    required ParameterKind parameterKind,
+  }) : super(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: parameterKind,
+        );
+
+  @override
+  String? get defaultValueCode {
+    return constantInitializer?.toSource();
+  }
+}
+
+class DefaultSuperFormalParameterElementImpl
+    extends SuperFormalParameterElementImpl with ConstVariableElement {
+  /// Initialize a newly created parameter element to have the given [name] and
+  /// [nameOffset].
+  DefaultSuperFormalParameterElementImpl({
+    required String name,
     required int nameOffset,
     required ParameterKind parameterKind,
   }) : super(
@@ -4818,6 +4839,9 @@ class ParameterElementImpl extends VariableElementImpl
   bool get isLate => false;
 
   @override
+  bool get isSuperFormal => false;
+
+  @override
   ElementKind get kind => ElementKind.PARAMETER;
 
   @override
@@ -5429,6 +5453,56 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
     }
     return buffer.toString();
   }
+}
+
+class SuperFormalParameterElementImpl extends ParameterElementImpl
+    implements SuperFormalParameterElement {
+  /// Initialize a newly created parameter element to have the given [name] and
+  /// [nameOffset].
+  SuperFormalParameterElementImpl({
+    required String name,
+    required int nameOffset,
+    required ParameterKind parameterKind,
+  }) : super(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: parameterKind,
+        );
+
+  /// Super parameters are visible only in the initializer list scope,
+  /// and introduce final variables.
+  @override
+  bool get isFinal => true;
+
+  @override
+  bool get isSuperFormal => true;
+
+  @override
+  ParameterElement? get superConstructorParameter {
+    final enclosingElement = this.enclosingElement;
+    if (enclosingElement is ConstructorElementImpl) {
+      var superConstructor = enclosingElement.superConstructor;
+      if (superConstructor != null) {
+        var superParameters = superConstructor.parameters;
+        if (isNamed) {
+          return superParameters.firstWhereOrNull((e) => e.name == name);
+        } else {
+          var index = enclosingElement.parameters
+              .whereType<SuperFormalParameterElementImpl>()
+              .toList()
+              .indexOf(this);
+          if (index >= 0 && index < superParameters.length) {
+            return superParameters[index];
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) =>
+      visitor.visitSuperFormalParameterElement(this);
 }
 
 /// A concrete implementation of a [TopLevelVariableElement].
