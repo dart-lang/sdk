@@ -40,9 +40,7 @@ dart_2/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers
 
 [ $arch == ia32 ]
 dart/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
-dart/print_object_layout_test: SkipByDesign # IA32 does not support AOT.
 dart_2/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
-dart_2/print_object_layout_test: SkipByDesign # IA32 does not support AOT.
 
 [ $builder_tag == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
@@ -59,12 +57,10 @@ dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
 dart/kernel_determinism_test: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
-dart/print_object_layout_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 dart_2/appjit*: SkipByDesign # Test needs to a particular opt-counter value
 dart_2/kernel_determinism_test: SkipSlow
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
-dart_2/print_object_layout_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 
 [ $builder_tag == tsan ]
 dart/appjit_cha_deopt_test: SkipSlow
@@ -133,14 +129,12 @@ dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimi
 dart/b162922506_test: SkipSlow # Generates very large input file
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in debug mode
-dart/print_object_layout_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
 dart/type_casts_with_null_safety_autodetection_test: Pass, Slow # Very slow in debug mode, uses --optimization-counter-threshold=10
 dart_2/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 dart_2/b162922506_test: SkipSlow # Generates very large input file
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in debug mode
-dart_2/print_object_layout_test: SkipSlow # gen_kernel is too slow in debug mode
 dart_2/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
 
 [ $mode == product ]
@@ -253,14 +247,12 @@ dart/b162922506_test: SkipSlow # Generates large input file
 dart/data_uri_spawn_test: Skip # Please triage.
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
-dart/print_object_layout_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart/snapshot_version_test: RuntimeError # Please triage.
 dart_2/appjit*: SkipSlow # DFE too slow
 dart_2/b162922506_test: SkipSlow # Generates large input file
 dart_2/data_uri_spawn_test: Skip # Please triage.
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow on simulated architectures
-dart_2/print_object_layout_test: SkipSlow # gen_kernel is too slow on simulated architectures
 dart_2/snapshot_version_test: RuntimeError # Please triage.
 
 [ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]
@@ -274,7 +266,6 @@ dart/appjit*: SkipByDesign # Test needs to run from source
 dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 dart/minimal_kernel_test: SkipByDesign # Test needs to run from source
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
-dart/print_object_layout_test: SkipByDesign # Test needs to run from source
 dart/regress_44026_test: SkipByDesign # Test needs to run from source
 dart/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 dart/type_casts_with_null_safety_autodetection_test: SkipByDesign # Test needs to run from source
@@ -282,7 +273,6 @@ dart_2/appjit*: SkipByDesign # Test needs to run from source
 dart_2/kernel_determinism_test: SkipByDesign # Test needs to run from source
 dart_2/minimal_kernel_test: SkipByDesign # Test needs to run from source
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
-dart_2/print_object_layout_test: SkipByDesign # Test needs to run from source
 dart_2/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
@@ -442,7 +432,6 @@ dart/issue_31959_31960_test: SkipSlow
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
 dart/print_flow_graph_determinism_test: SkipSlow
-dart/print_object_layout_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
 dart/slow_path_shared_stub_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
@@ -454,7 +443,6 @@ dart_2/issue_31959_31960_test: SkipSlow
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
 dart_2/print_flow_graph_determinism_test: SkipSlow
-dart_2/print_object_layout_test: SkipSlow # gen_kernel is too slow in hot reload testing mode
 dart_2/slow_path_shared_stub_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
 dart_2/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 dart_2/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
