@@ -1453,6 +1453,78 @@ library
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47951')
+  test_class_constructor_parameters_super_explicitType_function() async {
+    var library = await checkLibrary('''
+class A {
+  A(Object? a);
+}
+
+class B extends A {
+  B(int super.a<T extends num>(T d)?);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional a @22
+                type: Object?
+      class B @35
+        supertype: A
+        constructors
+          @51
+            parameters
+              requiredPositional final super.a @63
+                type: int Function<T extends num>(T)?
+                typeParameters
+                  covariant T @65
+                    bound: num
+                parameters
+                  requiredPositional d @82
+                    type: T
+                superConstructorParameter: a@22
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47951')
+  test_class_constructor_parameters_super_explicitType_interface() async {
+    var library = await checkLibrary('''
+class A {
+  A(num a);
+}
+
+class B extends A {
+  B(int super.a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional a @18
+                type: num
+      class B @31
+        supertype: A
+        constructors
+          @47
+            parameters
+              requiredPositional final super.a @49
+                type: int
+                superConstructorParameter: a@18
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
   test_class_constructor_parameters_super_optionalNamed() async {
     var library = await checkLibrary('''
 class A {

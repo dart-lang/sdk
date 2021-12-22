@@ -383,8 +383,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     scope = TypeParameterScope(scope, element.typeParameters);
 
-    // TODO(scheglov) More tests when the parse issue fixed.
-    // https://github.com/dart-lang/sdk/issues/47951
     node.type?.accept(this);
     node.typeParameters?.accept(this);
     node.parameters?.accept(this);

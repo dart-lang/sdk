@@ -313,8 +313,6 @@ class TypesBuilder {
   }
 
   void _superFormalParameter(SuperFormalParameter node) {
-    // TODO(scheglov) More tests when the parse issue fixed.
-    // https://github.com/dart-lang/sdk/issues/47951
     var element = node.declaredElement as SuperFormalParameterElementImpl;
     var parameterList = node.parameters;
     if (parameterList != null) {
