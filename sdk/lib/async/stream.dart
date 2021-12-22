@@ -55,7 +55,7 @@ typedef void _TimerCallback();
 /// then the `optionalMap` function body completes,
 /// which closes the returned stream.
 /// On an error event from the `source` stream,
-/// the `await for` that error is (re-)thrown, which breaks the loop.
+/// the `await for` re-throws that error, which breaks the loop.
 /// The error then reaches the end of the `optionalMap` function body,
 /// since it's not caught.
 /// That makes the error be emitted on the returned stream, which then closes.
@@ -153,7 +153,7 @@ abstract class Stream<T> {
   /// const stream = Stream.empty();
   /// stream.listen(
   ///   (value) {
-  ///     print(value);
+  ///     throw "Unreachable";
   ///   },
   ///   onDone: () {
   ///     print('Done');
@@ -226,13 +226,13 @@ abstract class Stream<T> {
   /// Example:
   /// ```dart
   /// Future<String> futureTask() async {
-  ///   return await Future.delayed(
-  ///       const Duration(seconds: 5), () => 'Future complete');
+  ///   await Future.delayed(const Duration(seconds: 5));
+  ///   return 'Future complete';
   /// }
   ///
   /// final stream = Stream<String>.fromFuture(futureTask());
-  /// stream.listen((event) => print(event),
-  ///     onDone: () => print('Done'), onError: (error) => print(error));
+  /// stream.listen(print,
+  ///     onDone: () => print('Done'), onError: print);
   ///
   /// // Outputs:
   /// // "Future complete" after 'futureTask' finished.
@@ -271,17 +271,17 @@ abstract class Stream<T> {
   /// Example:
   /// ```dart
   /// Future<int> waitTask() async {
-  ///   return await Future.delayed(const Duration(seconds: 3), () => 10);
+  ///   await Future.delayed(const Duration(seconds: 5));
+  ///   return 10;
   /// }
   ///
   /// Future<String> doneTask() async {
-  ///   return await Future.delayed(
-  ///       const Duration(seconds: 5), () => 'Future complete');
+  ///   await Future.delayed(const Duration(seconds: 5));
+  ///   return 'Future complete';
   /// }
   ///
   /// final stream = Stream<Object>.fromFutures([waitTask(), doneTask()]);
-  /// stream.listen((event) => print(event),
-  ///     onDone: () => print('Done'), onError: (error) => print(error));
+  /// stream.listen(print, onDone: () => print('Done'), onError: print);
   ///
   /// // Outputs:
   /// // 10 after 'waitTask' finished.
@@ -431,7 +431,7 @@ abstract class Stream<T> {
   ///     Stream<int>.periodic(const Duration(
   ///         seconds: 1), (count) => count * count).take(5);
   ///
-  /// stream.listen(print); // Outputs event values 0,1,4,9,16.
+  /// stream.forEach(print); // Outputs event values 0,1,4,9,16.
   /// ```
   factory Stream.periodic(Duration period,
       [T computation(int computationCount)?]) {
@@ -569,14 +569,14 @@ abstract class Stream<T> {
   ///         .take(10);
   ///
   /// final broadcastStream = stream.asBroadcastStream(
-  ///   onCancel: (event) {
+  ///   onCancel: (controller) {
   ///     print('Stream cancelled');
-  ///     event.cancel();
+  ///     controller.cancel();
   ///   },
-  ///   onListen: (event) async {
+  ///   onListen: (controller) async {
   ///     await Future.delayed(const Duration(seconds: 3));
-  ///     event.pause();
-  ///     print('Stream paused: ${event.isPaused}');
+  ///     controller.pause();
+  ///     print('Stream paused: ${controller.isPaused}');
   ///    },
   /// );
   ///
@@ -856,15 +856,15 @@ abstract class Stream<T> {
   /// ```dart
   /// Stream.periodic(const Duration(seconds: 1), (count) {
   ///   if (count == 2) {
-  ///     throw Exception('custom error');
+  ///     throw Exception('Exceptional event');
   ///   }
   ///   return count;
-  /// }).take(4).handleError((error) => print(error)).listen(print);
+  /// }).take(4).handleError(print).forEach(print);
   ///
   /// // Outputs:
   /// // 0
   /// // 1
-  /// // Exception: custom error
+  /// // Exception: Exceptional event
   /// // 3
   /// // 4
   /// ```
@@ -1162,12 +1162,7 @@ abstract class Stream<T> {
   /// final result =
   ///     await Stream.periodic(const Duration(seconds: 1), (count) => count)
   ///         .take(15)
-  ///         .every((x) {
-  ///   if (x > 5) {
-  ///     return false;
-  ///   }
-  ///   return true;
-  /// });
+  ///         .every((x) => x <= 5);
   /// print(result); // false
   /// ```
   Future<bool> every(bool test(T element)) {
@@ -1386,7 +1381,7 @@ abstract class Stream<T> {
   /// final stream =
   ///     Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
   ///         .take(60);
-  /// stream.forEach(print); // Outputs events: 0, ... 59.
+  /// stream.forEach(print); // Outputs events: 0, ... X.
   /// ```
   Stream<T> take(int count) {
     return new _TakeStream<T>(this, count);
@@ -1416,8 +1411,8 @@ abstract class Stream<T> {
   /// Example:
   /// ```dart
   /// final stream = Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
-  ///     .takeWhile((event) => event < 6);
-  /// stream.forEach(print); // Outputs events 0 - 5.
+  ///     .takeWhile((event) => event < 60);
+  /// stream.forEach(print); // Outputs events: "0, ..., X".
   /// ```
   Stream<T> takeWhile(bool test(T element)) {
     return new _TakeWhileStream<T>(this, test);
@@ -1441,7 +1436,7 @@ abstract class Stream<T> {
   /// ```dart
   /// final stream =
   ///     Stream<int>.periodic(const Duration(seconds: 1), (i) => i).skip(7);
-  /// stream.forEach(print); // Outputs events after first 7.
+  /// stream.forEach(print); // Skips evens 0, ..., 6. Outputs events: 7, ...
   /// ```
   Stream<T> skip(int count) {
     return new _SkipStream<T>(this, count);
@@ -1469,7 +1464,7 @@ abstract class Stream<T> {
   /// final stream = Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
   ///     .take(10)
   ///     .skipWhile((x) => x < 5);
-  /// stream.listen(print); // Outputs events from 5 to 9
+  /// stream.listen(print); // Outputs events 5, ..., 9.
   /// ```
   Stream<T> skipWhile(bool test(T element)) {
     return new _SkipWhileStream<T>(this, test);
@@ -1733,6 +1728,10 @@ abstract class Stream<T> {
   /// print(result); // 12
   ///
   /// result = await Stream.fromIterable([2, 6, 8, 12, 24, 32])
+  ///     .singleWhere((element) => element % 9 == 0, orElse: () => -1);
+  /// print(result); // -1
+  ///
+  /// result = await Stream.fromIterable([2, 6, 8, 12, 24, 32])
   ///     .singleWhere((element) => element % 6 == 0, orElse: () => -1);
   /// // Throws.
   /// ```
@@ -1852,14 +1851,12 @@ abstract class Stream<T> {
   ///       const Duration(seconds: 4), () => 'Complete');
   /// }
   /// final stream = Stream<String>.fromFuture(waitTask())
-  ///     .timeout(const Duration(seconds: 2), onTimeout: (event) {
+  ///     .timeout(const Duration(seconds: 2), onTimeout: (controller) {
   ///   print('TimeOut occurred');
-  ///   event.close();
+  ///   controller.close();
   /// });
   ///
-  /// stream.listen((event) {
-  ///   print(event);
-  /// }, onDone: () => print('Done'));
+  /// stream.listen(print, onDone: () => print('Done'));
   ///
   /// // Outputs:
   /// // TimeOut occurred
@@ -1954,19 +1951,19 @@ abstract class Stream<T> {
 /// final stream = Stream.periodic(const Duration(seconds: 1), (i) => i * i)
 ///     .take(10);
 ///
-/// final subscription = stream.listen(print); // This is StreamSubscription.
+/// final subscription = stream.listen(print); // A StreamSubscription<int>.
 /// ```
 /// To pause the subscription, use [pause].
 /// ```dart continued
 /// // Do some work.
 /// subscription.pause();
-/// print(streamSubscription.isPaused); // true
+/// print(subscription.isPaused); // true
 /// ```
 /// To resume after the pause, use [resume].
 /// ```dart continued
 /// // Do some work.
 /// subscription.resume();
-/// print(streamSubscription.isPaused); // false
+/// print(subscription.isPaused); // false
 /// ```
 /// To cancel the subscription, use [cancel].
 /// ```dart continued
@@ -2548,7 +2545,7 @@ class _ControllerEventSinkWrapper<T> implements EventSink<T> {
 /// As with any synchronous event delivery, the sender should be very careful
 /// to not deliver events at times when a new listener might not
 /// be ready to receive them.
-/// That mostly means only delivering events synchronously in response to other
+/// That usually means only delivering events synchronously in response to other
 /// asynchronous events, because that is a time when an asynchronous event could
 /// happen.
 @Since("2.9")
