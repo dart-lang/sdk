@@ -376,6 +376,24 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    var outerScope = scope;
+
+    var element = node.declaredElement as SuperFormalParameterElementImpl;
+
+    scope = TypeParameterScope(scope, element.typeParameters);
+
+    // TODO(scheglov) More tests when the parse issue fixed.
+    // https://github.com/dart-lang/sdk/issues/47951
+    node.type?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
+    nodesToBuildType.addDeclaration(node);
+
+    scope = outerScope;
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     node.variables.accept(this);
   }

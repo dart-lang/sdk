@@ -842,6 +842,9 @@ class ParameterMember extends VariableMember
   bool get isInitializingFormal => declaration.isInitializingFormal;
 
   @override
+  bool get isSuperFormal => declaration.isSuperFormal;
+
+  @override
   String get name => declaration.name;
 
   @deprecated
