@@ -1443,66 +1443,75 @@ dart_ci_sandbox_builder(
 
 # dart2js
 dart_ci_sandbox_builder(
+    "dart2js-canary-x64",
+    category = "dart2js|c",
+    location_regexp = to_location_regexp(DART2JS_PATHS),
+    properties = union(CHROME, NO_ANDROID),
+)
+dart_ci_sandbox_builder(
     "dart2js-strong-hostasserts-linux-ia32-d8",
     category = "dart2js|d8|ha",
     location_regexp = to_location_regexp(DART2JS_PATHS),
+    properties = NO_ANDROID,
 )
 dart_ci_sandbox_builder(
     "dart2js-minified-strong-linux-x64-d8",
     category = "dart2js|d8|mi",
     location_regexp = to_location_regexp(DART2JS_PATHS),
+    properties = NO_ANDROID,
 )
 dart_ci_sandbox_builder(
     "dart2js-unit-linux-x64-release",
     category = "dart2js|d8|u",
     location_regexp = to_location_regexp(DART2JS_PATHS),
+    properties = NO_ANDROID,
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-linux-x64-chrome",
     category = "dart2js|chrome|l",
     location_regexp = to_location_regexp(DART2JS_PATHS),
-    properties = CHROME,
+    properties = union(CHROME, NO_ANDROID),
 )
 dart_ci_sandbox_builder(
     "dart2js-csp-minified-linux-x64-chrome",
     category = "dart2js|chrome|csp",
-    properties = CHROME,
+    properties = union(CHROME, NO_ANDROID),
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-mac-x64-chrome",
     category = "dart2js|chrome|m",
     dimensions = mac(),
-    properties = union(CHROME, PINNED_XCODE),
+    properties = union(CHROME, PINNED_XCODE, NO_ANDROID),
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-win-x64-chrome",
     category = "dart2js|chrome|w",
     dimensions = windows(),
-    properties = CHROME,
+    properties = union(CHROME, NO_ANDROID),
 )
 dart_ci_sandbox_builder(
     "dart2js-nnbd-linux-x64-chrome",
     category = "dart2js|chrome|nn",
     location_regexp = to_location_regexp(DART2JS_PATHS),
-    properties = CHROME,
+    properties = union(CHROME, NO_ANDROID),
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-linux-x64-firefox",
     category = "dart2js|firefox|l",
-    properties = FIREFOX,
+    properties = union(FIREFOX, NO_ANDROID),
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-win-x64-firefox",
     category = "dart2js|firefox|w",
     dimensions = windows(),
     enabled = False,
-    properties = FIREFOX,
+    properties = union(FIREFOX, NO_ANDROID),
 )
 dart_ci_sandbox_builder(
     "dart2js-strong-mac-x64-safari",
     category = "dart2js|safari|m",
     dimensions = mac(),
-    properties = PINNED_XCODE,
+    properties = union(PINNED_XCODE, NO_ANDROID),
 )
 
 # analyzer
