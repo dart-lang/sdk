@@ -50,6 +50,9 @@ class DillClassBuilder extends ClassBuilderImpl {
   DillLibraryBuilder get library => super.library as DillLibraryBuilder;
 
   @override
+  bool get isMacro => cls.isMacro;
+
+  @override
   List<TypeVariableBuilder>? get typeVariables {
     List<TypeVariableBuilder>? typeVariables = super.typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {

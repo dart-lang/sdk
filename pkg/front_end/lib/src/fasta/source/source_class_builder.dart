@@ -100,6 +100,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final IndexedClass? referencesFromIndexed;
 
+  @override
   final bool isMacro;
 
   SourceClassBuilder(
@@ -242,6 +243,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
+    cls.isMacro = isMacro;
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = checkSupertype(interfaceBuilders![i]);
