@@ -30,6 +30,7 @@ import 'add_ne_null_test.dart' as add_ne_null;
 import 'add_null_check_test.dart' as add_null_check;
 import 'add_override_test.dart' as add_override;
 import 'add_required_test.dart' as add_required;
+import 'add_return_null_test.dart' as add_return_null;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
@@ -234,6 +235,7 @@ void main() {
     add_null_check.main();
     add_override.main();
     add_required.main();
+    add_return_null.main();
     add_return_type.main();
     add_static.main();
     add_super_constructor_invocation.main();

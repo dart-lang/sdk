@@ -472,7 +472,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   void checkForBodyMayCompleteNormally({
-    required DartType? returnType,
     required FunctionBody body,
     required AstNode errorNode,
   }) {
@@ -481,6 +480,12 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       return;
     }
 
+    // TODO(scheglov) encapsulate
+    var bodyContext = BodyInferenceContext.of(body);
+    if (bodyContext == null) {
+      return null;
+    }
+    var returnType = bodyContext.contextType;
     if (returnType == null) {
       return;
     }
@@ -490,23 +495,58 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
         return;
       }
 
-      if (typeSystem.isPotentiallyNonNullable(returnType)) {
-        if (errorNode is ConstructorDeclaration) {
-          errorReporter.reportErrorForName(
-            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-            errorNode,
-          );
-        } else if (errorNode is BlockFunctionBody) {
-          errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-            errorNode.block.leftBracket,
-          );
-        } else {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-            errorNode,
-          );
+      if (body.isAsynchronous) {
+        // Check whether the return type is legal. If not, return rather than
+        // reporting a second error.
+
+        // This is the same check as [ReturnTypeVerifier._isLegalReturnType].
+        // TODO(srawlins): When this check is moved into the resolution stage,
+        // use the result of that check to determine whether this check should
+        // be done.
+        var lowerBound = typeProvider.futureElement.instantiate(
+          typeArguments: [NeverTypeImpl.instance],
+          nullabilitySuffix: NullabilitySuffix.star,
+        );
+        var imposedType = bodyContext.imposedType;
+        if (imposedType != null &&
+            !typeSystem.isSubtypeOf(lowerBound, imposedType)) {
+          // [imposedType] is an illegal return type for an asynchronous
+          // non-generator function; do not report an additional error here.
+          return;
         }
+      }
+
+      ErrorCode errorCode;
+      if (typeSystem.isPotentiallyNonNullable(returnType)) {
+        errorCode = CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY;
+      } else {
+        var returnTypeBase = typeSystem.futureOrBase(returnType);
+        if (returnTypeBase.isVoid ||
+            returnTypeBase.isDynamic ||
+            returnTypeBase.isDartCoreNull) {
+          return;
+        } else {
+          errorCode = HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
+        }
+      }
+      if (errorNode is ConstructorDeclaration) {
+        errorReporter.reportErrorForName(
+          errorCode,
+          errorNode,
+          arguments: [returnType],
+        );
+      } else if (errorNode is BlockFunctionBody) {
+        errorReporter.reportErrorForToken(
+          errorCode,
+          errorNode.block.leftBracket,
+          [returnType],
+        );
+      } else {
+        errorReporter.reportErrorForNode(
+          errorCode,
+          errorNode,
+          [returnType],
+        );
       }
     }
   }
@@ -1342,9 +1382,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     }
 
     if (node.factoryKeyword != null) {
-      var bodyContext = BodyInferenceContext.of(node.body);
       checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
         body: node.body,
         errorNode: node,
       );
@@ -1573,12 +1611,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     }
 
     if (!node.isSetter) {
-      // TODO(scheglov) encapsulate
-      var bodyContext = BodyInferenceContext.of(
-        node.functionExpression.body,
-      );
       checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
         body: node.functionExpression.body,
         errorNode: node.name,
       );
@@ -1804,10 +1837,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     }
 
     if (!node.isSetter) {
-      // TODO(scheglov) encapsulate
-      var bodyContext = BodyInferenceContext.of(node.body);
       checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
         body: node.body,
         errorNode: node.name,
       );
