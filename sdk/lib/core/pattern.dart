@@ -75,7 +75,7 @@ abstract class Match {
   /// ```dart import dart:convert
   ///
   /// final string = '[00:13.37] This is a chat message.';
-  /// final regExp = RegExp(r'^\[\s*([\d]+):([\d]+)\.([\d]+)\]\s*(.*)$');
+  /// final regExp = RegExp(r'^\[\s*(\d+):(\d+)\.(\d+)\]\s*(.*)$');
   /// final match = regExp.firstMatch(string)!;
   /// final message = jsonEncode(match[0]!); // '[00:13.37] This is a chat message.'
   /// final hours = jsonEncode(match[1]!); // '00'
@@ -99,7 +99,7 @@ abstract class Match {
   /// ```dart import dart:convert
   ///
   /// final string = '[00:13.37] This is a chat message.';
-  /// final regExp = RegExp(r'^\[\s*([\d]+):([\d]+)\.([\d]+)\]\s*(.*)$');
+  /// final regExp = RegExp(r'^\[\s*(\d+):(\d+)\.(\d+)\]\s*(.*)$');
   /// final match = regExp.firstMatch(string)!;
   /// final message = jsonEncode(match.groups([1, 2, 3, 4]));
   /// // ['00','13','37','This is a chat message.']
