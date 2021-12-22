@@ -1543,9 +1543,9 @@ library
         constructors
           @12
             parameters
-              requiredName a @28
+              requiredNamed a @28
                 type: int
-              requiredName b @47
+              requiredNamed b @47
                 type: double
       class B @61
         supertype: A
@@ -1584,7 +1584,7 @@ library
         constructors
           @12
             parameters
-              requiredName a @28
+              requiredNamed a @28
                 type: int
       class B @42
         supertype: A
@@ -1662,23 +1662,23 @@ library
         constructors
           @12
             parameters
-              requiredName a @28
+              requiredNamed a @28
                 type: int
-              requiredName b @47
+              requiredNamed b @47
                 type: double
       class B @61
         supertype: A
         constructors
           @77
             parameters
-              requiredName o1 @101
+              requiredNamed o1 @101
                 type: String
-              requiredName final super.a @124
+              requiredNamed final super.a @124
                 type: int
                 superConstructorParameter: self::@class::A::@constructor::•::@parameter::a
-              requiredName o2 @147
+              requiredNamed o2 @147
                 type: String
-              requiredName final super.b @170
+              requiredNamed final super.b @170
                 type: double
                 superConstructorParameter: self::@class::A::@constructor::•::@parameter::b
             superConstructor: self::@class::A::@constructor::•
@@ -27693,7 +27693,7 @@ library
     functions
       f @5
         parameters
-          requiredName f @22
+          requiredNamed f @22
             type: void Function<U>(int)
             typeParameters
               covariant U @24

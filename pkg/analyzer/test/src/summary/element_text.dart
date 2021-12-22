@@ -632,7 +632,7 @@ class _ElementWriter {
       } else if (e.isOptionalPositional) {
         buffer.write('optionalPositional ');
       } else if (e.isRequiredNamed) {
-        buffer.write('requiredName ');
+        buffer.write('requiredNamed ');
       } else if (e.isOptionalNamed) {
         buffer.write('optionalNamed ');
       }
