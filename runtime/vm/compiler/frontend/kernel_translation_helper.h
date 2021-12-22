@@ -716,6 +716,7 @@ class ClassHelper {
     kIsEliminatedMixin = 1 << 3,
     kFlagMixinDeclaration = 1 << 4,
     kHasConstConstructor = 1 << 5,
+    kIsMacro = 1 << 6,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)
