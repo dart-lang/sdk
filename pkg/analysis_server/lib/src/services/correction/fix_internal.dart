@@ -25,7 +25,6 @@ import 'package:analysis_server/src/services/correction/dart/add_null_check.dart
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
-import 'package:analysis_server/src/services/correction/dart/add_return_null.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_static.dart';
 import 'package:analysis_server/src/services/correction/dart/add_super_constructor_invocation.dart';
@@ -1078,9 +1077,6 @@ class FixProcessor extends BaseProcessor {
       MakeReturnTypeNullable.newInstance,
     ],
 
-    HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
-      AddReturnNull.newInstance,
-    ],
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
       ReplaceWithNullAware.inChain,
     ],

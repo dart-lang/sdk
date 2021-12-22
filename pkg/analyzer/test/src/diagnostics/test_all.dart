@@ -41,8 +41,6 @@ import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
 import 'await_in_wrong_context_test.dart' as await_in_wrong_context;
 import 'binary_operator_written_out_test.dart' as binary_operator_written_out;
-import 'body_might_complete_normally_nullable_test.dart'
-    as body_might_complete_normally_nullable;
 import 'body_might_complete_normally_test.dart' as body_might_complete_normally;
 import 'built_in_identifier_as_extension_name_test.dart'
     as built_in_as_extension_name;
@@ -753,7 +751,6 @@ main() {
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();
     binary_operator_written_out.main();
-    body_might_complete_normally_nullable.main();
     body_might_complete_normally.main();
     built_in_as_extension_name.main();
     built_in_as_prefix_name.main();

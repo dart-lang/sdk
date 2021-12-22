@@ -213,16 +213,6 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Add 'required' keywords everywhere in file",
   );
-  static const ADD_RETURN_NULL = FixKind(
-    'dart.fix.add.returnNull',
-    DartFixKindPriority.DEFAULT,
-    "Add 'return null'",
-  );
-  static const ADD_RETURN_NULL_MULTI = FixKind(
-    'dart.fix.add.returnNull.multi',
-    DartFixKindPriority.IN_FILE,
-    "Add 'return null' everywhere in file",
-  );
   static const ADD_RETURN_TYPE = FixKind(
     'dart.fix.add.returnType',
     DartFixKindPriority.DEFAULT,

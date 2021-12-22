@@ -1115,15 +1115,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // }
   // ```
   //
-  // If the method intentionally returns `null` at the end, then add an
-  // explicit return of `null` at the end of the method and change the
+  // If the method intentionally returns `null` at the end, then change the
   // return type so that it's valid to return `null`:
   //
   // ```dart
   // class C<T> {
   //   T? m(T t) {
   //     print(t);
-  //     return null;
   //   }
   // }
   // ```
@@ -1131,7 +1129,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
     'BODY_MIGHT_COMPLETE_NORMALLY',
     "The body might complete normally, causing 'null' to be returned, but the "
-        "return type, '{0}', is a potentially non-nullable type.",
+        "return type is a potentially non-nullable type.",
     correctionMessage:
         "Try adding either a return or a throw statement at the end.",
     hasPublishedDocs: true,

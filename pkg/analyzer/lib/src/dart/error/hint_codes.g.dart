@@ -91,19 +91,6 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   /**
-   * Parameters:
-   * 0: the name of the declared return type
-   */
-  static const HintCode BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE = HintCode(
-    'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
-    "This function has a nullable return type of '{0}', but ends without "
-        "returning a value.",
-    correctionMessage:
-        "Try adding a return statement, or if no value is ever returned, try "
-        "changing the return type to 'void'.",
-  );
-
-  /**
    * When the target expression uses '?.' operator, it can be `null`, so all the
    * subsequent invocations should also use '?.' operator.
    */

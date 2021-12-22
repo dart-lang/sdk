@@ -1323,7 +1323,7 @@ Future<int> f() async {
 ### body_might_complete_normally
 
 _The body might complete normally, causing 'null' to be returned, but the return
-type, '{0}', is a potentially non-nullable type._
+type is a potentially non-nullable type._
 
 #### Description
 
@@ -1384,15 +1384,13 @@ class C<T> {
 }
 {% endprettify %}
 
-If the method intentionally returns `null` at the end, then add an
-explicit return of `null` at the end of the method and change the
+If the method intentionally returns `null` at the end, then change the
 return type so that it's valid to return `null`:
 
 {% prettify dart tag=pre+code %}
 class C<T> {
   T? m(T t) {
     print(t);
-    return null;
   }
 }
 {% endprettify %}
