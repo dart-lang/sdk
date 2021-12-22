@@ -36,27 +36,28 @@ typedef FutureOr<void> ControllerCancelCallback();
 /// );
 ///
 /// streamController.stream.listen(
-///   (event) => print('Event:  $event'),
+///   (event) => print('Event: $event'),
 ///   onDone: () => print('Done'),
 ///   onError: (error) => print(error),
 /// );
 /// ```
-/// To check if there is a subscriber on the stream, use [hasListener].
+/// To check whether there is a subscriber on the stream, use [hasListener].
 /// ```dart continued
 /// var hasListener = streamController.hasListener; // true
 /// ```
-/// To send data event to the stream, use [add] or [addStream].
+/// To send data events to the stream, use [add] or [addStream].
 /// ```dart continued
 /// streamController.add(999);
 /// final stream = Stream<int>.periodic(
 ///     const Duration(milliseconds: 200), (count) => count * count).take(4);
 /// await streamController.addStream(stream);
 /// ```
-/// To send an error event to the stream, use [addError].
+/// To send an error event to the stream, use [addError] or [addStream].
 /// ```dart continued
-/// streamController.addError(Exception('Error 101'));
+/// streamController.addError(Exception('Issue 101'));
+/// await streamController.addStream(Stream.error(Exception('Issue 404')));
 /// ```
-/// To check if the stream is closed, use [isClosed].
+/// To check whether the stream is closed, use [isClosed].
 /// ```dart continued
 /// var isClosed = streamController.isClosed; // false
 /// ```
