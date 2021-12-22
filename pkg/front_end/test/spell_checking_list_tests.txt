@@ -675,6 +675,8 @@ misses
 misspelled
 mistake
 mistakes
+mixin1
+mixin2
 mmethod
 mod
 modelled

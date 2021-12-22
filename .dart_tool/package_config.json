@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-12-16T12:51:36.232645",
+  "generated": "2021-12-10T17:31:54.553345",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -370,6 +370,12 @@
       "rootUri": "../third_party/pkg/http_parser",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "intl",
+      "rootUri": "../third_party/pkg/intl",
+      "packageUri": "lib/",
+      "languageVersion": "2.11"
     },
     {
       "name": "js",

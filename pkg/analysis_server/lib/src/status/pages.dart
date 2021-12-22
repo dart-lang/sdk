@@ -7,8 +7,6 @@ import 'dart:io';
 
 String escape(String? text) => text == null ? '' : htmlEscape.convert(text);
 
-String printInteger(int value) => '$value';
-
 String printMilliseconds(int value) => '$value ms';
 
 String printPercentage(num value, [int fractionDigits = 1]) =>

@@ -14,7 +14,7 @@ import 'dart:io' show File, Platform;
 
 import 'package:expect/expect.dart';
 import 'package:path/path.dart' as path;
-import 'snapshot_test_helper.dart';
+import 'use_flag_test_helper.dart';
 
 verifyObjectLayout(String path) {
   final classes = jsonDecode(File(path).readAsStringSync());
@@ -45,7 +45,7 @@ verifyObjectLayout(String path) {
 
   Expect.isNotNull(sizeB);
   Expect.isTrue(sizeB > 0);
-  Expect.isTrue(sizeA < sizeB);
+  Expect.isTrue(sizeA <= sizeB);
   Expect.isTrue(fieldsB.length == 3);
   for (var field in fieldsB) {
     String fieldName = field['field'];
@@ -61,28 +61,38 @@ verifyObjectLayout(String path) {
 }
 
 main() async {
-  // We don't have access to the SDK on Android.
+  if (!isAOTRuntime) {
+    return; // Running in JIT: AOT binaries not available.
+  }
+
   if (Platform.isAndroid) {
-    print('Skipping test on Android');
-    return;
+    return; // SDK tree not available on the test device.
+  }
+
+  // These are the tools we need to be available to run on a given platform:
+  if (!File(platformDill).existsSync()) {
+    throw "Cannot run test as $platformDill does not exist";
+  }
+  if (!await testExecutable(genSnapshot)) {
+    throw "Cannot run test as $genSnapshot not available";
   }
 
   final testScriptUri =
       Platform.script.resolve('print_object_layout_script.dart');
 
-  await withTempDir((String temp) async {
+  await withTempDir('print-object-layout-test', (String temp) async {
     final appDillPath = path.join(temp, 'app.dill');
     final snapshotPath = path.join(temp, 'aot.snapshot');
     final objectLayoutPath = path.join(temp, 'layout.json');
 
-    await runGenKernel('BUILD DILL FILE', [
+    await run(genKernel, <String>[
       '--aot',
-      '--link-platform',
+      '--platform=$platformDill',
       '--output=$appDillPath',
       testScriptUri.toFilePath(),
     ]);
 
-    await runGenSnapshot('GENERATE SNAPSHOT', [
+    await run(genSnapshot, <String>[
       '--snapshot-kind=app-aot-elf',
       '--elf=$snapshotPath',
       '--print-object-layout-to=$objectLayoutPath',

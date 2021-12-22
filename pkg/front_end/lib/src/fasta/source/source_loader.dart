@@ -35,7 +35,6 @@ import '../../api_prototype/file_system.dart';
 import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
-import '../dill/dill_class_builder.dart';
 import '../dill/dill_library_builder.dart';
 import '../builder_graph.dart';
 import '../builder/builder.dart';
@@ -1324,36 +1323,8 @@ severity: $severity
     Set<ClassBuilder> macroClasses = {macroClassBuilder};
     Set<Uri> macroLibraries = {macroLibraryBuilder.importUri};
 
-    bool isMacroClass(TypeDeclarationBuilder? typeDeclarationBuilder) {
-      if (typeDeclarationBuilder == null) return false;
-      while (typeDeclarationBuilder is TypeAliasBuilder) {
-        typeDeclarationBuilder =
-            typeDeclarationBuilder.unaliasDeclaration(null);
-      }
-      if (typeDeclarationBuilder is ClassBuilder) {
-        if (macroClasses.contains(typeDeclarationBuilder)) return true;
-        if (typeDeclarationBuilder is DillClassBuilder) {
-          // TODO(johnniwinther): Recognize macro classes from dill.
-        }
-      }
-      return false;
-    }
-
     for (SourceClassBuilder sourceClassBuilder in sourceClassBuilders) {
-      bool isMacro =
-          isMacroClass(sourceClassBuilder.supertypeBuilder?.declaration);
-      if (!isMacro && sourceClassBuilder.interfaceBuilders != null) {
-        for (TypeBuilder interfaceBuilder
-            in sourceClassBuilder.interfaceBuilders!) {
-          if (isMacroClass(interfaceBuilder.declaration)) {
-            isMacro = true;
-            break;
-          }
-        }
-      }
-      isMacro = isMacro ||
-          isMacroClass(sourceClassBuilder.mixedInTypeBuilder?.declaration);
-      if (isMacro) {
+      if (sourceClassBuilder.isMacro) {
         macroClasses.add(sourceClassBuilder);
         macroLibraries.add(sourceClassBuilder.library.importUri);
         if (retainDataForTesting) {
