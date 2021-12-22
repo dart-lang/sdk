@@ -62,10 +62,18 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.initializer is FunctionExpression) {
       var function = node.thisOrAncestorOfType<FunctionBody>();
       var declaredElement = node.declaredElement;
-      if (function == null ||
-          (declaredElement != null &&
-              !function.isPotentiallyMutatedInScope(declaredElement))) {
-        rule.reportLint(node);
+      if (function == null) {
+        // When there is no enclosing function body, this is a variable
+        // definition for a field or a top-level variable, which should only
+        // be reported if final.
+        if (node.isFinal) {
+          rule.reportLint(node);
+        }
+      } else {
+        if (declaredElement != null &&
+            !function.isPotentiallyMutatedInScope(declaredElement)) {
+          rule.reportLint(node);
+        }
       }
     }
   }
