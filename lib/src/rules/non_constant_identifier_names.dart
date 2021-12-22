@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../util/ascii_utils.dart';
 import '../utils.dart';
 
 const _desc = r'Name non-constant identifiers using lowerCamelCase.';
@@ -63,7 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (id == null) {
       return;
     }
-    if (underscoresOk && isJustUnderscores(id.name)) {
+    if (underscoresOk && id.name.isJustUnderscores) {
       // For example, `___` is OK in a callback.
       return;
     }

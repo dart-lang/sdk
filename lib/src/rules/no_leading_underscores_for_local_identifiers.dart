@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../util/ascii_utils.dart';
 import '../utils.dart';
 
 const _desc = r'Avoid leading underscores for local identifiers.';
@@ -81,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!hasLeadingUnderscore(id.name)) {
       return;
     }
-    if (isJustUnderscoresOK && isJustUnderscores(id.name)) {
+    if (isJustUnderscoresOK && id.name.isJustUnderscores) {
       return;
     }
     rule.reportLint(id);

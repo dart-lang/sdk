@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../utils.dart';
+import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid empty catch blocks.';
 
@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Skip exceptions named with underscores.
     var exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null &&
-        isJustUnderscores(exceptionParameter.name)) {
+        exceptionParameter.name.isJustUnderscores) {
       return;
     }
 

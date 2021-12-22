@@ -41,8 +41,6 @@ final _lowerCaseUnderScoreWithLeadingUnderscores =
 
 final _pubspec = RegExp(r'^_?pubspec\.yaml$');
 
-final _underscores = RegExp(r'^_+$');
-
 // A library prefix here is defined as:
 // * An optional leading `?`,
 // * then any number of underscores, `_`,
@@ -61,9 +59,6 @@ bool isDartFileName(String fileName) => fileName.endsWith('.dart');
 
 /// Returns `true` if this [name] is a legal Dart identifier.
 bool isIdentifier(String name) => _identifier.hasMatch(name);
-
-/// Returns `true` of the given [name] is composed only of `_`s.
-bool isJustUnderscores(String name) => _underscores.hasMatch(name);
 
 /// Returns `true` if this [id] is `lowerCamelCase`.
 bool isLowerCamelCase(String id) =>

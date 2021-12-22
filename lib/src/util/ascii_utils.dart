@@ -58,3 +58,25 @@ bool isValidDartFileName(String name) {
   }
   return true;
 }
+
+extension StringExtensions on String {
+  /// Returns whether `this` is just underscores.
+  bool get isJustUnderscores {
+    if (isEmpty) {
+      return false;
+    }
+    switch (length) {
+      case 1:
+        return this == '_';
+      case 2:
+        return this == '__';
+      default:
+        for (var i = 0; i < length; i++) {
+          if (!isUnderScore(codeUnitAt(i))) {
+            return false;
+          }
+        }
+        return true;
+    }
+  }
+}

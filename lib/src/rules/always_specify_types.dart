@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../utils.dart';
+import '../util/ascii_utils.dart';
 
 const _desc = r'Specify type annotations.';
 
@@ -130,7 +130,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var identifier = param.identifier;
     if (identifier != null &&
         param.type == null &&
-        !isJustUnderscores(identifier.name)) {
+        !identifier.name.isJustUnderscores) {
       if (param.keyword != null) {
         rule.reportLintForToken(param.keyword);
       } else {

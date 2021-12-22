@@ -23,6 +23,33 @@ void main() {
       }
     });
   });
+
+  group('isJustUnderscores', () {
+    test(
+      'empty is not',
+      () => expect(''.isJustUnderscores, isFalse),
+    );
+
+    test(
+      'non-underscore is not',
+      () => expect('A'.isJustUnderscores, isFalse),
+    );
+
+    test(
+      'one underscore is',
+      () => expect('_'.isJustUnderscores, isTrue),
+    );
+
+    test(
+      'multiple underscores is',
+      () => expect('___'.isJustUnderscores, isTrue),
+    );
+
+    test(
+      'underscores followed by non-underscores is not',
+      () => expect('__x'.isJustUnderscores, isFalse),
+    );
+  });
 }
 
 final badFileNames = [
