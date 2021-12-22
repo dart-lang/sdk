@@ -21,10 +21,10 @@ abstract class Pattern {
   /// at least one position later than the *start* of the previous
   /// match, in case the pattern matches an empty substring).
   /// ```dart
-  /// RegExp exp = RegExp(r"(\w+)");
-  /// String str = "Dash is a bird";
+  /// RegExp exp = RegExp(r'(\w+)');
+  /// var str = 'Dash is a bird';
   /// Iterable<Match> matches = exp.allMatches(str, 8);
-  /// for (Match m in matches) {
+  /// for (final Match m in matches) {
   ///   String match = m[0]!;
   ///   print(match);
   /// }
@@ -48,11 +48,9 @@ abstract class Pattern {
   ///
   /// var regExp = RegExp(r'bird');
   /// var match = regExp.matchAsPrefix(string, 10); // Match found.
-  /// print(match != null); // true
   ///
   /// regExp = RegExp(r'Cat');
   /// match = regExp.matchAsPrefix(string); // null
-  /// print(match != null); // false
   /// ```
   Match? matchAsPrefix(String string, [int start = 0]);
 }
