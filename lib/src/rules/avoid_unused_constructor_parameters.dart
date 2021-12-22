@@ -79,12 +79,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.redirectedConstructor != null) return;
     if (node.externalKeyword != null) return;
 
-    var _constructorVisitor = _ConstructorVisitor(rule, node);
-    node.body.visitChildren(_constructorVisitor);
+    var constructorVisitor = _ConstructorVisitor(rule, node);
+    node.body.visitChildren(constructorVisitor);
     for (var i in node.initializers) {
-      i.visitChildren(_constructorVisitor);
+      i.visitChildren(constructorVisitor);
     }
 
-    _constructorVisitor.unusedParameters.forEach(rule.reportLint);
+    constructorVisitor.unusedParameters.forEach(rule.reportLint);
   }
 }

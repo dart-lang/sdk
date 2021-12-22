@@ -45,6 +45,8 @@ linter:
 #    - lines_longer_than_80_chars # under review (see #1068)
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
+    - no_leading_underscores_for_library_prefixes
+    - no_leading_underscores_for_local_identifiers
     - noop_primitive_operations
 #    - one_member_abstracts
     - only_throw_errors
