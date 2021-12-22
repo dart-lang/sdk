@@ -11,11 +11,11 @@
 
 import 'package:macro_builder/macro_builder.dart';
 
-class Macro1 implements Macro {
+macro class Macro1 implements Macro {
   const Macro1();
 }
 
-class Macro2 implements Macro {
+macro class Macro2 implements Macro {
   const Macro2();
 }
 

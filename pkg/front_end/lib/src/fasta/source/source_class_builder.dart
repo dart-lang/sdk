@@ -100,26 +100,29 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final IndexedClass? referencesFromIndexed;
 
+  final bool isMacro;
+
   SourceClassBuilder(
-    List<MetadataBuilder>? metadata,
-    int modifiers,
-    String name,
-    List<TypeVariableBuilder>? typeVariables,
-    TypeBuilder? supertype,
-    List<TypeBuilder>? interfaces,
-    List<TypeBuilder>? onTypes,
-    Scope scope,
-    ConstructorScope constructors,
-    SourceLibraryBuilder parent,
-    this.constructorReferences,
-    int startCharOffset,
-    int nameOffset,
-    int charEndOffset,
-    this.referencesFromIndexed, {
-    Class? cls,
-    this.mixedInTypeBuilder,
-    this.isMixinDeclaration = false,
-  })  : actualCls = initializeClass(cls, typeVariables, name, parent,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      String name,
+      List<TypeVariableBuilder>? typeVariables,
+      TypeBuilder? supertype,
+      List<TypeBuilder>? interfaces,
+      List<TypeBuilder>? onTypes,
+      Scope scope,
+      ConstructorScope constructors,
+      SourceLibraryBuilder parent,
+      this.constructorReferences,
+      int startCharOffset,
+      int nameOffset,
+      int charEndOffset,
+      this.referencesFromIndexed,
+      {Class? cls,
+      this.mixedInTypeBuilder,
+      this.isMixinDeclaration = false,
+      this.isMacro: false})
+      : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             onTypes, scope, constructors, parent, nameOffset) {

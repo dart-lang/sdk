@@ -1764,7 +1764,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int startOffset,
       int nameOffset,
       int endOffset,
-      int supertypeOffset) {
+      int supertypeOffset,
+      {required bool isMacro}) {
     _addClass(
         TypeParameterScopeKind.classDeclaration,
         metadata,
@@ -1776,7 +1777,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         startOffset,
         nameOffset,
         endOffset,
-        supertypeOffset);
+        supertypeOffset,
+        isMacro: isMacro);
   }
 
   void addMixinDeclaration(
@@ -1801,7 +1803,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         startOffset,
         nameOffset,
         endOffset,
-        supertypeOffset);
+        supertypeOffset,
+        isMacro: false);
   }
 
   void _addClass(
@@ -1815,7 +1818,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int startOffset,
       int nameOffset,
       int endOffset,
-      int supertypeOffset) {
+      int supertypeOffset,
+      {required bool isMacro}) {
     _checkBadFunctionDeclUse(className, kind, nameOffset);
     _checkBadFunctionParameter(typeVariables);
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
@@ -1853,7 +1857,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeVariables,
         applyMixins(supertype, startOffset, nameOffset, endOffset, className,
             isMixinDeclaration,
-            typeVariables: typeVariables),
+            typeVariables: typeVariables, isMacro: false),
         interfaces,
         // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
         // here.
@@ -1866,7 +1870,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         nameOffset,
         endOffset,
         _currentClassReferencesFromIndexed,
-        isMixinDeclaration: isMixinDeclaration);
+        isMixinDeclaration: isMixinDeclaration,
+        isMacro: isMacro);
 
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
@@ -2126,7 +2131,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String? name,
       List<TypeVariableBuilder>? typeVariables,
       int modifiers: 0,
-      List<TypeBuilder>? interfaces}) {
+      List<TypeBuilder>? interfaces,
+      required bool isMacro}) {
     if (name == null) {
       // The following parameters should only be used when building a named
       // mixin application.
@@ -2318,34 +2324,34 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
 
         SourceClassBuilder application = new SourceClassBuilder(
-          isNamedMixinApplication ? metadata : null,
-          isNamedMixinApplication
-              ? modifiers | namedMixinApplicationMask
-              : abstractMask,
-          fullname,
-          applicationTypeVariables,
-          isMixinDeclaration ? null : supertype,
-          isNamedMixinApplication
-              ? interfaces
-              : isMixinDeclaration
-                  ? [supertype, mixin]
-                  : null,
-          null, // No `on` clause types.
-          new Scope(
-              local: <String, MemberBuilder>{},
-              setters: <String, MemberBuilder>{},
-              parent: scope.withTypeVariables(typeVariables),
-              debugName: "mixin $fullname ",
-              isModifiable: false),
-          new ConstructorScope(fullname, <String, MemberBuilder>{}),
-          this,
-          <ConstructorReferenceBuilder>[],
-          computedStartCharOffset,
-          charOffset,
-          charEndOffset,
-          referencesFromIndexedClass,
-          mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
-        );
+            isNamedMixinApplication ? metadata : null,
+            isNamedMixinApplication
+                ? modifiers | namedMixinApplicationMask
+                : abstractMask,
+            fullname,
+            applicationTypeVariables,
+            isMixinDeclaration ? null : supertype,
+            isNamedMixinApplication
+                ? interfaces
+                : isMixinDeclaration
+                    ? [supertype, mixin]
+                    : null,
+            null, // No `on` clause types.
+            new Scope(
+                local: <String, MemberBuilder>{},
+                setters: <String, MemberBuilder>{},
+                parent: scope.withTypeVariables(typeVariables),
+                debugName: "mixin $fullname ",
+                isModifiable: false),
+            new ConstructorScope(fullname, <String, MemberBuilder>{}),
+            this,
+            <ConstructorReferenceBuilder>[],
+            computedStartCharOffset,
+            charOffset,
+            charEndOffset,
+            referencesFromIndexedClass,
+            mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
+            isMacro: isNamedMixinApplication && isMacro);
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
@@ -2372,7 +2378,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<TypeBuilder>? interfaces,
       int startCharOffset,
       int charOffset,
-      int charEndOffset) {
+      int charEndOffset,
+      {required bool isMacro}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
         .resolveNamedTypes(typeVariables, this);
@@ -2382,7 +2389,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         name: name,
         typeVariables: typeVariables,
         modifiers: modifiers,
-        interfaces: interfaces)!;
+        interfaces: interfaces,
+        isMacro: isMacro)!;
     checkTypeVariables(typeVariables, supertype.declaration);
   }
 

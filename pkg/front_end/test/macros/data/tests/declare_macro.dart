@@ -12,6 +12,6 @@
 
 import 'package:macro_builder/macro_builder.dart';
 
-class MyMacro implements Macro {}
+macro class MyMacro implements Macro {}
 
 void main() {}
