@@ -336,8 +336,8 @@ abstract class Future<T> {
   ///
   /// Example:
   /// ```dart
-  /// Future<int> getFuture() async {
-  ///  return await Future<int>.value(2021);
+  /// Future<int> getFuture() {
+  ///  return Future<int>.value(2021);
   /// }
   ///
   /// final result = await getFuture();
@@ -359,8 +359,8 @@ abstract class Future<T> {
   ///
   /// Example:
   /// ```dart
-  /// Future<int> getFuture() async {
-  ///  return Future.error(Exception('error')); // Throws.
+  /// Future<int> getFuture() {
+  ///  return Future.error(Exception('Issue')); // Throws.
   /// }
   ///
   /// final error = await getFuture();
@@ -406,7 +406,7 @@ abstract class Future<T> {
   /// Example:
   /// ```dart
   /// Future.delayed(const Duration(seconds: 1), () {
-  ///   print('One second has passed.'); // After 1 second this is printed.
+  ///   print('One second has passed.'); // Prints after 1 second.
   /// });
   /// ```
   factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
@@ -460,16 +460,18 @@ abstract class Future<T> {
   /// Example:
   /// ```dart
   /// void main() async {
-  ///   var value = await Future.wait([getFuture1(), getFuture2()]);
+  ///   var value = await Future.wait([delayedNumber(), delayedString()]);
   ///   print(value); // [2, result]
   /// }
   ///
-  /// Future<int> getFuture1() async {
-  ///   return await Future.delayed(const Duration(seconds: 2), () => 2);
+  /// Future<int> delayedNumber() async {
+  ///   await Future.delayed(const Duration(seconds: 2));
+  ///   return 2;
   /// }
   ///
-  /// Future<String> getFuture2() async {
-  ///   return await Future.delayed(const Duration(seconds: 4), () => 'result');
+  /// Future<String> delayedString() async {
+  ///   await Future.delayed(const Duration(seconds: 2));
+  ///   return 'result';
   /// }
   /// ```
   @pragma("vm:recognized", "other")
@@ -585,20 +587,23 @@ abstract class Future<T> {
   /// ```dart
   /// void main() async {
   ///   final result =
-  ///       await Future.any([getFuture1(), getFuture2(), getFuture3()]);
-  ///   // getFuture3 is finished first, others are discarded.
+  ///       await Future.any([slowInt(), delayedString(), fastInt()]);
+  ///   // The future of fastInt is finished first, others are ignored.
   ///   print(result); // 3
   /// }
-  /// Future<int> getFuture1() async {
-  ///   return await Future.delayed(const Duration(seconds: 10), () => 2);
+  /// Future<int> slowInt() async {
+  ///   await Future.delayed(const Duration(seconds: 2));
+  ///   return 2;
   /// }
   ///
-  /// Future<String> getFuture2() async {
-  ///   return await Future.delayed(const Duration(seconds: 5), () => 'result');
+  /// Future<String> delayedString() async {
+  ///   await Future.delayed(const Duration(seconds: 2));
+  ///   return 'result';
   /// }
   ///
-  /// Future<int> getFuture3() async {
-  ///   return await Future.delayed(const Duration(seconds: 1), () => 3);
+  /// Future<int> fastInt() async {
+  ///   await Future.delayed(const Duration(seconds: 1));
+  ///   return  3;
   /// }
   /// ```
   static Future<T> any<T>(Iterable<Future<T>> futures) {
@@ -675,13 +680,13 @@ abstract class Future<T> {
   ///     value++;
   ///     await Future.delayed(const Duration(seconds: 1));
   ///     if (value == 3) {
-  ///       print('finished to $value');
+  ///       print('Finished with $value');
   ///       return false;
   ///     }
   ///   return true;
   ///   });
   /// }
-  /// // Outputs: 'finished to 3'
+  /// // Outputs: 'Finished with 3'
   /// ```
   static Future doWhile(FutureOr<bool> action()) {
     _Future<void> doneSignal = new _Future<void>();
@@ -798,20 +803,20 @@ abstract class Future<T> {
   /// ```dart
   /// Future.delayed(
   ///   const Duration(seconds: 1),
-  ///   () => throw '401',
+  ///   () => throw 401,
   /// ).then((value) {
   ///   print('do something with result');
   /// }).catchError((err) {
-  ///   print('Error: $err');
+  ///   print('Error: $err'); // Prints 401.
   /// }, test: (error) {
-  ///   return error as int >= 400;
+  ///   return error is int && error >= 400;
   /// });
   /// ```
   // The `Function` below stands for one of two types:
   // - (dynamic) -> FutureOr<T>
   // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
-  // `isCheck` we should also expect functions that take a specific argument.
+  // `is` check, we should also expect functions that take a specific argument.
   Future<T> catchError(Function onError, {bool test(Object error)?});
 
   /// Registers a function to be called when this future completes.
@@ -851,12 +856,12 @@ abstract class Future<T> {
   /// Example:
   /// ```dart
   /// void main() async {
-  ///   await Future.value(
-  ///       waitTask().whenComplete(() => print('do some work here')));
+  ///   waitTask().whenComplete(() => print('do some work here'));
   /// }
+  ///
   /// Future<String> waitTask() async {
-  ///   return await Future.delayed(
-  ///       const Duration(seconds: 5), () => 'done');
+  ///   await Future.delayed(const Duration(seconds: 5));
+  ///   return 'done';
   /// }
   /// // Outputs: 'do some work here' after waitTask is completed.
   /// ```
@@ -887,21 +892,21 @@ abstract class Future<T> {
   /// Example:
   /// ```dart
   /// void main() async {
-  ///   var result = await Future.value(waitTask()
-  ///       .timeout(const Duration(seconds: 10)));
+  ///   var result = await waitTask()
+  ///       .timeout(const Duration(seconds: 10));
   ///   print(result); // 'completed'
   ///
-  ///   result = await Future.value(waitTask()
-  ///       .timeout(const Duration(seconds: 1), onTimeout: () => 'timeout'));
+  ///   result = await waitTask()
+  ///       .timeout(const Duration(seconds: 1), onTimeout: () => 'timeout');
   ///   print(result); // 'timeout'
   ///
-  ///   result = await Future.value(waitTask()
-  ///       .timeout(const Duration(seconds: 2))); // Throws.
+  ///   result = await waitTask()
+  ///       .timeout(const Duration(seconds: 2)); // Throws.
   /// }
   ///
   /// Future<String> waitTask() async {
-  ///   return await Future.delayed(
-  ///       const Duration(seconds: 5), () => 'completed');
+  ///   await Future.delayed(const Duration(seconds: 5));
+  ///   return 'completed';
   /// }
   /// ```
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?});
