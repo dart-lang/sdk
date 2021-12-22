@@ -412,7 +412,7 @@ abstract class num implements Comparable<num> {
   /// var result = 10.5.clamp(5, 10.0); // 10.0
   /// result = 0.75.clamp(5, 10.0); // 5
   /// result = (-10).clamp(-5, 5.0); // -5
-  /// result = (-0).clamp(-5, 5.0); // 0
+  /// result = (-0.0).clamp(-5, 5.0); // -0.0
   /// ```
   num clamp(num lowerLimit, num upperLimit);
 
