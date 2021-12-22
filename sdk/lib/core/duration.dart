@@ -235,7 +235,7 @@ class Duration implements Comparable<Duration> {
   /// The number of entire days spanned by this [Duration].
   ///
   /// For example, a duration of four days and three hours
-  /// has 4 entire days.
+  /// has four entire days.
   /// ```dart
   /// const duration = Duration(days: 4, hours: 3);
   /// print(duration.inDays); // 4
