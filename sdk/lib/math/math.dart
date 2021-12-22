@@ -10,11 +10,11 @@
 /// ```
 ///
 /// ## Random
-/// [Random] is a generator of bool, int or double values.
+/// [Random] is a generator of [bool], [int] or [double] values.
 /// ```dart
-/// var intValue = Random().nextInt(10); // Value between 0 - 9.
-/// var doubleValue = Random().nextDouble(); // Value is >= 0.0 and < 1.0
-/// var boolValue = Random().nextBool(); // Value is true or false.
+/// var intValue = Random().nextInt(10); // Value is >= 0.0 and < 1.0.
+/// var doubleValue = Random().nextDouble(); // Value is >= 0.0 and < 1.0.
+/// var boolValue = Random().nextBool(); // true or false, with equal chance.
 /// ```
 ///
 /// ## Point
@@ -25,8 +25,8 @@
 /// ```
 ///
 /// ## Rectangle
-/// [Rectangle] is a class for representing two-dimensional rectangles whose
-/// properties are immutable.
+/// [Rectangle] is a class for representing two-dimensional axis-aligned
+/// rectangles whose properties are immutable.
 ///
 /// Create a rectangle spanned by the points.
 /// ```dart
@@ -48,7 +48,7 @@
 /// print(rectangle.right); // 320
 /// print(rectangle.bottom); // 650
 /// ```
-/// 
+///
 /// ## MutableRectangle
 /// [MutableRectangle] is a class for representing two-dimensional axis-aligned
 /// rectangles with mutable properties.
