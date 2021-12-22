@@ -1445,7 +1445,6 @@ dart_ci_sandbox_builder(
 dart_ci_sandbox_builder(
     "dart2js-canary-x64",
     category = "dart2js|c",
-    location_regexp = to_location_regexp(DART2JS_PATHS),
     properties = union(CHROME, NO_ANDROID),
 )
 dart_ci_sandbox_builder(
