@@ -1381,7 +1381,7 @@ abstract class Stream<T> {
   /// final stream =
   ///     Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
   ///         .take(60);
-  /// stream.forEach(print); // Outputs events: 0, ... X.
+  /// stream.forEach(print); // Outputs events: 0, ... 59.
   /// ```
   Stream<T> take(int count) {
     return new _TakeStream<T>(this, count);
@@ -1411,8 +1411,8 @@ abstract class Stream<T> {
   /// Example:
   /// ```dart
   /// final stream = Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
-  ///     .takeWhile((event) => event < 60);
-  /// stream.forEach(print); // Outputs events: "0, ..., X".
+  ///     .takeWhile((event) => event < 6);
+  /// stream.forEach(print); // Outputs events: 0, ..., 6.
   /// ```
   Stream<T> takeWhile(bool test(T element)) {
     return new _TakeWhileStream<T>(this, test);
@@ -1436,7 +1436,7 @@ abstract class Stream<T> {
   /// ```dart
   /// final stream =
   ///     Stream<int>.periodic(const Duration(seconds: 1), (i) => i).skip(7);
-  /// stream.forEach(print); // Skips evens 0, ..., 6. Outputs events: 7, ...
+  /// stream.forEach(print); // Skips events 0, ..., 6. Outputs events: 7, ...
   /// ```
   Stream<T> skip(int count) {
     return new _SkipStream<T>(this, count);
@@ -1464,7 +1464,7 @@ abstract class Stream<T> {
   /// final stream = Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
   ///     .take(10)
   ///     .skipWhile((x) => x < 5);
-  /// stream.listen(print); // Outputs events 5, ..., 9.
+  /// stream.listen(print); // Outputs events: 5, ..., 9.
   /// ```
   Stream<T> skipWhile(bool test(T element)) {
     return new _SkipWhileStream<T>(this, test);
