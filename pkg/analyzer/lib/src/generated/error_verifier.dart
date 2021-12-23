@@ -4159,6 +4159,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
+    // TODO(scheglov) Restore when working on errors.
+    if (_currentLibrary.featureSet.isEnabled(Feature.super_parameters)) {
+      if (constructor.parameters.parameters.any((parameter) {
+        return parameter.notDefault is SuperFormalParameter;
+      })) {
+        return;
+      }
+    }
+
     // Ignore if the constructor has either an implicit super constructor
     // invocation or a redirecting constructor invocation.
     for (ConstructorInitializer constructorInitializer

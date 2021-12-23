@@ -1525,6 +1525,23 @@ library
 ''');
   }
 
+  test_class_constructor_parameters_super_invalid_topFunction() async {
+    var library = await checkLibrary('''
+void f(super.a) {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    functions
+      f @5
+        parameters
+          requiredPositional final super.a @13
+            type: dynamic
+            superConstructorParameter: <null>
+        returnType: void
+''');
+  }
+
   test_class_constructor_parameters_super_optionalNamed() async {
     var library = await checkLibrary('''
 class A {
