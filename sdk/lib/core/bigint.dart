@@ -17,8 +17,8 @@ part of dart.core;
 /// ```
 /// To parse large integer value from string, use [parse] or [tryParse].
 /// ```dart
-/// var bigHex = BigInt.parse('0x1ffffffffffffffff');
-/// var bigNumber = BigInt.parse('100000000000000000000000');
+/// var value = BigInt.parse('0x1ffffffffffffffff'); // 36893488147419103231
+/// value = BigInt.parse('12345678901234567890'); // 12345678901234567890
 /// ```
 /// To check if big integer can be represented as an [int] without losing
 /// precision, use [isValidInt].
@@ -31,7 +31,7 @@ part of dart.core;
 /// var bigValue = BigInt.from(10).pow(3);
 /// print(bigValue.isValidInt); // true
 /// print(bigValue.toInt()); // 1000
-/// print(bigValue.toDouble()); //1000.0
+/// print(bigValue.toDouble()); // 1000.0
 /// ```
 /// **See also:**
 /// * [int]: An integer number.
@@ -72,7 +72,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// optionally prefixed by a sign.
   /// Examples:
   /// ```dart
-  /// print(BigInt.parse('100000000000000000000000'));
+  /// print(BigInt.parse('12345678901234567890')); // 12345678901234567890
   /// print(BigInt.parse('0xFF')); // 255
   /// print(BigInt.parse('0xffffffffffffffff')); // 18446744073709551615
   ///
@@ -90,7 +90,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// print(BigInt.parse('7e5', radix: 16)); // 2021
   /// // From base 35 value.
   /// print(BigInt.parse('y1', radix: 35)); // 1191 == 34 * 35 + 1
-  /// print(BigInt.parse('z1', radix: 35)); // null
+  /// print(BigInt.parse('z1', radix: 35)); // Throws.
   /// // From base 36 value.
   /// print(BigInt.parse('y1', radix: 36)); // 1225 == 34 * 36 + 1
   /// print(BigInt.parse('z1', radix: 36)); // 1261 == 35 * 36 + 1
@@ -105,7 +105,7 @@ abstract class BigInt implements Comparable<BigInt> {
   ///
   /// Examples:
   /// ```dart
-  /// print(BigInt.tryParse('100000000000000000000000'));
+  /// print(BigInt.tryParse('12345678901234567890')); // 12345678901234567890
   /// print(BigInt.tryParse('0xFF')); // 255
   /// print(BigInt.tryParse('0xffffffffffffffff')); // 18446744073709551615
   ///
