@@ -15,7 +15,7 @@ import '../../../../../utils/test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(TransformSetParserTest);
+    defineReflectiveTests(TransformOverrideSetParserTest);
   });
 }
 
@@ -64,7 +64,8 @@ abstract class AbstractTransformOverrideSetParserTest {
 }
 
 @reflectiveTest
-class TransformSetParserTest extends AbstractTransformOverrideSetParserTest {
+class TransformOverrideSetParserTest
+    extends AbstractTransformOverrideSetParserTest {
   void test_emptyFile() {
     assertErrors('''
 ''', [error(TransformSetErrorCode.invalidValue, 0, 0)]);

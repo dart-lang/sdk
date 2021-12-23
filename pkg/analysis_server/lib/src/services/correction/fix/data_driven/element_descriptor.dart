@@ -7,13 +7,21 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show ClassElement;
 import 'package:analyzer/dart/element/type.dart';
 
-/// The path to an element.
+/// A description of an element.
 class ElementDescriptor {
   /// The URIs of the library in which the element is defined.
   final List<Uri> libraryUris;
 
   /// The kind of element that was changed.
   final ElementKind kind;
+
+  /// A flag indicating whether the element is a static member of a container
+  /// such as a class, enum, mixin, or extension.
+  ///
+  /// The flag should be `false` for top-level declarations. The implication is
+  /// that the flag will only be true if the list of [components] has more than
+  /// one element.
+  final bool isStatic;
 
   /// The components that uniquely identify the element within its library. The
   /// components are ordered from the most local to the most global.
@@ -26,6 +34,7 @@ class ElementDescriptor {
   ElementDescriptor(
       {required this.libraryUris,
       required this.kind,
+      required this.isStatic,
       required this.components});
 
   /// Return `true` if the described element is a constructor.
