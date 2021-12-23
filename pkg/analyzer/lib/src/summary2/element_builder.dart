@@ -957,15 +957,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
 
-    var constructors = holder.constructors;
-    if (constructors.isEmpty) {
-      var containerRef = element.reference!.getChild('@constructor');
-      constructors = [
-        ConstructorElementImpl('', -1)
-          ..isSynthetic = true
-          ..reference = containerRef.getChild(''),
-      ];
+    if (holder.constructors.isEmpty) {
+      holder.addConstructor(
+        '',
+        ConstructorElementImpl('', -1)..isSynthetic = true,
+      );
     }
+
+    var constructors = holder.constructors;
     element.constructors = constructors;
 
     // We have all fields and constructors.

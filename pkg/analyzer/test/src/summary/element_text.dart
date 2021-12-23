@@ -355,6 +355,19 @@ class _ElementWriter {
   void _writeConstructorElement(ConstructorElement e) {
     e as ConstructorElementImpl;
 
+    // Check that the reference exists, and filled with the element.
+    var reference = e.reference;
+    if (reference == null) {
+      fail('Every constructor must have a reference.');
+    } else {
+      var classReference = reference.parent!.parent!;
+      // We need this `if` for duplicate declarations.
+      // The reference might be filled by another declaration.
+      if (identical(classReference.element, e.enclosingElement)) {
+        expect(reference.element, same(e));
+      }
+    }
+
     _writeIndentedLine(() {
       _writeIf(e.isSynthetic, 'synthetic ');
       _writeIf(e.isExternal, 'external ');
