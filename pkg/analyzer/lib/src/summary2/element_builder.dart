@@ -352,9 +352,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _enclosingContext.addParameter(null, element);
     }
     element.hasImplicitType = node.type == null && node.parameters == null;
-    // TODO(scheglov) Do we need these two below?
-    element.isExplicitlyCovariant = node.covariantKeyword != null;
-    element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
 
@@ -823,9 +820,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _enclosingContext.addParameter(null, element);
     }
     element.hasImplicitType = node.type == null && node.parameters == null;
-    // TODO(scheglov) Do we need these two below?
-    // element.isExplicitlyCovariant = node.covariantKeyword != null;
-    // element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
 

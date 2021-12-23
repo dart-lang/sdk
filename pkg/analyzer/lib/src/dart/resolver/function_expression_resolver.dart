@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -64,9 +63,7 @@ class FunctionExpressionResolver {
     _resolve2(node);
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
-      var bodyContext = BodyInferenceContext.of(node.body);
       _resolver.checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
         body: body,
         errorNode: body,
       );
