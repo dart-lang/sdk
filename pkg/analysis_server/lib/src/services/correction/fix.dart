@@ -1261,7 +1261,17 @@ class DartFixKind {
   static const REPLACE_RETURN_TYPE_FUTURE = FixKind(
     'dart.fix.replace.returnTypeFuture',
     DartFixKindPriority.DEFAULT,
-    "Return 'Future' from 'async' function",
+    "Return 'Future<{0}>'",
+  );
+  static const REPLACE_RETURN_TYPE_ITERABLE = FixKind(
+    'dart.fix.replace.returnTypeIterable',
+    DartFixKindPriority.DEFAULT,
+    "Return 'Iterable<{0}>'",
+  );
+  static const REPLACE_RETURN_TYPE_STREAM = FixKind(
+    'dart.fix.replace.returnTypeStream',
+    DartFixKindPriority.DEFAULT,
+    "Return 'Stream<{0}>'",
   );
   static const REPLACE_CONTAINER_WITH_SIZED_BOX = FixKind(
     'dart.fix.replace.containerWithSizedBox',

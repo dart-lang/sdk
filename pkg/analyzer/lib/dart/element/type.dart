@@ -57,6 +57,10 @@ abstract class DartType {
   /// the dart:async library.
   bool get isDartAsyncFutureOr;
 
+  /// Return `true` if this type represents the type 'Stream' defined in the
+  /// dart:async library.
+  bool get isDartAsyncStream;
+
   /// Return `true` if this type represents the type 'bool' defined in the
   /// dart:core library.
   bool get isDartCoreBool;

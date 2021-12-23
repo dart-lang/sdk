@@ -11,69 +11,72 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ReplaceReturnTypeFutureTest);
+    defineReflectiveTests(ReplaceReturnTypeStreamTest);
   });
 }
 
 @reflectiveTest
-class ReplaceReturnTypeFutureTest extends FixProcessorTest {
+class ReplaceReturnTypeStreamTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
+  FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_STREAM;
 
   Future<void> test_complexTypeName_withImport() async {
     await resolveTestCode('''
 import 'dart:async';
-List<int> f() async {}
+List<int> f() async* {}
 ''');
     await assertHasFix('''
 import 'dart:async';
-Future<List<int>> f() async {}
+Stream<List<int>> f() async* {}
 ''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
+      return error.errorCode ==
+          CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
     });
   }
 
   Future<void> test_complexTypeName_withoutImport() async {
     await resolveTestCode('''
-List<int> f() async {}
+List<int> f() async* {}
 ''');
     await assertHasFix('''
-Future<List<int>> f() async {}
+Stream<List<int>> f() async* {}
 ''');
   }
 
   Future<void> test_importedWithPrefix() async {
     await resolveTestCode('''
 import 'dart:async' as al;
-int f() async {}
+int f() async* {}
 ''');
     await assertHasFix('''
 import 'dart:async' as al;
-al.Future<int> f() async {}
+al.Stream<int> f() async* {}
 ''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
+      return error.errorCode ==
+          CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
     });
   }
 
   Future<void> test_simpleTypeName_withImport() async {
     await resolveTestCode('''
 import 'dart:async';
-int f() async {}
+int f() async* {}
 ''');
     await assertHasFix('''
 import 'dart:async';
-Future<int> f() async {}
+Stream<int> f() async* {}
 ''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
+      return error.errorCode ==
+          CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
     });
   }
 
   Future<void> test_simpleTypeName_withoutImport() async {
     await resolveTestCode('''
-int f() async {}
+int f() async* {}
 ''');
     await assertHasFix('''
-Future<int> f() async {}
+Stream<int> f() async* {}
 ''');
   }
 }
