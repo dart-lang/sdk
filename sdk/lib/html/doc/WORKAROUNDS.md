@@ -190,8 +190,12 @@ void main() async {
 }
 ```
 
-What you shouldn’t do is attempt to cast these native objects using the
-non-`@staticInterop` `package:js` types e.g.
+## Workarounds to Avoid
+
+### Using non-`@staticInterop` `package:js` types
+
+Avoid casting these native objects to non-`@staticInterop` `package:js` types
+e.g.
 
 ```dart
 @JS()
@@ -220,5 +224,32 @@ This is because the types in the `@Native` annotation are reserved and the above
 leads to namespace conflicts between the `@Native` type and the user JS interop
 type in the compiler. `@staticInterop` classes, however, don't have this issue.
 
+### Using extensions on `@Native` types
+
+One alternative that seems viable is to use a static extension on the `@Native`
+type in `dart:html` directly, e.g.
+
+```dart
+extension FileReaderExtension on FileReader {
+  external void readAsBinaryString(Blob blob);
+}
+```
+
+This may work fine, as long as `FileReader` does not add `readAsBinaryString`.
+In the case where this API is added to the class, Dart will [prioritize][] that
+instance method over the extension method you wrote. This may lead to issues,
+like a type error when the signatures between the two methods are incompatible,
+or confusing runtime behavior.
+
+Furthermore, you may come across API conflicts with other users who have also
+defined extension methods on these `@Native` types.
+
+To avoid the above, it's recommended you stick with `@staticInterop`.
+
+In the future, when views/extension types are introduced to the language, this
+guidance will likely change so that you can directly use views on `@Native`
+types.
+
 [#42834]: https://github.com/dart-lang/sdk/issues/42834
 [#42200]: https://github.com/dart-lang/sdk/issues/42200
+[prioritize]: https://github.com/dart-lang/language/blob/master/accepted/2.7/static-extension-methods/feature-specification.md#member-conflict-resolution

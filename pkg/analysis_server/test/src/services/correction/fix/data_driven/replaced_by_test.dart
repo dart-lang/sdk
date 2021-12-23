@@ -838,12 +838,19 @@ var x = $prefixReference${newElement.reference}$invocation;
   }
 
   Transform _replacedBy(ElementKind oldKind, List<String> oldComponents,
-      ElementKind newKind, List<String> newComponents) {
+      ElementKind newKind, List<String> newComponents,
+      {bool isStatic = false}) {
     var uris = [Uri.parse(importUri)];
     var oldElement = ElementDescriptor(
-        libraryUris: uris, kind: oldKind, components: oldComponents);
+        libraryUris: uris,
+        kind: oldKind,
+        isStatic: isStatic,
+        components: oldComponents);
     var newElement2 = ElementDescriptor(
-        libraryUris: uris, kind: newKind, components: newComponents);
+        libraryUris: uris,
+        kind: newKind,
+        isStatic: isStatic,
+        components: newComponents);
     return Transform(
         title: 'title',
         date: DateTime.now(),
