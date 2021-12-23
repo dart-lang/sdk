@@ -312,7 +312,7 @@ class FixInFileProcessor {
 
   List<ProducerGenerator> _getGenerators(ErrorCode errorCode) {
     if (errorCode is LintCode) {
-      return FixProcessor.lintProducerMap[errorCode.name] ?? [];
+      return FixProcessor.lintProducerMap[errorCode.uniqueLintName] ?? [];
     } else {
       // todo (pq): consider support for multiGenerators
       return FixProcessor.nonLintProducerMap[errorCode] ?? [];
@@ -326,6 +326,12 @@ class FixProcessor extends BaseProcessor {
   /// used to create correction producers. The generators are then used to build
   /// fixes for those diagnostics. The generators used for non-lint diagnostics
   /// are in the [nonLintProducerMap].
+  ///
+  /// The keys of the map are the unique names of the lint codes without the
+  /// `LintCode.` prefix. Generally the unique name is the same as the name of
+  /// the lint, so most of the keys are constants defined by [LintNames]. But
+  /// when a lint produces multiple codes, each with a different unique name,
+  /// the unique name must be used here.
   static final Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
       AddReturnType.newInstance,
@@ -1355,7 +1361,7 @@ class FixProcessor extends BaseProcessor {
 
     var errorCode = error.errorCode;
     if (errorCode is LintCode) {
-      var generators = lintProducerMap[errorCode.name] ?? [];
+      var generators = lintProducerMap[errorCode.uniqueLintName] ?? [];
       for (var generator in generators) {
         await compute(generator());
       }
@@ -1427,4 +1433,13 @@ class _NotEmptyFixState implements _FixState {
     required this.fixKind,
     required this.fixCount,
   });
+}
+
+extension on LintCode {
+  String get uniqueLintName {
+    if (uniqueName.startsWith('LintCode.')) {
+      return uniqueName.substring(9);
+    }
+    return uniqueName;
+  }
 }
