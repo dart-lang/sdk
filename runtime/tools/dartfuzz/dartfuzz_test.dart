@@ -78,11 +78,6 @@ abstract class TestRunner {
         extraFlags += ['--optimization_counter_threshold=1'];
       }
     }
-    // Every once in a while, disable VFP on arm32.
-    if (mode.contains('arm32') && rand.nextInt(4) == 0) {
-      prefix += '-noVFP';
-      extraFlags += ['--no-use-vfp'];
-    }
     // Every once in a while, use -O3 compiler.
     if (!mode.startsWith('djs') && rand.nextInt(4) == 0) {
       prefix += '-O3';
