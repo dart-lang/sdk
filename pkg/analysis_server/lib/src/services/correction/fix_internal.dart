@@ -151,6 +151,8 @@ import 'package:analysis_server/src/services/correction/dart/replace_new_with_co
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_future.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_return_type_iterable.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_return_type_stream.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_var_with_dynamic.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_brackets.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
@@ -842,8 +844,14 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
       AddFieldFormalParameters.newInstance,
     ],
+    CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE: [
+      ReplaceReturnTypeStream.newInstance,
+    ],
     CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [
       ReplaceReturnTypeFuture.newInstance,
+    ],
+    CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE: [
+      ReplaceReturnTypeIterable.newInstance,
     ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
       ChangeTo.classOrMixin,

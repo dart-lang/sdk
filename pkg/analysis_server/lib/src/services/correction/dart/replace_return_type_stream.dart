@@ -7,16 +7,17 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ReplaceReturnTypeFuture extends CorrectionProducer {
-  /// The text for the type argument to 'Future'.
+class ReplaceReturnTypeStream extends CorrectionProducer {
+  /// The text for the type argument to 'Stream'.
   String _typeArgument = '';
 
   @override
   List<Object>? get fixArguments => [_typeArgument];
 
   @override
-  FixKind get fixKind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
+  FixKind get fixKind => DartFixKind.REPLACE_RETURN_TYPE_STREAM;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -25,13 +26,19 @@ class ReplaceReturnTypeFuture extends CorrectionProducer {
     if (typeAnnotation == null) {
       return;
     }
+    var type = typeAnnotation.type;
+    if (type == null || type.isDynamic || type.isDartAsyncStream) {
+      return;
+    }
     _typeArgument = utils.getNodeText(typeAnnotation);
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.replaceTypeWithFuture(typeAnnotation, typeProvider);
+      builder.addReplacement(range.node(typeAnnotation), (builder) {
+        builder.writeType(typeProvider.streamType(type));
+      });
     });
   }
 
   /// Return an instance of this class. Used as a tear-off in `FixProcessor`.
-  static ReplaceReturnTypeFuture newInstance() => ReplaceReturnTypeFuture();
+  static ReplaceReturnTypeStream newInstance() => ReplaceReturnTypeStream();
 }
