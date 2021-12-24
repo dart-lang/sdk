@@ -976,6 +976,57 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
+    SuperFormalParameterElementImpl element;
+    if (node.parent is DefaultFormalParameter) {
+      element = node.declaredElement as SuperFormalParameterElementImpl;
+    } else {
+      var nameNode = node.identifier;
+      if (_elementWalker != null) {
+        element =
+            _elementWalker!.getParameter() as SuperFormalParameterElementImpl;
+      } else {
+        // Only for recovery, this should not happen in valid code.
+        element = SuperFormalParameterElementImpl(
+          name: nameNode.name,
+          nameOffset: nameNode.offset,
+          parameterKind: node.kind,
+        );
+        _elementHolder.enclose(element);
+        element.isConst = node.isConst;
+        element.isExplicitlyCovariant = node.covariantKeyword != null;
+        element.isFinal = node.isFinal;
+        _setCodeRange(element, node);
+      }
+      nameNode.staticElement = element;
+    }
+
+    _setOrCreateMetadataElements(element, node.metadata);
+
+    _withElementHolder(ElementHolder(element), () {
+      _withElementWalker(
+        _elementWalker != null ? ElementWalker.forParameter(element) : null,
+        () {
+          _withNameScope(() {
+            _buildTypeParameterElements(node.typeParameters);
+            node.typeParameters?.accept(this);
+            node.type?.accept(this);
+            if (_elementWalker != null) {
+              node.parameters?.accept(this);
+            } else {
+              // Only for recovery, this should not happen in valid code.
+              element.type = node.type?.type ?? _dynamicType;
+              _withElementWalker(null, () {
+                node.parameters?.accept(this);
+              });
+            }
+          });
+        },
+      );
+    });
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _buildLabelElements(node.labels, false, true);
 

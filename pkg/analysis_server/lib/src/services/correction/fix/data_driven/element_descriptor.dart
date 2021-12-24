@@ -40,117 +40,133 @@ class ElementDescriptor {
   /// Return `true` if the described element is a constructor.
   bool get isConstructor => kind == ElementKind.constructorKind;
 
-  /// Return `true` if the given [node] appears to be consistent with this kind
-  /// of element.
+  /// Return `true` if the given [node] appears to be consistent with the
+  /// element being described.
   bool matches(AstNode node) {
-    // TODO(brianwilkerson) Check the resolved element if one exists for more
+    // TODO(brianwilkerson) Check the resolved element, if one exists, for more
     //  accurate results.
     switch (kind) {
       case ElementKind.classKind:
-        // TODO: Handle this case.
+        // TODO(brianwilkerson) Handle this case.
         return false;
       case ElementKind.constantKind:
-        // TODO: Handle this case.
+        // TODO(brianwilkerson) Handle this case.
         return false;
       case ElementKind.constructorKind:
-        if (node is Annotation) {
-          var className = _nameFromIdentifier(node.name);
-          var constructorName = node.constructorName ?? '';
-          if (components[0] == constructorName && components[1] == className) {
-            return true;
-          }
-        } else if (node is InstanceCreationExpression) {
-          var name = node.constructorName;
-          var className = _nameFromIdentifier(name.type2.name);
-          var constructorName = name.name?.name ?? '';
-          if (components[0] == constructorName && components[1] == className) {
-            return true;
-          }
-        } else if (node is MethodInvocation) {
-          var target = node.target;
-          if (target == null) {
-            if (components[0] == '' && components[1] == node.methodName.name) {
-              return true;
-            }
-          } else if (target is Identifier) {
-            var className = _nameFromIdentifier(target);
-            var constructorName = node.methodName.name;
-            if (components[0] == constructorName &&
-                components[1] == className) {
-              return true;
-            }
-          }
-        }
-        return false;
+        return _matchesConstructor(node);
       case ElementKind.enumKind:
-        // TODO: Handle this case.
+        // TODO(brianwilkerson) Handle this case.
         return false;
       case ElementKind.extensionKind:
-        // TODO: Handle this case.
+        // TODO(brianwilkerson) Handle this case.
         return false;
       case ElementKind.fieldKind:
-        // TODO: Handle this case.
+        // TODO(brianwilkerson) Handle this case.
         return false;
       case ElementKind.functionKind:
-        if (node is MethodInvocation) {
-          if (node.realTarget == null &&
-              components[0] == node.methodName.name) {
-            return true;
-          }
-        }
-        return false;
+        return _matchesFunction(node);
       case ElementKind.getterKind:
-        // TODO: Handle this case.
+        // TODO(brianwilkerson) Handle this case.
         return false;
       case ElementKind.methodKind:
-        if (node is MethodInvocation) {
-          if (components[0] == node.methodName.name) {
-            var target = node.realTarget;
-            if (target == null) {
-              // TODO(brianwilkerson) If `node.target == null` then the invocation
-              //  should be in a subclass of the element's class.
-              return true;
-            } else {
-              var type = target.staticType;
-              if (type == null && target is SimpleIdentifier) {
-                var element = target.staticElement;
-                // TODO(brianwilkerson) Handle more than `ClassElement`.
-                if (element is ClassElement) {
-                  type = element.thisType;
-                }
-              }
-              if (type == null) {
-                // We can't get more specific type information, so we assume
-                // that the method might have been in the element's class.
+        return _matchesMethod(node);
+      case ElementKind.mixinKind:
+        // TODO(brianwilkerson) Handle this case.
+        return false;
+      case ElementKind.setterKind:
+        // TODO(brianwilkerson) Handle this case.
+        return false;
+      case ElementKind.typedefKind:
+        // TODO(brianwilkerson) Handle this case.
+        return false;
+      case ElementKind.variableKind:
+        // TODO(brianwilkerson) Handle this case.
+        return false;
+    }
+  }
+
+  /// Return `true` if the given [node] appears to be consistent with the
+  /// constructor being described.
+  bool _matchesConstructor(AstNode node) {
+    if (node is Annotation) {
+      var className = _nameFromIdentifier(node.name);
+      var constructorName = node.constructorName ?? '';
+      if (components[0] == constructorName && components[1] == className) {
+        return true;
+      }
+    } else if (node is InstanceCreationExpression) {
+      var name = node.constructorName;
+      var className = _nameFromIdentifier(name.type2.name);
+      var constructorName = name.name?.name ?? '';
+      if (components[0] == constructorName && components[1] == className) {
+        return true;
+      }
+    } else if (node is MethodInvocation) {
+      var target = node.target;
+      if (target == null) {
+        if (components[0] == '' && components[1] == node.methodName.name) {
+          return true;
+        }
+      } else if (target is Identifier) {
+        var className = _nameFromIdentifier(target);
+        var constructorName = node.methodName.name;
+        if (components[0] == constructorName && components[1] == className) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if the given [node] appears to be consistent with the
+  /// function being described.
+  bool _matchesFunction(AstNode node) {
+    if (node is MethodInvocation) {
+      if (node.realTarget == null && components[0] == node.methodName.name) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Return `true` if the given [node] appears to be consistent with the
+  /// method being described.
+  bool _matchesMethod(AstNode node) {
+    if (node is MethodInvocation) {
+      if (components[0] == node.methodName.name) {
+        var target = node.realTarget;
+        if (target == null) {
+          // TODO(brianwilkerson) If `node.target == null` then the invocation
+          //  should be in a subclass of the element's class.
+          return true;
+        } else {
+          var type = target.staticType;
+          if (type == null && target is SimpleIdentifier) {
+            var element = target.staticElement;
+            // TODO(brianwilkerson) Handle more than `ClassElement`.
+            if (element is ClassElement) {
+              type = element.thisType;
+            }
+          }
+          if (type == null) {
+            // We can't get more specific type information, so we assume
+            // that the method might have been in the element's class.
+            return true;
+          }
+          if (components[1] == type.element?.name) {
+            return true;
+          }
+          if (type is InterfaceType) {
+            for (var supertype in type.allSupertypes) {
+              if (components[1] == supertype.element.name) {
                 return true;
-              }
-              if (components[1] == type.element?.name) {
-                return true;
-              }
-              if (type is InterfaceType) {
-                for (var supertype in type.allSupertypes) {
-                  if (components[1] == supertype.element.name) {
-                    return true;
-                  }
-                }
               }
             }
           }
         }
-        return false;
-      case ElementKind.mixinKind:
-        // TODO: Handle this case.
-        return false;
-      case ElementKind.setterKind:
-        // TODO: Handle this case.
-        return false;
-      case ElementKind.typedefKind:
-        // TODO: Handle this case.
-        return false;
-      case ElementKind.variableKind:
-        // TODO: Handle this case.
-        return false;
+      }
     }
+    return false;
   }
 
   String _nameFromIdentifier(Identifier identifier) {
