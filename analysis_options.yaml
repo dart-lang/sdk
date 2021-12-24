@@ -76,6 +76,7 @@ linter:
     - unawaited_futures # pedantic
     - unnecessary_final
     - unnecessary_lambdas
+    - unnecessary_late
     - unnecessary_null_aware_assignments
     - unnecessary_null_checks
     - unnecessary_nullable_for_final_variable_declarations
