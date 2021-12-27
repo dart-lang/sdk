@@ -121,7 +121,8 @@ class EnumBuilder extends SourceClassBuilder {
       int charOffset,
       int charEndOffset,
       IndexedClass? referencesFromIndexed,
-      Scope scope) {
+      Scope scope,
+      ConstructorScope constructorScope) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
 
     Uri fileUri = parent.fileUri;
@@ -374,7 +375,7 @@ class EnumBuilder extends SourceClassBuilder {
             parent: parent.scope,
             debugName: "enum $name",
             isModifiable: false),
-        new ConstructorScope(name, constructors),
+        constructorScope..local.addAll(constructors),
         cls,
         enumConstantInfos,
         intType,

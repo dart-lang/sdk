@@ -2815,6 +2815,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void addEnum(
       List<MetadataBuilder>? metadata,
       String name,
+      List<TypeVariableBuilder>? typeVariables,
       List<EnumConstantInfo?>? enumConstantInfos,
       int startCharOffset,
       int charOffset,
@@ -2829,7 +2830,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(TypeParameterScopeKind.enumDeclaration, name)
           ..resolveNamedTypes([], this);
-    EnumBuilder builder = new EnumBuilder(
+    Map<String, Builder> members = declaration.members!;
+    Map<String, MemberBuilder> constructors = declaration.constructors!;
+    Map<String, MemberBuilder> setters = declaration.setters!;
+
+    EnumBuilder enumBuilder = new EnumBuilder(
         metadata,
         name,
         enumConstantInfos,
@@ -2839,12 +2844,44 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charEndOffset,
         referencesFromIndexedClass,
         new Scope(
-            local: declaration.members!,
-            setters: declaration.setters!,
+            local: members,
+            setters: setters,
             parent: scope.withTypeVariables(<TypeVariableBuilder>[]),
             debugName: "enum $name",
-            isModifiable: false));
-    addBuilder(name, builder, charOffset,
+            isModifiable: false),
+        new ConstructorScope(name, constructors));
+
+    Map<String, TypeVariableBuilder>? typeVariablesByName =
+        checkTypeVariables(typeVariables, enumBuilder);
+
+    void setParent(String name, MemberBuilder? member) {
+      while (member != null) {
+        member.parent = enumBuilder;
+        member = member.next as MemberBuilder?;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, Builder member) {
+      if (typeVariablesByName != null) {
+        TypeVariableBuilder? tv = typeVariablesByName[name];
+        if (tv != null) {
+          enumBuilder.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri!, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(name, member as MemberBuilder);
+    }
+
+    members.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
+    setters.forEach(setParentAndCheckConflicts);
+    addBuilder(name, enumBuilder, charOffset,
         getterReference: referencesFromIndexedClass?.cls.reference);
   }
 
