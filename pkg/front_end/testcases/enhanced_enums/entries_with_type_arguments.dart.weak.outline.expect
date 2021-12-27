@@ -1,4 +1,11 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/entries_with_type_arguments.dart:11:9: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
+//   const E.named(int value);
+//         ^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -9,6 +16,11 @@ class E extends core::_Enum /*isEnum*/  {
   static const field self::E three = const self::E::•(2, "three");
   const constructor •(core::int index, core::String name) → self::E
     : super core::_Enum::•(index, name)
+    ;
+  const constructor named(core::int value) → self::E
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/enhanced_enums/entries_with_type_arguments.dart:11:9: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
+  const E.named(int value);
+        ^^^^^"
     ;
   method toString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";

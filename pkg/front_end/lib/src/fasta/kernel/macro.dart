@@ -6,7 +6,8 @@ import 'package:kernel/ast.dart';
 
 bool enableMacros = false;
 
-final Uri macroLibraryUri = Uri.parse('package:macro_builder/src/macro.dart');
+final Uri macroLibraryUri =
+    Uri.parse('package:_fe_analyzer_shared/src/macros/api.dart');
 const String macroClassName = 'Macro';
 
 class MacroDeclarationData {
@@ -26,9 +27,7 @@ class MacroApplications {
 }
 
 class LibraryMacroApplicationData {
-  MacroApplications? libraryApplications;
   Map<Class, ClassMacroApplicationData> classData = {};
-  Map<Typedef, MacroApplications> typedefApplications = {};
   Map<Member, MacroApplications> memberApplications = {};
 }
 

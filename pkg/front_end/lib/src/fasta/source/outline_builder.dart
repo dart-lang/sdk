@@ -1775,6 +1775,7 @@ class OutlineBuilder extends StackListenerImpl {
         case _MethodKind.classConstructor:
         case _MethodKind.mixinConstructor:
         case _MethodKind.extensionConstructor:
+        case _MethodKind.enumConstructor:
           constructorName = libraryBuilder.computeAndValidateConstructorName(
                   name, charOffset) ??
               name as String?;
@@ -2340,6 +2341,14 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleEnumElements(Token elementsEndToken, int elementsCount) {
     debugEvent("EnumElements");
+    push(elementsCount);
+  }
+
+  @override
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+    debugEvent("Enum");
+
+    int elementsCount = pop() as int;
     List<EnumConstantInfo?>? enumConstantInfos =
         const FixedNullableList<EnumConstantInfo>().pop(stack, elementsCount);
     int endCharOffset = popCharOffset();
@@ -2354,19 +2363,15 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(startCharOffset);
 
     if (name is! ParserRecovery) {
-      libraryBuilder.addEnum(metadata, name as String, enumConstantInfos,
-          startCharOffset, charOffset, endCharOffset);
+      libraryBuilder.addEnum(metadata, name as String, typeVariables,
+          enumConstantInfos, startCharOffset, charOffset, endCharOffset);
     } else {
       libraryBuilder
           .endNestedDeclaration(
               TypeParameterScopeKind.enumDeclaration, "<syntax-error>")
           .resolveNamedTypes(typeVariables, libraryBuilder);
     }
-  }
 
-  @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
-    debugEvent("Enum");
     checkEmpty(enumKeyword.charOffset);
     popDeclarationContext(DeclarationContext.Enum);
   }
@@ -3029,7 +3034,6 @@ class OutlineBuilder extends StackListenerImpl {
     pop(); // name
     pop(); // modifiers
     pop(); // metadata
-    checkEmpty(beginToken.charOffset);
     popDeclarationContext();
     // TODO(cstefantsova): Use actual type parameters.
     libraryBuilder
@@ -3068,7 +3072,6 @@ class OutlineBuilder extends StackListenerImpl {
     int modifiers = Modifier.toMask(pop() as List<Modifier>?);
     popCharOffset(); // final or const offset
     pop(); // metadata
-    checkEmpty(beginToken.charOffset);
     popDeclarationContext();
     TypeParameterScopeKind scopeKind;
     if ((modifiers & staticMask) != 0) {
@@ -3107,7 +3110,6 @@ class OutlineBuilder extends StackListenerImpl {
     popFieldInfos(count); // field infos
     pop(); // type
     pop(); // metadata
-    checkEmpty(beginToken.charOffset);
     popDeclarationContext();
     // Skip the declaration. An error as already been produced by the parser.
 
@@ -3123,36 +3125,15 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    // TODO(cstefantsova): Call endClassConstructor instead.
-    debugEvent("EnumMethod");
-    MethodBody bodyKind = pop() as MethodBody;
-    if (bodyKind == MethodBody.RedirectingFactoryBody) {
-      pop(); // reference
-    }
-    pop(); // async marker
-    pop(); // formals
-    popCharOffset(); // formals char offset
-    pop(); // type variables
-    popCharOffset(); // char offset
-    pop(); // name
-    pop(); // return type
-    pop(); // modifiers
-    popCharOffset(); // final or const offset
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    popDeclarationContext();
-    // TODO(cstefantsova): Use actual type parameters.
-    libraryBuilder
-        .endNestedDeclaration(TypeParameterScopeKind.instanceMethod, "#method")
-        .resolveNamedTypes([], libraryBuilder);
-    // Skip the declaration. An error as already been produced by the parser.
-
     if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
       addProblem(
           templateExperimentNotEnabled.withArguments('enhanced-enums',
               libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
           beginToken.charOffset,
           -1);
+    } else {
+      _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+          endToken, _MethodKind.enumConstructor);
     }
   }
 
@@ -3337,4 +3318,5 @@ enum _MethodKind {
   mixinMethod,
   extensionConstructor,
   extensionMethod,
+  enumConstructor,
 }
