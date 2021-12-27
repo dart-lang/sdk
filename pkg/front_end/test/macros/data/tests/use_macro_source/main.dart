@@ -4,8 +4,8 @@
 
 /*library: 
  compilationSequence=[
-  package:macro_builder/src/macro.dart,
-  macro_lib.dart|package:macro_builder/macro_builder.dart,
+  package:_fe_analyzer_shared/src/macros/api.dart,
+  macro_lib.dart,
   main.dart],
  macrosAreApplied,
  macrosAreAvailable

@@ -4,13 +4,13 @@
 
 /*library: 
  compilationSequence=[
-  package:macro_builder/src/macro.dart,
-  main.dart|package:macro_builder/macro_builder.dart],
+  package:_fe_analyzer_shared/src/macros/api.dart,
+  main.dart],
  declaredMacros=[MyMacro],
  macrosAreAvailable
 */
 
-import 'package:macro_builder/macro_builder.dart';
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class MyMacro implements Macro {}
 
