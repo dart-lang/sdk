@@ -1409,8 +1409,6 @@ severity: $severity
       LibraryMacroApplicationData libraryMacroApplicationData =
           new LibraryMacroApplicationData();
       Library library = libraryBuilder.library;
-      libraryMacroApplicationData.libraryApplications =
-          computeApplications(library.annotations);
       for (Class cls in library.classes) {
         ClassMacroApplicationData classMacroApplicationData =
             new ClassMacroApplicationData();
@@ -1438,17 +1436,7 @@ severity: $severity
               macroApplications;
         }
       }
-      for (Typedef typedef in library.typedefs) {
-        MacroApplications? macroApplications =
-            computeApplications(typedef.annotations);
-        if (macroApplications != null) {
-          libraryMacroApplicationData.typedefApplications[typedef] =
-              macroApplications;
-        }
-      }
-      if (libraryMacroApplicationData.libraryApplications != null ||
-          libraryMacroApplicationData.classData.isNotEmpty ||
-          libraryMacroApplicationData.typedefApplications.isNotEmpty ||
+      if (libraryMacroApplicationData.classData.isNotEmpty ||
           libraryMacroApplicationData.memberApplications.isNotEmpty) {
         if (retainDataForTesting) {
           dataForTesting!.macroApplicationData.libraryData[library] =

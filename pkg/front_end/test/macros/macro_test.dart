@@ -112,10 +112,6 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
     return macroApplicationData.libraryData[library];
   }
 
-  MacroApplications? getLibraryMacroApplications(Library library) {
-    return getLibraryMacroApplicationData(library)?.libraryApplications;
-  }
-
   ClassMacroApplicationData? getClassMacroApplicationData(Class cls) {
     LibraryMacroApplicationData? applicationData =
         getLibraryMacroApplicationData(cls.enclosingLibrary);
@@ -184,7 +180,6 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
     if (getLibraryMacroApplicationData(node) != null) {
       features.add(Tags.macrosAreApplied);
     }
-    registerMacroApplications(features, getLibraryMacroApplications(node));
     return features;
   }
 

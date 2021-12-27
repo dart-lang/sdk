@@ -27,9 +27,7 @@ class MacroApplications {
 }
 
 class LibraryMacroApplicationData {
-  MacroApplications? libraryApplications;
   Map<Class, ClassMacroApplicationData> classData = {};
-  Map<Typedef, MacroApplications> typedefApplications = {};
   Map<Member, MacroApplications> memberApplications = {};
 }
 

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
- appliedMacros=[Macro3],
  compilationSequence=[
   package:_fe_analyzer_shared/src/macros/api.dart,
   package:macro/macro.dart,
@@ -11,7 +10,6 @@
  macrosAreApplied,
  macrosAreAvailable
 */
-@Macro3()
 library use_macro_package;
 
 import 'package:macro/macro.dart';
@@ -26,6 +24,10 @@ void main() {}
  macrosAreApplied
 */
 class Class1 {
+  @Macro3()
+  /*member: Class1.:appliedMacros=[Macro3]*/
+  Class1();
+
   @Macro1()
   @Macro2()
   /*member: Class1.method:appliedMacros=[
@@ -47,4 +49,22 @@ class Class3 {
 class Class4 {
   @NonMacro()
   var field;
+}
+
+@Macro1()
+/*member: field:appliedMacros=[Macro1]*/
+var field;
+
+extension Extension on int {
+  @Macro1()
+  /*member: Extension|field:appliedMacros=[Macro1]*/
+  static var field;
+
+  @Macro2()
+  /*member: Extension|method:appliedMacros=[Macro2]*/
+  void method() {}
+
+  @Macro3()
+  /*member: Extension|staticMethod:appliedMacros=[Macro3]*/
+  static void staticMethod() {}
 }
