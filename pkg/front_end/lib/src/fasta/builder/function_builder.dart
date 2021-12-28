@@ -45,6 +45,11 @@ import 'type_variable_builder.dart';
 
 /// Common base class for constructor and procedure builders.
 abstract class FunctionBuilder implements MemberBuilder {
+  FunctionNode get function;
+}
+
+abstract class SourceFunctionBuilder
+    implements FunctionBuilder, SourceMemberBuilder {
   List<MetadataBuilder>? get metadata;
 
   TypeBuilder? get returnType;
@@ -94,8 +99,6 @@ abstract class FunctionBuilder implements MemberBuilder {
 
   String? get nativeMethodName;
 
-  FunctionNode get function;
-
   Statement? get body;
 
   void set body(Statement? newBody);
@@ -135,7 +138,7 @@ abstract class FunctionBuilder implements MemberBuilder {
 
 /// Common base class for constructor and procedure builders.
 abstract class FunctionBuilderImpl extends MemberBuilderImpl
-    implements FunctionBuilder {
+    implements SourceFunctionBuilder {
   @override
   final List<MetadataBuilder>? metadata;
 

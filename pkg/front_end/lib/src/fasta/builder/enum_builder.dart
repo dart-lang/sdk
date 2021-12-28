@@ -514,8 +514,8 @@ class EnumBuilder extends SourceClassBuilder {
       }
     }
 
-    ProcedureBuilder toStringBuilder =
-        firstMemberNamed("toString") as ProcedureBuilder;
+    SourceProcedureBuilder toStringBuilder =
+        firstMemberNamed("toString") as SourceProcedureBuilder;
 
     TypeBuilder supertypeBuilder = this.supertypeBuilder!;
     ClassBuilder enumClass = supertypeBuilder.declaration as ClassBuilder;

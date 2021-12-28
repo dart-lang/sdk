@@ -186,7 +186,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final SourceLibraryBuilder? _origin;
 
-  final List<FunctionBuilder> nativeMethods = <FunctionBuilder>[];
+  final List<SourceFunctionBuilder> nativeMethods = <SourceFunctionBuilder>[];
 
   final List<TypeVariableBuilder> unboundTypeVariables =
       <TypeVariableBuilder>[];
@@ -2657,7 +2657,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
-    ProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
+    SourceProcedureBuilder procedureBuilder = new SourceProcedureBuilder(
         metadata,
         modifiers,
         returnType,
@@ -3302,7 +3302,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     return count;
   }
 
-  void addNativeMethod(FunctionBuilder method) {
+  void addNativeMethod(SourceFunctionBuilder method) {
     nativeMethods.add(method);
   }
 
@@ -3316,7 +3316,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    for (FunctionBuilder method in nativeMethods) {
+    for (SourceFunctionBuilder method in nativeMethods) {
       method.becomeNative(loader);
     }
     count += nativeMethods.length;
@@ -3678,9 +3678,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   inErrorRecovery: issues.isNotEmpty);
               formals = member.formals;
             } else {
-              assert(member is ConstructorBuilder,
+              assert(member is SourceConstructorBuilder,
                   "Unexpected constructor member (${member.runtimeType}).");
-              formals = (member as ConstructorBuilder).formals;
+              formals = (member as SourceConstructorBuilder).formals;
             }
             if (formals != null && formals.isNotEmpty) {
               for (FormalParameterBuilder formal in formals) {
@@ -3694,7 +3694,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           });
         }
         declaration.forEach((String name, Builder member) {
-          if (member is ProcedureBuilder) {
+          if (member is SourceProcedureBuilder) {
             List<NonSimplicityIssue> issues =
                 getNonSimplicityIssuesForTypeVariables(member.typeVariables);
             if (member.formals != null && member.formals!.isNotEmpty) {
@@ -3733,7 +3733,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
         _recursivelyReportGenericFunctionTypesAsBoundsForType(declaration.type);
-      } else if (declaration is FunctionBuilder) {
+      } else if (declaration is SourceFunctionBuilder) {
         List<NonSimplicityIssue> issues =
             getNonSimplicityIssuesForTypeVariables(declaration.typeVariables);
         if (declaration.formals != null && declaration.formals!.isNotEmpty) {
@@ -3761,7 +3761,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               inErrorRecovery: issues.isNotEmpty);
         }
         declaration.forEach((String name, Builder member) {
-          if (member is ProcedureBuilder) {
+          if (member is SourceProcedureBuilder) {
             List<NonSimplicityIssue> issues =
                 getNonSimplicityIssuesForTypeVariables(member.typeVariables);
             if (member.formals != null && member.formals!.isNotEmpty) {
@@ -3809,10 +3809,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     for (Builder declaration
         in _libraryTypeParameterScopeBuilder.setters!.values) {
       assert(
-          declaration is ProcedureBuilder,
+          declaration is SourceProcedureBuilder,
           "Expected setter to be a ProcedureBuilder, "
           "but got '${declaration.runtimeType}'");
-      if (declaration is ProcedureBuilder &&
+      if (declaration is SourceProcedureBuilder &&
           declaration.formals != null &&
           declaration.formals!.isNotEmpty) {
         for (FormalParameterBuilder formal in declaration.formals!) {
@@ -4235,7 +4235,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInFunctionBuilder(
-      FunctionBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
+      SourceFunctionBuilder procedureBuilder, TypeEnvironment typeEnvironment) {
     checkBoundsInFunctionNode(
         procedureBuilder.function, typeEnvironment, procedureBuilder.fileUri!);
     if (procedureBuilder.formals != null &&
@@ -4245,7 +4245,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInConstructorBuilder(
-      ConstructorBuilder constructorBuilder, TypeEnvironment typeEnvironment) {
+      SourceConstructorBuilder constructorBuilder,
+      TypeEnvironment typeEnvironment) {
     checkBoundsInFunctionNode(
         constructorBuilder.constructor.function, typeEnvironment, fileUri);
     if (!constructorBuilder.isExternal && constructorBuilder.formals != null) {
@@ -4549,7 +4550,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Builder declaration = iterator.current;
       if (declaration is FieldBuilder) {
         checkTypesInField(declaration, typeEnvironment);
-      } else if (declaration is ProcedureBuilder) {
+      } else if (declaration is SourceProcedureBuilder) {
         checkTypesInFunctionBuilder(declaration, typeEnvironment);
         if (declaration.isGetter) {
           Builder? setterDeclaration =

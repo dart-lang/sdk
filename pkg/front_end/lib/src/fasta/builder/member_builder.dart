@@ -98,8 +98,10 @@ abstract class MemberBuilder implements ModifierBuilder {
   List<ClassMember> get localSetters;
 }
 
+abstract class SourceMemberBuilder implements MemberBuilder {}
+
 abstract class MemberBuilderImpl extends ModifierBuilderImpl
-    implements MemberBuilder {
+    implements SourceMemberBuilder {
   /// For top-level members, the parent is set correctly during
   /// construction. However, for class members, the parent is initially the
   /// library and updated later.

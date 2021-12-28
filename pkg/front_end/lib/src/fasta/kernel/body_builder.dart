@@ -939,7 +939,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void prepareInitializers() {
-    FunctionBuilder member = this.member as FunctionBuilder;
+    SourceFunctionBuilder member = this.member as SourceFunctionBuilder;
     scope = member.computeFormalParameterInitializerScope(scope);
     if (member is SourceConstructorBuilder) {
       member.prepareInitializers();
@@ -1054,7 +1054,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   DartType _computeReturnTypeContext(MemberBuilder member) {
-    if (member is ProcedureBuilder) {
+    if (member is SourceProcedureBuilder) {
       final bool isReturnTypeUndeclared = member.returnType == null &&
           member.function.returnType is DynamicType;
       return isReturnTypeUndeclared && libraryBuilder.isNonNullableByDefault
@@ -1073,7 +1073,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("finishFunction");
     typeInferrer.assignedVariables.finish();
 
-    final FunctionBuilder builder = member as FunctionBuilder;
+    final SourceFunctionBuilder builder = member as SourceFunctionBuilder;
     if (extensionThis != null) {
       typeInferrer.flowAnalysis.declare(extensionThis!, true);
     }
@@ -1126,7 +1126,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (builder is SourceConstructorBuilder) {
       finishConstructor(builder, asyncModifier, body);
-    } else if (builder is ProcedureBuilder) {
+    } else if (builder is SourceProcedureBuilder) {
       builder.asyncModifier = asyncModifier;
     } else if (builder is SourceFactoryBuilder) {
       builder.asyncModifier = asyncModifier;
@@ -4163,7 +4163,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
         memberKind != MemberKind.GeneralizedFunctionType) {
-      FunctionBuilder member = this.member as FunctionBuilder;
+      SourceFunctionBuilder member = this.member as SourceFunctionBuilder;
       parameter = member.getFormal(name!);
       if (parameter == null) {
         // This happens when the list of formals (originally) contains a
