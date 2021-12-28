@@ -1153,17 +1153,17 @@ class KernelTarget extends TargetImplementation {
     Set<FieldBuilder>? initializedFields = null;
 
     builder.forEachDeclaredConstructor(
-        (String name, ConstructorBuilder constructorBuilder) {
+        (String name, SourceConstructorBuilder constructorBuilder) {
       if (constructorBuilder.isExternal) return;
       // In case of duplicating constructors the earliest ones (those that
       // declared towards the beginning of the file) come last in the list.
       // To report errors on the first definition of a constructor, we need to
       // iterate until that last element.
-      ConstructorBuilder earliest = constructorBuilder;
+      SourceConstructorBuilder earliest = constructorBuilder;
       Builder earliestBuilder = constructorBuilder;
       while (earliestBuilder.next != null) {
         earliestBuilder = earliestBuilder.next!;
-        if (earliestBuilder is ConstructorBuilder) {
+        if (earliestBuilder is SourceConstructorBuilder) {
           earliest = earliestBuilder;
         }
       }

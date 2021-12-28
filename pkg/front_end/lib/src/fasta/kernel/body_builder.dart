@@ -941,7 +941,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void prepareInitializers() {
     FunctionBuilder member = this.member as FunctionBuilder;
     scope = member.computeFormalParameterInitializerScope(scope);
-    if (member is ConstructorBuilder) {
+    if (member is SourceConstructorBuilder) {
       member.prepareInitializers();
       if (member.formals != null) {
         for (FormalParameterBuilder formal in member.formals!) {
@@ -1124,7 +1124,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
-    if (builder is ConstructorBuilder) {
+    if (builder is SourceConstructorBuilder) {
       finishConstructor(builder, asyncModifier, body);
     } else if (builder is ProcedureBuilder) {
       builder.asyncModifier = asyncModifier;
@@ -1632,7 +1632,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     // We are passing [AsyncMarker.Sync] because the error will be reported
     // already.
-    finishConstructor(member as ConstructorBuilder, AsyncMarker.Sync, null);
+    finishConstructor(
+        member as SourceConstructorBuilder, AsyncMarker.Sync, null);
   }
 
   Expression parseFieldInitializer(Token token) {
@@ -1662,8 +1663,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return annotation;
   }
 
-  void finishConstructor(
-      ConstructorBuilder builder, AsyncMarker asyncModifier, Statement? body) {
+  void finishConstructor(SourceConstructorBuilder builder,
+      AsyncMarker asyncModifier, Statement? body) {
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
@@ -6886,7 +6887,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 ]);
           }
         }
-        ConstructorBuilder constructorBuilder = member as ConstructorBuilder;
+        SourceConstructorBuilder constructorBuilder =
+            member as SourceConstructorBuilder;
         constructorBuilder.registerInitializedField(builder);
         return builder.buildInitializer(assignmentOffset, expression,
             isSynthetic: formal != null);

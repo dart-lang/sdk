@@ -240,7 +240,7 @@ class EnumBuilder extends SourceClassBuilder {
           referencesFromIndexed.lookupSetterReference(valuesName);
     }
 
-    ConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
+    SourceConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
         /* metadata = */ null,
         constMask,
         /* returnType = */ null,
