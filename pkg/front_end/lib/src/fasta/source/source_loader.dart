@@ -1303,7 +1303,7 @@ severity: $severity
     ticker.logMs("Resolved $typeCount types");
   }
 
-  void computeMacroDeclarations(List<SourceClassBuilder> sourceClassBuilders) {
+  void computeMacroDeclarations() {
     if (!enableMacros) return;
 
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
@@ -1325,14 +1325,18 @@ severity: $severity
     Set<ClassBuilder> macroClasses = {macroClassBuilder};
     Set<Uri> macroLibraries = {macroLibraryBuilder.importUri};
 
-    for (SourceClassBuilder sourceClassBuilder in sourceClassBuilders) {
-      if (sourceClassBuilder.isMacro) {
-        macroClasses.add(sourceClassBuilder);
-        macroLibraries.add(sourceClassBuilder.library.importUri);
-        if (retainDataForTesting) {
-          (dataForTesting!.macroDeclarationData.macroDeclarations[
-                  sourceClassBuilder.library.importUri] ??= [])
-              .add(sourceClassBuilder.name);
+    for (SourceLibraryBuilder sourceLibraryBuilder in sourceLibraryBuilders) {
+      Iterator<Builder> iterator = sourceLibraryBuilder.iterator;
+      while (iterator.moveNext()) {
+        Builder builder = iterator.current;
+        if (builder is SourceClassBuilder && builder.isMacro) {
+          macroClasses.add(builder);
+          macroLibraries.add(builder.library.importUri);
+          if (retainDataForTesting) {
+            (dataForTesting!.macroDeclarationData
+                    .macroDeclarations[builder.library.importUri] ??= [])
+                .add(builder.name);
+          }
         }
       }
     }
