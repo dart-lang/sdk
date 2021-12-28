@@ -25,6 +25,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   ClassElement? _enclosingClass;
   ExecutableElement? _enclosingExec;
 
+  /// Non-null when the visitor is inside an [IsExpression]'s type.
+  IsExpression? _enclosingIsExpression;
+
+  /// Non-null when the visitor is inside a [VariableDeclarationList]'s type.
+  VariableDeclarationList? _enclosingVariableDeclaration;
+
   GatherUsedLocalElementsVisitor(this._enclosingLibrary);
 
   @override
@@ -114,6 +120,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIsExpression(IsExpression node) {
+    var enclosingIsExpressionOld = _enclosingIsExpression;
+    node.expression.accept(this);
+    try {
+      _enclosingIsExpression = node;
+      node.type.accept(this);
+    } finally {
+      _enclosingIsExpression = enclosingIsExpressionOld;
+    }
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     var enclosingExecOld = _enclosingExec;
     try {
@@ -178,21 +196,22 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         usedElements.addElement(element);
       }
     } else {
-      _useIdentifierElement(node, node.readElement);
-      _useIdentifierElement(node, node.writeElement);
-      _useIdentifierElement(node, node.staticElement);
       var parent = node.parent!;
-      // If [node] is a method tear-off, assume all parameters are used.
+      _useIdentifierElement(node, node.readElement, parent: parent);
+      _useIdentifierElement(node, node.writeElement, parent: parent);
+      _useIdentifierElement(node, node.staticElement, parent: parent);
+      var grandparent = parent.parent;
+      // If [node] is a tear-off, assume all parameters are used.
       var functionReferenceIsCall =
           (element is ExecutableElement && parent is MethodInvocation) ||
               // named constructor
               (element is ConstructorElement &&
                   parent is ConstructorName &&
-                  parent.parent is InstanceCreationExpression) ||
+                  grandparent is InstanceCreationExpression) ||
               // unnamed constructor
               (element is ClassElement &&
-                  parent.parent is ConstructorName &&
-                  parent.parent!.parent is InstanceCreationExpression);
+                  grandparent is ConstructorName &&
+                  grandparent.parent is InstanceCreationExpression);
       if (element is ExecutableElement &&
           isIdentifierRead &&
           !functionReferenceIsCall) {
@@ -224,6 +243,19 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  @override
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    node.metadata.accept(this);
+    var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
+    try {
+      _enclosingVariableDeclaration = node;
+      node.type?.accept(this);
+    } finally {
+      _enclosingVariableDeclaration = enclosingVariableDeclarationOld;
+    }
+    node.variables.accept(this);
+  }
+
   /// Add [element] as a used member and, if [element] is a setter, add its
   /// corresponding getter as a used member.
   void _addMemberAndCorrespondingGetter(Element element) {
@@ -236,7 +268,11 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   /// Marks the [element] of [node] as used in the library.
-  void _useIdentifierElement(Identifier node, Element? element) {
+  void _useIdentifierElement(
+    Identifier node,
+    Element? element, {
+    required AstNode parent,
+  }) {
     if (element == null) {
       return;
     }
@@ -252,17 +288,17 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // Ignore places where the element is not actually used.
-    if (node.parent is NamedType) {
+    if (parent is NamedType) {
       if (element is ClassElement) {
-        AstNode parent2 = node.parent!.parent!;
-        if (parent2 is IsExpression) {
-          return;
-        }
-        if (parent2 is VariableDeclarationList) {
+        var enclosingVariableDeclaration = _enclosingVariableDeclaration;
+        if (enclosingVariableDeclaration != null) {
           // If it's a field's type, it still counts as used.
-          if (parent2.parent is! FieldDeclaration) {
+          if (enclosingVariableDeclaration.parent is! FieldDeclaration) {
             return;
           }
+        } else if (_enclosingIsExpression != null) {
+          // An interface type found in an `is` expression is not used.
+          return;
         }
       }
     }

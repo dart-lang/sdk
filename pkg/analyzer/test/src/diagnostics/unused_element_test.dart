@@ -1700,6 +1700,78 @@ main() {
 
 @reflectiveTest
 class UnusedElementWithNullSafetyTest extends PubPackageResolutionTest {
+  test_class_isUsed_isExpression_expression() async {
+    await assertNoErrorsInCode('''
+class _A {}
+void f(Object p) {
+  if (_A() is int) {
+  }
+}
+''');
+  }
+
+  test_class_notUsed_isExpression_typeArgument() async {
+    await assertErrorsInCode(r'''
+class _A {}
+void f(Object p) {
+  if (p is List<_A>) {
+  }
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_isExpression_typeInFunctionType() async {
+    await assertErrorsInCode(r'''
+class _A {}
+void f(Object p) {
+  if (p is void Function(_A)) {
+  }
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_isExpression_typeInTypeParameter() async {
+    await assertErrorsInCode(r'''
+class _A {}
+void f(Object p) {
+  if (p is void Function<T extends _A>()) {
+  }
+}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_variableDeclaration() async {
+    await assertErrorsInCode('''
+class _A {}
+void f() {
+  _A? v;
+  print(v);
+}
+print(x) {}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
+  test_class_notUsed_variableDeclaration_typeArgument() async {
+    await assertErrorsInCode('''
+class _A {}
+main() {
+  List<_A>? v;
+  print(v);
+}
+print(x) {}
+''', [
+      error(HintCode.UNUSED_ELEMENT, 6, 2),
+    ]);
+  }
+
   test_optionalParameter_isUsed_genericConstructor() async {
     await assertNoErrorsInCode('''
 class C<T> {
