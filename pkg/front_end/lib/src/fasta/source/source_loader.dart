@@ -35,6 +35,7 @@ import '../../api_prototype/file_system.dart';
 import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
+import '../builder/metadata_builder.dart';
 import '../dill/dill_library_builder.dart';
 import '../builder_graph.dart';
 import '../builder/builder.dart';
@@ -67,6 +68,7 @@ import '../kernel/kernel_helper.dart'
     show SynthesizedFunctionNode, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/macro.dart';
+import '../kernel/macro_annotation_parser.dart';
 import '../kernel/transform_collections.dart' show CollectionTransformer;
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
@@ -908,7 +910,7 @@ severity: $severity
   }
 
   void registerConstructorToBeInferred(
-      Constructor constructor, ConstructorBuilder builder) {
+      Constructor constructor, SourceConstructorBuilder builder) {
     _typeInferenceEngine!.toBeInferred[constructor] = builder;
   }
 
@@ -1381,65 +1383,108 @@ severity: $severity
 
   void computeMacroApplications() {
     if (!enableMacros || _macroClassBuilder == null) return;
-    Class macroClass = _macroClassBuilder!.cls;
 
-    Class? computeApplication(Expression expression) {
-      if (expression is ConstructorInvocation) {
-        Class cls = expression.target.enclosingClass;
-        if (hierarchy.isSubtypeOf(cls, macroClass)) {
-          return cls;
-        }
-      }
-      return null;
-    }
-
-    MacroApplications? computeApplications(List<Expression> annotations) {
-      List<Class> macros = [];
-      for (Expression annotation in annotations) {
-        Class? cls = computeApplication(annotation);
-        if (cls != null) {
-          macros.add(cls);
-        }
-      }
-      return macros.isNotEmpty ? new MacroApplications(macros) : null;
+    MacroApplications? computeApplications(
+        SourceLibraryBuilder enclosingLibrary,
+        Scope scope,
+        Uri fileUri,
+        List<MetadataBuilder>? annotations) {
+      List<MacroApplication>? result = prebuildAnnotations(
+          enclosingLibrary: enclosingLibrary,
+          metadataBuilders: annotations,
+          fileUri: fileUri,
+          scope: scope);
+      return result != null ? new MacroApplications(result) : null;
     }
 
     for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
       // TODO(johnniwinther): Handle patch libraries.
       LibraryMacroApplicationData libraryMacroApplicationData =
           new LibraryMacroApplicationData();
-      Library library = libraryBuilder.library;
-      for (Class cls in library.classes) {
-        ClassMacroApplicationData classMacroApplicationData =
-            new ClassMacroApplicationData();
-        classMacroApplicationData.classApplications =
-            computeApplications(cls.annotations);
-        for (Member member in cls.members) {
-          MacroApplications? macroApplications =
-              computeApplications(member.annotations);
+      Iterator<Builder> iterator = libraryBuilder.iterator;
+      while (iterator.moveNext()) {
+        Builder builder = iterator.current;
+        if (builder is SourceClassBuilder) {
+          SourceClassBuilder classBuilder = builder;
+          ClassMacroApplicationData classMacroApplicationData =
+              new ClassMacroApplicationData();
+          classMacroApplicationData.classApplications = computeApplications(
+              libraryBuilder,
+              classBuilder.scope,
+              classBuilder.fileUri,
+              classBuilder.metadata);
+          builder.forEach((String name, Builder memberBuilder) {
+            if (memberBuilder is SourceProcedureBuilder) {
+              MacroApplications? macroApplications = computeApplications(
+                  libraryBuilder,
+                  classBuilder.scope,
+                  memberBuilder.fileUri,
+                  memberBuilder.metadata);
+              if (macroApplications != null) {
+                classMacroApplicationData
+                        .memberApplications[memberBuilder.procedure] =
+                    macroApplications;
+              }
+            } else if (memberBuilder is SourceFieldBuilder) {
+              MacroApplications? macroApplications = computeApplications(
+                  libraryBuilder,
+                  classBuilder.scope,
+                  memberBuilder.fileUri,
+                  memberBuilder.metadata);
+              if (macroApplications != null) {
+                classMacroApplicationData
+                        .memberApplications[memberBuilder.field] =
+                    macroApplications;
+              }
+            }
+          });
+          classBuilder.forEachConstructor((String name, Builder memberBuilder) {
+            if (memberBuilder is SourceConstructorBuilder) {
+              MacroApplications? macroApplications = computeApplications(
+                  libraryBuilder,
+                  classBuilder.scope,
+                  memberBuilder.fileUri,
+                  memberBuilder.metadata);
+              if (macroApplications != null) {
+                classMacroApplicationData
+                        .memberApplications[memberBuilder.constructor] =
+                    macroApplications;
+              }
+            }
+          });
+
+          if (classMacroApplicationData.classApplications != null ||
+              classMacroApplicationData.memberApplications.isNotEmpty) {
+            libraryMacroApplicationData.classData[builder.cls] =
+                classMacroApplicationData;
+          }
+        } else if (builder is SourceProcedureBuilder) {
+          MacroApplications? macroApplications = computeApplications(
+              libraryBuilder,
+              libraryBuilder.scope,
+              builder.fileUri,
+              builder.metadata);
           if (macroApplications != null) {
-            classMacroApplicationData.memberApplications[member] =
+            libraryMacroApplicationData.memberApplications[builder.procedure] =
                 macroApplications;
           }
-        }
-        if (classMacroApplicationData.classApplications != null ||
-            classMacroApplicationData.memberApplications.isNotEmpty) {
-          libraryMacroApplicationData.classData[cls] =
-              classMacroApplicationData;
-        }
-      }
-      for (Member member in library.members) {
-        MacroApplications? macroApplications =
-            computeApplications(member.annotations);
-        if (macroApplications != null) {
-          libraryMacroApplicationData.memberApplications[member] =
-              macroApplications;
+        } else if (builder is SourceFieldBuilder) {
+          MacroApplications? macroApplications = computeApplications(
+              libraryBuilder,
+              libraryBuilder.scope,
+              builder.fileUri,
+              builder.metadata);
+          if (macroApplications != null) {
+            libraryMacroApplicationData.memberApplications[builder.field] =
+                macroApplications;
+          }
         }
       }
       if (libraryMacroApplicationData.classData.isNotEmpty ||
           libraryMacroApplicationData.memberApplications.isNotEmpty) {
         if (retainDataForTesting) {
-          dataForTesting!.macroApplicationData.libraryData[library] =
+          dataForTesting!
+                  .macroApplicationData.libraryData[libraryBuilder.library] =
               libraryMacroApplicationData;
         }
       }

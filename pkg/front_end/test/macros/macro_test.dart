@@ -139,8 +139,13 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
   void registerMacroApplications(
       Features features, MacroApplications? macroApplications) {
     if (macroApplications != null) {
-      for (Class cls in macroApplications.macros) {
-        features.addElement(Tags.appliedMacros, cls.name);
+      for (MacroApplication application in macroApplications.macros) {
+        String className = application.cls.name;
+        String constructorName = application.constructorName == ''
+            ? 'new'
+            : application.constructorName;
+        features.addElement(
+            Tags.appliedMacros, '${className}.${constructorName}');
       }
     }
   }

@@ -50,45 +50,8 @@ import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
 abstract class ConstructorBuilder implements FunctionBuilder {
-  abstract Token? beginInitializers;
-
-  ConstructorBuilder? get actualOrigin;
-
-  ConstructorBuilder? get patchForTesting;
-
-  Constructor get actualConstructor;
-
-  @override
-  ConstructorBuilder get origin;
-
-  bool get isRedirectingGenerativeConstructor;
-
   /// The [Constructor] built by this builder.
   Constructor get constructor;
-
-  void injectInvalidInitializer(Message message, int charOffset, int length,
-      ExpressionGeneratorHelper helper);
-
-  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
-      {required InitializerInferenceResult? inferenceResult});
-
-  void prepareInitializers();
-
-  /// Infers the types of any untyped initializing formals.
-  void inferFormalTypes();
-
-  /// Registers field as being initialized by this constructor.
-  ///
-  /// The field can be initialized either via an initializing formal or via an
-  /// entry in the constructor initializer list.
-  void registerInitializedField(FieldBuilder fieldBuilder);
-
-  /// Returns the fields registered as initialized by this constructor.
-  ///
-  /// Returns the set of fields previously registered via
-  /// [registerInitializedField] and passes on the ownership of the collection
-  /// to the caller.
-  Set<FieldBuilder>? takeInitializedFields();
 }
 
 class SourceConstructorBuilder extends FunctionBuilderImpl
@@ -106,13 +69,10 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
 
   RedirectingInitializer? redirectingInitializer;
 
-  @override
   Token? beginInitializers;
 
-  @override
-  ConstructorBuilder? actualOrigin;
+  SourceConstructorBuilder? actualOrigin;
 
-  @override
   Constructor get actualConstructor => _constructor;
 
   SourceConstructorBuilder(
@@ -172,9 +132,8 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   Iterable<Member> get exportedMembers => [constructor];
 
   @override
-  ConstructorBuilder get origin => actualOrigin ?? this;
+  SourceConstructorBuilder get origin => actualOrigin ?? this;
 
-  @override
   ConstructorBuilder? get patchForTesting =>
       dataForTesting?.patchForTesting as ConstructorBuilder?;
 
@@ -248,7 +207,7 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
     return _constructor;
   }
 
-  @override
+  /// Infers the types of any untyped initializing formals.
   void inferFormalTypes() {
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
@@ -315,7 +274,6 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   @override
   Member get member => constructor;
 
-  @override
   void injectInvalidInitializer(Message message, int charOffset, int length,
       ExpressionGeneratorHelper helper) {
     List<Initializer> initializers = _constructor.initializers;
@@ -328,7 +286,6 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
     initializers.add(lastInitializer);
   }
 
-  @override
   void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
       {required InitializerInferenceResult? inferenceResult}) {
     List<Initializer> initializers = _constructor.initializers;
@@ -457,7 +414,6 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
     }
   }
 
-  @override
   void prepareInitializers() {
     // For const constructors we parse initializers already at the outlining
     // stage, there is no easy way to make body building stage skip initializer
@@ -482,12 +438,19 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   List<ClassMember> get localSetters =>
       throw new UnsupportedError('${runtimeType}.localSetters');
 
-  @override
+  /// Registers field as being initialized by this constructor.
+  ///
+  /// The field can be initialized either via an initializing formal or via an
+  /// entry in the constructor initializer list.
   void registerInitializedField(FieldBuilder fieldBuilder) {
     (_initializedFields ??= {}).add(fieldBuilder);
   }
 
-  @override
+  /// Returns the fields registered as initialized by this constructor.
+  ///
+  /// Returns the set of fields previously registered via
+  /// [registerInitializedField] and passes on the ownership of the collection
+  /// to the caller.
   Set<FieldBuilder>? takeInitializedFields() {
     Set<FieldBuilder>? result = _initializedFields;
     _initializedFields = null;

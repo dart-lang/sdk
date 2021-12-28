@@ -466,11 +466,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   void forEachDeclaredConstructor(
-      void Function(String name, ConstructorBuilder constructorBuilder)
+      void Function(String name, SourceConstructorBuilder constructorBuilder)
           callback) {
     Set<String> visitedConstructorNames = {};
     void callbackFilteringFieldBuilders(String name, Builder builder) {
-      if (builder is ConstructorBuilder &&
+      if (builder is SourceConstructorBuilder &&
           visitedConstructorNames.add(builder.name)) {
         callback(name, builder);
       }

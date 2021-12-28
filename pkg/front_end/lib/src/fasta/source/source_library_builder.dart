@@ -2554,7 +2554,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           .lookupGetterReference(constructorTearOffName(
               constructorName, _currentClassReferencesFromIndexed!.library));
     }
-    ConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
+    SourceConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
         metadata,
         modifiers & ~abstractMask,
         returnType,

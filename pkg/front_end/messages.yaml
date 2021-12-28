@@ -189,6 +189,10 @@ ConstEvalFailedAssertionWithMessage:
   problemMessage: "This assertion failed with message: #stringOKEmpty"
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
+ConstEvalFailedAssertionWithNonStringMessage:
+  problemMessage: "This assertion failed with a non-String message."
+  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+
 ConstEvalNonConstantVariableGet:
   problemMessage: "The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed."
   analyzerCode: NON_CONSTANT_VALUE_IN_INITIALIZER

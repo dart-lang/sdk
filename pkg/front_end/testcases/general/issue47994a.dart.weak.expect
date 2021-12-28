@@ -1,0 +1,106 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue47994a.dart:14:18: Error: Constant evaluation error:
+// const _assert1 = BuildAssert(false);
+//                  ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:16: Context: This assertion failed.
+//       : assert(condition, message);
+//                ^
+// pkg/front_end/testcases/general/issue47994a.dart:14:7: Context: While analyzing:
+// const _assert1 = BuildAssert(false);
+//       ^
+//
+// pkg/front_end/testcases/general/issue47994a.dart:15:18: Error: Constant evaluation error:
+// const _assert2 = BuildAssert(false, null);
+//                  ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:16: Context: This assertion failed.
+//       : assert(condition, message);
+//                ^
+// pkg/front_end/testcases/general/issue47994a.dart:15:7: Context: While analyzing:
+// const _assert2 = BuildAssert(false, null);
+//       ^
+//
+// pkg/front_end/testcases/general/issue47994a.dart:16:18: Error: Constant evaluation error:
+// const _assert3 = BuildAssert(false, 'foo');
+//                  ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:16: Context: This assertion failed with message: foo
+//       : assert(condition, message);
+//                ^
+// pkg/front_end/testcases/general/issue47994a.dart:16:7: Context: While analyzing:
+// const _assert3 = BuildAssert(false, 'foo');
+//       ^
+//
+// pkg/front_end/testcases/general/issue47994a.dart:17:18: Error: Constant evaluation error:
+// const _assert4 = BuildAssert(false, 0);
+//                  ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:27: Context: This assertion failed with a non-String message.
+//       : assert(condition, message);
+//                           ^
+// pkg/front_end/testcases/general/issue47994a.dart:17:7: Context: While analyzing:
+// const _assert4 = BuildAssert(false, 0);
+//       ^
+//
+// pkg/front_end/testcases/general/issue47994a.dart:18:18: Error: Constant evaluation error:
+// const _assert5 = BuildAssert(false, const {});
+//                  ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:27: Context: This assertion failed with a non-String message.
+//       : assert(condition, message);
+//                           ^
+// pkg/front_end/testcases/general/issue47994a.dart:18:7: Context: While analyzing:
+// const _assert5 = BuildAssert(false, const {});
+//       ^
+//
+// pkg/front_end/testcases/general/issue47994a.dart:19:18: Error: Constant evaluation error:
+// const _assert6 = BuildAssert(false, #_symbol);
+//                  ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:27: Context: This assertion failed with a non-String message.
+//       : assert(condition, message);
+//                           ^
+// pkg/front_end/testcases/general/issue47994a.dart:19:7: Context: While analyzing:
+// const _assert6 = BuildAssert(false, #_symbol);
+//       ^
+//
+// pkg/front_end/testcases/general/issue47994a.dart:20:18: Error: Constant evaluation error:
+// const _assert7 = BuildAssert(false, const Const());
+//                  ^
+// pkg/front_end/testcases/general/issue47994a.dart:11:27: Context: This assertion failed with a non-String message.
+//       : assert(condition, message);
+//                           ^
+// pkg/front_end/testcases/general/issue47994a.dart:20:7: Context: While analyzing:
+// const _assert7 = BuildAssert(false, const Const());
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Const extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Const
+    : super core::Object::•()
+    ;
+}
+class BuildAssert extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::bool condition, [core::Object? message = #C1]) → self::BuildAssert
+    : assert(condition, message), super core::Object::•()
+    ;
+}
+static const field self::BuildAssert _assert1 = invalid-expression "This assertion failed.";
+static const field self::BuildAssert _assert2 = invalid-expression "This assertion failed.";
+static const field self::BuildAssert _assert3 = invalid-expression "This assertion failed with message: foo";
+static const field self::BuildAssert _assert4 = invalid-expression "This assertion failed with a non-String message.";
+static const field self::BuildAssert _assert5 = invalid-expression "This assertion failed with a non-String message.";
+static const field self::BuildAssert _assert6 = invalid-expression "This assertion failed with a non-String message.";
+static const field self::BuildAssert _assert7 = invalid-expression "This assertion failed with a non-String message.";
+static method main() → void {}
+
+constants  {
+  #C1 = null
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue47994a.dart:
+- BuildAssert. (from org-dartlang-testcase:///issue47994a.dart:10:9)
+- Const. (from org-dartlang-testcase:///issue47994a.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
