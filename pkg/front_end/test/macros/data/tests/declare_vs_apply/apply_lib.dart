@@ -10,9 +10,9 @@
 import 'macro_lib.dart';
 import 'apply_lib_dep.dart';
 
-@Macro1()
 /*class: Class:
- appliedMacros=[Macro1],
+ appliedMacros=[Macro1.new],
  macrosAreApplied
 */
+@Macro1()
 class Class extends Super {}

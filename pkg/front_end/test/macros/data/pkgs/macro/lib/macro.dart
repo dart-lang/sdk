@@ -6,14 +6,20 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class Macro1 implements Macro {
   const Macro1();
+
+  const Macro1.named();
 }
 
 macro class Macro2 implements Macro {
   const Macro2();
+
+  const Macro2.named();
 }
 
-macro class Macro3 implements Macro {
+macro class Macro3<T> implements Macro {
   const Macro3();
+
+  const Macro3.named();
 }
 
 class NonMacro {

@@ -14,25 +14,25 @@ library use_macro_package;
 
 import 'package:macro/macro.dart';
 
+/*member: main:appliedMacros=[Macro1.new]*/
 @Macro1()
-/*member: main:appliedMacros=[Macro1]*/
 void main() {}
 
-@Macro2()
 /*class: Class1:
- appliedMacros=[Macro2],
+ appliedMacros=[Macro2.new],
  macrosAreApplied
 */
+@Macro2()
 class Class1 {
+  /*member: Class1.:appliedMacros=[Macro3.new]*/
   @Macro3()
-  /*member: Class1.:appliedMacros=[Macro3]*/
   Class1();
 
+  /*member: Class1.method:appliedMacros=[
+    Macro1.new,
+    Macro2.new]*/
   @Macro1()
   @Macro2()
-  /*member: Class1.method:appliedMacros=[
-    Macro1,
-    Macro2]*/
   void method() {}
 }
 
@@ -41,8 +41,8 @@ class Class2 {}
 
 /*class: Class3:macrosAreApplied*/
 class Class3 {
+  /*member: Class3.field:appliedMacros=[Macro3.new]*/
   @Macro3()
-  /*member: Class3.field:appliedMacros=[Macro3]*/
   var field;
 }
 
@@ -51,20 +51,20 @@ class Class4 {
   var field;
 }
 
+/*member: field:appliedMacros=[Macro1.new]*/
 @Macro1()
-/*member: field:appliedMacros=[Macro1]*/
 var field;
 
 extension Extension on int {
+  /*member: Extension|field:*/
   @Macro1()
-  /*member: Extension|field:appliedMacros=[Macro1]*/
   static var field;
 
+  /*member: Extension|method:*/
   @Macro2()
-  /*member: Extension|method:appliedMacros=[Macro2]*/
   void method() {}
 
+  /*member: Extension|staticMethod:*/
   @Macro3()
-  /*member: Extension|staticMethod:appliedMacros=[Macro3]*/
   static void staticMethod() {}
 }

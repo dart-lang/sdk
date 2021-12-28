@@ -395,6 +395,7 @@ class KernelTarget extends TargetImplementation {
       List<SourceClassBuilder> sourceClassBuilders =
           loader.checkSemantics(objectClassBuilder);
       loader.computeMacroDeclarations(sourceClassBuilders);
+      loader.computeMacroApplications();
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
       loader.createTypeInferenceEngine();
       loader.buildComponent();
@@ -416,7 +417,6 @@ class KernelTarget extends TargetImplementation {
       loader.checkMixins(sourceClassBuilders);
       loader.buildOutlineExpressions(
           loader.coreTypes, synthesizedFunctionNodes);
-      loader.computeMacroApplications();
       loader.checkTypes();
       loader.checkRedirectingFactories(sourceClassBuilders);
       loader.checkMainMethods();

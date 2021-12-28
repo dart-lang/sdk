@@ -21,9 +21,17 @@ class MacroApplicationData {
 }
 
 class MacroApplications {
-  final List<Class> macros;
+  final List<MacroApplication> macros;
 
   MacroApplications(this.macros);
+}
+
+class MacroApplication {
+  final Class cls;
+  final String constructorName;
+  // TODO(johnniwinther): Add support for arguments.
+
+  MacroApplication(this.cls, this.constructorName);
 }
 
 class LibraryMacroApplicationData {
