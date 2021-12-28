@@ -262,7 +262,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       if (builder is SourceFieldBuilder) {
         // Check fields.
         library.checkTypesInField(builder, typeEnvironment);
-      } else if (builder is ProcedureBuilder) {
+      } else if (builder is SourceProcedureBuilder) {
         // Check procedures
         library.checkTypesInFunctionBuilder(builder, typeEnvironment);
         if (builder.isGetter) {

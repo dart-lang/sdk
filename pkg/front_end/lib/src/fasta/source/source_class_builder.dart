@@ -550,7 +550,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         // Check fields.
         checkVarianceInField(builder, typeEnvironment, cls.typeParameters);
         library.checkTypesInField(builder, typeEnvironment);
-      } else if (builder is ProcedureBuilder) {
+      } else if (builder is SourceProcedureBuilder) {
         // Check procedures
         checkVarianceInFunction(
             builder.procedure, typeEnvironment, cls.typeParameters);
@@ -562,7 +562,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     });
 
     forEachConstructor((String name, MemberBuilder builder) {
-      if (builder is ConstructorBuilder) {
+      if (builder is SourceConstructorBuilder) {
         library.checkTypesInConstructorBuilder(builder, typeEnvironment);
       } else if (builder is RedirectingFactoryBuilder) {
         library.checkTypesInRedirectingFactoryBuilder(builder, typeEnvironment);

@@ -240,7 +240,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     MemberBuilder memberBuilder = lookupMemberBuilder(compilerResult, member)!;
     Features features = new Features();
     features[Tags.builderName] = memberBuilder.name;
-    if (memberBuilder is FunctionBuilder) {
+    if (memberBuilder is SourceFunctionBuilder) {
       if (memberBuilder.formals != null) {
         for (FormalParameterBuilder parameter in memberBuilder.formals!) {
           if (parameter.isRequired) {
