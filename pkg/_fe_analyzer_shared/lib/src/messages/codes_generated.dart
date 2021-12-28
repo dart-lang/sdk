@@ -1434,6 +1434,17 @@ Message _withArgumentsConstEvalFailedAssertionWithMessage(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstEvalFailedAssertionWithNonStringMessage =
+    messageConstEvalFailedAssertionWithNonStringMessage;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstEvalFailedAssertionWithNonStringMessage =
+    const MessageCode("ConstEvalFailedAssertionWithNonStringMessage",
+        analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
+        problemMessage:
+            r"""This assertion failed with a non-String message.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String nameOKEmpty)>
     templateConstEvalGetterNotFound =
     const Template<Message Function(String nameOKEmpty)>(

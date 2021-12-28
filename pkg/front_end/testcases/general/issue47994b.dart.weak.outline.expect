@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Const extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Const
+    : super core::Object::•()
+    ;
+}
+class Class extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::Object? message) → self::Class
+    : assert(false, message), super core::Object::•()
+    ;
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method test(() → void f) → core::Object?
+  ;
