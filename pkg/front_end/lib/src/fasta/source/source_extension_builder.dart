@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/common.dart';
@@ -282,7 +282,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
@@ -290,13 +290,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(library, this, null,
-            coreTypes, delayedActionPerformers, scope.parent!);
+            classHierarchy, delayedActionPerformers, scope.parent!);
       }
     }
 
     void build(String ignore, Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
-      member.buildOutlineExpressions(library, coreTypes,
+      member.buildOutlineExpressions(library, classHierarchy,
           delayedActionPerformers, synthesizedFunctionNodes);
     }
 

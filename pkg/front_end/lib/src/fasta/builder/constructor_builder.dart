@@ -5,7 +5,8 @@
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../builder/library_builder.dart';
 
@@ -41,12 +42,16 @@ import '../type_inference/type_inferrer.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 
 import 'builder.dart';
+import 'class_builder.dart';
 import 'field_builder.dart';
 import 'formal_parameter_builder.dart';
 import 'function_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
+import 'named_type_builder.dart';
+import 'type_alias_builder.dart';
 import 'type_builder.dart';
+import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
 
 abstract class ConstructorBuilder implements FunctionBuilder {
@@ -74,6 +79,13 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   SourceConstructorBuilder? actualOrigin;
 
   Constructor get actualConstructor => _constructor;
+
+  bool _hasFormalsInferred = false;
+
+  final bool _hasSuperInitializingFormals;
+
+  final List<SynthesizedFunctionNode> _superParameterDefaultValueCloners =
+      <SynthesizedFunctionNode>[];
 
   SourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
@@ -106,6 +118,8 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
             charOffset,
             tearOffReference,
             forAbstractClassOrEnum: forAbstractClassOrEnum),
+        _hasSuperInitializingFormals =
+            formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
@@ -190,7 +204,8 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
     if (formals != null) {
       bool needsInference = false;
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.type == null && formal.isInitializingFormal) {
+        if (formal.type == null &&
+            (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
           formal.variable!.type = const UnknownType();
           needsInference = true;
         }
@@ -208,13 +223,205 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   }
 
   /// Infers the types of any untyped initializing formals.
-  void inferFormalTypes() {
+  void inferFormalTypes(ClassHierarchy classHierarchy) {
+    if (_hasFormalsInferred) return;
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
-        if (formal.type == null && formal.isInitializingFormal) {
-          formal.finalizeInitializingFormal(classBuilder);
+        if (formal.type == null) {
+          if (formal.isInitializingFormal) {
+            formal.finalizeInitializingFormal(classBuilder);
+          }
         }
       }
+
+      if (_hasSuperInitializingFormals) {
+        if (beginInitializers != null) {
+          BodyBuilder bodyBuilder = library.loader
+              .createBodyBuilderForOutlineExpression(
+                  library, classBuilder, this, classBuilder.scope, fileUri);
+          bodyBuilder.constantContext = ConstantContext.required;
+          bodyBuilder.parseInitializers(beginInitializers!,
+              doFinishConstructor: false);
+        }
+        finalizeSuperInitializingFormals(
+            classHierarchy, _superParameterDefaultValueCloners);
+      }
+    }
+    _hasFormalsInferred = true;
+  }
+
+  /* ConstructorBuilder | DillConstructorBuilder */
+  Object? _computeSuperTargetBuilder() {
+    Constructor superTarget;
+    ClassBuilder superclassBuilder;
+
+    TypeBuilder? supertype = classBuilder.supertypeBuilder;
+    if (supertype is NamedTypeBuilder) {
+      TypeDeclarationBuilder? declaration = supertype.declaration;
+      if (declaration is ClassBuilder) {
+        superclassBuilder = declaration;
+      } else if (declaration is TypeAliasBuilder) {
+        declaration = declaration.unaliasDeclaration(supertype.arguments);
+        if (declaration is ClassBuilder) {
+          superclassBuilder = declaration;
+        } else {
+          // The error in this case should be reported elsewhere.
+          return null;
+        }
+      } else {
+        // The error in this case should be reported elsewhere.
+        return null;
+      }
+    } else {
+      // The error in this case should be reported elsewhere.
+      return null;
+    }
+
+    if (constructor.initializers.isNotEmpty &&
+        constructor.initializers.last is SuperInitializer) {
+      superTarget = (constructor.initializers.last as SuperInitializer).target;
+    } else {
+      MemberBuilder? memberBuilder = superclassBuilder.constructors
+          .lookup("", charOffset, library.fileUri);
+      if (memberBuilder is ConstructorBuilder) {
+        superTarget = memberBuilder.constructor;
+      } else if (memberBuilder is DillConstructorBuilder) {
+        superTarget = memberBuilder.constructor;
+      } else {
+        // The error in this case should be reported elsewhere.
+        return null;
+      }
+    }
+
+    MemberBuilder? constructorBuilder =
+        superclassBuilder.findConstructorOrFactory(
+            superTarget.name.text, charOffset, library.fileUri, library);
+    return constructorBuilder is ConstructorBuilder ||
+            constructorBuilder is DillConstructorBuilder
+        ? constructorBuilder
+        : null;
+  }
+
+  void finalizeSuperInitializingFormals(ClassHierarchy classHierarchy,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+    if (formals == null) return;
+    if (!_hasSuperInitializingFormals) return;
+
+    void performRecoveryForErroneousCase() {
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.isSuperInitializingFormal) {
+          formal.variable!.type = const DynamicType();
+        }
+      }
+    }
+
+    Object? superTargetBuilder = _computeSuperTargetBuilder();
+    Constructor superTarget;
+    List<FormalParameterBuilder>? superFormals;
+    if (superTargetBuilder is SourceConstructorBuilder) {
+      superTarget = superTargetBuilder.constructor;
+      superFormals = superTargetBuilder.formals!;
+    } else if (superTargetBuilder is DillConstructorBuilder) {
+      superTarget = superTargetBuilder.constructor;
+      if (superTargetBuilder is SyntheticConstructorBuilder) {
+        superFormals = superTargetBuilder.formals;
+      } else {
+        // The error in this case should be reported elsewhere. Here we perform
+        // a simple recovery.
+        return performRecoveryForErroneousCase();
+      }
+    } else {
+      // The error in this case should be reported elsewhere. Here we perform a
+      // simple recovery.
+      return performRecoveryForErroneousCase();
+    }
+
+    if (superFormals == null) {
+      // The error in this case should be reported elsewhere. Here we perform a
+      // simple recovery.
+      return performRecoveryForErroneousCase();
+    }
+
+    if (superTargetBuilder is SourceConstructorBuilder) {
+      superTargetBuilder.inferFormalTypes(classHierarchy);
+    } else if (superTargetBuilder is SyntheticConstructorBuilder) {
+      MemberBuilder? superTargetOriginBuilder = superTargetBuilder.actualOrigin;
+      if (superTargetOriginBuilder is SourceConstructorBuilder) {
+        superTargetOriginBuilder.inferFormalTypes(classHierarchy);
+      }
+    }
+
+    int superInitializingFormalIndex = -1;
+    List<int>? positionalSuperParameters;
+    List<String>? namedSuperParameters;
+
+    Supertype? supertype = classHierarchy.getClassAsInstanceOf(
+        classBuilder.cls, superTarget.enclosingClass);
+    assert(supertype != null);
+    Map<TypeParameter, DartType> substitution =
+        new Map<TypeParameter, DartType>.fromIterables(
+            supertype!.classNode.typeParameters, supertype.typeArguments);
+
+    for (int formalIndex = 0; formalIndex < formals!.length; formalIndex++) {
+      FormalParameterBuilder formal = formals![formalIndex];
+      if (formal.isSuperInitializingFormal) {
+        superInitializingFormalIndex++;
+        bool hasImmediatelyDeclaredInitializer = formal.hasDeclaredInitializer;
+        if (formal.type == null) {
+          DartType? type;
+
+          if (formal.isPositional) {
+            if (superInitializingFormalIndex < superFormals.length) {
+              FormalParameterBuilder correspondingSuperFormal =
+                  superFormals[superInitializingFormalIndex];
+              formal.hasDeclaredInitializer =
+                  hasImmediatelyDeclaredInitializer ||
+                      correspondingSuperFormal.hasDeclaredInitializer;
+              if (!hasImmediatelyDeclaredInitializer) {
+                (positionalSuperParameters ??= <int>[]).add(formalIndex);
+              }
+              type = correspondingSuperFormal.variable!.type;
+            } else {
+              // TODO(cstefantsova): Report an error.
+            }
+          } else {
+            FormalParameterBuilder? correspondingSuperFormal;
+            for (FormalParameterBuilder superFormal in superFormals) {
+              if (superFormal.isNamed && superFormal.name == formal.name) {
+                correspondingSuperFormal = superFormal;
+                break;
+              }
+            }
+
+            if (correspondingSuperFormal != null) {
+              formal.hasDeclaredInitializer =
+                  hasImmediatelyDeclaredInitializer ||
+                      correspondingSuperFormal.hasDeclaredInitializer;
+              if (!hasImmediatelyDeclaredInitializer) {
+                (namedSuperParameters ??= <String>[]).add(formal.name);
+              }
+              type = correspondingSuperFormal.variable!.type;
+            } else {
+              // TODO(cstefantsova): Report an error.
+            }
+          }
+
+          if (substitution.isNotEmpty && type != null) {
+            type = substitute(type, substitution);
+          }
+          formal.variable!.type = type ?? const DynamicType();
+        } else {
+          formal.variable!.type = const DynamicType();
+        }
+      }
+    }
+
+    if (positionalSuperParameters != null || namedSuperParameters != null) {
+      synthesizedFunctionNodes.add(new SynthesizedFunctionNode(
+          substitution, superTarget.function, constructor.function,
+          positionalSuperParameters: positionalSuperParameters ?? const <int>[],
+          namedSuperParameters: namedSuperParameters ?? const <String>[],
+          isOutlineNode: true));
     }
   }
 
@@ -223,32 +430,50 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     if (_hasBuiltOutlines) return;
     if (isConst && isPatch) {
-      origin.buildOutlineExpressions(library, coreTypes,
+      origin.buildOutlineExpressions(library, classHierarchy,
           delayedActionPerformers, synthesizedFunctionNodes);
     }
-    super.buildOutlineExpressions(
-        library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+    super.buildOutlineExpressions(library, classHierarchy,
+        delayedActionPerformers, synthesizedFunctionNodes);
 
     // For modular compilation purposes we need to include initializers
-    // for const constructors into the outline.
-    if (isConst && beginInitializers != null) {
+    // for const constructors into the outline. We also need to parse
+    // initializers to infer types of the super-initializing parameters.
+    if ((isConst || _hasSuperInitializingFormals) &&
+        beginInitializers != null) {
       BodyBuilder bodyBuilder = library.loader
           .createBodyBuilderForOutlineExpression(
               library, classBuilder, this, classBuilder.scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
-      bodyBuilder.parseInitializers(beginInitializers!);
+      bodyBuilder.parseInitializers(beginInitializers!,
+          doFinishConstructor: isConst);
       bodyBuilder.performBacklogComputations(delayedActionPerformers);
     }
     beginInitializers = null;
+    addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
     if (isConst && isPatch) {
       _finishPatch();
     }
     _hasBuiltOutlines = true;
+  }
+
+  void addSuperParameterDefaultValueCloners(
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+    Object? superTargetBuilder = _computeSuperTargetBuilder();
+    if (superTargetBuilder is SourceConstructorBuilder) {
+      superTargetBuilder
+          .addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
+    } else if (superTargetBuilder is SyntheticConstructorBuilder) {
+      superTargetBuilder
+          .addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
+    }
+    synthesizedFunctionNodes.addAll(_superParameterDefaultValueCloners);
+    _superParameterDefaultValueCloners.clear();
   }
 
   @override
@@ -460,21 +685,40 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
 
 class SyntheticConstructorBuilder extends DillConstructorBuilder
     with SourceMemberBuilderMixin {
-  SourceMemberBuilder? _origin;
+  // TODO(johnniwinther,cstefantsova): Rename [_origin] to avoid the confusion
+  // with patches.
+  // TODO(johnniwinther): Change the type of [_origin] to SourceMemberBuilder
+  // when it's the supertype for both old SourceMemberBuilder and
+  // SyntheticConstructorBuilder.
+  MemberBuilder? _origin;
   SynthesizedFunctionNode? _synthesizedFunctionNode;
 
   SyntheticConstructorBuilder(SourceClassBuilder parent,
       Constructor constructor, Procedure? constructorTearOff,
-      {SourceMemberBuilder? origin,
-      SynthesizedFunctionNode? synthesizedFunctionNode})
+      {MemberBuilder? origin, SynthesizedFunctionNode? synthesizedFunctionNode})
       : _origin = origin,
         _synthesizedFunctionNode = synthesizedFunctionNode,
         super(constructor, constructorTearOff, parent);
 
+  // TODO(johnniwinther,cstefantsova): Rename [actualOrigin] to avoid the
+  //  confusion with patches.
+  MemberBuilder? get actualOrigin {
+    MemberBuilder? origin = _origin;
+    while (origin is SyntheticConstructorBuilder) {
+      origin = origin._origin;
+    }
+    return origin;
+  }
+
+  List<FormalParameterBuilder>? get formals {
+    MemberBuilder? origin = actualOrigin;
+    return origin is SourceConstructorBuilder ? origin.formals : null;
+  }
+
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder libraryBuilder,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     if (_origin != null) {
@@ -483,12 +727,32 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder
       if (originLibraryBuilder is SourceLibraryBuilder) {
         // If [_origin] is from a source library, we need to build the default
         // values and initializers first.
-        _origin!.buildOutlineExpressions(originLibraryBuilder, coreTypes,
-            delayedActionPerformers, synthesizedFunctionNodes);
+        MemberBuilder origin = _origin!;
+        if (origin is SourceConstructorBuilder) {
+          origin.buildOutlineExpressions(originLibraryBuilder, classHierarchy,
+              delayedActionPerformers, synthesizedFunctionNodes);
+        } else if (origin is SyntheticConstructorBuilder) {
+          origin.buildOutlineExpressions(originLibraryBuilder, classHierarchy,
+              delayedActionPerformers, synthesizedFunctionNodes);
+        }
       }
-      _synthesizedFunctionNode!.cloneDefaultValues();
-      _synthesizedFunctionNode = null;
+      addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
       _origin = null;
+    }
+  }
+
+  void addSuperParameterDefaultValueCloners(
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+    MemberBuilder? origin = _origin;
+    if (origin is SourceConstructorBuilder) {
+      origin.addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
+    } else if (origin is SyntheticConstructorBuilder) {
+      origin.addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
+    }
+    if (_synthesizedFunctionNode != null) {
+      synthesizedFunctionNodes
+          .add(_synthesizedFunctionNode!..isOutlineNode = true);
+      _synthesizedFunctionNode = null;
     }
   }
 }

@@ -201,9 +201,14 @@ regress/issue_37285: FormatterCrash
 regress/issue_39091_1: FormatterCrash
 regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
+super_parameters/circular_dependency_inference: FormatterCrash
+super_parameters/default_values: FormatterCrash
 super_parameters/simple: FormatterCrash
+super_parameters/simple_inference: FormatterCrash
 super_parameters/simple_named_super_parameters: FormatterCrash
 super_parameters/simple_positional_super_parameters: FormatterCrash
+super_parameters/synthesized_super_constructor_with_parameters: FormatterCrash
+super_parameters/type_alias_in_supertype: FormatterCrash
 super_parameters/typed_super_parameter: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash
 variance/class_type_parameter_modifier: FormatterCrash

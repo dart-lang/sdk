@@ -7,7 +7,6 @@ library fasta.source_class_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyMembers;
-import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -1927,7 +1926,7 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     // Do nothing.

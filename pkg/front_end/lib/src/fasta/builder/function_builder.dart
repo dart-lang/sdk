@@ -5,7 +5,7 @@
 library fasta.procedure_builder;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../identifiers.dart';
 import '../scope.dart';
@@ -446,7 +446,7 @@ abstract class FunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     if (!_hasBuiltOutlineExpressions) {
@@ -463,7 +463,7 @@ abstract class FunctionBuilderImpl extends SourceMemberBuilderImpl
               library,
               classOrExtensionBuilder,
               this,
-              coreTypes,
+              classHierarchy,
               delayedActionPerformers,
               computeTypeParameterScope(parentScope));
         }

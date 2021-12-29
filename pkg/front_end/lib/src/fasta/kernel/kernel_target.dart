@@ -416,9 +416,10 @@ class KernelTarget extends TargetImplementation {
       loader.addNoSuchMethodForwarders(sourceClassBuilders);
       loader.checkMixins(sourceClassBuilders);
       loader.buildOutlineExpressions(
-          loader.coreTypes, synthesizedFunctionNodes);
+          loader.hierarchy, synthesizedFunctionNodes);
       loader.checkTypes();
       loader.checkRedirectingFactories(sourceClassBuilders);
+      finishSynthesizedParameters(forOutline: true);
       loader.checkMainMethods();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
@@ -884,22 +885,26 @@ class KernelTarget extends TargetImplementation {
     }
     return new SyntheticConstructorBuilder(
         classBuilder, constructor, constructorTearOff,
-        // If the constructor is constant, the default values must be part of
-        // the outline expressions. We pass on the original constructor and
-        // cloned function nodes to ensure that the default values are computed
-        // and cloned for the outline.
-        origin: isConst && superConstructorBuilder is SourceMemberBuilder
-            ? superConstructorBuilder
-            : null,
-        synthesizedFunctionNode: isConst ? synthesizedFunctionNode : null);
+        // We pass on the original constructor and the cloned function nodes to
+        // ensure that the default values are computed and cloned for the
+        // outline. It is needed to make the default values a part of the
+        // outline for const constructors, and additionally it is required for
+        // a potential subclass using super initializing parameters that will
+        // required the cloning of the default values.
+        origin: superConstructorBuilder,
+        synthesizedFunctionNode: synthesizedFunctionNode);
   }
 
-  void finishSynthesizedParameters() {
+  void finishSynthesizedParameters({bool forOutline = false}) {
     for (SynthesizedFunctionNode synthesizedFunctionNode
         in synthesizedFunctionNodes) {
-      synthesizedFunctionNode.cloneDefaultValues();
+      if (!forOutline || synthesizedFunctionNode.isOutlineNode) {
+        synthesizedFunctionNode.cloneDefaultValues();
+      }
     }
-    synthesizedFunctionNodes.clear();
+    if (!forOutline) {
+      synthesizedFunctionNodes.clear();
+    }
     ticker.logMs("Cloned default values of formals");
   }
 

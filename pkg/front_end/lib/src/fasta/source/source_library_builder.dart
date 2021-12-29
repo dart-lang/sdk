@@ -17,7 +17,6 @@ import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
-import 'package:kernel/core_types.dart';
 
 import 'package:kernel/reference_from_index.dart'
     show IndexedClass, IndexedContainer, IndexedLibrary;
@@ -2580,8 +2579,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     if (constructorBuilder.isConst) {
       currentTypeParameterScopeBuilder.declaresConstConstructor = true;
+    }
+    if (constructorBuilder.isConst || enableSuperParametersInLibrary) {
       // const constructors will have their initializers compiled and written
-      // into the outline.
+      // into the outline. In case of super-parameters language feature, the
+      // super initializers are required to infer the types of super parameters.
       constructorBuilder.beginInitializers =
           beginInitializers ?? new Token.eof(-1);
     }
@@ -2972,14 +2974,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void buildOutlineExpressions(
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes,
       List<DelayedActionPerformer> delayedActionPerformers) {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
         patchLibrary.buildOutlineExpressions(
-            coreTypes, synthesizedFunctionNodes, delayedActionPerformers);
+            classHierarchy, synthesizedFunctionNodes, delayedActionPerformers);
       }
     }
 
@@ -2990,17 +2992,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is ClassBuilder) {
-        declaration.buildOutlineExpressions(
-            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+        declaration.buildOutlineExpressions(this, classHierarchy,
+            delayedActionPerformers, synthesizedFunctionNodes);
       } else if (declaration is ExtensionBuilder) {
-        declaration.buildOutlineExpressions(
-            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+        declaration.buildOutlineExpressions(this, classHierarchy,
+            delayedActionPerformers, synthesizedFunctionNodes);
       } else if (declaration is SourceMemberBuilder) {
-        declaration.buildOutlineExpressions(
-            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+        declaration.buildOutlineExpressions(this, classHierarchy,
+            delayedActionPerformers, synthesizedFunctionNodes);
       } else if (declaration is SourceTypeAliasBuilder) {
-        declaration.buildOutlineExpressions(
-            this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+        declaration.buildOutlineExpressions(this, classHierarchy,
+            delayedActionPerformers, synthesizedFunctionNodes);
       } else {
         assert(
             declaration is PrefixBuilder ||

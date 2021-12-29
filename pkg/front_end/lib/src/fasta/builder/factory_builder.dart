@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../dill/dill_member_builder.dart';
@@ -167,12 +167,12 @@ class SourceFactoryBuilder extends FunctionBuilderImpl {
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     if (_hasBuiltOutlines) return;
-    super.buildOutlineExpressions(
-        library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+    super.buildOutlineExpressions(library, classHierarchy,
+        delayedActionPerformers, synthesizedFunctionNodes);
     _hasBuiltOutlines = true;
   }
 
@@ -374,16 +374,16 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     if (_hasBuiltOutlines) return;
     if (isConst && isPatch) {
-      origin.buildOutlineExpressions(library, coreTypes,
+      origin.buildOutlineExpressions(library, classHierarchy,
           delayedActionPerformers, synthesizedFunctionNodes);
     }
-    super.buildOutlineExpressions(
-        library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+    super.buildOutlineExpressions(library, classHierarchy,
+        delayedActionPerformers, synthesizedFunctionNodes);
     RedirectingFactoryBody redirectingFactoryBody =
         _procedureInternal.function.body as RedirectingFactoryBody;
     List<DartType>? typeArguments = redirectingFactoryBody.typeArguments;

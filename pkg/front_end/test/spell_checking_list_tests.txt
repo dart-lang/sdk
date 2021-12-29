@@ -934,6 +934,7 @@ t4a
 t4b
 t\b\f\u
 t\u0008\f\u
+ta
 tails
 talk
 templates
@@ -974,7 +975,10 @@ tripping
 trivially
 truncated
 tt
+tta
 ttest
+ttta
+tttta
 txt
 typeargs
 typeparam

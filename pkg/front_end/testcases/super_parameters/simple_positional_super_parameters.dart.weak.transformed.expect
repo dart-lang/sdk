@@ -28,12 +28,12 @@ class A1 extends core::Object {
     ;
 }
 class B1 extends self::A1 {
-  constructor •(dynamic foo) → self::B1
-    : super self::A1::•(foo as{TypeError,ForDynamic,ForNonNullableByDefault} core::int)
+  constructor •(core::int foo) → self::B1
+    : super self::A1::•(foo)
     ;
 }
 class C1 extends self::A1 {
-  constructor •(dynamic foo) → self::C1
+  constructor •(core::int foo) → self::C1
     : super self::A1::•(42)
     ;
 }
@@ -53,7 +53,7 @@ Try removing the extra positional arguments.
     ;
 }
 class C2 extends self::A2 {
-  constructor •(dynamic foo) → self::C2
+  constructor •(core::int foo) → self::C2
     : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/super_parameters/simple_positional_super_parameters.dart:29:24: Error: Too few positional arguments: 2 required, 1 given.
   C2(super.foo) : super(); // Error.
                        ^"

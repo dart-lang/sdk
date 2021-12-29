@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../builder/extension_builder.dart';
 import '../builder/library_builder.dart';
@@ -108,7 +108,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
   @override
   void buildOutlineExpressions(
       LibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     // TODO(johnniwinther): Remove the need for this.

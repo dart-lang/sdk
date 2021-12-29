@@ -7,6 +7,7 @@ library fasta.field_builder;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
@@ -419,10 +420,10 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
-    _fieldEncoding.completeSignature(coreTypes);
+    _fieldEncoding.completeSignature(classHierarchy.coreTypes);
 
     for (Annotatable annotatable in _fieldEncoding.annotatables) {
       MetadataBuilder.buildAnnotations(
@@ -464,7 +465,7 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
             bodyBuilder.transformCollections, library.library);
         initializer = wrapper.operand;
       }
-      buildBody(coreTypes, initializer);
+      buildBody(classHierarchy.coreTypes, initializer);
       bodyBuilder.performBacklogComputations(delayedActionPerformers);
     }
     _constInitializerToken = null;

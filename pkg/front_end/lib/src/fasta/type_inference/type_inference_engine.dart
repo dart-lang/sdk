@@ -154,7 +154,7 @@ abstract class TypeInferenceEngine {
     // Field types have all been inferred so we don't need to guard against
     // cyclic dependency.
     for (SourceConstructorBuilder builder in toBeInferred.values) {
-      builder.inferFormalTypes();
+      builder.inferFormalTypes(classHierarchy);
     }
     toBeInferred.clear();
     for (TypeDependency typeDependency in typeDependencies.values) {

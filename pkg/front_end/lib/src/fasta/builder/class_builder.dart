@@ -125,7 +125,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes);
 
@@ -351,12 +351,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     void build(String ignore, Builder declaration) {
       SourceMemberBuilder member = declaration as SourceMemberBuilder;
-      member.buildOutlineExpressions(library, coreTypes,
+      member.buildOutlineExpressions(library, classHierarchy,
           delayedActionPerformers, synthesizedFunctionNodes);
     }
 
@@ -365,7 +365,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(library, this, null,
-            coreTypes, delayedActionPerformers, scope.parent!);
+            classHierarchy, delayedActionPerformers, scope.parent!);
       }
     }
 

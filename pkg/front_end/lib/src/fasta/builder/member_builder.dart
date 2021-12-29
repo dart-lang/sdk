@@ -5,7 +5,7 @@
 library fasta.member_builder;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../../base/common.dart';
 
@@ -174,7 +174,7 @@ abstract class SourceMemberBuilder implements MemberBuilder {
 
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes);
 }
@@ -223,7 +223,7 @@ abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {}
 

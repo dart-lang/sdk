@@ -5,7 +5,7 @@
 library fasta.scope;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import 'builder/builder.dart';
 import 'builder/extension_builder.dart';
@@ -820,7 +820,7 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     throw new UnsupportedError(

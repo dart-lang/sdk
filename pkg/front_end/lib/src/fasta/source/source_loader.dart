@@ -1948,13 +1948,13 @@ severity: $severity
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildOutlineExpressions(CoreTypes coreTypes,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     List<DelayedActionPerformer> delayedActionPerformers =
         <DelayedActionPerformer>[];
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       library.buildOutlineExpressions(
-          coreTypes, synthesizedFunctionNodes, delayedActionPerformers);
+          classHierarchy, synthesizedFunctionNodes, delayedActionPerformers);
     }
     for (DelayedActionPerformer delayedActionPerformer
         in delayedActionPerformers) {

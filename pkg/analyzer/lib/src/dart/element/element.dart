@@ -1594,8 +1594,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// of formal parameters, are evaluated.
   void computeConstantDependencies() {
     if (!isConstantEvaluated) {
-      computeConstants(library.typeProvider, library.typeSystem,
-          context.declaredVariables, [this], library.featureSet);
+      computeConstants(context.declaredVariables, [this], library.featureSet);
     }
   }
 }
@@ -1680,8 +1679,7 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
           '[reference: $reference]',
         );
       }
-      computeConstants(library.typeProvider, library.typeSystem,
-          context.declaredVariables, [this], library.featureSet);
+      computeConstants(context.declaredVariables, [this], library.featureSet);
     }
     return evaluationResult?.value;
   }
@@ -2031,9 +2029,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      var library = compilationUnit.library;
-      computeConstants(library.typeProvider, library.typeSystem,
-          context.declaredVariables, [this], library.featureSet);
+      computeConstants(context.declaredVariables, [this],
+          compilationUnit.library.featureSet);
     }
     return evaluationResult?.value;
   }
