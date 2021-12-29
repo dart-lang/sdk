@@ -128,8 +128,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
             unexpected(fullNameForErrors, declaration.parent!.fullNameForErrors,
                 charOffset, fileUri);
           }
-        } else if (declaration is MemberBuilderImpl) {
-          MemberBuilderImpl memberBuilder = declaration;
+        } else if (declaration is SourceMemberBuilder) {
+          SourceMemberBuilder memberBuilder = declaration;
           memberBuilder.buildMembers(libraryBuilder,
               (Member member, BuiltMemberKind memberKind) {
             if (addMembersToLibrary &&
@@ -295,7 +295,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     }
 
     void build(String ignore, Builder declaration) {
-      MemberBuilder member = declaration as MemberBuilder;
+      SourceMemberBuilder member = declaration as SourceMemberBuilder;
       member.buildOutlineExpressions(library, coreTypes,
           delayedActionPerformers, synthesizedFunctionNodes);
     }

@@ -1025,9 +1025,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           conflictingGetables.add(currentGetable);
         }
       }
-      for (MemberBuilderImpl? currentSetter = setter as MemberBuilderImpl?;
+      for (SourceMemberBuilderImpl? currentSetter =
+              setter as SourceMemberBuilderImpl?;
           currentSetter != null;
-          currentSetter = currentSetter.next as MemberBuilderImpl?) {
+          currentSetter = currentSetter.next as SourceMemberBuilderImpl?) {
         bool conflict = conflictingGetables.isNotEmpty;
         for (Builder? currentGetable = getable;
             currentGetable != null;
@@ -2994,7 +2995,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (declaration is ExtensionBuilder) {
         declaration.buildOutlineExpressions(
             this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
-      } else if (declaration is MemberBuilder) {
+      } else if (declaration is SourceMemberBuilder) {
         declaration.buildOutlineExpressions(
             this, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
       } else if (declaration is SourceTypeAliasBuilder) {
@@ -3038,7 +3039,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!declaration.isPatch && !declaration.isDuplicate) {
         library.addExtension(extension);
       }
-    } else if (declaration is MemberBuilderImpl) {
+    } else if (declaration is SourceMemberBuilder) {
       declaration.buildMembers(this,
           (Member member, BuiltMemberKind memberKind) {
         if (member is Field) {

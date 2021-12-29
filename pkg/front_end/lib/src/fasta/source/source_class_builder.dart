@@ -7,6 +7,7 @@ library fasta.source_class_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyMembers;
+import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -43,6 +44,7 @@ import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
 
 import '../kernel/combined_member_signature.dart';
+import '../kernel/kernel_helper.dart';
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart' show redirectingName;
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
@@ -55,6 +57,8 @@ import '../problems.dart' show unexpected, unhandled, unimplemented;
 import '../scope.dart';
 
 import '../type_inference/type_schema.dart';
+
+import '../util/helpers.dart';
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -156,8 +160,8 @@ class SourceClassBuilder extends ClassBuilderImpl
                 charOffset,
                 fileUri);
           }
-        } else if (declaration is MemberBuilderImpl) {
-          MemberBuilderImpl memberBuilder = declaration;
+        } else if (declaration is SourceMemberBuilder) {
+          SourceMemberBuilder memberBuilder = declaration;
           memberBuilder.buildMembers(library,
               (Member member, BuiltMemberKind memberKind) {
             member.parent = cls;
@@ -556,7 +560,9 @@ class SourceClassBuilder extends ClassBuilderImpl
             builder.procedure, typeEnvironment, cls.typeParameters);
         library.checkTypesInFunctionBuilder(builder, typeEnvironment);
       } else {
-        assert(builder is DillFieldBuilder && builder.name == redirectingName,
+        assert(
+            builder is _RedirectingConstructorsFieldBuilder &&
+                builder.name == redirectingName,
             "Unexpected member: $builder.");
       }
     });
@@ -894,8 +900,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     // [constructor.target].
     //
     // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
-    DillFieldBuilder? constructorsField = origin.scope
-        .lookupLocalMember(redirectingName, setter: false) as DillFieldBuilder?;
+    _RedirectingConstructorsFieldBuilder? constructorsField =
+        origin.scope.lookupLocalMember(redirectingName, setter: false)
+            as _RedirectingConstructorsFieldBuilder?;
     if (constructorsField == null) {
       ListLiteral literal = new ListLiteral(<Expression>[]);
       Name name = new Name(redirectingName, library.library);
@@ -908,7 +915,7 @@ class SourceClassBuilder extends ClassBuilderImpl
           getterReference: getterReference)
         ..fileOffset = cls.fileOffset;
       cls.addField(field);
-      constructorsField = new DillFieldBuilder(field, this);
+      constructorsField = new _RedirectingConstructorsFieldBuilder(field, this);
       origin.scope
           .addLocalMember(redirectingName, constructorsField, setter: false);
     }
@@ -1910,4 +1917,19 @@ int? getOverlookedOverrideProblemChoice(ClassBuilder classBuilder) {
     return 1;
   }
   return null;
+}
+
+class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
+    with SourceMemberBuilderMixin {
+  _RedirectingConstructorsFieldBuilder(Field field, SourceClassBuilder parent)
+      : super(field, parent);
+
+  @override
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+    // Do nothing.
+  }
 }

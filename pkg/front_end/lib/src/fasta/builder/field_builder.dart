@@ -82,7 +82,8 @@ abstract class FieldBuilder implements MemberBuilder {
   DartType get fieldType;
 }
 
-class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
+class SourceFieldBuilder extends SourceMemberBuilderImpl
+    implements FieldBuilder {
   @override
   final String name;
 

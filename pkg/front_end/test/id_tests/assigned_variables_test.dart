@@ -45,8 +45,8 @@ class AssignedVariablesDataComputer extends DataComputer<_Data> {
       Member member,
       Map<Id, ActualData<_Data>> actualMap,
       {bool? verbose}) {
-    MemberBuilderImpl memberBuilder =
-        lookupMemberBuilder(compilerResult, member) as MemberBuilderImpl;
+    SourceMemberBuilder memberBuilder =
+        lookupMemberBuilder(compilerResult, member) as SourceMemberBuilder;
     AssignedVariablesForTesting<TreeNode, VariableDeclaration>?
         assignedVariables = memberBuilder
             .dataForTesting!.inferenceData.flowAnalysisResult.assignedVariables;

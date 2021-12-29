@@ -781,7 +781,7 @@ class KernelTarget extends TargetImplementation {
   SyntheticConstructorBuilder _makeMixinApplicationConstructor(
       SourceClassBuilder classBuilder,
       Class mixin,
-      MemberBuilderImpl superConstructorBuilder,
+      MemberBuilder superConstructorBuilder,
       Map<TypeParameter, DartType> substitutionMap,
       Reference? constructorReference,
       Reference? tearOffReference) {
@@ -888,7 +888,9 @@ class KernelTarget extends TargetImplementation {
         // the outline expressions. We pass on the original constructor and
         // cloned function nodes to ensure that the default values are computed
         // and cloned for the outline.
-        origin: isConst ? superConstructorBuilder : null,
+        origin: isConst && superConstructorBuilder is SourceMemberBuilder
+            ? superConstructorBuilder
+            : null,
         synthesizedFunctionNode: isConst ? synthesizedFunctionNode : null);
   }
 

@@ -458,13 +458,14 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   }
 }
 
-class SyntheticConstructorBuilder extends DillConstructorBuilder {
-  MemberBuilderImpl? _origin;
+class SyntheticConstructorBuilder extends DillConstructorBuilder
+    with SourceMemberBuilderMixin {
+  SourceMemberBuilder? _origin;
   SynthesizedFunctionNode? _synthesizedFunctionNode;
 
   SyntheticConstructorBuilder(SourceClassBuilder parent,
       Constructor constructor, Procedure? constructorTearOff,
-      {MemberBuilderImpl? origin,
+      {SourceMemberBuilder? origin,
       SynthesizedFunctionNode? synthesizedFunctionNode})
       : _origin = origin,
         _synthesizedFunctionNode = synthesizedFunctionNode,

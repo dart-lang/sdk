@@ -77,12 +77,6 @@ abstract class MemberBuilder implements ModifierBuilder {
   /// setter of a field.
   bool get isConflictingSetter;
 
-  void buildOutlineExpressions(
-      SourceLibraryBuilder library,
-      CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes);
-
   /// Returns the [ClassMember]s for the non-setter members created for this
   /// member builder.
   ///
@@ -98,10 +92,11 @@ abstract class MemberBuilder implements ModifierBuilder {
   List<ClassMember> get localSetters;
 }
 
-abstract class SourceMemberBuilder implements MemberBuilder {}
-
 abstract class MemberBuilderImpl extends ModifierBuilderImpl
-    implements SourceMemberBuilder {
+    implements MemberBuilder {
+  @override
+  String get name;
+
   /// For top-level members, the parent is set correctly during
   /// construction. However, for class members, the parent is initially the
   /// library and updated later.
@@ -109,18 +104,29 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   Builder? parent;
 
   @override
-  String get name;
-
-  @override
   final Uri fileUri;
 
-  MemberDataForTesting? dataForTesting;
-
   MemberBuilderImpl(this.parent, int charOffset, [Uri? fileUri])
-      : dataForTesting =
-            retainDataForTesting ? new MemberDataForTesting() : null,
-        this.fileUri = (fileUri ?? parent?.fileUri)!,
+      : this.fileUri = (fileUri ?? parent?.fileUri)!,
         super(parent, charOffset);
+
+  /// The builder for the enclosing class, if any.
+  ClassBuilder? get classBuilder =>
+      parent is ClassBuilder ? parent as ClassBuilder : null;
+
+  @override
+  LibraryBuilder get library {
+    if (parent is LibraryBuilder) {
+      LibraryBuilder library = parent as LibraryBuilder;
+      return library.partOfLibrary ?? library;
+    } else if (parent is ExtensionBuilder) {
+      ExtensionBuilder extension = parent as ExtensionBuilder;
+      return extension.library;
+    } else {
+      ClassBuilder cls = parent as ClassBuilder;
+      return cls.library;
+    }
+  }
 
   @override
   bool get isDeclarationInstanceMember => isDeclarationMember && !isStatic;
@@ -146,13 +152,56 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   bool get isNative => false;
 
-  bool get isRedirectingGenerativeConstructor => false;
-
   @override
   bool get isExternal => (modifiers & externalMask) != 0;
 
   @override
   bool get isAbstract => (modifiers & abstractMask) != 0;
+
+  @override
+  bool get isConflictingSetter => false;
+
+  @override
+  String get fullNameForErrors => name;
+}
+
+abstract class SourceMemberBuilder implements MemberBuilder {
+  MemberDataForTesting? get dataForTesting;
+
+  /// Builds the core AST structures for this member as needed for the outline.
+  void buildMembers(
+      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f);
+
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      CoreTypes coreTypes,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes);
+}
+
+mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
+  @override
+  MemberDataForTesting? dataForTesting =
+      retainDataForTesting ? new MemberDataForTesting() : null;
+
+  @override
+  void buildMembers(
+      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    assert(false, "Unexpected call to $runtimeType.buildMembers.");
+  }
+}
+
+abstract class SourceMemberBuilderImpl extends MemberBuilderImpl
+    implements SourceMemberBuilder {
+  @override
+  MemberDataForTesting? dataForTesting;
+
+  SourceMemberBuilderImpl(Builder parent, int charOffset, [Uri? fileUri])
+      : dataForTesting =
+            retainDataForTesting ? new MemberDataForTesting() : null,
+        super(parent, charOffset, fileUri);
+
+  bool get isRedirectingGenerativeConstructor => false;
 
   bool? _isConflictingSetter;
 
@@ -167,20 +216,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
     _isConflictingSetter = value;
   }
 
-  @override
-  LibraryBuilder get library {
-    if (parent is LibraryBuilder) {
-      LibraryBuilder library = parent as LibraryBuilder;
-      return library.partOfLibrary ?? library;
-    } else if (parent is ExtensionBuilder) {
-      ExtensionBuilder extension = parent as ExtensionBuilder;
-      return extension.library;
-    } else {
-      ClassBuilder cls = parent as ClassBuilder;
-      return cls.library;
-    }
-  }
-
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
   @override
   ProcedureKind? get kind => unsupported("kind", charOffset, fileUri);
@@ -191,13 +226,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {}
-
-  /// Builds the core AST structures for this member as needed for the outline.
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f);
-
-  @override
-  String get fullNameForErrors => name;
 
   @override
   StringBuffer printOn(StringBuffer buffer) {
@@ -212,10 +240,6 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   /// The builder for the enclosing class or extension, if any.
   DeclarationBuilder? get declarationBuilder =>
       parent is DeclarationBuilder ? parent as DeclarationBuilder : null;
-
-  /// The builder for the enclosing class, if any.
-  ClassBuilder? get classBuilder =>
-      parent is ClassBuilder ? parent as ClassBuilder : null;
 }
 
 enum BuiltMemberKind {
