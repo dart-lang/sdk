@@ -19,14 +19,21 @@ part of dart.core;
 /// and returns the first [RegExpMatch].
 /// All other methods in [RegExp] can be build from that.
 ///
+/// /// The following example finds first match of a regular expression in
+/// a string.
+/// ```dart
+/// RegExp exp = RegExp(r'Parse');
+/// String str = 'Parse my string';
+/// RegExpMatch match = exp.firstMatch(str);
+/// ```
 /// Use [allMatches] to look for all matches of a regular expression in
 /// a string.
 ///
 /// The following example finds all matches of a regular expression in
 /// a string.
 /// ```dart
-/// RegExp exp = RegExp(r"(\w+)");
-/// String str = "Parse my string";
+/// RegExp exp = RegExp(r'(\w+)');
+/// String str = 'Parse my string';
 /// Iterable<RegExpMatch> matches = exp.allMatches(str);
 /// ```
 ///
@@ -54,8 +61,8 @@ abstract class RegExp implements Pattern {
   /// Example:
   ///
   /// ```dart
-  /// var wordPattern = RegExp(r"(\w+)");
-  /// var bracketedNumberValue = RegExp("$key: \\[\\d+\\]");
+  /// var wordPattern = RegExp(r'(\w+)');
+  /// var bracketedNumberValue = RegExp('$key: \\[\\d+\\]');
   /// ```
   ///
   /// Notice the use of a _raw string_ in the first example, and a regular
@@ -87,17 +94,41 @@ abstract class RegExp implements Pattern {
   /// Finds the first match of the regular expression in the string [input].
   ///
   /// Returns `null` if there is no match.
+  /// ```dart
+  /// final string = '[00:13.37] This is a chat message.';
+  /// final regExp = RegExp(r'chat');
+  /// final match = regExp.firstMatch(string)!;
+  /// print(match[0]); // chat
+  /// ```
   RegExpMatch? firstMatch(String input);
 
   Iterable<RegExpMatch> allMatches(String input, [int start = 0]);
 
   /// Whether the regular expression has a match in the string [input].
+  /// ```dart
+  /// final string = 'Dash is a bird';
+  /// final regExp = RegExp(r'bird');
+  /// final match = regExp.hasMatch(string); // true
+  ///
+  /// final string = 'Dash is a bird';
+  /// final regExp = RegExp(r'dog');
+  /// final match = regExp.hasMatch(string); // false
+  /// ```
   bool hasMatch(String input);
 
   /// The substring of the first match of this regular expression in [input].
+  /// final string = 'Dash is a bird';
+  /// final regExp = RegExp(r'bird');
+  /// final match = regExp.stringMatch(string); // Match
+  ///
+  /// final string = 'Dash is a bird';
+  /// final regExp = RegExp(r'dog');
+  /// final match = regExp.stringMatch(string); // No match
   String? stringMatch(String input);
 
   /// The source regular expression string used to create this `RegExp`.
+  /// RegExp exp = RegExp(r'\p{L}');
+  /// print(exp.pattern); // \p{L}
   String get pattern;
 
   /// Whether this regular expression matches multiple lines.
@@ -112,6 +143,17 @@ abstract class RegExp implements Pattern {
   /// If the regular expression is not case sensitive, it will match an input
   /// letter with a pattern letter even if the two letters are different case
   /// versions of the same letter.
+  /// ```dart
+  /// RegExp exp = RegExp(r'STRING', caseSensitive: false);
+  /// String str = 'Parse my string';
+  /// Iterable<RegExpMatch> matches = exp.allMatches(str); // Has matches.
+  /// print(exp.isCaseSensitive); // false
+  ///
+  /// RegExp exp = RegExp(r'STRING', caseSensitive: true);
+  /// String str = 'Parse my string';
+  /// Iterable<RegExpMatch> matches = exp.allMatches(str); // No matches.
+  /// print(exp.isCaseSensitive); // true
+  /// ```
   bool get isCaseSensitive;
 
   /// Whether this regular expression is in Unicode mode.
@@ -124,6 +166,17 @@ abstract class RegExp implements Pattern {
   /// In Unicode mode, the syntax of the RegExp pattern is more restricted, but
   /// some pattern features, like Unicode property escapes, are only available in
   /// this mode.
+  /// ```dart
+  /// RegExp exp = RegExp(r'\p{L}', unicode: true);
+  /// print(exp.hasMatch('a')); // true
+  /// print(exp.hasMatch('b')); // true
+  /// print(exp.hasMatch('?')); // false
+  ///
+  /// RegExp exp = RegExp(r'\p{L}', unicode: false);
+  /// print(exp.hasMatch('a')); // false
+  /// print(exp.hasMatch('b')); // false
+  /// print(exp.hasMatch('?')); // false
+  /// ```
   @Since("2.4")
   bool get isUnicode;
 
