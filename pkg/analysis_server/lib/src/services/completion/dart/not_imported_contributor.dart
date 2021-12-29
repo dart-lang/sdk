@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
@@ -16,13 +15,13 @@ import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 /// A contributor of suggestions from not yet imported libraries.
 class NotImportedContributor extends DartCompletionContributor {
   final CompletionBudget budget;
-  final Map<protocol.CompletionSuggestion, Uri> notImportedSuggestions;
+  final NotImportedSuggestions additionalData;
 
   NotImportedContributor(
     DartCompletionRequest request,
     SuggestionBuilder builder,
     this.budget,
-    this.notImportedSuggestions,
+    this.additionalData,
   ) : super(request, builder);
 
   @override
@@ -37,6 +36,7 @@ class NotImportedContributor extends DartCompletionContributor {
     try {
       await analysisDriver.discoverAvailableFiles().timeout(budget.left);
     } on TimeoutException {
+      additionalData.isIncomplete = true;
       return;
     }
 
@@ -46,6 +46,7 @@ class NotImportedContributor extends DartCompletionContributor {
     var knownFiles = fsState.knownFiles.toList();
     for (var file in knownFiles) {
       if (budget.isEmpty) {
+        additionalData.isIncomplete = true;
         return;
       }
 
@@ -63,7 +64,7 @@ class NotImportedContributor extends DartCompletionContributor {
 
       builder.laterReplacesEarlier = false;
       builder.suggestionAdded = (suggestion) {
-        notImportedSuggestions[suggestion] = file.uri;
+        additionalData.map[suggestion] = file.uri;
       };
 
       if (request.includeIdentifiers) {

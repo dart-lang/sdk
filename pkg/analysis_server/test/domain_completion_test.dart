@@ -335,7 +335,7 @@ void f() {
 ''');
 
     responseValidator
-      ..assertComplete()
+      ..assertIncomplete()
       ..assertReplacementBack(4)
       ..assertLibrariesToImport(includes: [], excludes: [
         'dart:core',
