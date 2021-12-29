@@ -1,0 +1,68 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/super_parameters/circular_dependency_inference.dart:17:7: Error: Can't infer the type of 'foo': circularity found during type inference.
+// Specify the type explicitly.
+//   var foo = B2.new; // Error.
+//       ^^^
+//
+// pkg/front_end/testcases/super_parameters/circular_dependency_inference.dart:26:7: Error: Can't infer the type of 'foo': circularity found during type inference.
+// Specify the type explicitly.
+//   var foo = C3.new; // Error.
+//       ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  field self::B1 foo = self::f1();
+  constructor •(self::B1 foo) → self::A1
+    : self::A1::foo = foo, super core::Object::•()
+    ;
+}
+class B1 extends self::A1 {
+  constructor •(self::B1 foo) → self::B1
+    : super self::A1::•(foo)
+    ;
+}
+class A2 extends core::Object {
+  field invalid-type foo = #C1;
+  constructor •(invalid-type foo) → self::A2
+    : self::A2::foo = foo, super core::Object::•()
+    ;
+}
+class B2 extends self::A2 {
+  constructor •(invalid-type foo) → self::B2
+    : super self::A2::•(foo)
+    ;
+}
+class A3 extends core::Object {
+  field invalid-type foo = #C2;
+  constructor •() → self::A3
+    : super core::Object::•()
+    ;
+  constructor initializeFoo(invalid-type foo) → self::A3
+    : self::A3::foo = foo, super core::Object::•()
+    ;
+}
+class B3 extends self::A3 {
+  field (invalid-type) → self::A3 bar = #C3;
+  constructor •((invalid-type) → self::A3 bar) → self::B3
+    : self::B3::bar = bar, super self::A3::•()
+    ;
+}
+class C3 extends self::B3 {
+  constructor •((invalid-type) → self::A3 bar) → self::C3
+    : super self::B3::•(bar)
+    ;
+}
+static method f1() → self::B1
+  return throw 42;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::B2::•
+  #C2 = constructor-tearoff self::C3::•
+  #C3 = constructor-tearoff self::A3::initializeFoo
+}

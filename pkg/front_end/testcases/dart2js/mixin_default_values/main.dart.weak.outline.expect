@@ -18,10 +18,10 @@ import "org-dartlang-testcase:///a_lib.dart";
 import "org-dartlang-testcase:///m_lib.dart";
 
 abstract class _B&A&M = a_l::A with m_l::M /*isAnonymousMixin*/  {
-  synthetic constructor •({core::double d, (core::String) → core::String s}) → self2::_B&A&M
+  synthetic constructor •({core::double d = #C1, (core::String) → core::String s = #C2}) → self2::_B&A&M
     : super a_l::A::•(d: d, s: s)
     ;
-  synthetic constructor factoryConstructor({core::double d, (core::String) → core::String s}) → self2::_B&A&M
+  synthetic constructor factoryConstructor({core::double d = #C1, (core::String) → core::String s = #C2}) → self2::_B&A&M
     : super a_l::A::factoryConstructor(d: d, s: s)
     ;
   mixin-super-stub method m1() → dynamic

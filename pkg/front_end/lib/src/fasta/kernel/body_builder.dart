@@ -1085,7 +1085,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       for (int i = 0; i < formals.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
         Expression? initializer = parameter.variable!.initializer;
-        if (parameter.isOptional || initializer != null) {
+        if (!parameter.isSuperInitializingFormal &&
+            (parameter.isOptional || initializer != null)) {
           if (!parameter.initializerWasInferred) {
             parameter.initializerWasInferred = true;
             if (parameter.isOptional) {
@@ -1621,7 +1622,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return fakeReturn.expression!;
   }
 
-  void parseInitializers(Token token) {
+  void parseInitializers(Token token, {bool doFinishConstructor = true}) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     if (!token.isEof) {
@@ -1630,10 +1631,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       handleNoInitializers();
     }
-    // We are passing [AsyncMarker.Sync] because the error will be reported
-    // already.
-    finishConstructor(
-        member as SourceConstructorBuilder, AsyncMarker.Sync, null);
+    if (doFinishConstructor) {
+      finishConstructor(
+          member as SourceConstructorBuilder, AsyncMarker.Sync, null);
+    }
   }
 
   Expression parseFieldInitializer(Token token) {
@@ -1724,11 +1725,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                   ]);
             } else {
               arguments.positional.addAll(positionalSuperParametersAsArguments);
+              setParents(positionalSuperParametersAsArguments, arguments);
             }
           }
           if (namedSuperParametersAsArguments != null) {
             // TODO(cstefantsova): Report name conflicts.
             arguments.named.addAll(namedSuperParametersAsArguments);
+            setParents(namedSuperParametersAsArguments, arguments);
           }
 
           LocatedMessage? message = checkArgumentsForFunction(

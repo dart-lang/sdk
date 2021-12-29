@@ -35,9 +35,52 @@ class SynthesizedFunctionNode {
   /// named parameters.
   final bool identicalSignatures;
 
+  final List<int>? _positionalSuperParameters;
+
+  final List<String>? _namedSuperParameters;
+
+  bool isOutlineNode;
+
   SynthesizedFunctionNode(
       this._typeSubstitution, this._original, this._synthesized,
-      {this.identicalSignatures: true});
+      {this.identicalSignatures: true,
+      List<int>? positionalSuperParameters: null,
+      List<String>? namedSuperParameters: null,
+      this.isOutlineNode: false})
+      : _positionalSuperParameters = positionalSuperParameters,
+        _namedSuperParameters = namedSuperParameters,
+        // Check that [positionalSuperParameters] and [namedSuperParameters] are
+        // provided or omitted together.
+        assert((positionalSuperParameters == null) ==
+            (namedSuperParameters == null)),
+        assert(positionalSuperParameters == null ||
+            () {
+              // Check that [positionalSuperParameters] is sorted if it's
+              // provided.
+              for (int i = 1; i < positionalSuperParameters.length; i++) {
+                if (positionalSuperParameters[i] <
+                    positionalSuperParameters[i - 1]) {
+                  return false;
+                }
+              }
+              return true;
+            }()),
+        assert(namedSuperParameters == null ||
+            () {
+              // Check that [namedSuperParameters] are the subset of and in the
+              // same order as the named parameters of [_synthesized].
+              int superParameterIndex = 0;
+              for (int namedParameterIndex = 0;
+                  namedParameterIndex < _synthesized.namedParameters.length &&
+                      superParameterIndex < namedSuperParameters.length;
+                  namedParameterIndex++) {
+                if (_synthesized.namedParameters[namedParameterIndex].name ==
+                    namedSuperParameters[superParameterIndex]) {
+                  ++superParameterIndex;
+                }
+              }
+              return superParameterIndex == namedSuperParameters.length;
+            }());
 
   void cloneDefaultValues() {
     // TODO(ahe): It is unclear if it is legal to use type variables in
@@ -63,17 +106,40 @@ class SynthesizedFunctionNode {
     // unrelated.
 
     if (identicalSignatures) {
-      assert(_synthesized.positionalParameters.length ==
-          _original.positionalParameters.length);
-      for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
-        cloneInitializer(_original.positionalParameters[i],
-            _synthesized.positionalParameters[i]);
+      assert(_positionalSuperParameters != null ||
+          _synthesized.positionalParameters.length ==
+              _original.positionalParameters.length);
+      List<int>? positionalSuperParameters = _positionalSuperParameters;
+      int superParameterIndex = 0;
+      for (int i = 0; i < _original.positionalParameters.length; i++) {
+        if (positionalSuperParameters == null) {
+          cloneInitializer(_original.positionalParameters[i],
+              _synthesized.positionalParameters[i]);
+        } else if (superParameterIndex < positionalSuperParameters.length &&
+            positionalSuperParameters[superParameterIndex] == i) {
+          cloneInitializer(_original.positionalParameters[i],
+              _synthesized.positionalParameters[superParameterIndex]);
+          superParameterIndex++;
+        }
       }
-      assert(_synthesized.namedParameters.length ==
-          _original.namedParameters.length);
-      for (int i = 0; i < _synthesized.namedParameters.length; i++) {
-        cloneInitializer(
-            _original.namedParameters[i], _synthesized.namedParameters[i]);
+
+      assert(_namedSuperParameters != null ||
+          _synthesized.namedParameters.length ==
+              _original.namedParameters.length);
+      List<String>? namedSuperParameters = _namedSuperParameters;
+      superParameterIndex = 0;
+      for (int i = 0; i < _original.namedParameters.length; i++) {
+        if (namedSuperParameters == null) {
+          cloneInitializer(
+              _original.namedParameters[i], _synthesized.namedParameters[i]);
+        } else if (superParameterIndex < namedSuperParameters.length &&
+            namedSuperParameters[superParameterIndex] ==
+                _original.namedParameters[i].name) {
+          // TODO(cstefantsova): Handle the erroneous case of missing names.
+          cloneInitializer(_original.namedParameters[i],
+              _synthesized.namedParameters[superParameterIndex]);
+          superParameterIndex++;
+        }
       }
     } else {
       for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
@@ -109,6 +175,12 @@ class SynthesizedFunctionNode {
         }
       }
     }
+  }
+
+  @override
+  String toString() {
+    return "SynthesizedFunctionNode(original=${_original.parent}, "
+        "synthesized=${_synthesized.parent})";
   }
 }
 

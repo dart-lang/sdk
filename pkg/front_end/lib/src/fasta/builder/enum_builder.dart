@@ -27,7 +27,7 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         SuperInitializer,
         ThisExpression;
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 
@@ -467,7 +467,7 @@ class EnumBuilder extends SourceClassBuilder {
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder libraryBuilder,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     List<Expression> values = <Expression>[];
@@ -486,7 +486,7 @@ class EnumBuilder extends SourceClassBuilder {
     SourceFieldBuilder valuesBuilder =
         firstMemberNamed("values") as SourceFieldBuilder;
     valuesBuilder.buildBody(
-        coreTypes,
+        classHierarchy.coreTypes,
         new ListLiteral(values,
             typeArgument: rawType(library.nonNullable), isConst: true));
     SourceConstructorBuilder constructorBuilder =
@@ -508,7 +508,7 @@ class EnumBuilder extends SourceClassBuilder {
             new IntLiteral(index++),
             new StringLiteral(constant),
           ]);
-          field.buildBody(coreTypes,
+          field.buildBody(classHierarchy.coreTypes,
               new ConstructorInvocation(constructor, arguments, isConst: true));
         }
       }
@@ -533,8 +533,8 @@ class EnumBuilder extends SourceClassBuilder {
       ]));
     } else {}
 
-    super.buildOutlineExpressions(
-        library, coreTypes, delayedActionPerformers, synthesizedFunctionNodes);
+    super.buildOutlineExpressions(library, classHierarchy,
+        delayedActionPerformers, synthesizedFunctionNodes);
   }
 
   @override

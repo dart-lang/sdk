@@ -6,8 +6,7 @@ library fasta.source_type_alias_builder;
 
 import 'package:front_end/src/fasta/kernel/expression_generator_helper.dart';
 import 'package:kernel/ast.dart';
-
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import 'package:kernel/type_algebra.dart'
     show FreshTypeParameters, getFreshTypeParameters;
@@ -258,7 +257,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MetadataBuilder.buildAnnotations(
@@ -269,7 +268,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             library,
             null,
             null,
-            coreTypes,
+            classHierarchy,
             delayedActionPerformers,
             computeTypeParameterScope(library.scope));
       }

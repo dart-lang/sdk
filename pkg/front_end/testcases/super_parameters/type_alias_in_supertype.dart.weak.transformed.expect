@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef TA1 = self::A1;
+typedef TTA1 = self::A1;
+typedef TTTA1 = self::A1;
+typedef TTTTA1 = self::A1;
+typedef TA2 = self::A2;
+typedef TTA2 = self::A2;
+typedef TTTA2 = self::A2;
+typedef TTTTA2 = self::A2;
+typedef TA3 = self::A3;
+typedef TTA3 = self::A3;
+typedef TTTA3 = self::A3;
+typedef TTTTA3 = self::A3;
+typedef TTTTA4 = self::A4;
+typedef TTTA4 = self::A4;
+typedef TTA4 = self::A4;
+typedef TA4 = self::A4;
+class A1 extends core::Object {
+  final field core::String foo;
+  constructor •(core::String foo) → self::A1
+    : self::A1::foo = foo, super core::Object::•()
+    ;
+}
+class D1 extends self::A1 {
+  constructor •(core::String foo) → self::D1
+    : super self::A1::•(foo)
+    ;
+}
+class A2 extends core::Object {
+  final field core::String foo;
+  constructor •({core::String foo = #C1}) → self::A2
+    : self::A2::foo = foo, super core::Object::•()
+    ;
+}
+class D2 extends self::A2 {
+  constructor •({core::String foo = #C1}) → self::D2
+    : super self::A2::•(foo: foo)
+    ;
+}
+class A3 extends core::Object {
+  final field core::String foo;
+  constructor •([core::String foo = #C1]) → self::A3
+    : self::A3::foo = foo, super core::Object::•()
+    ;
+}
+class D3 extends self::A3 {
+  constructor •([core::String foo = #C1]) → self::D3
+    : super self::A3::•(foo)
+    ;
+}
+class D4 extends self::A4 {
+  constructor •([core::String foo = #C1]) → self::D4
+    : super self::A4::•(foo)
+    ;
+}
+class A4 extends core::Object {
+  final field core::String foo;
+  constructor •([core::String foo = #C1]) → self::A4
+    : self::A4::foo = foo, super core::Object::•()
+    ;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = "bar"
+}
