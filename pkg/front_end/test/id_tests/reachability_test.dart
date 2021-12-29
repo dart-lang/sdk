@@ -42,8 +42,8 @@ class ReachabilityDataComputer
       Member member,
       Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
       {bool? verbose}) {
-    MemberBuilderImpl memberBuilder =
-        lookupMemberBuilder(compilerResult, member) as MemberBuilderImpl;
+    SourceMemberBuilder memberBuilder =
+        lookupMemberBuilder(compilerResult, member) as SourceMemberBuilder;
     member.accept(new ReachabilityDataExtractor(compilerResult, actualMap,
         memberBuilder.dataForTesting!.inferenceData.flowAnalysisResult));
   }

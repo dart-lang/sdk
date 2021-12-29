@@ -44,8 +44,8 @@ class InferredVariableTypesDataComputer extends DataComputer<DartType> {
       Member member,
       Map<Id, ActualData<DartType>> actualMap,
       {bool? verbose}) {
-    MemberBuilderImpl memberBuilder =
-        lookupMemberBuilder(compilerResult, member) as MemberBuilderImpl;
+    SourceMemberBuilder memberBuilder =
+        lookupMemberBuilder(compilerResult, member) as SourceMemberBuilder;
     member.accept(new InferredTypeArgumentDataExtractor(
         compilerResult,
         memberBuilder.dataForTesting!.inferenceData.typeInferenceResult,

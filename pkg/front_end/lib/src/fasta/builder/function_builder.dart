@@ -137,7 +137,7 @@ abstract class SourceFunctionBuilder
 }
 
 /// Common base class for constructor and procedure builders.
-abstract class FunctionBuilderImpl extends MemberBuilderImpl
+abstract class FunctionBuilderImpl extends SourceMemberBuilderImpl
     implements SourceFunctionBuilder {
   @override
   final List<MetadataBuilder>? metadata;

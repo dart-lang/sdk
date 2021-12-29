@@ -174,9 +174,9 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
         features.addElement(Tags.initializers, desc);
       }
     }
-    MemberBuilderImpl? memberBuilder =
+    SourceMemberBuilder? memberBuilder =
         lookupMemberBuilder(compilerResult, member, required: false)
-            as MemberBuilderImpl?;
+            as SourceMemberBuilder?;
     MemberBuilder? patchMember = memberBuilder?.dataForTesting?.patchForTesting;
     if (patchMember != null) {
       features.add(Tags.patch);

@@ -355,7 +355,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     void build(String ignore, Builder declaration) {
-      MemberBuilder member = declaration as MemberBuilder;
+      SourceMemberBuilder member = declaration as SourceMemberBuilder;
       member.buildOutlineExpressions(library, coreTypes,
           delayedActionPerformers, synthesizedFunctionNodes);
     }

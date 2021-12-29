@@ -16,6 +16,7 @@ import 'builder/type_variable_builder.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/hierarchy/class_member.dart' show ClassMember;
 import 'kernel/kernel_helper.dart';
+import 'source/source_library_builder.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
 
 import 'fasta_codes.dart'
@@ -768,7 +769,10 @@ class AmbiguousBuilder extends ProblemBuilder {
   }
 }
 
-mixin ErroneousMemberBuilderMixin implements MemberBuilder {
+mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
+  @override
+  MemberDataForTesting? get dataForTesting => null;
+
   @override
   Member get member => throw new UnsupportedError('$runtimeType.member');
 
@@ -815,12 +819,18 @@ mixin ErroneousMemberBuilderMixin implements MemberBuilder {
 
   @override
   void buildOutlineExpressions(
-      LibraryBuilder library,
+      SourceLibraryBuilder library,
       CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     throw new UnsupportedError(
         'AmbiguousMemberBuilder.buildOutlineExpressions');
+  }
+
+  @override
+  void buildMembers(
+      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
+    assert(false, "Unexpected call to $runtimeType.buildMembers.");
   }
 
   @override

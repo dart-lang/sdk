@@ -40,8 +40,8 @@ class DefiniteUnassignmentDataComputer extends DataComputer<String> {
       Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    MemberBuilderImpl memberBuilder =
-        lookupMemberBuilder(compilerResult, member) as MemberBuilderImpl;
+    SourceMemberBuilder memberBuilder =
+        lookupMemberBuilder(compilerResult, member) as SourceMemberBuilder;
     member.accept(new DefiniteUnassignmentDataExtractor(
         compilerResult,
         actualMap,

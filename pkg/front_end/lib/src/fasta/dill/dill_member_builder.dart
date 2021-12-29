@@ -9,13 +9,10 @@ import 'package:kernel/ast.dart'
 
 import '../builder/builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/library_builder.dart';
 
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/member_covariance.dart';
-import '../kernel/utils.dart'
-    show isRedirectingGenerativeConstructorImplementation;
 
 import '../modifier.dart'
     show abstractMask, constMask, externalMask, finalMask, lateMask, staticMask;
@@ -66,11 +63,11 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   @override
   bool get isFactory => identical(ProcedureKind.Factory, kind);
 
-  @override
+  /*@override
   bool get isRedirectingGenerativeConstructor {
     return isConstructor &&
         isRedirectingGenerativeConstructorImplementation(member as Constructor);
-  }
+  }*/
 
   @override
   bool get isSynthetic {
@@ -81,11 +78,11 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   @override
   bool get isAssignable => false;
 
-  @override
+  /*@override
   void buildMembers(
       LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
     throw new UnsupportedError('DillMemberBuilder.buildMembers');
-  }
+  }*/
 
   List<ClassMember>? _localMembers;
   List<ClassMember>? _localSetters;
