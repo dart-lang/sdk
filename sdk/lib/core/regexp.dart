@@ -89,6 +89,13 @@ abstract class RegExp implements Pattern {
   /// larger regular expression. Since a [String] is itself a [Pattern]
   /// which matches itself, converting the string to a regular expression
   /// isn't needed in order to search for just that string.
+  /// ```dart
+  /// print(RegExp.escape('dash@example.com')); // dash@example\.com
+  /// print(RegExp.escape('a+b')); // a\+b
+  /// print(RegExp.escape('a*b')); // a\*b
+  /// print(RegExp.escape('{a-b}')); // \{a-b\}
+  /// print(RegExp.escape('a?')); // a\?
+  /// ```
   external static String escape(String text);
 
   /// Finds the first match of the regular expression in the string [input].
