@@ -19495,6 +19495,63 @@ library
 ''');
   }
 
+  test_implicitCallTearoff() async {
+    var library = await checkLibrary(r'''
+class C {
+  void call() {}
+}
+
+class D {
+  const D(C c) : this.named(c);
+
+  const D.named(void Function() f);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class C @6
+        constructors
+          synthetic @-1
+        methods
+          call @17
+            returnType: void
+      class D @36
+        constructors
+          const @48
+            parameters
+              requiredPositional c @52
+                type: C
+            constantInitializers
+              RedirectingConstructorInvocation
+                argumentList: ArgumentList
+                  arguments
+                    ImplicitCallReference
+                      expression: SimpleIdentifier
+                        staticElement: c@52
+                        staticType: C
+                        token: c @68
+                      staticType: void Function()
+                  leftParenthesis: ( @67
+                  rightParenthesis: ) @69
+                constructorName: SimpleIdentifier
+                  staticElement: self::@class::D::@constructor::named
+                  staticType: null
+                  token: named @62
+                period: . @61
+                staticElement: self::@class::D::@constructor::named
+                thisKeyword: this @57
+            redirectedConstructor: self::@class::D::@constructor::named
+          const named @83
+            periodOffset: 82
+            nameEnd: 88
+            parameters
+              requiredPositional f @105
+                type: void Function()
+''');
+  }
+
   test_implicitConstructor_named_const() async {
     var library = await checkLibrary('''
 class C {
