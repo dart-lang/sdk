@@ -124,6 +124,7 @@ abstract class RegExp implements Pattern {
   bool hasMatch(String input);
 
   /// The substring of the first match of this regular expression in [input].
+  /// ```dart
   /// final string = 'Dash is a bird';
   /// final regExp = RegExp(r'bird');
   /// final match = regExp.stringMatch(string); // Match
@@ -131,11 +132,14 @@ abstract class RegExp implements Pattern {
   /// final string = 'Dash is a bird';
   /// final regExp = RegExp(r'dog');
   /// final match = regExp.stringMatch(string); // No match
+  /// ```
   String? stringMatch(String input);
 
   /// The source regular expression string used to create this `RegExp`.
+  /// ```dart
   /// RegExp exp = RegExp(r'\p{L}');
   /// print(exp.pattern); // \p{L}
+  /// ```
   String get pattern;
 
   /// Whether this regular expression matches multiple lines.
