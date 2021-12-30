@@ -8,10 +8,10 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyMembers;
 
 import '../../builder/class_builder.dart';
-import '../../builder/field_builder.dart';
-import '../../builder/procedure_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../source/source_class_builder.dart';
+import '../../source/source_field_builder.dart';
+import '../../source/source_procedure_builder.dart';
 import 'class_member.dart';
 import 'delayed.dart';
 import 'hierarchy_builder.dart';

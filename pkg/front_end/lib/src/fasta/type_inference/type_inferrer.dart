@@ -3,19 +3,17 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/canonical_name.dart' as kernel;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart';
 import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 import 'package:kernel/src/future_value_type.dart';
 import 'package:kernel/src/legacy_erasure.dart';
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart'
     show
@@ -23,32 +21,23 @@ import '../../base/instrumentation.dart'
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
-
 import '../../base/nnbd_mode.dart';
-
 import '../../testing/id_extractor.dart';
 import '../../testing/id_testing_utils.dart';
-
-import '../builder/constructor_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/member_builder.dart';
-
 import '../fasta_codes.dart';
-
-import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/constructor_tearoff_lowering.dart';
-import '../kernel/kernel_helper.dart';
+import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/inference_visitor.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/invalid_type.dart';
+import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
-
 import '../names.dart';
-
 import '../problems.dart' show internalProblem, unexpected, unhandled;
-
+import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
 import 'inference_helper.dart' show InferenceHelper;
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 import 'type_demotion.dart';

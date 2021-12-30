@@ -28,9 +28,19 @@ import 'package:kernel/ast.dart'
         SuperInitializer,
         ThisExpression;
 import 'package:kernel/class_hierarchy.dart';
-
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 
+import '../builder/builder.dart';
+import '../builder/class_builder.dart';
+import '../builder/field_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
+import '../builder/procedure_builder.dart';
+import '../builder/type_builder.dart';
 import '../fasta_codes.dart'
     show
         LocatedMessage,
@@ -39,32 +49,17 @@ import '../fasta_codes.dart'
         templateDuplicatedDeclarationCause,
         templateDuplicatedDeclarationSyntheticCause,
         templateEnumConstantSameNameAsEnclosing;
-
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/kernel_helper.dart';
-
-import '../util/helpers.dart';
-
 import '../modifier.dart' show constMask, hasInitializerMask, staticMask;
-
 import '../scope.dart';
-
-import '../source/name_scheme.dart';
-import '../source/source_class_builder.dart' show SourceClassBuilder;
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
-import 'builder.dart';
-import 'class_builder.dart';
-import 'constructor_builder.dart';
-import 'field_builder.dart';
-import 'formal_parameter_builder.dart';
-import 'library_builder.dart';
-import 'member_builder.dart';
-import 'metadata_builder.dart';
-import 'named_type_builder.dart';
-import 'nullability_builder.dart';
-import 'procedure_builder.dart';
-import 'type_builder.dart';
+import '../util/helpers.dart';
+import 'name_scheme.dart';
+import 'source_class_builder.dart' show SourceClassBuilder;
+import 'source_constructor_builder.dart';
+import 'source_field_builder.dart';
+import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_procedure_builder.dart';
 
 class EnumBuilder extends SourceClassBuilder {
   final List<EnumConstantInfo?>? enumConstantInfos;

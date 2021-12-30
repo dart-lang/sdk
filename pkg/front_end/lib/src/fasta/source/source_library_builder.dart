@@ -8,43 +8,31 @@ import 'dart:collection';
 import 'dart:convert' show jsonEncode;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
-
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
-
 import 'package:kernel/reference_from_index.dart'
     show IndexedClass, IndexedContainer, IndexedLibrary;
-
 import 'package:kernel/src/bounds_checks.dart'
     show
         TypeArgumentIssue,
         findTypeArgumentIssues,
         findTypeArgumentIssuesForInvocation,
         getGenericTypeName;
-
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
-
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
 import '../../api_prototype/experimental_flags.dart';
 import '../../base/nnbd_mode.dart';
-
 import '../builder/builder.dart';
 import '../builder/builtin_type_declaration_builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/constructor_builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
-import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/factory_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
@@ -65,23 +53,15 @@ import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-
 import '../combinator.dart' show CombinatorBuilder;
-
 import '../configuration.dart' show Configuration;
-
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
-
 import '../export.dart' show Export;
-
 import '../fasta_codes.dart';
-
 import '../identifiers.dart' show QualifiedName, flattenName;
-
 import '../import.dart' show Import;
-
-import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
@@ -97,7 +77,6 @@ import '../kernel/type_algorithms.dart'
         getNonSimplicityIssuesForTypeVariables,
         pendingVariance;
 import '../kernel/utils.dart' show compareProcedures, toKernelCombinators;
-
 import '../modifier.dart'
     show
         abstractMask,
@@ -112,22 +91,23 @@ import '../modifier.dart'
         mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
-
 import '../names.dart' show indexSetName;
-
 import '../operator.dart';
-
 import '../problems.dart' show unexpected, unhandled;
-
 import '../scope.dart';
-
 import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
-
 import '../util/helpers.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
+import 'source_constructor_builder.dart';
+import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
+import 'source_factory_builder.dart';
+import 'source_field_builder.dart';
+import 'source_function_builder.dart';
 import 'source_loader.dart' show SourceLoader;
+import 'source_member_builder.dart';
+import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {

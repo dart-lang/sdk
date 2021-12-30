@@ -5,9 +5,7 @@
 library fasta.body_builder;
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -20,7 +18,6 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         lengthForToken,
         lengthOfSpan,
         optional;
-
 import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
@@ -32,13 +29,10 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValue, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
-
 import 'package:_fe_analyzer_shared/src/util/link.dart';
-
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -52,12 +46,9 @@ import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builder.dart';
-import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/factory_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -66,20 +57,15 @@ import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-
 import '../constant_context.dart' show ConstantContext;
-
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
-
 import '../fasta_codes.dart' as fasta;
-
 import '../fasta_codes.dart'
     show
         LocatedMessage,
@@ -87,36 +73,30 @@ import '../fasta_codes.dart'
         Template,
         noLength,
         templateExperimentNotEnabled;
-
 import '../identifiers.dart'
     show Identifier, InitializedIdentifier, QualifiedName, flattenName;
-
 import '../kernel/utils.dart';
-
 import '../messages.dart' as messages show getLocationFromUri;
-
 import '../modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
-
 import '../names.dart' show emptyName, minusName, plusName;
-
 import '../problems.dart'
     show internalProblem, unexpected, unhandled, unsupported;
-
 import '../scope.dart';
-
 import '../source/diet_parser.dart';
 import '../source/scope_listener.dart' show JumpTargetKind, ScopeListener;
+import '../source/source_constructor_builder.dart';
+import '../source/source_enum_builder.dart';
+import '../source/source_factory_builder.dart';
+import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/source_procedure_builder.dart';
 import '../source/stack_listener_impl.dart' show offsetForToken;
 import '../source/value_kinds.dart';
-
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody, InitializerInferenceResult;
 import '../type_inference/type_schema.dart' show UnknownType;
-
 import '../util/helpers.dart' show DelayedActionPerformer;
-
 import 'collections.dart';
 import 'constness.dart' show Constness;
 import 'constructor_tearoff_lowering.dart';

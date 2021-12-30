@@ -12,40 +12,26 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         MemberKind,
         Parser,
         optional;
-
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
-
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValue, ParserRecovery;
-
 import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
-
 import 'package:kernel/ast.dart';
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/declaration_builder.dart';
-import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-
-import '../identifiers.dart' show QualifiedName;
-
 import '../constant_context.dart' show ConstantContext;
-
 import '../crash.dart' show Crash;
-
 import '../fasta_codes.dart'
     show
         Code,
@@ -53,27 +39,20 @@ import '../fasta_codes.dart'
         Message,
         messageExpectedBlockToSkip,
         templateInternalProblemNotFound;
-
+import '../identifiers.dart' show QualifiedName;
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
-
 import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
-
 import '../problems.dart'
     show DebugAbort, internalProblem, unexpected, unhandled;
-
 import '../scope.dart';
-
 import '../source/value_kinds.dart';
-
 import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting, TypeInferenceEngine;
-
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
-
 import 'diet_parser.dart';
-
+import 'source_field_builder.dart';
+import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-
 import 'stack_listener_impl.dart';
 
 class DietListener extends StackListenerImpl {
