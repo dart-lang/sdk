@@ -1140,6 +1140,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    var constructor = node.parentFormalParameterList.parent;
+    if (!(constructor is ConstructorDeclaration &&
+        constructor.isNonRedirectingGenerative)) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+        node.superKeyword,
+      );
+    }
+
+    super.visitSuperFormalParameter(node);
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _withHiddenElements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);

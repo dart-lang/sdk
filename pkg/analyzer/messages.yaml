@@ -6526,6 +6526,12 @@ CompileTimeErrorCode:
 
       class C {}
       ```
+  INVALID_SUPER_FORMAL_PARAMETER_LOCATION:
+    problemMessage: "Super-formal parameters can only be used in non-redirecting generative constructors."
+    comment: |-
+      Parameters:
+      0: the super modifier
+    correctionMessage: Try removing the 'super' modifier, or changing the constructor to be non-redirecting and generative.
   INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
     problemMessage: "Constant list literals can't include a type parameter as a type argument, such as '{0}'."
