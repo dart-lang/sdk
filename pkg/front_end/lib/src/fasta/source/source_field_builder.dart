@@ -405,10 +405,10 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
               library, declarationBuilder, this, scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.required;
-      Expression initializer = bodyBuilder.typeInferrer.inferFieldInitializer(
-          bodyBuilder,
-          fieldType,
-          bodyBuilder.parseFieldInitializer(_constInitializerToken!));
+      Expression initializer = bodyBuilder.typeInferrer
+          .inferFieldInitializer(bodyBuilder, fieldType,
+              bodyBuilder.parseFieldInitializer(_constInitializerToken!))
+          .expression;
       if (bodyBuilder.transformSetLiterals ||
           bodyBuilder.transformCollections) {
         // Wrap the initializer in a temporary parent expression; the
