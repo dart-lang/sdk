@@ -7520,6 +7520,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the super modifier
+   */
+  static const CompileTimeErrorCode INVALID_SUPER_FORMAL_PARAMETER_LOCATION =
+      CompileTimeErrorCode(
+    'INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
+    "Super-formal parameters can only be used in non-redirecting generative "
+        "constructors.",
+    correctionMessage:
+        "Try removing the 'super' modifier, or changing the constructor to be "
+        "non-redirecting and generative.",
+  );
+
+  /**
+   * Parameters:
    * 0: the name of the type parameter
    */
   // #### Description

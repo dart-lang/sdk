@@ -833,8 +833,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             typeAliasedFactoryInvocations.remove(initializer);
           }
         } else {
-          initializer = typeInferrer.inferFieldInitializer(
-              this, fieldBuilder.builtType, initializer);
+          initializer = typeInferrer
+              .inferFieldInitializer(this, fieldBuilder.builtType, initializer)
+              .expression;
 
           if (transformCollections || transformSetLiterals) {
             // Wrap the initializer in a temporary parent expression; the
@@ -1644,6 +1645,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return annotation;
   }
 
+  Arguments parseArguments(Token token) {
+    Parser parser = new Parser(this,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+    token = parser.parseArgumentsRest(token);
+    Arguments arguments = pop() as Arguments;
+    checkEmpty(token.charOffset);
+    return arguments;
+  }
+
   void finishConstructor(SourceConstructorBuilder builder,
       AsyncMarker asyncModifier, Statement? body) {
     /// Quotes below are from [Dart Programming Language Specification, 4th
@@ -1757,10 +1767,25 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Constructor? superTarget = lookupConstructor(emptyName, isSuper: true);
       Initializer initializer;
       Arguments arguments;
+      List<Expression>? positionalArguments;
+      List<NamedExpression>? namedArguments;
       if (libraryBuilder.enableSuperParametersInLibrary) {
+        positionalArguments = positionalSuperParametersAsArguments;
+        namedArguments = namedSuperParametersAsArguments;
+      }
+      if (classBuilder is EnumBuilder) {
+        assert(constructor.function.positionalParameters.length >= 2 &&
+            constructor.function.positionalParameters[0].name == "index" &&
+            constructor.function.positionalParameters[1].name == "name");
+        (positionalArguments ??= <Expression>[]).insertAll(0, [
+          new VariableGet(constructor.function.positionalParameters[0]),
+          new VariableGet(constructor.function.positionalParameters[1])
+        ]);
+      }
+      if (positionalArguments != null || namedArguments != null) {
         arguments = forest.createArguments(
-            noLocation, positionalSuperParametersAsArguments ?? <Expression>[],
-            named: namedSuperParametersAsArguments);
+            noLocation, positionalArguments ?? <Expression>[],
+            named: namedArguments);
       } else {
         arguments = forest.createArgumentsEmpty(noLocation);
       }

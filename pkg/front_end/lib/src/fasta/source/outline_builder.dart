@@ -2004,7 +2004,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
-    push(NullValue.Arguments);
+    push(beginToken);
   }
 
   @override
@@ -2307,14 +2307,42 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleEnumElement(Token beginToken) {
     debugEvent("EnumElements");
-    pop(); // arguments.
-    pop(); // constructor reference.
-    // Keep on the stack the EnumConstantInfo created in handleIdentifier.
+    Token? argumentsBeginToken = pop() as Token?;
+
+    ConstructorReferenceBuilder? constructorReferenceBuilder =
+        pop() as ConstructorReferenceBuilder?;
+    Object? enumConstantInfo = pop();
+    if (enumConstantInfo is EnumConstantInfo) {
+      push(enumConstantInfo
+        ..constructorReferenceBuilder = constructorReferenceBuilder
+        ..argumentsBeginToken = argumentsBeginToken);
+    } else {
+      assert(enumConstantInfo is ParserRecovery);
+      push(enumConstantInfo);
+    }
   }
 
   @override
   void handleEnumHeader(Token enumKeyword, Token leftBrace) {
     debugEvent("EnumHeader");
+
+    // We pop more values than needed to reach typeVariables, offset and name.
+    List<TypeBuilder>? interfaces = pop() as List<TypeBuilder>?;
+    List<TypeBuilder>? mixins = pop() as List<TypeBuilder>?;
+    List<TypeVariableBuilder>? typeVariables =
+        pop() as List<TypeVariableBuilder>?;
+    int charOffset = popCharOffset(); // identifier char offset.
+    Object? name = pop();
+
+    libraryBuilder.currentTypeParameterScopeBuilder.markAsEnumDeclaration(
+        name is String ? name : "<syntax-error>", charOffset, typeVariables);
+
+    push(name ?? NullValue.Name);
+    push(charOffset);
+    push(typeVariables ?? NullValue.TypeVariables);
+    push(mixins ?? NullValue.TypeBuilderList);
+    push(interfaces ?? NullValue.TypeBuilderList);
+
     push(enumKeyword.charOffset); // start char offset.
     push(leftBrace.endGroup!.charOffset); // end char offset.
   }

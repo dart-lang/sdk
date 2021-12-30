@@ -116,7 +116,7 @@ abstract class TypeInferrer {
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
 
   /// Performs full type inference on the given field initializer.
-  Expression inferFieldInitializer(
+  ExpressionInferenceResult inferFieldInitializer(
       InferenceHelper helper, DartType declaredType, Expression initializer);
 
   /// Returns the type used as the inferred type of a variable declaration,
@@ -2030,7 +2030,7 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  Expression inferFieldInitializer(
+  ExpressionInferenceResult inferFieldInitializer(
     InferenceHelper helper,
     DartType context,
     Expression initializer,
@@ -2043,7 +2043,8 @@ class TypeInferrerImpl implements TypeInferrer {
     initializer = ensureAssignableResult(context, initializerResult,
         isVoidAllowed: context is VoidType);
     this.helper = null;
-    return initializer;
+    return new ExpressionInferenceResult(
+        initializerResult.inferredType, initializer);
   }
 
   @override

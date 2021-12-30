@@ -76,13 +76,16 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   final List<SynthesizedFunctionNode> _superParameterDefaultValueCloners =
       <SynthesizedFunctionNode>[];
 
+  @override
+  List<FormalParameterBuilder>? formals;
+
   SourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       TypeBuilder? returnType,
       String name,
       List<TypeVariableBuilder>? typeVariables,
-      List<FormalParameterBuilder>? formals,
+      this.formals,
       SourceLibraryBuilder compilationUnit,
       int startCharOffset,
       int charOffset,
@@ -669,6 +672,14 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
     Set<FieldBuilder>? result = _initializedFields;
     _initializedFields = null;
     return result;
+  }
+
+  void ensureGrowableFormals() {
+    if (formals != null) {
+      formals = new List<FormalParameterBuilder>.from(formals!, growable: true);
+    } else {
+      formals = <FormalParameterBuilder>[];
+    }
   }
 }
 

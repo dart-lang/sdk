@@ -2809,10 +2809,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           referencesFromIndexed!.lookupIndexedClass(name);
     }
     // Nested declaration began in `OutlineBuilder.beginEnum`.
-    // TODO(cstefantsova): Use actual type variables here.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(TypeParameterScopeKind.enumDeclaration, name)
-          ..resolveNamedTypes([], this);
+          ..resolveNamedTypes(typeVariables, this);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
@@ -2820,6 +2819,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     EnumBuilder enumBuilder = new EnumBuilder(
         metadata,
         name,
+        typeVariables,
         enumConstantInfos,
         this,
         startCharOffset,
@@ -5021,6 +5021,17 @@ class TypeParameterScopeBuilder {
   void markAsExtensionDeclaration(
       String name, int charOffset, List<TypeVariableBuilder>? typeVariables) {
     assert(_kind == TypeParameterScopeKind.extensionDeclaration,
+        "Unexpected declaration kind: $_kind");
+    _name = name;
+    _charOffset = charOffset;
+    _typeVariables = typeVariables;
+  }
+
+  /// Registers that this builder is preparing for an enum declaration with
+  /// the given [name] and [typeVariables] located [charOffset].
+  void markAsEnumDeclaration(
+      String name, int charOffset, List<TypeVariableBuilder>? typeVariables) {
+    assert(_kind == TypeParameterScopeKind.enumDeclaration,
         "Unexpected declaration kind: $_kind");
     _name = name;
     _charOffset = charOffset;
