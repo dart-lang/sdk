@@ -13,12 +13,6 @@ import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
 import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
-import 'kernel/body_builder.dart' show JumpTarget;
-import 'kernel/hierarchy/class_member.dart' show ClassMember;
-import 'kernel/kernel_helper.dart';
-import 'source/source_library_builder.dart';
-import 'util/helpers.dart' show DelayedActionPerformer;
-
 import 'fasta_codes.dart'
     show
         LocatedMessage,
@@ -27,8 +21,13 @@ import 'fasta_codes.dart'
         templateAccessError,
         templateDuplicatedDeclarationUse,
         templateDuplicatedNamePreviouslyUsedCause;
-
+import 'kernel/body_builder.dart' show JumpTarget;
+import 'kernel/hierarchy/class_member.dart' show ClassMember;
+import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
+import 'source/source_library_builder.dart';
+import 'source/source_member_builder.dart';
+import 'util/helpers.dart' show DelayedActionPerformer;
 
 class MutableScope {
   /// Names declared in this scope.

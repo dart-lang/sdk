@@ -14,23 +14,16 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         lengthOfSpan,
         MemberKind,
         optional;
-
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
-
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValue, ParserRecovery;
-
 import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-
 import 'package:_fe_analyzer_shared/src/util/link.dart';
-
 import 'package:kernel/ast.dart'
     show AsyncMarker, InvalidType, Nullability, ProcedureKind, Variance;
 
 import '../builder/constructor_reference_builder.dart';
-import '../builder/enum_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
@@ -41,20 +34,13 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-
 import '../combinator.dart' show CombinatorBuilder;
-
 import '../configuration.dart' show Configuration;
-
 import '../fasta_codes.dart';
-
 import '../identifiers.dart' show QualifiedName, flattenName;
-
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
-
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart';
-
 import '../modifier.dart'
     show
         Const,
@@ -73,27 +59,22 @@ import '../modifier.dart'
         mixinDeclarationMask,
         requiredMask,
         staticMask;
-
 import '../operator.dart'
     show
         Operator,
         operatorFromString,
         operatorToString,
         operatorRequiredArgumentCount;
-
 import '../problems.dart' show unhandled;
-
+import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
-
 import 'source_library_builder.dart'
     show
         TypeParameterScopeBuilder,
         TypeParameterScopeKind,
         FieldInfo,
         SourceLibraryBuilder;
-
 import 'stack_listener_impl.dart';
-
 import 'value_kinds.dart';
 
 enum MethodBody {

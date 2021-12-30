@@ -21,10 +21,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/constructor_builder.dart';
 import '../builder/constructor_reference_builder.dart';
-import '../builder/factory_builder.dart';
-import '../builder/field_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -32,34 +29,29 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
-import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
-
 import '../dill/dill_member_builder.dart';
-
 import '../fasta_codes.dart';
-
 import '../kernel/combined_member_signature.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart' show redirectingName;
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
-
 import '../names.dart' show equalsName, noSuchMethodName;
-
 import '../problems.dart' show unexpected, unhandled, unimplemented;
-
 import '../scope.dart';
-
 import '../type_inference/type_schema.dart';
-
 import '../util/helpers.dart';
-
+import 'source_constructor_builder.dart';
+import 'source_factory_builder.dart';
+import 'source_field_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_member_builder.dart';
+import 'source_procedure_builder.dart';
 
 Class initializeClass(
     Class? cls,

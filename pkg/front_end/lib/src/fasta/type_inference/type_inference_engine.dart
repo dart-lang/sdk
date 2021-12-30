@@ -3,32 +3,22 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-
 import 'package:kernel/ast.dart';
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
-
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
-
-import '../builder/constructor_builder.dart';
-
 import '../kernel/forest.dart';
-import '../kernel/implicit_field_type.dart';
-import '../kernel/internal_ast.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
+import '../kernel/implicit_field_type.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
-
+import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
 import 'factor_type.dart';
-
 import 'type_inferrer.dart';
-
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Visitor to check whether a given type mentions any of a class's type

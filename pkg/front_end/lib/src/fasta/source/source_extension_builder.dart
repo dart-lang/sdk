@@ -7,36 +7,29 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/common.dart';
-
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/field_builder.dart';
 import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-
 import '../fasta_codes.dart'
     show
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength,
         templateExtensionMemberConflictsWithObjectMember;
-
 import '../kernel/kernel_helper.dart';
-
 import '../operator.dart';
-
 import '../problems.dart';
-
 import '../scope.dart';
-
 import '../util/helpers.dart';
-
+import 'source_field_builder.dart';
 import 'source_library_builder.dart';
+import 'source_member_builder.dart';
+import 'source_procedure_builder.dart';
 
 const String extensionThisName = '#this';
 

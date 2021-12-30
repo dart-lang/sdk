@@ -6,8 +6,14 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 
+import '../builder/builder.dart';
+import '../builder/constructor_reference_builder.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/function_builder.dart';
+import '../builder/metadata_builder.dart';
+import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
 import '../dill/dill_member_builder.dart';
-
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/forest.dart';
 import '../kernel/hierarchy/class_member.dart';
@@ -15,30 +21,17 @@ import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/redirecting_factory_body.dart'
     show getRedirectingFactoryBody, RedirectingFactoryBody;
-
-import '../source/source_loader.dart' show SourceLoader;
-
 import '../messages.dart'
     show messageConstFactoryRedirectionToNonConst, noLength;
-
 import '../problems.dart' show unexpected, unhandled;
-
-import '../source/name_scheme.dart';
-import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
-
 import '../util/helpers.dart';
-
-import 'builder.dart';
-import 'constructor_reference_builder.dart';
-import 'formal_parameter_builder.dart';
-import 'function_builder.dart';
-import 'member_builder.dart';
-import 'metadata_builder.dart';
-import 'type_builder.dart';
-import 'type_variable_builder.dart';
+import 'name_scheme.dart';
+import 'source_function_builder.dart';
+import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_loader.dart' show SourceLoader;
+import 'source_member_builder.dart';
 
 class SourceFactoryBuilder extends FunctionBuilderImpl {
   final int charOpenParenOffset;

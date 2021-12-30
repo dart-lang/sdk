@@ -22,47 +22,31 @@ import 'package:kernel/ast.dart'
         TreeNode,
         TypeParameter,
         getAsTypeArguments;
-
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyMembers;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
-
+import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/text/text_serialization_verifier.dart';
-
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
-
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
-import 'package:kernel/src/legacy_erasure.dart';
-
 import '../dill/dill_member_builder.dart';
-
 import '../fasta_codes.dart';
-
 import '../kernel/kernel_helper.dart';
-
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
-
 import '../loader.dart';
-
 import '../modifier.dart';
-
 import '../names.dart' show noSuchMethodName;
-
 import '../problems.dart' show internalProblem, unhandled;
-
 import '../scope.dart';
-
+import '../source/source_constructor_builder.dart';
+import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
 import '../source/source_loader.dart';
-
+import '../source/source_member_builder.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
-
 import '../util/helpers.dart' show DelayedActionPerformer;
-
 import 'builder.dart';
 import 'constructor_builder.dart';
 import 'constructor_reference_builder.dart';
@@ -75,7 +59,6 @@ import 'metadata_builder.dart';
 import 'named_type_builder.dart';
 import 'never_type_declaration_builder.dart';
 import 'nullability_builder.dart';
-import 'factory_builder.dart';
 import 'type_alias_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
