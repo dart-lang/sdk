@@ -31,6 +31,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateExpectedButGot,
         templateExpectedIdentifier,
         templateExperimentNotEnabled,
+        templateExtraneousModifier,
         templateInternalProblemUnhandled,
         templateUnexpectedToken;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -51,7 +52,7 @@ import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' hide StringToken;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show StringToken, SyntheticStringToken, SyntheticToken;
+    show KeywordToken, StringToken, SyntheticStringToken, SyntheticToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -1552,6 +1553,13 @@ class AstBuilder extends StackListener {
       if (superKeyword != null) {
         assert(thisKeyword == null,
             "Can't have both 'this' and 'super' in a parameter.");
+        if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
+          handleRecoverableError(
+            templateExtraneousModifier.withArguments(keyword),
+            keyword,
+            keyword,
+          );
+        }
         node = ast.superFormalParameter(
             comment: comment,
             metadata: metadata,
