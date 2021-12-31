@@ -38,44 +38,34 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   const ExtensionsDataComputer();
 
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    member.accept(new ExtensionsDataExtractor(compilerResult, actualMap));
+    member.accept(
+        new ExtensionsDataExtractor(testResultData.compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Class cls,
+  void computeClassData(TestResultData testResultData, Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new ExtensionsDataExtractor(compilerResult, actualMap).computeForClass(cls);
+    new ExtensionsDataExtractor(testResultData.compilerResult, actualMap)
+        .computeForClass(cls);
   }
 
   @override
-  void computeLibraryData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Library library,
+  void computeLibraryData(TestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new ExtensionsDataExtractor(compilerResult, actualMap)
+    new ExtensionsDataExtractor(testResultData.compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeExtensionData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Extension extension,
+  void computeExtensionData(TestResultData testResultData, Extension extension,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new ExtensionsDataExtractor(compilerResult, actualMap)
+    new ExtensionsDataExtractor(testResultData.compilerResult, actualMap)
         .computeForExtension(extension);
   }
 
@@ -83,8 +73,8 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   bool get supportsErrors => true;
 
   @override
-  Features computeErrorData(TestConfig config, InternalCompilerResult compiler,
-      Id id, List<FormattedMessage> errors) {
+  Features computeErrorData(
+      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     for (FormattedMessage error in errors) {
       if (error.problemMessage.contains(',')) {

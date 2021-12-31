@@ -365,7 +365,8 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   void inferConstructorParameterTypes(Constructor target) {
-    SourceConstructorBuilder? constructor = engine.beingInferred[target];
+    DeclaredSourceConstructorBuilder? constructor =
+        engine.beingInferred[target];
     if (constructor != null) {
       // There is a cyclic dependency where inferring the types of the
       // initializing formals of a constructor required us to infer the

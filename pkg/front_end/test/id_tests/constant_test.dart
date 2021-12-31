@@ -9,10 +9,10 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
         CfeDataExtractor,
-        InternalCompilerResult,
         DataComputer,
         FormattedMessage,
-        TestConfig,
+        InternalCompilerResult,
+        TestResultData,
         createUriForFileName,
         defaultCfeConfig,
         onFailure,
@@ -34,23 +34,19 @@ class ConstantsDataComputer extends DataComputer<String> {
   const ConstantsDataComputer();
 
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    member.accept(new ConstantsDataExtractor(compilerResult, actualMap));
+    member.accept(
+        new ConstantsDataExtractor(testResultData.compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Class cls,
+  void computeClassData(TestResultData testResultData, Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    new ConstantsDataExtractor(compilerResult, actualMap).computeForClass(cls);
+    new ConstantsDataExtractor(testResultData.compilerResult, actualMap)
+        .computeForClass(cls);
   }
 
   @override
@@ -58,8 +54,8 @@ class ConstantsDataComputer extends DataComputer<String> {
 
   /// Returns data corresponding to [error].
   @override
-  String computeErrorData(TestConfig config, InternalCompilerResult compiler,
-      Id id, List<FormattedMessage> errors) {
+  String computeErrorData(
+      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
     return errorsToText(errors);
   }
 

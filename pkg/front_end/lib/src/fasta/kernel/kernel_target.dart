@@ -781,7 +781,7 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
-  SyntheticConstructorBuilder _makeMixinApplicationConstructor(
+  SyntheticSourceConstructorBuilder _makeMixinApplicationConstructor(
       SourceClassBuilder classBuilder,
       Class mixin,
       MemberBuilder superConstructorBuilder,
@@ -885,7 +885,7 @@ class KernelTarget extends TargetImplementation {
       buildConstructorTearOffProcedure(constructorTearOff, constructor,
           classBuilder.cls, classBuilder.library);
     }
-    return new SyntheticConstructorBuilder(
+    return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff,
         // We pass on the original constructor and the cloned function nodes to
         // ensure that the default values are computed and cloned for the
@@ -910,7 +910,7 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Cloned default values of formals");
   }
 
-  SyntheticConstructorBuilder _makeDefaultConstructor(
+  SyntheticSourceConstructorBuilder _makeDefaultConstructor(
       SourceClassBuilder classBuilder,
       Reference? constructorReference,
       Reference? tearOffReference) {
@@ -940,7 +940,7 @@ class KernelTarget extends TargetImplementation {
       buildConstructorTearOffProcedure(constructorTearOff, constructor,
           classBuilder.cls, classBuilder.library);
     }
-    return new SyntheticConstructorBuilder(
+    return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff);
   }
 
@@ -1162,17 +1162,17 @@ class KernelTarget extends TargetImplementation {
     Set<FieldBuilder>? initializedFields = null;
 
     builder.forEachDeclaredConstructor(
-        (String name, SourceConstructorBuilder constructorBuilder) {
+        (String name, DeclaredSourceConstructorBuilder constructorBuilder) {
       if (constructorBuilder.isExternal) return;
       // In case of duplicating constructors the earliest ones (those that
       // declared towards the beginning of the file) come last in the list.
       // To report errors on the first definition of a constructor, we need to
       // iterate until that last element.
-      SourceConstructorBuilder earliest = constructorBuilder;
+      DeclaredSourceConstructorBuilder earliest = constructorBuilder;
       Builder earliestBuilder = constructorBuilder;
       while (earliestBuilder.next != null) {
         earliestBuilder = earliestBuilder.next!;
-        if (earliestBuilder is SourceConstructorBuilder) {
+        if (earliestBuilder is DeclaredSourceConstructorBuilder) {
           earliest = earliestBuilder;
         }
       }

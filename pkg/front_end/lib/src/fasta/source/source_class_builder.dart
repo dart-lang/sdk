@@ -559,7 +559,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     });
 
     forEachConstructor((String name, MemberBuilder builder) {
-      if (builder is SourceConstructorBuilder) {
+      if (builder is DeclaredSourceConstructorBuilder) {
         library.checkTypesInConstructorBuilder(builder, typeEnvironment);
       } else if (builder is RedirectingFactoryBuilder) {
         library.checkTypesInRedirectingFactoryBuilder(builder, typeEnvironment);
@@ -575,7 +575,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     }, includeInjectedConstructors: true);
   }
 
-  void addSyntheticConstructor(SyntheticConstructorBuilder constructorBuilder) {
+  void addSyntheticConstructor(
+      SyntheticSourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
     constructorBuilder.next = constructorScopeBuilder[name];
     constructorScopeBuilder.addMember(name, constructorBuilder);

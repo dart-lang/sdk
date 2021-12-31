@@ -5,9 +5,10 @@
 library fasta.dill_member_builder;
 
 import 'package:kernel/ast.dart'
-    show Constructor, Field, Member, Procedure, ProcedureKind;
+    show Constructor, Field, FunctionNode, Member, Procedure, ProcedureKind;
 
 import '../builder/builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/member_builder.dart';
 
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
@@ -223,13 +224,18 @@ class DillFactoryBuilder extends DillMemberBuilder {
   Member get invokeTarget => procedure;
 }
 
-class DillConstructorBuilder extends DillMemberBuilder {
+class DillConstructorBuilder extends DillMemberBuilder
+    implements ConstructorBuilder {
+  @override
   final Constructor constructor;
   final Procedure? _constructorTearOff;
 
   DillConstructorBuilder(
       this.constructor, this._constructorTearOff, Builder parent)
       : super(constructor, parent);
+
+  @override
+  FunctionNode get function => constructor.function;
 
   @override
   Constructor get member => constructor;

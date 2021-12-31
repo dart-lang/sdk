@@ -5482,14 +5482,17 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
       if (superConstructor != null) {
         var superParameters = superConstructor.parameters;
         if (isNamed) {
-          return superParameters.firstWhereOrNull((e) => e.name == name);
+          return superParameters
+              .firstWhereOrNull((e) => e.isNamed && e.name == name);
         } else {
+          var positionalSuperParameters =
+              superParameters.where((e) => e.isPositional).toList();
           var index = enclosingElement.parameters
               .whereType<SuperFormalParameterElementImpl>()
               .toList()
               .indexOf(this);
-          if (index >= 0 && index < superParameters.length) {
-            return superParameters[index];
+          if (index >= 0 && index < positionalSuperParameters.length) {
+            return positionalSuperParameters[index];
           }
         }
       }

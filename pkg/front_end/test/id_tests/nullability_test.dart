@@ -29,13 +29,11 @@ class NullabilityDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    member.accept(new NullabilityDataExtractor(compilerResult, actualMap));
+    member.accept(
+        new NullabilityDataExtractor(testResultData.compilerResult, actualMap));
   }
 }
 

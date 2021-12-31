@@ -38,20 +38,18 @@ class AssignedVariablesDataComputer extends DataComputer<_Data> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<_Data>> actualMap,
       {bool? verbose}) {
     SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(compilerResult, member) as SourceMemberBuilder;
+        lookupMemberBuilder(testResultData.compilerResult, member)
+            as SourceMemberBuilder;
     AssignedVariablesForTesting<TreeNode, VariableDeclaration>?
         assignedVariables = memberBuilder
             .dataForTesting!.inferenceData.flowAnalysisResult.assignedVariables;
     if (assignedVariables == null) return;
     member.accept(new AssignedVariablesDataExtractor(
-        compilerResult, actualMap, assignedVariables));
+        testResultData.compilerResult, actualMap, assignedVariables));
   }
 }
 

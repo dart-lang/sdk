@@ -546,6 +546,8 @@ import 'packed_annotation_test.dart' as packed_annotation;
 import 'packed_nesting_non_packed_test.dart' as packed_nesting_non_packed;
 import 'part_of_different_library_test.dart' as part_of_different_library;
 import 'part_of_non_part_test.dart' as part_of_non_part;
+import 'positional_super_formal_parameter_with_positional_argument_test.dart'
+    as positional_super_formal_parameter_with_positional_argument;
 import 'prefix_collides_with_top_level_member_test.dart'
     as prefix_collides_with_top_level_member;
 import 'prefix_identifier_not_followed_by_dot_test.dart'
@@ -626,6 +628,10 @@ import 'strict_raw_type_test.dart' as strict_raw_type;
 import 'subtype_of_ffi_class_test.dart' as subtype_of_ffi_class;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'subtype_of_struct_class_test.dart' as subtype_of_struct_class;
+import 'super_formal_parameter_without_associated_named_test.dart'
+    as super_formal_parameter_without_associated_named;
+import 'super_formal_parameter_without_associated_positional_test.dart'
+    as super_formal_parameter_without_associated_positional;
 import 'super_in_extension_test.dart' as super_in_extension;
 import 'super_in_invalid_context_test.dart' as super_in_invalid_context;
 import 'super_in_redirecting_constructor_test.dart'
@@ -1089,6 +1095,7 @@ main() {
     packed_nesting_non_packed.main();
     part_of_different_library.main();
     part_of_non_part.main();
+    positional_super_formal_parameter_with_positional_argument.main();
     prefix_collides_with_top_level_member.main();
     prefix_identifier_not_followed_by_dot.main();
     prefix_shadowed_by_local_declaration.main();
@@ -1139,6 +1146,8 @@ main() {
     subtype_of_ffi_class.main();
     subtype_of_sealed_class.main();
     subtype_of_struct_class.main();
+    super_formal_parameter_without_associated_named.main();
+    super_formal_parameter_without_associated_positional.main();
     super_in_extension.main();
     super_in_invalid_context.main();
     super_in_redirecting_constructor.main();

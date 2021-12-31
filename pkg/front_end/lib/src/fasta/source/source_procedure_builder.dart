@@ -22,7 +22,7 @@ import '../source/source_loader.dart' show SourceLoader;
 import 'source_function_builder.dart';
 import 'source_member_builder.dart';
 
-class SourceProcedureBuilder extends FunctionBuilderImpl
+class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     implements ProcedureBuilder {
   @override
   final int charOpenParenOffset;

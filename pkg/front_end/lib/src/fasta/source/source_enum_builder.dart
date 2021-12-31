@@ -75,7 +75,7 @@ import 'source_field_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_procedure_builder.dart';
 
-class EnumBuilder extends SourceClassBuilder {
+class SourceEnumBuilder extends SourceClassBuilder {
   final List<EnumConstantInfo?>? enumConstantInfos;
 
   final NamedTypeBuilder intType;
@@ -86,9 +86,9 @@ class EnumBuilder extends SourceClassBuilder {
 
   final NamedTypeBuilder listType;
 
-  SourceConstructorBuilder? _synthesizedDefaultConstructorBuilder;
+  DeclaredSourceConstructorBuilder? _synthesizedDefaultConstructorBuilder;
 
-  EnumBuilder.internal(
+  SourceEnumBuilder.internal(
       List<MetadataBuilder>? metadata,
       String name,
       List<TypeVariableBuilder>? typeVariables,
@@ -124,7 +124,7 @@ class EnumBuilder extends SourceClassBuilder {
             referencesFromIndexed,
             cls: cls);
 
-  factory EnumBuilder(
+  factory SourceEnumBuilder(
       List<MetadataBuilder>? metadata,
       String name,
       List<TypeVariableBuilder>? typeVariables,
@@ -270,34 +270,35 @@ class EnumBuilder extends SourceClassBuilder {
         fieldSetterReference: valuesSetterReference);
     members["values"] = valuesBuilder;
 
-    SourceConstructorBuilder? synthesizedDefaultConstructorBuilder;
+    DeclaredSourceConstructorBuilder? synthesizedDefaultConstructorBuilder;
     if (constructorScope.local.isEmpty) {
-      synthesizedDefaultConstructorBuilder = new SourceConstructorBuilder(
-          /* metadata = */ null,
-          constMask,
-          /* returnType = */ null,
-          "",
-          /* typeParameters = */ null,
-          <FormalParameterBuilder>[
-            new FormalParameterBuilder(
-                null, 0, intType, "index", parent, charOffset),
-            new FormalParameterBuilder(
-                null, 0, stringType, "name", parent, charOffset)
-          ],
-          parent,
-          charOffset,
-          charOffset,
-          charOffset,
-          charEndOffset,
-          constructorReference,
-          tearOffReference,
-          forAbstractClassOrEnum: true);
+      synthesizedDefaultConstructorBuilder =
+          new DeclaredSourceConstructorBuilder(
+              /* metadata = */ null,
+              constMask,
+              /* returnType = */ null,
+              "",
+              /* typeParameters = */ null,
+              <FormalParameterBuilder>[
+                new FormalParameterBuilder(
+                    null, 0, intType, "index", parent, charOffset),
+                new FormalParameterBuilder(
+                    null, 0, stringType, "name", parent, charOffset)
+              ],
+              parent,
+              charOffset,
+              charOffset,
+              charOffset,
+              charEndOffset,
+              constructorReference,
+              tearOffReference,
+              forAbstractClassOrEnum: true);
       synthesizedDefaultConstructorBuilder
           .registerInitializedField(valuesBuilder);
       constructors[""] = synthesizedDefaultConstructorBuilder;
     } else {
       constructorScope.forEach((name, member) {
-        if (member is SourceConstructorBuilder) {
+        if (member is DeclaredSourceConstructorBuilder) {
           member.ensureGrowableFormals();
           member.formals!.insert(
               0,
@@ -401,7 +402,7 @@ class EnumBuilder extends SourceClassBuilder {
     scope.forEachLocalSetter((name, member) {
       setters[name] = member;
     });
-    EnumBuilder enumBuilder = new EnumBuilder.internal(
+    SourceEnumBuilder enumBuilder = new SourceEnumBuilder.internal(
         metadata,
         name,
         typeVariables,
@@ -539,7 +540,6 @@ class EnumBuilder extends SourceClassBuilder {
         classHierarchy.coreTypes,
         new ListLiteral(values,
             typeArgument: rawType(library.nonNullable), isConst: true));
-
     int index = 0;
     if (enumConstantInfos != null) {
       for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {

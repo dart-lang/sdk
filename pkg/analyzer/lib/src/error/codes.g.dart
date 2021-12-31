@@ -11628,6 +11628,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT =
+      CompileTimeErrorCode(
+    'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
+    "Positional super-formal parameters can't be used when the "
+        "super-constructor invocation has a positional argument.",
+    correctionMessage:
+        "Try removing the 'super' modifier, or changing the super-constructor "
+        "to use named parameters.",
+  );
+
+  /**
    * Parameters:
    * 0: the name of the prefix
    */
@@ -13075,6 +13089,30 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'STATIC_ACCESS_TO_INSTANCE_MEMBER',
     "Instance member '{0}' can't be accessed using static access.",
     hasPublishedDocs: true,
+  );
+
+  /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED = CompileTimeErrorCode(
+    'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
+    "No associated named super-constructor parameter.",
+    correctionMessage: "Try changing the name to the name of an existing named "
+        "super-constructor parameter, or creating such named parameter.",
+  );
+
+  /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL =
+      CompileTimeErrorCode(
+    'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
+    "No associated positional super-constructor parameter.",
+    correctionMessage:
+        "Try using named parameters instead, or adding more positional "
+        "parameters to the super-constructor.",
   );
 
   /**

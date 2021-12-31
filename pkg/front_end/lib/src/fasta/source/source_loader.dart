@@ -912,7 +912,7 @@ severity: $severity
   }
 
   void registerConstructorToBeInferred(
-      Constructor constructor, SourceConstructorBuilder builder) {
+      Constructor constructor, DeclaredSourceConstructorBuilder builder) {
     _typeInferenceEngine!.toBeInferred[constructor] = builder;
   }
 
@@ -1445,7 +1445,7 @@ severity: $severity
             }
           });
           classBuilder.forEachConstructor((String name, Builder memberBuilder) {
-            if (memberBuilder is SourceConstructorBuilder) {
+            if (memberBuilder is DeclaredSourceConstructorBuilder) {
               MacroApplications? macroApplications = computeApplications(
                   libraryBuilder,
                   classBuilder.scope,
@@ -1684,7 +1684,7 @@ severity: $severity
         directSupertypeMap.keys.toList();
     for (int i = 0; i < directSupertypes.length; i++) {
       TypeDeclarationBuilder? supertype = directSupertypes[i];
-      if (supertype is EnumBuilder) {
+      if (supertype is SourceEnumBuilder) {
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
       } else if (!cls.library.mayImplementRestrictedTypes &&
