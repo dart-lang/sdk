@@ -194,6 +194,7 @@ import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
+import 'extraneous_modifier_test.dart' as extraneous_modifier;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
 import 'ffi_native_test.dart' as ffi_native_test;
@@ -227,6 +228,7 @@ import 'for_in_of_invalid_element_type_test.dart'
     as for_in_of_invalid_element_type;
 import 'for_in_of_invalid_type_test.dart' as for_in_of_invalid_type;
 import 'for_in_with_const_variable_test.dart' as for_in_with_const_variable;
+import 'function_typed_parameter_var_test.dart' as function_typed_parameter_var;
 import 'generic_function_type_cannot_be_bound_test.dart'
     as generic_function_type_cannot_be_bound;
 import 'generic_struct_subclass_test.dart' as generic_struct_subclass;
@@ -857,6 +859,7 @@ main() {
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
+    extraneous_modifier.main();
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native_test.main();
     field_in_struct_with_initializer.main();
@@ -876,6 +879,7 @@ main() {
     for_in_of_invalid_element_type.main();
     for_in_of_invalid_type.main();
     for_in_with_const_variable.main();
+    function_typed_parameter_var.main();
     generic_function_type_cannot_be_bound.main();
     generic_struct_subclass.main();
     getter_not_assignable_setter_types.main();
