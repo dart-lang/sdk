@@ -48,8 +48,11 @@ import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_function_builder.dart';
 
-class SourceConstructorBuilder extends FunctionBuilderImpl
-    implements ConstructorBuilder {
+abstract class SourceConstructorBuilder
+    implements ConstructorBuilder, SourceMemberBuilder {}
+
+class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
+    implements SourceConstructorBuilder {
   final Constructor _constructor;
   final Procedure? _constructorTearOff;
 
@@ -65,7 +68,7 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
 
   Token? beginInitializers;
 
-  SourceConstructorBuilder? actualOrigin;
+  DeclaredSourceConstructorBuilder? actualOrigin;
 
   Constructor get actualConstructor => _constructor;
 
@@ -79,7 +82,7 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   @override
   List<FormalParameterBuilder>? formals;
 
-  SourceConstructorBuilder(
+  DeclaredSourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       TypeBuilder? returnType,
@@ -138,7 +141,7 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   Iterable<Member> get exportedMembers => [constructor];
 
   @override
-  SourceConstructorBuilder get origin => actualOrigin ?? this;
+  DeclaredSourceConstructorBuilder get origin => actualOrigin ?? this;
 
   ConstructorBuilder? get patchForTesting =>
       dataForTesting?.patchForTesting as ConstructorBuilder?;
@@ -310,12 +313,12 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
     Object? superTargetBuilder = _computeSuperTargetBuilder();
     Constructor superTarget;
     List<FormalParameterBuilder>? superFormals;
-    if (superTargetBuilder is SourceConstructorBuilder) {
+    if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
       superTarget = superTargetBuilder.constructor;
       superFormals = superTargetBuilder.formals!;
     } else if (superTargetBuilder is DillConstructorBuilder) {
       superTarget = superTargetBuilder.constructor;
-      if (superTargetBuilder is SyntheticConstructorBuilder) {
+      if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
         superFormals = superTargetBuilder.formals;
       } else {
         // The error in this case should be reported elsewhere. Here we perform
@@ -334,11 +337,11 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
       return performRecoveryForErroneousCase();
     }
 
-    if (superTargetBuilder is SourceConstructorBuilder) {
+    if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
       superTargetBuilder.inferFormalTypes(classHierarchy);
-    } else if (superTargetBuilder is SyntheticConstructorBuilder) {
+    } else if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
       MemberBuilder? superTargetOriginBuilder = superTargetBuilder.actualOrigin;
-      if (superTargetOriginBuilder is SourceConstructorBuilder) {
+      if (superTargetOriginBuilder is DeclaredSourceConstructorBuilder) {
         superTargetOriginBuilder.inferFormalTypes(classHierarchy);
       }
     }
@@ -457,10 +460,10 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   void addSuperParameterDefaultValueCloners(
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     Object? superTargetBuilder = _computeSuperTargetBuilder();
-    if (superTargetBuilder is SourceConstructorBuilder) {
+    if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
       superTargetBuilder
           .addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
-    } else if (superTargetBuilder is SyntheticConstructorBuilder) {
+    } else if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
       superTargetBuilder
           .addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
     }
@@ -621,7 +624,7 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
 
   @override
   void applyPatch(Builder patch) {
-    if (patch is SourceConstructorBuilder) {
+    if (patch is DeclaredSourceConstructorBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
         dataForTesting?.patchForTesting = patch;
@@ -683,7 +686,7 @@ class SourceConstructorBuilder extends FunctionBuilderImpl
   }
 }
 
-class SyntheticConstructorBuilder extends DillConstructorBuilder
+class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
     with SourceMemberBuilderMixin {
   // TODO(johnniwinther,cstefantsova): Rename [_origin] to avoid the confusion
   // with patches.
@@ -693,7 +696,7 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder
   MemberBuilder? _origin;
   SynthesizedFunctionNode? _synthesizedFunctionNode;
 
-  SyntheticConstructorBuilder(SourceClassBuilder parent,
+  SyntheticSourceConstructorBuilder(SourceClassBuilder parent,
       Constructor constructor, Procedure? constructorTearOff,
       {MemberBuilder? origin, SynthesizedFunctionNode? synthesizedFunctionNode})
       : _origin = origin,
@@ -704,7 +707,7 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder
   //  confusion with patches.
   MemberBuilder? get actualOrigin {
     MemberBuilder? origin = _origin;
-    while (origin is SyntheticConstructorBuilder) {
+    while (origin is SyntheticSourceConstructorBuilder) {
       origin = origin._origin;
     }
     return origin;
@@ -712,7 +715,7 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder
 
   List<FormalParameterBuilder>? get formals {
     MemberBuilder? origin = actualOrigin;
-    return origin is SourceConstructorBuilder ? origin.formals : null;
+    return origin is DeclaredSourceConstructorBuilder ? origin.formals : null;
   }
 
   @override
@@ -728,10 +731,10 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder
         // If [_origin] is from a source library, we need to build the default
         // values and initializers first.
         MemberBuilder origin = _origin!;
-        if (origin is SourceConstructorBuilder) {
+        if (origin is DeclaredSourceConstructorBuilder) {
           origin.buildOutlineExpressions(originLibraryBuilder, classHierarchy,
               delayedActionPerformers, synthesizedFunctionNodes);
-        } else if (origin is SyntheticConstructorBuilder) {
+        } else if (origin is SyntheticSourceConstructorBuilder) {
           origin.buildOutlineExpressions(originLibraryBuilder, classHierarchy,
               delayedActionPerformers, synthesizedFunctionNodes);
         }
@@ -744,9 +747,9 @@ class SyntheticConstructorBuilder extends DillConstructorBuilder
   void addSuperParameterDefaultValueCloners(
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MemberBuilder? origin = _origin;
-    if (origin is SourceConstructorBuilder) {
+    if (origin is DeclaredSourceConstructorBuilder) {
       origin.addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
-    } else if (origin is SyntheticConstructorBuilder) {
+    } else if (origin is SyntheticSourceConstructorBuilder) {
       origin.addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
     }
     if (_synthesizedFunctionNode != null) {

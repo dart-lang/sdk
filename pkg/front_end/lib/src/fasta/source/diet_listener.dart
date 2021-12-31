@@ -352,7 +352,7 @@ class DietListener extends StackListenerImpl {
 
     final BodyBuilder listener = createFunctionListener(
         lookupBuilder(beginToken, getOrSet, name as String)
-            as FunctionBuilderImpl);
+            as SourceFunctionBuilderImpl);
     buildFunctionBody(listener, bodyToken, metadata, MemberKind.TopLevelMethod);
   }
 
@@ -599,8 +599,8 @@ class DietListener extends StackListenerImpl {
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
 
-    FunctionBuilderImpl builder =
-        lookupConstructor(beginToken, name!) as FunctionBuilderImpl;
+    SourceFunctionBuilderImpl builder =
+        lookupConstructor(beginToken, name!) as SourceFunctionBuilderImpl;
     if (_inRedirectingFactory) {
       buildRedirectingFactoryMethod(
           bodyToken, builder, MemberKind.Factory, metadata);
@@ -709,12 +709,13 @@ class DietListener extends StackListenerImpl {
     Token? metadata = pop() as Token?;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
-    FunctionBuilderImpl builder;
+    SourceFunctionBuilderImpl builder;
     if (isConstructor) {
-      builder = lookupConstructor(beginToken, name!) as FunctionBuilderImpl;
+      builder =
+          lookupConstructor(beginToken, name!) as SourceFunctionBuilderImpl;
     } else {
       builder = lookupBuilder(beginToken, getOrSet, name as String)
-          as FunctionBuilderImpl;
+          as SourceFunctionBuilderImpl;
     }
     buildFunctionBody(
         createFunctionListener(builder),
@@ -778,7 +779,7 @@ class DietListener extends StackListenerImpl {
       ..constantContext = constantContext;
   }
 
-  BodyBuilder createFunctionListener(FunctionBuilderImpl builder) {
+  BodyBuilder createFunctionListener(SourceFunctionBuilderImpl builder) {
     final Scope typeParameterScope =
         builder.computeTypeParameterScope(memberScope);
     final Scope formalParameterScope =
@@ -795,8 +796,8 @@ class DietListener extends StackListenerImpl {
         inferenceDataForTesting: builder.dataForTesting?.inferenceData);
   }
 
-  void buildRedirectingFactoryMethod(Token token, FunctionBuilderImpl builder,
-      MemberKind kind, Token? metadata) {
+  void buildRedirectingFactoryMethod(Token token,
+      SourceFunctionBuilderImpl builder, MemberKind kind, Token? metadata) {
     final BodyBuilder listener = createFunctionListener(builder);
     try {
       Parser parser = new Parser(listener,

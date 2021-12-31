@@ -922,7 +922,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void prepareInitializers() {
     SourceFunctionBuilder member = this.member as SourceFunctionBuilder;
     scope = member.computeFormalParameterInitializerScope(scope);
-    if (member is SourceConstructorBuilder) {
+    if (member is DeclaredSourceConstructorBuilder) {
       member.prepareInitializers();
       if (member.formals != null) {
         for (FormalParameterBuilder formal in member.formals!) {
@@ -1106,7 +1106,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
-    if (builder is SourceConstructorBuilder) {
+    if (builder is DeclaredSourceConstructorBuilder) {
       finishConstructor(builder, asyncModifier, body);
     } else if (builder is SourceProcedureBuilder) {
       builder.asyncModifier = asyncModifier;
@@ -1614,7 +1614,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (doFinishConstructor) {
       finishConstructor(
-          member as SourceConstructorBuilder, AsyncMarker.Sync, null);
+          member as DeclaredSourceConstructorBuilder, AsyncMarker.Sync, null);
     }
   }
 
@@ -1654,7 +1654,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return arguments;
   }
 
-  void finishConstructor(SourceConstructorBuilder builder,
+  void finishConstructor(DeclaredSourceConstructorBuilder builder,
       AsyncMarker asyncModifier, Statement? body) {
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
@@ -1773,7 +1773,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         positionalArguments = positionalSuperParametersAsArguments;
         namedArguments = namedSuperParametersAsArguments;
       }
-      if (classBuilder is EnumBuilder) {
+      if (classBuilder is SourceEnumBuilder) {
         assert(constructor.function.positionalParameters.length >= 2 &&
             constructor.function.positionalParameters[0].name == "index" &&
             constructor.function.positionalParameters[1].name == "name");
@@ -5315,7 +5315,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     if (type is ClassBuilder) {
-      if (type is EnumBuilder) {
+      if (type is SourceEnumBuilder) {
         return buildProblem(fasta.messageEnumInstantiation,
             nameToken.charOffset, nameToken.length);
       }
@@ -6895,8 +6895,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 ]);
           }
         }
-        SourceConstructorBuilder constructorBuilder =
-            member as SourceConstructorBuilder;
+        DeclaredSourceConstructorBuilder constructorBuilder =
+            member as DeclaredSourceConstructorBuilder;
         constructorBuilder.registerInitializedField(builder);
         return builder.buildInitializer(assignmentOffset, expression,
             isSynthetic: formal != null);

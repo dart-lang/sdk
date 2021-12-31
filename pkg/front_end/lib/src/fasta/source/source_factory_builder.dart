@@ -33,7 +33,7 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 
-class SourceFactoryBuilder extends FunctionBuilderImpl {
+class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;

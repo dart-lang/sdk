@@ -2534,22 +2534,23 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           .lookupGetterReference(constructorTearOffName(
               constructorName, _currentClassReferencesFromIndexed!.library));
     }
-    SourceConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
-        metadata,
-        modifiers & ~abstractMask,
-        returnType,
-        constructorName,
-        typeVariables,
-        formals,
-        this,
-        startCharOffset,
-        charOffset,
-        charOpenParenOffset,
-        charEndOffset,
-        constructorReference,
-        tearOffReference,
-        nativeMethodName: nativeMethodName,
-        forAbstractClassOrEnum: forAbstractClass);
+    DeclaredSourceConstructorBuilder constructorBuilder =
+        new DeclaredSourceConstructorBuilder(
+            metadata,
+            modifiers & ~abstractMask,
+            returnType,
+            constructorName,
+            typeVariables,
+            formals,
+            this,
+            startCharOffset,
+            charOffset,
+            charOpenParenOffset,
+            charEndOffset,
+            constructorReference,
+            tearOffReference,
+            nativeMethodName: nativeMethodName,
+            forAbstractClassOrEnum: forAbstractClass);
     checkTypeVariables(typeVariables, constructorBuilder);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.
     addBuilder(constructorName, constructorBuilder, charOffset,
@@ -2816,7 +2817,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
 
-    EnumBuilder enumBuilder = new EnumBuilder(
+    SourceEnumBuilder enumBuilder = new SourceEnumBuilder(
         metadata,
         name,
         typeVariables,
@@ -3046,7 +3047,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (!declaration.isPatch && !declaration.isDuplicate) {
         library.addTypedef(typedef);
       }
-    } else if (declaration is EnumBuilder) {
+    } else if (declaration is SourceEnumBuilder) {
       Class cls = declaration.build(this, coreLibrary);
       if (!declaration.isPatch) {
         cls.name += findDuplicateSuffix(declaration);
@@ -3661,9 +3662,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   inErrorRecovery: issues.isNotEmpty);
               formals = member.formals;
             } else {
-              assert(member is SourceConstructorBuilder,
+              assert(member is DeclaredSourceConstructorBuilder,
                   "Unexpected constructor member (${member.runtimeType}).");
-              formals = (member as SourceConstructorBuilder).formals;
+              formals = (member as DeclaredSourceConstructorBuilder).formals;
             }
             if (formals != null && formals.isNotEmpty) {
               for (FormalParameterBuilder formal in formals) {
@@ -4228,7 +4229,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInConstructorBuilder(
-      SourceConstructorBuilder constructorBuilder,
+      DeclaredSourceConstructorBuilder constructorBuilder,
       TypeEnvironment typeEnvironment) {
     checkBoundsInFunctionNode(
         constructorBuilder.constructor.function, typeEnvironment, fileUri);
