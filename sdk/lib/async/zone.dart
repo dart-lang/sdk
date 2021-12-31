@@ -557,9 +557,9 @@ abstract class ZoneDelegate {
 /// calls.
 ///
 /// Code is always executed in the context of a zone, available as
-/// [Zone.current]. The initial `main` function runs in the context of the
+/// [Zone.current]. The initial `main()` function runs in the context of the
 /// default zone ([Zone.root]). Code can be run in a different zone using either
-/// [runZoned], to create a new zone, or [Zone.run] to run code in the context of
+/// [runZoned], to create a new zone, or [Zone.run], to run code in the context of
 /// an existing zone which was created earlier using [Zone.fork].
 ///
 /// Developers can create a new zone that overrides some of the functionality of
@@ -576,14 +576,20 @@ abstract class ZoneDelegate {
 ///
 /// Asynchronous callbacks always run in the context of the zone where they were
 /// scheduled. This is implemented using two steps:
-/// 1. the callback is first registered using one of [registerCallback],
-///   [registerUnaryCallback], or [registerBinaryCallback]. This allows the zone
-///   to record that a callback exists and potentially modify it (by returning a
-///   different callback). The code doing the registration (e.g., `Future.then`)
-///   also remembers the current zone so that it can later run the callback in
-///   that zone.
-/// 2. At a later point the registered callback is run in the remembered zone,
-///    using one of [run], [runUnary] or [runBinary].
+///
+/// 1. `Future.then` (or `await`) registers a callback using [registerCallback],
+///    [registerUnaryCallback], or [registerBinaryCallback]. This allows the zone
+///    to record that a callback exists and potentially modify it (by returning a
+///    different callback). The code doing the registration (`Future.then` or
+///    `await` for example) associates the callback to the current zone.
+///
+/// 2. Once the registration finished, the callback is either added in the event
+///    or microtask queue. It will be run in the same zone registered by 
+///    `Future.then` (or `await`) using one of [run], [runUnary] or [runBinary].
+///
+/// A [Zone] keeps track of which callbacks have been registered inside it, but
+/// it doesn't actually execute them because they're passed to one of the event
+/// loop queues.
 ///
 /// This is all handled internally by the platform code and most users don't need
 /// to worry about it. However, developers of new asynchronous operations,
