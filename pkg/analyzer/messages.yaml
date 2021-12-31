@@ -9866,6 +9866,10 @@ CompileTimeErrorCode:
       ```dart
       part of 'test.dart';
       ```
+  POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
+    problemMessage: Positional super-formal parameters can't be used when the super-constructor invocation has a positional argument.
+    comment: No parameters.
+    correctionMessage: Try removing the 'super' modifier, or changing the super-constructor to use named parameters.
   PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER:
     problemMessage: "The name '{0}' is already used as an import prefix and can't be used to name a top-level element."
     correctionMessage: Try renaming either the top-level element or the prefix.
@@ -11098,6 +11102,14 @@ CompileTimeErrorCode:
 
       int f(C c) => c.b;
       ```
+  SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
+    problemMessage: No associated named super-constructor parameter.
+    comment: No parameters.
+    correctionMessage: Try changing the name to the name of an existing named super-constructor parameter, or creating such named parameter.
+  SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL:
+    problemMessage: No associated positional super-constructor parameter.
+    comment: No parameters.
+    correctionMessage: Try using named parameters instead, or adding more positional parameters to the super-constructor.
   IMPLEMENTS_DEFERRED_CLASS:
     sharedName: SUBTYPE_OF_DEFERRED_CLASS
     problemMessage: "Classes and mixins can't implement deferred classes."

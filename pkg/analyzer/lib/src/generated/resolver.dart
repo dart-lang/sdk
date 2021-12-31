@@ -2331,11 +2331,12 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   /// Returns the parameters that correspond to the arguments. If no parameter
   /// matched an argument, that position will be `null` in the list.
   static List<ParameterElement?> resolveArgumentsToParameters(
-      ArgumentList argumentList,
-      List<ParameterElement> parameters,
-      void Function(ErrorCode errorCode, AstNode node,
-              [List<Object> arguments])?
-          onError) {
+    ArgumentList argumentList,
+    List<ParameterElement> parameters,
+    void Function(ErrorCode errorCode, AstNode node, [List<Object> arguments])?
+        onError, {
+    ConstructorDeclaration? enclosingConstructor,
+  }) {
     if (parameters.isEmpty && argumentList.arguments.isEmpty) {
       return const <ParameterElement>[];
     }
@@ -2401,6 +2402,45 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
         }
       }
     }
+
+    if (enclosingConstructor != null) {
+      var hasExplicitPositionalArguments = positionalArgumentCount != 0;
+      for (var formalParameter in enclosingConstructor.parameters.parameters) {
+        formalParameter = formalParameter.notDefault;
+        if (formalParameter is SuperFormalParameter) {
+          var element = formalParameter.declaredElement
+              as SuperFormalParameterElementImpl;
+          if (formalParameter.isNamed) {
+            if (onError != null && element.superConstructorParameter == null) {
+              onError(
+                CompileTimeErrorCode
+                    .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED,
+                formalParameter.identifier,
+              );
+            }
+          } else {
+            positionalArgumentCount++;
+            if (onError != null) {
+              if (hasExplicitPositionalArguments) {
+                onError(
+                  CompileTimeErrorCode
+                      .POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT,
+                  formalParameter.identifier,
+                );
+              }
+              if (element.superConstructorParameter == null) {
+                onError(
+                  CompileTimeErrorCode
+                      .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+                  formalParameter.identifier,
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
     if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
       if (onError != null) {
         onError(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
@@ -2417,8 +2457,8 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       } else {
         errorCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
-      if (onError != null) {
-        onError(errorCode, firstUnresolvedArgument!,
+      if (onError != null && firstUnresolvedArgument != null) {
+        onError(errorCode, firstUnresolvedArgument,
             [unnamedParameterCount, positionalArgumentCount]);
       }
     }

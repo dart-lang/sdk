@@ -86,4 +86,28 @@ main() {
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 65, 2),
     ]);
   }
+
+  test_superParameter_optional() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int? a);
+}
+
+class B extends A {
+  B([super.a]) : super();
+}
+''');
+  }
+
+  test_superParameter_required() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int a);
+}
+
+class B extends A {
+  B(super.a) : super();
+}
+''');
+  }
 }
