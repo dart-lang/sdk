@@ -34,33 +34,24 @@ class MacroDataComputer extends DataComputer<Features> {
   const MacroDataComputer();
 
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    member.accept(new MacroDataExtractor(compilerResult, actualMap));
+    member.accept(new MacroDataExtractor(testResultData, actualMap));
   }
 
   @override
-  void computeClassData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Class cls,
+  void computeClassData(TestResultData testResultData, Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new MacroDataExtractor(compilerResult, actualMap).computeForClass(cls);
+    new MacroDataExtractor(testResultData, actualMap).computeForClass(cls);
   }
 
   @override
-  void computeLibraryData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Library library,
+  void computeLibraryData(TestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new MacroDataExtractor(compilerResult, actualMap)
+    new MacroDataExtractor(testResultData, actualMap)
         .computeForLibrary(library);
   }
 
@@ -75,6 +66,8 @@ class Tags {
   static const String compilationSequence = 'compilationSequence';
   static const String declaredMacros = 'declaredMacros';
   static const String appliedMacros = 'appliedMacros';
+  static const String macroClassIds = 'macroClassIds';
+  static const String macroInstanceIds = 'macroInstanceIds';
 }
 
 String importUriToString(Uri importUri) {
@@ -96,16 +89,17 @@ String strongComponentToString(Iterable<Uri> uris) {
 }
 
 class MacroDataExtractor extends CfeDataExtractor<Features> {
+  final TestResultData testResultData;
   late final MacroDeclarationData macroDeclarationData;
   late final MacroApplicationData macroApplicationData;
 
-  MacroDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<Features>> actualMap)
-      : super(compilerResult, actualMap) {
-    macroDeclarationData = compilerResult
-        .kernelTargetForTesting!.loader.dataForTesting!.macroDeclarationData;
-    macroApplicationData = compilerResult
-        .kernelTargetForTesting!.loader.dataForTesting!.macroApplicationData;
+  MacroDataExtractor(
+      this.testResultData, Map<Id, ActualData<Features>> actualMap)
+      : super(testResultData.compilerResult, actualMap) {
+    macroDeclarationData = testResultData.compilerResult.kernelTargetForTesting!
+        .loader.dataForTesting!.macroDeclarationData;
+    macroApplicationData = testResultData.compilerResult.kernelTargetForTesting!
+        .loader.dataForTesting!.macroApplicationData;
   }
 
   LibraryMacroApplicationData? getLibraryMacroApplicationData(Library library) {

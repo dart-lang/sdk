@@ -39,16 +39,14 @@ class InferredVariableTypesDataComputer extends DataComputer<DartType> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<DartType>> actualMap,
       {bool? verbose}) {
     SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(compilerResult, member) as SourceMemberBuilder;
+        lookupMemberBuilder(testResultData.compilerResult, member)
+            as SourceMemberBuilder;
     member.accept(new InferredTypeArgumentDataExtractor(
-        compilerResult,
+        testResultData.compilerResult,
         memberBuilder.dataForTesting!.inferenceData.typeInferenceResult,
         actualMap));
   }

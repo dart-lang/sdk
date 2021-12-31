@@ -96,26 +96,22 @@ class TextRepresentationDataComputer extends DataComputer<String> {
   const TextRepresentationDataComputer();
 
   @override
-  void computeLibraryData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Library library,
+  void computeLibraryData(TestResultData testResultData, Library library,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    new TextRepresentationDataExtractor(
-            compilerResult, actualMap, getStrategy(config.marker))
+    new TextRepresentationDataExtractor(testResultData.compilerResult,
+            actualMap, getStrategy(testResultData.config.marker))
         .computeForLibrary(library);
   }
 
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     member.accept(new TextRepresentationDataExtractor(
-        compilerResult, actualMap, getStrategy(config.marker)));
+        testResultData.compilerResult,
+        actualMap,
+        getStrategy(testResultData.config.marker)));
   }
 
   @override

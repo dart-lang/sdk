@@ -26,24 +26,19 @@ class CovarianceCheckDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Library library,
+  void computeLibraryData(TestResultData testResultData, Library library,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    new CovarianceCheckDataExtractor(compilerResult, actualMap)
+    new CovarianceCheckDataExtractor(testResultData.compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    member.accept(new CovarianceCheckDataExtractor(compilerResult, actualMap));
+    member.accept(new CovarianceCheckDataExtractor(
+        testResultData.compilerResult, actualMap));
   }
 
   @override

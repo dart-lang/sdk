@@ -41,15 +41,15 @@ class WhyNotPromotedDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     SourceMemberBuilder memberBuilder =
-        lookupMemberBuilder(compilerResult, member) as SourceMemberBuilder;
-    member.accept(new WhyNotPromotedDataExtractor(compilerResult, actualMap,
+        lookupMemberBuilder(testResultData.compilerResult, member)
+            as SourceMemberBuilder;
+    member.accept(new WhyNotPromotedDataExtractor(
+        testResultData.compilerResult,
+        actualMap,
         memberBuilder.dataForTesting!.inferenceData.flowAnalysisResult));
   }
 }
