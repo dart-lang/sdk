@@ -155,7 +155,7 @@ class _MacroListener implements Listener {
           constructorName != null &&
           argumentsNode is _ArgumentsNode) {
         push(new _MacroApplicationNode(
-            new MacroApplication(macroClass.cls, constructorName)));
+            new MacroApplication(macroClass, constructorName)));
         return;
       }
     }

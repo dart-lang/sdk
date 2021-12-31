@@ -1387,7 +1387,7 @@ severity: $severity
     }
   }
 
-  void computeMacroApplications() {
+  Future<void> computeMacroApplications() async {
     if (!enableMacros || _macroClassBuilder == null) return;
 
     MacroApplications? computeApplications(
@@ -1403,6 +1403,7 @@ severity: $severity
       return result != null ? new MacroApplications(result) : null;
     }
 
+    MacroApplicationData macroApplicationData = new MacroApplicationData();
     for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
       // TODO(johnniwinther): Handle patch libraries.
       LibraryMacroApplicationData libraryMacroApplicationData =
@@ -1427,8 +1428,7 @@ severity: $severity
                   memberBuilder.fileUri,
                   memberBuilder.metadata);
               if (macroApplications != null) {
-                classMacroApplicationData
-                        .memberApplications[memberBuilder.procedure] =
+                classMacroApplicationData.memberApplications[memberBuilder] =
                     macroApplications;
               }
             } else if (memberBuilder is SourceFieldBuilder) {
@@ -1438,8 +1438,7 @@ severity: $severity
                   memberBuilder.fileUri,
                   memberBuilder.metadata);
               if (macroApplications != null) {
-                classMacroApplicationData
-                        .memberApplications[memberBuilder.field] =
+                classMacroApplicationData.memberApplications[memberBuilder] =
                     macroApplications;
               }
             }
@@ -1452,8 +1451,7 @@ severity: $severity
                   memberBuilder.fileUri,
                   memberBuilder.metadata);
               if (macroApplications != null) {
-                classMacroApplicationData
-                        .memberApplications[memberBuilder.constructor] =
+                classMacroApplicationData.memberApplications[memberBuilder] =
                     macroApplications;
               }
             }
@@ -1461,7 +1459,7 @@ severity: $severity
 
           if (classMacroApplicationData.classApplications != null ||
               classMacroApplicationData.memberApplications.isNotEmpty) {
-            libraryMacroApplicationData.classData[builder.cls] =
+            libraryMacroApplicationData.classData[builder] =
                 classMacroApplicationData;
           }
         } else if (builder is SourceProcedureBuilder) {
@@ -1471,7 +1469,7 @@ severity: $severity
               builder.fileUri,
               builder.metadata);
           if (macroApplications != null) {
-            libraryMacroApplicationData.memberApplications[builder.procedure] =
+            libraryMacroApplicationData.memberApplications[builder] =
                 macroApplications;
           }
         } else if (builder is SourceFieldBuilder) {
@@ -1481,19 +1479,24 @@ severity: $severity
               builder.fileUri,
               builder.metadata);
           if (macroApplications != null) {
-            libraryMacroApplicationData.memberApplications[builder.field] =
+            libraryMacroApplicationData.memberApplications[builder] =
                 macroApplications;
           }
         }
       }
       if (libraryMacroApplicationData.classData.isNotEmpty ||
           libraryMacroApplicationData.memberApplications.isNotEmpty) {
+        macroApplicationData.libraryData[libraryBuilder] =
+            libraryMacroApplicationData;
         if (retainDataForTesting) {
-          dataForTesting!
-                  .macroApplicationData.libraryData[libraryBuilder.library] =
+          dataForTesting!.macroApplicationData.libraryData[libraryBuilder] =
               libraryMacroApplicationData;
         }
       }
+    }
+    if (macroApplicationData.libraryData.isNotEmpty) {
+      await macroApplicationData
+          .loadMacroIds(target.context.options.macroExecutorProvider);
     }
   }
 

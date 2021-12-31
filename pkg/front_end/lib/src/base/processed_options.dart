@@ -8,6 +8,8 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
+import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show
         LibrariesSpecification,
@@ -853,6 +855,9 @@ class ProcessedOptions {
       return null;
     }
   }
+
+  Future<MacroExecutor> Function() get macroExecutorProvider =>
+      _raw.macroExecutorProvider;
 
   CompilerOptions get rawOptionsForTesting => _raw;
 }

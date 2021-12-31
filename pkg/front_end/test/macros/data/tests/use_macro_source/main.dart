@@ -7,6 +7,15 @@
   package:_fe_analyzer_shared/src/macros/api.dart,
   macro_lib.dart,
   main.dart],
+ macroClassIds=[
+  macro_lib.dart/Macro1,
+  macro_lib.dart/Macro2],
+ macroInstanceIds=[
+  macro_lib.dart/Macro1/(),
+  macro_lib.dart/Macro1/(),
+  macro_lib.dart/Macro1/(),
+  macro_lib.dart/Macro2/(),
+  macro_lib.dart/Macro2/()],
  macrosAreApplied,
  macrosAreAvailable
 */

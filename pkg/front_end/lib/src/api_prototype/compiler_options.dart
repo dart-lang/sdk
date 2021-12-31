@@ -4,6 +4,7 @@
 
 library front_end.compiler_options;
 
+import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -108,6 +109,12 @@ class CompilerOptions {
   /// [packagesFileUri], the packages file is located using the actual physical
   /// file system.  TODO(paulberry): fix this.
   FileSystem fileSystem = StandardFileSystem.instance;
+
+  /// Function that creates a [MacroExecutor] if supported.
+  ///
+  /// This is an experimental feature.
+  Future<MacroExecutor> Function() macroExecutorProvider =
+      () async => throw 'Macro execution is not supported.';
 
   /// Whether to generate code for the SDK.
   ///
