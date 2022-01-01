@@ -457,28 +457,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (executableElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = executableElement.parameters;
-    return _resolveArgumentsToParameters(
-      argumentList,
-      parameters,
-      enclosingConstructor: enclosingConstructor,
-    );
-  }
-
-  /// Given an [argumentList] and the [parameters] related to the element that
-  /// will be invoked using those arguments, compute the list of parameters that
-  /// correspond to the list of arguments. An error will be reported if any of
-  /// the arguments cannot be matched to a parameter. Return the parameters that
-  /// correspond to the arguments.
-  List<ParameterElement?> _resolveArgumentsToParameters(
-    ArgumentList argumentList,
-    List<ParameterElement> parameters, {
-    ConstructorDeclaration? enclosingConstructor,
-  }) {
     return ResolverVisitor.resolveArgumentsToParameters(
-      argumentList,
-      parameters,
-      _errorReporter.reportErrorForNode,
+      argumentList: argumentList,
+      parameters: executableElement.parameters,
+      errorReporter: _errorReporter,
       enclosingConstructor: enclosingConstructor,
     );
   }

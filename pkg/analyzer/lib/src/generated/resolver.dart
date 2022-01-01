@@ -2324,17 +2324,12 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   /// will be invoked using those arguments, compute the list of parameters that
   /// correspond to the list of arguments.
   ///
-  /// An error will be reported to [onError] if any of the arguments cannot be
-  /// matched to a parameter. onError will be provided the node of the first
-  /// argument that is not matched. onError can be null to ignore the error.
-  ///
   /// Returns the parameters that correspond to the arguments. If no parameter
   /// matched an argument, that position will be `null` in the list.
-  static List<ParameterElement?> resolveArgumentsToParameters(
-    ArgumentList argumentList,
-    List<ParameterElement> parameters,
-    void Function(ErrorCode errorCode, AstNode node, [List<Object> arguments])?
-        onError, {
+  static List<ParameterElement?> resolveArgumentsToParameters({
+    required ArgumentList argumentList,
+    required List<ParameterElement> parameters,
+    ErrorReporter? errorReporter,
     ConstructorDeclaration? enclosingConstructor,
   }) {
     if (parameters.isEmpty && argumentList.arguments.isEmpty) {
@@ -2375,20 +2370,16 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
         String name = nameNode.name;
         var element = namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
-          if (onError != null) {
-            onError(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, nameNode,
-                [name]);
-          }
+          errorReporter?.reportErrorForNode(
+              CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, nameNode, [name]);
         } else {
           resolvedParameters[i] = element;
           nameNode.staticElement = element;
         }
         usedNames ??= HashSet<String>();
         if (!usedNames.add(name)) {
-          if (onError != null) {
-            onError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode,
-                [name]);
-          }
+          errorReporter?.reportErrorForNode(
+              CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, [name]);
         }
       } else {
         if (argument is SimpleIdentifier && argument.name.isEmpty) {
@@ -2411,8 +2402,8 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
           var element = formalParameter.declaredElement
               as SuperFormalParameterElementImpl;
           if (formalParameter.isNamed) {
-            if (onError != null && element.superConstructorParameter == null) {
-              onError(
+            if (element.superConstructorParameter == null) {
+              errorReporter?.reportErrorForNode(
                 CompileTimeErrorCode
                     .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED,
                 formalParameter.identifier,
@@ -2420,21 +2411,19 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
             }
           } else {
             positionalArgumentCount++;
-            if (onError != null) {
-              if (hasExplicitPositionalArguments) {
-                onError(
-                  CompileTimeErrorCode
-                      .POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT,
-                  formalParameter.identifier,
-                );
-              }
-              if (element.superConstructorParameter == null) {
-                onError(
-                  CompileTimeErrorCode
-                      .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
-                  formalParameter.identifier,
-                );
-              }
+            if (hasExplicitPositionalArguments) {
+              errorReporter?.reportErrorForNode(
+                CompileTimeErrorCode
+                    .POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT,
+                formalParameter.identifier,
+              );
+            }
+            if (element.superConstructorParameter == null) {
+              errorReporter?.reportErrorForNode(
+                CompileTimeErrorCode
+                    .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+                formalParameter.identifier,
+              );
             }
           }
         }
@@ -2442,10 +2431,10 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     }
 
     if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
-      if (onError != null) {
-        onError(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
-            argumentList, [requiredParameterCount, positionalArgumentCount]);
-      }
+      errorReporter?.reportErrorForNode(
+          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
+          argumentList,
+          [requiredParameterCount, positionalArgumentCount]);
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
       ErrorCode errorCode;
@@ -2457,8 +2446,8 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       } else {
         errorCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
-      if (onError != null && firstUnresolvedArgument != null) {
-        onError(errorCode, firstUnresolvedArgument,
+      if (firstUnresolvedArgument != null) {
+        errorReporter?.reportErrorForNode(errorCode, firstUnresolvedArgument,
             [unnamedParameterCount, positionalArgumentCount]);
       }
     }
