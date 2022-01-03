@@ -31,6 +31,7 @@ dart2js/late_statics: FormatterCrash
 enhanced_enums/entries_with_type_arguments: FormatterCrash
 enhanced_enums/inference_in_constructor_parameters: FormatterCrash
 enhanced_enums/qualified_names_with_no_type_arguments: FormatterCrash
+enhanced_enums/redirecting_initializers: FormatterCrash
 enhanced_enums/simple_fields: FormatterCrash
 extension_types/basic_show: FormatterCrash
 extension_types/call_not_get: FormatterCrash

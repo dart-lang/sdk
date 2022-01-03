@@ -1760,6 +1760,37 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       constructor.initializers.add(buildInvalidInitializer(buildProblem(
           fasta.messageConstructorNotSync, body!.fileOffset, noLength)));
     }
+    if (libraryBuilder.enableEnhancedEnumsInLibrary &&
+        classBuilder is SourceEnumBuilder &&
+        constructor.initializers.isNotEmpty &&
+        constructor.initializers.last is RedirectingInitializer) {
+      RedirectingInitializer redirectingInitializer =
+          constructor.initializers.last as RedirectingInitializer;
+      redirectingInitializer.arguments.positional.insertAll(0, [
+        new VariableGet(constructor.function.positionalParameters[0])
+          ..parent = redirectingInitializer.arguments,
+        new VariableGet(constructor.function.positionalParameters[1])
+          ..parent = redirectingInitializer.arguments
+      ]);
+
+      LocatedMessage? message = checkArgumentsForFunction(
+          redirectingInitializer.target.function,
+          redirectingInitializer.arguments,
+          builder.charOffset, const <TypeParameter>[]);
+      if (message != null) {
+        Initializer invalidInitializer = buildInvalidInitializer(
+            buildUnresolvedError(
+                forest.createNullLiteral(redirectingInitializer.fileOffset),
+                constructorNameForDiagnostics(builder.name, isSuper: false),
+                redirectingInitializer.arguments,
+                redirectingInitializer.fileOffset,
+                isSuper: false,
+                message: message,
+                kind: UnresolvedKind.Constructor));
+        constructor.initializers.removeLast();
+        constructor.initializers.add(invalidInitializer..parent = constructor);
+      }
+    }
     if (needsImplicitSuperInitializer) {
       /// >If no superinitializer is provided, an implicit superinitializer
       /// >of the form super() is added at the end of k’s initializer list,
