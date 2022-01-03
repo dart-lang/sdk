@@ -390,6 +390,7 @@ class KernelTarget extends TargetImplementation {
       loader.resolveParts();
       loader.computeMacroDeclarations();
       loader.computeLibraryScopes();
+      await loader.computeMacroApplications();
       setupTopAndBottomTypes();
       loader.resolveTypes();
       loader.computeVariances();
@@ -397,7 +398,6 @@ class KernelTarget extends TargetImplementation {
           dynamicType, nullType, bottomType, objectClassBuilder);
       List<SourceClassBuilder> sourceClassBuilders =
           loader.checkSemantics(objectClassBuilder);
-      loader.computeMacroApplications();
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
       loader.createTypeInferenceEngine();
       loader.buildComponent();
