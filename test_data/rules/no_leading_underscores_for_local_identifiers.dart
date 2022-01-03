@@ -4,6 +4,13 @@
 
 // test w/ `dart test -N no_leading_underscores_for_local_identifiers`
 
+
+/// https://github.com/dart-lang/linter/issues/3127
+class P {
+  final int _p;
+  const P([this._p = 7]); // OK
+}
+
 var _foo = 0; // OK
 const _foo1 = 1; // OK
 final _foo2 = 2; // OK

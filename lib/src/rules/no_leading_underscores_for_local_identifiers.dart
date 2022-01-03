@@ -102,6 +102,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     for (var p in node.parameters) {
+      if (p is DefaultFormalParameter) {
+        p = p.parameter;
+      }
       // Named parameters produce a `private_optional_parameter` diagnostic.
       if (p is! FieldFormalParameter && !p.isNamed) {
         checkIdentifier(p.identifier, isJustUnderscoresOK: true);
