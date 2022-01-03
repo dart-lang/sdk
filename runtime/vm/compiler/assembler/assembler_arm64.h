@@ -2250,8 +2250,6 @@ class Assembler : public AssemblerBase {
 
   compiler::LRState lr_state_ = compiler::LRState::OnEntry();
 
-  void LoadWordFromPoolIndexFixed(Register dst, intptr_t index);
-
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
 

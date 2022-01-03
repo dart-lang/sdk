@@ -3114,14 +3114,6 @@ class OutlineBuilder extends StackListenerImpl {
       int count,
       Token beginToken,
       Token endToken) {
-    // TODO(cstefantsova): Call endClassFields instead.
-    debugEvent("EnumFields");
-    popFieldInfos(count); // field infos
-    pop(); // type
-    pop(); // metadata
-    popDeclarationContext();
-    // Skip the declaration. An error as already been produced by the parser.
-
     if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
       addProblem(
           templateExperimentNotEnabled.withArguments('enhanced-enums',
@@ -3129,6 +3121,8 @@ class OutlineBuilder extends StackListenerImpl {
           beginToken.charOffset,
           -1);
     }
+    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   @override
