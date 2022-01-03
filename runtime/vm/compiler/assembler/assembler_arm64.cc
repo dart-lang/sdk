@@ -435,22 +435,6 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
   }
 }
 
-void Assembler::LoadWordFromPoolIndexFixed(Register dst, intptr_t index) {
-  ASSERT(constant_pool_allowed());
-  ASSERT(dst != PP);
-  Operand op;
-  // PP is _un_tagged on ARM64.
-  const uint32_t offset = target::ObjectPool::element_offset(index);
-  const uint32_t upper20 = offset & 0xfffff000;
-  const uint32_t lower12 = offset & 0x00000fff;
-  const Operand::OperandType ot =
-      Operand::CanHold(upper20, kXRegSizeInBits, &op);
-  ASSERT(ot == Operand::Immediate);
-  ASSERT(Address::CanHoldOffset(lower12));
-  add(dst, PP, op);
-  ldr(dst, Address(dst, lower12));
-}
-
 void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
                                             Register upper,
                                             intptr_t index) {
