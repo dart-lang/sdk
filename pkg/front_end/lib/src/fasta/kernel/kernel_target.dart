@@ -40,7 +40,6 @@ import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../compiler_context.dart' show CompilerContext;
 import '../crash.dart' show withCrashReporting;
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 import '../dill/dill_target.dart' show DillTarget;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../loader.dart' show Loader;
@@ -517,11 +516,7 @@ class KernelTarget extends TargetImplementation {
         declaration = problem.getFirstDeclaration();
       }
       if (declaration is ProcedureBuilder) {
-        mainReference = declaration.actualProcedure.reference;
-      } else if (declaration is DillMemberBuilder) {
-        if (declaration.member is Procedure) {
-          mainReference = declaration.member.reference;
-        }
+        mainReference = declaration.procedure.reference;
       }
     }
     component.setMainMethodAndMode(mainReference, true, compiledMode);

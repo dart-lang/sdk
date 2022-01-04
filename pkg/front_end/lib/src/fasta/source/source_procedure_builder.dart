@@ -24,10 +24,8 @@ import 'source_member_builder.dart';
 
 class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     implements ProcedureBuilder {
-  @override
   final int charOpenParenOffset;
 
-  @override
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
   @override
@@ -106,7 +104,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     }
   }
 
-  @override
   ProcedureBuilder? get patchForTesting =>
       dataForTesting?.patchForTesting as ProcedureBuilder?;
 
@@ -121,14 +118,12 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     return bodyInternal;
   }
 
-  @override
   void set asyncModifier(AsyncMarker newModifier) {
     actualAsyncModifier = newModifier;
     function.asyncMarker = actualAsyncModifier;
     function.dartAsyncMarker = actualAsyncModifier;
   }
 
-  @override
   bool get isEligibleForTopLevelInference {
     if (isDeclarationInstanceMember) {
       if (returnType == null) return true;
@@ -141,7 +136,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     return false;
   }
 
-  @override
   bool get isExtensionMethod {
     return parent is ExtensionBuilder;
   }
@@ -155,7 +149,6 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   @override
   Procedure get procedure => isPatch ? origin.procedure : _procedure;
 
-  @override
   Procedure get actualProcedure => _procedure;
 
   @override
