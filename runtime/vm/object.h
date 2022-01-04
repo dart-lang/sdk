@@ -5883,7 +5883,7 @@ class CompressedStackMaps : public Object {
   uintptr_t payload_size() const { return PayloadSizeOf(ptr()); }
   static uintptr_t PayloadSizeOf(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::SizeField::decode(
-        raw->untag()->payload()->flags_and_size);
+        raw->untag()->payload()->flags_and_size());
   }
 
   const uint8_t* data() const { return ptr()->untag()->payload()->data(); }
@@ -5891,8 +5891,8 @@ class CompressedStackMaps : public Object {
   // Methods to allow use with PointerKeyValueTrait to create sets of CSMs.
   bool Equals(const CompressedStackMaps& other) const {
     // All of the table flags and payload size must match.
-    if (untag()->payload()->flags_and_size !=
-        other.untag()->payload()->flags_and_size) {
+    if (untag()->payload()->flags_and_size() !=
+        other.untag()->payload()->flags_and_size()) {
       return false;
     }
     NoSafepointScope no_safepoint;
@@ -5902,7 +5902,7 @@ class CompressedStackMaps : public Object {
 
   static intptr_t HeaderSize() {
     return sizeof(UntaggedCompressedStackMaps) +
-           sizeof(UntaggedCompressedStackMaps::Payload);
+           sizeof(UntaggedCompressedStackMaps::Payload::FlagsAndSizeHeader);
   }
   static intptr_t UnroundedSize(CompressedStackMapsPtr maps) {
     return UnroundedSize(CompressedStackMaps::PayloadSizeOf(maps));
@@ -5920,13 +5920,13 @@ class CompressedStackMaps : public Object {
   bool UsesGlobalTable() const { return UsesGlobalTable(ptr()); }
   static bool UsesGlobalTable(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::UsesTableBit::decode(
-        raw->untag()->payload()->flags_and_size);
+        raw->untag()->payload()->flags_and_size());
   }
 
   bool IsGlobalTable() const { return IsGlobalTable(ptr()); }
   static bool IsGlobalTable(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::GlobalTableBit::decode(
-        raw->untag()->payload()->flags_and_size);
+        raw->untag()->payload()->flags_and_size());
   }
 
   static CompressedStackMapsPtr NewInlined(const void* payload, intptr_t size) {
@@ -5976,18 +5976,18 @@ class CompressedStackMaps : public Object {
 
     uintptr_t payload_size() const {
       return UntaggedCompressedStackMaps::SizeField::decode(
-          payload()->flags_and_size);
+          payload()->flags_and_size());
     }
     const uint8_t* data() const { return payload()->data(); }
 
     bool UsesGlobalTable() const {
       return UntaggedCompressedStackMaps::UsesTableBit::decode(
-          payload()->flags_and_size);
+          payload()->flags_and_size());
     }
 
     bool IsGlobalTable() const {
       return UntaggedCompressedStackMaps::GlobalTableBit::decode(
-          payload()->flags_and_size);
+          payload()->flags_and_size());
     }
 
    private:

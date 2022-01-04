@@ -350,7 +350,7 @@
   SIZEOF(CodeSourceMap, HeaderSize, UntaggedCodeSourceMap)                     \
   SIZEOF(CompressedStackMaps, ObjectHeaderSize, UntaggedCompressedStackMaps)   \
   SIZEOF(CompressedStackMaps, PayloadHeaderSize,                               \
-         UntaggedCompressedStackMaps::Payload)                                 \
+         UntaggedCompressedStackMaps::Payload::FlagsAndSizeHeader)             \
   SIZEOF(Context, header_size, UntaggedContext)                                \
   SIZEOF(Double, InstanceSize, UntaggedDouble)                                 \
   SIZEOF(DynamicLibrary, InstanceSize, UntaggedDynamicLibrary)                 \

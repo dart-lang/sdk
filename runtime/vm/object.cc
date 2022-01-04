@@ -1035,8 +1035,7 @@ void Object::Init(IsolateGroup* isolate_group) {
     CompressedStackMaps::initializeHandle(
         empty_compressed_stackmaps_,
         static_cast<CompressedStackMapsPtr>(address + kHeapObjectTag));
-    empty_compressed_stackmaps_->StoreNonPointer(
-        &empty_compressed_stackmaps_->untag()->payload()->flags_and_size, 0);
+    empty_compressed_stackmaps_->untag()->payload()->set_flags_and_size(0);
     empty_compressed_stackmaps_->SetCanonical();
   }
 
@@ -15074,12 +15073,10 @@ CompressedStackMapsPtr CompressedStackMaps::New(const void* payload,
         Heap::kOld, CompressedStackMaps::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.StoreNonPointer(
-        &result.untag()->payload()->flags_and_size,
+    result.untag()->payload()->set_flags_and_size(
         UntaggedCompressedStackMaps::GlobalTableBit::encode(is_global_table) |
-            UntaggedCompressedStackMaps::UsesTableBit::encode(
-                uses_global_table) |
-            UntaggedCompressedStackMaps::SizeField::encode(size));
+        UntaggedCompressedStackMaps::UsesTableBit::encode(uses_global_table) |
+        UntaggedCompressedStackMaps::SizeField::encode(size));
     auto cursor =
         result.UnsafeMutableNonPointer(result.untag()->payload()->data());
     memcpy(cursor, payload, size);  // NOLINT

@@ -2820,7 +2820,7 @@ class CompressedStackMapsSerializationCluster : public SerializationCluster {
       s->AssignRef(map);
       AutoTraceObject(map);
       const intptr_t length = UntaggedCompressedStackMaps::SizeField::decode(
-          map->untag()->payload()->flags_and_size);
+          map->untag()->payload()->flags_and_size());
       s->WriteUnsigned(length);
       target_memory_size_ +=
           compiler::target::CompressedStackMaps::InstanceSize(length);
@@ -2832,9 +2832,9 @@ class CompressedStackMapsSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       CompressedStackMapsPtr map = objects_[i];
       AutoTraceObject(map);
-      s->WriteUnsigned(map->untag()->payload()->flags_and_size);
+      s->WriteUnsigned(map->untag()->payload()->flags_and_size());
       const intptr_t length = UntaggedCompressedStackMaps::SizeField::decode(
-          map->untag()->payload()->flags_and_size);
+          map->untag()->payload()->flags_and_size());
       uint8_t* cdata =
           reinterpret_cast<uint8_t*>(map->untag()->payload()->data());
       s->WriteBytes(cdata, length);
@@ -2874,7 +2874,7 @@ class CompressedStackMapsDeserializationCluster
           static_cast<CompressedStackMapsPtr>(d->Ref(id));
       Deserializer::InitializeHeader(map, kCompressedStackMapsCid,
                                      CompressedStackMaps::InstanceSize(length));
-      map->untag()->payload()->flags_and_size = flags_and_size;
+      map->untag()->payload()->set_flags_and_size(flags_and_size);
       uint8_t* cdata =
           reinterpret_cast<uint8_t*>(map->untag()->payload()->data());
       d->ReadBytes(cdata, length);
@@ -6978,7 +6978,7 @@ void Serializer::PrepareInstructions(
 
     // Now write collected stack maps after the binary search table.
     auto write_stack_map = [&](CompressedStackMapsPtr smap) {
-      const auto flags_and_size = smap->untag()->payload()->flags_and_size;
+      const auto flags_and_size = smap->untag()->payload()->flags_and_size();
       const auto payload_size =
           UntaggedCompressedStackMaps::SizeField::decode(flags_and_size);
       pc_mapping.WriteFixed<uint32_t>(flags_and_size);

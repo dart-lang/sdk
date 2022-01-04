@@ -1987,11 +1987,26 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
   VISIT_NOTHING();
 
  public:
-  struct Payload {
+  // Note: AOT snapshots pack these structures without any padding in between
+  // so payload structure should not have any alignment requirements.
+  // alignas(1) is here to trigger a compiler error if we violate this.
+  struct alignas(1) Payload {
+    using FlagsAndSizeHeader = uint32_t;
+
     // The most significant bits are the length of the encoded payload, in
     // bytes (excluding the header itself). The low bits determine the
     // expected payload contents, as described below.
-    uint32_t flags_and_size;
+    DART_FORCE_INLINE FlagsAndSizeHeader flags_and_size() const {
+      // Note: |this| does not necessarily satisfy alignment requirements
+      // of uint32_t so we should use bit_cast.
+      return bit_copy<FlagsAndSizeHeader, Payload>(*this);
+    }
+
+    DART_FORCE_INLINE void set_flags_and_size(FlagsAndSizeHeader value) {
+      // Note: |this| does not necessarily satisfy alignment requirements
+      // of uint32_t hence the byte copy below.
+      memcpy(reinterpret_cast<void*>(this), &value, sizeof(value));  // NOLINT
+    }
 
     // Variable length data follows here. The contents of the payload depend on
     // the type of CompressedStackMaps (CSM) being represented. There are three
@@ -2044,10 +2059,15 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
     // done where the payload is decoded up to the entry whose PC offset
     // is greater or equal to the given PC.
 
-    uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
-    const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+    uint8_t* data() {
+      return reinterpret_cast<uint8_t*>(this) + sizeof(FlagsAndSizeHeader);
+    }
+
+    const uint8_t* data() const {
+      return reinterpret_cast<const uint8_t*>(this) +
+             sizeof(FlagsAndSizeHeader);
+    }
   };
-  static_assert(sizeof(Payload) == sizeof(uint32_t));
 
  private:
   // We are using OPEN_ARRAY_START rather than embedding Payload directly into
@@ -2055,17 +2075,20 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
   // padding at the end of UntaggedCompressedStackMaps - so we would not be
   // able to use sizeof(UntaggedCompressedStackMaps) as the size of the header
   // anyway.
-  Payload* payload() { OPEN_ARRAY_START(Payload, uint32_t); }
-  const Payload* payload() const { OPEN_ARRAY_START(Payload, uint32_t); }
+  Payload* payload() { OPEN_ARRAY_START(Payload, uint8_t); }
+  const Payload* payload() const { OPEN_ARRAY_START(Payload, uint8_t); }
 
-  class GlobalTableBit : public BitField<uint32_t, bool, 0, 1> {};
-  class UsesTableBit
-      : public BitField<uint32_t, bool, GlobalTableBit::kNextBit, 1> {};
+  class GlobalTableBit
+      : public BitField<Payload::FlagsAndSizeHeader, bool, 0, 1> {};
+  class UsesTableBit : public BitField<Payload::FlagsAndSizeHeader,
+                                       bool,
+                                       GlobalTableBit::kNextBit,
+                                       1> {};
   class SizeField
-      : public BitField<uint32_t,
-                        uint32_t,
+      : public BitField<Payload::FlagsAndSizeHeader,
+                        Payload::FlagsAndSizeHeader,
                         UsesTableBit::kNextBit,
-                        sizeof(Payload::flags_and_size) * kBitsPerByte -
+                        sizeof(Payload::FlagsAndSizeHeader) * kBitsPerByte -
                             UsesTableBit::kNextBit> {};
 
   friend class Object;

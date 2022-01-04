@@ -529,7 +529,7 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
       const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
       const intptr_t payload_size = map.payload_size();
       stream->WriteFixed<uint32_t>(
-          map.ptr()->untag()->payload()->flags_and_size);
+          map.ptr()->untag()->payload()->flags_and_size());
       stream->WriteBytes(map.ptr()->untag()->payload()->data(), payload_size);
     } else if (obj.IsCodeSourceMap()) {
       const CodeSourceMap& map = CodeSourceMap::Cast(obj);
