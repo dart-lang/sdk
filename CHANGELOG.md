@@ -12,6 +12,11 @@
   error with an existing stack trace, instead of creating
   a new stack trace.
 
+#### `dart:indexed_db`
+
+- `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
+  `false`.
+
 #### `dart:io`
 
 - **Breaking Change** [#47769](https://github.com/dart-lang/sdk/issues/47769):

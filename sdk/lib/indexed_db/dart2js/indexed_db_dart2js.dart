@@ -507,14 +507,10 @@ class IdbFactory extends JavaScriptObject {
   }
 
   /**
-   * Checks to see if getDatabaseNames is supported by the current platform.
-   * TODO(terry): Should be able to always return false?
+   * Deprecated. Always returns `false`.
    */
-  bool get supportsDatabaseNames {
-    return supported &&
-        JS('bool', '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)', this,
-            this);
-  }
+  @Deprecated('No longer supported on modern browsers. Always returns false.')
+  bool get supportsDatabaseNames => false;
 
   // To suppress missing implicit constructor warnings.
   factory IdbFactory._() {
