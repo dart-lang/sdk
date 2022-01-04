@@ -43,22 +43,30 @@ class MakeFinal extends CorrectionProducer {
       return;
     }
 
-    if (node is SimpleFormalParameter) {
+    final AstNode normalParameter;
+    if (node is DefaultFormalParameter) {
+      normalParameter = node.parameter;
+    } else {
+      normalParameter = node;
+    }
+
+    if (normalParameter is SimpleFormalParameter) {
+      final simpleNode = normalParameter;
       await builder.addDartFileEdit(file, (builder) {
-        final keyword = node.keyword;
+        final keyword = simpleNode.keyword;
         if (keyword != null && keyword.keyword == Keyword.VAR) {
           builder.addSimpleReplacement(range.token(keyword), 'final');
         } else {
-          final type = node.type;
+          final type = simpleNode.type;
           if (type != null) {
             builder.addSimpleInsertion(type.offset, 'final ');
             return;
           }
-          final identifier = node.identifier;
+          final identifier = simpleNode.identifier;
           if (identifier != null) {
             builder.addSimpleInsertion(identifier.offset, 'final ');
           } else {
-            builder.addSimpleInsertion(node.offset, 'final ');
+            builder.addSimpleInsertion(simpleNode.offset, 'final ');
           }
         }
       });
