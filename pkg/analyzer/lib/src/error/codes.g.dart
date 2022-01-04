@@ -4521,27 +4521,30 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
       CompileTimeErrorCode(
-    'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
-    "External fields cannot have initializers.",
+    'EXTERNAL_WITH_INITIALIZER',
+    "External fields can't have initializers.",
     correctionMessage:
         "Try removing the field initializer or the 'external' keyword from the "
         "field declaration.",
+    uniqueName: 'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
   );
 
   static const CompileTimeErrorCode EXTERNAL_FIELD_INITIALIZER =
       CompileTimeErrorCode(
-    'EXTERNAL_FIELD_INITIALIZER',
-    "External fields cannot have initializers.",
+    'EXTERNAL_WITH_INITIALIZER',
+    "External fields can't have initializers.",
     correctionMessage:
         "Try removing the initializer or the 'external' keyword.",
+    uniqueName: 'EXTERNAL_FIELD_INITIALIZER',
   );
 
   static const CompileTimeErrorCode EXTERNAL_VARIABLE_INITIALIZER =
       CompileTimeErrorCode(
-    'EXTERNAL_VARIABLE_INITIALIZER',
-    "External variables cannot have initializers.",
+    'EXTERNAL_WITH_INITIALIZER',
+    "External variables can't have initializers.",
     correctionMessage:
         "Try removing the initializer or the 'external' keyword.",
+    uniqueName: 'EXTERNAL_VARIABLE_INITIALIZER',
   );
 
   /**

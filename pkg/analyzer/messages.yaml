@@ -3971,13 +3971,16 @@ CompileTimeErrorCode:
       If there are multiple cascaded accesses, you'll need to duplicate the
       extension override for each one.
   EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
-    problemMessage: External fields cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the field initializer or the 'external' keyword from the field declaration."
   EXTERNAL_FIELD_INITIALIZER:
-    problemMessage: External fields cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
   EXTERNAL_VARIABLE_INITIALIZER:
-    problemMessage: External variables cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External variables can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
   EXTRA_POSITIONAL_ARGUMENTS:
     problemMessage: "Too many positional arguments: {0} expected, but {1} found."
