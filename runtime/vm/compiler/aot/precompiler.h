@@ -247,7 +247,6 @@ class Precompiler : public ValueObject {
   }
 
   compiler::SelectorMap* selector_map() {
-    ASSERT(FLAG_use_table_dispatch);
     return dispatch_table_generator_->selector_map();
   }
 

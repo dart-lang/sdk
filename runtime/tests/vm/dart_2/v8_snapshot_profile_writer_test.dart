@@ -110,7 +110,6 @@ Future<void> testJIT(String dillPath, String snapshotKind) async {
 Future<void> testAOT(String dillPath,
     {bool useAsm = false,
     bool forceDrops = false,
-    bool useDispatch = true,
     bool stripUtil = false, // Note: forced true if useAsm.
     bool stripFlag = false,
     bool disassemble = false}) async {
@@ -130,9 +129,6 @@ Future<void> testAOT(String dillPath,
   final descriptionBuilder = StringBuffer()..write(useAsm ? 'assembly' : 'elf');
   if (forceDrops) {
     descriptionBuilder.write('-dropped');
-  }
-  if (!useDispatch) {
-    descriptionBuilder.write('-nodispatch');
   }
   if (stripFlag) {
     descriptionBuilder.write('-intstrip');
@@ -160,7 +156,6 @@ Future<void> testAOT(String dillPath,
         '--no-retain-function-objects',
         '--no-retain-code-objects'
       ],
-      useDispatch ? '--use-table-dispatch' : '--no-use-table-dispatch',
       if (disassemble) '--disassemble', // Not defined in PRODUCT mode.
       dillPath,
     ];
@@ -428,7 +423,6 @@ main() async {
     // Test unstripped ELF generation directly.
     await testAOT(aotDillPath);
     await testAOT(aotDillPath, forceDrops: true);
-    await testAOT(aotDillPath, forceDrops: true, useDispatch: false);
 
     // Test flag-stripped ELF generation.
     await testAOT(aotDillPath, stripFlag: true);
