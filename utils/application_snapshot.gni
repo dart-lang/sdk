@@ -112,6 +112,7 @@ template("_application_snapshot") {
     ]
 
     script = gen_kernel_kernel
+    is_product_flag = dart_runtime_mode == "release"
 
     args = [
       "--packages=" + rebase_path(dot_packages),
@@ -128,7 +129,7 @@ template("_application_snapshot") {
       # (Instead of ensuring every user of the "application_snapshot" /
       # "kernel_snapshot" passes this if needed, we always pass it)
       "-Dsdk_hash=$sdk_hash",
-      "-Ddart.vm.product=$is_product",
+      "-Ddart.vm.product=$is_product_flag",
     ]
     args += [ rebase_path(main_dart) ]
   }
