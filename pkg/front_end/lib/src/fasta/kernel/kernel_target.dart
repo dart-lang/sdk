@@ -1020,11 +1020,12 @@ class KernelTarget extends TargetImplementation {
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
-    List<FieldBuilder> uninitializedFields = <FieldBuilder>[];
-    List<FieldBuilder> nonFinalFields = <FieldBuilder>[];
-    List<FieldBuilder> lateFinalFields = <FieldBuilder>[];
+    List<SourceFieldBuilder> uninitializedFields = [];
+    List<SourceFieldBuilder> nonFinalFields = [];
+    List<SourceFieldBuilder> lateFinalFields = [];
 
-    builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
+    builder
+        .forEachDeclaredField((String name, SourceFieldBuilder fieldBuilder) {
       if (fieldBuilder.isAbstract || fieldBuilder.isExternal) {
         // Skip abstract and external fields. These are abstract/external
         // getters/setters and have no initialization.
@@ -1043,11 +1044,11 @@ class KernelTarget extends TargetImplementation {
         // declared towards the beginning of the file) come last in the list.
         // To report errors on the first definition of a field, we need to
         // iterate until that last element.
-        FieldBuilder earliest = fieldBuilder;
+        SourceFieldBuilder earliest = fieldBuilder;
         Builder current = fieldBuilder;
         while (current.next != null) {
           current = current.next!;
-          if (current is FieldBuilder && !fieldBuilder.hasInitializer) {
+          if (current is SourceFieldBuilder && !fieldBuilder.hasInitializer) {
             earliest = current;
           }
         }
@@ -1131,7 +1132,7 @@ class KernelTarget extends TargetImplementation {
               constructor.fileOffset, noLength,
               context: nonFinalFields
                   .map((field) => messageConstConstructorNonFinalFieldCause
-                      .withLocation(field.fileUri!, field.charOffset, noLength))
+                      .withLocation(field.fileUri, field.charOffset, noLength))
                   .toList());
           nonFinalFields.clear();
         }
@@ -1152,9 +1153,9 @@ class KernelTarget extends TargetImplementation {
       }
     }
 
-    Map<ConstructorBuilder, Set<FieldBuilder>> constructorInitializedFields =
-        new Map<ConstructorBuilder, Set<FieldBuilder>>.identity();
-    Set<FieldBuilder>? initializedFields = null;
+    Map<ConstructorBuilder, Set<SourceFieldBuilder>>
+        constructorInitializedFields = new Map.identity();
+    Set<SourceFieldBuilder>? initializedFields = null;
 
     builder.forEachDeclaredConstructor(
         (String name, DeclaredSourceConstructorBuilder constructorBuilder) {
@@ -1179,15 +1180,17 @@ class KernelTarget extends TargetImplementation {
         }
       }
       if (!isRedirecting) {
-        Set<FieldBuilder> fields = earliest.takeInitializedFields() ?? const {};
+        Set<SourceFieldBuilder> fields =
+            earliest.takeInitializedFields() ?? const {};
         constructorInitializedFields[earliest] = fields;
-        (initializedFields ??= new Set<FieldBuilder>.identity()).addAll(fields);
+        (initializedFields ??= new Set<SourceFieldBuilder>.identity())
+            .addAll(fields);
       }
     });
 
     // Run through all fields that aren't initialized by any constructor, and
     // set their initializer to `null`.
-    for (FieldBuilder fieldBuilder in uninitializedFields) {
+    for (SourceFieldBuilder fieldBuilder in uninitializedFields) {
       if (initializedFields == null ||
           !initializedFields!.contains(fieldBuilder)) {
         bool uninitializedFinalOrNonNullableFieldIsError =
@@ -1197,7 +1200,7 @@ class KernelTarget extends TargetImplementation {
           if (fieldBuilder.isFinal &&
               uninitializedFinalOrNonNullableFieldIsError) {
             String uri = '${fieldBuilder.library.importUri}';
-            String file = fieldBuilder.fileUri!.pathSegments.last;
+            String file = fieldBuilder.fileUri.pathSegments.last;
             if (uri == 'dart:html' ||
                 uri == 'dart:svg' ||
                 uri == 'dart:_native_typed_data' ||
@@ -1235,7 +1238,7 @@ class KernelTarget extends TargetImplementation {
     // make sure that all other constructors also initialize them.
     constructorInitializedFields.forEach((ConstructorBuilder constructorBuilder,
         Set<FieldBuilder> fieldBuilders) {
-      for (FieldBuilder fieldBuilder
+      for (SourceFieldBuilder fieldBuilder
           in initializedFields!.difference(fieldBuilders)) {
         if (!fieldBuilder.hasInitializer && !fieldBuilder.isLate) {
           FieldInitializer initializer =
@@ -1253,7 +1256,7 @@ class KernelTarget extends TargetImplementation {
                 context: [
                   templateMissingImplementationCause
                       .withArguments(fieldBuilder.name)
-                      .withLocation(fieldBuilder.fileUri!,
+                      .withLocation(fieldBuilder.fileUri,
                           fieldBuilder.charOffset, fieldBuilder.name.length)
                 ]);
           } else if (fieldBuilder.field.type is! InvalidType &&
@@ -1271,7 +1274,7 @@ class KernelTarget extends TargetImplementation {
                   context: [
                     templateMissingImplementationCause
                         .withArguments(fieldBuilder.name)
-                        .withLocation(fieldBuilder.fileUri!,
+                        .withLocation(fieldBuilder.fileUri,
                             fieldBuilder.charOffset, fieldBuilder.name.length)
                   ]);
             }
@@ -1293,14 +1296,14 @@ class KernelTarget extends TargetImplementation {
     // it's so.
     assert(() {
       Set<String> patchFieldNames = {};
-      builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
+      builder
+          .forEachDeclaredField((String name, SourceFieldBuilder fieldBuilder) {
         patchFieldNames.add(NameScheme.createFieldName(
           FieldNameType.Field,
           name,
           isInstanceMember: fieldBuilder.isClassInstanceMember,
           className: builder.name,
-          isSynthesized:
-              fieldBuilder is SourceFieldBuilder && fieldBuilder.isLateLowered,
+          isSynthesized: fieldBuilder.isLateLowered,
         ));
       });
       builder.forEach((String name, Builder builder) {

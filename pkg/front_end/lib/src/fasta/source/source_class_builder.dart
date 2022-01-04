@@ -98,6 +98,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   final bool isMacro;
 
+  SourceClassBuilder? _patchBuilder;
+
   SourceClassBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -124,6 +126,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             onTypes, scope, constructors, parent, nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
+
+  SourceClassBuilder? get patchForTesting => _patchBuilder;
 
   @override
   Class get cls => origin.actualCls;
@@ -308,6 +312,123 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     return false;
+  }
+
+  @override
+  void forEachConstructor(void Function(String, MemberBuilder) f,
+      {bool includeInjectedConstructors: false}) {
+    if (isPatch) {
+      actualOrigin!.forEachConstructor(f,
+          includeInjectedConstructors: includeInjectedConstructors);
+    } else {
+      constructors.forEach(f);
+      if (includeInjectedConstructors) {
+        _patchBuilder?.constructors
+            .forEach((String name, MemberBuilder builder) {
+          if (!builder.isPatch) {
+            f(name, builder);
+          }
+        });
+      }
+    }
+  }
+
+  void forEachDeclaredField(
+      void Function(String name, SourceFieldBuilder fieldBuilder) callback) {
+    void callbackFilteringFieldBuilders(String name, Builder builder) {
+      if (builder is SourceFieldBuilder) {
+        callback(name, builder);
+      }
+    }
+
+    // Currently, fields can't be patched, but can be injected.  When the fields
+    // will be made available for patching, the following code should iterate
+    // first over the fields from the patch and then -- over the fields in the
+    // original declaration, filtering out the patched fields.  For now, the
+    // assert checks that the names of the fields from the original declaration
+    // and from the patch don't intersect.
+    assert(
+        _patchBuilder == null ||
+            _patchBuilder!.scope.localMembers
+                .where((b) => b is SourceFieldBuilder)
+                .map((b) => (b as SourceFieldBuilder).name)
+                .toSet()
+                .intersection(scope.localMembers
+                    .where((b) => b is SourceFieldBuilder)
+                    .map((b) => (b as SourceFieldBuilder).name)
+                    .toSet())
+                .isEmpty,
+        "Detected an attempt to patch a field.");
+    _patchBuilder?.scope.forEach(callbackFilteringFieldBuilders);
+    scope.forEach(callbackFilteringFieldBuilders);
+  }
+
+  void forEachDeclaredConstructor(
+      void Function(
+              String name, DeclaredSourceConstructorBuilder constructorBuilder)
+          callback) {
+    Set<String> visitedConstructorNames = {};
+    void callbackFilteringFieldBuilders(String name, Builder builder) {
+      if (builder is DeclaredSourceConstructorBuilder &&
+          visitedConstructorNames.add(builder.name)) {
+        callback(name, builder);
+      }
+    }
+
+    // Constructors can be patched, so iterate first over constructors in the
+    // patch, and then over constructors in the original declaration skipping
+    // those with the names that are in the patch.
+    _patchBuilder?.constructors.forEach(callbackFilteringFieldBuilders);
+    constructors.forEach(callbackFilteringFieldBuilders);
+  }
+
+  @override
+  void applyPatch(Builder patch) {
+    if (patch is SourceClassBuilder) {
+      patch.actualOrigin = this;
+      _patchBuilder = patch;
+      // TODO(ahe): Complain if `patch.supertype` isn't null.
+      scope.forEachLocalMember((String name, Builder member) {
+        Builder? memberPatch =
+            patch.scope.lookupLocalMember(name, setter: false);
+        if (memberPatch != null) {
+          member.applyPatch(memberPatch);
+        }
+      });
+      scope.forEachLocalSetter((String name, Builder member) {
+        Builder? memberPatch =
+            patch.scope.lookupLocalMember(name, setter: true);
+        if (memberPatch != null) {
+          member.applyPatch(memberPatch);
+        }
+      });
+      constructors.local.forEach((String name, Builder member) {
+        Builder? memberPatch = patch.constructors.local[name];
+        if (memberPatch != null) {
+          member.applyPatch(memberPatch);
+        }
+      });
+
+      int originLength = typeVariables?.length ?? 0;
+      int patchLength = patch.typeVariables?.length ?? 0;
+      if (originLength != patchLength) {
+        patch.addProblem(messagePatchClassTypeVariablesMismatch,
+            patch.charOffset, noLength, context: [
+          messagePatchClassOrigin.withLocation(fileUri, charOffset, noLength)
+        ]);
+      } else if (typeVariables != null) {
+        int count = 0;
+        for (TypeVariableBuilder t in patch.typeVariables!) {
+          typeVariables![count++].applyPatch(t);
+        }
+      }
+    } else {
+      library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
+          noLength, patch.fileUri, context: [
+        messagePatchDeclarationOrigin.withLocation(
+            fileUri, charOffset, noLength)
+      ]);
+    }
   }
 
   TypeBuilder checkSupertype(TypeBuilder supertype) {

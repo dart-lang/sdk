@@ -2,13 +2,10 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/super_parameters/default_values.dart:51:11: Error: Expected ']' before this.
+// pkg/front_end/testcases/super_parameters/default_values.dart:51:17: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   C5([int super.x]); // Error.
-//           ^^^^^
-//
-// pkg/front_end/testcases/super_parameters/default_values.dart:61:10: Error: Expected ']' before this.
-//   C6([int? super.x]); // Ok.
-//          ^
+//                 ^
 //
 import self as self;
 import "dart:core" as core;
@@ -59,7 +56,7 @@ class S5 extends core::Object {
     ;
 }
 class C5 extends self::S5 {
-  constructor •([dynamic int]) → self::C5
+  constructor •([core::int x]) → self::C5
     ;
 }
 class S6 extends core::Object {
@@ -69,7 +66,7 @@ class S6 extends core::Object {
 }
 class C6 extends self::S6 {
   field core::int? b;
-  constructor •([dynamic int]) → self::C6
+  constructor •([core::int? x]) → self::C6
     ;
 }
 class S7 extends core::Object {

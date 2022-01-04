@@ -88,6 +88,7 @@ import '../source/scope_listener.dart' show JumpTargetKind, ScopeListener;
 import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_factory_builder.dart';
+import '../source/source_field_builder.dart';
 import '../source/source_function_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_procedure_builder.dart';
@@ -790,7 +791,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("finishFields");
     assert(checkState(null, [/*field count*/ ValueKinds.Integer]));
     int count = pop() as int;
-    List<FieldBuilder> fields = <FieldBuilder>[];
+    List<SourceFieldBuilder> fields = [];
     for (int i = 0; i < count; i++) {
       assert(checkState(null, [
         ValueKinds.FieldInitializerOrNull,
@@ -806,9 +807,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         declaration = libraryBuilder.lookupLocalMember(name, required: true)!;
       }
-      FieldBuilder fieldBuilder;
+      SourceFieldBuilder fieldBuilder;
       if (declaration.isField && declaration.next == null) {
-        fieldBuilder = declaration as FieldBuilder;
+        fieldBuilder = declaration as SourceFieldBuilder;
       } else {
         continue;
       }
@@ -3122,8 +3123,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 classBuilder!.declaresConstConstructor
             ? ConstantContext.required
             : ConstantContext.none;
-    if (member is FieldBuilder) {
-      FieldBuilder fieldBuilder = member as FieldBuilder;
+    if (member is SourceFieldBuilder) {
+      SourceFieldBuilder fieldBuilder = member as SourceFieldBuilder;
       inLateFieldInitializer = fieldBuilder.isLate;
       if (fieldBuilder.isAbstract) {
         addProblem(
@@ -6855,7 +6856,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 name.length),
             fieldNameOffset)
       ];
-    } else if (builder is FieldBuilder && builder.isDeclarationInstanceMember) {
+    } else if (builder is SourceFieldBuilder &&
+        builder.isDeclarationInstanceMember) {
       initializedFields ??= <String, int>{};
       if (initializedFields!.containsKey(name)) {
         return <Initializer>[
@@ -6922,7 +6924,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 uri,
                 context: [
                   fasta.messageInitializingFormalTypeMismatchField.withLocation(
-                      builder.fileUri!, builder.charOffset, noLength)
+                      builder.fileUri, builder.charOffset, noLength)
                 ]);
           }
         }

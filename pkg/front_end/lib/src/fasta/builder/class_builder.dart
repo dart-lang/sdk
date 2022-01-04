@@ -39,7 +39,6 @@ import '../modifier.dart';
 import '../names.dart' show noSuchMethodName;
 import '../problems.dart' show internalProblem, unhandled;
 import '../scope.dart';
-import '../source/source_constructor_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart';
@@ -47,10 +46,8 @@ import '../source/source_member_builder.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
-import 'constructor_builder.dart';
 import 'constructor_reference_builder.dart';
 import 'declaration_builder.dart';
-import 'field_builder.dart';
 import 'function_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
@@ -89,8 +86,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
   @override
   Uri get fileUri;
 
-  ClassBuilder? get patchForTesting;
-
   bool get isAbstract;
 
   bool get isMacro;
@@ -119,13 +114,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 
   void forEach(void f(String name, Builder builder));
-
-  void forEachDeclaredField(
-      void Function(String name, FieldBuilder fieldBuilder) f);
-
-  void forEachDeclaredConstructor(
-      void Function(String name, ConstructorBuilder constructorBuilder)
-          callback);
 
   /// The [Class] built by this builder.
   ///
@@ -259,16 +247,12 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   ClassBuilder? actualOrigin;
 
   @override
-  ClassBuilder? get patchForTesting => _patchBuilder;
-
-  @override
   bool isNullClass = false;
 
   InterfaceType? _legacyRawType;
   InterfaceType? _nullableRawType;
   InterfaceType? _nonNullableRawType;
   InterfaceType? _thisType;
-  ClassBuilder? _patchBuilder;
 
   ClassBuilderImpl(
       List<MetadataBuilder>? metadata,
@@ -319,14 +303,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           includeInjectedConstructors: includeInjectedConstructors);
     } else {
       constructors.forEach(f);
-      if (includeInjectedConstructors) {
-        _patchBuilder?.constructors
-            .forEach((String name, MemberBuilder builder) {
-          if (!builder.isPatch) {
-            f(name, builder);
-          }
-        });
-      }
     }
   }
 
@@ -413,57 +389,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   void forEach(void f(String name, Builder builder)) {
     scope.forEach(f);
-  }
-
-  @override
-  void forEachDeclaredField(
-      void Function(String name, FieldBuilder fieldBuilder) callback) {
-    void callbackFilteringFieldBuilders(String name, Builder builder) {
-      if (builder is FieldBuilder) {
-        callback(name, builder);
-      }
-    }
-
-    // Currently, fields can't be patched, but can be injected.  When the fields
-    // will be made available for patching, the following code should iterate
-    // first over the fields from the patch and then -- over the fields in the
-    // original declaration, filtering out the patched fields.  For now, the
-    // assert checks that the names of the fields from the original declaration
-    // and from the patch don't intersect.
-    assert(
-        _patchBuilder == null ||
-            _patchBuilder!.scope.localMembers
-                .where((b) => b is FieldBuilder)
-                .map((b) => (b as FieldBuilder).name)
-                .toSet()
-                .intersection(scope.localMembers
-                    .where((b) => b is FieldBuilder)
-                    .map((b) => (b as FieldBuilder).name)
-                    .toSet())
-                .isEmpty,
-        "Detected an attempt to patch a field.");
-    _patchBuilder?.scope.forEach(callbackFilteringFieldBuilders);
-    scope.forEach(callbackFilteringFieldBuilders);
-  }
-
-  @override
-  void forEachDeclaredConstructor(
-      void Function(
-              String name, DeclaredSourceConstructorBuilder constructorBuilder)
-          callback) {
-    Set<String> visitedConstructorNames = {};
-    void callbackFilteringFieldBuilders(String name, Builder builder) {
-      if (builder is DeclaredSourceConstructorBuilder &&
-          visitedConstructorNames.add(builder.name)) {
-        callback(name, builder);
-      }
-    }
-
-    // Constructors can be patched, so iterate first over constructors in the
-    // patch, and then over constructors in the original declaration skipping
-    // those with the names that are in the patch.
-    _patchBuilder?.constructors.forEach(callbackFilteringFieldBuilders);
-    constructors.forEach(callbackFilteringFieldBuilders);
   }
 
   @override
@@ -815,55 +740,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             noLength,
             cls.fileUri);
       }
-    }
-  }
-
-  @override
-  void applyPatch(Builder patch) {
-    if (patch is ClassBuilder) {
-      patch.actualOrigin = this;
-      _patchBuilder = patch;
-      // TODO(ahe): Complain if `patch.supertype` isn't null.
-      scope.forEachLocalMember((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: false);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
-        }
-      });
-      scope.forEachLocalSetter((String name, Builder member) {
-        Builder? memberPatch =
-            patch.scope.lookupLocalMember(name, setter: true);
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
-        }
-      });
-      constructors.local.forEach((String name, Builder member) {
-        Builder? memberPatch = patch.constructors.local[name];
-        if (memberPatch != null) {
-          member.applyPatch(memberPatch);
-        }
-      });
-
-      int originLength = typeVariables?.length ?? 0;
-      int patchLength = patch.typeVariables?.length ?? 0;
-      if (originLength != patchLength) {
-        patch.addProblem(messagePatchClassTypeVariablesMismatch,
-            patch.charOffset, noLength, context: [
-          messagePatchClassOrigin.withLocation(fileUri, charOffset, noLength)
-        ]);
-      } else if (typeVariables != null) {
-        int count = 0;
-        for (TypeVariableBuilder t in patch.typeVariables!) {
-          typeVariables![count++].applyPatch(t);
-        }
-      }
-    } else {
-      library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
-          noLength, patch.fileUri, context: [
-        messagePatchDeclarationOrigin.withLocation(
-            fileUri, charOffset, noLength)
-      ]);
     }
   }
 

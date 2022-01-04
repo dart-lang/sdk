@@ -36,6 +36,10 @@ void matchIL$foo(FlowGraph graph) {
 
 Actual matching is done by the `pkg/vm/tool/compare_il` script.
 
+In order to test IL of the inner (local) function, use
+`@pragma('vm:testing:match-inner-flow-graph', 'inner name')`.
+Specifying a particular phase is not supported for inner closures.
+
 ## Example
 
 ```dart
@@ -53,5 +57,16 @@ void matchIL$factorial(FlowGraph graph) {
       match.Branch(match.EqualityCompare(match.any, match.any, kind: '==')),
     ]),
   ]);
+}
+
+@pragma('vm:testing:match-inner-flow-graph', 'bar')
+void foo() {
+  @pragma('vm:testing:print-flow-graph')
+  bar() {
+  }
+}
+
+void matchIL$foo_bar(FlowGraph graph) {
+  // Test IL of local bar() in foo().
 }
 ```

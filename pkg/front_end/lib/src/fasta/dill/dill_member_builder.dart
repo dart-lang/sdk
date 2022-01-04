@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart'
 
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
+import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
 
 import '../builder/procedure_builder.dart';
@@ -89,7 +90,8 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
           : const <ClassMember>[];
 }
 
-class DillFieldBuilder extends DillMemberBuilder {
+class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
+  @override
   final Field field;
 
   DillFieldBuilder(this.field, Builder parent) : super(field, parent);

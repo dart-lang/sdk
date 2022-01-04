@@ -47,17 +47,18 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
 
   late FieldEncoding _fieldEncoding;
 
-  @override
   final List<MetadataBuilder>? metadata;
 
-  @override
   final TypeBuilder? type;
 
   Token? _constInitializerToken;
 
   bool hadTypesInferred = false;
 
-  @override
+  /// Whether the body of this field has been built.
+  ///
+  /// Constant fields have their initializer built in the outline so we avoid
+  /// building them twice as part of the non-outline build.
   bool hasBodyBeenBuilt = false;
 
   // TODO(johnniwinther): [parent] is not trust-worthy for determining
@@ -291,16 +292,14 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
   @override
   bool get isField => true;
 
-  @override
   bool get isLate => (modifiers & lateMask) != 0;
 
-  @override
   bool get isCovariantByDeclaration => (modifiers & covariantMask) != 0;
 
-  @override
   bool get hasInitializer => (modifiers & hasInitializerMask) != 0;
 
-  @override
+  /// Builds the body of this field using [initializer] as the initializer
+  /// expression.
   void buildBody(CoreTypes coreTypes, Expression? initializer) {
     assert(!hasBodyBeenBuilt);
     hasBodyBeenBuilt = true;
@@ -315,14 +314,15 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     _fieldEncoding.createBodies(coreTypes, initializer);
   }
 
-  @override
+  /// Builds the field initializers for each field used to encode this field
+  /// using the [fileOffset] for the created nodes and [value] as the initial
+  /// field value.
   List<Initializer> buildInitializer(int fileOffset, Expression value,
       {required bool isSynthetic}) {
     return _fieldEncoding.createInitializer(fileOffset, value,
         isSynthetic: isSynthetic);
   }
 
-  @override
   bool get isEligibleForInference {
     return type == null && (hasInitializer || isClassInstanceMember);
   }
@@ -425,7 +425,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     _constInitializerToken = null;
   }
 
-  @override
   DartType get fieldType => _fieldEncoding.type;
 
   void set fieldType(DartType value) {
@@ -447,7 +446,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     }
   }
 
-  @override
   DartType inferType() {
     SourceLibraryBuilder library = this.library;
     if (fieldType is! ImplicitFieldType) {
@@ -486,7 +484,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     return fieldType;
   }
 
-  @override
   DartType get builtType => fieldType;
 
   List<ClassMember>? _localMembers;

@@ -22,12 +22,12 @@ import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../modifier.dart';
 import '../scope.dart' show Scope;
 import '../source/source_factory_builder.dart';
+import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
 import 'class_builder.dart';
 import 'constructor_builder.dart';
-import 'field_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
@@ -197,7 +197,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   void finalizeInitializingFormal(ClassBuilder classBuilder) {
     Builder? fieldBuilder = classBuilder.lookupLocalMember(name);
-    if (fieldBuilder is FieldBuilder) {
+    if (fieldBuilder is SourceFieldBuilder) {
       variable!.type = fieldBuilder.inferType();
     } else {
       variable!.type = const DynamicType();
