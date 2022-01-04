@@ -141,8 +141,10 @@ void Options::PrintUsage() {
   if (!Options::verbose_option()) {
     Syslog::Print(
 "Common VM flags:\n"
+#if !defined(PRODUCT)
 "--enable-asserts\n"
 "  Enable assert statements.\n"
+#endif  // !defined(PRODUCT)
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
@@ -151,6 +153,7 @@ void Options::PrintUsage() {
 "--define=<key>=<value> or -D<key>=<value>\n"
 "  Define an environment declaration. To specify multiple declarations,\n"
 "  use multiple instances of this option.\n"
+#if !defined(PRODUCT)
 "--observe[=<port>[/<bind-address>]]\n"
 "  The observe flag is a convenience flag used to run a program with a\n"
 "  set of options which are often useful for debugging under Observatory.\n"
@@ -166,6 +169,7 @@ void Options::PrintUsage() {
 "  Outputs information necessary to connect to the VM service to the\n"
 "  specified file in JSON format. Useful for clients which are unable to\n"
 "  listen to stdout for the Observatory listening message.\n"
+#endif  // !defined(PRODUCT)
 "--snapshot-kind=<snapshot_kind>\n"
 "--snapshot=<file_name>\n"
 "  These snapshot options are used to generate a snapshot of the loaded\n"
@@ -178,8 +182,10 @@ void Options::PrintUsage() {
   } else {
     Syslog::Print(
 "Supported options:\n"
+#if !defined(PRODUCT)
 "--enable-asserts\n"
 "  Enable assert statements.\n"
+#endif  // !defined(PRODUCT)
 "--help or -h\n"
 "  Display this message (add -v or --verbose for information about\n"
 "  all VM options).\n"
@@ -188,6 +194,7 @@ void Options::PrintUsage() {
 "--define=<key>=<value> or -D<key>=<value>\n"
 "  Define an environment declaration. To specify multiple declarations,\n"
 "  use multiple instances of this option.\n"
+#if !defined(PRODUCT)
 "--observe[=<port>[/<bind-address>]]\n"
 "  The observe flag is a convenience flag used to run a program with a\n"
 "  set of options which are often useful for debugging under Observatory.\n"
@@ -199,12 +206,14 @@ void Options::PrintUsage() {
 "      --warn-on-pause-with-no-debugger\n"
 "  This set is subject to change.\n"
 "  Please see these options for further documentation.\n"
+#endif  // !defined(PRODUCT)
 "--version\n"
 "  Print the VM version.\n"
 "\n"
 "--trace-loading\n"
 "  enables tracing of library and script loading\n"
 "\n"
+#if !defined(PRODUCT)
 "--enable-vm-service[=<port>[/<bind-address>]]\n"
 "  Enables the VM service and listens on specified port for connections\n"
 "  (default port number is 8181, default bind address is localhost).\n"
@@ -219,6 +228,7 @@ void Options::PrintUsage() {
 "  When the VM service is told to bind to a particular port, fallback to 0 if\n"
 "  it fails to bind instead of failing to start.\n"
 "\n"
+#endif  // !defined(PRODUCT)
 "--root-certs-file=<path>\n"
 "  The path to a file containing the trusted root certificates to use for\n"
 "  secure socket connections.\n"
@@ -321,6 +331,7 @@ const char* Options::vm_service_server_ip_ = DEFAULT_VM_SERVICE_SERVER_IP;
 int Options::vm_service_server_port_ = INVALID_VM_SERVICE_SERVER_PORT;
 bool Options::ProcessEnableVmServiceOption(const char* arg,
                                            CommandLineOptions* vm_options) {
+#if !defined(PRODUCT)
   const char* value =
       OptionProcessor::ProcessOption(arg, "--enable-vm-service");
   if (value == NULL) {
@@ -339,10 +350,15 @@ bool Options::ProcessEnableVmServiceOption(const char* arg,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   enable_vm_service_ = true;
   return true;
+#else
+  // VM service not available in product mode.
+  return false;
+#endif  // !defined(PRODUCT)
 }
 
 bool Options::ProcessObserveOption(const char* arg,
                                    CommandLineOptions* vm_options) {
+#if !defined(PRODUCT)
   const char* value = OptionProcessor::ProcessOption(arg, "--observe");
   if (value == NULL) {
     return false;
@@ -366,6 +382,10 @@ bool Options::ProcessObserveOption(const char* arg,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   enable_vm_service_ = true;
   return true;
+#else
+  // VM service not available in product mode.
+  return false;
+#endif  // !defined(PRODUCT)
 }
 
 // Explicitly handle VM flags that can be parsed by DartDev's run command.
