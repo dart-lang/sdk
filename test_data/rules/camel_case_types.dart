@@ -38,3 +38,7 @@ typedef f = void Function(); //LINT
 
 mixin M {}
 class c = Object with M; //LINT
+
+enum foooBar { a } //LINT
+
+enum FoooBar { a } //OK
