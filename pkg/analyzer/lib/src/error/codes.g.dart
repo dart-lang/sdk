@@ -5955,6 +5955,28 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode
+      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT =
+      CompileTimeErrorCode(
+    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT',
+    "The named parameter '{0}' is required in the implicitly invoked unnamed "
+        "constructor of '{1}'.",
+    correctionMessage:
+        "Try declaring corresponding named super-parameter, or explicitly "
+        "invoking a different constructor.",
+  );
+
+  static const CompileTimeErrorCode
+      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS =
+      CompileTimeErrorCode(
+    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "The implicitly invoked unnamed constructor of '{0}' expects {1} "
+        "positional arguments, but {2} found.",
+    correctionMessage:
+        "Try declaring positional super-parameters, or explicitly invoking a "
+        "different constructor.",
+  );
+
   /**
    * Parameters:
    * 0: the uri pointing to a library

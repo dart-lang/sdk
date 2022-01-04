@@ -5188,6 +5188,12 @@ CompileTimeErrorCode:
         int get defaultX => 0;
       }
       ```
+  IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT:
+    problemMessage: The named parameter '{0}' is required in the implicitly invoked unnamed constructor of '{1}'.
+    correctionMessage: Try declaring corresponding named super-parameter, or explicitly invoking a different constructor.
+  IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS:
+    problemMessage: The implicitly invoked unnamed constructor of '{0}' expects {1} positional arguments, but {2} found.
+    correctionMessage: Try declaring positional super-parameters, or explicitly invoking a different constructor.
   IMPORT_INTERNAL_LIBRARY:
     problemMessage: "The library '{0}' is internal and can't be imported."
     hasPublishedDocs: true

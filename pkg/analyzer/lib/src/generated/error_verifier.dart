@@ -37,6 +37,7 @@ import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/error/return_type_verifier.dart';
+import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -4173,15 +4174,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    // TODO(scheglov) Restore when working on errors.
-    if (_currentLibrary.featureSet.isEnabled(Feature.super_parameters)) {
-      if (constructor.parameters.parameters.any((parameter) {
-        return parameter.notDefault is SuperFormalParameter;
-      })) {
-        return;
-      }
-    }
-
     // Ignore if the constructor has either an implicit super constructor
     // invocation or a redirecting constructor invocation.
     for (ConstructorInitializer constructorInitializer
@@ -4199,37 +4191,88 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     ClassElement superElement = superType.element;
+
     if (superElement.constructors
         .every((constructor) => constructor.isFactory)) {
       // Already reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
       return;
     }
+
     var superUnnamedConstructor = superElement.unnamedConstructor;
     superUnnamedConstructor = superUnnamedConstructor != null
         ? _currentLibrary.toLegacyElementIfOptOut(superUnnamedConstructor)
         : superUnnamedConstructor;
-    if (superUnnamedConstructor != null) {
-      if (superUnnamedConstructor.isFactory) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
-            constructor.returnType,
-            [superUnnamedConstructor]);
-      } else if (!superUnnamedConstructor.isDefaultConstructor) {
-        Identifier returnType = constructor.returnType;
-        var name = constructor.name;
-        int offset = returnType.offset;
-        int length = (name != null ? name.end : returnType.end) - offset;
-        errorReporter.reportErrorForOffset(
-            CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
-            offset,
-            length,
-            [superType]);
-      }
-    } else {
+    if (superUnnamedConstructor == null) {
       errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
-          constructor.returnType,
-          [superElement.name]);
+        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+        constructor.returnType,
+        [superElement.name],
+      );
+      return;
+    }
+
+    if (superUnnamedConstructor.isFactory) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+        constructor.returnType,
+        [superUnnamedConstructor],
+      );
+      return;
+    }
+
+    var requiredPositionalParameterCount = superUnnamedConstructor.parameters
+        .where((parameter) => parameter.isRequiredPositional)
+        .length;
+    var requiredNamedParameters = superUnnamedConstructor.parameters
+        .where((parameter) => parameter.isRequiredNamed)
+        .map((parameter) => parameter.name)
+        .toSet();
+
+    void reportError(ErrorCode errorCode, List<Object> arguments) {
+      Identifier returnType = constructor.returnType;
+      var name = constructor.name;
+      int offset = returnType.offset;
+      int length = (name != null ? name.end : returnType.end) - offset;
+      errorReporter.reportErrorForOffset(errorCode, offset, length, arguments);
+    }
+
+    if (!_currentLibrary.featureSet.isEnabled(Feature.super_parameters)) {
+      if (requiredPositionalParameterCount != 0 ||
+          requiredNamedParameters.isNotEmpty) {
+        reportError(
+          CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
+          [superType],
+        );
+      }
+      return;
+    }
+
+    var superParametersResult = verifySuperFormalParameters(
+      constructor: constructor,
+      errorReporter: errorReporter,
+    );
+    requiredNamedParameters.removeAll(
+      superParametersResult.namedArgumentNames,
+    );
+
+    if (requiredPositionalParameterCount >
+        superParametersResult.positionalArgumentCount) {
+      reportError(
+        CompileTimeErrorCode
+            .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS,
+        [
+          superType,
+          requiredPositionalParameterCount,
+          superParametersResult.positionalArgumentCount,
+        ],
+      );
+    }
+    for (var requiredNamedParameterName in requiredNamedParameters) {
+      reportError(
+        CompileTimeErrorCode
+            .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT,
+        [requiredNamedParameterName, superType],
+      );
     }
   }
 
