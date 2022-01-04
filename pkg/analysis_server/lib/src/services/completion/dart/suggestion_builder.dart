@@ -295,16 +295,19 @@ class SuggestionBuilder {
         elementKind: protocol.ElementKind.PARAMETER, relevance: relevance));
   }
 
-  /// Add a suggestion for a [classElement]. If a [kind] is provided it will
-  /// be used as the kind for the suggestion. If the class can only be
+  /// Add a suggestion for a [classElement]. If the class can only be
   /// referenced using a prefix, then the [prefix] should be provided.
-  void suggestClass(ClassElement classElement,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      String? prefix}) {
+  void suggestClass(ClassElement classElement, {String? prefix}) {
     var relevance = _computeTopLevelRelevance(classElement,
         elementType: _instantiateClassElement(classElement));
-    _add(_createSuggestion(classElement,
-        kind: kind, prefix: prefix, relevance: relevance));
+    _add(
+      _createSuggestion(
+        classElement,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        prefix: prefix,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion to insert a closure matching the given function [type].
@@ -412,7 +415,7 @@ class SuggestionBuilder {
   void suggestElement(Element element,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
     if (element is ClassElement) {
-      suggestClass(element, kind: kind);
+      suggestClass(element);
     } else if (element is ConstructorElement) {
       suggestConstructor(element, kind: kind);
     } else if (element is ExtensionElement) {

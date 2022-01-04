@@ -773,7 +773,7 @@ class B extends A {
     expect(replacementLength, 0);
     assertSuggest('a', elemKind: ElementKind.METHOD);
     assertSuggest('foo', elemKind: ElementKind.METHOD);
-    assertSuggest('B', elemKind: ElementKind.CLASS);
+    assertSuggestClass('B');
     assertNotSuggested('A');
     assertNotSuggested('Object');
     assertSuggestMethod('y', 'A', 'Future<dynamic>');
@@ -3638,7 +3638,7 @@ class B extends A1 with A2 {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('Object');
-    assertSuggest('B', elemKind: ElementKind.CLASS);
+    assertSuggestClass('B');
     assertSuggestField('a', 'int');
     assertSuggestMethod('b', 'B', 'int');
     assertSuggestMethod('foo', 'B', 'dynamic');

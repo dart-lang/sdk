@@ -1872,9 +1872,9 @@ extension MyClassExtension on MyClass {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
           elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement',
           elementKind: ElementKind.CLASS);
       assertNoResult('test');
     });
@@ -2023,7 +2023,7 @@ extension MyClassExtension on MyClass {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
           elementKind: ElementKind.CLASS);
       assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
       assertNoResult('HtmlElement');
@@ -2039,7 +2039,7 @@ extension MyClassExtension on MyClass {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement');
       assertNoResult('test');
     });
   }
@@ -2258,7 +2258,7 @@ void f() {
     expect(replacementLength, equals(0));
 
     // The class is suggested.
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
         elementKind: ElementKind.CLASS);
 
     // Both constructors - default and named, are suggested.
@@ -2324,12 +2324,12 @@ void f() {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
           elementKind: ElementKind.CLASS);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'a');
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'x');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'DateTime',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'DateTime',
           elementKind: ElementKind.CLASS);
     });
   }
@@ -2369,11 +2369,11 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
           elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement',
           elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
           elementKind: ElementKind.CLASS);
       assertNoResult('test');
     });
@@ -2392,11 +2392,11 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
           elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'HtmlElement',
           elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'A',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
           elementKind: ElementKind.CLASS);
       assertNoResult('test');
     });
@@ -2432,7 +2432,7 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object',
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'Object',
           elementKind: ElementKind.CLASS);
       assertNoResult('HtmlElement');
       assertNoResult('test');
@@ -2653,7 +2653,7 @@ class SingleSuggestionValidator {
   });
 
   void assertClass() {
-    expect(suggestion.kind, CompletionSuggestionKind.INVOCATION);
+    expect(suggestion.kind, CompletionSuggestionKind.IDENTIFIER);
     expect(suggestion.element?.kind, ElementKind.CLASS);
   }
 
