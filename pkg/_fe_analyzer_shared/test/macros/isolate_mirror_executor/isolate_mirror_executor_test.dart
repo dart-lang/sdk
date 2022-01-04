@@ -6,7 +6,8 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/isolate_mirrors_executor/isolate_mirrors_executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/isolate_mirrors_executor/isolate_mirrors_executor.dart'
+    as mirrorExecutor;
 
 import 'package:test/fake.dart';
 import 'package:test/test.dart';
@@ -15,7 +16,7 @@ void main() {
   late MacroExecutor executor;
 
   setUp(() async {
-    executor = await IsolateMirrorMacroExecutor.start();
+    executor = await mirrorExecutor.start();
   });
 
   tearDown(() {

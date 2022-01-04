@@ -11,12 +11,17 @@ import 'protocol.dart';
 import '../executor.dart';
 import '../api.dart';
 
+/// Returns an instance of [_IsolateMirrorMacroExecutor].
+///
+/// This is the only public api exposed by this library.
+Future<MacroExecutor> start() => _IsolateMirrorMacroExecutor.start();
+
 /// A [MacroExecutor] implementation which relies on [IsolateMirror.loadUri]
 /// in order to load macros libraries.
 ///
 /// All actual work happens in a separate [Isolate], and this class serves as
 /// a bridge between that isolate and the language frontends.
-class IsolateMirrorMacroExecutor implements MacroExecutor {
+class _IsolateMirrorMacroExecutor implements MacroExecutor {
   /// The actual isolate doing macro loading and execution.
   final Isolate _macroIsolate;
 
@@ -33,7 +38,7 @@ class IsolateMirrorMacroExecutor implements MacroExecutor {
   /// to perform any necessary cleanup.
   final void Function() _onClose;
 
-  IsolateMirrorMacroExecutor._(
+  _IsolateMirrorMacroExecutor._(
       this._macroIsolate, this._sendPort, this._responseStream, this._onClose) {
     _responseStream.listen((event) {
       Completer<GenericResponse>? completer =
@@ -63,7 +68,7 @@ class IsolateMirrorMacroExecutor implements MacroExecutor {
     }).onDone(responseStreamController.close);
     Isolate macroIsolate = await Isolate.spawn(spawn, receivePort.sendPort);
 
-    return new IsolateMirrorMacroExecutor._(
+    return new _IsolateMirrorMacroExecutor._(
         macroIsolate,
         await sendPortCompleter.future,
         responseStreamController.stream,
