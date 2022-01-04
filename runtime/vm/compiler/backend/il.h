@@ -4474,9 +4474,13 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
       const compiler::TableSelector* selector);
 
   DECLARE_INSTRUCTION(DispatchTableCall)
+  DECLARE_ATTRIBUTES(selector_name())
 
   const Function& interface_target() const { return interface_target_; }
   const compiler::TableSelector* selector() const { return selector_; }
+  const char* selector_name() const {
+    return String::Handle(interface_target().name()).ToCString();
+  }
 
   Value* class_id() const { return InputAt(InputCount() - 1); }
 
