@@ -192,9 +192,6 @@ void CallSiteResetter::ResetCaches(const ObjectPool& pool) {
 
 void Class::CopyStaticFieldValues(ProgramReloadContext* reload_context,
                                   const Class& old_cls) const {
-  // We only update values for non-enum classes.
-  const bool update_values = !is_enum_class();
-
   const Array& old_field_list = Array::Handle(old_cls.fields());
   Field& old_field = Field::Handle();
   String& old_name = String::Handle();
@@ -215,7 +212,7 @@ void Class::CopyStaticFieldValues(ProgramReloadContext* reload_context,
         if (field.is_static()) {
           // We only copy values if requested and if the field is not a const
           // field. We let const fields be updated with a reload.
-          if (update_values && !field.is_const()) {
+          if (!field.is_const()) {
             // Make new field point to the old field value so that both
             // old and new code see and update same value.
             reload_context->isolate_group()->FreeStaticField(field);
@@ -307,15 +304,15 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
 
   Zone* zone = Thread::Current()->zone();
 
-  Array& enum_fields = Array::Handle(zone);
   Field& field = Field::Handle(zone);
+  Class& cls = Class::Handle(zone);
   String& enum_ident = String::Handle();
   Instance& old_enum_value = Instance::Handle(zone);
   Instance& enum_value = Instance::Handle(zone);
   // The E.values array.
-  Instance& old_enum_values = Instance::Handle(zone);
+  Array& old_enum_values = Array::Handle(zone);
   // The E.values array.
-  Instance& enum_values = Instance::Handle(zone);
+  Array& enum_values = Array::Handle(zone);
   // The E._deleted_enum_sentinel instance.
   Instance& old_deleted_enum_sentinel = Instance::Handle(zone);
   // The E._deleted_enum_sentinel instance.
@@ -327,31 +324,26 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
   TIR_Print("Replacing enum `%s`\n", String::Handle(Name()).ToCString());
 
   {
+    field = old_enum.LookupStaticField(Symbols::Values());
+    ASSERT(!field.IsNull() && field.is_static() && field.is_const());
+    old_enum_values ^= field.StaticConstFieldValue();
+    ASSERT(!old_enum_values.IsNull());
+
+    field = old_enum.LookupStaticField(Symbols::_DeletedEnumSentinel());
+    ASSERT(!field.IsNull() && field.is_static() && field.is_const());
+    old_deleted_enum_sentinel ^= field.StaticConstFieldValue();
+    ASSERT(!old_deleted_enum_sentinel.IsNull());
+
+    cls = old_enum.SuperClass();
+    field = cls.LookupInstanceFieldAllowPrivate(Symbols::_name());
+    ASSERT(!field.IsNull());
+
     UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.ptr());
     // Build a map of all enum name -> old enum instance.
-    enum_fields = old_enum.fields();
-    for (intptr_t i = 0; i < enum_fields.Length(); i++) {
-      field = Field::RawCast(enum_fields.At(i));
-      enum_ident = field.name();
-      if (!field.is_static()) {
-        // Enum instances are only held in static fields.
-        continue;
-      }
-      ASSERT(field.is_const());
-      if (enum_ident.Equals(Symbols::Values())) {
-        old_enum_values = Instance::RawCast(field.StaticConstFieldValue());
-        // Non-enum instance.
-        continue;
-      }
-      if (enum_ident.Equals(Symbols::_DeletedEnumSentinel())) {
-        old_deleted_enum_sentinel =
-            Instance::RawCast(field.StaticConstFieldValue());
-        // Non-enum instance.
-        continue;
-      }
-      old_enum_value = Instance::RawCast(field.StaticConstFieldValue());
-
+    for (intptr_t i = 0, n = old_enum_values.Length(); i < n; ++i) {
+      old_enum_value ^= old_enum_values.At(i);
       ASSERT(!old_enum_value.IsNull());
+      enum_ident ^= old_enum_value.GetField(field);
       VTIR_Print("Element %s being added to mapping\n", enum_ident.ToCString());
       bool update = enum_map.UpdateOrInsert(enum_ident, old_enum_value);
       VTIR_Print("Element %s added to mapping\n", enum_ident.ToCString());
@@ -364,31 +356,27 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
 
   bool enums_deleted = false;
   {
+    field = LookupStaticField(Symbols::Values());
+    ASSERT(!field.IsNull() && field.is_static() && field.is_const());
+    enum_values ^= field.StaticConstFieldValue();
+    ASSERT(!enum_values.IsNull());
+
+    field = LookupStaticField(Symbols::_DeletedEnumSentinel());
+    ASSERT(!field.IsNull() && field.is_static() && field.is_const());
+    deleted_enum_sentinel ^= field.StaticConstFieldValue();
+    ASSERT(!deleted_enum_sentinel.IsNull());
+
+    cls = SuperClass();
+    field = cls.LookupInstanceFieldAllowPrivate(Symbols::_name());
+    ASSERT(!field.IsNull());
+
     UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.ptr());
     // Add a become mapping from the old instances to the new instances.
-    enum_fields = fields();
-    for (intptr_t i = 0; i < enum_fields.Length(); i++) {
-      field = Field::RawCast(enum_fields.At(i));
-      enum_ident = field.name();
-      if (!field.is_static()) {
-        // Enum instances are only held in static fields.
-        continue;
-      }
-      ASSERT(field.is_const());
-      if (enum_ident.Equals(Symbols::Values())) {
-        enum_values = Instance::RawCast(field.StaticConstFieldValue());
-        // Non-enum instance.
-        continue;
-      }
-      if (enum_ident.Equals(Symbols::_DeletedEnumSentinel())) {
-        deleted_enum_sentinel =
-            Instance::RawCast(field.StaticConstFieldValue());
-        // Non-enum instance.
-        continue;
-      }
-      enum_value = Instance::RawCast(field.StaticConstFieldValue());
-
+    for (intptr_t i = 0, n = enum_values.Length(); i < n; ++i) {
+      enum_value ^= enum_values.At(i);
       ASSERT(!enum_value.IsNull());
+      enum_ident ^= enum_value.GetField(field);
+
       old_enum_value ^= enum_map.GetOrNull(enum_ident);
       if (old_enum_value.IsNull()) {
         VTIR_Print("New element %s was not found in mapping\n",
@@ -408,13 +396,9 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
   }
 
   // Map the old E.values array to the new E.values array.
-  ASSERT(!old_enum_values.IsNull());
-  ASSERT(!enum_values.IsNull());
   reload_context->AddBecomeMapping(old_enum_values, enum_values);
 
   // Map the old E._deleted_enum_sentinel to the new E._deleted_enum_sentinel.
-  ASSERT(!old_deleted_enum_sentinel.IsNull());
-  ASSERT(!deleted_enum_sentinel.IsNull());
   reload_context->AddBecomeMapping(old_deleted_enum_sentinel,
                                    deleted_enum_sentinel);
 

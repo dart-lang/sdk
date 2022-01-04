@@ -1556,9 +1556,8 @@ void ProgramReloadContext::CommitBeforeInstanceMorphing() {
           ASSERT(new_cls.is_enum_class() == old_cls.is_enum_class());
           if (new_cls.is_enum_class() && new_cls.is_finalized()) {
             new_cls.ReplaceEnum(this, old_cls);
-          } else {
-            new_cls.CopyStaticFieldValues(this, old_cls);
           }
+          new_cls.CopyStaticFieldValues(this, old_cls);
           old_cls.PatchFieldsAndFunctions();
           old_cls.MigrateImplicitStaticClosures(this, new_cls);
         }

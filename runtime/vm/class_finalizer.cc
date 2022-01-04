@@ -1133,7 +1133,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   FinalizeMemberTypes(cls);
 
-  if (cls.is_enum_class()) {
+  if (cls.is_enum_class() && !FLAG_precompiled_mode) {
     AllocateEnumValues(cls);
   }
 
@@ -1216,69 +1216,58 @@ ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
   }
 }
 
-// Allocate instances for each enumeration value, and populate the
-// static field 'values'.
-// By allocating the instances programmatically, we save an implicit final
-// getter function object for each enumeration value and for the
-// values field. We also don't have to generate the code for these getters
-// from thin air (no source code is available).
+// Eagerly allocate instances for enumeration values by evaluating
+// static const field 'values'. Also, pre-allocate
+// deleted sentinel value. This is needed to correctly
+// migrate enumeration values in case of hot reload.
 void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
+  const auto& values_field =
+      Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
+  ASSERT(!values_field.IsNull() && values_field.is_static() &&
+         values_field.is_const());
+
+  const auto& values =
+      Object::Handle(zone, values_field.StaticConstFieldValue());
+  if (values.IsError()) {
+    ReportError(Error::Cast(values));
+  }
+  ASSERT(values.IsArray());
+
   // The enum_cls is the actual declared class.
   // The shared super-class holds the fields for index and name.
-  const Class& super_cls = Class::Handle(zone, enum_cls.SuperClass());
+  const auto& super_cls = Class::Handle(zone, enum_cls.SuperClass());
 
-  const Field& index_field =
+  const auto& index_field =
       Field::Handle(zone, super_cls.LookupInstanceField(Symbols::Index()));
   ASSERT(!index_field.IsNull());
 
-  const Field& name_field = Field::Handle(
+  const auto& name_field = Field::Handle(
       zone, super_cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
   ASSERT(!name_field.IsNull());
 
-  const String& enum_name = String::Handle(zone, enum_cls.ScrubbedName());
+  const auto& enum_name = String::Handle(zone, enum_cls.ScrubbedName());
 
-  const Array& fields = Array::Handle(zone, enum_cls.fields());
-  Field& field = Field::Handle(zone);
-  Instance& enum_value = Instance::Handle(zone);
-  String& enum_ident = String::Handle(zone);
-
-  enum_ident =
-      Symbols::FromConcat(thread, Symbols::_DeletedEnumPrefix(), enum_name);
-  enum_value = Instance::New(enum_cls, Heap::kOld);
-  enum_value.SetField(index_field, Smi::Handle(zone, Smi::New(-1)));
-  enum_value.SetField(name_field, enum_ident);
-  enum_value = enum_value.Canonicalize(thread);
-  ASSERT(!enum_value.IsNull());
-  ASSERT(enum_value.IsCanonical());
-  const Field& sentinel = Field::Handle(
+  const auto& sentinel_ident = String::Handle(
+      zone,
+      Symbols::FromConcat(thread, Symbols::_DeletedEnumPrefix(), enum_name));
+  auto& sentinel_value =
+      Instance::Handle(zone, Instance::New(enum_cls, Heap::kOld));
+  sentinel_value.SetField(index_field, Smi::Handle(zone, Smi::New(-1)));
+  sentinel_value.SetField(name_field, sentinel_ident);
+  sentinel_value = sentinel_value.Canonicalize(thread);
+  ASSERT(!sentinel_value.IsNull());
+  ASSERT(sentinel_value.IsCanonical());
+  const auto& sentinel_field = Field::Handle(
       zone, enum_cls.LookupStaticField(Symbols::_DeletedEnumSentinel()));
-  ASSERT(!sentinel.IsNull());
+  ASSERT(!sentinel_field.IsNull());
 
   // The static const field contains `Object::null()` instead of
   // `Object::sentinel()` - so it's not considered an initializing store.
-  sentinel.SetStaticConstFieldValue(enum_value,
-                                    /*assert_initializing_store*/ false);
-
-  ASSERT(enum_cls.kernel_offset() > 0);
-  Object& error = Error::Handle(zone);
-  for (intptr_t i = 0; i < fields.Length(); i++) {
-    field = Field::RawCast(fields.At(i));
-    if (!field.is_static() || !field.is_const() ||
-        (sentinel.ptr() == field.ptr())) {
-      continue;
-    }
-    // Hot-reload expects the static const fields to be evaluated when
-    // performing a reload.
-    if (!FLAG_precompiled_mode) {
-      error = field.StaticConstFieldValue();
-      if (error.IsError()) {
-        ReportError(Error::Cast(error));
-      }
-    }
-  }
+  sentinel_field.SetStaticConstFieldValue(sentinel_value,
+                                          /*assert_initializing_store*/ false);
 }
 
 void ClassFinalizer::PrintClassInformation(const Class& cls) {
