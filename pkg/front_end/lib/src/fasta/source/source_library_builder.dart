@@ -213,7 +213,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// the error message is the corresponding value in the map.
   Map<String, String?>? unserializableExports;
 
-  List<FieldBuilder>? _implicitlyTypedFields;
+  List<SourceFieldBuilder>? _implicitlyTypedFields;
 
   /// The language version of this library as defined by the language version
   /// of the package it belongs to, if present, or the current language version
@@ -1310,7 +1310,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         (library.problemsAsJson ??= <String>[])
             .addAll(part.library.problemsAsJson!);
       }
-      List<FieldBuilder> partImplicitlyTypedFields = [];
+      List<SourceFieldBuilder> partImplicitlyTypedFields = [];
       part.collectImplicitlyTypedFields(partImplicitlyTypedFields);
       if (partImplicitlyTypedFields.isNotEmpty) {
         if (_implicitlyTypedFields == null) {
@@ -3697,9 +3697,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             count += computeDefaultTypesForVariables(member.typeVariables,
                 inErrorRecovery: issues.isNotEmpty);
           } else {
-            assert(member is FieldBuilder,
+            assert(member is SourceFieldBuilder,
                 "Unexpected class member $member (${member.runtimeType}).");
-            TypeBuilder? fieldType = (member as FieldBuilder).type;
+            TypeBuilder? fieldType = (member as SourceFieldBuilder).type;
             if (fieldType != null) {
               List<NonSimplicityIssue> issues =
                   getInboundReferenceIssuesInType(fieldType);
@@ -3763,7 +3763,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             reportIssues(issues);
             count += computeDefaultTypesForVariables(member.typeVariables,
                 inErrorRecovery: issues.isNotEmpty);
-          } else if (member is FieldBuilder) {
+          } else if (member is SourceFieldBuilder) {
             if (member.type != null) {
               _recursivelyReportGenericFunctionTypesAsBoundsForType(
                   member.type);
@@ -3773,7 +3773,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 "Unexpected extension member $member (${member.runtimeType}).");
           }
         });
-      } else if (declaration is FieldBuilder) {
+      } else if (declaration is SourceFieldBuilder) {
         if (declaration.type != null) {
           List<NonSimplicityIssue> issues =
               getInboundReferenceIssuesInType(declaration.type);
@@ -4046,10 +4046,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInField(
-      FieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
+      SourceFieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
     // Check the bounds in the field's type.
     checkBoundsInType(fieldBuilder.fieldType, typeEnvironment,
-        fieldBuilder.fileUri!, fieldBuilder.charOffset,
+        fieldBuilder.fileUri, fieldBuilder.charOffset,
         allowSuperBounded: true);
 
     // Check that the field has an initializer if its type is potentially
@@ -4532,7 +4532,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
-      if (declaration is FieldBuilder) {
+      if (declaration is SourceFieldBuilder) {
         checkTypesInField(declaration, typeEnvironment);
       } else if (declaration is SourceProcedureBuilder) {
         checkTypesInFunctionBuilder(declaration, typeEnvironment);
@@ -4776,8 +4776,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void registerImplicitlyTypedField(FieldBuilder fieldBuilder) {
-    (_implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
+  void registerImplicitlyTypedField(SourceFieldBuilder fieldBuilder) {
+    (_implicitlyTypedFields ??= <SourceFieldBuilder>[]).add(fieldBuilder);
   }
 
   void collectImplicitlyTypedFields(

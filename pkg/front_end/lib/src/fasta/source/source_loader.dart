@@ -1992,7 +1992,7 @@ severity: $severity
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     membersBuilder.computeTypes();
 
-    List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
+    List<SourceFieldBuilder> allImplicitlyTypedFields = [];
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       library.collectImplicitlyTypedFields(allImplicitlyTypedFields);
     }

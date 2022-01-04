@@ -255,7 +255,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           referencesFromIndexed.lookupSetterReference(valuesName);
     }
 
-    FieldBuilder valuesBuilder = new SourceFieldBuilder(
+    SourceFieldBuilder valuesBuilder = new SourceFieldBuilder(
         /* metadata = */ null,
         listType,
         "values",
@@ -546,9 +546,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
         if (enumConstantInfo != null) {
           String constant = enumConstantInfo.name;
           Builder declaration = firstMemberNamed(constant)!;
-          FieldBuilder field;
+          SourceFieldBuilder field;
           if (declaration.isField) {
-            field = declaration as FieldBuilder;
+            field = declaration as SourceFieldBuilder;
           } else {
             continue;
           }
@@ -604,9 +604,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   bodyBuilder.typeInferrer.inferFieldInitializer(
                       bodyBuilder, const UnknownType(), initializer);
               initializer = inferenceResult.expression;
-              if (field is SourceFieldBuilder) {
-                field.fieldType = inferenceResult.inferredType;
-              }
+              field.fieldType = inferenceResult.inferredType;
             }
             field.buildBody(classHierarchy.coreTypes, initializer);
           }

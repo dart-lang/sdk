@@ -10,7 +10,6 @@ import 'package:kernel/type_algebra.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
-import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -46,6 +45,7 @@ import '../source/source_member_builder.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
+import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 
 abstract class SourceConstructorBuilder
@@ -56,7 +56,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   final Constructor _constructor;
   final Procedure? _constructorTearOff;
 
-  Set<FieldBuilder>? _initializedFields;
+  Set<SourceFieldBuilder>? _initializedFields;
 
   final int charOpenParenOffset;
 
@@ -656,7 +656,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   ///
   /// The field can be initialized either via an initializing formal or via an
   /// entry in the constructor initializer list.
-  void registerInitializedField(FieldBuilder fieldBuilder) {
+  void registerInitializedField(SourceFieldBuilder fieldBuilder) {
     (_initializedFields ??= {}).add(fieldBuilder);
   }
 
@@ -665,8 +665,8 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   /// Returns the set of fields previously registered via
   /// [registerInitializedField] and passes on the ownership of the collection
   /// to the caller.
-  Set<FieldBuilder>? takeInitializedFields() {
-    Set<FieldBuilder>? result = _initializedFields;
+  Set<SourceFieldBuilder>? takeInitializedFields() {
+    Set<SourceFieldBuilder>? result = _initializedFields;
     _initializedFields = null;
     return result;
   }
