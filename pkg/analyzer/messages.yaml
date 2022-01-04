@@ -7690,11 +7690,6 @@ CompileTimeErrorCode:
 
       class B extends A {}
       ```
-  MIXIN_DECLARES_CONSTRUCTOR:
-    problemMessage: "Mixins can't declare constructors."
-    comment: |-
-      The <i>mixinMember</i> production allows the same instance or static
-      members that a class would allow, but no constructors (for now).
   MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES:
     problemMessage: "Type parameters couldn't be inferred for the mixin '{0}' because the base class implements the mixin's supertype constraint '{1}' in multiple conflicting ways"
   MIXIN_INFERENCE_NO_MATCHING_CLASS:

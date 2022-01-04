@@ -8863,16 +8863,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * The <i>mixinMember</i> production allows the same instance or static
-   * members that a class would allow, but no constructors (for now).
-   */
-  static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR =
-      CompileTimeErrorCode(
-    'MIXIN_DECLARES_CONSTRUCTOR',
-    "Mixins can't declare constructors.",
-  );
-
-  /**
    * No parameters.
    */
   static const CompileTimeErrorCode MIXIN_DEFERRED_CLASS = CompileTimeErrorCode(
