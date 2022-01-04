@@ -99,11 +99,12 @@ class Server extends ServerBase {
     bool suppressAnalytics = true,
     bool useAnalysisHighlight2 = false,
     bool enableAsserts = false,
+    String? dartBinary,
   }) async {
     if (_process != null) {
       throw Exception('Process already started');
     }
-    var dartBinary = Platform.executable;
+    dartBinary ??= Platform.executable;
 
     // The integration tests run 3x faster when run from snapshots
     // (you need to run test.py with --use-sdk).
