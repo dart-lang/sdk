@@ -81,7 +81,7 @@ part of dart.core;
 /// ```
 /// For a character outside the Basic Multilingual Plane (plane 0) that is
 /// composed of a surrogate pair, [runes] combines the pair and returns a
-/// single integer.  For example, the Unicode character for a
+/// single integer. For example, the Unicode character for a
 /// musical G-clef ('𝄞') with rune value 0x1D11E consists of a UTF-16 surrogate
 /// pair: `0xD834` and `0xDD1E`. Using [codeUnits] returns the surrogate pair,
 /// and using `runes` returns their combined value:
@@ -198,7 +198,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// The length of the string.
   ///
   /// Returns the number of UTF-16 code units in this string. The number
-  /// of [runes] might be fewer, if the string contains characters outside
+  /// of [runes] might be fewer if the string contains characters outside
   /// the Basic Multilingual Plane (plane 0):
   /// ```dart
   /// 'Dart'.length;          // 4
@@ -346,7 +346,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// result = string.substring(1, 4); // 'art'
   /// ```
   ///
-  /// Both [start] and [end] must be non-negative and no greater than [length], and
+  /// Both [start] and [end] must be non-negative and no greater than [length];
   /// [end], if provided, must be greater than or equal to [start].
   String substring(int start, [int? end]);
 
@@ -494,7 +494,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// Example:
   /// ```dart
   /// '0.0001'.replaceFirst(RegExp(r'0'), ''); // '.0001'
-  /// '0.0001'.replaceFirst(RegExp(r'0'), '7', 1);  // '0.7001'
+  /// '0.0001'.replaceFirst(RegExp(r'0'), '7', 1); // '0.7001'
   /// ```
   String replaceFirst(Pattern from, String to, [int startIndex = 0]);
 
@@ -724,6 +724,55 @@ abstract class String implements Comparable<String>, Pattern {
 }
 
 /// The runes (integer Unicode code points) of a [String].
+///
+/// The characters of a string are encoded in UTF-16. Decoding UTF-16, which
+/// combines surrogate pairs, yields Unicode code points. Following a similar
+/// terminology to Go, Dart uses the name 'rune' for an integer representing a
+/// Unicode code point. Use the [runes] property to get the runes of a string:
+///
+/// Example:
+/// ```dart
+/// const string = 'Dart';
+/// final runes = string.runes.toList();
+/// print(runes); // [68, 97, 114, 116]
+/// ```
+///
+/// For a character outside the Basic Multilingual Plane (plane 0) that is
+/// composed of a surrogate pair, runes combines the pair and returns a
+/// single integer.
+///
+/// For example, the Unicode character for a Family emoji ('👨‍👩‍👦') combines:
+/// * Man ('👨', U+1F468),
+/// * Woman ('👩', U+1F469) and
+/// * Boy ('👦', U+1F466).
+///
+/// Zero Width Joiner (U+200D) is a Unicode character that joins two or more
+/// other characters together in sequence to create a new emoji.
+///
+/// Example:
+/// ```dart
+/// const emojiFamily = '👨‍👩‍👦';
+/// ```
+/// Using `runes` returns their combined value:
+/// ```dart continued
+/// print(emojiFamily.runes); // (128104, 8205, 128105, 8205, 128102)
+///
+/// // Unicode values:
+/// for (final item in emojiFamily.runes) {
+///   print(item.toRadixString(16));
+///   // 1f468 // Man
+///   // 200d // Zero Width Joiner
+///   // 1f469 // Woman
+///   // 200d // Zero Width Joiner
+///   // 1f466 // Boy
+/// }
+/// ```
+///
+/// **See also:**
+/// * [Runes and grapheme clusters](
+/// https://dart.dev/guides/language/language-tour#runes-and-grapheme-clusters)
+/// in
+/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
 class Runes extends Iterable<int> {
   /// The string that this is the runes of.
   final String string;
