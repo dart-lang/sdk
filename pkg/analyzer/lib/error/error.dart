@@ -247,7 +247,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INVALID_CAST_METHOD,
   CompileTimeErrorCode.INVALID_CAST_NEW_EXPR,
   CompileTimeErrorCode.INVALID_CONSTANT,
-  CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
   CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
   CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,

@@ -6098,11 +6098,6 @@ CompileTimeErrorCode:
       for more informative errors.
 
       See TODOs in ConstantVisitor
-  INVALID_CONSTRUCTOR_NAME:
-    problemMessage: Invalid constructor name.
-    comment: |-
-      7.6 Constructors: It is a compile-time error if the name of a constructor
-      is not a constructor name.
   INVALID_EXTENSION_ARGUMENT_COUNT:
     problemMessage: "Extension overrides must have exactly one argument: the value of 'this' in the extension method."
     correctionMessage: Try specifying exactly one argument.
