@@ -1779,23 +1779,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   /// Verify all conflicts between type variable and enclosing class.
-  /// TODO(scheglov)
   void _checkForConflictingClassTypeVariableErrorCodes() {
-    for (TypeParameterElement typeParameter
-        in _enclosingClass!.typeParameters) {
+    var enclosingClass = _enclosingClass!;
+    for (TypeParameterElement typeParameter in enclosingClass.typeParameters) {
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
-      if (_enclosingClass!.name == name) {
-        var code = _enclosingClass!.isMixin
+      if (enclosingClass.name == name) {
+        var code = enclosingClass.isMixin
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS;
         errorReporter.reportErrorForElement(code, typeParameter, [name]);
       }
       // check members
-      if (_enclosingClass!.getMethod(name) != null ||
-          _enclosingClass!.getGetter(name) != null ||
-          _enclosingClass!.getSetter(name) != null) {
-        var code = _enclosingClass!.isMixin
+      if (enclosingClass.getNamedConstructor(name) != null ||
+          enclosingClass.getMethod(name) != null ||
+          enclosingClass.getGetter(name) != null ||
+          enclosingClass.getSetter(name) != null) {
+        var code = enclosingClass.isMixin
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS;
         errorReporter.reportErrorForElement(code, typeParameter, [name]);
