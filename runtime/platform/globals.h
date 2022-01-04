@@ -653,7 +653,7 @@ static inline void USE(T&&) {}
 // gcc enough that it can no longer see that you have cast one pointer
 // type to another thus avoiding the warning.
 template <class D, class S>
-inline D bit_cast(const S& source) {
+DART_FORCE_INLINE D bit_cast(const S& source) {
   static_assert(sizeof(D) == sizeof(S),
                 "Source and destination must have the same size");
 
@@ -669,7 +669,7 @@ inline D bit_cast(const S& source) {
 // obscure details in the C++ standard that make reinterpret_cast
 // virtually useless.
 template <class D, class S>
-inline D bit_copy(const S& source) {
+DART_FORCE_INLINE D bit_copy(const S& source) {
   D destination;
   // This use of memcpy is safe: source and destination cannot overlap.
   memcpy(&destination, reinterpret_cast<const void*>(&source),

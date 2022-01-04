@@ -31,7 +31,6 @@ import 'package:kernel/type_algebra.dart' show Substitution, substitute;
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
-import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
@@ -877,28 +876,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (targetBuilder == null) return null;
     if (targetBuilder is FunctionBuilder) {
       targetNode = targetBuilder.function;
-    } else if (targetBuilder is DillConstructorBuilder) {
-      // It seems that the [redirectionTarget.target] is an instance of
-      // [DillMemberBuilder] whenever the redirectee is an implicit constructor,
-      // e.g.
-      //
-      //   class A {
-      //     factory A() = B;
-      //   }
-      //   class B implements A {}
-      //
-      targetNode = targetBuilder.constructor.function;
-    } else if (targetBuilder is DillFactoryBuilder) {
-      // It seems that the [redirectionTarget.target] is an instance of
-      // [DillMemberBuilder] whenever the redirectee is an implicit constructor,
-      // e.g.
-      //
-      //   class A {
-      //     factory A() = B;
-      //   }
-      //   class B implements A {}
-      //
-      targetNode = targetBuilder.procedure.function;
     } else if (targetBuilder is AmbiguousBuilder) {
       // Multiple definitions with the same name: An error has already been
       // issued.

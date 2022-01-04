@@ -7,26 +7,8 @@ import 'package:kernel/ast.dart';
 import 'function_builder.dart';
 
 abstract class ProcedureBuilder implements FunctionBuilder {
-  int get charOpenParenOffset;
-
-  ProcedureBuilder? get patchForTesting;
-
-  AsyncMarker get actualAsyncModifier;
-
   Procedure get procedure;
 
   @override
   ProcedureKind get kind;
-
-  Procedure get actualProcedure;
-
-  @override
-  ProcedureBuilder get origin;
-
-  void set asyncModifier(AsyncMarker newModifier);
-
-  bool get isEligibleForTopLevelInference;
-
-  /// Returns `true` if this procedure is declared in an extension declaration.
-  bool get isExtensionMethod;
 }

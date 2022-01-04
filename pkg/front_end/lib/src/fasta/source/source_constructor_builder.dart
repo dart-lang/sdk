@@ -245,8 +245,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     _hasFormalsInferred = true;
   }
 
-  /* ConstructorBuilder | DillConstructorBuilder */
-  Object? _computeSuperTargetBuilder() {
+  ConstructorBuilder? _computeSuperTargetBuilder() {
     Constructor superTarget;
     ClassBuilder superclassBuilder;
 
@@ -280,8 +279,6 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           .lookup("", charOffset, library.fileUri);
       if (memberBuilder is ConstructorBuilder) {
         superTarget = memberBuilder.constructor;
-      } else if (memberBuilder is DillConstructorBuilder) {
-        superTarget = memberBuilder.constructor;
       } else {
         // The error in this case should be reported elsewhere.
         return null;
@@ -291,10 +288,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     MemberBuilder? constructorBuilder =
         superclassBuilder.findConstructorOrFactory(
             superTarget.name.text, charOffset, library.fileUri, library);
-    return constructorBuilder is ConstructorBuilder ||
-            constructorBuilder is DillConstructorBuilder
-        ? constructorBuilder
-        : null;
+    return constructorBuilder is ConstructorBuilder ? constructorBuilder : null;
   }
 
   void finalizeSuperInitializingFormals(ClassHierarchy classHierarchy,
@@ -310,7 +304,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       }
     }
 
-    Object? superTargetBuilder = _computeSuperTargetBuilder();
+    ConstructorBuilder? superTargetBuilder = _computeSuperTargetBuilder();
     Constructor superTarget;
     List<FormalParameterBuilder>? superFormals;
     if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
@@ -459,7 +453,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   void addSuperParameterDefaultValueCloners(
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
-    Object? superTargetBuilder = _computeSuperTargetBuilder();
+    ConstructorBuilder? superTargetBuilder = _computeSuperTargetBuilder();
     if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
       superTargetBuilder
           .addSuperParameterDefaultValueCloners(synthesizedFunctionNodes);
