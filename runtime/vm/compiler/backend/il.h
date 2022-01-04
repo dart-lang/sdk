@@ -62,7 +62,6 @@ class ParsedFunction;
 class Range;
 class RangeAnalysis;
 class RangeBoundary;
-class SuccessorsIterable;
 class TypeUsageInfo;
 class UnboxIntegerInstr;
 
@@ -769,6 +768,64 @@ class BinaryFeedback : public ZoneAllocated {
 typedef ZoneGrowableArray<Value*> InputsArray;
 typedef ZoneGrowableArray<PushArgumentInstr*> PushArgumentsArray;
 
+template <typename Trait>
+class InstructionIndexedPropertyIterable {
+ public:
+  struct Iterator {
+    const Instruction* instr;
+    intptr_t index;
+
+    decltype(Trait::At(instr, index)) operator*() const {
+      return Trait::At(instr, index);
+    }
+    Iterator& operator++() {
+      index++;
+      return *this;
+    }
+
+    bool operator==(const Iterator& other) {
+      return instr == other.instr && index == other.index;
+    }
+
+    bool operator!=(const Iterator& other) { return !(*this == other); }
+  };
+
+  explicit InstructionIndexedPropertyIterable(const Instruction* instr)
+      : instr_(instr) {}
+
+  Iterator begin() const { return {instr_, 0}; }
+  Iterator end() const { return {instr_, Trait::Length(instr_)}; }
+
+ private:
+  const Instruction* instr_;
+};
+
+class ValueListIterable {
+ public:
+  struct Iterator {
+    Value* value;
+
+    Value* operator*() const { return value; }
+
+    Iterator& operator++() {
+      value = value->next_use();
+      return *this;
+    }
+
+    bool operator==(const Iterator& other) { return value == other.value; }
+
+    bool operator!=(const Iterator& other) { return !(*this == other); }
+  };
+
+  explicit ValueListIterable(Value* value) : value_(value) {}
+
+  Iterator begin() const { return {value_}; }
+  Iterator end() const { return {nullptr}; }
+
+ private:
+  Value* value_;
+};
+
 class Instruction : public ZoneAllocated {
  public:
 #define DECLARE_TAG(type, attrs) k##type,
@@ -827,6 +884,20 @@ class Instruction : public ZoneAllocated {
     value->set_use_index(i);
     RawSetInputAt(i, value);
   }
+
+  struct InputsTrait {
+    static Definition* At(const Instruction* instr, intptr_t index) {
+      return instr->InputAt(index)->definition();
+    }
+
+    static intptr_t Length(const Instruction* instr) {
+      return instr->InputCount();
+    }
+  };
+
+  using InputsIterable = InstructionIndexedPropertyIterable<InputsTrait>;
+
+  InputsIterable inputs() { return InputsIterable(this); }
 
   // Remove all inputs (including in the environment) from their
   // definition's use lists.
@@ -917,7 +988,22 @@ class Instruction : public ZoneAllocated {
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
-  inline SuccessorsIterable successors() const;
+  struct SuccessorsTrait {
+    static BlockEntryInstr* At(const Instruction* instr, intptr_t index) {
+      return instr->SuccessorAt(index);
+    }
+
+    static intptr_t Length(const Instruction* instr) {
+      return instr->SuccessorCount();
+    }
+  };
+
+  using SuccessorsIterable =
+      InstructionIndexedPropertyIterable<SuccessorsTrait>;
+
+  inline SuccessorsIterable successors() const {
+    return SuccessorsIterable(this);
+  }
 
   void Goto(JoinEntryInstr* entry);
 
@@ -2296,6 +2382,10 @@ class Definition : public Instruction {
 
   Value* env_use_list() const { return env_use_list_; }
   void set_env_use_list(Value* head) { env_use_list_ = head; }
+
+  ValueListIterable input_uses() const {
+    return ValueListIterable(input_use_list_);
+  }
 
   void AddInputUse(Value* value) { Value::AddToList(value, &input_use_list_); }
   void AddEnvUse(Value* value) { Value::AddToList(value, &env_use_list_); }
@@ -9764,37 +9854,6 @@ inline bool Value::CanBe(const Object& value) {
   return (constant == nullptr) || constant->value().ptr() == value.ptr();
 }
 
-class SuccessorsIterable {
- public:
-  struct Iterator {
-    const Instruction* instr;
-    intptr_t index;
-
-    BlockEntryInstr* operator*() const { return instr->SuccessorAt(index); }
-    Iterator& operator++() {
-      index++;
-      return *this;
-    }
-
-    bool operator==(const Iterator& other) {
-      return instr == other.instr && index == other.index;
-    }
-
-    bool operator!=(const Iterator& other) { return !(*this == other); }
-  };
-
-  explicit SuccessorsIterable(const Instruction* instr) : instr_(instr) {}
-
-  Iterator begin() const { return {instr_, 0}; }
-  Iterator end() const { return {instr_, instr_->SuccessorCount()}; }
-
- private:
-  const Instruction* instr_;
-};
-
-SuccessorsIterable Instruction::successors() const {
-  return SuccessorsIterable(this);
-}
 
 }  // namespace dart
 
