@@ -20,16 +20,33 @@ abstract class Function {
   ///
   /// Example:
   /// ```dart
-  /// Function.apply(foo, [1, 2, 3], {#f: 4, #g: 5});
-  /// ```
+  /// void printWineDetails(int vintage, {String? country, String? name}) {
+  ///   print('Name: $name, Country: $country, Vintage: $vintage');
+  /// }
   ///
-  /// gives exactly the same result as
-  /// ```dart
-  /// foo(1, 2, 3, f: 4, g: 5).
+  /// void main() {
+  ///   Function.apply(
+  ///       printWineDetails, [2018], {#country: 'USA', #name: 'Dominus Estate'});
+  /// }
+  ///
+  /// // Output of the example is:
+  /// Name: Dominus Estate, Country: USA, Vintage: 2018
   /// ```
   ///
   /// If [positionalArguments] is null, it's considered an empty list.
   /// If [namedArguments] is omitted or null, it is considered an empty map.
+  ///
+  /// ```dart
+  /// void helloWorld() {
+  ///   print('Hello world!');
+  /// }
+  ///
+  /// void main() {
+  ///   Function.apply(helloWorld, [], {});
+  /// }
+  /// // Output of the example is:
+  /// Hello world!
+  /// ```
   external static apply(Function function, List<dynamic>? positionalArguments,
       [Map<Symbol, dynamic>? namedArguments]);
 
