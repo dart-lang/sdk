@@ -29,15 +29,15 @@ int f() {
       suggestionWith(
           completion: 'c',
           element: ElementKind.LOCAL_VARIABLE,
-          kind: CompletionSuggestionKind.INVOCATION),
+          kind: CompletionSuggestionKind.IDENTIFIER),
       suggestionWith(
           completion: 'b',
           element: ElementKind.LOCAL_VARIABLE,
-          kind: CompletionSuggestionKind.INVOCATION),
+          kind: CompletionSuggestionKind.IDENTIFIER),
       suggestionWith(
           completion: 'a',
           element: ElementKind.LOCAL_VARIABLE,
-          kind: CompletionSuggestionKind.INVOCATION),
+          kind: CompletionSuggestionKind.IDENTIFIER),
     ]);
   }
 }

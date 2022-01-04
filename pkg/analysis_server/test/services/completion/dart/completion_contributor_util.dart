@@ -267,7 +267,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestClassTypeAlias(String name,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION}) {
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.IDENTIFIER}) {
     var cs = assertSuggest(name, csKind: kind);
     var element = cs.element!;
     expect(element.kind, equals(ElementKind.CLASS_TYPE_ALIAS));
@@ -382,7 +382,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   CompletionSuggestion assertSuggestLocalVariable(
       String name, String? returnType) {
     // Local variables should only be suggested by LocalReferenceContributor
-    var cs = assertSuggest(name, csKind: CompletionSuggestionKind.INVOCATION);
+    var cs = assertSuggest(name, csKind: CompletionSuggestionKind.IDENTIFIER);
     expect(cs.returnType, returnType ?? 'dynamic');
     var element = cs.element!;
     expect(element.kind, equals(ElementKind.LOCAL_VARIABLE));
@@ -506,7 +506,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     String? aliasedType,
     String? returnType,
     bool isDeprecated = false,
-    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+    CompletionSuggestionKind kind = CompletionSuggestionKind.IDENTIFIER,
   }) {
     var cs = assertSuggest(name, csKind: kind, isDeprecated: isDeprecated);
     if (returnType != null) {

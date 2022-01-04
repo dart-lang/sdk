@@ -2311,7 +2311,7 @@ void f() {
     expect(replacementLength, equals(0));
 
     // The class is suggested.
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A');
 
     // Class and all its constructors are shadowed by the local variable.
     assertNoResult('A', elementKind: ElementKind.CLASS);
@@ -2327,7 +2327,7 @@ void f() {
       assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
           elementKind: ElementKind.CLASS);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'a');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'b');
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'x');
       assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'DateTime',
           elementKind: ElementKind.CLASS);

@@ -427,7 +427,7 @@ class SuggestionBuilder {
         element.enclosingElement is CompilationUnitElement) {
       suggestTopLevelPropertyAccessor(element, kind: kind);
     } else if (element is TypeAliasElement) {
-      suggestTypeAlias(element, kind: kind);
+      suggestTypeAlias(element);
     } else {
       throw ArgumentError('Cannot suggest a ${element.runtimeType}');
     }
@@ -585,7 +585,13 @@ class SuggestionBuilder {
       isConstant: isConstant,
       localVariableDistance: localVariableDistance,
     );
-    _add(_createSuggestion(variable, relevance: relevance));
+    _add(
+      _createSuggestion(
+        variable,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for a [method]. If the method is being invoked with a
@@ -901,13 +907,17 @@ class SuggestionBuilder {
   /// Add a suggestion for a [typeAlias]. If a [kind] is provided it
   /// will be used as the kind for the suggestion. If the alias can only be
   /// referenced using a prefix, then the [prefix] should be provided.
-  void suggestTypeAlias(TypeAliasElement typeAlias,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      String? prefix}) {
+  void suggestTypeAlias(TypeAliasElement typeAlias, {String? prefix}) {
     var relevance = _computeTopLevelRelevance(typeAlias,
         elementType: _instantiateTypeAlias(typeAlias));
-    _add(_createSuggestion(typeAlias,
-        kind: kind, prefix: prefix, relevance: relevance));
+    _add(
+      _createSuggestion(
+        typeAlias,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        prefix: prefix,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for a type [parameter].

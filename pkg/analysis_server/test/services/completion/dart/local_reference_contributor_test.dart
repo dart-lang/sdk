@@ -2446,7 +2446,7 @@ void f() {
 ''');
     await computeSuggestions();
 
-    assertSuggest('E', elemKind: ElementKind.LOCAL_VARIABLE);
+    assertSuggestLocalVariable('E', 'int');
 
     // Enum and all its constants are shadowed by the local variable.
     assertNotSuggested('E', elemKind: ElementKind.ENUM);
@@ -2706,7 +2706,7 @@ extension E on int {
     await computeSuggestions();
 
     assertNotSuggested('E', elemKind: ElementKind.EXTENSION);
-    assertSuggest('E', elemKind: ElementKind.LOCAL_VARIABLE);
+    assertSuggestLocalVariable('E', 'int');
   }
 
   Future<void> test_ExtensionDeclaration_unnamed() async {
@@ -2758,7 +2758,7 @@ class A {
     await computeSuggestions();
 
     assertNotSuggested('foo', elemKind: ElementKind.FIELD);
-    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
+    assertSuggestLocalVariable('foo', 'int');
   }
 
   Future<void> test_FieldFormalParameter_in_non_constructor() async {
@@ -3335,7 +3335,7 @@ void bar() {
     await computeSuggestions();
 
     assertNotSuggested('bar', elemKind: ElementKind.FUNCTION);
-    assertSuggest('bar', elemKind: ElementKind.LOCAL_VARIABLE);
+    assertSuggestLocalVariable('bar', 'int');
   }
 
   Future<void> test_functionDeclaration_typeParameterBounds() async {
@@ -4196,7 +4196,7 @@ void f() {
 ''');
     await computeSuggestions();
 
-    assertSuggest('A');
+    assertSuggestLocalVariable('A', 'int');
 
     // Class and all its constructors are shadowed by the local variable.
     assertNotSuggested('A', elemKind: ElementKind.CLASS);
@@ -4919,7 +4919,7 @@ class A {
     await computeSuggestions();
 
     assertNotSuggested('foo', elemKind: ElementKind.METHOD);
-    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
+    assertSuggestLocalVariable('foo', 'dynamic');
   }
 
   Future<void> test_MethodDeclaration_shadowed2() async {
@@ -4940,7 +4940,7 @@ class B extends A{
     await computeSuggestions();
 
     assertNotSuggested('foo', elemKind: ElementKind.METHOD);
-    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
+    assertSuggestLocalVariable('foo', 'dynamic');
   }
 
   Future<void> test_methodDeclaration_typeParameterBounds() async {
@@ -5099,7 +5099,7 @@ mixin foo on Object {
     await computeSuggestions();
 
     assertNotSuggested('foo', elemKind: ElementKind.MIXIN);
-    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
+    assertSuggestLocalVariable('foo', 'int');
   }
 
   Future<void> test_new_instance() async {
@@ -5248,7 +5248,7 @@ foo(int bar) {
     await computeSuggestions();
 
     assertNotSuggested('bar', elemKind: ElementKind.PARAMETER);
-    assertSuggest('bar', elemKind: ElementKind.LOCAL_VARIABLE);
+    assertSuggestLocalVariable('bar', 'int');
   }
 
   Future<void> test_PrefixedIdentifier_class_const() async {
@@ -6049,7 +6049,7 @@ void bar() {
     await computeSuggestions();
 
     assertNotSuggested('foo', elemKind: ElementKind.TOP_LEVEL_VARIABLE);
-    assertSuggest('foo', elemKind: ElementKind.LOCAL_VARIABLE);
+    assertSuggestLocalVariable('foo', 'dynamic');
   }
 
   Future<void> test_TopLevelVariableDeclaration_typed_name() async {
@@ -6192,7 +6192,7 @@ class A<T> {
 ''');
     await computeSuggestions();
     assertNotSuggested('T', elemKind: ElementKind.TYPE_PARAMETER);
-    assertSuggest('T', elemKind: ElementKind.LOCAL_VARIABLE);
+    assertSuggestLocalVariable('T', 'int');
   }
 
   Future<void> test_VariableDeclaration_name() async {

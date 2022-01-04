@@ -324,7 +324,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     var declaredElement = declaration.declaredElement;
     if (declaredElement != null && opType.includeTypeNameSuggestions) {
-      builder.suggestTypeAlias(declaredElement, kind: _defaultKind);
+      builder.suggestTypeAlias(declaredElement);
     }
   }
 
@@ -333,7 +333,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     var declaredElement = declaration.declaredElement;
     if (declaredElement is TypeAliasElement &&
         opType.includeTypeNameSuggestions) {
-      builder.suggestTypeAlias(declaredElement, kind: _defaultKind);
+      builder.suggestTypeAlias(declaredElement);
     }
   }
 
