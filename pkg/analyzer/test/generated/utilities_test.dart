@@ -1644,7 +1644,6 @@ class A {
     );
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47951')
   void test_superFormalParameter() {
     var findNode = _parseStringToFindNode(r'''
 class A {
@@ -1666,7 +1665,6 @@ class B extends A {
     );
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47741')
   void test_superFormalParameter_functionTyped() {
     var findNode = _parseStringToFindNode(r'''
 class A {

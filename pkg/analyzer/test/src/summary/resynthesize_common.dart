@@ -1453,7 +1453,6 @@ library
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47951')
   test_class_constructor_parameters_super_explicitType_function() async {
     var library = await checkLibrary('''
 class A {
@@ -1492,7 +1491,6 @@ library
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47951')
   test_class_constructor_parameters_super_explicitType_interface() async {
     var library = await checkLibrary('''
 class A {
@@ -1518,9 +1516,41 @@ library
         constructors
           @47
             parameters
-              requiredPositional final super.a @49
+              requiredPositional final super.a @59
                 type: int
                 superConstructorParameter: a@18
+            superConstructor: self::@class::A::@constructor::•
+''');
+  }
+
+  test_class_constructor_parameters_super_explicitType_interface_nullable() async {
+    var library = await checkLibrary('''
+class A {
+  A(num? a);
+}
+
+class B extends A {
+  B(int? super.a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        constructors
+          @12
+            parameters
+              requiredPositional a @19
+                type: num?
+      class B @32
+        supertype: A
+        constructors
+          @48
+            parameters
+              requiredPositional final super.a @61
+                type: int?
+                superConstructorParameter: a@19
             superConstructor: self::@class::A::@constructor::•
 ''');
   }
