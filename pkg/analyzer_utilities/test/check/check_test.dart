@@ -62,6 +62,12 @@ void main() {
       });
     });
     group('Iterable', () {
+      test('containsMatch', () {
+        check(<int>[0]).containsMatch((e) => e.isZero);
+        check(<int>[1, 0, 2]).containsMatch((e) => e.isZero);
+        _fails(() => check(<int>[]).containsMatch((e) => e.isZero));
+        _fails(() => check(<int>[1]).containsMatch((e) => e.isZero));
+      });
       test('hasLength', () {
         check(<int>[]).hasLength().isZero;
         check(<int>[0]).hasLength().isEqualTo(1);

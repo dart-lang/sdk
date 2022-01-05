@@ -19,6 +19,28 @@ extension IterableExtension<T> on CheckTarget<Iterable<T>> {
     }
   }
 
+  /// Succeeds if there is an element that matches the [matcher],
+  void containsMatch(void Function(CheckTarget<T> element) matcher) {
+    var elementList = value.toList();
+    for (var elementIndex = 0;
+        elementIndex < elementList.length;
+        elementIndex++) {
+      var element = elementList[elementIndex];
+      var elementTarget = nest(
+        element,
+        (element) =>
+            'element ${valueStr(element)} at ${valueStr(elementIndex)}',
+      );
+      try {
+        matcher(elementTarget);
+        return;
+      } on test_package.TestFailure {
+        continue;
+      }
+    }
+    fail('Does not contain at least one element that matches');
+  }
+
   @UseResult.unless(parameterDefined: 'expected')
   CheckTarget<int> hasLength([int? expected]) {
     var actual = value.length;

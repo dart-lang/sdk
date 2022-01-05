@@ -56,10 +56,12 @@ class CompletionSuggestionForTesting {
 extension CompletionResponseExtension
     on CheckTarget<CompletionResponseForTesting> {
   CheckTarget<List<CompletionSuggestionForTesting>> get suggestions {
-    var suggestions = value.suggestions
-        .map((e) =>
-            CompletionSuggestionForTesting(response: value, suggestion: e))
-        .toList();
+    var suggestions = value.suggestions.map((e) {
+      return CompletionSuggestionForTesting(
+        response: value,
+        suggestion: e,
+      );
+    }).toList();
     return nest(
       suggestions,
       (selected) => 'suggestions ${valueStr(selected)}',
@@ -73,6 +75,41 @@ extension CompletionSuggestionExtension
     return nest(
       value.suggestion.completion,
       (selected) => 'has completion ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<String?> get defaultArgumentListString {
+    return nest(
+      value.suggestion.defaultArgumentListString,
+      (selected) => 'has defaultArgumentListString ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<List<int>?> get defaultArgumentListTextRanges {
+    return nest(
+      value.suggestion.defaultArgumentListTextRanges,
+      (selected) => 'has defaultArgumentListTextRanges ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<String?> get docComplete {
+    return nest(
+      value.suggestion.docComplete,
+      (selected) => 'has docComplete ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<String?> get docSummary {
+    return nest(
+      value.suggestion.docSummary,
+      (selected) => 'has docSummary ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<Element?> get element {
+    return nest(
+      value.suggestion.element,
+      (selected) => 'has element ${valueStr(selected)}',
     );
   }
 
@@ -143,6 +180,26 @@ extension CompletionSuggestionsExtension
     return nest(
       result,
       (selected) => 'named arguments ${valueStr(selected)}',
+    );
+  }
+}
+
+extension ElementExtension on CheckTarget<Element> {
+  void get isParameter {
+    kind.isEqualTo(ElementKind.PARAMETER);
+  }
+
+  CheckTarget<ElementKind> get kind {
+    return nest(
+      value.kind,
+      (selected) => 'has kind ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<String> get name {
+    return nest(
+      value.name,
+      (selected) => 'has name ${valueStr(selected)}',
     );
   }
 }

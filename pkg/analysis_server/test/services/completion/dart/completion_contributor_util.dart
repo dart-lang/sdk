@@ -17,6 +17,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_context.dart';
+import 'completion_check.dart';
 
 SuggestionMatcher suggestionHas(
         {required String completion,
@@ -573,6 +574,16 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     // Request completions
     suggestions = await computeContributedSuggestions(request);
     expect(suggestions, isNotNull, reason: 'expected suggestions');
+  }
+
+  Future<CompletionResponseForTesting> computeSuggestions2() async {
+    await computeSuggestions();
+    return CompletionResponseForTesting(
+      requestOffset: completionOffset,
+      replacementOffset: replacementOffset,
+      replacementLength: replacementLength,
+      suggestions: suggestions,
+    );
   }
 
   Never failedCompletion(String message,
