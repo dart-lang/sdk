@@ -374,6 +374,7 @@ divided
 dmitryas
 doc
 docs
+doesn\'t
 dom
 dont
 doubles
@@ -1229,6 +1230,7 @@ spec
 spec'ed
 specialization
 specially
+specifications
 specifics
 speeding
 spend
