@@ -556,7 +556,13 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   visitVariableInitialization(VariableInitialization initialization) {
-    visitAssignment(initialization);
+    visitNestedExpression(initialization.declaration, CALL,
+        newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
+    if (initialization.value != null) {
+      out('=');
+      visitNestedExpression(initialization.value, ASSIGNMENT,
+          newInForInit: inForInit, newAtStatementBegin: false);
+    }
   }
 
   @override

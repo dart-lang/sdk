@@ -840,7 +840,15 @@ class Printer implements NodeVisitor {
 
   @override
   visitVariableInitialization(VariableInitialization initialization) {
-    visitAssignment(initialization);
+    visitNestedExpression(initialization.declaration, CALL,
+        newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
+    if (initialization.value != null) {
+      spaceOut();
+      out("=");
+      spaceOut();
+      visitNestedExpression(initialization.value, ASSIGNMENT,
+          newInForInit: inForInit, newAtStatementBegin: false);
+    }
   }
 
   @override
