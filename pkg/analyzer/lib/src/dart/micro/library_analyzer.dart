@@ -47,14 +47,9 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 /// Analyzer of a single library.
 class LibraryAnalyzer {
-  /// A marker object used to prevent the initialization of
-  /// [_versionConstraintFromPubspec] when the previous initialization attempt
-  /// failed.
-  static final VersionRange noSpecifiedRange = VersionRange();
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
