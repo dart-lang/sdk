@@ -6,9 +6,10 @@ import 'api.dart';
 
 /// Exposes a platform specific [MacroExecutor], through a top level
 /// `Future<MacroExecutor> start()` function.
-import 'fake_executor/fake_executor.dart'
-    if (dart.library.mirrors) 'isolate_mirrors_executor/isolate_mirrors_executor.dart'
-    as executor_impl show start;
+///
+/// TODO: conditionally load isolate_mirrors_executor.dart once conditional
+/// imports of mirrors are supported in AOT (issue #48057).
+import 'fake_executor/fake_executor.dart' as executor_impl show start;
 
 /// The interface used by Dart language implementations, in order to load
 /// and execute macros, as well as produce library augmentations from those
