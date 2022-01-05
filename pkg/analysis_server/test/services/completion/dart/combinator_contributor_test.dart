@@ -63,8 +63,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertSuggestClass('A', kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestClass('PB', kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestTopLevelVar('T1', null,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestTopLevelVar('T1', null);
     assertSuggestFunction('F1', 'PB',
         kind: CompletionSuggestionKind.IDENTIFIER);
     assertNotSuggested('C');
@@ -107,8 +106,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertSuggestClass('B', kind: CompletionSuggestionKind.IDENTIFIER);
     assertNotSuggested('_AB');
     assertSuggestClass('PB', kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestTopLevelVar('T1', null,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestTopLevelVar('T1', null);
     assertSuggestFunction('F1', 'PB',
         kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestClass('Clz', kind: CompletionSuggestionKind.IDENTIFIER);
@@ -147,8 +145,7 @@ import 'b.dart' show ^;
   Future<void> test_Combinator_show_pi() async {
     addTestSource('import "dart:math" show ^;');
     await computeSuggestions();
-    assertSuggestTopLevelVar('pi', 'double',
-        kind: CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestTopLevelVar('pi', 'double');
   }
 
   Future<void> test_Combinator_show_recursive() async {

@@ -1779,42 +1779,42 @@ class A {
     addTestFile('class A {bool foo; A() : ^;}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_constructor2() async {
     addTestFile('class A {bool foo; A() : s^;}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_constructor3() async {
     addTestFile('class A {bool foo; A() : a=7,^;}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_constructor4() async {
     addTestFile('class A {bool foo; A() : a=7,s^;}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_constructor5() async {
     addTestFile('class A {bool foo; A() : a=7,s^}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_constructor6() async {
     addTestFile('class A {bool foo; A() : a=7,^ void bar() {}}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super');
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
   }
 
   Future<void> test_extension() async {
@@ -2228,7 +2228,7 @@ class B extends A {
 class A { var isVisible;}
 void f(A p) { var v1 = p.is^; }''');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'isVisible');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'isVisible');
   }
 
   Future<void> test_keyword() {
@@ -2326,7 +2326,7 @@ void f() {
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'A',
           elementKind: ElementKind.CLASS);
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'a');
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'a');
       assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'b');
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'x');
       assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'DateTime',
@@ -2459,7 +2459,7 @@ class B extends A {m() {^}}
       expect(replacementLength, equals(4));
       // Suggestions based upon imported elements are partially filtered
       //assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'test');
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'test');
       assertNoResult('HtmlElement');
     });
   }
@@ -2663,7 +2663,7 @@ class SingleSuggestionValidator {
   }
 
   void assertGetter() {
-    expect(suggestion.kind, CompletionSuggestionKind.INVOCATION);
+    expect(suggestion.kind, CompletionSuggestionKind.IDENTIFIER);
     expect(suggestion.element?.kind, ElementKind.GETTER);
   }
 
@@ -2682,12 +2682,12 @@ class SingleSuggestionValidator {
   }
 
   void assertSetter() {
-    expect(suggestion.kind, CompletionSuggestionKind.INVOCATION);
+    expect(suggestion.kind, CompletionSuggestionKind.IDENTIFIER);
     expect(suggestion.element?.kind, ElementKind.SETTER);
   }
 
   void assertTopLevelVariable() {
-    expect(suggestion.kind, CompletionSuggestionKind.INVOCATION);
+    expect(suggestion.kind, CompletionSuggestionKind.IDENTIFIER);
     expect(suggestion.element?.kind, ElementKind.TOP_LEVEL_VARIABLE);
   }
 }

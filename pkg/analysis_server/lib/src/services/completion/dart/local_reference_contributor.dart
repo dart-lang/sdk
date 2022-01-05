@@ -314,8 +314,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       if (declaredElement is FunctionElement) {
         builder.suggestTopLevelFunction(declaredElement, kind: _defaultKind);
       } else if (declaredElement is PropertyAccessorElement) {
-        builder.suggestTopLevelPropertyAccessor(declaredElement,
-            kind: _defaultKind);
+        builder.suggestTopLevelPropertyAccessor(declaredElement);
       }
     }
   }
