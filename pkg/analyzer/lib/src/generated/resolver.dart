@@ -2358,9 +2358,36 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     List<ParameterElement?> resolvedParameters =
         List<ParameterElement?>.filled(argumentCount, null);
     int positionalArgumentCount = 0;
-    HashSet<String>? usedNames;
     bool noBlankArguments = true;
     Expression? firstUnresolvedArgument;
+    for (int i = 0; i < argumentCount; i++) {
+      Expression argument = arguments[i];
+      if (argument is! NamedExpressionImpl) {
+        if (argument is SimpleIdentifier && argument.name.isEmpty) {
+          noBlankArguments = false;
+        }
+        positionalArgumentCount++;
+        if (unnamedIndex < unnamedParameterCount) {
+          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
+        } else {
+          firstUnresolvedArgument ??= argument;
+        }
+      }
+    }
+
+    Set<String>? usedNames;
+    if (enclosingConstructor != null) {
+      var result = verifySuperFormalParameters(
+        constructor: enclosingConstructor,
+        hasExplicitPositionalArguments: positionalArgumentCount != 0,
+        errorReporter: errorReporter,
+      );
+      positionalArgumentCount += result.positionalArgumentCount;
+      if (result.namedArgumentNames.isNotEmpty) {
+        usedNames = result.namedArgumentNames.toSet();
+      }
+    }
+
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpressionImpl) {
@@ -2374,31 +2401,12 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
           resolvedParameters[i] = element;
           nameNode.staticElement = element;
         }
-        usedNames ??= HashSet<String>();
+        usedNames ??= <String>{};
         if (!usedNames.add(name)) {
           errorReporter?.reportErrorForNode(
               CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, [name]);
         }
-      } else {
-        if (argument is SimpleIdentifier && argument.name.isEmpty) {
-          noBlankArguments = false;
-        }
-        positionalArgumentCount++;
-        if (unnamedIndex < unnamedParameterCount) {
-          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
-        } else {
-          firstUnresolvedArgument ??= argument;
-        }
       }
-    }
-
-    if (enclosingConstructor != null) {
-      var result = verifySuperFormalParameters(
-        constructor: enclosingConstructor,
-        hasExplicitPositionalArguments: positionalArgumentCount != 0,
-        errorReporter: errorReporter,
-      );
-      positionalArgumentCount += result.positionalArgumentCount;
     }
 
     if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
