@@ -11101,6 +11101,13 @@ CompileTimeErrorCode:
 
       int f(C c) => c.b;
       ```
+  SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
+    problemMessage: The type '{0}' of this parameter is not a subtype of the type '{1}' of the associated super-constructor parameter.
+    comment: |-
+      Parameters:
+      0: the type of super-parameter
+      1: the type of associated super-constructor parameter
+    correctionMessage: Try removing the explicit type annotation from the parameter.
   SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
     problemMessage: No associated named super-constructor parameter.
     comment: No parameters.

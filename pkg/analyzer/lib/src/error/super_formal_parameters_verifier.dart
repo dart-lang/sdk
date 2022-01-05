@@ -20,13 +20,6 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
       var parameterElement =
           parameter.declaredElement as SuperFormalParameterElementImpl;
       if (parameter.isNamed) {
-        if (parameterElement.superConstructorParameter == null) {
-          errorReporter?.reportErrorForNode(
-            CompileTimeErrorCode
-                .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED,
-            parameter.identifier,
-          );
-        }
         result.namedArgumentNames.add(parameterElement.name);
       } else {
         result.positionalArgumentCount++;
@@ -34,13 +27,6 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
           errorReporter?.reportErrorForNode(
             CompileTimeErrorCode
                 .POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT,
-            parameter.identifier,
-          );
-        }
-        if (parameterElement.superConstructorParameter == null) {
-          errorReporter?.reportErrorForNode(
-            CompileTimeErrorCode
-                .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
             parameter.identifier,
           );
         }

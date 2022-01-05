@@ -13097,6 +13097,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * Parameters:
+   * 0: the type of super-parameter
+   * 1: the type of associated super-constructor parameter
+   */
+  static const CompileTimeErrorCode
+      SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED =
+      CompileTimeErrorCode(
+    'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
+    "The type '{0}' of this parameter is not a subtype of the type '{1}' of "
+        "the associated super-constructor parameter.",
+    correctionMessage:
+        "Try removing the explicit type annotation from the parameter.",
+  );
+
+  /**
    * No parameters.
    */
   static const CompileTimeErrorCode

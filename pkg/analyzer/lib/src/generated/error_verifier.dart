@@ -1142,6 +1142,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
+    super.visitSuperFormalParameter(node);
+
     var constructor = node.parentFormalParameterList.parent;
     if (!(constructor is ConstructorDeclaration &&
         constructor.isNonRedirectingGenerative)) {
@@ -1149,9 +1151,33 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
         node.superKeyword,
       );
+      return;
     }
 
-    super.visitSuperFormalParameter(node);
+    var element = node.declaredElement as SuperFormalParameterElementImpl;
+    var superParameter = element.superConstructorParameter;
+
+    if (superParameter == null) {
+      errorReporter.reportErrorForNode(
+        node.isNamed
+            ? CompileTimeErrorCode
+                .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED
+            : CompileTimeErrorCode
+                .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+        node.identifier,
+      );
+      return;
+    }
+
+    if (!_currentLibrary.typeSystem
+        .isSubtypeOf(element.type, superParameter.type)) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode
+            .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
+        node.identifier,
+        [element.type, superParameter.type],
+      );
+    }
   }
 
   @override
