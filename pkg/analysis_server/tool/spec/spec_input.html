@@ -1507,6 +1507,22 @@
           then <tt>isIncomplete</tt> is set to <tt>true</tt>.
         </p>
       </field>
+      <field name="completionMode" experimental="true" optional="true">
+        <ref>CompletionMode</ref>
+        <p>
+          The mode of code completion being invoked. If no value is provided,
+          <tt>BASIC</tt> will be assumed. <tt>BASIC</tt> is also the only
+          currently supported.
+        </p>
+      </field>
+      <field name="invocationCount" experimental="true" optional="true">
+        <ref>int</ref>
+        <p>
+          The number of times that the user has invoked code completion at
+          the same code location, counting from 1. If no value is provided,
+          1 will be assumed.
+        </p>
+      </field>
       <field name="timeout" experimental="true" optional="true">
         <ref>int</ref>
         <p>
@@ -4127,6 +4143,26 @@
         </p>
       </field>
     </object>
+  </type>
+  <type name="CompletionMode">
+    <p>
+      An enumeration of the kinds of code completion that users can invoke.
+    </p>
+    <enum>
+      <value>
+        <code>BASIC</code>
+        <p>
+          Basic code completion invocation type, and the default for this
+          enumeration.
+        </p>
+      </value>
+      <value>
+        <code>SMART</code>
+        <p>
+          Smart code completion, currently not implemented.
+        </p>
+      </value>
+    </enum>
   </type>
   <type name="RuntimeCompletionExpression">
     <p>
