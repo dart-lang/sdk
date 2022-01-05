@@ -1745,32 +1745,6 @@ class DefaultSuperFormalParameterElementImpl
   String? get defaultValueCode {
     return constantInitializer?.toSource();
   }
-
-  @override
-  bool get hasDefaultValue {
-    if (super.hasDefaultValue) {
-      return true;
-    }
-    return computeConstantValue() != null;
-  }
-
-  @override
-  DartObject? computeConstantValue() {
-    if (constantInitializer != null) {
-      return super.computeConstantValue();
-    }
-
-    var superDefault = superConstructorParameter?.computeConstantValue();
-    var superDefaultType = superDefault?.type;
-    var libraryElement = library;
-    if (superDefaultType != null &&
-        libraryElement != null &&
-        libraryElement.typeSystem.isSubtypeOf(superDefaultType, type)) {
-      return superDefault;
-    }
-
-    return null;
-  }
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.

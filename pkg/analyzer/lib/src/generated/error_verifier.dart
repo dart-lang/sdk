@@ -4939,25 +4939,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               parameterName ?? parameter,
             );
           }
-        } else if (defaultValuesAreExpected) {
+        } else if (defaultValuesAreExpected && parameter.defaultValue == null) {
           var parameterElement = parameter.declaredElement!;
-          if (!parameterElement.hasDefaultValue) {
-            var type = parameterElement.type;
-            if (typeSystem.isPotentiallyNonNullable(type)) {
-              var parameterName = _parameterName(parameter);
-              if (parameterElement.hasRequired) {
-                errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode
-                      .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION,
-                  parameterName ?? parameter,
-                );
-              } else {
-                errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
-                  parameterName ?? parameter,
-                  [parameterName?.name ?? '?'],
-                );
-              }
+          var type = parameterElement.type;
+          if (typeSystem.isPotentiallyNonNullable(type)) {
+            var parameterName = _parameterName(parameter);
+            if (parameterElement.hasRequired) {
+              errorReporter.reportErrorForNode(
+                CompileTimeErrorCode
+                    .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION,
+                parameterName ?? parameter,
+              );
+            } else {
+              errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
+                parameterName ?? parameter,
+                [parameterName?.name ?? '?'],
+              );
             }
           }
         }
