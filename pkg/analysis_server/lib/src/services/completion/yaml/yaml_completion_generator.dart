@@ -131,7 +131,7 @@ abstract class YamlCompletionGenerator {
         // value that was next in the path.
         var key = node.keyAtValue(path[i + 1]);
         if (key is YamlScalar) {
-          producer = producer.producerForKey(key.value);
+          producer = producer.producerForKey(key.value as String);
           // Otherwise, if the item next in the path was a key itself, use the
           // current producer to provide completion for the key.
         } else if (node.nodes.containsKey(path[i + 1])) {
@@ -154,10 +154,11 @@ abstract class YamlCompletionGenerator {
     List<String> siblingsInList(YamlList list, YamlNode? currentElement) {
       var siblings = <String>[];
       for (var element in list.nodes) {
-        if (element != currentElement &&
-            element is YamlScalar &&
-            element.value is String) {
-          siblings.add(element.value);
+        if (element != currentElement && element is YamlScalar) {
+          var value = element.value;
+          if (value is String) {
+            siblings.add(value);
+          }
         }
       }
       return siblings;

@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test1() → dynamic {
+  core::Map<Null, Null>* x = <Null, Null>{null: null};
+  x.{core::Map::[]=}(3 as{TypeError} Null, "z" as{TypeError} Null){(Null, Null) →* void};
+}
+static method main() → dynamic {}

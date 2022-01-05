@@ -1,0 +1,69 @@
+library private;
+import self as self;
+import "dart:core" as core;
+import "private_module.dart" as pri;
+
+import "org-dartlang-testcase:///private_module.dart" show Fisk;
+
+abstract class Foo extends core::Object {
+  synthetic constructor •() → self::Foo*
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation* invocation) → dynamic
+    return 42;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Bar extends self::Foo implements pri::Fisk {
+  synthetic constructor •() → self::Bar*
+    : super self::Foo::•()
+    ;
+  no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void
+    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
+}
+class Baz extends self::Foo implements pri::Fisk {
+  synthetic constructor •() → self::Baz*
+    : super self::Foo::•()
+    ;
+  method _hest() → dynamic
+    return null;
+  no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void
+    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
+}
+static method main() → dynamic {}
+
+library private_module;
+import self as pri;
+import "dart:core" as core;
+
+abstract class Fisk extends core::Object {
+  synthetic constructor •() → pri::Fisk*
+    : super core::Object::•()
+    ;
+  abstract method _hest() → void;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = #org-dartlang-testcase:///private.dart::_hest
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = <core::Symbol*, dynamic>{)
+}

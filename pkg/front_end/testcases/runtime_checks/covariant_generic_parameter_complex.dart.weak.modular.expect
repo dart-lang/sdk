@@ -1,0 +1,36 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
+    : super core::Object::•()
+    ;
+  method f1(covariant-by-class core::List<self::C::T*>* x) → void {}
+  method f2(covariant-by-class () →* self::C::T* callback) → void {}
+  method f3(covariant-by-class (self::C::T*) →* self::C::T* callback) → void {}
+  method f4((self::C::T*) →* void callback) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method g1(self::C<core::num*>* c, core::List<core::num*>* l) → void {
+  c.{self::C::f1}(l){(core::List<core::num*>*) →* void};
+}
+static method g2(self::C<core::num*>* c, () →* core::num* callback) → void {
+  c.{self::C::f2}(callback){(() →* core::num*) →* void};
+}
+static method g3(self::C<core::num*>* c, (core::num*) →* core::num* callback) → void {
+  c.{self::C::f3}(callback){((core::num*) →* core::num*) →* void};
+}
+static method g4(self::C<core::num*>* c, (core::num*) →* void callback) → void {
+  c.{self::C::f4}(callback){((core::num*) →* void) →* void};
+}
+static method main() → dynamic {}

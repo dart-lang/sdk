@@ -1476,7 +1476,7 @@ class Printer implements NodeVisitor {
   }
 }
 
-class _StringContentsCollector extends BaseVisitor<void> {
+class _StringContentsCollector extends BaseVisitorVoid {
   final StringBuffer _buffer = StringBuffer();
   final bool isDebugContext;
 
@@ -1551,7 +1551,7 @@ class OrderedSet<T> {
 
 // Collects all the var declarations in the function.  We need to do this in a
 // separate pass because JS vars are lifted to the top of the function.
-class VarCollector extends BaseVisitor {
+class VarCollector extends BaseVisitorVoid {
   bool nested;
   bool enableRenaming = true;
   final OrderedSet<String> vars;
@@ -1630,8 +1630,10 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
   bool visitNode(Node node) {
     context.error("Forgot node: $node");
-    return null;
+    return true;
   }
+
+  bool visitComment(Comment node) => true;
 
   bool visitBlock(Block node) => false;
   bool visitExpressionStatement(ExpressionStatement node) => false;

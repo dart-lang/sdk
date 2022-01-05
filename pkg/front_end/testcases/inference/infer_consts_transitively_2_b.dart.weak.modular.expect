@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int* b1 = #C1;
+static method main() → dynamic {
+  #C1;
+}
+
+constants  {
+  #C1 = 2
+}

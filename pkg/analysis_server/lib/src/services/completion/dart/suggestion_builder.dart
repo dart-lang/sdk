@@ -547,8 +547,7 @@ class SuggestionBuilder {
       var suggestion = CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
           Relevance.label, completion, completion.length, 0, false, false);
       suggestion.element = createLocalElement(
-          request.source, protocol.ElementKind.LABEL, label.label,
-          returnType: NO_RETURN_TYPE);
+          request.source, protocol.ElementKind.LABEL, label.label);
       _add(suggestion);
     }
   }

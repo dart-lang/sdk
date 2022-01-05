@@ -13,6 +13,8 @@ class T2 extends core::Object {
     : super core::Object::•()
     ;
 }
+class T3 extends core::Object {
+}
 class T4 extends core::Object {
   synthetic constructor •() → self::T4
     : super core::Object::•()

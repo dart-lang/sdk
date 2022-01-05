@@ -56,7 +56,7 @@ class _PosixProcessProfiler extends ProcessProfiler {
           return Future.value(null);
         }
 
-        return Future.value(_parse(result.stdout));
+        return Future.value(_parse(result.stdout as String));
       });
     } catch (e) {
       return Future.error(e);

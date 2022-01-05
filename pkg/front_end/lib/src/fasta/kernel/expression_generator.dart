@@ -4573,8 +4573,13 @@ class ThisAccessGenerator extends Generator {
         _helper.lookupConstructor(name, isSuper: isSuper);
     LocatedMessage? message;
     if (constructor != null) {
-      message = _helper.checkArgumentsForFunction(
-          constructor.function, arguments, offset, <TypeParameter>[]);
+      // The check of the arguments is done later for super initializers if the
+      // 'super-parameters' language feature is enabled. In that case the
+      // additional parameters can be added at a later stage.
+      if (!(isSuper && _helper.libraryBuilder.enableSuperParametersInLibrary)) {
+        message = _helper.checkArgumentsForFunction(
+            constructor.function, arguments, offset, <TypeParameter>[]);
+      }
     } else {
       String fullName =
           _helper.constructorNameForDiagnostics(name.text, isSuper: isSuper);

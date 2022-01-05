@@ -23,7 +23,6 @@ import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart'
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix/manifest/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
@@ -32,6 +31,7 @@ import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
@@ -337,7 +337,8 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 
   @override
-  Response? handleRequest(Request request) {
+  Response? handleRequest(
+      Request request, CancellationToken cancellationToken) {
     try {
       var requestName = request.method;
       if (requestName == EDIT_REQUEST_FORMAT) {
@@ -534,7 +535,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       return;
     }
     // Do sort.
-    var sorter = MemberSorter(code, unit);
+    var sorter = MemberSorter(code, unit, result.lineInfo);
     var edits = sorter.sort();
     var fileEdit = SourceFileEdit(file, fileStamp, edits: edits);
     server.sendResponse(EditSortMembersResult(fileEdit).toResponse(request.id));
@@ -602,18 +603,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace(server.currentSessions);
           var context = DartFixContextImpl(
-              server.instrumentationService, workspace, result, error, (name) {
-            var tracker = server.declarationsTracker;
-            if (tracker == null) {
-              return const [];
-            }
-            var provider = TopLevelDeclarationsProvider(tracker);
-            return provider.get(
-              result.session.analysisContext,
-              result.path,
-              name,
-            );
-          }, extensionCache: server.getExtensionCacheFor(result));
+              server.instrumentationService, workspace, result, error);
 
           List<Fix> fixes;
           try {

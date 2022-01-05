@@ -220,7 +220,6 @@ class BulkFixProcessor {
           workspace,
           unit,
           error,
-          (name) => [],
         );
         await _fixSingleError(fixContext, unit, error, overrideSet);
       }
@@ -266,7 +265,6 @@ class BulkFixProcessor {
         workspace,
         result,
         diagnostic,
-        (name) => [],
       );
     }
 
@@ -383,7 +381,7 @@ class BulkFixProcessor {
           for (var multiGenerator in multiGenerators) {
             var multiProducer = multiGenerator();
             multiProducer.configure(context);
-            for (var producer in multiProducer.producers) {
+            await for (var producer in multiProducer.producers) {
               await _generateFix(context, producer, codeName);
             }
           }

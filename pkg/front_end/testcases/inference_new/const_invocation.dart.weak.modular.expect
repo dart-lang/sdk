@@ -1,0 +1,72 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<contravariant U extends core::Object* = dynamic, V extends core::Object* = dynamic> = (U*) →* V*;
+class Foo<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Foo<self::Foo::T*>*
+    : super core::Object::•()
+    ;
+  get v1() → self::Bar<self::Foo::T*>*
+    return #C1;
+  get v2() → self::Bar<core::List<self::Foo::T*>*>*
+    return #C2;
+  get v3() → self::Bar<(self::Foo::T*) →* self::Foo::T*>*
+    return #C3;
+  get v4() → self::Bar<((self::Foo::T*) →* self::Foo::T*) →* self::Foo::T*>*
+    return #C4;
+  get v5() → core::List<self::Foo::T*>*
+    return #C5;
+  get v6() → core::List<(self::Foo::T*) →* self::Foo::T*>*
+    return #C6;
+  get v7() → core::Map<self::Foo::T*, self::Foo::T*>*
+    return #C7;
+  get v8() → core::Map<(self::Foo::T*) →* self::Foo::T*, self::Foo::T*>*
+    return #C8;
+  get v9() → core::Map<self::Foo::T*, (self::Foo::T*) →* self::Foo::T*>*
+    return #C9;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Bar<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Bar<self::Bar::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Bar<Null> {}
+  #C2 = self::Bar<core::List<Null>*> {}
+  #C3 = self::Bar<(core::Object*) →* Null> {}
+  #C4 = self::Bar<((Null) →* core::Object*) →* Null> {}
+  #C5 = <Null>[]
+  #C6 = <(core::Object*) →* Null>[]
+  #C7 = <Null, Null>{)
+  #C8 = <(core::Object*) →* Null, Null>{)
+  #C9 = <Null, (core::Object*) →* Null>{)
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_invocation.dart:
+- Bar. (from org-dartlang-testcase:///const_invocation.dart:24:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

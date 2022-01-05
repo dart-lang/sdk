@@ -17,6 +17,6 @@ void main() {
   eval(r'''
       function JSClass() {}
       ''');
-  Expect.type<JavaScriptObject>(JSClass());
-  Expect.type<List<JavaScriptObject>>(<JSClass>[]);
+  Expect.type<LegacyJavaScriptObject>(JSClass());
+  Expect.type<List<LegacyJavaScriptObject>>(<JSClass>[]);
 }

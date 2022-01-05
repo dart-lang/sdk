@@ -1,0 +1,280 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:99:8: Error: Too few positional arguments: 1 required, 0 given.
+//     f3a(); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:100:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     f3a(42, 87); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:115:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     f4a(42, 87); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:129:8: Error: Too few positional arguments: 1 required, 0 given.
+//     f5a(); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:130:8: Error: Too many positional arguments: 2 allowed, but 3 found.
+// Try removing the extra positional arguments.
+//     f5a(42, 87, 123); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:142:8: Error: Too few positional arguments: 1 required, 0 given.
+//     f6a(); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:143:8: Error: Required named parameter 'field3' must be provided.
+//     f6a(42); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:144:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     f6a(42, 87); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:145:8: Error: Too few positional arguments: 1 required, 0 given.
+//     f6a(field1: 87, field2: 87); // error
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor _() → self::Class1
+    : super core::Object::•()
+    ;
+  static factory •() → self::Class1
+    return new self::Class1::_();
+}
+class Class2 extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
+  constructor __() → self::Class2
+    : super core::Object::•()
+    ;
+  static factory _() → self::Class2
+    return new self::Class2::__();
+  static factory named() → self::Class2
+    return self::Class2::_();
+}
+class Class3 extends core::Object {
+  final field core::int field;
+  static final field dynamic _redirecting# = <dynamic>[#C3]/*isLegacy*/;
+  constructor _(core::int field) → self::Class3
+    : self::Class3::field = field, super core::Object::•()
+    ;
+  static factory •(core::int field) → self::Class3
+    return new self::Class3::_(field);
+}
+class Class4 extends core::Object {
+  final field core::int? field;
+  static final field dynamic _redirecting# = <dynamic>[#C4]/*isLegacy*/;
+  constructor _([core::int? field = #C5]) → self::Class4
+    : self::Class4::field = field, super core::Object::•()
+    ;
+  static factory •([core::int? field = #C5]) → self::Class4
+    return new self::Class4::_(field);
+}
+class Class5 extends core::Object {
+  final field core::int field1;
+  final field core::int? field2;
+  static final field dynamic _redirecting# = <dynamic>[#C6]/*isLegacy*/;
+  constructor _(core::int field1, [core::int? field2 = #C5]) → self::Class5
+    : self::Class5::field1 = field1, self::Class5::field2 = field2, super core::Object::•()
+    ;
+  static factory •(core::int field1, [core::int? field2 = #C5]) → self::Class5
+    return new self::Class5::_(field1, field2);
+}
+class Class6 extends core::Object {
+  final field core::int field1;
+  final field core::int? field2;
+  final field core::int field3;
+  static final field dynamic _redirecting# = <dynamic>[#C7]/*isLegacy*/;
+  constructor _(core::int field1, {core::int? field2 = #C5, required core::int field3 = #C5}) → self::Class6
+    : self::Class6::field1 = field1, self::Class6::field2 = field2, self::Class6::field3 = field3, super core::Object::•()
+    ;
+  static factory •(core::int field1, {core::int? field2 = #C5, required core::int field3 = #C5}) → self::Class6
+    return new self::Class6::_(field1, field2: field2, field3: field3);
+}
+class Class7a extends core::Object implements self::Class7b {
+  constructor •() → self::Class7a
+    : super core::Object::•()
+    ;
+}
+class Class7b extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C8]/*isLegacy*/;
+  static factory •() → self::Class7b
+    return new self::Class7a::•();
+}
+class Class8a<T extends core::Object? = dynamic> extends core::Object implements self::Class8b<self::Class8a::T%> {
+  constructor •() → self::Class8a<self::Class8a::T%>
+    : super core::Object::•()
+    ;
+}
+class Class8b<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C9]/*isLegacy*/;
+  static factory •<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::•::T%>
+    return new self::Class8a::•<self::Class8b::•::T%>();
+}
+static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static method main() → dynamic {
+  core::print("inSoundMode: ${self::inSoundMode}");
+  self::testNoArgs();
+  self::testArgs();
+}
+static method testNoArgs() → dynamic {
+  () → self::Class1 f1a = #C10;
+  self::Class1 c1a = f1a(){() → self::Class1};
+  self::expect(true, c1a is{ForNonNullableByDefault} self::Class1);
+  dynamic f1b = #C10;
+  dynamic c1b = f1b{dynamic}.call();
+  self::expect(true, c1b is{ForNonNullableByDefault} self::Class1);
+  self::expect(true, core::identical(f1a, f1b));
+  () → self::Class2 f2a = #C11;
+  self::Class2 c2a = f2a(){() → self::Class2};
+  self::expect(true, c2a is{ForNonNullableByDefault} self::Class2);
+  dynamic f2b = #C11;
+  dynamic c2b = f2b{dynamic}.call();
+  self::expect(true, c2b is{ForNonNullableByDefault} self::Class2);
+  self::expect(true, core::identical(f2a, f2b));
+}
+static method testArgs() → dynamic {
+  (core::int) → self::Class3 f3a = #C12;
+  self::Class3 c3a = f3a(42){(core::int) → self::Class3};
+  self::expect(42, c3a.{self::Class3::field}{core::int});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:99:8: Error: Too few positional arguments: 1 required, 0 given.
+    f3a(); // error
+       ^" in f3a{<inapplicable>}.();
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:100:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+Try removing the extra positional arguments.
+    f3a(42, 87); // error
+       ^" in f3a{<inapplicable>}.(42, 87);
+  };
+  dynamic f3b = #C12;
+  dynamic c3b = f3b{dynamic}.call(87);
+  self::expect(87, c3b{dynamic}.field);
+  self::throws(() → dynamic => f3b{dynamic}.call());
+  self::throws(() → dynamic => f3b{dynamic}.call(42, 87));
+  ([core::int?]) → self::Class4 f4a = #C13;
+  self::Class4 c4a = f4a(){([core::int?]) → self::Class4};
+  self::expect(null, c4a.{self::Class4::field}{core::int?});
+  self::Class4 c4b = f4a(42){([core::int?]) → self::Class4};
+  self::expect(42, c4b.{self::Class4::field}{core::int?});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:115:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+Try removing the extra positional arguments.
+    f4a(42, 87); // error
+       ^" in f4a{<inapplicable>}.(42, 87);
+  };
+  dynamic f4b = #C13;
+  self::throws(() → dynamic => f4b{dynamic}.call(42, 87));
+  (core::int, [core::int?]) → self::Class5 f5a = #C14;
+  self::Class5 c5a = f5a(42){(core::int, [core::int?]) → self::Class5};
+  self::expect(42, c5a.{self::Class5::field1}{core::int});
+  self::expect(null, c5a.{self::Class5::field2}{core::int?});
+  self::Class5 c5b = f5a(87, 42){(core::int, [core::int?]) → self::Class5};
+  self::expect(87, c5b.{self::Class5::field1}{core::int});
+  self::expect(42, c5b.{self::Class5::field2}{core::int?});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:129:8: Error: Too few positional arguments: 1 required, 0 given.
+    f5a(); // error
+       ^" in f5a{<inapplicable>}.();
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:130:8: Error: Too many positional arguments: 2 allowed, but 3 found.
+Try removing the extra positional arguments.
+    f5a(42, 87, 123); // error
+       ^" in f5a{<inapplicable>}.(42, 87, 123);
+  };
+  dynamic f5b = #C14;
+  self::throws(() → dynamic => f5b{dynamic}.call());
+  self::throws(() → dynamic => f5b{dynamic}.call(42, 87, 123));
+  (core::int, {field2: core::int?, required field3: core::int}) → self::Class6 f6a = #C15;
+  self::Class6 c6a = f6a(42, field3: 87){(core::int, {field2: core::int?, required field3: core::int}) → self::Class6};
+  self::expect(42, c6a.{self::Class6::field1}{core::int});
+  self::expect(null, c6a.{self::Class6::field2}{core::int?});
+  self::expect(87, c6a.{self::Class6::field3}{core::int});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:142:8: Error: Too few positional arguments: 1 required, 0 given.
+    f6a(); // error
+       ^" in f6a{<inapplicable>}.();
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:143:8: Error: Required named parameter 'field3' must be provided.
+    f6a(42); // error
+       ^" in f6a{<inapplicable>}.(42);
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:144:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+Try removing the extra positional arguments.
+    f6a(42, 87); // error
+       ^" in f6a{<inapplicable>}.(42, 87);
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/redirecting_factory_tear_off.dart:145:8: Error: Too few positional arguments: 1 required, 0 given.
+    f6a(field1: 87, field2: 87); // error
+       ^" in f6a{<inapplicable>}.(field1: 87, field2: 87);
+  };
+  self::Class6 c6b = f6a(42, field2: 123, field3: 87){(core::int, {field2: core::int?, required field3: core::int}) → self::Class6};
+  self::expect(42, c6b.{self::Class6::field1}{core::int});
+  self::expect(123, c6b.{self::Class6::field2}{core::int?});
+  self::expect(87, c6b.{self::Class6::field3}{core::int});
+  self::Class6 c6c = f6a(87, field3: 42, field2: 123){(core::int, {field2: core::int?, required field3: core::int}) → self::Class6};
+  self::expect(87, c6c.{self::Class6::field1}{core::int});
+  self::expect(123, c6c.{self::Class6::field2}{core::int?});
+  self::expect(42, c6c.{self::Class6::field3}{core::int});
+  dynamic f6b = #C15;
+  self::throws(() → dynamic => f6b{dynamic}.call());
+  self::throws(() → dynamic => f6b{dynamic}.call(42), inSoundModeOnly: true);
+  self::throws(() → dynamic => f6b{dynamic}.call(42, 87), inSoundModeOnly: true);
+  self::throws(() → dynamic => f6b{dynamic}.call(field1: 87, field2: 87));
+  () → self::Class7b f7a = #C16;
+  self::Class7b c7a = f7a(){() → self::Class7b};
+  self::expect(true, c7a is{ForNonNullableByDefault} self::Class7a);
+  self::expect(true, c7a is{ForNonNullableByDefault} self::Class7b);
+  <T extends core::Object? = dynamic>() → self::Class8b<T%> f8a = #C17;
+  self::Class8b<dynamic> c8a = f8a<dynamic>(){() → self::Class8b<dynamic>};
+  self::expect(true, c8a is{ForNonNullableByDefault} self::Class8a<dynamic>);
+  self::expect(true, c8a is{ForNonNullableByDefault} self::Class8b<dynamic>);
+  self::Class8b<core::int> c8b = f8a<core::int>(){() → self::Class8b<core::int>};
+  self::expect(true, c8b is{ForNonNullableByDefault} self::Class8a<core::int>);
+  self::expect(true, c8b is{ForNonNullableByDefault} self::Class8b<core::int>);
+  self::expect(false, c8b is{ForNonNullableByDefault} self::Class8b<core::String>);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C18}) → dynamic {
+  try {
+    f(){() → dynamic};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Thrown: ${e}");
+    return;
+  }
+  if(!self::inSoundMode && inSoundModeOnly) {
+    return;
+  }
+  throw "Expected exception";
+}
+
+constants  {
+  #C1 = constructor-tearoff self::Class1::•
+  #C2 = constructor-tearoff self::Class2::named
+  #C3 = constructor-tearoff self::Class3::•
+  #C4 = constructor-tearoff self::Class4::•
+  #C5 = null
+  #C6 = constructor-tearoff self::Class5::•
+  #C7 = constructor-tearoff self::Class6::•
+  #C8 = constructor-tearoff self::Class7b::•
+  #C9 = constructor-tearoff self::Class8b::•
+  #C10 = redirecting-factory-tearoff self::Class1::•
+  #C11 = redirecting-factory-tearoff self::Class2::named
+  #C12 = redirecting-factory-tearoff self::Class3::•
+  #C13 = redirecting-factory-tearoff self::Class4::•
+  #C14 = redirecting-factory-tearoff self::Class5::•
+  #C15 = redirecting-factory-tearoff self::Class6::•
+  #C16 = redirecting-factory-tearoff self::Class7b::•
+  #C17 = redirecting-factory-tearoff self::Class8b::•
+  #C18 = false
+}

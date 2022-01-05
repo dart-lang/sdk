@@ -39,12 +39,12 @@ vars = {
 
   # Checked-in SDK version. The checked-in SDK is a Dart SDK distribution in a
   # cipd package used to run Dart scripts in the build and test infrastructure.
-  "sdk_tag": "version:2.15.0-268.8.beta",
+  "sdk_tag": "version:2.15.1",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "4ef349830b971c22d8ddb2970c4ba9002806fd85",
+  "co19_rev": "a4144628905e0d3326b2549c9a1425bfca06c681",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "995745937abffe9fc3a6441f9f0db27b2d706e4c",
 
@@ -91,7 +91,7 @@ vars = {
   "collection_rev": "a4c941ab94044d118b2086a3f261c30377604127",
   "convert_rev": "e063fdca4bebffecbb5e6aa5525995120982d9ce",
   "crypto_rev": "b5024e4de2b1c474dd558bef593ddbf0bfade152",
-  "csslib_rev": "02abc1ddf93092efef2be365300f15504d23cd23",
+  "csslib_rev": "158bfa94eed08c12c07a8ee0a3fded0ebdcd1fcb",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
@@ -107,8 +107,8 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_rev": "08b0294d0a500d5c02168ef57dcb8868d0c3cb48",
 
-  "dartdoc_rev" : "ff0d94bdb87f11c04a7e0ddab811bf94211b08a4",
-  "devtools_rev" : "f2ede24a4ea666d4832d78b813c7d4e376aa77d0",
+  "dartdoc_rev" : "11c4b3c9723bfa7155efcf0fef02329233a6381d",
+  "devtools_rev" : "85932bb66aa782c4b2c528be7718960bf256ffb7",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
@@ -123,7 +123,7 @@ vars = {
   "intl_tag": "0.17.0-nullsafety",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "7e00f893440a72de0637970325e4ea44bd1e8c8e",
-  "linter_tag": "1.15.0",
+  "linter_tag": "1.17.1",
   "lints_tag": "f9670df2a66e0ec12eb51554e70c1cbf56c8f5d0",
   "logging_rev": "575781ef196e4fed4fb737e38fb4b73d62727187",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
@@ -133,9 +133,9 @@ vars = {
   "mockito_rev": "d39ac507483b9891165e422ec98d9fb480037c8b",
   "oauth2_rev": "7cd3284049fe5badbec9f2bea2afc41d14c01057",
   "package_config_rev": "fb736aa12316dd2d882b202a438a6946a4b4bea0",
-  "path_rev": "c20d73c3516d3a0061c90f14b761ff532b9bf707",
+  "path_rev": "baedce9d2ca11ea2cdf54395a74eb038087777a4",
   "pedantic_rev": "66f2f6c27581c7936482e83be80b27be2719901c",
-  "platform_rev": "c20e6fa315e9f8820e51c0ae721f63aff33b8e17",
+  "platform_rev": "1ffad63428bbd1b3ecaa15926bacfb724023648c",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "7abe634002a1ba8a0928eded086062f1307ccfae",
   "process_rev": "56ece43b53b64c63ae51ec184b76bd5360c28d0b",
@@ -278,7 +278,7 @@ deps = {
   Var("dart_root") + "/third_party/gsutil": {
       "packages": [{
           "package": "infra/3pp/tools/gsutil",
-          "version": "version:4.58",
+          "version": "version:2@5.5",
       }],
       "dep_type": "cipd",
   },

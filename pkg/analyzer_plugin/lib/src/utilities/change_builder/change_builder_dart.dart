@@ -1486,9 +1486,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return;
     }
 
-    addReplacement(range.node(typeAnnotation!), (EditBuilder builder) {
+    addReplacement(range.node(typeAnnotation!), (builder) {
       var futureType = typeProvider.futureType(type);
-      if (!(builder as DartEditBuilder).writeType(futureType)) {
+      if (!builder.writeType(futureType)) {
         builder.write('void');
       }
     });

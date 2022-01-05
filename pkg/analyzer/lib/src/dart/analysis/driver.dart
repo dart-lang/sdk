@@ -83,7 +83,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 191;
+  static const int DATA_VERSION = 193;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -779,7 +779,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       units.add(unitResult);
     }
 
-    return ParsedLibraryResultImpl(currentSession, path, file.uri, units);
+    return ParsedLibraryResultImpl(currentSession, units);
   }
 
   /// Return a [ParsedLibraryResult] for the library with the given [uri].
@@ -1547,8 +1547,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
       return ResolvedLibraryResultImpl(
         currentSession,
-        library.path,
-        library.uri,
         resolvedUnits.first.libraryElement,
         resolvedUnits,
       );
@@ -1579,7 +1577,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         file.uri,
         file.lineInfo,
         file.isPart,
-        library.transitiveSignature,
         element,
       );
     });

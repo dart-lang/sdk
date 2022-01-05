@@ -23,6 +23,7 @@ import 'package:analysis_server/src/protocol_server.dart' as server
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart' as server;
 import 'package:analyzer/src/dart/analysis/search.dart' as server
     show DeclarationKind;
@@ -123,8 +124,11 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
       edits
           .map((e) => FileEditInformation(
                 server.getVersionedDocumentIdentifier(e.file),
-                // We should never produce edits for a file with no LineInfo.
-                server.getLineInfo(e.file)!,
+                // If we expect to create the file, server.getLineInfo() won't
+                // provide a LineInfo so create one from empty contents.
+                e.fileStamp == -1
+                    ? LineInfo.fromContent('')
+                    : server.getLineInfo(e.file)!,
                 e.edits,
                 // fileStamp == 1 is used by the server to indicate the file needs creating.
                 newFile: e.fileStamp == -1,

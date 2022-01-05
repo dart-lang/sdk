@@ -9,6 +9,6 @@
 
 import 'package:macro_builder/macro_builder.dart';
 
-class Macro2a implements Macro {
+macro class Macro2a implements Macro {
   const Macro2a();
 }

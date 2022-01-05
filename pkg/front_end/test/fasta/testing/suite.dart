@@ -66,11 +66,11 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
-import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
-    show ClassHierarchyNode;
-
-import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart'
     show ClassHierarchyBuilder;
+
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart'
+    show ClassHierarchyNode;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -171,7 +171,7 @@ import '../../utils/validating_instrumentation.dart'
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
-const String ENABLE_FULL_COMPILE = " full compile ";
+const String COMPILATION_MODE = " compilation mode ";
 
 const String UPDATE_EXPECTATIONS = "updateExpectations";
 const String UPDATE_COMMENTS = "updateComments";
@@ -378,55 +378,61 @@ class FastaContext extends ChainContext with MatchContext {
       this.skipVm,
       this.semiFuzz,
       bool kernelTextSerialization,
-      bool fullCompile,
+      CompileMode compileMode,
       this.verify,
       this.soundNullSafety)
       : steps = <Step>[
-          new Outline(fullCompile, updateComments: updateComments),
+          new Outline(compileMode, updateComments: updateComments),
           const Print(),
-          new Verify(fullCompile)
+          new Verify(compileMode)
         ] {
-    String fullPrefix;
-    String outlinePrefix;
+    String prefix;
+    String infix;
     if (soundNullSafety) {
-      fullPrefix = '.strong';
-      outlinePrefix = '.strong.outline';
+      prefix = '.strong';
     } else {
-      fullPrefix = '.weak';
-      outlinePrefix = '.weak.outline';
+      prefix = '.weak';
+    }
+    switch (compileMode) {
+      case CompileMode.outline:
+        infix = '.outline';
+        break;
+      case CompileMode.modular:
+        infix = '.modular';
+        break;
+      case CompileMode.full:
+        infix = '';
+        break;
     }
 
-    if (!fullCompile) {
-      // If not doing a full compile this is the only expect file so we run the
-      // extra constant evaluation now. If we do a full compilation, we'll do
-      // if after the transformation. That also ensures we don't get the same
-      // 'extra constant evaluation' output twice (in .transformed and not).
+    if (compileMode == CompileMode.outline) {
+      // If doing an outline compile, this is the only expect file so we run the
+      // extra constant evaluation now. If we do a full or modular compilation,
+      // we'll do if after the transformation. That also ensures we don't get
+      // the same 'extra constant evaluation' output twice (in .transformed and
+      // not).
       steps.add(const StressConstantEvaluatorStep());
     }
     if (!ignoreExpectations) {
-      steps.add(new MatchExpectation(
-          fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
-          serializeFirst: false,
-          isLastMatchStep: false));
-      steps.add(new MatchExpectation(
-          fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
-          serializeFirst: true,
-          isLastMatchStep: true));
+      steps.add(new MatchExpectation("$prefix$infix.expect",
+          serializeFirst: false, isLastMatchStep: false));
+      steps.add(new MatchExpectation("$prefix$infix.expect",
+          serializeFirst: true, isLastMatchStep: true));
     }
     steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
     if (kernelTextSerialization) {
       steps.add(const KernelTextSerialization());
     }
-    if (fullCompile) {
+    if (compileMode == CompileMode.full) {
       steps.add(const Transform());
-      steps.add(const Verify(true));
+      steps.add(const Verify(CompileMode.full));
       steps.add(const StressConstantEvaluatorStep());
       if (!ignoreExpectations) {
-        steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
+        steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
             serializeFirst: false, isLastMatchStep: updateExpectations));
         if (!updateExpectations) {
-          steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
+          steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
               serializeFirst: true, isLastMatchStep: true));
         }
       }
@@ -767,7 +773,7 @@ class FastaContext extends ChainContext with MatchContext {
       "verify",
       KERNEL_TEXT_SERIALIZATION,
       "platformBinaries",
-      ENABLE_FULL_COMPILE,
+      COMPILATION_MODE,
     };
     checkEnvironment(environment, knownEnvironmentKeys);
 
@@ -815,7 +821,7 @@ class FastaContext extends ChainContext with MatchContext {
         skipVm,
         semiFuzz,
         kernelTextSerialization,
-        environment.containsKey(ENABLE_FULL_COMPILE),
+        compileModeFromName(environment[COMPILATION_MODE]),
         verify,
         soundNullSafety));
   }
@@ -1777,13 +1783,15 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
 }
 
 Set<Uri> createUserLibrariesImportUriSet(
-    Component component, UriTranslator uriTranslator) {
+    Component component, UriTranslator uriTranslator,
+    {Set<Library> excludedLibraries: const {}}) {
   Set<Uri> knownUris =
       component.libraries.map((Library library) => library.importUri).toSet();
   Set<Uri> userLibraries = component.libraries
       .where((Library library) =>
           library.importUri.scheme != 'dart' &&
-          library.importUri.scheme != 'package')
+          library.importUri.scheme != 'package' &&
+          !excludedLibraries.contains(library))
       .map((Library library) => library.importUri)
       .toSet();
   // Mark custom "dart:" libraries defined in the test-specific libraries.json
@@ -1797,19 +1805,47 @@ Set<Uri> createUserLibrariesImportUriSet(
   return userLibraries.intersection(knownUris);
 }
 
-class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
-  final bool fullCompile;
+enum CompileMode {
+  /// Compiles only the outline of the test and its linked dependencies.
+  outline,
 
-  const Outline(this.fullCompile, {this.updateComments: false});
+  /// Fully compiles the test but compiles only the outline of its linked
+  /// dependencies.
+  ///
+  /// This mimics how modular compilation is performed with dartdevc.
+  modular,
+
+  /// Fully compiles the test and its linked dependencies.
+  full,
+}
+
+CompileMode compileModeFromName(String? name) {
+  for (CompileMode mode in CompileMode.values) {
+    if (name == mode.name) {
+      return mode;
+    }
+  }
+  return CompileMode.outline;
+}
+
+class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
+  final CompileMode compileMode;
+
+  const Outline(this.compileMode, {this.updateComments: false});
 
   final bool updateComments;
 
   @override
   String get name {
-    return fullCompile ? "compile" : "outline";
+    switch (compileMode) {
+      case CompileMode.outline:
+        return "outline";
+      case CompileMode.modular:
+        return "modular";
+      case CompileMode.full:
+        return "compile";
+    }
   }
-
-  bool get isCompiler => fullCompile;
 
   @override
   Future<Result<ComponentResult>> run(
@@ -1839,7 +1875,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           compilationSetup.errors.addAll(compilationSetup.testOptions.errors!);
         }
         Component p = (await sourceTarget.buildOutlines())!;
-        if (fullCompile) {
+        if (compileMode == CompileMode.full) {
           p = (await sourceTarget.buildComponent(
               verify: compilationSetup.folderOptions.noVerify
                   ? false
@@ -1885,6 +1921,13 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       if (description.uri.pathSegments.last.endsWith(".no_link.dart")) {
         alsoAppend = null;
       }
+
+      Set<Library>? excludedLibraries;
+      if (compileMode == CompileMode.modular) {
+        excludedLibraries = alsoAppend?.libraries.toSet();
+      }
+      excludedLibraries ??= const {};
+
       KernelTarget sourceTarget = await outlineInitialization(context,
           description, compilationSetup.options, <Uri>[description.uri],
           alsoAppend: alsoAppend);
@@ -1893,9 +1936,10 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       await instrumentation.loadExpectations(description.uri);
       sourceTarget.loader.instrumentation = instrumentation;
       Component p = (await sourceTarget.buildOutlines())!;
-      Set<Uri> userLibraries =
-          createUserLibrariesImportUriSet(p, sourceTarget.uriTranslator);
-      if (fullCompile) {
+      Set<Uri> userLibraries = createUserLibrariesImportUriSet(
+          p, sourceTarget.uriTranslator,
+          excludedLibraries: excludedLibraries);
+      if (compileMode != CompileMode.outline) {
         p = (await sourceTarget.buildComponent(
             verify: compilationSetup.folderOptions.noVerify
                 ? false
@@ -1998,9 +2042,9 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
 }
 
 class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
-  final bool fullCompile;
+  final CompileMode compileMode;
 
-  const Verify(this.fullCompile);
+  const Verify(this.compileMode);
 
   @override
   String get name => "verify";
@@ -2031,7 +2075,7 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
       compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(
           component, result.options.target,
-          isOutline: !fullCompile, skipPlatform: true);
+          isOutline: compileMode == CompileMode.outline, skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {
         return pass(result);
@@ -2148,7 +2192,7 @@ class MatchHierarchy
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri.scheme == "file");
     KernelTarget target = result.sourceTarget;
-    ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
+    ClassHierarchyBuilder hierarchy = target.loader.hierarchyBuilder;
     StringBuffer sb = new StringBuffer();
     for (ClassHierarchyNode node in hierarchy.nodes.values) {
       sb.writeln(node);

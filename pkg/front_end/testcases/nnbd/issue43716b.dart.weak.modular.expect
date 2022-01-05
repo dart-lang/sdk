@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43716b.dart:17:7: Error: The argument type 'int' can't be assigned to the parameter type 'Never'.
+//     z(42); // Error.
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C<X extends (self::C::X%) →? void = (Never) →? void> extends core::Object {
+  covariant-by-class field self::C::X% x;
+  constructor •(self::C::X% x) → self::C<self::C::X%>
+    : self::C::x = x, super core::Object::•()
+    ;
+  method m() → void {
+    (Never) →? void z = self::b ?{(Never) →? void} this.{self::C::x}{self::C::X%} : #C1;
+    if(z == null)
+      return;
+    z{(Never) → void}(invalid-expression "pkg/front_end/testcases/nnbd/issue43716b.dart:17:7: Error: The argument type 'int' can't be assigned to the parameter type 'Never'.
+    z(42); // Error.
+      ^" in 42 as{TypeError,ForNonNullableByDefault} Never){(Never) → void};
+  }
+}
+static field core::bool b = true;
+static method f(core::Object o) → void {}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = static-tearoff self::f
+}

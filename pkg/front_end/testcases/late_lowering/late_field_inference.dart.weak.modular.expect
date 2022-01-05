@@ -1,0 +1,101 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int? _#A#nonNullableInstanceField = null;
+  field core::bool _#A#nonNullableInstanceField#isSet = false;
+  field core::int? _#A#nullableInstanceField = null;
+  field core::bool _#A#nullableInstanceField#isSet = false;
+  static field core::int? _#nonNullableStaticField = null;
+  static field core::bool _#nonNullableStaticField#isSet = false;
+  static field core::int? _#nullableStaticField = null;
+  static field core::bool _#nullableStaticField#isSet = false;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get nonNullableInstanceField() → core::int {
+    if(!this.{self::A::_#A#nonNullableInstanceField#isSet}{core::bool}) {
+      this.{self::A::_#A#nonNullableInstanceField} = 0;
+      this.{self::A::_#A#nonNullableInstanceField#isSet} = true;
+    }
+    return let final core::int? #t1 = this.{self::A::_#A#nonNullableInstanceField}{core::int?} in #t1{core::int};
+  }
+  set nonNullableInstanceField(core::int #t2) → void {
+    this.{self::A::_#A#nonNullableInstanceField#isSet} = true;
+    this.{self::A::_#A#nonNullableInstanceField} = #t2;
+  }
+  get nullableInstanceField() → core::int? {
+    if(!this.{self::A::_#A#nullableInstanceField#isSet}{core::bool}) {
+      this.{self::A::_#A#nullableInstanceField} = self::method();
+      this.{self::A::_#A#nullableInstanceField#isSet} = true;
+    }
+    return this.{self::A::_#A#nullableInstanceField}{core::int?};
+  }
+  set nullableInstanceField(core::int? #t3) → void {
+    this.{self::A::_#A#nullableInstanceField#isSet} = true;
+    this.{self::A::_#A#nullableInstanceField} = #t3;
+  }
+  static get nonNullableStaticField() → core::int {
+    if(!self::A::_#nonNullableStaticField#isSet) {
+      self::A::_#nonNullableStaticField = 0;
+      self::A::_#nonNullableStaticField#isSet = true;
+    }
+    return let final core::int? #t4 = self::A::_#nonNullableStaticField in #t4{core::int};
+  }
+  static set nonNullableStaticField(core::int #t5) → void {
+    self::A::_#nonNullableStaticField#isSet = true;
+    self::A::_#nonNullableStaticField = #t5;
+  }
+  static get nullableStaticField() → core::int? {
+    if(!self::A::_#nullableStaticField#isSet) {
+      self::A::_#nullableStaticField = self::method();
+      self::A::_#nullableStaticField#isSet = true;
+    }
+    return self::A::_#nullableStaticField;
+  }
+  static set nullableStaticField(core::int? #t6) → void {
+    self::A::_#nullableStaticField#isSet = true;
+    self::A::_#nullableStaticField = #t6;
+  }
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  get nonNullableInstanceField() → core::int
+    return 0;
+  set nonNullableInstanceField(core::int value) → void {}
+  get nullableInstanceField() → core::int?
+    return 0;
+  set nullableInstanceField(core::int? value) → void {}
+}
+static field core::int? _#nonNullableTopLevelField = null;
+static field core::bool _#nonNullableTopLevelField#isSet = false;
+static field core::int? _#nullableTopLevelField = null;
+static field core::bool _#nullableTopLevelField#isSet = false;
+static method method() → core::int?
+  return null;
+static get nonNullableTopLevelField() → core::int {
+  if(!self::_#nonNullableTopLevelField#isSet) {
+    self::_#nonNullableTopLevelField = 0;
+    self::_#nonNullableTopLevelField#isSet = true;
+  }
+  return let final core::int? #t7 = self::_#nonNullableTopLevelField in #t7{core::int};
+}
+static set nonNullableTopLevelField(core::int #t8) → void {
+  self::_#nonNullableTopLevelField#isSet = true;
+  self::_#nonNullableTopLevelField = #t8;
+}
+static get nullableTopLevelField() → core::int? {
+  if(!self::_#nullableTopLevelField#isSet) {
+    self::_#nullableTopLevelField = self::method();
+    self::_#nullableTopLevelField#isSet = true;
+  }
+  return self::_#nullableTopLevelField;
+}
+static set nullableTopLevelField(core::int? #t9) → void {
+  self::_#nullableTopLevelField#isSet = true;
+  self::_#nullableTopLevelField = #t9;
+}
+static method main() → dynamic {}

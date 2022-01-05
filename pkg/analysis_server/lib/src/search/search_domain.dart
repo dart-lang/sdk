@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
@@ -228,7 +229,8 @@ class SearchDomainHandler implements protocol.RequestHandler {
   }
 
   @override
-  protocol.Response? handleRequest(protocol.Request request) {
+  protocol.Response? handleRequest(
+      protocol.Request request, CancellationToken cancellationToken) {
     try {
       var requestName = request.method;
       if (requestName == SEARCH_REQUEST_FIND_ELEMENT_REFERENCES) {

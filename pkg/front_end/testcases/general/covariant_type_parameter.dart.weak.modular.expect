@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<S extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::S*>*
+    : super core::Object::•()
+    ;
+  method method<covariant-by-class T extends self::A::S*>(covariant-by-class self::A::S* s) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B<S extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::S*>*
+    : super core::Object::•()
+    ;
+  method method<covariant-by-class T extends self::B::S*>(covariant-by-declaration covariant-by-class self::B::S* s) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C<S extends core::Object* = dynamic> extends self::A<self::C::S*> implements self::B<self::C::S*> {
+  synthetic constructor •() → self::C<self::C::S*>*
+    : super self::A::•()
+    ;
+  forwarding-stub forwarding-semi-stub method method<covariant-by-class T extends self::C::S*>(covariant-by-declaration covariant-by-class self::C::S* s) → void
+    return super.{self::A::method}<self::C::method::T*>(s);
+}
+class D<S extends core::Object* = dynamic> extends self::A<self::D::S*> implements self::B<self::D::S*> {
+  synthetic constructor •() → self::D<self::D::S*>*
+    : super self::A::•()
+    ;
+  forwarding-stub method method<covariant-by-class T extends self::D::S*>(covariant-by-declaration covariant-by-class self::D::S* s) → void
+    return super.{self::A::method}<self::D::method::T*>(s);
+}
+static method main() → dynamic {}

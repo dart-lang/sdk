@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/extensions.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -55,20 +56,18 @@ class DartFixContextImpl implements DartFixContext {
   @override
   final AnalysisError error;
 
-  @override
-  final ExtensionCache extensionCache;
-
-  final List<TopLevelDeclaration> Function(String name)
-      getTopLevelDeclarationsFunction;
-
   DartFixContextImpl(this.instrumentationService, this.workspace,
-      this.resolveResult, this.error, this.getTopLevelDeclarationsFunction,
-      {ExtensionCache? extensionCache})
-      : extensionCache = extensionCache ?? ExtensionCache();
+      this.resolveResult, this.error);
 
   @override
-  List<TopLevelDeclaration> getTopLevelDeclarations(String name) {
-    return getTopLevelDeclarationsFunction(name);
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
+      String name) async {
+    return TopLevelDeclarations(resolveResult).withName(name);
+  }
+
+  @override
+  Stream<LibraryElement> librariesWithExtensions(String memberName) {
+    return Extensions(resolveResult).libraries(memberName);
   }
 }
 
@@ -213,6 +212,16 @@ class DartFixKind {
     'dart.fix.add.required.multi',
     DartFixKindPriority.IN_FILE,
     "Add 'required' keywords everywhere in file",
+  );
+  static const ADD_RETURN_NULL = FixKind(
+    'dart.fix.add.returnNull',
+    DartFixKindPriority.DEFAULT,
+    "Add 'return null'",
+  );
+  static const ADD_RETURN_NULL_MULTI = FixKind(
+    'dart.fix.add.returnNull.multi',
+    DartFixKindPriority.IN_FILE,
+    "Add 'return null' everywhere in file",
   );
   static const ADD_RETURN_TYPE = FixKind(
     'dart.fix.add.returnType',
@@ -1252,7 +1261,17 @@ class DartFixKind {
   static const REPLACE_RETURN_TYPE_FUTURE = FixKind(
     'dart.fix.replace.returnTypeFuture',
     DartFixKindPriority.DEFAULT,
-    "Return 'Future' from 'async' function",
+    "Return 'Future<{0}>'",
+  );
+  static const REPLACE_RETURN_TYPE_ITERABLE = FixKind(
+    'dart.fix.replace.returnTypeIterable',
+    DartFixKindPriority.DEFAULT,
+    "Return 'Iterable<{0}>'",
+  );
+  static const REPLACE_RETURN_TYPE_STREAM = FixKind(
+    'dart.fix.replace.returnTypeStream',
+    DartFixKindPriority.DEFAULT,
+    "Return 'Stream<{0}>'",
   );
   static const REPLACE_CONTAINER_WITH_SIZED_BOX = FixKind(
     'dart.fix.replace.containerWithSizedBox',

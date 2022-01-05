@@ -1,0 +1,31 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/import_conflicting_setters.dart:11:3: Error: Setter not found: 'foo'.
+//   foo = 42;
+//   ^^^
+//
+import self as self;
+
+import "org-dartlang-testcase:///import_conflicting_setters_lib1.dart";
+import "org-dartlang-testcase:///import_conflicting_setters_lib2.dart";
+
+static method main() → dynamic {}
+static method errors() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/import_conflicting_setters.dart:11:3: Error: Setter not found: 'foo'.
+  foo = 42;
+  ^^^";
+}
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+static set foo(core::int* value) → void {}
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+static set foo(core::int* value) → void {}

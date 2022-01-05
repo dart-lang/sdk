@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:ffi" as ffi;
+import "dart:core" as core;
+
+import "dart:ffi";
+import "package:ffi/ffi.dart";
+
+class Coordinate extends ffi::Struct {
+  @#C1
+  field core::double* x = null;
+  @#C1
+  field core::double* y = null;
+  field ffi::Pointer<self::Coordinate*>* next = null;
+  static factory allocate(ffi::Allocator* allocator, core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
+    return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(ffi::AllocatorAlloc|call<self::Coordinate*>(allocator)) in block {
+      #t1.{self::Coordinate::x} = x;
+      #t1.{self::Coordinate::y} = y;
+      #t1.{self::Coordinate::next} = next;
+    } =>#t1;
+  }
+  abstract member-signature get _typedDataBase() → core::Object*; -> ffi::_Compound::_typedDataBase
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = ffi::Double {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///ffi_sample.dart:
+- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:122:9)
+- _NativeDouble. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:34:9)
+- NativeType. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

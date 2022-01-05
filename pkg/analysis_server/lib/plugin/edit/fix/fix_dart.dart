@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
@@ -13,9 +12,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartFixContext implements FixContext {
-  /// Return the extension cache used to find available extensions.
-  ExtensionCache get extensionCache;
-
   /// Return the instrumentation service used to report errors that prevent a
   /// fix from being composed.
   InstrumentationService get instrumentationService;
@@ -26,7 +22,13 @@ abstract class DartFixContext implements FixContext {
   /// The workspace in which the fix contributor operates.
   ChangeWorkspace get workspace;
 
-  /// Return top-level declarations with the [name] in libraries that are
-  /// available to this context.
-  List<TopLevelDeclaration> getTopLevelDeclarations(String name);
+  /// Return the mapping from a library (that is available to this context) to
+  /// a top-level declaration that is exported (not necessary declared) by this
+  /// library, and has the requested base name. For getters and setters the
+  /// corresponding top-level variable is returned.
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(String name);
+
+  /// Return libraries with extensions that declare non-static public
+  /// extension members with the [memberName].
+  Stream<LibraryElement> librariesWithExtensions(String memberName);
 }

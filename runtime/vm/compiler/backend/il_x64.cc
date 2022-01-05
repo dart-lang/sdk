@@ -1154,8 +1154,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
 
-  // Pass a pointer to the first argument in RAX.
-  __ leaq(RAX, compiler::Address(RSP, ArgumentCount() * kWordSize));
+  // Pass a pointer to the first argument in R13 (we avoid using RAX here to
+  // simplify the stub code that will call native code).
+  __ leaq(R13, compiler::Address(RSP, ArgumentCount() * kWordSize));
 
   __ LoadImmediate(R10, compiler::Immediate(argc_tag));
   const Code* stub;
@@ -5240,11 +5241,12 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddSlowPathCode(slow_path);
 
   if (recognized_kind() != MethodRecognizer::kDoubleToInteger) {
-    // In JIT mode VM knows target CPU features at compile time
-    // and can pick more optimal representation for DoubleToDouble
-    // conversion. In AOT mode we test if roundsd instruction is
-    // available at run time and fall back to stub if it isn't.
-    ASSERT(CompilerState::Current().is_aot());
+    // In JIT mode without --target-unknown-cpu VM knows target CPU features
+    // at compile time and can pick more optimal representation
+    // for DoubleToDouble conversion. In AOT mode and with
+    // --target-unknown-cpu we test if roundsd instruction is available
+    // at run time and fall back to stub if it isn't.
+    ASSERT(CompilerState::Current().is_aot() || FLAG_target_unknown_cpu);
     if (FLAG_use_slow_path) {
       __ jmp(slow_path->entry_label());
       __ Bind(slow_path->exit_label());

@@ -51,37 +51,6 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
     return ExperimentStatus.latestLanguageVersion();
   }
 
-  /// Computes a set of features for use in a unit test.  Computes the set of
-  /// features enabled in [sdkVersion], plus any specified [additionalFeatures].
-  ///
-  /// If [sdkVersion] is not supplied (or is `null`), then the current set of
-  /// enabled features is used as the starting point.
-  @visibleForTesting
-  factory ExperimentStatus.forTesting(
-      // ignore:avoid_unused_constructor_parameters
-      {String? sdkVersion,
-      List<Feature> additionalFeatures = const []}) {
-    var explicitFlags = decodeExplicitFlags([]);
-    for (var feature in additionalFeatures) {
-      explicitFlags.enabled[(feature as ExperimentalFeature).index] = true;
-    }
-
-    var sdkLanguageVersion = currentVersion;
-    var flags = restrictEnableFlagsToVersion(
-      sdkLanguageVersion: sdkLanguageVersion,
-      explicitEnabledFlags: explicitFlags.enabled,
-      explicitDisabledFlags: explicitFlags.disabled,
-      version: sdkLanguageVersion,
-    );
-
-    return ExperimentStatus._(
-      sdkLanguageVersion,
-      explicitFlags.enabled,
-      explicitFlags.disabled,
-      flags,
-    );
-  }
-
   factory ExperimentStatus.fromStorage(Uint8List encoded) {
     var byteIndex = 0;
 
@@ -112,19 +81,6 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
       getBoolList(featureCount),
       getBoolList(featureCount),
       getBoolList(featureCount),
-    );
-  }
-
-  /// Decodes the strings given in [flags] into a representation of the set of
-  /// experiments that should be enabled.
-  ///
-  /// Always succeeds, even if the input flags are invalid.  Expired and
-  /// unrecognized flags are ignored, conflicting flags are resolved in favor of
-  /// the flag appearing last.
-  factory ExperimentStatus.fromStrings(List<String> flags) {
-    return ExperimentStatus.fromStrings2(
-      sdkLanguageVersion: currentVersion,
-      flags: flags,
     );
   }
 

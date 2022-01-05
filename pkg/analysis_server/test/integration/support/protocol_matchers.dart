@@ -3014,6 +3014,17 @@ final Matcher isSearchResultsParams = LazyMatcher(() => MatchesJsonObject(
     'search.results params',
     {'id': isSearchId, 'results': isListOf(isSearchResult), 'isLast': isBool}));
 
+/// server.cancelRequest params
+///
+/// {
+///   "id": String
+/// }
+final Matcher isServerCancelRequestParams = LazyMatcher(
+    () => MatchesJsonObject('server.cancelRequest params', {'id': isString}));
+
+/// server.cancelRequest result
+final Matcher isServerCancelRequestResult = isNull;
+
 /// server.connected params
 ///
 /// {

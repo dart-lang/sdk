@@ -1,0 +1,82 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue43290.dart:15:25: Error: Not a constant expression.
+//     const Class(length: length);
+//                         ^^^^^^
+//
+// pkg/front_end/testcases/general/issue43290.dart:23:15: Error: Not a constant expression.
+//     const a = length;
+//               ^^^^^^
+//
+// pkg/front_end/testcases/general/issue43290.dart:11:11: Error: Constant evaluation error:
+//     const Class(length: this.length);
+//           ^
+// pkg/front_end/testcases/general/issue43290.dart:11:30: Context: Not a constant expression.
+//     const Class(length: this.length);
+//                              ^
+//
+// pkg/front_end/testcases/general/issue43290.dart:15:11: Error: Constant evaluation error:
+//     const Class(length: length);
+//           ^
+// pkg/front_end/testcases/general/issue43290.dart:15:25: Context: Not a constant expression.
+//     const Class(length: length);
+//                         ^
+//
+// pkg/front_end/testcases/general/issue43290.dart:19:20: Error: Constant evaluation error:
+//     const a = this.length;
+//                    ^
+// pkg/front_end/testcases/general/issue43290.dart:19:20: Context: Not a constant expression.
+//     const a = this.length;
+//                    ^
+// pkg/front_end/testcases/general/issue43290.dart:19:11: Context: While analyzing:
+//     const a = this.length;
+//           ^
+//
+// pkg/front_end/testcases/general/issue43290.dart:23:15: Error: Constant evaluation error:
+//     const a = length;
+//               ^
+// pkg/front_end/testcases/general/issue43290.dart:23:15: Context: Not a constant expression.
+//     const a = length;
+//               ^
+// pkg/front_end/testcases/general/issue43290.dart:23:11: Context: While analyzing:
+//     const a = length;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object /*hasConstConstructor*/  {
+  final field core::int* length;
+  const constructor •({core::int* length = #C1}) → self::Class*
+    : self::Class::length = length, super core::Object::•()
+    ;
+  method method1a() → dynamic {
+    invalid-expression "Not a constant expression.";
+  }
+  method method1b() → dynamic {
+    invalid-expression "Not a constant expression.";
+  }
+  method method2a() → dynamic {
+    const core::int* a = invalid-expression "Not a constant expression.";
+  }
+  method method2b() → dynamic {
+    const core::int* a = invalid-expression "Not a constant expression.";
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

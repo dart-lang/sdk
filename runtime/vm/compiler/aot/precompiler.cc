@@ -67,6 +67,10 @@ DEFINE_FLAG(bool,
             "Print per-phase breakdown of time spent precompiling");
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynamic targets");
 DEFINE_FLAG(bool, print_gop, false, "Print global object pool");
+DEFINE_FLAG(charp,
+            print_object_layout_to,
+            nullptr,
+            "Print layout of Dart objects to the given file");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 DEFINE_FLAG(
     int,
@@ -468,6 +472,10 @@ void Precompiler::DoCompileAll() {
       // because their class hasn't been finalized yet.
       FinalizeAllClasses();
       ASSERT(Error::Handle(Z, T->sticky_error()).IsNull());
+
+      if (FLAG_print_object_layout_to != nullptr) {
+        IG->class_table()->PrintObjectLayout(FLAG_print_object_layout_to);
+      }
 
       ClassFinalizer::SortClasses();
 

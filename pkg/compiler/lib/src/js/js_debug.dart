@@ -23,7 +23,7 @@ String nodeToString(Node node, {bool pretty = false}) {
 
 /// Visitor that creates an XML-like representation of the structure of a
 /// JavaScript [Node].
-class DebugPrinter extends BaseVisitor with Indentation, Tagging<Node> {
+class DebugPrinter extends BaseVisitorVoid with Indentation, Tagging<Node> {
   @override
   StringBuffer sb = StringBuffer();
 

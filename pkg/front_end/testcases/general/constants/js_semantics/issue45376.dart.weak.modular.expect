@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class MyClass extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field core::int b;
+  const constructor •(dynamic i1, dynamic i2) → self::MyClass
+    : self::MyClass::a = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int, self::MyClass::b = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int, super core::Object::•()
+    ;
+  static method _#new#tearOff(dynamic i1, dynamic i2) → self::MyClass
+    return new self::MyClass::•(i1, i2);
+}
+static method test() → dynamic {}
+static method main() → dynamic {}
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue45376.dart:
+- MyClass. (from org-dartlang-testcase:///issue45376.dart:8:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart:25:9)

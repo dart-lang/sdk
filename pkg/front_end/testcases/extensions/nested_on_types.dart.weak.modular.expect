@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension<T extends core::Object* = dynamic> on self::A<self::A<T*>*>* {
+  method method1 = self::Extension|method1;
+  tearoff method1 = self::Extension|get#method1;
+  method method2 = self::Extension|method2;
+  tearoff method2 = self::Extension|get#method2;
+}
+static method Extension|method1<T extends core::Object* = dynamic>(lowered final self::A<self::A<self::Extension|method1::T*>*>* #this) → dynamic {}
+static method Extension|get#method1<T extends core::Object* = dynamic>(lowered final self::A<self::A<self::Extension|get#method1::T*>*>* #this) → () →* dynamic
+  return () → dynamic => self::Extension|method1<self::Extension|get#method1::T*>(#this);
+static method Extension|method2<T extends core::Object* = dynamic, A extends core::Object* = dynamic>(lowered final self::A<self::A<self::Extension|method2::T*>*>* #this, self::Extension|method2::A* a) → dynamic {}
+static method Extension|get#method2<T extends core::Object* = dynamic>(lowered final self::A<self::A<self::Extension|get#method2::T*>*>* #this) → <A extends core::Object* = dynamic>(A*) →* dynamic
+  return <A extends core::Object* = dynamic>(A* a) → dynamic => self::Extension|method2<self::Extension|get#method2::T*, A*>(#this, a);
+static method main() → dynamic {}

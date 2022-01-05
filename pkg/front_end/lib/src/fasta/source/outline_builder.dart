@@ -814,7 +814,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
+  void beginClassDeclaration(
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     debugEvent("beginClassDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -827,6 +828,18 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.setCurrentClassName(name.lexeme);
     inAbstractClass = abstractToken != null;
     push(abstractToken != null ? abstractMask : 0);
+    if (macroToken != null && !libraryBuilder.enableMacrosInLibrary) {
+      // TODO(johnniwinther): We should emit a different message when the
+      // experiment is not released yet. The current message indicates that
+      // changing the sdk version can solve the problem.
+      addProblem(
+          templateExperimentNotEnabled.withArguments(
+              'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
+          macroToken.next!.charOffset,
+          macroToken.next!.length);
+      macroToken = null;
+    }
+    push(macroToken ?? NullValue.Token);
   }
 
   @override
@@ -899,7 +912,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token name) {
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     debugEvent("beginNamedMixinApplication");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -910,6 +923,15 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
         name.lexeme, name.charOffset, typeVariables);
     push(abstractToken != null ? abstractMask : 0);
+    if (macroToken != null && !libraryBuilder.enableMacrosInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments(
+              'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
+          macroToken.next!.charOffset,
+          macroToken.next!.length);
+      macroToken = null;
+    }
+    push(macroToken ?? NullValue.Token);
   }
 
   @override
@@ -1042,10 +1064,26 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("endClassDeclaration");
+    assert(checkState(beginToken, [
+      /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+      /* macro token */ ValueKinds.TokenOrNull,
+      /* modifiers */ ValueKinds.Integer,
+      /* type variables */ ValueKinds.TypeVariableListOrNull,
+      /* name offset */ ValueKinds.Integer,
+      /* name */ ValueKinds.NameOrParserRecovery,
+      /* metadata */ ValueKinds.MetadataListOrNull,
+    ]));
+
     List<TypeBuilder>? interfaces =
         pop(NullValue.TypeBuilderList) as List<TypeBuilder>?;
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
+    Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
@@ -1122,7 +1160,8 @@ class OutlineBuilder extends StackListenerImpl {
           startCharOffset,
           nameOffset,
           endToken.charOffset,
-          supertypeOffset);
+          supertypeOffset,
+          isMacro: macroToken != null);
     }
     libraryBuilder.setCurrentClassName(null);
     popDeclarationContext(DeclarationContext.Class);
@@ -1880,9 +1919,25 @@ class OutlineBuilder extends StackListenerImpl {
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token? implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
+    assert(checkState(beginToken, [
+      if (implementsKeyword != null)
+        /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+      /* mixin application */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.TypeBuilder,
+      ]),
+      /* macro token */ ValueKinds.TokenOrNull,
+      /* modifiers */ ValueKinds.Integer,
+      /* type variables */ ValueKinds.TypeVariableListOrNull,
+      /* name offset */ ValueKinds.Integer,
+      /* name */ ValueKinds.NameOrParserRecovery,
+      /* metadata */ ValueKinds.MetadataListOrNull,
+    ]));
+
     List<TypeBuilder>? interfaces =
         popIfNotNull(implementsKeyword) as List<TypeBuilder>?;
     Object? mixinApplication = pop();
+    Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
@@ -1950,7 +2005,8 @@ class OutlineBuilder extends StackListenerImpl {
           interfaces,
           startCharOffset,
           charOffset,
-          charEndOffset);
+          charEndOffset,
+          isMacro: macroToken != null);
     }
     popDeclarationContext(DeclarationContext.NamedMixinApplication);
   }
@@ -2104,6 +2160,7 @@ class OutlineBuilder extends StackListenerImpl {
           type,
           name == null ? FormalParameterBuilder.noNameSentinel : name as String,
           thisKeyword != null,
+          superKeyword != null,
           charOffset,
           initializerStart));
     }

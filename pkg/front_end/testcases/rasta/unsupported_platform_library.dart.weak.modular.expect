@@ -1,0 +1,14 @@
+//
+// Problems outside component:
+//
+// pkg/front_end/testcases/rasta/unsupported_platform_library.dart:5:8: Error: Not found: 'dart:html'
+// import 'dart:html';
+//        ^
+//
+library;
+import self as self;
+
+import "dart:html";
+import "dart:io";
+
+static method main() → dynamic {}

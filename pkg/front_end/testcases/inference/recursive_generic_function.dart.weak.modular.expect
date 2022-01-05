@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method _mergeSort<T extends core::Object* = dynamic>((self::_mergeSort::T*) →* self::_mergeSort::T* list, (self::_mergeSort::T*, self::_mergeSort::T*) →* core::int* compare, (self::_mergeSort::T*) →* self::_mergeSort::T* target) → void {
+  self::_mergeSort<self::_mergeSort::T*>(list, compare, target);
+  self::_mergeSort<self::_mergeSort::T*>(list, compare, list);
+  self::_mergeSort<self::_mergeSort::T*>(target, compare, target);
+  self::_mergeSort<self::_mergeSort::T*>(target, compare, list);
+}
+static method main() → dynamic {}

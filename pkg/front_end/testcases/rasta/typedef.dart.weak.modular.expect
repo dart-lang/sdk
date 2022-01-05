@@ -1,0 +1,36 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/typedef.dart:9:3: Error: Can't assign to a type literal.
+//   Foo = null;
+//   ^^^
+//
+// pkg/front_end/testcases/rasta/typedef.dart:10:3: Error: Can't assign to a type literal.
+//   Foo ??= null;
+//   ^^^
+//
+// pkg/front_end/testcases/rasta/typedef.dart:11:3: Error: Couldn't find constructor 'Foo'.
+//   Foo();
+//   ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Foo = () →* void;
+static method main() → dynamic {
+  core::print(#C1);
+  invalid-expression "pkg/front_end/testcases/rasta/typedef.dart:9:3: Error: Can't assign to a type literal.
+  Foo = null;
+  ^^^";
+  #C1 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/typedef.dart:10:3: Error: Can't assign to a type literal.
+  Foo ??= null;
+  ^^^" : null;
+  invalid-expression "pkg/front_end/testcases/rasta/typedef.dart:11:3: Error: Couldn't find constructor 'Foo'.
+  Foo();
+  ^^^";
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(() →* void)
+}

@@ -16,8 +16,10 @@ Future<void> main() async {
   var hintEntries = FixProcessor.nonLintProducerMap.entries.where((e) =>
       e.key.type == ErrorType.HINT || e.key.type == ErrorType.STATIC_WARNING);
 
-  var diagnostics = List.from(hintEntries)
-    ..addAll(FixProcessor.lintProducerMap.entries);
+  var diagnostics = [
+    ...hintEntries,
+    ...FixProcessor.lintProducerMap.entries,
+  ];
   for (var diagnostic in diagnostics) {
     var canBeAppliedInBulk = false;
     var missingExplanations = <String>[];

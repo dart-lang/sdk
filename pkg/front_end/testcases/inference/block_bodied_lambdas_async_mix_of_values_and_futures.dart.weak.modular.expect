@@ -1,0 +1,22 @@
+library test;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+import "dart:math" as math;
+
+import "dart:async";
+import "dart:math" show Random;
+
+static method test() → dynamic {
+  () →* asy::Future<core::num*>* f = () → asy::Future<core::num*>* async {
+    if(math::Random::•().{math::Random::nextBool}(){() →* core::bool*}) {
+      return asy::Future::value<core::int*>(1);
+    }
+    else {
+      return 2.0;
+    }
+  };
+  asy::Future<core::num*>* g = f(){() →* asy::Future<core::num*>*};
+  asy::Future<core::int*>* h = f(){() →* asy::Future<core::num*>*} as{TypeError} asy::Future<core::int*>*;
+}
+static method main() → dynamic {}

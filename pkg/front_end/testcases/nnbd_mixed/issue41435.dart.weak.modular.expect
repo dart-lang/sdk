@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "issue41435_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue41435_lib.dart";
+
+static method main() → void {
+  Null nil;
+  iss::x = null;
+  iss::x = nil;
+  iss::takesNever(null);
+  iss::takesNever(nil);
+  iss::takesTakesNull(#C1);
+  iss::f = (Null x) → Null {};
+}
+
+library /*isNonNullableByDefault*/;
+import self as iss;
+import "dart:core" as core;
+
+static field Never x = throw "Unreachable";
+static field (Null) → void f = (core::Object? n) → void {};
+static method takesNever(Never x) → void {}
+static method takesTakesNull((Null) → void f) → void {}
+
+constants  {
+  #C1 = static-tearoff iss::takesNever
+}

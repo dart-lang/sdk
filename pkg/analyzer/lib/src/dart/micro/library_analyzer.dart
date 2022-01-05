@@ -362,17 +362,14 @@ class LibraryAnalyzer {
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
-    RecordingErrorListener errorListener = _getErrorListener(file);
+    ErrorReporter errorReporter = _getErrorReporter(file);
 
     CodeChecker checker = CodeChecker(
       _typeProvider,
       _typeSystem,
-      _inheritance,
-      errorListener,
+      errorReporter,
     );
     checker.visitCompilationUnit(unit);
-
-    ErrorReporter errorReporter = _getErrorReporter(file);
 
     //
     // Validate the directives.

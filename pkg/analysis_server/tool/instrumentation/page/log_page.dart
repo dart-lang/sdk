@@ -142,7 +142,7 @@ function selectEntryGroup(pageStart) {
       if (entry.isServerStatus) {
         var analysisStatus = entry.param('analysis');
         if (analysisStatus is Map) {
-          if (analysisStatus['isAnalyzing']) {
+          if (analysisStatus['isAnalyzing'] as bool) {
             description = '$description <span class="gray">(analyzing)</span>';
           } else {
             var duration = _getDuration(pairedEntry, entry);
@@ -152,7 +152,7 @@ function selectEntryGroup(pageStart) {
         }
         var pubStatus = entry.param('pub');
         if (pubStatus is Map) {
-          if (pubStatus['isListingPackageDirs']) {
+          if (pubStatus['isListingPackageDirs'] as bool) {
             description = '$description <span class="gray">(pub)</span>';
           } else {
             var duration = _getDuration(pairedEntry, entry);

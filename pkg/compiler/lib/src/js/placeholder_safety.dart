@@ -63,7 +63,12 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   @override
   int visitNode(js.Node node) {
     safe = false;
-    super.visitNode(node);
+    node.visitChildren(this);
+    return UNKNOWN_VALUE;
+  }
+
+  @override
+  int visitComment(js.Comment node) {
     return UNKNOWN_VALUE;
   }
 

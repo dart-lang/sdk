@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45658.dart:13:3: Error: Inferred type argument 'C<Object?>' doesn't conform to the bound 'C<X>' of the type variable 'X' on 'A'.
+//  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45658.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   A();
+//   ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45658.dart:10:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef A<X extends C<X>> = C<X>;
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45658.dart:14:5: Error: Inferred type argument 'C<Object?>' doesn't conform to the bound 'C<X>' of the type variable 'X' on 'A'.
+//  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45658.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   A.foo();
+//     ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45658.dart:10:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef A<X extends C<X>> = C<X>;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef A<X extends self::C<X> = self::C<dynamic>> = self::C<X>;
+class C<X extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::C<self::C::X%>
+    : super core::Object::•()
+    ;
+  static factory foo<X extends core::Object? = dynamic>() → self::C<self::C::foo::X%>
+    return new self::C::•<self::C::foo::X%>();
+}
+static method foo() → dynamic {
+  new self::C::•<self::C<core::Object?>>();
+  self::C::foo<self::C<core::Object?>>();
+}
+static method main() → dynamic {}
+static method _#A#new#tearOff<X extends self::C<self::_#A#new#tearOff::X> = self::C<dynamic>>() → self::C<self::_#A#new#tearOff::X>
+  return new self::C::•<self::_#A#new#tearOff::X>();
+static method _#A#foo#tearOff<X extends self::C<self::_#A#foo#tearOff::X> = self::C<dynamic>>() → self::C<self::_#A#foo#tearOff::X>
+  return self::C::foo<self::_#A#foo#tearOff::X>();

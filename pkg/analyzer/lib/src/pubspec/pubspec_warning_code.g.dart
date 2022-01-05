@@ -120,7 +120,8 @@ class PubspecWarningCode extends ErrorCode {
   // ```
   static const PubspecWarningCode ASSET_FIELD_NOT_LIST = PubspecWarningCode(
     'ASSET_FIELD_NOT_LIST',
-    "The value of the 'asset' field is expected to be a list of relative file paths.",
+    "The value of the 'asset' field is expected to be a list of relative file "
+        "paths.",
     correctionMessage:
         "Try converting the value to be a list of relative file paths.",
     hasPublishedDocs: true,
@@ -337,7 +338,8 @@ class PubspecWarningCode extends ErrorCode {
     'INVALID_DEPENDENCY',
     "Publishable packages can't have '{0}' dependencies.",
     correctionMessage:
-        "Try adding a 'publish_to: none' entry to mark the package as not for publishing or remove the {0} dependency.",
+        "Try adding a 'publish_to: none' entry to mark the package as not for "
+        "publishing or remove the {0} dependency.",
     hasPublishedDocs: true,
   );
 
@@ -518,7 +520,8 @@ class PubspecWarningCode extends ErrorCode {
     'PATH_PUBSPEC_DOES_NOT_EXIST',
     "The directory '{0}' doesn't contain a pubspec.",
     correctionMessage:
-        "Try creating a pubspec in the referenced directory or using a path that has a pubspec.",
+        "Try creating a pubspec in the referenced directory or using a path "
+        "that has a pubspec.",
     hasPublishedDocs: true,
   );
 
@@ -561,7 +564,8 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode UNNECESSARY_DEV_DEPENDENCY =
       PubspecWarningCode(
     'UNNECESSARY_DEV_DEPENDENCY',
-    "The dev dependency on {0} is unnecessary because there is also a normal dependency on that package.",
+    "The dev dependency on {0} is unnecessary because there is also a normal "
+        "dependency on that package.",
     correctionMessage: "Try removing the dev dependency.",
     hasPublishedDocs: true,
   );

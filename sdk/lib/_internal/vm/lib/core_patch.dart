@@ -53,8 +53,6 @@ import "dart:ffi" show Pointer, Struct, Union;
 
 import "dart:isolate" show Isolate;
 
-import "dart:math" show Random;
-
 import "dart:typed_data"
     show Endian, Uint8List, Int64List, Uint16List, Uint32List;
 

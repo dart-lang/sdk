@@ -42,9 +42,9 @@ import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 class EnclosingExecutableContext {
@@ -86,16 +86,7 @@ class EnclosingExecutableContext {
   EnclosingExecutableContext.empty() : this(null);
 
   String? get displayName {
-    final element = this.element;
-    if (element is ConstructorElement) {
-      var className = element.enclosingElement.displayName;
-      var constructorName = element.displayName;
-      return constructorName.isEmpty
-          ? className
-          : '$className.$constructorName';
-    } else {
-      return element?.displayName;
-    }
+    return element?.displayName;
   }
 
   bool get isClosure {
@@ -1501,7 +1492,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
       libraryNames.sort();
       errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_IMPORT,
-          node, [name, StringUtilities.printListOfQuotedNames(libraryNames)]);
+          node, [name, libraryNames.quotedAndCommaSeparatedWithAnd]);
     }
   }
 
@@ -3188,6 +3179,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
   bool _checkForMixinInheritsNotFromObject(
       NamedType mixinName, ClassElement mixinElement) {
+    if (mixinElement.isEnum) {
+      return false;
+    }
+
     var mixinSupertype = mixinElement.supertype;
     if (mixinSupertype == null || mixinSupertype.isDartCoreObject) {
       var mixins = mixinElement.mixins;
@@ -4164,6 +4159,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
+    // TODO(scheglov) Restore when working on errors.
+    if (_currentLibrary.featureSet.isEnabled(Feature.super_parameters)) {
+      if (constructor.parameters.parameters.any((parameter) {
+        return parameter.notDefault is SuperFormalParameter;
+      })) {
+        return;
+      }
+    }
+
     // Ignore if the constructor has either an implicit super constructor
     // invocation or a redirecting constructor invocation.
     for (ConstructorInitializer constructorInitializer
@@ -4930,11 +4934,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Return the name of the library that defines given [element].
   String _getLibraryName(Element? element) {
     if (element == null) {
-      return StringUtilities.EMPTY;
+      return '';
     }
     var library = element.library;
     if (library == null) {
-      return StringUtilities.EMPTY;
+      return '';
     }
     List<ImportElement> imports = _currentLibrary.imports;
     int count = imports.length;
@@ -4963,7 +4967,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       buffer.write(" (via ");
       if (indirectCount > 1) {
         indirectSources.sort();
-        buffer.write(StringUtilities.printListOfQuotedNames(indirectSources));
+        buffer.write(indirectSources.quotedAndCommaSeparatedWithAnd);
       } else {
         buffer.write(indirectSources[0]);
       }

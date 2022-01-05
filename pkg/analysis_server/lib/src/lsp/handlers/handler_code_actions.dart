@@ -14,7 +14,6 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -347,14 +346,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         }
         var workspace = DartChangeWorkspace(server.currentSessions);
         var context = DartFixContextImpl(
-            server.instrumentationService, workspace, unit, error, (name) {
-          var tracker = server.declarationsTracker!;
-          return TopLevelDeclarationsProvider(tracker).get(
-            unit.session.analysisContext,
-            unit.path,
-            name,
-          );
-        }, extensionCache: server.getExtensionCacheFor(unit));
+            server.instrumentationService, workspace, unit, error);
         final fixes = await fixContributor.computeFixes(context);
         if (fixes.isNotEmpty) {
           final diagnostic = toDiagnostic(

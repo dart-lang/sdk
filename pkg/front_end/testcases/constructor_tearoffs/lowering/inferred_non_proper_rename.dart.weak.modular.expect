@@ -1,0 +1,106 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends core::num> = self::A<X>;
+typedef G<unrelated Y extends core::Object? = dynamic> = self::A<core::int>;
+typedef H<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic> = self::A<X%>;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
+    return new self::A::•<self::A::_#new#tearOff::T%>();
+  static factory fact<T extends core::Object? = dynamic>() → self::A<self::A::fact::T%>
+    return new self::A::•<self::A::fact::T%>();
+  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#fact#tearOff::T%>
+    return self::A::fact<self::A::_#fact#tearOff::T%>();
+  static factory redirect<T extends core::Object? = dynamic>() → self::A<self::A::redirect::T%>
+    return new self::A::•<self::A::redirect::T%>();
+  static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#redirect#tearOff::T%>
+    return new self::A::•<self::A::_#redirect#tearOff::T%>();
+}
+static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static const field () → self::A<core::int> f1a = #C3;
+static const field () → self::A<core::int> f1b = #C3;
+static const field () → self::A<core::int> f1c = #C3;
+static const field () → self::A<core::int> f1d = #C5;
+static const field () → self::A<core::int> f1e = #C5;
+static const field () → self::A<core::int> f1f = #C5;
+static const field () → self::A<core::int> f1g = #C7;
+static const field () → self::A<core::int> f1h = #C7;
+static const field () → self::A<core::int> f1i = #C7;
+static const field () → self::A<core::int> g1a = #C3;
+static const field () → self::A<core::int> g1b = #C3;
+static const field () → self::A<core::int> g1c = #C3;
+static const field () → self::A<core::int> h1a = #C3;
+static const field () → self::A<core::int> h1b = #C3;
+static const field () → self::A<core::int> h1c = #C3;
+static method main() → dynamic {
+  self::test<core::int>();
+  core::identical(#C3, #C3);
+  core::identical(#C3, #C3);
+  core::identical(#C5, #C5);
+  core::identical(#C5, #C5);
+  core::identical(#C7, #C7);
+  core::identical(#C7, #C7);
+  core::identical(#C3, #C3);
+  core::identical(#C3, #C3);
+  core::identical(#C3, #C3);
+  core::identical(#C3, #C3);
+}
+static method test<T extends core::num>() → dynamic {
+  () → self::A<self::test::T> f2a = #C2<self::test::T>;
+  () → self::A<self::test::T> f2b = #C2<self::test::T>;
+  () → self::A<self::test::T> f2c = #C2<self::test::T>;
+  () → self::A<self::test::T> f2d = #C4<self::test::T>;
+  () → self::A<self::test::T> f2e = #C4<self::test::T>;
+  () → self::A<self::test::T> f2f = #C4<self::test::T>;
+  () → self::A<self::test::T> f2g = #C6<self::test::T>;
+  () → self::A<self::test::T> f2h = #C6<self::test::T>;
+  () → self::A<self::test::T> f2i = #C6<self::test::T>;
+  () → self::A<core::int> g2a = #C3;
+  () → self::A<core::int> g2b = #C3;
+  () → self::A<core::int> g2c = #C3;
+  () → self::A<self::test::T> h2a = #C2<self::test::T>;
+  () → self::A<self::test::T> h2b = #C2<self::test::T>;
+  () → self::A<self::test::T> h2c = #C2<self::test::T>;
+  self::expect(#C3, g2a);
+  self::expect(g2a, g2b);
+  if(self::inSoundMode) {
+    self::expect(g2a, g2c);
+  }
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method _#F#new#tearOff<X extends core::num>() → self::A<self::_#F#new#tearOff::X>
+  return new self::A::•<self::_#F#new#tearOff::X>();
+static method _#F#fact#tearOff<X extends core::num>() → self::A<self::_#F#fact#tearOff::X>
+  return self::A::fact<self::_#F#fact#tearOff::X>();
+static method _#F#redirect#tearOff<X extends core::num>() → self::A<self::_#F#redirect#tearOff::X>
+  return self::A::_#redirect#tearOff<self::_#F#redirect#tearOff::X>();
+static method _#G#new#tearOff<unrelated Y extends core::Object? = dynamic>() → self::A<core::int>
+  return new self::A::•<core::int>();
+static method _#G#fact#tearOff<unrelated Y extends core::Object? = dynamic>() → self::A<core::int>
+  return self::A::fact<core::int>();
+static method _#G#redirect#tearOff<unrelated Y extends core::Object? = dynamic>() → self::A<core::int>
+  return self::A::_#redirect#tearOff<core::int>();
+static method _#H#new#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>() → self::A<self::_#H#new#tearOff::X%>
+  return new self::A::•<self::_#H#new#tearOff::X%>();
+static method _#H#fact#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>() → self::A<self::_#H#fact#tearOff::X%>
+  return self::A::fact<self::_#H#fact#tearOff::X%>();
+static method _#H#redirect#tearOff<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic>() → self::A<self::_#H#redirect#tearOff::X%>
+  return self::A::_#redirect#tearOff<self::_#H#redirect#tearOff::X%>();
+
+constants  {
+  #C1 = constructor-tearoff self::A::redirect
+  #C2 = static-tearoff self::A::_#new#tearOff
+  #C3 = instantiation #C2 <core::int*>
+  #C4 = static-tearoff self::A::_#fact#tearOff
+  #C5 = instantiation #C4 <core::int*>
+  #C6 = static-tearoff self::A::_#redirect#tearOff
+  #C7 = instantiation #C6 <core::int*>
+}

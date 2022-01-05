@@ -6,7 +6,7 @@ library kernel.hierarchy_based_type_environment;
 
 import '../ast.dart' show Class, DartType, InterfaceType, Library, Member, Name;
 
-import '../class_hierarchy.dart' show ClassHierarchyBase;
+import '../class_hierarchy.dart' show ClassHierarchy;
 
 import '../core_types.dart' show CoreTypes;
 
@@ -14,7 +14,7 @@ import '../type_environment.dart' show TypeEnvironment;
 
 class HierarchyBasedTypeEnvironment extends TypeEnvironment {
   @override
-  final ClassHierarchyBase hierarchy;
+  final ClassHierarchy hierarchy;
 
   HierarchyBasedTypeEnvironment(CoreTypes coreTypes, this.hierarchy)
       : super.fromSubclass(coreTypes, hierarchy);

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -262,6 +261,7 @@ class CompletionTarget {
         return node.prefix;
       }
     }
+    return null;
   }
 
   /// If the target is an argument in an argument list, and the invocation is
@@ -285,6 +285,8 @@ class CompletionTarget {
         executable = invocation.constructorName.staticElement;
       } else if (invocation is MethodInvocation) {
         executable = invocation.methodName.staticElement;
+      } else if (invocation is RedirectingConstructorInvocation) {
+        executable = invocation.staticElement;
       } else if (invocation is SuperConstructorInvocation) {
         executable = invocation.staticElement;
       }
@@ -340,6 +342,37 @@ class CompletionTarget {
     return false;
   }
 
+  /// Return `true` if the [offset] is followed by a comma.
+  bool get isFollowedByComma {
+    // f(^); NO
+    // f(one: 1, ^); NO
+    // f(^ , one: 1); YES
+    // f(^, one: 1); YES
+    // f(^ one: 1); NO
+
+    bool isExistingComma(Token? token) {
+      return token != null &&
+          !token.isSynthetic &&
+          token.type == TokenType.COMMA;
+    }
+
+    var entity = this.entity;
+
+    Token token;
+    if (entity is AstNode) {
+      token = entity.endToken;
+    } else if (entity is Token) {
+      token = entity;
+    } else {
+      return false;
+    }
+
+    if (token.offset <= offset && offset <= token.end) {
+      return isExistingComma(token.next);
+    }
+    return isExistingComma(token);
+  }
+
   /// If the target is an argument in an argument list, and the invocation is
   /// resolved, return the corresponding [ParameterElement].
   ParameterElement? get parameterElement {
@@ -379,15 +412,21 @@ class CompletionTarget {
         }
       }
       if (token is StringToken) {
-        var uri = astFactory.simpleStringLiteral(token, token.lexeme);
-        var keyword = containingNode.findPrevious(token)?.keyword;
-        if (keyword == Keyword.IMPORT ||
-            keyword == Keyword.EXPORT ||
-            keyword == Keyword.PART) {
+        final containingNode = this.containingNode;
+        StringLiteral? uri;
+        Directive? directive;
+        if (containingNode is NamespaceDirective) {
+          directive = containingNode;
+          uri = containingNode.uri;
+        } else if (containingNode is SimpleStringLiteral) {
+          uri = containingNode;
+          directive = containingNode.parent.ifTypeOrNull();
+        }
+        // Replacement range for a URI.
+        if (directive != null && uri is SimpleStringLiteral) {
           var start = uri.contentsOffset;
           var end = uri.contentsEnd;
           if (start <= requestOffset && requestOffset <= end) {
-            // Replacement range for import URI
             return SourceRange(start, end - start);
           }
         }
@@ -624,5 +663,13 @@ class CompletionTarget {
     } else {
       return false;
     }
+  }
+}
+
+extension on Object? {
+  /// If the target is [T], return it, otherwise `null`.
+  T? ifTypeOrNull<T>() {
+    final self = this;
+    return self is T ? self : null;
   }
 }

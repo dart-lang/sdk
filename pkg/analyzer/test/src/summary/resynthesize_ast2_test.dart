@@ -230,7 +230,7 @@ abstract class ResynthesizeAst2Test extends AbstractResynthesizeTest
       }
 
       var absoluteUri = resolveRelativeUri(source.uri, relativeUri);
-      var rewrittenUri = rewriteFileToPackageUri(sourceFactory, absoluteUri);
+      var rewrittenUri = rewriteToCanonicalUri(sourceFactory, absoluteUri);
       if (rewrittenUri == null) {
         return;
       }

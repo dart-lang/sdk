@@ -1,0 +1,47 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_bound_due_to_variables.dart:11:9: Error: Generic type 'A' can't be used without type arguments in a type variable bound.
+// Try providing type arguments to 'A' here.
+// class B<TypeU extends A> {}
+//         ^^^^^
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_bound_due_to_variables.dart:9:16: Context: Bound of this variable references variable 'TypeT' from the same declaration.
+// class A<TypeT, TypeS extends TypeT> {}
+//                ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<TypeT extends core::Object* = dynamic, TypeS extends self::A::TypeT* = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::TypeT*, self::A::TypeS*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B<TypeU extends self::A<dynamic, dynamic>* = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::TypeU*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field self::B<dynamic>* b;
+static method main() → dynamic {}

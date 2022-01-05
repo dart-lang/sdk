@@ -6,7 +6,6 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -76,7 +75,6 @@ mixin ArgListContributorMixin on DartCompletionContributorTest {
   /// the only suggestions.
   void assertSuggestArgumentsAndTypes(
       {required Map<String, String> namedArgumentsWithTypes,
-      List<int> requiredParamIndices = const <int>[],
       bool includeColon = true,
       bool includeComma = false}) {
     var expected = <CompletionSuggestion>[];
@@ -122,664 +120,7 @@ mixin ArgListContributorMixin on DartCompletionContributorTest {
 @reflectiveTest
 class ArgListContributorTest extends DartCompletionContributorTest
     with ArgListContributorMixin {
-  Future<void> test_Annotation_imported_constructor_named_param() async {
-    addSource('$testPackageLibPath/a.dart', '''
-library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
-    addTestSource('import "a.dart"; @A(^) main() { }');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
-  }
-
-  Future<void> test_Annotation_importedConstructor_prefixed() async {
-    addSource('$testPackageLibPath/a.dart', '''
-class A {
-  const A({int value});
-}
-''');
-    addTestSource('''
-import "a.dart" as p;
-@p.A(^)
-main() {}
-''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'value': 'int'});
-  }
-
-  Future<void> test_Annotation_local_constructor_named_param() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(^) main() { }''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
-  }
-
-  @failingTest
-  Future<void> test_Annotation_local_constructor_named_param_10() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(two: '2' ^) main() { }''');
-    await computeSuggestions();
-    assertSuggestions([', one: ']);
-  }
-
-  Future<void> test_Annotation_local_constructor_named_param_11() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(two: '2', ^) main() { }''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-  }
-
-  Future<void> test_Annotation_local_constructor_named_param_2() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(^ two: '2') main() { }''');
-    await computeSuggestions();
-    assertSuggestions(['one: ,']);
-  }
-
-  Future<void> test_Annotation_local_constructor_named_param_3() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(^two: '2') main() { }''');
-    await computeSuggestions();
-    assertSuggestions(['one: ,']);
-  }
-
-  Future<void> test_Annotation_local_constructor_named_param_4() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(^, two: '2') main() { }''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-  }
-
-  Future<void> test_Annotation_local_constructor_named_param_5() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(^ , two: '2') main() { }''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-  }
-
-  Future<void> test_Annotation_local_constructor_named_param_6() async {
-    addTestSource('''
-class A { const A(int zero, {int one, String two: 'defaultValue'}); }
-@A(0, ^, two: '2') main() { }''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-  }
-
-  Future<void> test_Annotation_local_constructor_named_param_7() async {
-    addTestSource('''
-class A { const A(int zero, {int one, String two: 'defaultValue'}); }
-@A(0, ^ two: '2') main() { }''');
-    await computeSuggestions();
-    assertSuggestions(['one: ,']);
-  }
-
-  Future<void> test_Annotation_local_constructor_named_param_8() async {
-    addTestSource('''
-class A { const A(int zero, {int one, String two: 'defaultValue'}); }
-@A(0, ^two: '2') main() { }''');
-    await computeSuggestions();
-    assertSuggestions(['one: ,']);
-  }
-
-  @failingTest
-  Future<void> test_Annotation_local_constructor_named_param_9() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(two: '2'^) main() { }''');
-    await computeSuggestions();
-    assertSuggestions([', one: ']);
-  }
-
-  Future<void> test_Annotation_local_constructor_named_param_negative() async {
-    addTestSource('''
-class A { const A(int one, int two, int three, {int four, String five:
-  'defaultValue'}); }
-@A(1, ^, 3) main() { }''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_closureFunction_namedParameter() async {
-    addTestSource(r'''
-void f({void Function(int a, String b) closure}) {}
-
-void main() {
-  f(closure: ^);
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, b) => ,',
-      selectionOffset: 10,
-    );
-
-    assertSuggest(
-      '''
-(a, b) {
-${' ' * 4}
-${' ' * 2}},''',
-      selectionOffset: 13,
-    );
-  }
-
-  Future<void>
-      test_ArgumentList_closureFunction_namedParameter_hasComma() async {
-    addTestSource(r'''
-void f({void Function(int a, String b) closure}) {}
-
-void main() {
-  f(
-    closure: ^,
-  );
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, b) => ',
-      selectionOffset: 10,
-    );
-
-    assertSuggest(
-      '''
-(a, b) {
-${' ' * 6}
-${' ' * 4}}''',
-      selectionOffset: 15,
-    );
-  }
-
-  /// todo (pq): implement positional functional parameters
-  @failingTest
-  Future<void> test_ArgumentList_closureFunction_positionalParameter() async {
-    addTestSource(r'''
-void f(void Function(int a, int b) closure) {}
-
-void main() {
-  f(^);
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, b, c) => ,',
-      selectionOffset: 13,
-    );
-  }
-
-  Future<void> test_ArgumentList_closureMethod_namedParameter() async {
-    addTestSource(r'''
-class C {
-  void f({void Function(int a, String b) closure}) {}
-
-  void main() {
-    f(closure: ^);
-  }
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, b) => ,',
-      selectionOffset: 10,
-    );
-
-    assertSuggest(
-      '''
-(a, b) {
-${' ' * 6}
-${' ' * 4}},''',
-      selectionOffset: 15,
-    );
-  }
-
-  Future<void> test_ArgumentList_closureParam() async {
-    addTestSource(r'''
-void f({void Function(int a, {int b, int c}) closure}) {}
-
-void main() {
-  f(closure: ^);
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, {b, c}) => ,',
-      selectionOffset: 15,
-    );
-  }
-
-  Future<void> test_ArgumentList_closureParameterOptionalNamed() async {
-    addTestSource(r'''
-void f({void Function(int a, {int b, int c}) closure}) {}
-
-void main() {
-  f(closure: ^);
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, {b, c}) => ,',
-      selectionOffset: 15,
-    );
-  }
-
-  Future<void> test_ArgumentList_closureParameterOptionalPositional() async {
-    addTestSource(r'''
-void f({void Function(int a, [int b, int c]) closure]) {}
-
-void main() {
-  f(closure: ^);
-}
-''');
-    await computeSuggestions();
-
-    assertSuggest(
-      '(a, [b, c]) => ,',
-      selectionOffset: 15,
-    );
-  }
-
-  Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_0() async {
-    writeTestPackageConfig(flutter: true);
-
-    addTestSource('''
-import 'package:flutter/widgets.dart';
-
-build() => new Row(
-    ^
-  );
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('children: [],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null,
-        selectionOffset: 11,
-        defaultArgumentListTextRanges: null);
-  }
-
-  Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_01() async {
-    writeTestPackageConfig(flutter: true);
-
-    addTestSource('''
-import 'package:flutter/material.dart';
-
-  build() => new Scaffold(
-        appBar: new AppBar(
-          ^
-        ),
-  );
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('backgroundColor: ,',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null, // No default values.
-        selectionOffset: 17);
-  }
-
-  Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_1() async {
-    writeTestPackageConfig(flutter: true);
-
-    addTestSource('''
-import 'package:flutter/material.dart';
-
-build() => new Row(
-    key: null,
-    ^
-  );
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('children: [],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null,
-        selectionOffset: 11,
-        defaultArgumentListTextRanges: null);
-  }
-
-  Future<void> test_ArgumentList_Flutter_InstanceCreationExpression_2() async {
-    writeTestPackageConfig(flutter: true);
-
-    addTestSource('''
-import 'package:flutter/material.dart';
-
-build() => new Row(
-    ^
-    key: null,
-  );
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('children: [],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null,
-        selectionOffset: 11,
-        defaultArgumentListTextRanges: null);
-  }
-
-  Future<void>
-      test_ArgumentList_Flutter_InstanceCreationExpression_children_dynamic() async {
-    // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
-    // type it's children.
-    writeTestPackageConfig(flutter: true);
-
-    addTestSource('''
-import 'package:flutter/material.dart';
-
-build() => new Container(
-    child: new DynamicRow(^);
-  );
-
-class DynamicRow extends Widget {
-  DynamicRow({List children: null});
-}
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('children: [],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null,
-        selectionOffset: 11,
-        defaultArgumentListTextRanges: null);
-  }
-
-  Future<void>
-      test_ArgumentList_Flutter_InstanceCreationExpression_children_Map() async {
-    // Ensure we don't generate Map params for a future API
-    writeTestPackageConfig(flutter: true);
-
-    addTestSource('''
-import 'package:flutter/material.dart';
-
-build() => new Container(
-    child: new MapRow(^);
-  );
-
-class MapRow extends Widget {
-  MapRow({Map<Object, Object> children: null});
-}
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('children: ,',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        selectionOffset: 10,
-        defaultArgListString: null);
-  }
-
-  Future<void>
-      test_ArgumentList_Flutter_InstanceCreationExpression_slivers() async {
-    writeTestPackageConfig(flutter: true);
-
-    addTestSource('''
-import 'package:flutter/material.dart';
-
-build() => new CustomScrollView(
-    ^
-  );
-
-class CustomScrollView extends Widget {
-  CustomScrollView({List<Widget> slivers});
-}
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('slivers: [],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null,
-        selectionOffset: 10,
-        defaultArgumentListTextRanges: null);
-  }
-
-  Future<void> test_ArgumentList_Flutter_MethodExpression_children() async {
-    // Ensure we don't generate params for a method call
-    // TODO(brianwilkerson) This test has been changed so that it no longer has
-    // anything to do with Flutter (by moving the declaration of `foo` out of
-    // the 'material' library). Determine whether the test is still valid.
-    writeTestPackageConfig(flutter: true);
-
-    addTestSource('''
-import 'package:flutter/material.dart';
-
-main() {
-  foo(^);
-}
-
-foo({String children}) {}
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('children: ',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null);
-  }
-
-  Future<void> test_ArgumentList_getter() async {
-    addTestSource('class A {int get foo => 7; main() {foo(^)}');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_imported_constructor_named_param() async {
-    // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource(
-        '$testPackageLibPath/a.dart', 'library libA; class A{A({int one}); }');
-    addTestSource('import "a.dart"; main() { new A(^);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-  }
-
-  Future<void> test_ArgumentList_imported_constructor_named_param2() async {
-    // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource('$testPackageLibPath/a.dart',
-        'library libA; class A{A.foo({int one}); }');
-    addTestSource('import "a.dart"; main() { new A.foo(^);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-  }
-
-  Future<void>
-      test_ArgumentList_imported_constructor_named_typed_param() async {
-    // ArgumentList  InstanceCreationExpression  VariableDeclaration
-    addSource('$testPackageLibPath/a.dart',
-        'library libA; class A { A({int i, String s, d}) {} }}');
-    addTestSource('import "a.dart"; main() { var a = new A(^);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'i': 'int', 's': 'String', 'd': 'dynamic'});
-  }
-
-  Future<void> test_ArgumentList_imported_factory_named_param() async {
-    // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource('$testPackageLibPath/a.dart',
-        'library libA; class A{factory A({int one}) => throw 0;}');
-    addTestSource('import "a.dart"; main() { new A(^);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-  }
-
-  Future<void> test_ArgumentList_imported_factory_named_param2() async {
-    // ArgumentList  InstanceCreationExpression  ExpressionStatement
-    addSource('$testPackageLibPath/a.dart',
-        'library libA; abstract class A{factory A.foo({int one});}');
-    addTestSource('import "a.dart"; main() { new A.foo(^);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-  }
-
-  Future<void> test_ArgumentList_imported_factory_named_typed_param() async {
-    // ArgumentList  InstanceCreationExpression  VariableDeclaration
-    addSource('$testPackageLibPath/a.dart',
-        'library libA; class A {factory A({int i, String s, d}) {} }}');
-    addTestSource('import "a.dart"; main() { var a = new A(^);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'i': 'int', 's': 'String', 'd': 'dynamic'});
-  }
-
-  Future<void> test_ArgumentList_imported_function_0() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('$testPackageLibPath/a.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      expect() { }
-      void baz() { }''');
-    addTestSource('''
-      import 'a.dart'
-      class B { }
-      String bar() => true;
-      void main() {expect(a^)}''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_imported_function_3a() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('$testPackageLibPath/a.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      expect(String arg1, int arg2, {bool arg3}) { }
-      void baz() { }''');
-    addTestSource('''
-      import 'a.dart'
-      class B { }
-      String bar() => true;
-      void main() {expect('hello', ^)}''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_imported_function_3b() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('$testPackageLibPath/a.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      expect(String arg1, int arg2, {bool arg3}) { }
-      void baz() { }''');
-    addTestSource('''
-      import 'a.dart'
-      class B { }
-      String bar() => true;
-      void main() {expect('hello', ^x)}''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_imported_function_3c() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('$testPackageLibPath/a.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      expect(String arg1, int arg2, {bool arg3}) { }
-      void baz() { }''');
-    addTestSource('''
-      import 'a.dart'
-      class B { }
-      String bar() => true;
-      void main() {expect('hello', x^)}''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_imported_function_3d() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('$testPackageLibPath/a.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      expect(String arg1, int arg2, {bool arg3}) { }
-      void baz() { }''');
-    addTestSource('''
-      import 'a.dart'
-      class B { }
-      String bar() => true;
-      void main() {expect('hello', x ^)}''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_imported_function_named_param() async {
-    //
-    addTestSource('main() { int.parse("16", ^);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int?',
-      'onError': 'int Function(String)?'
-    });
-  }
-
-  Future<void> test_ArgumentList_imported_function_named_param1() async {
-    //
-    addTestSource('main() { int.parse("16", r^);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int?',
-      'onError': 'int Function(String)?'
-    });
-  }
-
-  Future<void> test_ArgumentList_imported_function_named_param2() async {
-    //
-    addTestSource('main() { int.parse("16", radix: 7, ^);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'onError': 'int Function(String)?'});
-  }
-
-  Future<void> test_ArgumentList_imported_function_named_param2a() async {
-    //
-    addTestSource('main() { int.parse("16", radix: ^);}');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_imported_function_named_param_label1() async {
-    //
-    addTestSource('main() { int.parse("16", r^: 16);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int?',
-      'onError': 'int Function(String)?'
-    }, includeColon: false);
-  }
-
-  Future<void> test_ArgumentList_imported_function_named_param_label2() async {
-    //
-    addTestSource('main() { int.parse("16", ^r: 16);}');
-    await computeSuggestions();
-    assertSuggestions(['radix: ,', 'onError: ,']);
-  }
-
-  Future<void> test_ArgumentList_imported_function_named_param_label3() async {
-    //
-    addTestSource('main() { int.parse("16", ^: 16);}');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int?',
-      'onError': 'int Function(String)?'
-    });
-  }
-
-  Future<void>
-      test_ArgumentList_local_constructor_named_fieldFormal_documentation() async {
+  Future<void> test_fieldFormal_documentation() async {
     var content = '''
 class A {
   /// aaa
@@ -807,8 +148,7 @@ main() {
     expect(element.location!.offset, content.indexOf('fff})'));
   }
 
-  Future<void>
-      test_ArgumentList_local_constructor_named_fieldFormal_noDocumentation() async {
+  Future<void> test_fieldFormal_noDocumentation() async {
     var content = '''
 class A {
   int fff;
@@ -832,327 +172,646 @@ main() {
     expect(element.location!.offset, content.indexOf('fff})'));
   }
 
-  Future<void> test_ArgumentList_local_constructor_named_param() async {
-    //
+  Future<void> test_flutter_InstanceCreationExpression_0() async {
+    writeTestPackageConfig(flutter: true);
+
     addTestSource('''
-class A { A({int one, String two: 'defaultValue'}) { } }
-main() { new A(^);}''');
+import 'package:flutter/widgets.dart';
+
+build() => new Row(
+    ^
+  );
+''');
+
     await computeSuggestions();
 
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
-    assertSuggestArgumentAndCompletion('one',
-        completion: 'one: ', selectionOffset: 5);
+    assertSuggest('children: [],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        defaultArgListString: null,
+        selectionOffset: 11,
+        defaultArgumentListTextRanges: null);
   }
 
-  Future<void> test_ArgumentList_local_constructor_named_param_1() async {
-    //
+  Future<void> test_flutter_InstanceCreationExpression_01() async {
+    writeTestPackageConfig(flutter: true);
+
     addTestSource('''
-class A { A({int one, String two: 'defaultValue'}) { } }
-main() { new A(o^);}''');
+import 'package:flutter/material.dart';
+
+  build() => new Scaffold(
+        appBar: new AppBar(
+          ^
+        ),
+  );
+''');
+
     await computeSuggestions();
 
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
-    assertSuggestArgumentAndCompletion('one',
-        completion: 'one: ', selectionOffset: 5);
+    assertSuggest('backgroundColor: ,',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        defaultArgListString: null, // No default values.
+        selectionOffset: 17);
   }
 
-  Future<void> test_ArgumentList_local_constructor_named_param_2() async {
-    //
+  Future<void> test_flutter_InstanceCreationExpression_1() async {
+    writeTestPackageConfig(flutter: true);
+
     addTestSource('''
-class A { A({int one, String two: 'defaultValue'}) { } }
-main() { new A(^o,);}''');
+import 'package:flutter/material.dart';
+
+build() => new Row(
+    key: null,
+    ^
+  );
+''');
+
     await computeSuggestions();
 
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
-    assertSuggestArgumentAndCompletion('one',
-        completion: 'one: ', selectionOffset: 5);
+    assertSuggest('children: [],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        defaultArgListString: null,
+        selectionOffset: 11,
+        defaultArgumentListTextRanges: null);
   }
 
-  Future<void> test_ArgumentList_local_constructor_named_param_3() async {
-    //
+  Future<void> test_flutter_InstanceCreationExpression_2() async {
+    writeTestPackageConfig(flutter: true);
+
     addTestSource('''
-class A { A({int one, String two: 'defaultValue'}) { } }
-main() { new A(two: 'foo', ^);}''');
+import 'package:flutter/material.dart';
+
+build() => new Row(
+    ^
+    key: null,
+  );
+''');
+
     await computeSuggestions();
 
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-    assertSuggestArgumentAndCompletion('one',
-        completion: 'one: ', selectionOffset: 5);
-  }
-
-  Future<void> test_ArgumentList_local_constructor_named_param_4() async {
-    //
-    addTestSource('''
-class A { A({int one, String two: 'defaultValue'}) { } }
-main() { new A(two: 'foo', o^);}''');
-    await computeSuggestions();
-
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-    assertSuggestArgumentAndCompletion('one',
-        completion: 'one: ', selectionOffset: 5);
-  }
-
-  Future<void> test_ArgumentList_local_constructor_named_param_5() async {
-    //
-    addTestSource('''
-class A { A({int one, String two: 'defaultValue'}) { } }
-main() { new A(two: 'foo', o^,);}''');
-    await computeSuggestions();
-
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});
-    assertSuggestArgumentAndCompletion('one',
-        completion: 'one: ', selectionOffset: 5);
-  }
-
-  Future<void> test_ArgumentList_local_constructor_named_param_6() async {
-    //
-    addTestSource('''
-class A { A.foo({int one, String two: 'defaultValue'}) { } }
-main() { new A.foo(^);}''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
+    assertSuggest('children: [],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        defaultArgListString: null,
+        selectionOffset: 11,
+        defaultArgumentListTextRanges: null);
   }
 
   Future<void>
-      test_ArgumentList_local_constructor_named_param_prefixed_prepend() async {
-    //
+      test_flutter_InstanceCreationExpression_children_dynamic() async {
+    // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
+    // type it's children.
+    writeTestPackageConfig(flutter: true);
+
     addTestSource('''
-class A { A({int one, String two: 'defaultValue'}) { } }
-main() { new A(o^ two: 'foo');}''');
-    await computeSuggestions();
+import 'package:flutter/material.dart';
 
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'one': 'int'}, includeComma: true);
-    assertSuggestArgumentAndCompletion('one',
-        completion: 'one: ,', selectionOffset: 5);
-  }
+build() => new Container(
+    child: new DynamicRow(^);
+  );
 
-  Future<void> test_ArgumentList_local_constructor_named_param_prepend() async {
-    //
-    addTestSource('''
-class A { A({int one, String two: 'defaultValue'}) { } }
-main() { new A(^ two: 'foo');}''');
-    await computeSuggestions();
-
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'one': 'int'}, includeComma: true);
-    assertSuggestArgumentAndCompletion('one',
-        completion: 'one: ,', selectionOffset: 5);
-  }
-
-  Future<void>
-      test_ArgumentList_local_constructor_named_param_prepend_1() async {
-    //
-    addTestSource('''
-class A { A({int one, String two: 'defaultValue'}) { } }
-main() { new A(o^, two: 'foo');}''');
-    await computeSuggestions();
-
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'one': 'int'}, includeComma: false);
-    assertSuggestArgumentAndCompletion('one',
-        completion: 'one: ', selectionOffset: 5);
-  }
-
-  Future<void>
-      test_ArgumentList_local_constructor_named_param_prepend_2() async {
-    //
-    addTestSource('''
-class A { A({int one, String two: 'defaultValue'}) { } }
-main() { new A(^, two: 'foo');}''');
-    await computeSuggestions();
-
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'one': 'int'}, includeComma: false);
-    assertSuggestArgumentAndCompletion('one',
-        completion: 'one: ', selectionOffset: 5);
-  }
-
-  Future<void> test_ArgumentList_local_constructor_required_param_0() async {
-    writeTestPackageConfig(meta: true);
-    addTestSource('''
-import 'package:meta/meta.dart';
-class A { A({int one, @required String two: 'defaultValue'}) { } }
-main() { new A(^);}''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'one': 'int', 'two': 'String'},
-        requiredParamIndices: [1]);
-  }
-
-  Future<void> test_ArgumentList_local_function_3a() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
-      expect(arg1, int arg2, {bool arg3}) { }
-      class B { }
-      String bar() => true;
-      void main() {expect('hello', ^)}''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_local_function_3b() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
-      expect(arg1, int arg2, {bool arg3}) { }
-      class B { }
-      String bar() => true;
-      void main() {expect('hello', ^x)}''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_local_function_3c() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
-      expect(arg1, int arg2, {bool arg3}) { }
-      class B { }
-      String bar() => true;
-      void main() {expect('hello', x^)}''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_local_function_3d() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
-      expect(arg1, int arg2, {bool arg3}) { }
-      class B { }
-      String bar() => true;
-      void main() {expect('hello', x ^)}''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_local_function_named_param() async {
-    //
-    addTestSource('''
-f(v,{int radix, int onError(String s)}){}
-main() { f("16", ^);}''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
-    });
-  }
-
-  Future<void> test_ArgumentList_local_function_named_param1() async {
-    //
-    addTestSource('''
-f(v,{int radix, int onError(String s)}){}
-main() { f("16", r^);}''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'radix': 'int',
-      'onError': 'int Function(String)'
-    });
-  }
-
-  Future<void> test_ArgumentList_local_function_named_param2() async {
-    //
-    addTestSource('''
-f(v,{int radix, int onError(String s)}){}
-main() { f("16", radix: 7, ^);}''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'onError': 'int Function(String)'});
-  }
-
-  Future<void> test_ArgumentList_local_function_named_param2a() async {
-    //
-    addTestSource('''
-f(v,{int radix, int onError(String s)}){}
-main() { f("16", radix: ^);}''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_local_functionExpression_params() async {
-    // https://github.com/dart-lang/sdk/issues/42064
-    addTestSource('''
-    void main2() {
-      final add1 = ({int a}) => a + 1;
-      add1(^);
-    }
-    ''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'a': 'int'});
-  }
-
-  Future<void> test_ArgumentList_local_method_0() async {
-    // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('$testPackageLibPath/a.dart', '''
-      library A;
-      bool hasLength(int expected) { }
-      void baz() { }''');
-    addTestSource('''
-      import 'a.dart'
-      class B {
-        expect() { }
-        void foo() {expect(^)}}
-      String bar() => true;''');
-    await computeSuggestions();
-    assertNoSuggestions();
-  }
-
-  Future<void> test_ArgumentList_nnbd_function_named_param() async {
-    addTestSource(r'''
-f({int? nullable, int nonnullable}) {}
-main() { f(^);}');
+class DynamicRow extends Widget {
+  DynamicRow({List children: null});
+}
 ''');
+
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'nullable': 'int?',
-      'nonnullable': 'int',
-    });
+
+    assertSuggest('children: [],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        defaultArgListString: null,
+        selectionOffset: 11,
+        defaultArgumentListTextRanges: null);
   }
 
-  Future<void> test_ArgumentList_nnbd_function_named_param_imported() async {
-    addSource('$testPackageLibPath/a.dart', '''
-f({int? nullable, int nonnullable}) {}''');
-    createAnalysisOptionsFile(experiments: [EnableString.non_nullable]);
-    addTestSource(r'''
-import "a.dart";
-main() { f(^);}');
-''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'nullable': 'int?',
-      'nonnullable': 'int',
-    });
-  }
+  Future<void> test_flutter_InstanceCreationExpression_children_Map() async {
+    // Ensure we don't generate Map params for a future API
+    writeTestPackageConfig(flutter: true);
 
-  Future<void> test_ArgumentList_nnbd_function_named_param_legacy() async {
-    addSource('$testPackageLibPath/a.dart', '''
-// @dart = 2.8
-f({int named}) {}''');
-    addTestSource(r'''
-import "a.dart";
-main() { f(^);}');
-''');
-    await computeSuggestions();
-    assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {
-      'named': 'int*',
-    });
-  }
-
-  Future<void> test_superConstructorInvocation() async {
     addTestSource('''
+import 'package:flutter/material.dart';
+
+build() => new Container(
+    child: new MapRow(^);
+  );
+
+class MapRow extends Widget {
+  MapRow({Map<Object, Object> children: null});
+}
+''');
+
+    await computeSuggestions();
+
+    assertSuggest('children: ,',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        selectionOffset: 10,
+        defaultArgListString: null);
+  }
+
+  Future<void> test_flutter_InstanceCreationExpression_slivers() async {
+    writeTestPackageConfig(flutter: true);
+
+    addTestSource('''
+import 'package:flutter/material.dart';
+
+build() => new CustomScrollView(
+    ^
+  );
+
+class CustomScrollView extends Widget {
+  CustomScrollView({List<Widget> slivers});
+}
+''');
+
+    await computeSuggestions();
+
+    assertSuggest('slivers: [],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        defaultArgListString: null,
+        selectionOffset: 10,
+        defaultArgumentListTextRanges: null);
+  }
+
+  Future<void> test_flutter_MethodExpression_children() async {
+    // Ensure we don't generate params for a method call
+    // TODO(brianwilkerson) This test has been changed so that it no longer has
+    // anything to do with Flutter (by moving the declaration of `foo` out of
+    // the 'material' library). Determine whether the test is still valid.
+    writeTestPackageConfig(flutter: true);
+
+    addTestSource('''
+import 'package:flutter/material.dart';
+
+main() {
+  foo(^);
+}
+
+foo({String children}) {}
+''');
+
+    await computeSuggestions();
+
+    assertSuggest('children: ',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        defaultArgListString: null);
+  }
+
+  Future<void> test_named_01() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(^)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+          namedArgumentsWithTypes: {'one': 'bool', 'two': 'int'},
+        );
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_02() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(o^)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+          namedArgumentsWithTypes: {'one': 'bool', 'two': 'int'},
+        );
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_03() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(o^ two: 2)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+            namedArgumentsWithTypes: {'one': 'bool'}, includeComma: true);
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ,', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_04() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(o^, two: 2)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+            namedArgumentsWithTypes: {'one': 'bool'}, includeComma: false);
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_05() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(o^ , two: 2)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+            namedArgumentsWithTypes: {'one': 'bool'}, includeComma: false);
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_06() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(^o,)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+          namedArgumentsWithTypes: {'one': 'bool', 'two': 'int'},
+        );
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_07() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(^ two: 2)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+            namedArgumentsWithTypes: {'one': 'bool'}, includeComma: true);
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ,', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_08() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(^two: 2)',
+      check: () {
+        assertSuggestions(['one: ,']);
+      },
+    );
+  }
+
+  Future<void> test_named_09() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(^, two: 2)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+          namedArgumentsWithTypes: {'one': 'bool'},
+          includeComma: false,
+        );
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_10() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(^ , two: 2)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+          namedArgumentsWithTypes: {'one': 'bool'},
+        );
+      },
+    );
+  }
+
+  Future<void> test_named_11() async {
+    await _tryParametersArguments(
+      parameters: '(int one, {bool two, int three})',
+      arguments: '(1, ^, three: 3)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+          namedArgumentsWithTypes: {'two': 'bool'},
+        );
+      },
+    );
+  }
+
+  Future<void> test_named_12() async {
+    await _tryParametersArguments(
+      parameters: '(int one, {bool two, int three})',
+      arguments: '(1, ^ three: 3)',
+      check: () {
+        assertSuggestions(['two: ,']);
+      },
+    );
+  }
+
+  Future<void> test_named_13() async {
+    await _tryParametersArguments(
+      parameters: '(int one, {bool two, int three})',
+      arguments: '(1, ^three: 3)',
+      check: () {
+        assertSuggestions(['two: ,']);
+      },
+    );
+  }
+
+  @failingTest
+  Future<void> test_named_14() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(two: 2^)',
+      check: () {
+        assertSuggestions([', one: ']);
+      },
+    );
+  }
+
+  @failingTest
+  Future<void> test_named_15() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(two: 2 ^)',
+      check: () {
+        assertSuggestions([', one: ']);
+      },
+    );
+  }
+
+  Future<void> test_named_16() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(two: 2, ^)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+          namedArgumentsWithTypes: {'one': 'bool'},
+        );
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_17() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(two: 2, o^)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+          namedArgumentsWithTypes: {'one': 'bool'},
+        );
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_18() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(two: 2, o^,)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+          namedArgumentsWithTypes: {'one': 'bool'},
+        );
+        assertSuggestArgumentAndCompletion('one',
+            completion: 'one: ', selectionOffset: 5);
+      },
+    );
+  }
+
+  Future<void> test_named_19() async {
+    await _tryParametersArguments(
+      parameters: '(int one, int two, int three, {int four, int five})',
+      arguments: '(1, ^, 3)',
+      check: () {
+        assertSuggestions(['four: ', 'five: ']);
+      },
+    );
+  }
+
+  Future<void> test_named_20() async {
+    await _tryParametersArguments(
+      languageVersion: '2.15',
+      parameters: '(int one, int two, int three, {int four, int five})',
+      arguments: '(1, ^, 3)',
+      check: () {
+        assertNoSuggestions();
+      },
+    );
+  }
+
+  Future<void> test_named_21() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(o^: false)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+          namedArgumentsWithTypes: {'one': 'bool', 'two': 'int'},
+          includeColon: false,
+        );
+      },
+    );
+  }
+
+  Future<void> test_named_22() async {
+    await _tryParametersArguments(
+      parameters: '(bool one, {int two, double three})',
+      arguments: '(false, ^t: 2)',
+      check: () {
+        assertSuggestions(['two: ,', 'three: ,']);
+      },
+    );
+  }
+
+  Future<void> test_named_23() async {
+    await _tryParametersArguments(
+      parameters: '(bool one, {int two, double three})',
+      arguments: '(false, ^: 2)',
+      check: () {
+        assertSuggestArgumentsAndTypes(
+          namedArgumentsWithTypes: {'two': 'int', 'three': 'double'},
+        );
+      },
+    );
+  }
+
+  Future<void> test_named_24() async {
+    await _tryParametersArguments(
+      parameters: '({bool one, int two})',
+      arguments: '(one: ^)',
+      check: () {
+        assertNoSuggestions();
+      },
+    );
+  }
+
+  Future<void> _tryParametersArguments({
+    String? languageVersion,
+    required String parameters,
+    required String arguments,
+    required void Function() check,
+  }) async {
+    var languageVersionLine = languageVersion != null
+        ? '// @dart = $languageVersion'
+        : '// no language version override';
+
+    // Annotation, local class.
+    addTestSource2('''
+$languageVersionLine
 class A {
-  final bool field1;
-  final int field2;
-  A({this.field1, this.field2});
+  const A$parameters;
+}
+@A$arguments
+void f() {}
+''');
+    await computeSuggestions();
+    check();
+
+    // Annotation, imported class.
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  const A$parameters;
+}
+''');
+    addTestSource2('''
+$languageVersionLine
+import 'a.dart';
+@A$arguments
+void f() {}
+''');
+    await computeSuggestions();
+    check();
+
+    // Annotation, imported class, prefixed.
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  const A$parameters;
+}
+''');
+    addTestSource2('''
+$languageVersionLine
+import 'a.dart' as p;
+@p.A$arguments
+void f() {}
+''');
+    await computeSuggestions();
+    check();
+
+    // Function expression invocation.
+    addTestSource2('''
+$languageVersionLine
+import 'a.dart';
+void f$parameters() {}
+var v = (f)$arguments;
+''');
+    await computeSuggestions();
+    check();
+
+    // Instance creation, local class, generative.
+    addTestSource2('''
+$languageVersionLine
+class A {
+  A$parameters;
+}
+var v = A$arguments;
+''');
+    await computeSuggestions();
+    check();
+
+    // Instance creation, imported class, generative.
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  A$parameters;
+}
+''');
+    addTestSource2('''
+$languageVersionLine
+import 'a.dart';
+var v = A$arguments;
+''');
+    await computeSuggestions();
+    check();
+
+    // Instance creation, imported class, factory.
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  factory A$parameters => throw 0;
+}
+''');
+    addTestSource2('''
+$languageVersionLine
+import 'a.dart';
+var v = A$arguments;
+''');
+    await computeSuggestions();
+    check();
+
+    // Method invocation, local method.
+    addTestSource2('''
+$languageVersionLine
+class A {
+  void foo$parameters() {}
+}
+var v = A().foo$arguments;
+''');
+    await computeSuggestions();
+    check();
+
+    // Method invocation, local function.
+    addTestSource2('''
+$languageVersionLine
+void f$parameters() {}
+var v = f$arguments;
+''');
+    await computeSuggestions();
+    check();
+
+    // Method invocation, imported function.
+    newFile('$testPackageLibPath/a.dart', content: '''
+void f$parameters() {}
+''');
+    addTestSource2('''
+$languageVersionLine
+import 'a.dart';
+var v = f$arguments;
+''');
+    await computeSuggestions();
+    check();
+
+    // Super constructor invocation.
+    addTestSource2('''
+$languageVersionLine
+class A {
+  A$parameters;
 }
 class B extends A {
-  B() : super(^);
+  B() : super$arguments;
 }
 ''');
     await computeSuggestions();
-    assertSuggestArgumentsAndTypes(
-        namedArgumentsWithTypes: {'field1': 'bool', 'field2': 'int'});
+    check();
+
+    // This constructor invocation.
+    addTestSource2('''
+$languageVersionLine
+class A {
+  A$parameters;
+  A.named() : this$arguments;
+}
+''');
+    await computeSuggestions();
+    check();
+
+    // Invalid: getter invocation.
+    // Parameters not used. Check not used.
+    addTestSource2('''
+$languageVersionLine
+int get foo => 0;
+var v = foo$arguments;
+''');
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 }

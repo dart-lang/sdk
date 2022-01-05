@@ -766,7 +766,7 @@ class Server {
       return;
     }
     logger?.log(fromServer, '$trimmedLine');
-    var message = asMap(json.decoder.convert(trimmedLine));
+    var message = asMap(json.decoder.convert(trimmedLine) as Object);
     if (message.containsKey('id')) {
       // The message is a response.
       var response = Response.fromJson(message)!;

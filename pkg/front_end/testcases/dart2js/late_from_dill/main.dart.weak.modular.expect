@@ -1,0 +1,86 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "main_lib1.dart" as mai;
+import "dart:core" as core;
+import "main_lib2.dart" as mai2;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+import "org-dartlang-testcase:///main_lib2.dart" as lib;
+
+static field mai::C c = new mai::C::•();
+static method main() → void {
+  self::testUninitializedNonFinalInstanceField();
+  self::testUninitializedFinalInstanceField();
+  self::testInitializedNonFinalInstanceField();
+  self::testInitializedFinalInstanceField();
+  mai::testNullableUninitializedNonFinalLocal();
+  mai::testNonNullableUninitializedNonFinalLocal();
+  mai::testNullableUninitializedFinalLocal();
+  mai::testNonNullableUninitializedFinalLocal();
+  mai::testNullableInitializedNonFinalLocal();
+  mai::testNonNullableInitializedNonFinalLocal();
+  mai::testNullableInitializedFinalLocal();
+  mai::testNonNullableInitializedFinalLocal();
+  self::testUninitializedNonFinalStaticField();
+  self::testUninitializedFinalStaticField();
+  self::testInitializedNonFinalStaticField();
+  self::testInitializedFinalStaticField();
+  self::testUninitializedNonFinalTopLevelField();
+  self::testUninitializedFinalTopLevelField();
+  self::testInitializedNonFinalTopLevelField();
+  self::testInitializedFinalTopLevelField();
+}
+static method testUninitializedNonFinalInstanceField() → void {
+  core::print(self::c.{mai::C::a}{core::int});
+  self::c.{mai::C::a} = 42;
+  core::print(self::c.{mai::C::a}{core::int});
+}
+static method testUninitializedFinalInstanceField() → void {
+  core::print(self::c.{mai::C::b}{core::int});
+  self::c.{mai::C::b} = 42;
+  core::print(self::c.{mai::C::b}{core::int});
+}
+static method testInitializedNonFinalInstanceField() → void {
+  core::print(self::c.{mai::C::c}{core::int});
+  self::c.{mai::C::c} = 42;
+  core::print(self::c.{mai::C::c}{core::int});
+}
+static method testInitializedFinalInstanceField() → void {
+  core::print(self::c.{mai::C::d}{core::int});
+}
+static method testUninitializedNonFinalStaticField() → void {
+  core::print(mai::Statics::a);
+  mai::Statics::a = 42;
+  core::print(mai::Statics::a);
+}
+static method testUninitializedFinalStaticField() → void {
+  core::print(mai::Statics::b);
+  mai::Statics::b = 42;
+  core::print(mai::Statics::b);
+}
+static method testInitializedNonFinalStaticField() → void {
+  core::print(mai::Statics::c);
+  mai::Statics::c = 42;
+  core::print(mai::Statics::c);
+}
+static method testInitializedFinalStaticField() → void {
+  core::print(mai::Statics::d);
+}
+static method testUninitializedNonFinalTopLevelField() → void {
+  core::print(mai2::a);
+  mai2::a = 42;
+  core::print(mai2::a);
+}
+static method testUninitializedFinalTopLevelField() → void {
+  core::print(mai2::b);
+  mai2::b = 42;
+  core::print(mai2::b);
+}
+static method testInitializedNonFinalTopLevelField() → void {
+  core::print(mai2::c);
+  mai2::c = 42;
+  core::print(mai2::c);
+}
+static method testInitializedFinalTopLevelField() → void {
+  core::print(mai2::d);
+}

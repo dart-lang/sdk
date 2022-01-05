@@ -2783,18 +2783,18 @@ class SuggestionsValidator {
 
 extension on CheckTarget<CompletionGetSuggestionDetails2Result> {
   @useResult
-  CheckTarget<String> get completion {
-    return nest(
-      value.completion,
-      (selected) => 'has completion ${valueStr(selected)}',
-    );
-  }
-
-  @useResult
   CheckTarget<SourceChange> get change {
     return nest(
       value.change,
       (selected) => 'has change ${valueStr(selected)}',
+    );
+  }
+
+  @useResult
+  CheckTarget<String> get completion {
+    return nest(
+      value.completion,
+      (selected) => 'has completion ${valueStr(selected)}',
     );
   }
 }

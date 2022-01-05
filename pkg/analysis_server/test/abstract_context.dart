@@ -56,6 +56,9 @@ class AbstractContextTest with ResourceProviderMixin {
       '${ExperimentStatus.currentVersion.major}.'
       '${ExperimentStatus.currentVersion.minor}';
 
+  /// The path that is not in [workspaceRootPath], contains external packages.
+  String get packagesRootPath => '/packages';
+
   Folder get sdkRoot => newFolder('/sdk');
 
   AnalysisSession get session => contextFor('/home/test').currentSession;
@@ -65,6 +68,8 @@ class AbstractContextTest with ResourceProviderMixin {
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
   String get testPackageRootPath => '$workspaceRootPath/test';
+
+  String get testPackageTestPath => '$testPackageRootPath/test';
 
   /// The file system specific `/home/test/pubspec.yaml` path.
   String get testPubspecPath => convertPath('/home/test/pubspec.yaml');

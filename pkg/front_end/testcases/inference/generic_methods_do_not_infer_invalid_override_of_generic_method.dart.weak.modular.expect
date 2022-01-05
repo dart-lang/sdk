@@ -1,0 +1,56 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: Can't infer types for 'm' as the overridden members don't have a combined signature.
+// Try adding explicit types.
+//   m(x) => x;
+//   ^
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is one of the overridden members.
+//   T m<T>(T x) => x;
+//     ^
+//
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
+//   m(x) => x;
+//   ^
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
+//   T m<T>(T x) => x;
+//     ^
+//
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:18:73: Error: Expected 0 type arguments.
+//       . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D.m*/ m<int>(
+//                                                                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  method m<T extends core::Object* = dynamic>(self::C::m::T* x) → self::C::m::T*
+    return x;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D extends self::C {
+  synthetic constructor •() → self::D*
+    : super self::C::•()
+    ;
+  method m(invalid-type x) → invalid-type
+    return x;
+}
+static method main() → dynamic {
+  core::int* y = invalid-expression "pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:18:73: Error: Expected 0 type arguments.
+      . /*error:WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD*/ /*@target=D.m*/ m<int>(
+                                                                        ^" in new self::D::•().{self::D::m}{<inapplicable>}.<core::int*>(42){(invalid-type) →* invalid-type};
+  core::print(y);
+}

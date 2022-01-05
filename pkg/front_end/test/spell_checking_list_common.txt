@@ -11,6 +11,7 @@
 
 a
 abbreviations
+abi
 ability
 able
 abort

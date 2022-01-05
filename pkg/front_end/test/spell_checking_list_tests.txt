@@ -675,6 +675,8 @@ misses
 misspelled
 mistake
 mistakes
+mixin1
+mixin2
 mmethod
 mod
 modelled
@@ -903,6 +905,7 @@ stay
 std
 stress
 string2
+stringy
 strip
 strongest
 stub's

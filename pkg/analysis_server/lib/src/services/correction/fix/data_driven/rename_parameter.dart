@@ -111,20 +111,6 @@ class _OverrideData extends _Data {
 }
 
 extension on MethodDeclaration {
-  /// Return the parameter of this method whose name matches the given [name],
-  /// or `null` if there is no such parameter.
-  FormalParameter? parameterNamed(String name) {
-    final parameters = this.parameters;
-    if (parameters != null) {
-      for (var parameter in parameters.parameters) {
-        if (parameter.declaredElement?.name == name) {
-          return parameter;
-        }
-      }
-    }
-    return null;
-  }
-
   /// Return the element that this method overrides, or `null` if this method
   /// doesn't override any inherited member.
   ExecutableElement? overriddenElement() {
@@ -134,6 +120,20 @@ extension on MethodDeclaration {
       if (enclosingElement is ClassElement) {
         var name = Name(enclosingElement.library.source.uri, element.name);
         return InheritanceManager3().getInherited2(enclosingElement, name);
+      }
+    }
+    return null;
+  }
+
+  /// Return the parameter of this method whose name matches the given [name],
+  /// or `null` if there is no such parameter.
+  FormalParameter? parameterNamed(String name) {
+    final parameters = this.parameters;
+    if (parameters != null) {
+      for (var parameter in parameters.parameters) {
+        if (parameter.declaredElement?.name == name) {
+          return parameter;
+        }
       }
     }
     return null;

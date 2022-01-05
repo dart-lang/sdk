@@ -10,6 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -145,7 +146,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   /// Validates that the given [request] is handled successfully.
   Response handleSuccessfulRequest(Request request, {RequestHandler? handler}) {
     handler ??= this.handler;
-    var response = handler.handleRequest(request)!;
+    var response = handler.handleRequest(request, NotCancelableToken())!;
     expect(response, isResponseSuccess(request.id));
     return response;
   }

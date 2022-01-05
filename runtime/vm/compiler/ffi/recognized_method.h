@@ -32,6 +32,9 @@ classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind);
 
 AlignmentType RecognizedMethodAlignment(MethodRecognizer::Kind kind);
 
+MethodRecognizer::Kind FfiLoad(const NativeType& native_type);
+MethodRecognizer::Kind FfiStore(const NativeType& native_type);
+
 }  // namespace ffi
 
 }  // namespace compiler

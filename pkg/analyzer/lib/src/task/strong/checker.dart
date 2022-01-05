@@ -14,7 +14,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart' show CompileTimeErrorCode;
@@ -37,18 +36,13 @@ Element? _getKnownElement(Expression expression) {
 
 /// Checks the body of functions and properties.
 class CodeChecker extends RecursiveAstVisitor {
-  final TypeSystemImpl rules;
-  final TypeProvider typeProvider;
-  final InheritanceManager3 inheritance;
-  final AnalysisErrorListener reporter;
+  final TypeSystemImpl _typeSystem;
+  final TypeProvider _typeProvider;
+  final ErrorReporter _errorReporter;
 
   late final FeatureSet _featureSet;
 
-  CodeChecker(TypeProvider typeProvider, TypeSystemImpl rules, this.inheritance,
-      AnalysisErrorListener reporter)
-      : typeProvider = typeProvider,
-        rules = rules,
-        reporter = reporter;
+  CodeChecker(this._typeProvider, this._typeSystem, this._errorReporter);
 
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
@@ -97,11 +91,11 @@ class CodeChecker extends RecursiveAstVisitor {
     } else if (element is SpreadElement) {
       // Spread expression may be dynamic in which case it's implicitly downcast
       // to Iterable<dynamic>
-      DartType expressionCastType = typeProvider.iterableDynamicType;
+      DartType expressionCastType = _typeProvider.iterableDynamicType;
       checkAssignment(element.expression, expressionCastType);
 
       var exprType = element.expression.typeOrThrow;
-      var asIterableType = exprType.asInstanceOf(typeProvider.iterableElement);
+      var asIterableType = exprType.asInstanceOf(_typeProvider.iterableElement);
 
       if (asIterableType != null) {
         var elementType = asIterableType.typeArguments[0];
@@ -126,12 +120,12 @@ class CodeChecker extends RecursiveAstVisitor {
     } else if (element is SpreadElement) {
       // Spread expression may be dynamic in which case it's implicitly downcast
       // to Map<dynamic, dynamic>
-      DartType expressionCastType = typeProvider.mapType(
+      DartType expressionCastType = _typeProvider.mapType(
           DynamicTypeImpl.instance, DynamicTypeImpl.instance);
       checkAssignment(element.expression, expressionCastType);
 
       var exprType = element.expression.typeOrThrow;
-      var asMapType = exprType.asInstanceOf(typeProvider.mapElement);
+      var asMapType = exprType.asInstanceOf(_typeProvider.mapElement);
 
       if (asMapType != null) {
         var elementKeyType = asMapType.typeArguments[0];
@@ -450,7 +444,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
       // Refine the return type.
       var rhsType = expr.rightHandSide.typeOrThrow;
-      var returnType = rules.refineBinaryExpressionType(
+      var returnType = _typeSystem.refineBinaryExpressionType(
         expr.readType!,
         op,
         rhsType,
@@ -491,20 +485,20 @@ class CodeChecker extends RecursiveAstVisitor {
     if (fromType is FunctionType) {
       from = fromType;
     } else if (fromType is InterfaceType) {
-      from = rules.getCallMethodType(fromType);
+      from = _typeSystem.getCallMethodType(fromType);
       callTearoff = true;
     }
     if (from == null) {
       return null; // unrelated
     }
 
-    if (rules.isSubtypeOf(from, to)) {
+    if (_typeSystem.isSubtypeOf(from, to)) {
       // Sound subtype.
       // However we may still need cast if we have a call tearoff.
       return callTearoff;
     }
 
-    if (rules.isSubtypeOf(to, from)) {
+    if (_typeSystem.isSubtypeOf(to, from)) {
       // Assignable, but needs cast.
       return true;
     }
@@ -568,8 +562,8 @@ class CodeChecker extends RecursiveAstVisitor {
 
       // Refine the return type.
       var functionType = element.type;
-      var rhsType = typeProvider.intType;
-      var returnType = rules.refineBinaryExpressionType(
+      var rhsType = _typeProvider.intType;
+      var returnType = _typeSystem.refineBinaryExpressionType(
         node.readType!,
         TokenType.PLUS,
         rhsType,
@@ -611,18 +605,18 @@ class CodeChecker extends RecursiveAstVisitor {
     if (body.isAsynchronous) {
       if (body.isGenerator) {
         // Stream<T> -> T
-        expectedElement = typeProvider.streamElement;
+        expectedElement = _typeProvider.streamElement;
       } else {
         // Future<T> -> FutureOr<T>
-        var typeArg = (type.element == typeProvider.futureElement)
+        var typeArg = (type.element == _typeProvider.futureElement)
             ? (type as InterfaceType).typeArguments[0]
-            : typeProvider.dynamicType;
-        return typeProvider.futureOrType(typeArg);
+            : _typeProvider.dynamicType;
+        return _typeProvider.futureOrType(typeArg);
       }
     } else {
       if (body.isGenerator) {
         // Iterable<T> -> T
-        expectedElement = typeProvider.iterableElement;
+        expectedElement = _typeProvider.iterableElement;
       } else {
         // T -> T
         return type;
@@ -632,7 +626,7 @@ class CodeChecker extends RecursiveAstVisitor {
       if (type.isDynamic) {
         // Ensure it's at least a Stream / Iterable.
         return expectedElement.instantiate(
-          typeArguments: [typeProvider.dynamicType],
+          typeArguments: [_typeProvider.dynamicType],
           nullabilitySuffix: _noneOrStarSuffix,
         );
       } else {
@@ -669,7 +663,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (type is FunctionType) {
       return type;
     } else if (type is InterfaceType) {
-      return rules.getCallMethodType(type);
+      return _typeSystem.getCallMethodType(type);
     }
     return null;
   }
@@ -692,12 +686,12 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     // fromT <: toT, no coercion needed.
-    if (rules.isSubtypeOf(from, to)) {
+    if (_typeSystem.isSubtypeOf(from, to)) {
       return false;
     }
 
     // Down cast or legal sideways cast, coercion needed.
-    if (rules.isAssignableTo(from, to)) {
+    if (_typeSystem.isAssignableTo(from, to)) {
       return true;
     }
 
@@ -705,7 +699,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // In this case, we're more permissive than assignability.
     if (to.isDartAsyncFutureOr) {
       var to1 = (to as InterfaceType).typeArguments[0];
-      var to2 = typeProvider.futureType(to1);
+      var to2 = _typeProvider.futureType(to1);
       return _needsImplicitCast(expr, to: to1, from: from) == true ||
           _needsImplicitCast(expr, to: to2, from: from) == true;
     }
@@ -728,9 +722,9 @@ class CodeChecker extends RecursiveAstVisitor {
       bool forSpreadValue = false}) {
     // If this is an implicit tearoff, we need to mark the cast, but we don't
     // want to warn if it's a legal subtype.
-    if (from is InterfaceType && rules.acceptsFunctionType(to)) {
-      var type = rules.getCallMethodType(from);
-      if (type != null && rules.isSubtypeOf(type, to)) {
+    if (from is InterfaceType && _typeSystem.acceptsFunctionType(to)) {
+      var type = _typeSystem.getCallMethodType(from);
+      if (type != null && _typeSystem.isSubtypeOf(type, to)) {
         return;
       }
     }
@@ -793,24 +787,23 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  void _recordMessage(AstNode node, ErrorCode errorCode, List arguments) {
-    // TODO(brianwilkerson) Convert this class to use an ErrorReporter so that
-    //  the logic for converting types is in one place.
-    arguments = arguments.map((argument) {
-      if (argument is DartType) {
-        return argument.getDisplayString(withNullability: false);
-      } else {
-        return argument;
-      }
-    }).toList();
+  void _recordMessage(
+      AstNode node, ErrorCode errorCode, List<Object> arguments) {
+    var argumentStrings = [
+      for (var argument in arguments)
+        if (argument is DartType)
+          argument.getDisplayString(withNullability: false)
+        else
+          argument.toString(),
+    ];
 
     int begin = node is AnnotatedNode
         ? node.firstTokenAfterCommentAndMetadata.offset
         : node.offset;
     int length = node.end - begin;
     var source = (node.root as CompilationUnit).declaredElement!.source;
-    var error = AnalysisError(source, begin, length, errorCode, arguments);
-    reporter.onError(error);
+    _errorReporter.reportError(
+        AnalysisError(source, begin, length, errorCode, argumentStrings));
   }
 
   void _visitForEachParts(ForEachParts node, SimpleIdentifier loopVariable) {
@@ -832,8 +825,8 @@ class CodeChecker extends RecursiveAstVisitor {
     }
     // Find the element type of the sequence.
     var sequenceElement = awaitKeyword != null
-        ? typeProvider.streamElement
-        : typeProvider.iterableElement;
+        ? _typeProvider.streamElement
+        : _typeProvider.iterableElement;
     var iterableType = node.iterable.typeOrThrow;
     var elementType = _getInstanceTypeArgument(iterableType, sequenceElement);
 
@@ -842,11 +835,11 @@ class CodeChecker extends RecursiveAstVisitor {
     // we'll do a separate cast of the dynamic element to the variable's type.
     if (elementType == null) {
       var sequenceType = sequenceElement.instantiate(
-        typeArguments: [typeProvider.dynamicType],
+        typeArguments: [_typeProvider.dynamicType],
         nullabilitySuffix: _noneOrStarSuffix,
       );
 
-      if (rules.isSubtypeOf(sequenceType, iterableType)) {
+      if (_typeSystem.isSubtypeOf(sequenceType, iterableType)) {
         _recordImplicitCast(node.iterable, sequenceType, from: iterableType);
         elementType = DynamicTypeImpl.instance;
       }

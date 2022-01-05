@@ -1,0 +1,147 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:30:15: Error: The getter 'm2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'm2'.
+//   expect(0, c.m2);
+//               ^^
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:31:5: Error: The setter 'm1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'm1'.
+//   c.m1 = 2;
+//     ^^
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:32:5: Error: The property 'm3' is defined in multiple extensions for 'Class' and neither is more specific.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+//   c.m3;
+//     ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:13:12: Context: This is one of the extension members.
+//   void set m3(int x) {}
+//            ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:18:11: Context: This is one of the extension members.
+//   int get m3 => 0;
+//           ^^
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:33:5: Error: The property 'm3' is defined in multiple extensions for 'Class' and neither is more specific.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+//   c.m3 = 2;
+//     ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:13:12: Context: This is one of the extension members.
+//   void set m3(int x) {}
+//            ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:18:11: Context: This is one of the extension members.
+//   int get m3 => 0;
+//           ^^
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:34:5: Error: The property 'm4' is defined in multiple extensions for 'Class' and neither is more specific.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+//   c.m4;
+//     ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:14:11: Context: This is one of the extension members.
+//   int get m4 => 0;
+//           ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:19:12: Context: This is one of the extension members.
+//   void set m4(int x) {}
+//            ^^
+//
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:35:5: Error: The property 'm4' is defined in multiple extensions for 'Class' and neither is more specific.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+// Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+//   c.m4 = 2;
+//     ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:14:11: Context: This is one of the extension members.
+//   int get m4 => 0;
+//           ^^
+// pkg/front_end/testcases/extensions/getter_setter_conflict.dart:19:12: Context: This is one of the extension members.
+//   void set m4(int x) {}
+//            ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  get m1() → core::int*
+    return 0;
+  set m2(core::int* x) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension0 on self::Class* {
+  get m2 = self::Extension0|get#m2;
+  get m4 = self::Extension0|get#m4;
+  set m1 = self::Extension0|set#m1;
+  set m3 = self::Extension0|set#m3;
+}
+extension Extension1 on self::Class* {
+  get m3 = self::Extension1|get#m3;
+  set m4 = self::Extension1|set#m4;
+}
+static method Extension0|set#m1(lowered final self::Class* #this, core::int* x) → void {}
+static method Extension0|get#m2(lowered final self::Class* #this) → core::int*
+  return 0;
+static method Extension0|set#m3(lowered final self::Class* #this, core::int* x) → void {}
+static method Extension0|get#m4(lowered final self::Class* #this) → core::int*
+  return 0;
+static method Extension1|get#m3(lowered final self::Class* #this) → core::int*
+  return 0;
+static method Extension1|set#m4(lowered final self::Class* #this, core::int* x) → void {}
+static method main() → dynamic {
+  self::Class* c = new self::Class::•();
+  self::expect(0, c.{self::Class::m1}{core::int*});
+  c.{self::Class::m2} = 2;
+}
+static method errors() → dynamic {
+  self::Class* c = new self::Class::•();
+  self::expect(0, invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:30:15: Error: The getter 'm2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'm2'.
+  expect(0, c.m2);
+              ^^" in c{<unresolved>}.m2);
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:31:5: Error: The setter 'm1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'm1'.
+  c.m1 = 2;
+    ^^" in c{<unresolved>}.m1 = 2;
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:32:5: Error: The property 'm3' is defined in multiple extensions for 'Class' and neither is more specific.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+  c.m3;
+    ^^" in c{<unresolved>}.m3;
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:33:5: Error: The property 'm3' is defined in multiple extensions for 'Class' and neither is more specific.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+  c.m3 = 2;
+    ^^" in c{<unresolved>}.m3 = 2;
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:34:5: Error: The property 'm4' is defined in multiple extensions for 'Class' and neither is more specific.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+  c.m4;
+    ^^" in c{<unresolved>}.m4;
+  invalid-expression "pkg/front_end/testcases/extensions/getter_setter_conflict.dart:35:5: Error: The property 'm4' is defined in multiple extensions for 'Class' and neither is more specific.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/getter_setter_conflict.dart'.
+Try using an explicit extension application of the wanted extension or hiding unwanted extensions from scope.
+  c.m4 = 2;
+    ^^" in c{<unresolved>}.m4 = 2;
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

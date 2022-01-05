@@ -520,6 +520,7 @@ class BackendImpacts {
         ],
         instantiatedClasses: [
           _commonElements.jsJavaScriptObjectClass,
+          _commonElements.jsLegacyJavaScriptObjectClass,
           _commonElements.jsPlainJavaScriptObjectClass,
           _commonElements.jsJavaScriptFunctionClass
         ],
@@ -607,6 +608,7 @@ class BackendImpacts {
     ], globalClasses: [
       _commonElements.jsInterceptorClass,
       _commonElements.jsJavaScriptObjectClass,
+      _commonElements.jsLegacyJavaScriptObjectClass,
       _commonElements.jsPlainJavaScriptObjectClass,
       _commonElements.jsJavaScriptFunctionClass
     ]);

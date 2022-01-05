@@ -606,6 +606,7 @@ typedef struct {
   bool null_safety;
   bool is_system_isolate;
   bool snapshot_is_dontneed_safe;
+  bool branch_coverage;
 } Dart_IsolateFlags;
 
 /**

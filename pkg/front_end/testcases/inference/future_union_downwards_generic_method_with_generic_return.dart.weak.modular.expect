@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+static method id<T extends core::Object* = dynamic>(self::id::T* x) → self::id::T*
+  return x;
+static method test() → dynamic async {
+  asy::Future<core::String*>* f;
+  core::String* s = await self::id<FutureOr<core::String*>*>(f);
+}
+static method main() → dynamic {}

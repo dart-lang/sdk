@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static const field core::String str = #C1;
+static const field core::String var1 = #C2;
+static const field dynamic var2 = #C3;
+static const field core::String var3 = #C3;
+static const field dynamic var4 = #C4;
+static method fn() → dynamic {
+  core::String local = "str";
+  return local.{core::String::[]}(0){(core::int) → core::String};
+}
+static method fn2() → dynamic {
+  try {
+    core::String x = #C1.{core::String::[]}(1.{core::int::unary-}(){() → core::int}){(core::int) → core::String};
+  }
+  on core::RangeError catch(no-exception-var) {
+    return 2;
+  }
+}
+static method main() → void {
+  exp::Expect::equals(#C2, "r");
+  exp::Expect::equals(#C3, "s");
+  exp::Expect::equals(#C3, "s");
+  exp::Expect::equals(#C4, 2);
+}
+
+constants  {
+  #C1 = "str"
+  #C2 = "r"
+  #C3 = "s"
+  #C4 = 2
+}

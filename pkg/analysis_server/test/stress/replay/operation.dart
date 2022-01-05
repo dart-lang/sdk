@@ -11,7 +11,7 @@ class Analysis_UpdateContent extends ServerOperation {
   final String filePath;
 
   /// The overlay used to update the content.
-  final dynamic overlay;
+  final Object overlay;
 
   /// Initialize an operation to send an 'analysis.updateContent' request with
   /// the given [filePath] and [overlay] as parameters.

@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation* i) → dynamic
+    return 123;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension ClassExtension on self::Class* {
+  method method = self::ClassExtension|method;
+  tearoff method = self::ClassExtension|get#method;
+}
+extension Extension on dynamic {
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+}
+static method ClassExtension|method(lowered final self::Class* #this) → core::int*
+  return 42;
+static method ClassExtension|get#method(lowered final self::Class* #this) → () →* core::int*
+  return () → core::int* => self::ClassExtension|method(#this);
+static method Extension|method(lowered final dynamic #this) → core::int*
+  return 87;
+static method Extension|get#method(lowered final dynamic #this) → () →* core::int*
+  return () → core::int* => self::Extension|method(#this);
+static method main() → dynamic {
+  dynamic c0 = new self::Class::•();
+  core::Object* c1 = new self::Class::•();
+  self::Class* c2 = new self::Class::•();
+  self::expect(123, c0{dynamic}.method());
+  self::expect(87, self::Extension|method(c1));
+  self::expect(42, self::ClassExtension|method(c2));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

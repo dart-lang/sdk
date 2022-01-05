@@ -1,0 +1,74 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:14:27: Error: Too few positional arguments: 1 required, 0 given.
+// typedef void G<@A<dynamic>() T>(T t);
+//                           ^
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:6:9: Context: Found this candidate, but the arguments don't match.
+//   const A(o);
+//         ^
+//
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:16:24: Error: Too few positional arguments: 1 required, 0 given.
+// void method1<@A<String>() T>(T t) {}
+//                        ^
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:6:9: Context: Found this candidate, but the arguments don't match.
+//   const A(o);
+//         ^
+//
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:9:22: Error: Too few positional arguments: 1 required, 0 given.
+// void Function<@A<int>() T>(T)? f;
+//                      ^
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:6:9: Context: Found this candidate, but the arguments don't match.
+//   const A(o);
+//         ^
+//
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:18:35: Error: Too few positional arguments: 1 required, 0 given.
+// void method2(void Function<@A<num>() T>(T) f) {}
+//                                   ^
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:6:9: Context: Found this candidate, but the arguments don't match.
+//   const A(o);
+//         ^
+//
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:24:24: Error: Too few positional arguments: 1 required, 0 given.
+//   void local<@A<double>() T>(T t) {}
+//                        ^
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:6:9: Context: Found this candidate, but the arguments don't match.
+//   const A(o);
+//         ^
+//
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:26:24: Error: Too few positional arguments: 1 required, 0 given.
+//   void Function<@A<int>() T>(T)? f;
+//                        ^
+// pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:6:9: Context: Found this candidate, but the arguments don't match.
+//   const A(o);
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef F = <T extends core::Object? = dynamic>(T%) → void;
+typedef G<@invalid-expression "pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:14:27: Error: Too few positional arguments: 1 required, 0 given.
+typedef void G<@A<dynamic>() T>(T t);
+                          ^" contravariant T extends core::Object? = dynamic> = (T%) → void;
+class A<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •(dynamic o) → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+}
+class Class<T extends <S extends core::Object? = dynamic>(S%) → void> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T>
+    : super core::Object::•()
+    ;
+}
+static field <T extends core::Object? = dynamic>(T%) →? void f;
+static method method1<@invalid-expression "pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:16:24: Error: Too few positional arguments: 1 required, 0 given.
+void method1<@A<String>() T>(T t) {}
+                       ^" T extends core::Object? = dynamic>(self::method1::T% t) → void {}
+static method method2(<T extends core::Object? = dynamic>(T%) → void f) → void {}
+static method main() → dynamic {
+  function local<@invalid-expression "pkg/front_end/testcases/generic_metadata/erroneous_function_type_parameter.dart:24:24: Error: Too few positional arguments: 1 required, 0 given.
+  void local<@A<double>() T>(T t) {}
+                       ^" T extends core::Object? = dynamic>(T% t) → void {}
+  <T extends core::Object? = dynamic>(T%) →? void f;
+}

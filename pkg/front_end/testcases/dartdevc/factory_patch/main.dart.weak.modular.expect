@@ -1,0 +1,42 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:test" as test;
+
+import "dart:test";
+
+static method main() → dynamic {
+  test::Class::fact();
+}
+
+library /*isNonNullableByDefault*/;
+import self as test;
+import "dart:_js_helper" as _js;
+import "dart:core" as core;
+
+import "dart:_js_helper";
+
+@#C1
+class Class extends core::Object {
+  final field core::bool defaultValue /* from org-dartlang-testcase:///patch_lib.dart */;
+  const constructor _internal({core::bool defaultValue = #C2}) → test::Class
+    : test::Class::defaultValue = defaultValue, super core::Object::•()
+    ;
+  @#C1
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ fact({core::bool defaultValue = #C3}) → test::Class
+    return new test::Class::_internal(defaultValue: defaultValue);
+  static method _#fact#tearOff({core::bool defaultValue = #C3}) → test::Class
+    return test::Class::fact(defaultValue: defaultValue);
+  @#C1
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ constFact({core::bool defaultValue = #C3}) → test::Class
+    return throw "unsupported";
+  static method _#constFact#tearOff({core::bool defaultValue = #C3}) → test::Class
+    return test::Class::constFact(defaultValue: defaultValue);
+  static method /* from org-dartlang-testcase:///patch_lib.dart */ _#_internal#tearOff({core::bool defaultValue = #C2}) → test::Class
+    return new test::Class::_internal(defaultValue: defaultValue);
+}
+
+constants  {
+  #C1 = _js::_Patch {}
+  #C2 = false
+  #C3 = true
+}

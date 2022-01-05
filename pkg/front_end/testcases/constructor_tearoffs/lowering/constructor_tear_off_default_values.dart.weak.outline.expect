@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 class Class1 extends core::Object {
   final field core::int field;
-  constructor •([core::int field]) → self::Class1
+  constructor •([core::int field = 42]) → self::Class1
     ;
   static method _#new#tearOff([core::int field]) → self::Class1
     return new self::Class1::•(field);
 }
 class Class2 extends core::Object {
   final field core::int field;
-  constructor •({core::int field}) → self::Class2
+  constructor •({core::int field = 42}) → self::Class2
     ;
   static method _#new#tearOff({core::int field}) → self::Class2
     return new self::Class2::•(field: field);

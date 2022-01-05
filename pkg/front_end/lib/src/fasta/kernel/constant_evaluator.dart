@@ -2464,9 +2464,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             functionEnvironment: receiver.environment);
       } else if (receiver is InstanceConstant) {
         final Class instanceClass = receiver.classNode;
-        assert(typeEnvironment.hierarchy is ClassHierarchy);
-        final Member member = (typeEnvironment.hierarchy as ClassHierarchy)
-            .getDispatchTarget(instanceClass, name)!;
+        final Member member =
+            typeEnvironment.hierarchy.getDispatchTarget(instanceClass, name)!;
         final FunctionNode? function = member.function;
 
         // TODO(kallentu): Implement [Object] class methods which have backend

@@ -396,8 +396,13 @@ void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
   SocketAddress::SetAddrPort(&addr, static_cast<intptr_t>(port));
   RawAddr sourceAddr;
   SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 3), &sourceAddr);
+  Dart_Handle source_port_arg = Dart_GetNativeArgument(args, 4);
+  int64_t source_port =
+      DartUtils::GetInt64ValueCheckRange(source_port_arg, 0, 65535);
+  SocketAddress::SetAddrPort(&sourceAddr, static_cast<intptr_t>(source_port));
+
   if (addr.addr.sa_family == AF_INET6) {
-    Dart_Handle scope_id_arg = Dart_GetNativeArgument(args, 4);
+    Dart_Handle scope_id_arg = Dart_GetNativeArgument(args, 5);
     int64_t scope_id =
         DartUtils::GetInt64ValueCheckRange(scope_id_arg, 0, 65535);
     SocketAddress::SetAddrScope(&addr, scope_id);

@@ -1,0 +1,81 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "late_statics_lib.dart" as lat;
+additionalExports = (lat::a,
+  lat::a,
+  lat::b,
+  lat::b,
+  lat::c,
+  lat::c,
+  lat::d)
+
+import "org-dartlang-testcase:///late_statics_lib.dart" as lib;
+export "org-dartlang-testcase:///late_statics_lib.dart";
+
+class Statics extends core::Object {
+  late static field core::int a;
+  late static final [setter] field core::int b;
+  late static field core::int c = 1.{core::int::unary-}(){() → core::int};
+  late static final field core::int d = 1.{core::int::unary-}(){() → core::int};
+  synthetic constructor •() → self::Statics
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff() → self::Statics
+    return new self::Statics::•();
+}
+static method main() → void {
+  self::testUninitializedNonFinalStaticField();
+  self::testUninitializedFinalStaticField();
+  self::testInitializedNonFinalStaticField();
+  self::testInitializedFinalStaticField();
+  self::testUninitializedNonFinalTopLevelField();
+  self::testUninitializedFinalTopLevelField();
+  self::testInitializedNonFinalTopLevelField();
+  self::testInitializedFinalTopLevelField();
+}
+static method testUninitializedNonFinalStaticField() → void {
+  core::print(self::Statics::a);
+  self::Statics::a = 42;
+  core::print(self::Statics::a);
+}
+static method testUninitializedFinalStaticField() → void {
+  core::print(self::Statics::b);
+  self::Statics::b = 42;
+  core::print(self::Statics::b);
+}
+static method testInitializedNonFinalStaticField() → void {
+  core::print(self::Statics::c);
+  self::Statics::c = 42;
+  core::print(self::Statics::c);
+}
+static method testInitializedFinalStaticField() → void {
+  core::print(self::Statics::d);
+}
+static method testUninitializedNonFinalTopLevelField() → void {
+  core::print(lat::a);
+  lat::a = 42;
+  core::print(lat::a);
+}
+static method testUninitializedFinalTopLevelField() → void {
+  core::print(lat::b);
+  lat::b = 42;
+  core::print(lat::b);
+}
+static method testInitializedNonFinalTopLevelField() → void {
+  core::print(lat::c);
+  lat::c = 42;
+  core::print(lat::c);
+}
+static method testInitializedFinalTopLevelField() → void {
+  core::print(lat::d);
+}
+
+library /*isNonNullableByDefault*/;
+import self as lat;
+import "dart:core" as core;
+
+late static field core::int a;
+late static final [setter] field core::int b;
+late static field core::int c = 1.{core::int::unary-}(){() → core::int};
+late static final field core::int d = 1.{core::int::unary-}(){() → core::int};

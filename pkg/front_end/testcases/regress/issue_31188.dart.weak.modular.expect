@@ -1,0 +1,38 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:18: Error: Expected ';' after this.
+// type T = Map<A, B>
+//                  ^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: Type 'type' not found.
+// type T = Map<A, B>
+// ^^^^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:1: Error: 'type' isn't a type.
+// type T = Map<A, B>
+// ^^^^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:14: Error: 'A' isn't a type.
+// type T = Map<A, B>
+//              ^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:17: Error: 'B' isn't a type.
+// type T = Map<A, B>
+//                 ^
+//
+// pkg/front_end/testcases/regress/issue_31188.dart:7:13: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+// type T = Map<A, B>
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field invalid-type T = #C1;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = TypeLiteralConstant(core::Map<dynamic, dynamic>*)
+}

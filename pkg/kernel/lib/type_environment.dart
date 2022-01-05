@@ -26,6 +26,9 @@ abstract class TypeEnvironment extends Types {
     return new HierarchyBasedTypeEnvironment(coreTypes, hierarchy);
   }
 
+  @override
+  ClassHierarchy get hierarchy;
+
   Class get intClass => coreTypes.intClass;
   Class get numClass => coreTypes.numClass;
   Class get functionClass => coreTypes.functionClass;

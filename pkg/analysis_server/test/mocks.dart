@@ -155,9 +155,9 @@ class _IsResponseFailure extends Matcher {
   }
 
   @override
-  Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
-    Response response = item;
+  Description describeMismatch(Object? item, Description mismatchDescription,
+      Map matchState, bool verbose) {
+    var response = item as Response;
     var id = response.id;
     var error = response.error;
     mismatchDescription.add('has identifier "$id"');
@@ -170,8 +170,8 @@ class _IsResponseFailure extends Matcher {
   }
 
   @override
-  bool matches(item, Map matchState) {
-    Response response = item;
+  bool matches(Object? item, Map matchState) {
+    var response = item as Response;
     var error = response.error;
     if (response.id != _id || error == null) {
       return false;
@@ -196,9 +196,9 @@ class _IsResponseSuccess extends Matcher {
   }
 
   @override
-  Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
-    Response? response = item;
+  Description describeMismatch(Object? item, Description mismatchDescription,
+      Map matchState, bool verbose) {
+    var response = item as Response?;
     if (response == null) {
       mismatchDescription.add('is null response');
     } else {
@@ -213,8 +213,8 @@ class _IsResponseSuccess extends Matcher {
   }
 
   @override
-  bool matches(item, Map matchState) {
-    Response? response = item;
+  bool matches(Object? item, Map matchState) {
+    var response = item as Response?;
     return response != null && response.id == _id && response.error == null;
   }
 }

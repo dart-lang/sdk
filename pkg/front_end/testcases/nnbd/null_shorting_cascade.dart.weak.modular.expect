@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method method() → self::Class
+    return this;
+}
+extension Extension on self::Class {
+  method extensionMethod = self::Extension|extensionMethod;
+  tearoff extensionMethod = self::Extension|get#extensionMethod;
+}
+static method Extension|extensionMethod(lowered final self::Class #this) → self::Class
+  return #this;
+static method Extension|get#extensionMethod(lowered final self::Class #this) → () → self::Class
+  return () → self::Class => self::Extension|extensionMethod(#this);
+static method main() → dynamic {
+  self::Class? c;
+  let final self::Class? #t1 = c in #t1 == null ?{self::Class?} null : block {
+    #t1{self::Class}.{self::Class::method}(){() → self::Class};
+  } =>#t1;
+  let final self::Class? #t2 = c in #t2 == null ?{self::Class?} null : block {
+    #t2{self::Class}.{self::Class::method}(){() → self::Class};
+    #t2{self::Class}.{self::Class::method}(){() → self::Class};
+  } =>#t2;
+  let final self::Class? #t3 = c in #t3 == null ?{self::Class?} null : block {
+    self::Extension|extensionMethod(#t3{self::Class});
+  } =>#t3;
+  let final self::Class? #t4 = c in #t4 == null ?{self::Class?} null : block {
+    self::Extension|extensionMethod(#t4{self::Class});
+    self::Extension|extensionMethod(#t4{self::Class});
+  } =>#t4;
+}

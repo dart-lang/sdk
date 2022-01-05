@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "typedef_from_opt_in_lib.dart" as typ;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///typedef_from_opt_in_lib.dart";
+
+static method method1() → (typ::Request*) →* FutureOr<typ::Response*>*
+  return (typ::Request* r) → asy::Future<typ::Response*>* async => new typ::Response::•();
+static method method2() → (core::int*) →* core::int*
+  return (core::int* r) → core::int* => 0;
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as typ;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef Handler = (typ::Request) → FutureOr<typ::Response>;
+typedef Typedef = (core::int?) → core::int;
+class Request extends core::Object {
+  synthetic constructor •() → typ::Request
+    : super core::Object::•()
+    ;
+}
+class Response extends core::Object {
+  synthetic constructor •() → typ::Response
+    : super core::Object::•()
+    ;
+}

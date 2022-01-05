@@ -18,6 +18,10 @@ const uint64 = FundamentalType(PrimitiveType.uint64);
 const intptr = FundamentalType(PrimitiveType.intptr);
 const float = FundamentalType(PrimitiveType.float);
 const double_ = FundamentalType(PrimitiveType.double_);
+const long = FundamentalType(PrimitiveType.long);
+const ulong = FundamentalType(PrimitiveType.ulong);
+const uintptr = FundamentalType(PrimitiveType.uintptr);
+const wchar = FundamentalType(PrimitiveType.wchar);
 
 enum PrimitiveType {
   bool_,
@@ -32,25 +36,96 @@ enum PrimitiveType {
   intptr,
   float,
   double_,
+  long,
+  ulong,
+  uintptr,
+  wchar,
 }
 
-const primitiveNames = [
-  "bool",
-  "int8",
-  "int16",
-  "int32",
-  "int64",
-  "uint8",
-  "uint16",
-  "uint32",
-  "uint64",
-  "intptr",
-  "float",
-  "double",
-];
+const primitiveNames = {
+  PrimitiveType.bool_: "bool",
+  PrimitiveType.int8: "int8",
+  PrimitiveType.int16: "int16",
+  PrimitiveType.int32: "int32",
+  PrimitiveType.int64: "int64",
+  PrimitiveType.uint8: "uint8",
+  PrimitiveType.uint16: "uint16",
+  PrimitiveType.uint32: "uint32",
+  PrimitiveType.uint64: "uint64",
+  PrimitiveType.intptr: "intptr",
+  PrimitiveType.float: "float",
+  PrimitiveType.double_: "double",
+  PrimitiveType.long: "long",
+  PrimitiveType.ulong: "ulong",
+  PrimitiveType.uintptr: "uintptr",
+  PrimitiveType.wchar: "wchar",
+};
 
-const intptrSize = -1;
-const primitiveSizesInBytes = [1, 1, 2, 4, 8, 1, 2, 4, 8, intptrSize, 4, 8];
+final primitiveCType = {
+  PrimitiveType.bool_: "bool",
+  PrimitiveType.int8: "int8_t",
+  PrimitiveType.int16: "int16_t",
+  PrimitiveType.int32: "int32_t",
+  PrimitiveType.int64: "int64_t",
+  PrimitiveType.uint8: "uint8_t",
+  PrimitiveType.uint16: "uint16_t",
+  PrimitiveType.uint32: "uint32_t",
+  PrimitiveType.uint64: "uint64_t",
+  PrimitiveType.intptr: "intptr",
+  PrimitiveType.float: "float",
+  PrimitiveType.double_: "double",
+  // People should use explicit sizes. But we also want to test `long`.
+  // Surpressing lint.
+  PrimitiveType.long: "/* NOLINT(runtime/int) */long",
+  PrimitiveType.ulong: "/* NOLINT(runtime/int) */unsigned long",
+  PrimitiveType.uintptr: "uintptr_t",
+  PrimitiveType.wchar: "wchar_t",
+};
+
+final primitiveDartCType = {
+  PrimitiveType.bool_: "Bool",
+  PrimitiveType.int8: "Int8",
+  PrimitiveType.int16: "Int16",
+  PrimitiveType.int32: "Int32",
+  PrimitiveType.int64: "Int64",
+  PrimitiveType.uint8: "Uint8",
+  PrimitiveType.uint16: "Uint16",
+  PrimitiveType.uint32: "Uint32",
+  PrimitiveType.uint64: "Uint64",
+  PrimitiveType.intptr: "Intptr",
+  PrimitiveType.float: "Float",
+  PrimitiveType.double_: "Double",
+  PrimitiveType.long: "Long",
+  PrimitiveType.ulong: "UnsignedLong",
+  PrimitiveType.uintptr: "UintPtr",
+  PrimitiveType.wchar: "WChar",
+};
+
+/// Sizes equal on all platforms.
+const primitiveSizesInBytes = {
+  PrimitiveType.bool_: 1,
+  PrimitiveType.int8: 1,
+  PrimitiveType.int16: 2,
+  PrimitiveType.int32: 4,
+  PrimitiveType.int64: 8,
+  PrimitiveType.uint8: 1,
+  PrimitiveType.uint16: 2,
+  PrimitiveType.uint32: 4,
+  PrimitiveType.uint64: 8,
+  PrimitiveType.float: 4,
+  PrimitiveType.double_: 8,
+};
+
+const primitivesUnsigned = {
+  PrimitiveType.bool_,
+  PrimitiveType.uint8,
+  PrimitiveType.uint16,
+  PrimitiveType.uint32,
+  PrimitiveType.uint64,
+  PrimitiveType.uintptr,
+  PrimitiveType.ulong,
+  PrimitiveType.wchar,
+};
 
 abstract class CType {
   String get cType;
@@ -90,18 +165,13 @@ class FundamentalType extends CType {
   bool get isOnlyFloatingPoint => isFloatingPoint;
   bool get isOnlyInteger => isInteger;
   bool get isOnlyBool => isBool;
-  bool get isUnsigned =>
-      primitive == PrimitiveType.bool_ ||
-      primitive == PrimitiveType.uint8 ||
-      primitive == PrimitiveType.uint16 ||
-      primitive == PrimitiveType.uint32 ||
-      primitive == PrimitiveType.uint64;
+  bool get isUnsigned => primitivesUnsigned.contains(primitive);
   bool get isSigned => !isUnsigned;
 
-  String get name => primitiveNames[primitive.index];
+  String get name => primitiveNames[primitive]!;
 
-  String get cType => "${name}${isInteger ? "_t" : ""}";
-  String get dartCType => name.upperCaseFirst();
+  String get cType => primitiveCType[primitive]!;
+  String get dartCType => primitiveDartCType[primitive]!;
   String get dartType {
     if (isInteger) return 'int';
     if (isOnlyFloatingPoint) return 'double';
@@ -110,12 +180,12 @@ class FundamentalType extends CType {
   }
 
   String get dartStructFieldAnnotation => "@${dartCType}()";
-  bool get hasSize => primitive != PrimitiveType.intptr;
+  bool get hasSize => primitiveSizesInBytes.containsKey(primitive);
   int get size {
     if (!hasSize) {
       throw "Size unknown.";
     }
-    return primitiveSizesInBytes[primitive.index];
+    return primitiveSizesInBytes[primitive]!;
   }
 }
 

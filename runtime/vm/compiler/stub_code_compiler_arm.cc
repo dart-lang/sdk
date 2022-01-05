@@ -161,13 +161,6 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
     intptr_t self_code_stub_offset_from_thread,
     bool allow_return,
     std::function<void()> perform_runtime_call) {
-  // If the target CPU does not support VFP the caller should always use the
-  // non-FPU stub.
-  if (save_fpu_registers && !TargetCPUFeatures::vfp_supported()) {
-    __ Breakpoint();
-    return;
-  }
-
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
   RegisterSet all_registers;
@@ -825,7 +818,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     }
   }
 
-  if (TargetCPUFeatures::vfp_supported()) {
     ASSERT(kFpuRegisterSize == 4 * target::kWordSize);
     if (kNumberOfDRegisters > 16) {
       __ vstmd(DB_W, SP, D16, kNumberOfDRegisters - 16);
@@ -833,9 +825,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     } else {
       __ vstmd(DB_W, SP, D0, kNumberOfDRegisters);
     }
-  } else {
-    __ AddImmediate(SP, -kNumberOfFpuRegisters * kFpuRegisterSize);
-  }
 
   __ mov(R0, Operand(SP));  // Pass address of saved registers block.
   bool is_lazy =

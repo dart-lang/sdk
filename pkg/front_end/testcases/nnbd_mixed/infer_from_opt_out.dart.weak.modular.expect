@@ -1,0 +1,41 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "infer_from_opt_out_lib.dart" as inf;
+
+import "org-dartlang-testcase:///infer_from_opt_out_lib.dart";
+
+static method reify<T extends core::Object? = dynamic>(self::reify::T% arg) → dynamic
+  return self::reify::T%;
+static method main() → dynamic {
+  inf::Foo x = new inf::Foo::•();
+  inf::Foo y = new inf::Foo::•();
+  () → inf::Foo z = () → inf::Foo => inf::createFoo();
+  inf::callback((inf::Foo x) → inf::Foo => x);
+  core::print(self::reify<inf::Foo>(x));
+  core::print(self::reify<inf::Foo>(y));
+  core::print(self::reify<() → inf::Foo>(z));
+}
+
+library;
+import self as inf;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → inf::Foo*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method createFoo() → inf::Foo*
+  return new inf::Foo::•();
+static method callback((inf::Foo*) →* inf::Foo* f) → void {}

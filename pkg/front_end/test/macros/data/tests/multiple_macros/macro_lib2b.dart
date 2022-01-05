@@ -16,6 +16,6 @@ import 'macro_lib2a.dart';
  appliedMacros=[Macro2a],
  macrosAreApplied
 */
-class Macro2b implements Macro {
+macro class Macro2b implements Macro {
   const Macro2b();
 }

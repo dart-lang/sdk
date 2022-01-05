@@ -27,6 +27,7 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
 import 'abi.dart' show wordSize;
+import 'native_type_cfe.dart';
 import 'common.dart'
     show NativeType, FfiTransformer, nativeTypeSizes, WORD_SIZE, UNKNOWN;
 
@@ -132,6 +133,42 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     final Member target = node.target;
     try {
+      if (target == abiSpecificIntegerPointerGetValue ||
+          target == abiSpecificIntegerPointerSetValue ||
+          target == abiSpecificIntegerPointerElemAt ||
+          target == abiSpecificIntegerPointerSetElemAt ||
+          target == abiSpecificIntegerArrayElemAt ||
+          target == abiSpecificIntegerArraySetElemAt) {
+        final pointer = node.arguments.positional[0];
+        final pointerType =
+            pointer.getStaticType(_staticTypeContext!) as InterfaceType;
+        _ensureNativeTypeValid(pointerType, pointer,
+            allowCompounds: true, allowInlineArray: true);
+
+        final typeArg = pointerType.typeArguments.single;
+        final nativeTypeCfe =
+            NativeTypeCfe(this, typeArg) as AbiSpecificNativeTypeCfe;
+
+        return abiSpecificLoadOrStoreExpression(
+          nativeTypeCfe,
+          typedDataBase: (target == abiSpecificIntegerArrayElemAt ||
+                  target == abiSpecificIntegerArraySetElemAt)
+              ? getArrayTypedDataBaseField(node.arguments.positional[0])
+              : node.arguments.positional[0],
+          index: (target == abiSpecificIntegerPointerElemAt ||
+                  target == abiSpecificIntegerPointerSetElemAt ||
+                  target == abiSpecificIntegerArrayElemAt ||
+                  target == abiSpecificIntegerArraySetElemAt)
+              ? node.arguments.positional[1]
+              : null,
+          value: (target == abiSpecificIntegerPointerSetValue ||
+                  target == abiSpecificIntegerPointerSetElemAt ||
+                  target == abiSpecificIntegerArraySetElemAt)
+              ? node.arguments.positional.last
+              : null,
+          fileOffset: node.fileOffset,
+        );
+      }
       if (target == structPointerRef ||
           target == structPointerElemAt ||
           target == unionPointerRef ||
@@ -785,13 +822,19 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         klass == opaqueClass ||
         klass == structClass ||
         klass == unionClass ||
+        klass == abiSpecificIntegerClass ||
         classNativeTypes[klass] != null) {
       return null;
     }
 
     // The Opaque and Struct classes can be extended, but subclasses
     // cannot be (nor implemented).
-    final onlyDirectExtendsClasses = [opaqueClass, structClass, unionClass];
+    final onlyDirectExtendsClasses = [
+      opaqueClass,
+      structClass,
+      unionClass,
+      abiSpecificIntegerClass,
+    ];
     final superClass = klass.superclass;
     for (final onlyDirectExtendsClass in onlyDirectExtendsClasses) {
       if (hierarchy.isSubtypeOf(klass, onlyDirectExtendsClass)) {

@@ -1,0 +1,187 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::Function* field1a = #C1;
+  field () →* core::int* field1b = #C1;
+  field (core::int*) →* core::int* field2 = #C2;
+  field (core::int*, core::int*) →* core::int* field3 = #C3;
+  field (core::int*, [core::int*]) →* core::int* field4 = #C4;
+  field ([core::int*, core::int*]) →* core::int* field5 = #C5;
+  field (core::int*, {b: core::int*}) →* core::int* field6 = #C6;
+  field ({a: core::int*, b: core::int*}) →* core::int* field7 = #C7;
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  get getter1a() → core::Function*
+    return #C1;
+  get getter1b() → () →* core::int*
+    return #C1;
+  get getter2() → (core::int*) →* core::int*
+    return #C2;
+  get getter3() → (core::int*, core::int*) →* core::int*
+    return #C3;
+  get getter4() → (core::int*, [core::int*]) →* core::int*
+    return #C4;
+  get getter5() → ([core::int*, core::int*]) →* core::int*
+    return #C5;
+  get getter6() → (core::int*, {b: core::int*}) →* core::int*
+    return #C6;
+  get getter7() → ({a: core::int*, b: core::int*}) →* core::int*
+    return #C7;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass*
+    : super self::Class::•()
+    ;
+  get field1a() → core::Function* {
+    self::enableRead = false;
+    return #C1;
+  }
+  get field1b() → () →* core::int* {
+    self::enableRead = false;
+    return #C1;
+  }
+  get field2() → (core::int*) →* core::int* {
+    self::enableRead = false;
+    return #C2;
+  }
+  get field3() → (core::int*, core::int*) →* core::int* {
+    self::enableRead = false;
+    return #C3;
+  }
+  get field4() → (core::int*, [core::int*]) →* core::int* {
+    self::enableRead = false;
+    return #C4;
+  }
+  get field5() → ([core::int*, core::int*]) →* core::int* {
+    self::enableRead = false;
+    return #C5;
+  }
+  get field6() → (core::int*, {b: core::int*}) →* core::int* {
+    self::enableRead = false;
+    return #C6;
+  }
+  get field7() → ({a: core::int*, b: core::int*}) →* core::int* {
+    self::enableRead = false;
+    return #C7;
+  }
+  get getter1a() → core::Function* {
+    self::enableRead = false;
+    return #C1;
+  }
+  get getter1b() → () →* core::int* {
+    self::enableRead = false;
+    return #C1;
+  }
+  get getter2() → (core::int*) →* core::int* {
+    self::enableRead = false;
+    return #C2;
+  }
+  get getter3() → (core::int*, core::int*) →* core::int* {
+    self::enableRead = false;
+    return #C3;
+  }
+  get getter4() → (core::int*, [core::int*]) →* core::int* {
+    self::enableRead = false;
+    return #C4;
+  }
+  get getter5() → ([core::int*, core::int*]) →* core::int* {
+    self::enableRead = false;
+    return #C5;
+  }
+  get getter6() → (core::int*, {b: core::int*}) →* core::int* {
+    self::enableRead = false;
+    return #C6;
+  }
+  get getter7() → ({a: core::int*, b: core::int*}) →* core::int* {
+    self::enableRead = false;
+    return #C7;
+  }
+}
+static field core::bool* enableRead = true;
+static method read(core::int* value) → core::int*
+  return self::enableRead ?{core::int*} value : 1.{core::int::unary-}(){() →* core::int*};
+static method method1() → core::int*
+  return 0;
+static method method2(core::int* a) → core::int*
+  return a.{core::int::unary-}(){() →* core::int*};
+static method method3(core::int* a, core::int* b) → core::int*
+  return a.{core::num::-}(b){(core::num*) →* core::int*};
+static method method4(core::int* a, [core::int* b = #C8]) → core::int*
+  return a.{core::num::-}(b){(core::num*) →* core::int*};
+static method method5([core::int* a = #C8, core::int* b = #C8]) → core::int*
+  return a.{core::num::-}(b){(core::num*) →* core::int*};
+static method method6(core::int* a, {core::int* b = #C8}) → core::int*
+  return a.{core::num::-}(b){(core::num*) →* core::int*};
+static method method7({core::int* a = #C8, core::int* b = #C8}) → core::int*
+  return a.{core::num::-}(b){(core::num*) →* core::int*};
+static method main() → dynamic {
+  self::callField(new self::Class::•());
+  self::callGetter(new self::Class::•());
+  self::callField(new self::Subclass::•());
+  self::callGetter(new self::Subclass::•());
+}
+static method callField(self::Class* c) → dynamic {
+  self::expect(0, c.{self::Class::field1a}());
+  self::expect(0, c.{self::Class::field1b}(){() →* core::int*});
+  self::expect(42.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t1 = c in let final core::int* #t2 = self::read(42) in #t1.{self::Class::field2}(#t2){(core::int*) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t3 = c in let final core::int* #t4 = self::read(12) in let final core::int* #t5 = self::read(23) in #t3.{self::Class::field3}(#t4, #t5){(core::int*, core::int*) →* core::int*});
+  self::expect(12, let final self::Class* #t6 = c in let final core::int* #t7 = self::read(12) in #t6.{self::Class::field4}(#t7){(core::int*, [core::int*]) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t8 = c in let final core::int* #t9 = self::read(12) in let final core::int* #t10 = self::read(23) in #t8.{self::Class::field4}(#t9, #t10){(core::int*, [core::int*]) →* core::int*});
+  self::expect(0, c.{self::Class::field5}(){([core::int*, core::int*]) →* core::int*});
+  self::expect(12, let final self::Class* #t11 = c in let final core::int* #t12 = self::read(12) in #t11.{self::Class::field5}(#t12){([core::int*, core::int*]) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t13 = c in let final core::int* #t14 = self::read(12) in let final core::int* #t15 = self::read(23) in #t13.{self::Class::field5}(#t14, #t15){([core::int*, core::int*]) →* core::int*});
+  self::expect(12, let final self::Class* #t16 = c in let final core::int* #t17 = self::read(12) in #t16.{self::Class::field6}(#t17){(core::int*, {b: core::int*}) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t18 = c in let final core::int* #t19 = self::read(12) in let final core::int* #t20 = self::read(23) in #t18.{self::Class::field6}(#t19, b: #t20){(core::int*, {b: core::int*}) →* core::int*});
+  self::expect(0, c.{self::Class::field7}(){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(12, let final self::Class* #t21 = c in let final core::int* #t22 = self::read(12) in #t21.{self::Class::field7}(a: #t22){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(23.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t23 = c in let final core::int* #t24 = self::read(23) in #t23.{self::Class::field7}(b: #t24){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t25 = c in let final core::int* #t26 = self::read(12) in let final core::int* #t27 = self::read(23) in #t25.{self::Class::field7}(a: #t26, b: #t27){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t28 = c in let final core::int* #t29 = self::read(23) in let final core::int* #t30 = self::read(12) in #t28.{self::Class::field7}(b: #t29, a: #t30){({a: core::int*, b: core::int*}) →* core::int*});
+}
+static method callGetter(self::Class* c) → dynamic {
+  self::expect(0, c.{self::Class::getter1a}());
+  self::expect(0, c.{self::Class::getter1b}(){() →* core::int*});
+  self::expect(42.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t31 = c in let final core::int* #t32 = self::read(42) in #t31.{self::Class::getter2}(#t32){(core::int*) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t33 = c in let final core::int* #t34 = self::read(12) in let final core::int* #t35 = self::read(23) in #t33.{self::Class::getter3}(#t34, #t35){(core::int*, core::int*) →* core::int*});
+  self::expect(12, let final self::Class* #t36 = c in let final core::int* #t37 = self::read(12) in #t36.{self::Class::getter4}(#t37){(core::int*, [core::int*]) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t38 = c in let final core::int* #t39 = self::read(12) in let final core::int* #t40 = self::read(23) in #t38.{self::Class::getter4}(#t39, #t40){(core::int*, [core::int*]) →* core::int*});
+  self::expect(0, c.{self::Class::getter5}(){([core::int*, core::int*]) →* core::int*});
+  self::expect(12, let final self::Class* #t41 = c in let final core::int* #t42 = self::read(12) in #t41.{self::Class::getter5}(#t42){([core::int*, core::int*]) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t43 = c in let final core::int* #t44 = self::read(12) in let final core::int* #t45 = self::read(23) in #t43.{self::Class::getter5}(#t44, #t45){([core::int*, core::int*]) →* core::int*});
+  self::expect(12, let final self::Class* #t46 = c in let final core::int* #t47 = self::read(12) in #t46.{self::Class::getter6}(#t47){(core::int*, {b: core::int*}) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t48 = c in let final core::int* #t49 = self::read(12) in let final core::int* #t50 = self::read(23) in #t48.{self::Class::getter6}(#t49, b: #t50){(core::int*, {b: core::int*}) →* core::int*});
+  self::expect(0, c.{self::Class::getter7}(){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(12, let final self::Class* #t51 = c in let final core::int* #t52 = self::read(12) in #t51.{self::Class::getter7}(a: #t52){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(23.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t53 = c in let final core::int* #t54 = self::read(23) in #t53.{self::Class::getter7}(b: #t54){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t55 = c in let final core::int* #t56 = self::read(12) in let final core::int* #t57 = self::read(23) in #t55.{self::Class::getter7}(a: #t56, b: #t57){({a: core::int*, b: core::int*}) →* core::int*});
+  self::expect(11.{core::int::unary-}(){() →* core::int*}, let final self::Class* #t58 = c in let final core::int* #t59 = self::read(23) in let final core::int* #t60 = self::read(12) in #t58.{self::Class::getter7}(b: #t59, a: #t60){({a: core::int*, b: core::int*}) →* core::int*});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  self::enableRead = true;
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))
+    throw "Expected ${expected}, ${actual}";
+}
+
+constants  {
+  #C1 = static-tearoff self::method1
+  #C2 = static-tearoff self::method2
+  #C3 = static-tearoff self::method3
+  #C4 = static-tearoff self::method4
+  #C5 = static-tearoff self::method5
+  #C6 = static-tearoff self::method6
+  #C7 = static-tearoff self::method7
+  #C8 = 0
+}

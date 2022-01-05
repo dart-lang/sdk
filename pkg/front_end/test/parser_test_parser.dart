@@ -189,15 +189,16 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseTopLevelKeywordDeclaration(
-      Token start, Token keyword, DirectiveContext? directiveState) {
+  Token parseTopLevelKeywordDeclaration(Token start, Token keyword,
+      Token? macroToken, DirectiveContext? directiveState) {
     doPrint('parseTopLevelKeywordDeclaration('
         '$start, '
         '$keyword, '
+        '$macroToken, '
         '$directiveState)');
     indent++;
-    var result =
-        super.parseTopLevelKeywordDeclaration(start, keyword, directiveState);
+    var result = super.parseTopLevelKeywordDeclaration(
+        start, keyword, macroToken, directiveState);
     indent--;
     return result;
   }
@@ -583,13 +584,14 @@ class TestParser extends Parser {
 
   @override
   Token parseClassOrNamedMixinApplication(
-      Token? abstractToken, Token classKeyword) {
+      Token? abstractToken, Token? macroToken, Token classKeyword) {
     doPrint('parseClassOrNamedMixinApplication('
         '$abstractToken, '
+        '$macroToken, '
         '$classKeyword)');
     indent++;
-    var result =
-        super.parseClassOrNamedMixinApplication(abstractToken, classKeyword);
+    var result = super.parseClassOrNamedMixinApplication(
+        abstractToken, macroToken, classKeyword);
     indent--;
     return result;
   }
@@ -2494,19 +2496,30 @@ class TestParser extends Parser {
       Token begin,
       int referenceOffset,
       Token? newKeyword,
-      Token? prefix,
-      Token? period,
+      Token? firstToken,
+      Token? firstPeriod,
+      Token? secondToken,
+      Token? secondPeriod,
       Token identifierOrOperator) {
     doPrint('parseOneCommentReferenceRest('
         '$begin, '
         '$referenceOffset, '
         '$newKeyword, '
-        '$prefix, '
-        '$period, '
+        '$firstToken, '
+        '$firstPeriod, '
+        '$secondToken, '
+        '$secondPeriod, '
         '$identifierOrOperator)');
     indent++;
-    var result = super.parseOneCommentReferenceRest(begin, referenceOffset,
-        newKeyword, prefix, period, identifierOrOperator);
+    var result = super.parseOneCommentReferenceRest(
+        begin,
+        referenceOffset,
+        newKeyword,
+        firstToken,
+        firstPeriod,
+        secondToken,
+        secondPeriod,
+        identifierOrOperator);
     indent--;
     return result;
   }

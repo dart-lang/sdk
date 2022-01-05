@@ -1,0 +1,40 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/no_such_method_forwarders/setter_not_shadowed_by_method.dart:12:12: Error: 'foo' is already declared in this scope.
+//   void set foo(int x);
+//            ^^^
+// pkg/front_end/testcases/no_such_method_forwarders/setter_not_shadowed_by_method.dart:10:8: Context: Previous declaration of 'foo'.
+//   void foo(int x) {}
+//        ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  method foo(core::int* x) → void {}
+  no-such-method-forwarder set foo(core::int* x) → void
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation*) →* dynamic};
+  method noSuchMethod(core::Invocation* i) → dynamic
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = #foo=
+  #C2 = <core::Type*>[]
+  #C3 = <core::Symbol*, dynamic>{)
+}

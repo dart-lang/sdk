@@ -7,12 +7,14 @@ import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/micro/library_graph.dart' as cider;
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 class CiderErrorFixes {
   final AnalysisError error;
@@ -47,12 +49,11 @@ class CiderFixesComputer {
         var errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == lineNumber) {
           var workspace = DartChangeWorkspace([resolvedUnit.session]);
-          var context = DartFixContextImpl(
-            InstrumentationService.NULL_SERVICE,
+          var context = _CiderDartFixContextImpl(
+            _fileResolver,
             workspace,
             resolvedUnit,
             error,
-            _topLevelDeclarations,
           );
 
           var fixes = await DartFixContributor().computeFixes(context);
@@ -67,33 +68,36 @@ class CiderFixesComputer {
 
     return result;
   }
+}
 
-  List<TopLevelDeclaration> _topLevelDeclarations(String name) {
-    var result = <TopLevelDeclaration>[];
+class _CiderDartFixContextImpl extends DartFixContextImpl {
+  final FileResolver _fileResolver;
+
+  _CiderDartFixContextImpl(
+    this._fileResolver,
+    ChangeWorkspace workspace,
+    ResolvedUnitResult resolvedUnit,
+    AnalysisError error,
+  ) : super(InstrumentationService.NULL_SERVICE, workspace, resolvedUnit,
+            error);
+
+  @override
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
+    String name,
+  ) async {
+    var result = <LibraryElement, Element>{};
     var files = _fileResolver.getFilesWithTopLevelDeclarations(name);
-    for (var fileWithKind in files) {
-      void addDeclaration(TopLevelDeclarationKind kind) {
-        var file = fileWithKind.file;
-        result.add(
-          TopLevelDeclaration(file.path, file.uri, kind, name, false),
+    for (var file in files) {
+      if (file.partOfLibrary == null) {
+        var libraryElement = _fileResolver.getLibraryByUri(
+          uriStr: file.uriStr,
         );
-      }
-
-      switch (fileWithKind.kind) {
-        case cider.FileTopLevelDeclarationKind.extension:
-          addDeclaration(TopLevelDeclarationKind.extension);
-          break;
-        case cider.FileTopLevelDeclarationKind.function:
-          addDeclaration(TopLevelDeclarationKind.function);
-          break;
-        case cider.FileTopLevelDeclarationKind.type:
-          addDeclaration(TopLevelDeclarationKind.type);
-          break;
-        case cider.FileTopLevelDeclarationKind.variable:
-          addDeclaration(TopLevelDeclarationKind.variable);
-          break;
+        TopLevelDeclarations.addElement(result, libraryElement, name);
       }
     }
     return result;
   }
+
+  @override
+  Stream<LibraryElement> librariesWithExtensions(String memberName) async* {}
 }

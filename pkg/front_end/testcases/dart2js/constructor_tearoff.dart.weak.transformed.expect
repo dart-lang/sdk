@@ -1,0 +1,46 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef Alias<T extends core::num> = self::Class<T>;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#new#tearOff::T%>
+    return new self::Class::•<self::Class::_#new#tearOff::T%>();
+  static factory fact<T extends core::Object? = dynamic>() → self::Class<self::Class::fact::T%>
+    return new self::Class::•<self::Class::fact::T%>();
+  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#fact#tearOff::T%>
+    return self::Class::fact<self::Class::_#fact#tearOff::T%>();
+  static factory redirect<T extends core::Object? = dynamic>() → self::Class<self::Class::redirect::T%>
+    return new self::Class::•<self::Class::redirect::T%>();
+  static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#redirect#tearOff::T%>
+    return new self::Class::•<self::Class::_#redirect#tearOff::T%>();
+}
+static const field <T extends core::Object? = dynamic>() → self::Class<T%> a = #C2;
+static const field <T extends core::Object? = dynamic>() → self::Class<T%> b = #C3;
+static const field <T extends core::Object? = dynamic>() → self::Class<T%> c = #C4;
+static const field <T extends core::num>() → self::Class<T> d = #C5;
+static const field <T extends core::num>() → self::Class<T> e = #C6;
+static const field <T extends core::num>() → self::Class<T> f = #C7;
+static method main() → dynamic {
+  core::print("${#C2}${#C3}${#C4}${#C5}${#C6}${#C7}");
+}
+static method _#Alias#new#tearOff<T extends core::num>() → self::Class<self::_#Alias#new#tearOff::T>
+  return new self::Class::•<self::_#Alias#new#tearOff::T>();
+static method _#Alias#fact#tearOff<T extends core::num>() → self::Class<self::_#Alias#fact#tearOff::T>
+  return self::Class::fact<self::_#Alias#fact#tearOff::T>();
+static method _#Alias#redirect#tearOff<T extends core::num>() → self::Class<self::_#Alias#redirect#tearOff::T>
+  return self::Class::_#redirect#tearOff<self::_#Alias#redirect#tearOff::T>();
+
+constants  {
+  #C1 = constructor-tearoff self::Class::redirect
+  #C2 = static-tearoff self::Class::_#new#tearOff
+  #C3 = static-tearoff self::Class::_#fact#tearOff
+  #C4 = static-tearoff self::Class::_#redirect#tearOff
+  #C5 = static-tearoff self::_#Alias#new#tearOff
+  #C6 = static-tearoff self::_#Alias#fact#tearOff
+  #C7 = static-tearoff self::_#Alias#redirect#tearOff
+}

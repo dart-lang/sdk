@@ -587,8 +587,8 @@ class AssemblerTest {
   // Assemble test and set code_.
   void Assemble();
 
-  // Disassembly of the code with large constants blanked out.
-  char* BlankedDisassembly() { return disassembly_; }
+  // Disassembly of the code with relative branch/jump targets.
+  char* RelativeDisassembly() { return disassembly_; }
 
  private:
   const char* name_;

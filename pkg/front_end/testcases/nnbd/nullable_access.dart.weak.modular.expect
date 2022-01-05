@@ -1,0 +1,66 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/nullable_access.dart:23:18: Error: Property 'nonNullableField' cannot be accessed on 'Class?' because it is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_access.dart'.
+// Try accessing using ?. instead.
+//   throws(() => c.nonNullableField);
+//                  ^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field self::A nonNullableField = #C1;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get nonNullableProperty() → self::A
+    return this.{self::Class::nonNullableField}{self::A};
+  set nonNullableProperty(self::A value) → void {
+    this.{self::Class::nonNullableField} = value;
+  }
+  method nonNullableMethod() → self::A
+    return this.{self::Class::nonNullableField}{self::A};
+}
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get nonNullableProperty() → self::A
+    return this;
+}
+static method main() → dynamic {
+  self::Class? c;
+  self::throws(() → void => invalid-expression "pkg/front_end/testcases/nnbd/nullable_access.dart:23:18: Error: Property 'nonNullableField' cannot be accessed on 'Class?' because it is potentially null.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_access.dart'.
+Try accessing using ?. instead.
+  throws(() => c.nonNullableField);
+                 ^^^^^^^^^^^^^^^^" in c.{self::Class::nonNullableField}{<nullable>}.{self::A});
+  self::expect(null, let final self::Class? #t1 = c in #t1 == null ?{self::A?} null : #t1{self::Class}.{self::Class::nonNullableField}{self::A});
+  self::expect(null, let final self::Class? #t2 = c in #t2 == null ?{self::A?} null : #t2{self::Class}.{self::Class::nonNullableField}{self::A}.{self::A::nonNullableProperty}{self::A});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object e) {
+    return;
+  }
+  throw "Expected throws.";
+}
+
+constants  {
+  #C1 = self::A {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///nullable_access.dart:
+- A. (from org-dartlang-testcase:///nullable_access.dart:16:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

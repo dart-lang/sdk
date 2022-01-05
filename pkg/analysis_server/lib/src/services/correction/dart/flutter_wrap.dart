@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterWrap extends MultiCorrectionProducer {
   @override
-  Iterable<CorrectionProducer> get producers sync* {
+  Stream<CorrectionProducer> get producers async* {
     var widgetExpr = flutter.identifyWidgetExpression(node);
     if (widgetExpr != null) {
       var widgetType = widgetExpr.typeOrThrow;
@@ -36,7 +36,7 @@ class FlutterWrap extends MultiCorrectionProducer {
     yield* _wrapMultipleWidgets();
   }
 
-  Iterable<CorrectionProducer> _wrapMultipleWidgets() sync* {
+  Stream<CorrectionProducer> _wrapMultipleWidgets() async* {
     var selectionRange = SourceRange(selectionOffset, selectionLength);
     var analyzer = SelectionAnalyzer(selectionRange);
     resolvedResult.unit.accept(analyzer);

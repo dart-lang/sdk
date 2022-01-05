@@ -1,0 +1,56 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:14:27: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//   for (var v in takesNoArg(0)) {}
+//                           ^
+// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:7:10: Context: Found this candidate, but the arguments don't match.
+// Iterable takesNoArg() => null;
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:15:17: Error: This expression has type 'void' and can't be used.
+//   for (var v in returnVoid()) {}
+//                 ^
+//
+// pkg/front_end/testcases/general/invalid_for_in_iterable.dart:16:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
+//  - 'Iterable' is from 'dart:core'.
+//   for (var v in returnInt()) {}
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method takesNoArg() → core::Iterable<dynamic>*
+  return null;
+static method returnVoid() → void {}
+static method returnInt() → core::int*
+  return 42;
+static method returnDynamic() → dynamic
+  return <dynamic>[];
+static method returnObject() → core::Object*
+  return 0;
+static method test() → dynamic {
+  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:14:27: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+  for (var v in takesNoArg(0)) {}
+                          ^") {
+  }
+  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:15:17: Error: This expression has type 'void' and can't be used.
+  for (var v in returnVoid()) {}
+                ^" in self::returnVoid()) {
+  }
+  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable.dart:16:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Iterable' is from 'dart:core'.
+  for (var v in returnInt()) {}
+                ^" in self::returnInt() as{TypeError} core::Iterable<dynamic>*) {
+  }
+  for (dynamic v in self::returnDynamic() as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
+  }
+  for (dynamic v in self::returnObject() as{TypeError} core::Iterable<dynamic>*) {
+  }
+  for (dynamic v in throw "") {
+  }
+}
+static method main() → dynamic {}

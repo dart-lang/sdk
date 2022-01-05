@@ -399,16 +399,28 @@ abstract class JSMutableIndexable<E> extends JSIndexable<E> {
   operator []=(int index, E value);
 }
 
-/// The interface implemented by JavaScript objects.  These are methods in
-/// addition to the regular Dart Object methods like [Object.hashCode].
+/// The interface implemented by JavaScript objects.
 ///
-/// This is the type that should be exported by a JavaScript interop library.
+/// These are methods in addition to the regular Dart Object methods like
+/// [Object.hashCode]. This is the type that should be exported by a JavaScript
+/// interop library.
 abstract class JSObject {}
+
+/// Superclass of all interop objects and native types defined in the web
+/// libraries.
+///
+/// This is the class static interop classes erase to and the class interop
+/// extension types should use as the on-type.
+class JavaScriptObject extends Interceptor {
+  const JavaScriptObject();
+}
 
 /// Interceptor base class for JavaScript objects not recognized as some more
 /// specific native type.
-class JavaScriptObject extends Interceptor implements JSObject {
-  const JavaScriptObject();
+///
+/// Note that this used to be `JavaScriptObject`.
+class LegacyJavaScriptObject extends JavaScriptObject implements JSObject {
+  const LegacyJavaScriptObject();
 
   // It would be impolite to stash a property on the object.
   int get hashCode => 0;
@@ -421,7 +433,7 @@ class JavaScriptObject extends Interceptor implements JSObject {
 
 /// Interceptor for plain JavaScript objects created as JavaScript object
 /// literals or `new Object()`.
-class PlainJavaScriptObject extends JavaScriptObject {
+class PlainJavaScriptObject extends LegacyJavaScriptObject {
   const PlainJavaScriptObject();
 }
 
@@ -429,7 +441,7 @@ class PlainJavaScriptObject extends JavaScriptObject {
 /// non-trivial prototype chain.
 ///
 /// This class also serves as a fallback for unknown JavaScript exceptions.
-class UnknownJavaScriptObject extends JavaScriptObject {
+class UnknownJavaScriptObject extends LegacyJavaScriptObject {
   const UnknownJavaScriptObject();
 }
 
@@ -437,7 +449,7 @@ class UnknownJavaScriptObject extends JavaScriptObject {
 /// been converted to JavaScript functions.
 /// These interceptor methods are not always used as the JavaScript function
 /// object has also been mangled to support Dart function calling conventions.
-class JavaScriptFunction extends JavaScriptObject implements Function {
+class JavaScriptFunction extends LegacyJavaScriptObject implements Function {
   const JavaScriptFunction();
 
   String toString() {

@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/completion/yaml/analysis_options_ge
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -425,7 +426,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   }
 
   @override
-  Response? handleRequest(Request request) {
+  Response? handleRequest(
+      Request request, CancellationToken cancellationToken) {
     if (!server.options.featureSet.completion) {
       return Response.invalidParameter(
         request,
@@ -516,8 +518,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
         var resolvedUnit = await server.getResolvedUnit(file);
         if (resolvedUnit == null) {
-          server
-              .sendResponse(Response.fileNotAnalyzed(request, 'params.offset'));
+          server.sendResponse(Response.fileNotAnalyzed(request, file));
           return;
         }
 

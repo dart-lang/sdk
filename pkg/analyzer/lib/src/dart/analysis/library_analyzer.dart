@@ -451,17 +451,14 @@ class LibraryAnalyzer {
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
-    RecordingErrorListener errorListener = _getErrorListener(file);
+    ErrorReporter errorReporter = _getErrorReporter(file);
 
     CodeChecker checker = CodeChecker(
       _typeProvider,
       _typeSystem,
-      _inheritance,
-      errorListener,
+      errorReporter,
     );
     checker.visitCompilationUnit(unit);
-
-    ErrorReporter errorReporter = _getErrorReporter(file);
 
     //
     // Validate the directives.
@@ -783,7 +780,7 @@ class LibraryAnalyzer {
     }
 
     var absoluteUri = resolveRelativeUri(_library.uri, relativeUri);
-    return rewriteFileToPackageUri(_sourceFactory, absoluteUri);
+    return rewriteToCanonicalUri(_sourceFactory, absoluteUri);
   }
 
   /// Return the result of resolve the given [uriContent], reporting errors

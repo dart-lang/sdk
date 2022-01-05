@@ -268,13 +268,12 @@ abstract class Target {
   bool mayDefineRestrictedType(Uri uri) =>
       uri.isScheme('dart') && (uri.path == 'core' || uri.path == 'typed_data');
 
-  /// Whether a library is allowed to import a platform private library.
+  /// Whether a library is allowed to import the platform private library
+  /// [imported] from library [importer].
   ///
   /// By default only `dart:*` libraries are allowed. May be overridden for
   /// testing purposes.
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
-      imported.scheme != "dart" ||
-      !imported.path.startsWith("_") ||
       importer.scheme == "dart" ||
       (importer.scheme == "package" &&
           importer.path.startsWith("dart_internal/"));

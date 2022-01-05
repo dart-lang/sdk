@@ -1,0 +1,54 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:28:35: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+//       /*@ typeArgs=int* */ max(1, 2.0));
+//                                   ^
+//
+// pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:30:35: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+//       /*@ typeArgs=int* */ min(1, 2.0));
+//                                   ^
+//
+// pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:37:37: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+//   printInt(/*@ typeArgs=int* */ min("hi", "there"));
+//                                     ^
+//
+// pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:37:43: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+//   printInt(/*@ typeArgs=int* */ min("hi", "there"));
+//                                           ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+
+import "dart:math";
+
+static method printInt(core::int* x) → void
+  return core::print(x);
+static method printDouble(core::double* x) → void
+  return core::print(x);
+static method myMax(core::num* x, core::num* y) → core::num*
+  return math::max<core::num*>(x, y);
+static method f() → dynamic {
+  self::printInt(math::max<core::int*>(1, 2));
+  self::printInt(math::min<core::int*>(1, 2));
+  self::printDouble(math::max<core::double*>(1.0, 2.0));
+  self::printDouble(math::min<core::double*>(1.0, 2.0));
+  self::printInt(self::myMax(1, 2) as{TypeError} core::int*);
+  self::printInt(self::myMax(1, 2) as core::int*);
+  self::printInt(math::max<core::int*>(1, invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:28:35: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+      /*@ typeArgs=int* */ max(1, 2.0));
+                                  ^" in 2.0 as{TypeError} core::int*));
+  self::printInt(math::min<core::int*>(1, invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:30:35: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+      /*@ typeArgs=int* */ min(1, 2.0));
+                                  ^" in 2.0 as{TypeError} core::int*));
+  self::printDouble(math::max<core::double*>(1.0, 2.0));
+  self::printDouble(math::min<core::double*>(1.0, 2.0));
+  self::printInt(math::min<core::int*>(invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:37:37: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+  printInt(/*@ typeArgs=int* */ min(\"hi\", \"there\"));
+                                    ^" in "hi" as{TypeError} core::int*, invalid-expression "pkg/front_end/testcases/inference/generic_methods_dart_math_min_max.dart:37:43: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+  printInt(/*@ typeArgs=int* */ min(\"hi\", \"there\"));
+                                          ^" in "there" as{TypeError} core::int*));
+}
+static method main() → dynamic {}

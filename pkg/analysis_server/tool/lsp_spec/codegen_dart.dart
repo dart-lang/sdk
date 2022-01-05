@@ -60,7 +60,7 @@ void recordTypes(List<AstNode> types) {
       .forEach((namespace) => _namespaces[namespace.name] = namespace);
 }
 
-TypeBase resolveTypeAlias(TypeBase type, {resolveEnumClasses = false}) {
+TypeBase resolveTypeAlias(TypeBase type, {bool resolveEnumClasses = false}) {
   if (type is Type) {
     // The LSP spec contains type aliases for `integer` and `uinteger` that map
     // into the `number` type, with comments stating they must be integers. To
@@ -380,7 +380,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..writeIndentedln('final ${typeOfValues.dartTypeWithTypeArgs} _value;')
     ..writeln()
     ..writeIndentedln(
-        'static bool canParse(Object obj, LspJsonReporter reporter) {')
+        'static bool canParse(Object? obj, LspJsonReporter reporter) {')
     ..indent();
   if (allowsAnyValue) {
     buffer.writeIndentedln('return ');
@@ -866,7 +866,7 @@ void _writeTypeCheckCondition(IndentableStringBuffer buffer,
   } else if (_isSpecType(type)) {
     buffer.write('$dartType.canParse($valueCode, $reporter)');
   } else if (type is ArrayType) {
-    buffer.write('($valueCode is List');
+    buffer.write('($valueCode is List<Object?>');
     if (fullDartType != 'Object?') {
       // TODO(dantup): If we're happy to assume we never have two lists in a union
       // we could skip this bit.

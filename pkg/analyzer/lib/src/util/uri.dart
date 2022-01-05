@@ -13,23 +13,10 @@ String fileUriToNormalizedPath(Context context, Uri fileUri) {
   return path;
 }
 
-/// If the [absoluteUri] is a `file` URI that has corresponding `package` URI,
-/// return it. If the URI is not valid, e.g. has empty path segments, so
-/// does not represent a valid file path, return `null`.
-Uri? rewriteFileToPackageUri(SourceFactory sourceFactory, Uri absoluteUri) {
-  // Only file URIs get rewritten into package URIs.
-  if (!absoluteUri.isScheme('file')) {
-    return absoluteUri;
-  }
-
-  // It must be a valid URI, e.g. `file:///home/` is not.
-  var pathSegments = absoluteUri.pathSegments;
-  if (pathSegments.isEmpty || pathSegments.last.isEmpty) {
-    return null;
-  }
-
-  // We ask for Source only because `restoreUri` needs it.
-  // TODO(scheglov) Add more direct way to convert a path to URI.
+/// Return the canonical URI for the given [absoluteUri], for example a `file`
+/// URI to the corresponding `package` URI. If the URI is not valid, so does
+/// not represent a valid file path, return `null`.
+Uri? rewriteToCanonicalUri(SourceFactory sourceFactory, Uri absoluteUri) {
   var source = sourceFactory.forUri2(absoluteUri);
   if (source == null) {
     return null;

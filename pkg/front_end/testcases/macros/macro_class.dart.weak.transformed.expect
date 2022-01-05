@@ -1,0 +1,32 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+macro class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    : super core::Object::•()
+    ;
+}
+abstract macro class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    : super core::Object::•()
+    ;
+}
+macro class Class3 extends self::Super implements self::Mixin /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::Class3
+    : super self::Super::•()
+    ;
+}
+abstract macro class Class4 extends self::Super implements self::Mixin /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::Class4
+    : super self::Super::•()
+    ;
+}
+static method main() → dynamic {}

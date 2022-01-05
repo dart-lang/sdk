@@ -5,7 +5,8 @@
 library fasta.source_class_builder;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClassHierarchyMembers;
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -99,26 +100,30 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final IndexedClass? referencesFromIndexed;
 
+  @override
+  final bool isMacro;
+
   SourceClassBuilder(
-    List<MetadataBuilder>? metadata,
-    int modifiers,
-    String name,
-    List<TypeVariableBuilder>? typeVariables,
-    TypeBuilder? supertype,
-    List<TypeBuilder>? interfaces,
-    List<TypeBuilder>? onTypes,
-    Scope scope,
-    ConstructorScope constructors,
-    SourceLibraryBuilder parent,
-    this.constructorReferences,
-    int startCharOffset,
-    int nameOffset,
-    int charEndOffset,
-    this.referencesFromIndexed, {
-    Class? cls,
-    this.mixedInTypeBuilder,
-    this.isMixinDeclaration = false,
-  })  : actualCls = initializeClass(cls, typeVariables, name, parent,
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      String name,
+      List<TypeVariableBuilder>? typeVariables,
+      TypeBuilder? supertype,
+      List<TypeBuilder>? interfaces,
+      List<TypeBuilder>? onTypes,
+      Scope scope,
+      ConstructorScope constructors,
+      SourceLibraryBuilder parent,
+      this.constructorReferences,
+      int startCharOffset,
+      int nameOffset,
+      int charEndOffset,
+      this.referencesFromIndexed,
+      {Class? cls,
+      this.mixedInTypeBuilder,
+      this.isMixinDeclaration = false,
+      this.isMacro: false})
+      : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
             onTypes, scope, constructors, parent, nameOffset) {
@@ -238,6 +243,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
+    cls.isMacro = isMacro;
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = checkSupertype(interfaceBuilders![i]);
@@ -912,7 +918,6 @@ class SourceClassBuilder extends ClassBuilderImpl
         new ConstructorTearOff(constructorBuilder.member)..parent = literal);
   }
 
-  @override
   int resolveConstructors(SourceLibraryBuilder library) {
     if (constructorReferences == null) return 0;
     for (ConstructorReferenceBuilder ref in constructorReferences!) {
@@ -1002,8 +1007,13 @@ class SourceClassBuilder extends ClassBuilderImpl
     return count;
   }
 
-  void checkOverride(Types types, Member declaredMember, Member interfaceMember,
-      bool isSetter, callback(Member interfaceMember, bool isSetter),
+  void checkOverride(
+      Types types,
+      ClassHierarchyMembers memberHierarchy,
+      Member declaredMember,
+      Member interfaceMember,
+      bool isSetter,
+      callback(Member interfaceMember, bool isSetter),
       {required bool isInterfaceCheck,
       required bool declaredNeedsLegacyErasure}) {
     // ignore: unnecessary_null_comparison
@@ -1031,7 +1041,8 @@ class SourceClassBuilder extends ClassBuilderImpl
               isInterfaceCheck,
               declaredNeedsLegacyErasure);
           if (seenCovariant) {
-            handleSeenCovariant(types, interfaceMember, isSetter, callback);
+            handleSeenCovariant(
+                memberHierarchy, interfaceMember, isSetter, callback);
           }
         } else if (declaredMember.kind == ProcedureKind.Getter) {
           checkGetterOverride(
@@ -1050,7 +1061,8 @@ class SourceClassBuilder extends ClassBuilderImpl
               isInterfaceCheck,
               declaredNeedsLegacyErasure);
           if (seenCovariant) {
-            handleSeenCovariant(types, interfaceMember, isSetter, callback);
+            handleSeenCovariant(
+                memberHierarchy, interfaceMember, isSetter, callback);
           }
         } else {
           assert(
@@ -1090,7 +1102,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             isInterfaceCheck,
             declaredNeedsLegacyErasure);
         if (seenCovariant) {
-          handleSeenCovariant(types, interfaceMember, isSetter, callback);
+          handleSeenCovariant(
+              memberHierarchy, interfaceMember, isSetter, callback);
         }
       }
     }

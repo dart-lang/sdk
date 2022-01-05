@@ -1,0 +1,109 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/override_check_basic.dart:24:13: Error: The parameter 'x' of the method 'E.f1' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'C.f1'.
+//  - 'B' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void f1(B x) {}
+//             ^
+// pkg/front_end/testcases/general/override_check_basic.dart:10:8: Context: This is the overridden method ('f1').
+//   void f1(A x) {}
+//        ^
+//
+// pkg/front_end/testcases/general/override_check_basic.dart:25:14: Error: The parameter 'x' of the method 'E.f2' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'C.f2'.
+//  - 'B' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void f2([B x]) {}
+//              ^
+// pkg/front_end/testcases/general/override_check_basic.dart:11:8: Context: This is the overridden method ('f2').
+//   void f2([A x]) {}
+//        ^
+//
+// pkg/front_end/testcases/general/override_check_basic.dart:26:14: Error: The parameter 'x' of the method 'E.f3' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'C.f3'.
+//  - 'B' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void f3({B x}) {}
+//              ^
+// pkg/front_end/testcases/general/override_check_basic.dart:12:8: Context: This is the overridden method ('f3').
+//   void f3({A x}) {}
+//        ^
+//
+// pkg/front_end/testcases/general/override_check_basic.dart:27:10: Error: The return type of the method 'E.f4' is 'Object', which does not match the return type, 'A', of the overridden method, 'C.f4'.
+//  - 'Object' is from 'dart:core'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_basic.dart'.
+// Change to a subtype of 'A'.
+//   Object f4() {}
+//          ^
+// pkg/front_end/testcases/general/override_check_basic.dart:13:5: Context: This is the overridden method ('f4').
+//   A f4() {}
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  method f1(self::A* x) → void {}
+  method f2([self::A* x = #C1]) → void {}
+  method f3({self::A* x = #C1}) → void {}
+  method f4() → self::A* {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D extends self::C {
+  synthetic constructor •() → self::D*
+    : super self::C::•()
+    ;
+  method f1(core::Object* x) → void {}
+  method f2([core::Object* x = #C1]) → void {}
+  method f3({core::Object* x = #C1}) → void {}
+  method f4() → self::B* {}
+}
+class E extends self::C {
+  synthetic constructor •() → self::E*
+    : super self::C::•()
+    ;
+  method f1(self::B* x) → void {}
+  method f2([self::B* x = #C1]) → void {}
+  method f3({self::B* x = #C1}) → void {}
+  method f4() → core::Object* {}
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

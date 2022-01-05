@@ -20,6 +20,6 @@ import 'dart:_js_helper' show
     Creates, JavaScriptIndexingBehavior, JSName, Native, Returns,
     convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor;
+import 'dart:_interceptors' show JavaScriptObject;
 
 $!GENERATED_DART_FILES

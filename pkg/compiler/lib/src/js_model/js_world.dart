@@ -246,7 +246,7 @@ class JsClosedWorld implements JClosedWorld {
   ClassEntity getLubOfInstantiatedSubclasses(ClassEntity cls) {
     if (nativeData.isJsInteropClass(cls)) {
       return getLubOfInstantiatedSubclasses(
-          commonElements.jsJavaScriptObjectClass);
+          commonElements.jsLegacyJavaScriptObjectClass);
     }
     ClassHierarchyNode hierarchy = classHierarchy.getClassHierarchyNode(cls);
     return hierarchy?.getLubOfInstantiatedSubclasses();
@@ -256,7 +256,7 @@ class JsClosedWorld implements JClosedWorld {
   ClassEntity getLubOfInstantiatedSubtypes(ClassEntity cls) {
     if (nativeData.isJsInteropClass(cls)) {
       return getLubOfInstantiatedSubtypes(
-          commonElements.jsJavaScriptObjectClass);
+          commonElements.jsLegacyJavaScriptObjectClass);
     }
     ClassSet classSet = classHierarchy.getClassSet(cls);
     return classSet?.getLubOfInstantiatedSubtypes();

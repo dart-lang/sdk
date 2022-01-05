@@ -6,6 +6,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/closure_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
@@ -138,6 +139,7 @@ class DartCompletionManager {
     var builder = SuggestionBuilder(request, listener: listener);
     var contributors = <DartCompletionContributor>[
       ArgListContributor(request, builder),
+      ClosureContributor(request, builder),
       CombinatorContributor(request, builder),
       ExtensionMemberContributor(request, builder),
       FieldFormalContributor(request, builder),

@@ -1,0 +1,89 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Status file for the modular_suite.dart test suite.
+
+constructor_tearoffs/call_instantiation: TypeCheckError
+constructor_tearoffs/lowering/invalid_redirect: VerificationError
+extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
+extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
+extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
+extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
+extension_types/show_and_run_ceil: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
+extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
+extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
+extensions/extension_setter_error: TypeCheckError
+general/abstract_members: TypeCheckError
+general/bounded_implicit_instantiation: TypeCheckError
+general/bug30695: TypeCheckError
+general/covariant_field: TypeCheckError
+general/crashes/crash_02/main: Crash
+general/crashes/crash_06/main: Crash
+general/duplicated_declarations: TypeCheckError
+general/getter_vs_setter_type: TypeCheckError
+general/implement_semi_stub: TypeCheckError
+general/implicit_super_call: TypeCheckError
+general/infer_field_from_multiple: TypeCheckError
+general/invalid_operator: TypeCheckError
+general/invalid_operator_override: TypeCheckError
+general/issue41210a: TypeCheckError
+general/issue41210b/issue41210.no_link: TypeCheckError
+general/issue41210b/issue41210: TypeCheckError
+general/issue44733: TypeCheckError
+general/mixin_application_override: ExpectationFileMismatch # Too many errors.
+general/mixin_application_override: TypeCheckError
+general/override_check_accessor_after_inference: TypeCheckError # Issue #31620
+general/override_check_accessor_basic: TypeCheckError # Issue #31620
+general/override_check_accessor_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_check_after_inference: TypeCheckError # Issue #31620
+general/override_check_basic: TypeCheckError # Issue #31620
+general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+general/override_setter_with_field: TypeCheckError
+general/redirecting_factory_invocation_in_invalid: TypeCheckError
+general/super_semi_stub: TypeCheckError
+general/unsound_promotion: TypeCheckError
+inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
+inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
+inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
+inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
+inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
+inference/infer_method_missing_params: TypeCheckError
+inference/infer_types_on_generic_instantiations_infer: TypeCheckError
+inference/mixin_inference_outwards_3: TypeCheckError
+inference/mixin_inference_outwards_4: TypeCheckError
+inference/mixin_inference_unification_1: TypeCheckError
+inference/mixin_inference_unification_2: TypeCheckError
+inference_new/infer_assign_to_index_super_upwards: TypeCheckError
+inference_new/infer_assign_to_index_this_upwards: TypeCheckError
+inference_new/infer_assign_to_index_upwards: TypeCheckError
+late_lowering/covariant_late_field: TypeCheckError
+nnbd/covariant_late_field: TypeCheckError
+nnbd/getter_vs_setter_type: TypeCheckError
+nnbd/issue42603: TypeCheckError
+nnbd_mixed/bad_mixins: TypeCheckError
+nnbd_mixed/covariant_from_opt_in: TypeCheckError
+nnbd_mixed/hierarchy/conflict: TypeCheckError
+nnbd_mixed/hierarchy/duplicates: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_field: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_method: TypeCheckError
+nnbd_mixed/hierarchy/forwarding_semi_stub_setter: TypeCheckError
+nnbd_mixed/hierarchy/getter_setter: TypeCheckError
+nnbd_mixed/hierarchy/mix_in_override: TypeCheckError
+nnbd_mixed/hierarchy/override: TypeCheckError
+nnbd_mixed/inheritance_from_opt_in: TypeCheckError
+nnbd_mixed/issue41567: TypeCheckError
+nnbd_mixed/messages_with_types_opt_in: TypeCheckError
+nnbd_mixed/messages_with_types_opt_out: TypeCheckError
+rasta/mixin_library: TypeCheckError
+rasta/super: TypeCheckError
+rasta/super_mixin: TypeCheckError
+rasta/super_operator: TypeCheckError
+rasta/unresolved_recovery: TypeCheckError
+regress/issue_31180: TypeCheckError
+runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError

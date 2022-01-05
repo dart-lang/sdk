@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/bounded_implicit_instantiation.dart:7:22: Error: The argument type 'String' can't be assigned to the parameter type 'Never'.
+//   String a = bounded('');
+//                      ^
+//
+// pkg/front_end/testcases/general/bounded_implicit_instantiation.dart:8:21: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'bounded'.
+// Try changing type arguments so that they conform to the bounds.
+//   String b = bounded<String>('');
+//                     ^
+//
+// pkg/front_end/testcases/general/bounded_implicit_instantiation.dart:9:31: Error: Inferred type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'X Function<X extends num>(X)'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   String Function(String) c = bounded;
+//                               ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method test() → dynamic {
+  function bounded<X extends core::num>(X x) → X
+    return x;
+  core::String a = let final Never #t1 = bounded<Never>(invalid-expression "pkg/front_end/testcases/general/bounded_implicit_instantiation.dart:7:22: Error: The argument type 'String' can't be assigned to the parameter type 'Never'.
+  String a = bounded('');
+                     ^" in "" as{TypeError,ForNonNullableByDefault} Never){(Never) → Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  core::String b = bounded<core::String>(""){(core::String) → core::String};
+  (core::String) → core::String c = bounded<core::String>;
+  core::String d = c(""){(core::String) → core::String};
+}
+static method main() → dynamic {}

@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:test/test.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -238,7 +237,10 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkResolved(
-      AstNode node, Element? element, Predicate<Element>? predicate) {
+    AstNode node,
+    Element? element,
+    bool Function(Element)? predicate,
+  ) {
     if (element == null) {
       if (_knownExceptions == null || !_knownExceptions!.contains(node)) {
         _unresolvedNodes.add(node);

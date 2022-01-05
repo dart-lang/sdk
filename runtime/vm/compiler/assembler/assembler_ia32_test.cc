@@ -15,7 +15,7 @@
 #define EXPECT_DISASSEMBLY(expected)
 #else
 #define EXPECT_DISASSEMBLY(expected)                                           \
-  EXPECT_STREQ(expected, test->BlankedDisassembly())
+  EXPECT_STREQ(expected, test->RelativeDisassembly())
 #endif
 
 namespace dart {
@@ -119,12 +119,12 @@ ASSEMBLER_TEST_RUN(AddressingModes, test) {
       "mov eax,[esp-0x4]\n"
       "mov eax,[ebp-0x4]\n"
       "mov eax,[eax-0x4]\n"
-      "mov eax,[esp+0x...]\n"
-      "mov eax,[ebp+0x...]\n"
-      "mov eax,[eax+0x...]\n"
-      "mov eax,[esp-0x...]\n"
-      "mov eax,[ebp-0x...]\n"
-      "mov eax,[eax-0x...]\n"
+      "mov eax,[esp+0x400]\n"
+      "mov eax,[ebp+0x400]\n"
+      "mov eax,[eax+0x400]\n"
+      "mov eax,[esp-0x400]\n"
+      "mov eax,[ebp-0x400]\n"
+      "mov eax,[eax-0x400]\n"
       "mov eax,[eax]\n"
       "mov eax,[eax+0x1]\n"
       "mov eax,[eax+0x2]\n"
@@ -133,8 +133,8 @@ ASSEMBLER_TEST_RUN(AddressingModes, test) {
       "mov eax,[eax+0x1]\n"
       "mov eax,[ebp*2+0x4]\n"
       "mov eax,[eax*2+0x4]\n"
-      "mov eax,[ebp*2+0x...]\n"
-      "mov eax,[eax*2+0x...]\n"
+      "mov eax,[ebp*2+0x400]\n"
+      "mov eax,[eax*2+0x400]\n"
       "mov eax,[eax+ebp*2]\n"
       "mov eax,[eax+eax*2]\n"
       "mov eax,[ebp+ebp*2+0]\n"
@@ -147,12 +147,12 @@ ASSEMBLER_TEST_RUN(AddressingModes, test) {
       "mov eax,[ebp+eax*2+0x4]\n"
       "mov eax,[esp+ebp*2+0x4]\n"
       "mov eax,[esp+eax*2+0x4]\n"
-      "mov eax,[eax+ebp*2+0x...]\n"
-      "mov eax,[eax+eax*2+0x...]\n"
-      "mov eax,[ebp+ebp*2+0x...]\n"
-      "mov eax,[ebp+eax*2+0x...]\n"
-      "mov eax,[esp+ebp*2+0x...]\n"
-      "mov eax,[esp+eax*2+0x...]\n");
+      "mov eax,[eax+ebp*2+0x400]\n"
+      "mov eax,[eax+eax*2+0x400]\n"
+      "mov eax,[ebp+ebp*2+0x400]\n"
+      "mov eax,[ebp+eax*2+0x400]\n"
+      "mov eax,[esp+ebp*2+0x400]\n"
+      "mov eax,[esp+eax*2+0x400]\n");
 }
 
 ASSEMBLER_TEST_GENERATE(JumpAroundCrash, assembler) {
@@ -180,23 +180,23 @@ ASSEMBLER_TEST_RUN(JumpAroundCrash, test) {
   typedef void (*JumpAroundCrashCode)();
   reinterpret_cast<JumpAroundCrashCode>(test->entry())();
   EXPECT_DISASSEMBLY(
-      "jo 0x........\n"
-      "jno 0x........\n"
-      "jc 0x........\n"
-      "jnc 0x........\n"
-      "jz 0x........\n"
-      "jnz 0x........\n"
-      "jna 0x........\n"
-      "ja 0x........\n"
-      "js 0x........\n"
-      "jns 0x........\n"
-      "jpe 0x........\n"
-      "jpo 0x........\n"
-      "jl 0x........\n"
-      "jge 0x........\n"
-      "jle 0x........\n"
-      "jg 0x........\n"
-      "jmp 0x........\n"
+      "jo +108\n"
+      "jno +102\n"
+      "jc +96\n"
+      "jnc +90\n"
+      "jz +84\n"
+      "jnz +78\n"
+      "jna +72\n"
+      "ja +66\n"
+      "js +60\n"
+      "jns +54\n"
+      "jpe +48\n"
+      "jpo +42\n"
+      "jl +36\n"
+      "jge +30\n"
+      "jle +24\n"
+      "jg +18\n"
+      "jmp +12\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "ret\n");
@@ -225,23 +225,23 @@ ASSEMBLER_TEST_RUN(NearJumpAroundCrash, test) {
   typedef void (*NearJumpAroundCrashCode)();
   reinterpret_cast<NearJumpAroundCrashCode>(test->entry())();
   EXPECT_DISASSEMBLY(
-      "jo 0x........\n"
-      "jno 0x........\n"
-      "jc 0x........\n"
-      "jnc 0x........\n"
-      "jz 0x........\n"
-      "jnz 0x........\n"
-      "jna 0x........\n"
-      "ja 0x........\n"
-      "js 0x........\n"
-      "jns 0x........\n"
-      "jpe 0x........\n"
-      "jpo 0x........\n"
-      "jl 0x........\n"
-      "jge 0x........\n"
-      "jle 0x........\n"
-      "jg 0x........\n"
-      "jmp 0x........\n"
+      "jo +41\n"
+      "jno +39\n"
+      "jc +37\n"
+      "jnc +35\n"
+      "jz +33\n"
+      "jnz +31\n"
+      "jna +29\n"
+      "ja +27\n"
+      "js +25\n"
+      "jns +23\n"
+      "jpe +21\n"
+      "jpo +19\n"
+      "jl +17\n"
+      "jge +15\n"
+      "jle +13\n"
+      "jg +11\n"
+      "jmp +9\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "ret\n");
@@ -268,7 +268,7 @@ ASSEMBLER_TEST_RUN(SimpleLoop, test) {
       "add eax,2\n"
       "inc ecx\n"
       "cmp ecx,0x57\n"
-      "jl 0x........\n"
+      "jl -7\n"
       "ret\n");
 }
 
@@ -289,9 +289,9 @@ ASSEMBLER_TEST_RUN(Cmpb, test) {
   EXPECT_EQ(1, reinterpret_cast<CmpbCode>(test->entry())());
   EXPECT_DISASSEMBLY(
       "mov eax,1\n"
-      "push 0x........\n"
+      "push 0xffffff11\n"
       "cmpb [esp],0x11\n"
-      "jz 0x........\n"
+      "jz +7\n"
       "mov eax,0\n"
       "pop ecx\n"
       "ret\n");
@@ -317,7 +317,7 @@ ASSEMBLER_TEST_RUN(Testb, test) {
   EXPECT_DISASSEMBLY(
       "mov eax,1\n"
       "mov ecx,0\n"
-      "push 0x........\n"
+      "push 0xffffff11\n"
       "testb [esp],0x10\n"
       "cmovz eax,ecx\n"
       "testb [esp],0x20\n"
@@ -372,7 +372,7 @@ ASSEMBLER_TEST_RUN(Popcnt, test) {
   typedef int (*PopcntCode)();
   EXPECT_EQ(36, reinterpret_cast<PopcntCode>(test->entry())());
   EXPECT_DISASSEMBLY(
-      "mov ecx,0x........\n"
+      "mov ecx,0xffffffff\n"
       "popcnt eax,ecx\n"
       "mov ecx,0xf\n"
       "popcnt ecx,ecx\n"
@@ -396,7 +396,7 @@ ASSEMBLER_TEST_RUN(Lzcnt, test) {
   typedef int (*LzcntCode)();
   EXPECT_EQ(44, reinterpret_cast<LzcntCode>(test->entry())());
   EXPECT_DISASSEMBLY(
-      "mov ecx,0x...\n"
+      "mov ecx,0xf00\n"
       "lzcnt eax,ecx\n"
       "mov ecx,0xf0\n"
       "lzcnt ecx,ecx\n"
@@ -536,7 +536,7 @@ ASSEMBLER_TEST_RUN(SignedMultiply, test) {
       "mov eax,2\n"
       "mov ecx,4\n"
       "imul eax,ecx\n"
-      "imul eax,eax,0x...\n"
+      "imul eax,eax,0x3e8\n"
       "ret\n");
 }
 
@@ -554,8 +554,8 @@ ASSEMBLER_TEST_RUN(OverflowSignedMultiply, test) {
   EXPECT_EQ(0, reinterpret_cast<OverflowSignedMultiply>(test->entry())());
   EXPECT_DISASSEMBLY(
       "mov edx,0\n"
-      "mov eax,0x........\n"
-      "mov ecx,0x........\n"
+      "mov eax,0x0fffffff\n"
+      "mov ecx,0x0fffffff\n"
       "imul eax,ecx\n"
       "imul eax,edx\n"
       "ret\n");
@@ -580,7 +580,7 @@ ASSEMBLER_TEST_RUN(SignedMultiply1, test) {
       "mov ebx,2\n"
       "mov ecx,4\n"
       "imul ebx,ecx\n"
-      "imul ebx,ebx,0x...\n"
+      "imul ebx,ebx,0x3e8\n"
       "mov eax,ebx\n"
       "pop ebx\n"
       "ret\n");
@@ -622,7 +622,7 @@ ASSEMBLER_TEST_RUN(BitScanReverseTest, test) {
   EXPECT_EQ(31, call(-1));
   EXPECT_DISASSEMBLY(
       "mov ecx,[esp+0x4]\n"
-      "mov eax,0x...\n"
+      "mov eax,0x29a\n"
       "bsr eax,ecx\n"
       "ret\n");
 }
@@ -644,7 +644,7 @@ ASSEMBLER_TEST_RUN(MoveExtend, test) {
   EXPECT_EQ(0xff - 1 + 0xffff, reinterpret_cast<MoveExtend>(test->entry())());
   EXPECT_DISASSEMBLY(
       "push ebx\n"
-      "mov edx,0x........\n"
+      "mov edx,0x1234ffff\n"
       "movzxb eax,edx\n"
       "movsxw ebx,edx\n"
       "movzxw ecx,edx\n"
@@ -676,7 +676,7 @@ ASSEMBLER_TEST_RUN(MoveExtendMemory, test) {
             reinterpret_cast<MoveExtendMemory>(test->entry())());
   EXPECT_DISASSEMBLY(
       "push ebx\n"
-      "mov edx,0x........\n"
+      "mov edx,0x1234ffff\n"
       "push edx\n"
       "movzxb eax,[esp]\n"
       "movsxw ebx,[esp]\n"
@@ -724,12 +724,12 @@ ASSEMBLER_TEST_RUN(Bitwise, test) {
   EXPECT_DISASSEMBLY(
       "mov ecx,0x2a\n"
       "xor ecx,ecx\n"
-      "or ecx,0x...\n"
-      "mov eax,0x...\n"
+      "or ecx,0x100\n"
+      "mov eax,0x648\n"
       "or ecx,eax\n"
-      "mov eax,0x....\n"
+      "mov eax,0xfff0\n"
       "and ecx,eax\n"
-      "push 0x....\n"
+      "push 0xf6ff\n"
       "and ecx,[esp]\n"
       "pop eax\n"
       "mov eax,1\n"
@@ -943,121 +943,121 @@ ASSEMBLER_TEST_RUN(LogicalOps, test) {
       "mov eax,4\n"
       "and eax,2\n"
       "cmp eax,0\n"
-      "jz 0x........\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov ecx,4\n"
       "and ecx,4\n"
       "cmp ecx,0\n"
-      "jnz 0x........\n"
+      "jnz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,0\n"
       "or eax,0\n"
       "cmp eax,0\n"
-      "jz 0x........\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,4\n"
       "or eax,0\n"
       "cmp eax,0\n"
-      "jnz 0x........\n"
+      "jnz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,1\n"
       "shl eax,1\n"
       "cmp eax,2\n"
-      "jz 0x........\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,1\n"
       "shl eax,3\n"
       "cmp eax,8\n"
-      "jz 0x........\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,2\n"
       "shr eax,1\n"
       "cmp eax,1\n"
-      "jz 0x........\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,8\n"
       "shr eax,3\n"
       "cmp eax,1\n"
-      "jz 0x........\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,1\n"
       "mov ecx,3\n"
       "shl eax,cl\n"
       "cmp eax,8\n"
-      "jz 0x........\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,8\n"
       "mov ecx,3\n"
       "shr eax,cl\n"
       "cmp eax,1\n"
-      "jz 0x........\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,1\n"
       "shl eax,31\n"
       "shr eax,3\n"
-      "cmp eax,0x........\n"
-      "jz 0x........\n"
+      "cmp eax,0x10000000\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,1\n"
       "shl eax,31\n"
       "sar eax,3\n"
-      "cmp eax,0x........\n"
-      "jz 0x........\n"
+      "cmp eax,0xf0000000\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,1\n"
       "mov ecx,3\n"
       "shl eax,31\n"
       "sar eax,cl\n"
-      "cmp eax,0x........\n"
-      "jz 0x........\n"
+      "cmp eax,0xf0000000\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "sub esp,4\n"
-      "mov [esp],-0x........\n"
+      "mov [esp],-0x80000000\n"
       "mov eax,0\n"
       "mov ecx,3\n"
       "sar [esp],cl\n"
       "shrd [esp],eax,cl\n"
-      "cmp [esp],0x........\n"
-      "jz 0x........\n"
+      "cmp [esp],0x1e000000\n"
+      "jz +7\n"
       "int3\n"
       "add esp,4\n"
       "sub esp,4\n"
-      "mov [esp],-0x........\n"
-      "mov eax,0x........\n"
+      "mov [esp],-0x01000000\n"
+      "mov eax,0xffffffff\n"
       "mov ecx,2\n"
       "shl [esp],cl\n"
       "shld [esp],eax,cl\n"
-      "cmp [esp],0x........\n"
-      "jz 0x........\n"
+      "cmp [esp],0xf0000003\n"
+      "jz +7\n"
       "int3\n"
       "add esp,4\n"
-      "mov edx,0x........\n"
+      "mov edx,0x80000000\n"
       "mov eax,0\n"
       "mov ecx,3\n"
       "sar edx,3\n"
       "shrd edx,eax,3\n"
-      "cmp edx,0x........\n"
-      "jz 0x........\n"
+      "cmp edx,0x1e000000\n"
+      "jz +7\n"
       "int3\n"
-      "mov edx,0x........\n"
-      "mov eax,0x........\n"
+      "mov edx,0xff000000\n"
+      "mov eax,0xffffffff\n"
       "shl edx,2\n"
       "shld edx,eax,2\n"
-      "cmp edx,0x........\n"
-      "jz 0x........\n"
+      "cmp edx,0xf0000003\n"
+      "jz +7\n"
       "int3\n"
       "mov eax,0\n"
       "ret\n");
@@ -1125,28 +1125,28 @@ ASSEMBLER_TEST_RUN(LogicalTest, test) {
       "mov eax,4\n"
       "mov ecx,2\n"
       "test eax,ecx\n"
-      "jz 0x........\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov edx,4\n"
       "mov ecx,4\n"
       "test edx,ecx\n"
-      "jnz 0x........\n"
+      "jnz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,0\n"
       "test al,0\n"
-      "jz 0x........\n"
+      "jz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov ebx,4\n"
       "testb ebx,4\n"
-      "jnz 0x........\n"
+      "jnz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov ebx,0xff\n"
       "testb ebx,0xff\n"
-      "jnz 0x........\n"
+      "jnz +13\n"
       "mov eax,0\n"
       "mov [eax],eax\n"
       "mov eax,0\n"
@@ -1217,7 +1217,7 @@ ASSEMBLER_TEST_RUN(SignedDivide, test) {
   typedef int (*SignedDivide)();
   EXPECT_EQ(-87 / 42, reinterpret_cast<SignedDivide>(test->entry())());
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0xffffffa9\n"
       "mov edx,0x7b\n"
       "cdq\n"
       "mov ecx,0x2a\n"
@@ -1237,9 +1237,9 @@ ASSEMBLER_TEST_RUN(UnsignedDivide, test) {
   typedef int (*UnsignedDivide)();
   EXPECT_EQ(0x42, reinterpret_cast<UnsignedDivide>(test->entry())());
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0xffffffbe\n"
       "mov edx,0x41\n"
-      "mov ecx,0x........\n"
+      "mov ecx,0xffffffff\n"
       "div (eax,edx),ecx\n"
       "ret\n");
 }
@@ -1256,8 +1256,8 @@ ASSEMBLER_TEST_RUN(Exchange, test) {
   typedef int (*Exchange)();
   EXPECT_EQ(987654321 - 123456789, reinterpret_cast<Exchange>(test->entry())());
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
-      "mov edx,0x........\n"
+      "mov eax,0x075bcd15\n"
+      "mov edx,0x3ade68b1\n"
       "xchg eax,edx\n"
       "sub eax,edx\n"
       "ret\n");
@@ -1358,7 +1358,7 @@ ASSEMBLER_TEST_RUN(SingleFPMoves, test) {
   float res = reinterpret_cast<SingleFPMovesCode>(test->entry())();
   EXPECT_EQ(234.0f, res);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x436a0000\n"
       "movd xmm0,eax\n"
       "movss ecx,xmm0\n"
       "movss edx,xmm1\n"
@@ -1397,7 +1397,7 @@ ASSEMBLER_TEST_RUN(SingleFPMoves2, test) {
   EXPECT_DISASSEMBLY(
       "push ebx\n"
       "push ecx\n"
-      "mov ebx,0x........\n"
+      "mov ebx,0x436a0000\n"
       "movd xmm0,ebx\n"
       "movss ecx,xmm0\n"
       "movd ecx,xmm1\n"
@@ -1426,7 +1426,7 @@ ASSEMBLER_TEST_RUN(SingleFPUStackMoves, test) {
   int res = reinterpret_cast<SingleFPUStackMovesCode>(test->entry())();
   EXPECT_EQ(234.0f, (bit_cast<float, int>(res)));
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x436a0000\n"
       "push eax\n"
       "fld_s [esp]\n"
       "xor ecx,ecx\n"
@@ -1458,9 +1458,9 @@ ASSEMBLER_TEST_RUN(SingleFPOperations, test) {
   float res = reinterpret_cast<SingleFPOperationsCode>(test->entry())();
   EXPECT_FLOAT_EQ(14.7f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x4144cccd\n"
       "movd xmm0,eax\n"
-      "mov eax,0x........\n"
+      "mov eax,0x4059999a\n"
       "movd xmm1,eax\n"
       "addss xmm0,xmm1\n"
       "mulss xmm0,xmm1\n"
@@ -1498,10 +1498,10 @@ ASSEMBLER_TEST_RUN(PackedFPOperations, test) {
   float res = reinterpret_cast<PackedFPOperationsCode>(test->entry())();
   EXPECT_FLOAT_EQ(14.7f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x4144cccd\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "mov eax,0x........\n"
+      "mov eax,0x4059999a\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
       "addps xmm0,xmm1\n"
@@ -1577,7 +1577,7 @@ ASSEMBLER_TEST_RUN(PackedFPOperations2, test) {
   float res = reinterpret_cast<PackedFPOperations2Code>(test->entry())();
   EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40800000\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
       "movaps xmm1,xmm0\n"
@@ -1610,10 +1610,10 @@ ASSEMBLER_TEST_RUN(PackedCompareEQ, test) {
   uint32_t res = reinterpret_cast<PackedCompareEQCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40000000\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "mov eax,0x........\n"
+      "mov eax,0x40800000\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
       "cmpps xmm0,xmm1 [eq]\n"
@@ -1641,10 +1641,10 @@ ASSEMBLER_TEST_RUN(PackedCompareNEQ, test) {
   uint32_t res = reinterpret_cast<PackedCompareNEQCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40000000\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "mov eax,0x........\n"
+      "mov eax,0x40800000\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
       "cmpps xmm0,xmm1 [neq]\n"
@@ -1672,10 +1672,10 @@ ASSEMBLER_TEST_RUN(PackedCompareLT, test) {
   uint32_t res = reinterpret_cast<PackedCompareLTCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40000000\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "mov eax,0x........\n"
+      "mov eax,0x40800000\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
       "cmpps xmm0,xmm1 [lt]\n"
@@ -1703,10 +1703,10 @@ ASSEMBLER_TEST_RUN(PackedCompareLE, test) {
   uint32_t res = reinterpret_cast<PackedCompareLECode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40000000\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "mov eax,0x........\n"
+      "mov eax,0x40800000\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
       "cmpps xmm0,xmm1 [le]\n"
@@ -1734,10 +1734,10 @@ ASSEMBLER_TEST_RUN(PackedCompareNLT, test) {
   uint32_t res = reinterpret_cast<PackedCompareNLTCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40000000\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "mov eax,0x........\n"
+      "mov eax,0x40800000\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
       "cmpps xmm0,xmm1 [nlt]\n"
@@ -1765,10 +1765,10 @@ ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
   uint32_t res = reinterpret_cast<PackedCompareNLECode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40000000\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "mov eax,0x........\n"
+      "mov eax,0x40800000\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
       "cmpps xmm0,xmm1 [nle]\n"
@@ -1798,10 +1798,10 @@ ASSEMBLER_TEST_RUN(PackedNegate, test) {
   float res = reinterpret_cast<PackedNegateCode>(test->entry())();
   EXPECT_FLOAT_EQ(-12.3f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x4144cccd\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "xorps xmm0,[rip+0x.......]\n"
+      "xorps xmm0,[0x.......]\n"
       "shufps xmm0,xmm0 [aa]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
@@ -1829,10 +1829,10 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
   float res = reinterpret_cast<PackedAbsoluteCode>(test->entry())();
   EXPECT_FLOAT_EQ(15.3f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0xc174cccd\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "andps xmm0,[rip+0x.......]\n"
+      "andps xmm0,[0x.......]\n"
       "shufps xmm0,xmm0 [aa]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
@@ -1858,10 +1858,10 @@ ASSEMBLER_TEST_RUN(PackedSetWZero, test) {
   float res = reinterpret_cast<PackedSetWZeroCode>(test->entry())();
   EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x4144cccd\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "andps xmm0,[rip+0x.......]\n"
+      "andps xmm0,[0x.......]\n"
       "shufps xmm0,xmm0 [ff]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
@@ -1887,10 +1887,10 @@ ASSEMBLER_TEST_RUN(PackedMin, test) {
   float res = reinterpret_cast<PackedMinCode>(test->entry())();
   EXPECT_FLOAT_EQ(2.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40000000\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "mov eax,0x........\n"
+      "mov eax,0x40800000\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
       "minps xmm0,xmm1\n"
@@ -1918,10 +1918,10 @@ ASSEMBLER_TEST_RUN(PackedMax, test) {
   float res = reinterpret_cast<PackedMaxCode>(test->entry())();
   EXPECT_FLOAT_EQ(4.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40000000\n"
       "movd xmm0,eax\n"
       "shufps xmm0,xmm0 [0]\n"
-      "mov eax,0x........\n"
+      "mov eax,0x40800000\n"
       "movd xmm1,eax\n"
       "shufps xmm1,xmm1 [0]\n"
       "maxps xmm0,xmm1\n"
@@ -1961,8 +1961,8 @@ ASSEMBLER_TEST_RUN(PackedLogicalOr, test) {
   uint32_t res = reinterpret_cast<PackedLogicalOrCode>(test->entry())();
   EXPECT_EQ(0xFFFFFFFF, res);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "orps xmm0,xmm1\n"
       "push eax\n"
       "movss [esp],xmm0\n"
@@ -1999,8 +1999,8 @@ ASSEMBLER_TEST_RUN(PackedLogicalAnd, test) {
   uint32_t res = reinterpret_cast<PackedLogicalAndCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0000F000), res);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "andps xmm0,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "andps xmm0,[0x.......]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -2030,8 +2030,8 @@ ASSEMBLER_TEST_RUN(PackedLogicalNot, test) {
   uint32_t res = reinterpret_cast<PackedLogicalNotCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "xorps xmm0,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "xorps xmm0,[0x.......]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -2076,8 +2076,8 @@ ASSEMBLER_TEST_RUN(PackedMoveHighLow, test) {
   float res = reinterpret_cast<PackedMoveHighLow>(test->entry())();
   EXPECT_FLOAT_EQ(15.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "movhlps xmm0,xmm1\n"
       "xorps xmm1,xmm1\n"
       "movaps xmm1,xmm0\n"
@@ -2128,8 +2128,8 @@ ASSEMBLER_TEST_RUN(PackedMoveLowHigh, test) {
   float res = reinterpret_cast<PackedMoveLowHigh>(test->entry())();
   EXPECT_FLOAT_EQ(11.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "movlhps xmm0,xmm1\n"
       "xorps xmm1,xmm1\n"
       "movaps xmm1,xmm0\n"
@@ -2179,8 +2179,8 @@ ASSEMBLER_TEST_RUN(PackedUnpackLow, test) {
   float res = reinterpret_cast<PackedUnpackLow>(test->entry())();
   EXPECT_FLOAT_EQ(11.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "unpcklps xmm0,xmm1\n"
       "movaps xmm1,xmm0\n"
       "shufps xmm0,xmm0 [55]\n"
@@ -2229,8 +2229,8 @@ ASSEMBLER_TEST_RUN(PackedUnpackHigh, test) {
   float res = reinterpret_cast<PackedUnpackHigh>(test->entry())();
   EXPECT_FLOAT_EQ(7.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "unpckhps xmm0,xmm1\n"
       "movaps xmm1,xmm0\n"
       "shufps xmm0,xmm0 [0]\n"
@@ -2279,8 +2279,8 @@ ASSEMBLER_TEST_RUN(PackedUnpackLowPair, test) {
   float res = reinterpret_cast<PackedUnpackLowPair>(test->entry())();
   EXPECT_FLOAT_EQ(6.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "unpcklpd xmm0,xmm1\n"
       "movaps xmm1,xmm0\n"
       "shufps xmm0,xmm0 [0]\n"
@@ -2329,8 +2329,8 @@ ASSEMBLER_TEST_RUN(PackedUnpackHighPair, test) {
   float res = reinterpret_cast<PackedUnpackHighPair>(test->entry())();
   EXPECT_FLOAT_EQ(12.0f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "unpckhpd xmm0,xmm1\n"
       "movaps xmm1,xmm0\n"
       "shufps xmm0,xmm0 [55]\n"
@@ -2369,8 +2369,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleAdd, test) {
   double res = reinterpret_cast<PackedDoubleAdd>(test->entry())();
   EXPECT_FLOAT_EQ(4.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "addpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2407,8 +2407,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleSub, test) {
   double res = reinterpret_cast<PackedDoubleSub>(test->entry())();
   EXPECT_FLOAT_EQ(-2.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "subpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2440,8 +2440,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleNegate, test) {
   double res = reinterpret_cast<PackedDoubleNegate>(test->entry())();
   EXPECT_FLOAT_EQ(-1.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "xorpd xmm0,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "xorpd xmm0,[0x.......]\n"
       "push eax\n"
       "push eax\n"
       "movsd [esp],xmm0\n"
@@ -2472,8 +2472,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleAbsolute, test) {
   double res = reinterpret_cast<PackedDoubleAbsolute>(test->entry())();
   EXPECT_FLOAT_EQ(1.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "andpd xmm0,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "andpd xmm0,[0x.......]\n"
       "push eax\n"
       "push eax\n"
       "movsd [esp],xmm0\n"
@@ -2509,8 +2509,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleMul, test) {
   double res = reinterpret_cast<PackedDoubleMul>(test->entry())();
   EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "mulpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2547,8 +2547,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleDiv, test) {
   double res = reinterpret_cast<PackedDoubleDiv>(test->entry())();
   EXPECT_FLOAT_EQ(3.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "divpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2580,7 +2580,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleSqrt, test) {
   double res = reinterpret_cast<PackedDoubleSqrt>(test->entry())();
   EXPECT_FLOAT_EQ(4.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
       "sqrtpd xmm0,xmm0\n"
       "push eax\n"
       "push eax\n"
@@ -2617,8 +2617,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleMin, test) {
   double res = reinterpret_cast<PackedDoubleMin>(test->entry())();
   EXPECT_FLOAT_EQ(3.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "minpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2655,8 +2655,8 @@ ASSEMBLER_TEST_RUN(PackedDoubleMax, test) {
   double res = reinterpret_cast<PackedDoubleMax>(test->entry())();
   EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "maxpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2692,7 +2692,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleShuffle, test) {
   double res = reinterpret_cast<PackedDoubleShuffle>(test->entry())();
   EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm0,[rip+0x.......]\n"
+      "movups xmm0,[0x.......]\n"
       "shufpd xmm0, xmm0 [33]\n"
       "shufpd xmm0, xmm0 [0]\n"
       "push eax\n"
@@ -2723,7 +2723,7 @@ ASSEMBLER_TEST_RUN(PackedDoubleToSingle, test) {
   float res = reinterpret_cast<PackedDoubleToSingle>(test->entry())();
   EXPECT_FLOAT_EQ(9.0f, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "cvtpd2ps xmm0,xmm1\n"
       "push eax\n"
       "movss [esp],xmm0\n"
@@ -2755,7 +2755,7 @@ ASSEMBLER_TEST_RUN(PackedSingleToDouble, test) {
   double res = reinterpret_cast<PackedSingleToDouble>(test->entry())();
   EXPECT_FLOAT_EQ(9.0f, res, 0.000001f);
   EXPECT_DISASSEMBLY(
-      "movups xmm1,[rip+0x.......]\n"
+      "movups xmm1,[0x.......]\n"
       "cvtps2pd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -2785,7 +2785,7 @@ ASSEMBLER_TEST_RUN(SingleFPOperationsStack, test) {
   float res = reinterpret_cast<SingleFPOperationsStackCode>(test->entry())(3.4);
   EXPECT_FLOAT_EQ(14.7f, res, 0.001f);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x4144cccd\n"
       "movd xmm0,eax\n"
       "addss xmm0,[esp+0x4]\n"
       "mulss xmm0,[esp+0x4]\n"
@@ -2838,9 +2838,9 @@ ASSEMBLER_TEST_RUN(DoubleFPMoves, test) {
   double res = reinterpret_cast<DoubleFPMovesCode>(test->entry())();
   EXPECT_FLOAT_EQ(1024.67, res, 0.0001);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x409002ae\n"
       "push eax\n"
-      "mov eax,0x........\n"
+      "mov eax,0x147ae148\n"
       "push eax\n"
       "movsd xmm0,[esp]\n"
       "movsd xmm1,xmm0\n"
@@ -2891,9 +2891,9 @@ ASSEMBLER_TEST_RUN(DoubleFPUStackMoves, test) {
   int64_t res = reinterpret_cast<DoubleFPUStackMovesCode>(test->entry())();
   EXPECT_FLOAT_EQ(1024.67, (bit_cast<double, int64_t>(res)), 0.001);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x409002ae\n"
       "push eax\n"
-      "mov eax,0x........\n"
+      "mov eax,0x147ae148\n"
       "push eax\n"
       "fld_d [esp]\n"
       "mov [esp],0\n"
@@ -2935,16 +2935,16 @@ ASSEMBLER_TEST_RUN(DoubleFPOperations, test) {
   double res = reinterpret_cast<DoubleFPOperationsCode>(test->entry())();
   EXPECT_FLOAT_EQ(14.7, res, 0.001);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40289999\n"
       "push eax\n"
-      "mov eax,0x........\n"
+      "mov eax,0x9999999a\n"
       "push eax\n"
       "movsd xmm0,[esp]\n"
       "pop eax\n"
       "pop eax\n"
-      "mov eax,0x........\n"
+      "mov eax,0x400b3333\n"
       "push eax\n"
-      "mov eax,0x........\n"
+      "mov eax,0x33333333\n"
       "push eax\n"
       "movsd xmm1,[esp]\n"
       "addsd xmm0,xmm1\n"
@@ -2988,9 +2988,9 @@ ASSEMBLER_TEST_RUN(DoubleFPOperationsStack, test) {
       reinterpret_cast<DoubleFPOperationsStackCode>(test->entry())(3.4);
   EXPECT_FLOAT_EQ(14.7, res, 0.001);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40289999\n"
       "push eax\n"
-      "mov eax,0x........\n"
+      "mov eax,0x9999999a\n"
       "push eax\n"
       "movsd xmm0,[esp]\n"
       "pop eax\n"
@@ -3093,8 +3093,8 @@ ASSEMBLER_TEST_RUN(NegativeInt64ToDoubleConversion, test) {
       reinterpret_cast<NegativeInt64ToDoubleConversionCode>(test->entry())();
   EXPECT_EQ(-6.0, res);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
-      "mov edx,0x........\n"
+      "mov eax,0xffffffff\n"
+      "mov edx,0xfffffffa\n"
       "push eax\n"
       "push edx\n"
       "fild_d [esp]\n"
@@ -3188,7 +3188,7 @@ ASSEMBLER_TEST_RUN(FloatToDoubleConversion, test) {
   double res = reinterpret_cast<FloatToDoubleConversionCode>(test->entry())();
   EXPECT_FLOAT_EQ(12.3, res, 0.001);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x4144cccd\n"
       "movd xmm1,eax\n"
       "xor eax,eax\n"
       "cvtss2sd xmm2,xmm1\n"
@@ -3248,26 +3248,26 @@ ASSEMBLER_TEST_RUN(FloatCompare, test) {
   EXPECT_EQ(0, res);
   EXPECT_DISASSEMBLY(
       "xor eax,eax\n"
-      "mov edx,0x........\n"
+      "mov edx,0x4144cccd\n"
       "movd xmm0,edx\n"
-      "mov edx,0x........\n"
+      "mov edx,0x41480000\n"
       "movd xmm1,edx\n"
       "comiss xmm0,xmm1\n"
-      "jpe 0x........\n"
-      "ja 0x........\n"
-      "jc 0x........\n"
+      "jpe +43\n"
+      "ja +40\n"
+      "jc +7\n"
       "inc eax\n"
       "mov edx,0\n"
       "movd xmm1,edx\n"
       "divss xmm1,xmm1\n"
       "comiss xmm1,xmm1\n"
-      "jpe 0x........\n"
+      "jpe +7\n"
       "inc eax\n"
       "ret\n"
       "inc eax\n"
-      "jmp 0x........\n"
+      "jmp -38\n"
       "inc eax\n"
-      "jmp 0x........\n");
+      "jmp -35\n");
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
@@ -3338,14 +3338,14 @@ ASSEMBLER_TEST_RUN(DoubleCompare, test) {
   int res = reinterpret_cast<DoubleCompareCode>(test->entry())();
   EXPECT_EQ(0, res);
   EXPECT_DISASSEMBLY(
-      "mov edx,0x........\n"
+      "mov edx,0x40289999\n"
       "push edx\n"
-      "mov edx,0x........\n"
+      "mov edx,0x9999999a\n"
       "push edx\n"
       "movsd xmm0,[esp]\n"
       "pop edx\n"
       "pop edx\n"
-      "mov edx,0x........\n"
+      "mov edx,0x40290000\n"
       "push edx\n"
       "mov edx,0\n"
       "push edx\n"
@@ -3354,9 +3354,9 @@ ASSEMBLER_TEST_RUN(DoubleCompare, test) {
       "pop edx\n"
       "xor eax,eax\n"
       "comisd xmm0,xmm1\n"
-      "jpe 0x........\n"
-      "ja 0x........\n"
-      "jc 0x........\n"
+      "jpe +54\n"
+      "ja +51\n"
+      "jc +7\n"
       "inc eax\n"
       "mov edx,0\n"
       "push edx\n"
@@ -3367,13 +3367,13 @@ ASSEMBLER_TEST_RUN(DoubleCompare, test) {
       "pop edx\n"
       "divsd xmm1,xmm1\n"
       "comisd xmm1,xmm1\n"
-      "jpe 0x........\n"
+      "jpe +7\n"
       "inc eax\n"
       "ret\n"
       "inc eax\n"
-      "jmp 0x........\n"
+      "jmp -49\n"
       "inc eax\n"
-      "jmp 0x........\n");
+      "jmp -46\n");
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToFloatConversion, assembler) {
@@ -3396,9 +3396,9 @@ ASSEMBLER_TEST_RUN(DoubleToFloatConversion, test) {
   float res = reinterpret_cast<DoubleToFloatConversionCode>(test->entry())();
   EXPECT_FLOAT_EQ(12.3f, res, 0.001);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0x40289999\n"
       "push eax\n"
-      "mov eax,0x........\n"
+      "mov eax,0x9999999a\n"
       "push eax\n"
       "movsd xmm0,[esp]\n"
       "cvtsd2ss xmm1,xmm0\n"
@@ -3499,7 +3499,7 @@ ASSEMBLER_TEST_RUN(GlobalAddress, test) {
   double res = reinterpret_cast<GlobalAddressCode>(test->entry())();
   EXPECT_FLOAT_EQ(kDoubleConst, res, 0.000001);
   EXPECT_DISASSEMBLY(
-      "movsd xmm0,[rip+0x.......]\n"
+      "movsd xmm0,[0x.......]\n"
       "push eax\n"
       "push eax\n"
       "movsd [esp],xmm0\n"
@@ -3703,7 +3703,7 @@ ASSEMBLER_TEST_RUN(FloatNegate, test) {
   EXPECT_FLOAT_EQ(-kFloatConst, res, 0.0001);
   EXPECT_DISASSEMBLY(
       "movss xmm0,[esp+0x4]\n"
-      "xorps xmm0,[rip+0x.......]\n"
+      "xorps xmm0,[0x.......]\n"
       "push eax\n"
       "movss [esp],xmm0\n"
       "fld_s [esp]\n"
@@ -3730,7 +3730,7 @@ ASSEMBLER_TEST_RUN(DoubleNegate, test) {
   EXPECT_FLOAT_EQ(-kDoubleConst, res, 0.0001);
   EXPECT_DISASSEMBLY(
       "movsd xmm0,[esp+0x4]\n"
-      "xorpd xmm0,[rip+0x.......]\n"
+      "xorpd xmm0,[0x.......]\n"
       "push eax\n"
       "push eax\n"
       "movsd [esp],xmm0\n"
@@ -4124,7 +4124,7 @@ ASSEMBLER_TEST_RUN(FPUStoreLong, test) {
       "push eax\n"
       "fnstcw [esp]\n"
       "movzxw eax,[esp]\n"
-      "or eax,0x...\n"
+      "or eax,0xc00\n"
       "movw [esp+0x4],eax\n"
       "fldcw [esp+0x4]\n"
       "push eax\n"
@@ -4214,7 +4214,7 @@ ASSEMBLER_TEST_RUN(Orpd, test) {
   EXPECT_DISASSEMBLY(
       "movsd xmm0,[esp+0x4]\n"
       "xorpd xmm1,xmm1\n"
-      "xorpd xmm1,[rip+0x.......]\n"
+      "xorpd xmm1,[0x.......]\n"
       "orpd xmm0,xmm1\n"
       "push eax\n"
       "push eax\n"
@@ -4383,7 +4383,7 @@ ASSEMBLER_TEST_RUN(DoubleAbs, test) {
   EXPECT_FLOAT_EQ(val, res, 0.001);
   EXPECT_DISASSEMBLY(
       "movsd xmm0,[esp+0x4]\n"
-      "andpd xmm0,[rip+0x.......]\n"
+      "andpd xmm0,[0x.......]\n"
       "push eax\n"
       "push eax\n"
       "movsd [esp],xmm0\n"
@@ -4445,7 +4445,7 @@ ASSEMBLER_TEST_RUN(ConditionalMovesSign, test) {
       "mov edx,[esp+0x8]\n"
       "xor eax,eax\n"
       "mov ebx,1\n"
-      "mov ecx,0x........\n"
+      "mov ecx,0xffffffff\n"
       "test edx,edx\n"
       "cmovs eax,ecx\n"
       "test edx,edx\n"
@@ -4500,7 +4500,7 @@ ASSEMBLER_TEST_RUN(ConditionalMovesEqual, test) {
       "xor eax,eax\n"
       "mov ecx,1\n"
       "mov edx,[esp+0x4]\n"
-      "cmp edx,0x...\n"
+      "cmp edx,0x311\n"
       "cmovz eax,ecx\n"
       "ret\n");
 }
@@ -4525,7 +4525,7 @@ ASSEMBLER_TEST_RUN(ConditionalMovesNotEqual, test) {
       "xor eax,eax\n"
       "mov ecx,1\n"
       "mov edx,[esp+0x4]\n"
-      "cmp edx,0x...\n"
+      "cmp edx,0x311\n"
       "cmovnz eax,ecx\n"
       "ret\n");
 }
@@ -4550,7 +4550,7 @@ ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
   EXPECT_EQ(-1, res);  // Less.
   EXPECT_DISASSEMBLY(
       "mov edx,1\n"
-      "mov ecx,0x........\n"
+      "mov ecx,0xffffffff\n"
       "mov eax,[esp+0x4]\n"
       "cmp eax,[esp+0x8]\n"
       "cmovl eax,ecx\n"
@@ -4574,8 +4574,8 @@ ASSEMBLER_TEST_RUN(TestLoadDoubleConstant, test) {
   double res = reinterpret_cast<TestLoadDoubleConstantCode>(test->entry())();
   EXPECT_FLOAT_EQ(-12.34, res, 0.0001);
   EXPECT_DISASSEMBLY(
-      "push 0x........\n"
-      "push 0x........\n"
+      "push 0xc028ae14\n"
+      "push 0x7ae147ae\n"
       "movsd xmm3,[esp]\n"
       "add esp,8\n"
       "push eax\n"
@@ -4608,17 +4608,7 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
   typedef bool (*TestObjectCompare)();
   bool res = reinterpret_cast<TestObjectCompare>(test->entry())();
   EXPECT_EQ(true, res);
-  EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
-      "cmp eax,0x........\n"
-      "jnz 0x........\n"
-      "mov ecx,0x........\n"
-      "cmp ecx,0x........\n"
-      "jnz 0x........\n"
-      "mov eax,1\n"
-      "ret\n"
-      "mov eax,0\n"
-      "ret\n");
+  // Disassembly contains absolute addresses of objects that vary between runs.
 }
 
 ASSEMBLER_TEST_GENERATE(TestSetCC, assembler) {
@@ -4633,7 +4623,7 @@ ASSEMBLER_TEST_RUN(TestSetCC, test) {
   uword res = reinterpret_cast<TestSetCC>(test->entry())();
   EXPECT_EQ(0xFFFFFF00, res);
   EXPECT_DISASSEMBLY(
-      "mov eax,0x........\n"
+      "mov eax,0xffffffff\n"
       "cmp eax,eax\n"
       "setnz eax\n"
       "ret\n");
@@ -4900,7 +4890,7 @@ ASSEMBLER_TEST_RUN(BitTestTest, test) {
       "mov eax,4\n"
       "mov ecx,2\n"
       "bt eax,ecx\n"
-      "jc 0x........\n"
+      "jc +7\n"
       "int3\n"
       "mov eax,1\n"
       "ret\n");
@@ -4923,7 +4913,7 @@ ASSEMBLER_TEST_RUN(BitTestImmediate, test) {
   EXPECT_DISASSEMBLY(
       "mov ecx,0x20\n"
       "bt ecx,5\n"
-      "jc 0x........\n"
+      "jc +7\n"
       "int3\n"
       "mov eax,1\n"
       "ret\n");

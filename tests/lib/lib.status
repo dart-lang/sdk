@@ -11,6 +11,9 @@ convert/utf85_test: Skip # Pass, Slow Issue 12644.
 developer/timeline_test: Skip # Not supported
 isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
 
+[ $runtime == d8 ]
+js/js_util/javascriptobject_extensions_test.dart: SkipByDesign # Uses dart:html.
+
 [ $runtime == dart_precompiled ]
 isolate/package_config_getter_test: SkipByDesign # AOT mode doesn't preserve package structure.
 

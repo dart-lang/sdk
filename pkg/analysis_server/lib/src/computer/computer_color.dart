@@ -173,6 +173,8 @@ class ColorComputer {
       return alpha != null && red != null && green != null && blue != null
           ? _colorValueForComponents(alpha, red, green, blue)
           : null;
+    } else {
+      return null;
     }
   }
 
@@ -187,6 +189,8 @@ class ColorComputer {
     if (name == null && args.isNotEmpty) {
       final arg0 = args[0];
       return arg0 is IntegerLiteral ? arg0.value : null;
+    } else {
+      return null;
     }
   }
 
@@ -208,6 +212,8 @@ class ColorComputer {
         return _getSwatchValue(target, shadeNumber);
       }
     }
+
+    return null;
   }
 
   /// Extracts a specific shade index from a Flutter SwatchColor.

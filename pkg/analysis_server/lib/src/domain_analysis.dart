@@ -13,6 +13,7 @@ import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -254,7 +255,8 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   }
 
   @override
-  Response? handleRequest(Request request) {
+  Response? handleRequest(
+      Request request, CancellationToken cancellationToken) {
     try {
       var requestName = request.method;
       if (requestName == ANALYSIS_REQUEST_GET_ERRORS) {

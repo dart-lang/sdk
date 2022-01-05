@@ -10,7 +10,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/config.dart';
@@ -365,7 +364,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
 
   /// Pretty String listing legal values.
   static final String legalValueString =
-      StringUtilities.printListOfQuotedNames(legalValues);
+      legalValues.quotedAndCommaSeparatedWithAnd;
 
   /// Lazily populated set of error codes.
   static final Set<String> _errorCodes =

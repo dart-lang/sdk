@@ -1,0 +1,265 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:34:7: Error: The non-abstract class 'ClassImplements' is missing implementations for these members:
+//  - Interface2.extendedMethod
+//  - Interface2.mixedInMethod
+//  - Mixin.mixedInMethod
+//  - Super with Mixin.mixedInMethod
+//  - Super.extendedMethod
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class ClassImplements implements Interface2 {}
+//       ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:19:7: Context: 'Interface2.extendedMethod' is defined here.
+//   int extendedMethod();
+//       ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:20:7: Context: 'Interface2.mixedInMethod' is defined here.
+//   int mixedInMethod();
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:10:7: Context: 'Mixin.mixedInMethod' is defined here.
+//   num mixedInMethod() => 0;
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:10:7: Context: 'Super with Mixin.mixedInMethod' is defined here.
+//   num mixedInMethod() => 0;
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:6:7: Context: 'Super.extendedMethod' is defined here.
+//   num extendedMethod() => 0;
+//       ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:23:7: Error: The implementation of 'mixedInMethod' in the non-abstract class 'ClassExtends' does not conform to its interface.
+// class ClassExtends extends Super with Mixin implements Interface1 {}
+//       ^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:23:7: Context: The return type of the method 'Super with Mixin.mixedInMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface1.mixedInMethod'.
+// Change to a subtype of 'int'.
+// class ClassExtends extends Super with Mixin implements Interface1 {}
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:15:7: Context: This is the overridden method ('mixedInMethod').
+//   int mixedInMethod();
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:23:7: Error: The implementation of 'extendedMethod' in the non-abstract class 'ClassExtends' does not conform to its interface.
+// class ClassExtends extends Super with Mixin implements Interface1 {}
+//       ^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:6:7: Context: The return type of the method 'Super.extendedMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface1.extendedMethod'.
+// Change to a subtype of 'int'.
+//   num extendedMethod() => 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:14:7: Context: This is the overridden method ('extendedMethod').
+//   int extendedMethod();
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:25:7: Error: The implementation of 'mixedInMethod' in the non-abstract class 'ClassExtendsWithNoSuchMethod' does not conform to its interface.
+// class ClassExtendsWithNoSuchMethod extends Super
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:25:7: Context: The return type of the method 'Super with Mixin.mixedInMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface1.mixedInMethod'.
+// Change to a subtype of 'int'.
+// class ClassExtendsWithNoSuchMethod extends Super
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:15:7: Context: This is the overridden method ('mixedInMethod').
+//   int mixedInMethod();
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:25:7: Error: The implementation of 'extendedMethod' in the non-abstract class 'ClassExtendsWithNoSuchMethod' does not conform to its interface.
+// class ClassExtendsWithNoSuchMethod extends Super
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:6:7: Context: The return type of the method 'Super.extendedMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'Interface1.extendedMethod'.
+// Change to a subtype of 'int'.
+//   num extendedMethod() => 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:14:7: Context: This is the overridden method ('extendedMethod').
+//   int extendedMethod();
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:43:7: Error: The implementation of 'extendedMethod' in the non-abstract class 'ClassDeclaresExtends' does not conform to its interface.
+// class ClassDeclaresExtends extends Super with Mixin {
+//       ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:6:7: Context: The return type of the method 'Super.extendedMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'ClassDeclaresExtends.extendedMethod'.
+// Change to a subtype of 'int'.
+//   num extendedMethod() => 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:44:7: Context: This is the overridden method ('extendedMethod').
+//   int extendedMethod();
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:43:7: Error: The implementation of 'mixedInMethod' in the non-abstract class 'ClassDeclaresExtends' does not conform to its interface.
+// class ClassDeclaresExtends extends Super with Mixin {
+//       ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:43:7: Context: The return type of the method 'Super with Mixin.mixedInMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'ClassDeclaresExtends.mixedInMethod'.
+// Change to a subtype of 'int'.
+// class ClassDeclaresExtends extends Super with Mixin {
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:45:7: Context: This is the overridden method ('mixedInMethod').
+//   int mixedInMethod();
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:48:7: Error: The implementation of 'extendedMethod' in the non-abstract class 'ClassDeclaresExtendsWithNoSuchMethod' does not conform to its interface.
+// class ClassDeclaresExtendsWithNoSuchMethod extends Super with Mixin {
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:6:7: Context: The return type of the method 'Super.extendedMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'ClassDeclaresExtendsWithNoSuchMethod.extendedMethod'.
+// Change to a subtype of 'int'.
+//   num extendedMethod() => 0;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:54:7: Context: This is the overridden method ('extendedMethod').
+//   int extendedMethod();
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:48:7: Error: The implementation of 'mixedInMethod' in the non-abstract class 'ClassDeclaresExtendsWithNoSuchMethod' does not conform to its interface.
+// class ClassDeclaresExtendsWithNoSuchMethod extends Super with Mixin {
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:48:7: Context: The return type of the method 'Super with Mixin.mixedInMethod' is 'num', which does not match the return type, 'int', of the overridden method, 'ClassDeclaresExtendsWithNoSuchMethod.mixedInMethod'.
+// Change to a subtype of 'int'.
+// class ClassDeclaresExtendsWithNoSuchMethod extends Super with Mixin {
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/inherited_implements.dart:55:7: Context: This is the overridden method ('mixedInMethod').
+//   int mixedInMethod();
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  method extendedMethod() → core::num
+    return 0;
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin
+    : super core::Object::•()
+    ;
+  method mixedInMethod() → core::num
+    return 0;
+}
+abstract class Interface1 extends core::Object {
+  synthetic constructor •() → self::Interface1
+    : super core::Object::•()
+    ;
+  abstract method extendedMethod() → core::int;
+  abstract method mixedInMethod() → core::int;
+}
+abstract class _Interface2&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Interface2&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInMethod() → core::num
+    return super.{self::Mixin::mixedInMethod}();
+}
+abstract class Interface2 extends self::_Interface2&Super&Mixin {
+  synthetic constructor •() → self::Interface2
+    : super self::_Interface2&Super&Mixin::•()
+    ;
+  abstract method extendedMethod() → core::int;
+  abstract method mixedInMethod() → core::int;
+}
+abstract class _ClassExtends&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_ClassExtends&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInMethod() → core::num
+    return super.{self::Mixin::mixedInMethod}();
+}
+class ClassExtends extends self::_ClassExtends&Super&Mixin implements self::Interface1 {
+  synthetic constructor •() → self::ClassExtends
+    : super self::_ClassExtends&Super&Mixin::•()
+    ;
+  abstract member-signature method mixedInMethod() → core::int; -> self::Interface1::mixedInMethod
+  abstract member-signature method extendedMethod() → core::int; -> self::Interface1::extendedMethod
+}
+abstract class _ClassExtendsWithNoSuchMethod&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_ClassExtendsWithNoSuchMethod&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInMethod() → core::num
+    return super.{self::Mixin::mixedInMethod}();
+}
+class ClassExtendsWithNoSuchMethod extends self::_ClassExtendsWithNoSuchMethod&Super&Mixin implements self::Interface1 {
+  synthetic constructor •() → self::ClassExtendsWithNoSuchMethod
+    : super self::_ClassExtendsWithNoSuchMethod&Super&Mixin::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return super.{core::Object::noSuchMethod}(invocation);
+  }
+  abstract member-signature method mixedInMethod() → core::int; -> self::Interface1::mixedInMethod
+  abstract member-signature method extendedMethod() → core::int; -> self::Interface1::extendedMethod
+}
+class ClassImplements extends core::Object implements self::Interface2 {
+  synthetic constructor •() → self::ClassImplements
+    : super core::Object::•()
+    ;
+}
+class ClassImplementsWithNoSuchMethod extends core::Object implements self::Interface2 {
+  synthetic constructor •() → self::ClassImplementsWithNoSuchMethod
+    : super core::Object::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return super.{core::Object::noSuchMethod}(invocation);
+  }
+  no-such-method-forwarder method mixedInMethod() → core::int
+    return this.{self::ClassImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder method extendedMethod() → core::int
+    return this.{self::ClassImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+abstract class _ClassDeclaresExtends&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_ClassDeclaresExtends&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInMethod() → core::num
+    return super.{self::Mixin::mixedInMethod}();
+}
+class ClassDeclaresExtends extends self::_ClassDeclaresExtends&Super&Mixin {
+  synthetic constructor •() → self::ClassDeclaresExtends
+    : super self::_ClassDeclaresExtends&Super&Mixin::•()
+    ;
+  abstract method extendedMethod() → core::int;
+  abstract method mixedInMethod() → core::int;
+}
+abstract class _ClassDeclaresExtendsWithNoSuchMethod&Super&Mixin = self::Super with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_ClassDeclaresExtendsWithNoSuchMethod&Super&Mixin
+    : super self::Super::•()
+    ;
+  mixin-super-stub method mixedInMethod() → core::num
+    return super.{self::Mixin::mixedInMethod}();
+}
+class ClassDeclaresExtendsWithNoSuchMethod extends self::_ClassDeclaresExtendsWithNoSuchMethod&Super&Mixin {
+  synthetic constructor •() → self::ClassDeclaresExtendsWithNoSuchMethod
+    : super self::_ClassDeclaresExtendsWithNoSuchMethod&Super&Mixin::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return super.{core::Object::noSuchMethod}(invocation);
+  }
+  abstract method extendedMethod() → core::int;
+  abstract method mixedInMethod() → core::int;
+}
+class ClassDeclaresImplementsWithNoSuchMethod extends core::Object implements self::Super, self::Mixin {
+  synthetic constructor •() → self::ClassDeclaresImplementsWithNoSuchMethod
+    : super core::Object::•()
+    ;
+  @#C1
+  method noSuchMethod(core::Invocation invocation) → dynamic {
+    return super.{core::Object::noSuchMethod}(invocation);
+  }
+  no-such-method-forwarder method extendedMethod() → core::int
+    return this.{self::ClassDeclaresImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  no-such-method-forwarder method mixedInMethod() → core::int
+    return this.{self::ClassDeclaresImplementsWithNoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = core::_Override {}
+  #C2 = #mixedInMethod
+  #C3 = <core::Type*>[]
+  #C4 = <dynamic>[]
+  #C5 = <core::Symbol*, dynamic>{)
+  #C6 = #extendedMethod
+}

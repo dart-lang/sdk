@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -612,8 +611,11 @@ abstract class Member implements Element {
   }
 
   @override
-  E? thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate) =>
-      declaration.thisOrAncestorMatching(predicate);
+  E? thisOrAncestorMatching<E extends Element>(
+    bool Function(Element) predicate,
+  ) {
+    return declaration.thisOrAncestorMatching(predicate);
+  }
 
   @override
   E? thisOrAncestorOfType<E extends Element>() =>
@@ -838,6 +840,9 @@ class ParameterMember extends VariableMember
 
   @override
   bool get isInitializingFormal => declaration.isInitializingFormal;
+
+  @override
+  bool get isSuperFormal => declaration.isSuperFormal;
 
   @override
   String get name => declaration.name;

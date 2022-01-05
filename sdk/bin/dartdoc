@@ -3,6 +3,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+echo "Warning: 'dartdoc' is deprecated. Please use 'dart doc'." 1>&2
+
 function follow_links() {
   file="$1"
   while [ -h "$file" ]; do
@@ -23,4 +25,4 @@ SNAPSHOT="$BIN_DIR/snapshots/dartdoc.dart.snapshot"
 
 # We are running the snapshot in the built SDK.
 DART="$BIN_DIR/dart"
-exec "$DART" "--packages=$BIN_DIR/resources/dartdoc/.packages" "$SNAPSHOT" "$@"
+exec "$DART" "--packages=$BIN_DIR/resources/dartdoc/.packages" "$SNAPSHOT" "--resources-dir=$BIN_DIR/resources/dartdoc/resources/" "$@"

@@ -1,0 +1,74 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_method.dart:24:23: Error: The parameter 'i' of the method 'Class.method2' has type 'String', which does not match the corresponding type, 'num', in the overridden method, 'Super.method2'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   void method2(String i);
+//                       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_method.dart:7:8: Context: This is the overridden method ('method2').
+//   void method2(num n) {}
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_method.dart:24:23: Error: The parameter 'i' of the method 'Class.method2' has type 'String', which does not match the corresponding type, 'int', in the overridden method, 'Interface.method2'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
+//   void method2(String i);
+//                       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_method.dart:16:8: Context: This is the overridden method ('method2').
+//   void method2(covariant int i) {}
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_method.dart:25:20: Error: The parameter 'i' of the method 'Class.method3' has type 'int', which does not match the corresponding type, 'num', in the overridden method, 'Super.method3'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   void method3(int i);
+//                    ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_method.dart:8:8: Context: This is the overridden method ('method3').
+//   void method3(num n) {}
+//        ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_method.dart:22:7: Error: The implementation of 'method2' in the non-abstract class 'Class' does not conform to its interface.
+// class Class extends Super implements Interface {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_method.dart:7:20: Context: The parameter 'n' of the method 'Super.method2' has type 'num', which does not match the corresponding type, 'String', in the overridden method, 'Class.method2'.
+// Change to a supertype of 'String', or, for a covariant parameter, a subtype.
+//   void method2(num n) {}
+//                    ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_method.dart:24:8: Context: This is the overridden method ('method2').
+//   void method2(String i);
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  method method1(core::num n) → void {}
+  method method2(core::num n) → void {}
+  method method3(core::num n) → void {}
+  method method4(covariant-by-declaration core::num i) → void {}
+  method method5(covariant-by-declaration core::int i) → void {}
+}
+class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  method method1(covariant-by-declaration core::int i) → void {}
+  method method2(covariant-by-declaration core::int i) → void {}
+  method method4(core::int i) → void {}
+  method method5(core::int i) → void {}
+}
+class Class extends self::Super implements self::Interface {
+  synthetic constructor •() → self::Class
+    : super self::Super::•()
+    ;
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::int) → void */ method1(covariant-by-declaration core::num i) → void
+    return super.{self::Super::method1}(i);
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::String) → void */ method2(covariant-by-declaration core::num i) → void
+    return super.{self::Super::method2}(i);
+  abstract method method3(core::int i) → void;
+  abstract method method4(covariant-by-declaration core::int i) → void;
+  abstract method method5(covariant-by-declaration core::num n) → void;
+}
+static method main() → dynamic {}

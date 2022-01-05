@@ -1,0 +1,182 @@
+library;
+import self as self;
+import "member_inheritance_from_opt_in_lib.dart" as mem;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///member_inheritance_from_opt_in_lib.dart";
+
+class LegacyClass extends mem::Class implements mem::Interface {
+  field core::int* field3 = null;
+  field core::int* field4 = null;
+  field core::int* property7 = null;
+  field core::int* property8 = null;
+  synthetic constructor •() → self::LegacyClass*
+    : super mem::Class::•()
+    ;
+  method method3() → core::int*
+    return 0;
+  method method4() → core::int*
+    return 0;
+  method method6a(core::int* a, core::int* b) → core::int*
+    return 0;
+  method method6b(core::int* a, [core::int* b = #C1]) → core::int*
+    return 0;
+  method method6c([core::int* a = #C1, core::int* b = #C1]) → core::int*
+    return 0;
+  method method8a(core::int* a, {core::int* b = #C2}) → core::int*
+    return 0;
+  method method8b({core::int* a = #C1, core::int* b = #C2}) → core::int*
+    return 0;
+  method method10a(core::int* a, {core::int* b = #C1}) → core::int*
+    return 0;
+  method method10b({core::int* a = #C1, core::int* b = #C1}) → core::int*
+    return 0;
+  get getter3() → core::int*
+    return 0;
+  get getter4() → core::int*
+    return 0;
+  set setter3(core::int* value) → void {}
+  set setter4(core::int* value) → void {}
+  get property3() → core::int*
+    return 0;
+  set property3(core::int* value) → void {}
+  get property4() → core::int*
+    return 0;
+  set property4(core::int* value) → void {}
+  abstract member-signature get field1() → core::int*; -> mem::Class::field1
+  abstract member-signature set field1(core::int* value) → void; -> mem::Class::field1
+  abstract member-signature get field2() → core::int*; -> mem::Class::field2
+  abstract member-signature set field2(core::int* value) → void; -> mem::Class::field2
+  abstract member-signature get property1() → core::int*; -> mem::Class::property1
+  abstract member-signature set property1(core::int* value) → void; -> mem::Class::property1
+  abstract member-signature get property2() → core::int*; -> mem::Class::property2
+  abstract member-signature set property2(core::int* value) → void; -> mem::Class::property2
+  abstract member-signature get property5() → core::int*; -> mem::Class::property5
+  abstract member-signature set property5(core::int* value) → void; -> mem::Class::property5
+  abstract member-signature get property6() → core::int*; -> mem::Class::property6
+  abstract member-signature set property6(core::int* value) → void; -> mem::Class::property6
+  abstract member-signature method method1() → core::int*; -> mem::Class::method1
+  abstract member-signature method method2() → core::int*; -> mem::Class::method2
+  abstract member-signature method method5a(core::int* a, core::int* b) → core::int*; -> mem::Class::method5a
+  abstract member-signature method method5b(core::int* a, [core::int* b = #C1]) → core::int*; -> mem::Class::method5b
+  abstract member-signature method method5c([core::int* a = #C2, core::int* b = #C1]) → core::int*; -> mem::Class::method5c
+  abstract member-signature method method7a(core::int* a, {core::int* b = #C1}) → core::int*; -> mem::Class::method7a
+  abstract member-signature method method7b({core::int* a = #C2, core::int* b = #C1}) → core::int*; -> mem::Class::method7b
+  abstract member-signature method method9a(core::int* a, {core::int* b = #C1}) → core::int*; -> mem::Class::method9a
+  abstract member-signature method method9b({core::int* a = #C1, core::int* b = #C1}) → core::int*; -> mem::Class::method9b
+  abstract member-signature get getter1() → core::int*; -> mem::Class::getter1
+  abstract member-signature get getter2() → core::int*; -> mem::Class::getter2
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature set setter1(core::int* value) → void; -> mem::Class::setter1
+  abstract member-signature set setter2(core::int* value) → void; -> mem::Class::setter2
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as mem;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  field core::int? field1 = null;
+  field core::int field2 = 0;
+  field core::int field3 = 0;
+  field core::int? field4 = null;
+  synthetic constructor •() → mem::Interface
+    : super core::Object::•()
+    ;
+  abstract method method1() → core::int?;
+  abstract method method2() → core::int;
+  abstract method method3() → core::int;
+  abstract method method4() → core::int?;
+  abstract method method5a(core::int a, core::int? b) → core::int;
+  abstract method method5b(core::int a, [core::int? b = #C1]) → core::int;
+  abstract method method5c([core::int a = #C2, core::int? b = #C1]) → core::int;
+  abstract method method6a(core::int? a, core::int b) → core::int?;
+  abstract method method6b(core::int? a, [core::int b = #C2]) → core::int?;
+  abstract method method6c([core::int? a = #C1, core::int b = #C2]) → core::int?;
+  abstract method method7a(core::int a, {core::int? b = #C1}) → core::int;
+  abstract method method7b({core::int a = #C2, core::int? b = #C1}) → core::int;
+  abstract method method8a(core::int? a, {core::int b = #C2}) → core::int?;
+  abstract method method8b({core::int? a = #C1, core::int b = #C2}) → core::int?;
+  abstract method method9a(core::int a, {required core::int? b = #C1}) → core::int;
+  abstract method method9b({required core::int a = #C1, required core::int? b = #C1}) → core::int;
+  abstract method method10a(core::int? a, {required core::int b = #C1}) → core::int?;
+  abstract method method10b({required core::int? a = #C1, required core::int b = #C1}) → core::int?;
+  abstract get getter1() → core::int?;
+  abstract get getter2() → core::int;
+  abstract get getter3() → core::int;
+  abstract get getter4() → core::int?;
+  abstract set setter1(core::int? value) → void;
+  abstract set setter2(core::int value) → void;
+  abstract set setter3(core::int value) → void;
+  abstract set setter4(core::int? value) → void;
+  abstract get property1() → core::int?;
+  abstract set property1(core::int? value) → void;
+  abstract get property2() → core::int;
+  abstract set property2(core::int value) → void;
+  abstract get property3() → core::int;
+  abstract set property3(core::int value) → void;
+  abstract get property4() → core::int?;
+  abstract set property4(core::int? value) → void;
+  abstract get property5() → core::int?;
+  abstract set property5(core::int? value) → void;
+  abstract get property6() → core::int;
+  abstract set property6(core::int value) → void;
+  abstract get property7() → core::int;
+  abstract set property7(core::int value) → void;
+  abstract get property8() → core::int?;
+  abstract set property8(core::int? value) → void;
+}
+class Class extends core::Object {
+  field core::int field1 = 0;
+  field core::int? field2 = null;
+  field core::int property5 = 0;
+  field core::int? property6 = null;
+  synthetic constructor •() → mem::Class
+    : super core::Object::•()
+    ;
+  method method1() → core::int
+    return 0;
+  method method2() → core::int?
+    return 0;
+  method method5a(core::int a, core::int? b) → core::int
+    return 0;
+  method method5b(core::int a, [core::int? b = #C1]) → core::int
+    return 0;
+  method method5c([core::int a = #C2, core::int? b = #C1]) → core::int
+    return 0;
+  method method7a(core::int a, {core::int? b = #C1}) → core::int
+    return 0;
+  method method7b({core::int a = #C2, core::int? b = #C1}) → core::int
+    return 0;
+  method method9a(core::int a, {required core::int? b = #C1}) → core::int
+    return 0;
+  method method9b({required core::int a = #C1, required core::int? b = #C1}) → core::int
+    return 0;
+  get getter1() → core::int
+    return 0;
+  get getter2() → core::int?
+    return 0;
+  set setter1(core::int value) → void {}
+  set setter2(core::int? value) → void {}
+  get property1() → core::int
+    return 0;
+  set property1(core::int value) → void {}
+  get property2() → core::int?
+    return 0;
+  set property2(core::int? value) → void {}
+}
+
+constants  {
+  #C1 = null
+  #C2 = 0
+}

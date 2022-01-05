@@ -525,6 +525,32 @@ transforms:
     var transform = transforms[0];
     expect(transform.title, 'Rename m');
     expect(_changes(transform), isEmpty);
+    var element = transform.element;
+    expect(element.components, ['m', 'A']);
+    expect(element.isStatic, isFalse);
+  }
+
+  void test_element_method_inExtension_static() {
+    assertNoErrors('''
+version: 1
+transforms:
+- title: 'Rename m'
+  date: 2020-09-02
+  element:
+    uris: ['test.dart']
+    method: 'm'
+    inExtension: 'E'
+    static: true
+  changes: []
+''');
+    var transforms = _transforms('m');
+    expect(transforms, hasLength(1));
+    var transform = transforms[0];
+    expect(transform.title, 'Rename m');
+    expect(_changes(transform), isEmpty);
+    var element = transform.element;
+    expect(element.components, ['m', 'E']);
+    expect(element.isStatic, isTrue);
   }
 
   void test_element_variable() {

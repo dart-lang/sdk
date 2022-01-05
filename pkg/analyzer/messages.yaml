@@ -1082,7 +1082,7 @@ CompileTimeErrorCode:
       immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
       await expression.)
   BODY_MIGHT_COMPLETE_NORMALLY:
-    problemMessage: "The body might complete normally, causing 'null' to be returned, but the return type is a potentially non-nullable type."
+    problemMessage: "The body might complete normally, causing 'null' to be returned, but the return type, '{0}', is a potentially non-nullable type."
     correctionMessage: Try adding either a return or a throw statement at the end.
     hasPublishedDocs: true
     comment: No parameters.
@@ -1146,13 +1146,15 @@ CompileTimeErrorCode:
       }
       ```
 
-      If the method intentionally returns `null` at the end, then change the
+      If the method intentionally returns `null` at the end, then add an
+      explicit return of `null` at the end of the method and change the
       return type so that it's valid to return `null`:
 
       ```dart
       class C<T> {
         T? m(T t) {
           print(t);
+          return null;
         }
       }
       ```
@@ -13775,6 +13777,10 @@ CompileTimeErrorCode:
       }
       ```
 FfiCode:
+  ABI_SPECIFIC_INTEGER_INVALID:
+    problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments."
+    correctionMessage: Try removing all type arguments, removing all members, and adding one const constructor.
+    comment: No parameters.
   ABI_SPECIFIC_INTEGER_MAPPING_EXTRA:
     problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a 'NativeType' integer with a fixed size."
     correctionMessage: Try removing the extra annotation.
@@ -13978,24 +13984,24 @@ FfiCode:
       1: the name of the class being extended, implemented, or mixed in
   SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
-    problemMessage: "The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct' or 'Union'."
-    correctionMessage: "Try extending 'Struct' or 'Union' directly."
+    problemMessage: "The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
   SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
-    problemMessage: "The class '{0}' can't implement '{1}' because '{1}' is a subtype of 'Struct' or 'Union'."
-    correctionMessage: "Try extending 'Struct' or 'Union' directly."
+    problemMessage: "The class '{0}' can't implement '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
   SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
-    problemMessage: "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct' or 'Union'."
-    correctionMessage: "Try extending 'Struct' or 'Union' directly."
+    problemMessage: "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     comment: |-
       Parameters:
       0: the name of the subclass
@@ -14065,6 +14071,13 @@ HintCode:
     problemMessage: "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable."
     correctionMessage: Try removing the assignment.
     comment: Users should not assign values marked `@doNotStore`.
+  BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
+    problemMessage: "This function has a nullable return type of '{0}', but ends without returning a value."
+    correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the declared return type
   CAN_BE_NULL_AFTER_NULL_AWARE:
     problemMessage: "The receiver uses '?.', so its value can be null."
     correctionMessage: "Replace the '.' with a '?.' in the invocation."

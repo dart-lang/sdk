@@ -1,0 +1,52 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static field (core::int) → core::int implicitInstantiation = #C2;
+static field (core::int) → core::int explicitInstantiation = #C2;
+static const field (core::int) → core::int implicitConstInstantiation = #C2;
+static const field (core::int) → core::int explicitConstInstantiation = #C2;
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  return t;
+static method create<T extends core::Object? = dynamic>() → (self::create::T%) → self::create::T%
+  return #C1<self::create::T%>;
+static method main() → dynamic {
+  self::expect(true, core::identical(self::implicitInstantiation, self::implicitInstantiation));
+  self::expect(true, core::identical(self::implicitInstantiation, self::explicitInstantiation));
+  self::expect(true, core::identical(self::implicitInstantiation, #C2));
+  self::expect(true, core::identical(self::implicitInstantiation, #C2));
+  self::expect(true, core::identical(self::implicitInstantiation, #C2));
+  self::expect(false, core::identical(self::implicitInstantiation, #C3));
+  self::expect(false, core::identical(self::implicitInstantiation, self::create<core::int>()));
+  self::expect(true, core::identical(self::explicitInstantiation, self::implicitInstantiation));
+  self::expect(true, core::identical(self::explicitInstantiation, self::explicitInstantiation));
+  self::expect(true, core::identical(self::explicitInstantiation, #C2));
+  self::expect(true, core::identical(self::explicitInstantiation, #C2));
+  self::expect(true, core::identical(self::explicitInstantiation, #C2));
+  self::expect(false, core::identical(self::explicitInstantiation, #C3));
+  self::expect(false, core::identical(self::explicitInstantiation, self::create<core::int>()));
+  self::expect(true, core::identical(#C2, self::implicitInstantiation));
+  self::expect(true, core::identical(#C2, self::explicitInstantiation));
+  self::expect(true, core::identical(#C2, #C2));
+  self::expect(true, core::identical(#C2, #C2));
+  self::expect(true, core::identical(#C2, #C2));
+  self::expect(false, core::identical(#C2, #C3));
+  self::expect(false, core::identical(#C2, self::create<core::int>()));
+  self::expect(true, core::identical(#C2, self::implicitInstantiation));
+  self::expect(true, core::identical(#C2, self::explicitInstantiation));
+  self::expect(true, core::identical(#C2, #C2));
+  self::expect(true, core::identical(#C2, #C2));
+  self::expect(true, core::identical(#C2, #C2));
+  self::expect(false, core::identical(#C2, #C3));
+  self::expect(false, core::identical(#C2, self::create<core::int>()));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = static-tearoff self::id
+  #C2 = instantiation #C1 <core::int*>
+  #C3 = instantiation #C1 <core::String*>
+}

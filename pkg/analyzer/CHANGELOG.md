@@ -1,3 +1,27 @@
+## 3.1.0-dev
+* New internal API for `package:dart_style`.
+* Removed deprecated non-API `MockSdk` class.
+
+## 3.0.0
+* Removed deprecated `DartType.aliasElement/aliasArguments`.
+* Removed deprecated constructors from `FeatureSet`.
+* Removed `UnitElementResult.signature` - unused by clients.
+* Removed deprecated `AnalysisError.withNamedArguments`.
+* Removed deprecated `ErrorReporter.reportErrorMessage`.
+* Removed deprecated `ResourceProvider.getModificationTimes()`.
+* Removed deprecated `MemoryResourceProvider.newDummyLink()`.
+* Removed deprecated `MemoryResourceProvider.updateFile()`.
+* Removed deprecated `Resource.parent`.
+* Removed deprecated `ResultState` and `AnalysisResult.state`.
+* Removed deprecated `summary_file_builder` library.
+* Removed deprecated `message` and `correction` from `ErrorCode`.
+* Removed deprecated `lookUp` methods from `InterfaceType`.
+* Removed deprecated `InterfaceType.getSmartLeastUpperBound`.
+* Removed deprecated `path` and `uri` from `AnalysisResult`.
+* Removed deprecated methods from `AnalysisSession`.
+* Removed `TypeName` and corresponding methods.
+* Removed deprecated methods from `TypeProvider`.
+
 ## 2.8.0
 * Deprecations and renames for `getXyz` methods in `AnalysisDriver`.
 * Removed uppercase named constants from `double` in mock SDK.

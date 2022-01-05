@@ -315,8 +315,7 @@ class KernelTarget extends TargetImplementation {
       Uri translatedEntryPoint =
           getEntryPointUri(entryPoint, issueProblem: true);
       result.add(translatedEntryPoint);
-      loader.read(translatedEntryPoint, -1,
-          accessorUri: loader.firstUri,
+      loader.readAsEntryPoint(translatedEntryPoint,
           fileUri: translatedEntryPoint != entryPoint ? entryPoint : null);
     }
     return result;
@@ -359,23 +358,6 @@ class KernelTarget extends TargetImplementation {
         }
     }
     return entryPoint;
-  }
-
-  /// Returns classes defined in libraries in [loader].
-  List<SourceClassBuilder> collectMyClasses() {
-    List<SourceClassBuilder> result = <SourceClassBuilder>[];
-    for (LibraryBuilder library in loader.libraryBuilders) {
-      if (library.loader == loader) {
-        Iterator<Builder> iterator = library.iterator;
-        while (iterator.moveNext()) {
-          Builder member = iterator.current;
-          if (member is SourceClassBuilder && !member.isPatch) {
-            result.add(member);
-          }
-        }
-      }
-    }
-    return result;
   }
 
   /// The class [cls] is involved in a cyclic definition. This method should
@@ -460,10 +442,10 @@ class KernelTarget extends TargetImplementation {
       finishSynthesizedParameters();
       loader.finishDeferredLoadTearoffs();
       loader.finishNoSuchMethodForwarders();
-      List<SourceClassBuilder> myClasses = collectMyClasses();
+      List<SourceClassBuilder> sourceClasses = loader.collectSourceClasses();
       loader.finishNativeMethods();
       loader.finishPatchMethods();
-      finishAllConstructors(myClasses);
+      finishAllConstructors(sourceClasses);
       runBuildTransformations();
 
       if (verify) this.verify();
@@ -625,33 +607,8 @@ class KernelTarget extends TargetImplementation {
 
   void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
-    for (LibraryBuilder library in loader.libraryBuilders) {
-      if (library.loader == loader) {
-        Iterator<Builder> iterator = library.iterator;
-        while (iterator.moveNext()) {
-          Builder declaration = iterator.current;
-          if (declaration is SourceClassBuilder) {
-            Class cls = declaration.cls;
-            if (cls != objectClass) {
-              cls.supertype ??= objectClass.asRawSupertype;
-              declaration.supertypeBuilder ??= new NamedTypeBuilder(
-                  "Object",
-                  const NullabilityBuilder.omitted(),
-                  /* arguments = */ null,
-                  /* fileUri = */ null,
-                  /* charOffset = */ null,
-                  instanceTypeVariableAccess:
-                      InstanceTypeVariableAccessState.Unexpected)
-                ..bind(objectClassBuilder);
-            }
-            if (declaration.isMixinApplication) {
-              cls.mixedInType = declaration.mixedInTypeBuilder!
-                  .buildMixedInType(
-                      library, declaration.charOffset, declaration.fileUri);
-            }
-          }
-        }
-      }
+    for (SourceLibraryBuilder library in loader.sourceLibraryBuilders) {
+      library.installDefaultSupertypes(objectClassBuilder, objectClass);
     }
     ticker.logMs("Installed Object as implicit superclass");
   }

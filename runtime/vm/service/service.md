@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.54
+# Dart VM Service Protocol 3.55
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.54_ of the Dart VM Service Protocol. This
+This document describes of _version 3.55_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -79,6 +79,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [setVMName](#setvmname)
   - [setVMTimelineFlags](#setvmtimelineflags)
   - [streamCancel](#streamcancel)
+  - [streamCpuSamplesWithUserTag](#streamcpusampleswithusertag)
   - [streamListen](#streamlisten)
 - [Public Types](#public-types)
   - [AllocationProfile](#allocationprofile)
@@ -1533,6 +1534,19 @@ The _streamCancel_ RPC cancels a stream subscription in the VM.
 
 If the client is not subscribed to the stream, the _104_ (Stream not
 subscribed) [RPC error](#rpc-error) code is returned.
+
+See [Success](#success).
+
+### streamCpuSamplesWithUserTag
+
+```
+Success streamCpuSamplesWithUserTag(string[] userTags)
+```
+
+The _streamCpuSamplesWithUserTag_ RPC allows for clients to specify which CPU
+samples collected by the profiler should be sent over the `Profiler` stream.
+When called, the VM will stream `CpuSamples` events containing `CpuSample`'s
+collected while a user tag contained in `userTags` was active.
 
 See [Success](#success).
 
@@ -4304,5 +4318,6 @@ version | comments
 3.52 | Added `lookupResolvedPackageUris` and `lookupPackageUris` RPCs and `UriList` type.
 3.53 | Added `setIsolatePauseMode` RPC.
 3.54 | Added `CpuSamplesEvent`, updated `cpuSamples` property on `Event` to have type `CpuSamplesEvent`.
+3.55 | Added `streamCpuSamplesWithUserTag` RPC.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

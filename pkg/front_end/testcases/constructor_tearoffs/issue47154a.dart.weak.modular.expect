@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field (core::int) → core::int x;
+  const constructor •(core::bool b) → self::A
+    : self::A::x = (b ?{<X extends core::Object? = dynamic>(X%) → X%} #C1 : #C2)<core::int>, super core::Object::•()
+    ;
+}
+static method id<X extends core::Object? = dynamic>(self::id::X% x) → self::id::X%
+  return x;
+static method other<X extends core::Object? = dynamic>(self::other::X% x) → self::other::X%
+  return throw "${x}";
+static method main() → void {
+  core::print("${#C3}, ${#C1}, ${#C3}, ${#C4}");
+}
+
+constants  {
+  #C1 = static-tearoff self::id
+  #C2 = static-tearoff self::other
+  #C3 = instantiation #C1 <core::int*>
+  #C4 = self::A {x:#C3}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue47154a.dart:
+- A. (from org-dartlang-testcase:///issue47154a.dart:7:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/thread_sanitizer.h"
+
 #include "vm/compiler/runtime_api.h"
 
 #include "vm/object.h"
@@ -97,7 +99,7 @@ bool IsInOldSpace(const Object& obj) {
 
 intptr_t ObjectHash(const Object& obj) {
   if (obj.IsNull()) {
-    return 2011;
+    return kNullIdentityHash;
   }
   if (obj.IsInstance()) {
     return Instance::Cast(obj).CanonicalizeHash();

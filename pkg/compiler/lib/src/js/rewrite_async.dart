@@ -2465,6 +2465,11 @@ class PreTranslationAnalysis extends js.BaseVisitor<bool> {
   }
 
   @override
+  bool visitNode(js.Node node) {
+    throw StateError('Node type ${node.runtimeType} not handled: $node');
+  }
+
+  @override
   bool visitAccess(js.PropertyAccess node) {
     bool receiver = visit(node.receiver);
     bool selector = visit(node.selector);

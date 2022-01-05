@@ -4554,6 +4554,16 @@ StaticAndInstanceConflictCause:
   problemMessage: "This is the instance member."
   severity: CONTEXT
 
+FfiAbiSpecificIntegerInvalid:
+  # Used by dart:ffi
+  problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments."
+  external: test/ffi_test.dart
+
+FfiAbiSpecificIntegerMappingInvalid:
+  # Used by dart:ffi
+  problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size."
+  external: test/ffi_test.dart
+
 FfiTypeMismatch:
   # Used by dart:ffi
   problemMessage: "Expected type '#type' to be '#type2', which is the Dart type corresponding to '#type3'."
@@ -5444,3 +5454,10 @@ NewAsSelector:
 EnumDeclaresFactory:
   problemMessage: "Enums can't declare factory constructors."
   correctionMessage: "Try removing the factory constructor declaration."
+
+PositionalSuperParametersAndArguments:
+  problemMessage: "Positional super-initializer parameters cannot be used when the super initializer has positional arguments."
+
+SuperInitializerParameter:
+  problemMessage: "This is the super-initializer parameter."
+  severity: CONTEXT

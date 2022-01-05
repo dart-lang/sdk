@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+import "dart:_late_helper" as _la;
+
+extension MyInt on core::int {
+  static field a = self2::_#MyInt|a;
+  static field b = self2::_#MyInt|b;
+}
+static final field _la::_Cell _#MyInt|a = new _la::_Cell::named("MyInt|a");
+static final field _la::_Cell _#MyInt|b = new _la::_Cell::named("MyInt|b");
+static get MyInt|a() → core::int
+  return self2::_#MyInt|a.{_la::_Cell::readField}<core::int>(){() → core::int};
+static set MyInt|a(core::int value) → void
+  return self2::_#MyInt|a.{_la::_Cell::value} = value;
+static get MyInt|b() → core::int
+  return self2::_#MyInt|b.{_la::_Cell::readField}<core::int>(){() → core::int};
+static set MyInt|b(core::int value) → void
+  return self2::_#MyInt|b.{_la::_Cell::value} = value;

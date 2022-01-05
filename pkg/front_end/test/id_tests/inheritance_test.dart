@@ -7,7 +7,8 @@ import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart';
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart';
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -95,7 +96,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
   CoreTypes get _coreTypes => _compilerResult.coreTypes!;
 
   ClassHierarchyBuilder get _classHierarchyBuilder =>
-      _compilerResult.kernelTargetForTesting!.loader.builderHierarchy;
+      _compilerResult.kernelTargetForTesting!.loader.hierarchyBuilder;
 
   @override
   String computeLibraryValue(Id id, Library node) {

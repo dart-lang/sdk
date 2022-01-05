@@ -56,8 +56,9 @@ class ClassDeclarationTest extends ParserTestCase {
         "b",
         AstTestFactory.formalParameterList(),
         initializers);
-    ClassDeclaration clazz = AstTestFactory.classDeclaration(null, "Test", null,
-        null, null, null, [defaultConstructor, aConstructor, bConstructor]);
+    ClassDeclaration clazz = AstTestFactory.classDeclaration(
+        null, "Test", null, null, null, null,
+        members: [defaultConstructor, aConstructor, bConstructor]);
     expect(clazz.getConstructor(null), same(defaultConstructor));
     expect(clazz.getConstructor("a"), same(aConstructor));
     expect(clazz.getConstructor("b"), same(bConstructor));
@@ -68,11 +69,12 @@ class ClassDeclarationTest extends ParserTestCase {
     VariableDeclaration aVar = AstTestFactory.variableDeclaration("a");
     VariableDeclaration bVar = AstTestFactory.variableDeclaration("b");
     VariableDeclaration cVar = AstTestFactory.variableDeclaration("c");
-    ClassDeclaration clazz =
-        AstTestFactory.classDeclaration(null, "Test", null, null, null, null, [
-      AstTestFactory.fieldDeclaration2(false, null, [aVar]),
-      AstTestFactory.fieldDeclaration2(false, null, [bVar, cVar])
-    ]);
+    ClassDeclaration clazz = AstTestFactory.classDeclaration(
+        null, "Test", null, null, null, null,
+        members: [
+          AstTestFactory.fieldDeclaration2(false, null, [aVar]),
+          AstTestFactory.fieldDeclaration2(false, null, [bVar, cVar])
+        ]);
     expect(clazz.getField("a"), same(aVar));
     expect(clazz.getField("b"), same(bVar));
     expect(clazz.getField("c"), same(cVar));
@@ -95,7 +97,8 @@ class ClassDeclarationTest extends ParserTestCase {
         AstTestFactory.identifier3("b"),
         AstTestFactory.formalParameterList());
     ClassDeclaration clazz = AstTestFactory.classDeclaration(
-        null, "Test", null, null, null, null, [aMethod, bMethod]);
+        null, "Test", null, null, null, null,
+        members: [aMethod, bMethod]);
     expect(clazz.getMethod("a"), same(aMethod));
     expect(clazz.getMethod("b"), same(bMethod));
     expect(clazz.getMethod("noSuchMethod"), isNull);

@@ -101,6 +101,9 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: true);
+  args.addFlag('rta',
+      help: 'Use rapid type analysis for faster compilation in AOT mode.',
+      defaultsTo: true);
   args.addFlag('tree-shake-write-only-fields',
       help: 'Enable tree shaking of fields which are only written in AOT mode.',
       defaultsTo: true);
@@ -181,6 +184,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final List<String>? fileSystemRoots = options['filesystem-root'];
   final bool aot = options['aot'];
   final bool tfa = options['tfa'];
+  final bool rta = options['rta'];
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
   final bool enableAsserts = options['enable-asserts'];
@@ -269,6 +273,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
+      useRapidTypeAnalysis: rta,
       environmentDefines: environmentDefines,
       enableAsserts: enableAsserts,
       useProtobufTreeShakerV2: useProtobufTreeShakerV2,
@@ -337,6 +342,7 @@ Future<KernelCompilationResults> compileToKernel(
     List<String> deleteToStringPackageUris: const <String>[],
     bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
+    bool useRapidTypeAnalysis: true,
     required Map<String, String> environmentDefines,
     bool enableAsserts: true,
     bool useProtobufTreeShakerV2: false,
@@ -376,7 +382,8 @@ Future<KernelCompilationResults> compileToKernel(
     await runGlobalTransformations(target, component, useGlobalTypeFlowAnalysis,
         enableAsserts, useProtobufTreeShakerV2, errorDetector,
         minimalKernel: minimalKernel,
-        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
+        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
+        useRapidTypeAnalysis: useRapidTypeAnalysis);
 
     if (minimalKernel) {
       // compiledSources is component.uriToSource.keys.
@@ -433,7 +440,8 @@ Future runGlobalTransformations(
     bool useProtobufTreeShakerV2,
     ErrorDetector errorDetector,
     {bool minimalKernel: false,
-    bool treeShakeWriteOnlyFields: false}) async {
+    bool treeShakeWriteOnlyFields: false,
+    bool useRapidTypeAnalysis: true}) async {
   if (errorDetector.hasCompilationErrors) return;
 
   final coreTypes = new CoreTypes(component);
@@ -454,7 +462,8 @@ Future runGlobalTransformations(
     globalTypeFlow.transformComponent(target, coreTypes, component,
         treeShakeSignatures: !minimalKernel,
         treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
-        treeShakeProtobufs: useProtobufTreeShakerV2);
+        treeShakeProtobufs: useProtobufTreeShakerV2,
+        useRapidTypeAnalysis: useRapidTypeAnalysis);
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);

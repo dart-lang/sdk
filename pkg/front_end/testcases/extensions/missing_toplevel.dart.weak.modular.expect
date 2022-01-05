@@ -1,0 +1,39 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/missing_toplevel.dart:13:23: Error: The getter 'setter' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/missing_toplevel.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
+// var missingGetter = c.setter += 42;
+//                       ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension on self::Class* {
+  set setter = self::Extension|set#setter;
+}
+static field self::Class* c = new self::Class::•();
+static field dynamic missingGetter = let final self::Class* #t1 = self::c in let final dynamic #t2 = invalid-expression "pkg/front_end/testcases/extensions/missing_toplevel.dart:13:23: Error: The getter 'setter' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/missing_toplevel.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
+var missingGetter = c.setter += 42;
+                      ^^^^^^" in #t1{<unresolved>}.setter{dynamic}.+(42) as{TypeError,ForDynamic} core::int* in let final void #t3 = self::Extension|set#setter(#t1, #t2) in #t2;
+static method Extension|set#setter(lowered final self::Class* #this, core::int* value) → void {}
+static method main() → dynamic {}

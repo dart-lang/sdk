@@ -15633,6 +15633,91 @@ class SearchResultsParams implements HasToJson {
       );
 }
 
+/// server.cancelRequest params
+///
+/// {
+///   "id": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerCancelRequestParams implements RequestParams {
+  /// The id of the request that should be cancelled.
+  String id;
+
+  ServerCancelRequestParams(this.id);
+
+  factory ServerCancelRequestParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String id;
+      if (json.containsKey('id')) {
+        id = jsonDecoder.decodeString(jsonPath + '.id', json['id']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'id');
+      }
+      return ServerCancelRequestParams(id);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'server.cancelRequest params', json);
+    }
+  }
+
+  factory ServerCancelRequestParams.fromRequest(Request request) {
+    return ServerCancelRequestParams.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['id'] = id;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'server.cancelRequest', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerCancelRequestParams) {
+      return id == other.id;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+}
+
+/// server.cancelRequest result
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerCancelRequestResult implements ResponseResult {
+  @override
+  Map<String, Object> toJson() => <String, Object>{};
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: null);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerCancelRequestResult) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => 183255719;
+}
+
 /// server.connected params
 ///
 /// {

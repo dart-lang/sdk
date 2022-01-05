@@ -20,6 +20,7 @@ import 'analysis.dart';
 import 'calls.dart';
 import 'signature_shaking.dart';
 import 'protobuf_handler.dart' show ProtobufHandler;
+import 'rta.dart' show RapidTypeAnalysis;
 import 'summary.dart';
 import 'table_selector_assigner.dart';
 import 'types.dart';
@@ -44,7 +45,8 @@ Component transformComponent(
     {PragmaAnnotationParser? matcher,
     bool treeShakeSignatures: true,
     bool treeShakeWriteOnlyFields: true,
-    bool treeShakeProtobufs: false}) {
+    bool treeShakeProtobufs: false,
+    bool useRapidTypeAnalysis: true}) {
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   final hierarchy = new ClassHierarchy(component, coreTypes,
           onAmbiguousSupertypes: ignoreAmbiguousSupertypes)
@@ -58,6 +60,25 @@ Component transformComponent(
       : null;
 
   Statistics.reset();
+
+  CleanupAnnotations(coreTypes, libraryIndex, protobufHandler)
+      .visitComponent(component);
+
+  Stopwatch? rtaStopWatch;
+  RapidTypeAnalysis? rta;
+  if (useRapidTypeAnalysis) {
+    // Rapid type analysis (RTA) is used to quickly calculate
+    // the set of allocated classes to make the subsequent
+    // type flow analysis converge much faster.
+    rtaStopWatch = new Stopwatch()..start();
+    final protobufHandlerRta = treeShakeProtobufs
+        ? ProtobufHandler.forComponent(component, coreTypes)
+        : null;
+    rta = RapidTypeAnalysis(
+        component, coreTypes, hierarchy, libraryIndex, protobufHandlerRta);
+    rtaStopWatch.stop();
+  }
+
   final analysisStopWatch = new Stopwatch()..start();
 
   MoveFieldInitializers().transformComponent(component);
@@ -81,8 +102,11 @@ Component transformComponent(
     typeFlowAnalysis.addRawCall(mainSelector);
   }
 
-  CleanupAnnotations(coreTypes, libraryIndex, protobufHandler)
-      .visitComponent(component);
+  if (useRapidTypeAnalysis) {
+    for (Class c in rta!.allocatedClasses) {
+      typeFlowAnalysis.addAllocatedClass(c);
+    }
+  }
 
   typeFlowAnalysis.process();
 
@@ -119,6 +143,9 @@ Component transformComponent(
 
   transformsStopWatch.stop();
 
+  if (useRapidTypeAnalysis) {
+    statPrint("RTA took ${rtaStopWatch!.elapsedMilliseconds}ms");
+  }
   statPrint("TF analysis took ${analysisStopWatch.elapsedMilliseconds}ms");
   statPrint("TF transforms took ${transformsStopWatch.elapsedMilliseconds}ms");
 
@@ -160,7 +187,7 @@ class MoveFieldInitializers {
         if (!_isRedirectingConstructor(c)) c
     ];
 
-    assert(constructors.isNotEmpty);
+    assert(constructors.isNotEmpty || cls.isMixinDeclaration);
 
     // Move field initializers to constructors.
     // Clone AST for all constructors except the first.
@@ -315,13 +342,7 @@ class AnnotateKernel extends RecursiveVisitor {
     Constant? constantValue;
     bool isInt = false;
 
-    // Note: the explicit type `bool` is needed because the checked-in version
-    // of the CFE that we use for bootstrapping doesn't yet have constructor
-    // tearoffs enabled, and the fix for bug
-    // https://github.com/dart-lang/language/issues/1785 only takes effect when
-    // constructor tearoffs are enabled.  TODO(paulberry): remove the type after
-    // the bootstrap CFE enables constructor tearoffs.
-    final bool nullable = type is NullableType;
+    final nullable = type is NullableType;
     if (nullable) {
       type = type.baseType;
     }
@@ -985,6 +1006,7 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor {
     if (parent is Class) {
       shaker.addClassUsedInType(parent);
     }
+    node.visitChildren(this);
   }
 }
 

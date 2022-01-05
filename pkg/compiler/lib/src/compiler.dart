@@ -344,8 +344,8 @@ abstract class Compiler {
         }
         frontendStrategy.registerModuleData(data);
 
-        // After we've deserialized modular data, we set and verify the main
-        // method as well as trim the component of any unnecessary dependencies.
+        // After we've deserialized modular data, we trim the component of any
+        // unnecessary dependencies.
         // Note: It is critical we wait to trim the dill until after we've
         // deserialized modular data because some of this data may reference
         // 'trimmed' elements.
@@ -354,14 +354,7 @@ abstract class Compiler {
             dumpUnusedLibraries(result);
           }
           if (options.entryUri != null) {
-            result.setMainAndTrimComponent(options.entryUri);
-          }
-          if (result.component.mainMethod == null) {
-            // TODO(sigmund): move this so that we use the same error template
-            // from the CFE.
-            _reporter.reportError(_reporter.createMessage(NO_LOCATION_SPANNABLE,
-                MessageKind.GENERIC, {'text': "No 'main' method found."}));
-            return;
+            result.trimComponent();
           }
         }
         if (options.cfeOnly) {

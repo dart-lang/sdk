@@ -439,15 +439,12 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     if (element.isSynthetic) {
       return true;
     }
-    if (_hasPragmaVmEntryPoint(element)) {
-      return true;
-    }
     if (element is LocalVariableElement ||
         element is FunctionElement && !element.isStatic) {
       // local variable or function
     } else if (element is ParameterElement) {
       var enclosingElement = element.enclosingElement;
-      // Only report unused parameters of methods or functions.
+      // Only report unused parameters of constructors, methods, and functions.
       if (enclosingElement is! ConstructorElement &&
           enclosingElement is! FunctionElement &&
           enclosingElement is! MethodElement) {
@@ -457,7 +454,22 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       if (!element.isOptional) {
         return true;
       }
+      if (enclosingElement is ConstructorElement &&
+          enclosingElement.enclosingElement.typeParameters.isNotEmpty) {
+        // There is an issue matching arguments of instance creation
+        // expressions for generic classes with parameters, so for now,
+        // consider every parameter of a constructor of a generic class
+        // "used". See https://github.com/dart-lang/sdk/issues/47839.
+        return true;
+      }
       if (enclosingElement is ExecutableElement) {
+        if (enclosingElement.typeParameters.isNotEmpty) {
+          // There is an issue matching arguments of generic function
+          // invocations with parameters, so for now, consider every parameter
+          // of a generic function "used". See
+          // https://github.com/dart-lang/sdk/issues/47839.
+          return true;
+        }
         if (_isPubliclyAccessible(enclosingElement)) {
           return true;
         }
@@ -469,6 +481,9 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       if (element.isPublic) {
         return true;
       }
+    }
+    if (_hasPragmaVmEntryPoint(element)) {
+      return true;
     }
     return _usedElements.elements.contains(element);
   }

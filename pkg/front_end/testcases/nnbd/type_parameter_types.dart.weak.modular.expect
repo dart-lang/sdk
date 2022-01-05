@@ -1,0 +1,56 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class A<X extends core::Object, Y extends core::Object?> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X, self::A::Y%>
+    : super core::Object::•()
+    ;
+  method foo() → self::A::X
+    return let final Never #t1 = self::never() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  method bar() → self::A::X?
+    return null;
+  method baz() → self::A::Y%
+    return let final Never #t2 = self::never() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+}
+class B<X extends core::List<self::B::Y%> = core::List<core::Object?>, Y extends core::Object?> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X, self::B::Y%>
+    : super core::Object::•()
+    ;
+  method foo(covariant-by-class self::B::X x, covariant-by-class self::B::Y% y) → dynamic {}
+}
+class C<X extends core::List<self::C::Y%>? = core::List<dynamic>?, Y extends core::List<self::C::X%>? = core::List<dynamic>?> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X%, self::C::Y%>
+    : super core::Object::•()
+    ;
+  method foo(covariant-by-class self::C::X% x, covariant-by-class self::C::Y% y) → dynamic {}
+}
+class D<X extends self::D::Y% = dynamic, Y extends self::D::Z% = dynamic, Z extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::X%, self::D::Y%, self::D::Z%>
+    : super core::Object::•()
+    ;
+  method foo(covariant-by-class self::D::X% x, covariant-by-class self::D::Y% y, covariant-by-class self::D::Z% z) → dynamic {}
+}
+static method never() → Never
+  return throw "Never";
+static method main() → dynamic {
+  function fun1<X extends core::Object, Y extends core::Object?>() → X
+    return let final Never #t3 = self::never() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  function fun2<X extends core::Object, Y extends core::Object?>() → Y%
+    return let final Never #t4 = self::never() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  function fun3<X extends core::List<Y%> = core::List<core::Object?>, Y extends core::Object?>() → X
+    return let final Never #t5 = self::never() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  function fun4<X extends core::List<Y%> = core::List<core::Object?>, Y extends core::Object?>() → Y%
+    return let final Never #t6 = self::never() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  function fun5<X extends core::List<Y%>? = core::List<dynamic>?, Y extends core::List<X%>? = core::List<dynamic>?>() → X%
+    return let final Never #t7 = self::never() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  function fun6<X extends core::List<Y%>? = core::List<dynamic>?, Y extends core::List<X%>? = core::List<dynamic>?>() → Y%
+    return let final Never #t8 = self::never() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  function fun7<X extends Y% = dynamic, Y extends Z% = dynamic, Z extends core::Object? = dynamic>() → X%
+    return let final Never #t9 = self::never() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  function fun8<X extends Y% = dynamic, Y extends Z% = dynamic, Z extends core::Object? = dynamic>() → Y%
+    return let final Never #t10 = self::never() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  function fun9<X extends Y% = dynamic, Y extends Z% = dynamic, Z extends core::Object? = dynamic>() → Z%
+    return let final Never #t11 = self::never() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+}

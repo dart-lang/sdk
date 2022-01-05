@@ -151,6 +151,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
+    _visitToken(node.macroKeyword, suffix: ' ');
     sink.write('class ');
     _visitNode(node.name);
     _visitNode(node.typeParameters);
@@ -168,6 +169,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     if (node.abstractKeyword != null) {
       sink.write('abstract ');
     }
+    _visitToken(node.macroKeyword, suffix: ' ');
     sink.write('class ');
     _visitNode(node.name);
     _visitNode(node.typeParameters);
@@ -314,8 +316,12 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('enum ');
     _visitNode(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(node.withClause, prefix: ' ');
+    _visitNode(node.implementsClause, prefix: ' ');
     sink.write(' {');
     _visitNodeList(node.constants, separator: ', ');
+    _visitNodeList(node.members, prefix: '; ', separator: ' ');
     sink.write('}');
   }
 
@@ -1037,12 +1043,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitTypeLiteral(TypeLiteral node) {
     _visitNode(node.type);
-  }
-
-  @Deprecated('Override visitNamedType instead')
-  @override
-  void visitTypeName(TypeName node) {
-    throw StateError('Should not be invoked');
   }
 
   @override

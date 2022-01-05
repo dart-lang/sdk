@@ -237,6 +237,12 @@ int32_t ImageWriter::GetTextOffsetFor(InstructionsPtr instructions,
   return offset;
 }
 
+intptr_t ImageWriter::SizeInSnapshotForBytes(intptr_t length) {
+  // We are just going to write it out as a string.
+  return compiler::target::String::InstanceSize(
+      length * OneByteString::kBytesPerElement);
+}
+
 intptr_t ImageWriter::SizeInSnapshot(ObjectPtr raw_object) {
   const classid_t cid = raw_object->GetClassId();
 
@@ -280,10 +286,18 @@ intptr_t ImageWriter::SizeInSnapshot(ObjectPtr raw_object) {
 }
 
 uint32_t ImageWriter::GetDataOffsetFor(ObjectPtr raw_object) {
-  intptr_t snap_size = SizeInSnapshot(raw_object);
-  intptr_t offset = next_data_offset_;
+  const intptr_t snap_size = SizeInSnapshot(raw_object);
+  const intptr_t offset = next_data_offset_;
   next_data_offset_ += snap_size;
   objects_.Add(ObjectData(raw_object));
+  return offset;
+}
+
+uint32_t ImageWriter::AddBytesToData(uint8_t* bytes, intptr_t length) {
+  const intptr_t snap_size = SizeInSnapshotForBytes(length);
+  const intptr_t offset = next_data_offset_;
+  next_data_offset_ += snap_size;
+  objects_.Add(ObjectData(bytes, length));
   return offset;
 }
 
@@ -439,9 +453,24 @@ void ImageWriter::Write(NonStreamingWriteStream* clustered_stream, bool vm) {
     // the VM snapshot's text image.
     heap->SetObjectId(data.insns_->ptr(), 0);
   }
-  for (intptr_t i = 0; i < objects_.length(); i++) {
-    ObjectData& data = objects_[i];
-    data.obj_ = &Object::Handle(zone_, data.raw_obj_);
+  for (auto& data : objects_) {
+    if (data.is_object) {
+      data.obj = &Object::Handle(zone_, data.raw_obj);
+    }
+  }
+
+  // Once we have everything handlified we are going to do convert raw bytes
+  // to string objects. String is used for simplicity as a bit container,
+  // can't use TypedData because it has an internal pointer (data_) field.
+  for (auto& data : objects_) {
+    if (!data.is_object) {
+      const auto bytes = data.bytes;
+      data.obj = &Object::Handle(
+          zone_, OneByteString::New(bytes.buf, bytes.length, Heap::kOld));
+      data.is_object = true;
+      String::Cast(*data.obj).Hash();
+      free(bytes.buf);
+    }
   }
 
   // Needs to happen before WriteText, as we add information about the
@@ -484,8 +513,9 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
 
   // Heap page objects start here.
 
-  for (intptr_t i = 0; i < objects_.length(); i++) {
-    const Object& obj = *objects_[i].obj_;
+  for (auto entry : objects_) {
+    ASSERT(entry.is_object);
+    const Object& obj = *entry.obj;
 #if defined(DART_PRECOMPILER)
     AutoTraceImage(obj, section_start, stream);
 #endif
@@ -498,10 +528,9 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
     if (obj.IsCompressedStackMaps()) {
       const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
       const intptr_t payload_size = map.payload_size();
-      stream->WriteTargetWord(map.ptr()->untag()->flags_and_size_);
-      ASSERT_EQUAL(stream->Position() - object_start,
-                   compiler::target::CompressedStackMaps::HeaderSize());
-      stream->WriteBytes(map.ptr()->untag()->data(), payload_size);
+      stream->WriteFixed<uint32_t>(
+          map.ptr()->untag()->payload()->flags_and_size);
+      stream->WriteBytes(map.ptr()->untag()->payload()->data(), payload_size);
     } else if (obj.IsCodeSourceMap()) {
       const CodeSourceMap& map = CodeSourceMap::Cast(obj);
       stream->WriteTargetWord(map.Length());

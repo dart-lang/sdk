@@ -8,6 +8,13 @@ part of dart.core;
 ///
 /// It is a compile-time error for any type other than [int] or [double]
 /// to attempt to extend or implement `num`.
+///
+/// **See also:**
+/// * [int]: An integer number.
+/// * [double]: A double-precision floating point number.
+/// * [Numbers](https://dart.dev/guides/language/numbers) in
+/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
+
 abstract class num implements Comparable<num> {
   /// Test whether this value is numerically equal to `other`.
   ///
@@ -65,7 +72,7 @@ abstract class num implements Comparable<num> {
   /// NaN return false.
   ///
   /// This function imposes a complete ordering for doubles. When using
-  /// `compareTo` the following properties hold:
+  /// `compareTo`, the following properties hold:
   ///
   /// - All NaN values are considered equal, and greater than any numeric value.
   /// - -0.0 is less than 0.0 (and the integer 0), but greater than any non-zero
@@ -113,7 +120,7 @@ abstract class num implements Comparable<num> {
   /// Multiplies this number by [other].
   ///
   /// The result is an [int], as described by [int.*],
-  /// if both this number and [other] is an integer,
+  /// if both this number and [other] are integers,
   /// otherwise the result is a [double].
   num operator *(num other);
 
@@ -125,7 +132,7 @@ abstract class num implements Comparable<num> {
   /// `a == b * q + r` and `0 <= r < b.abs()`.
   ///
   /// The Euclidean division is only defined for integers, but can be easily
-  /// extended to work with doubles. In that case `q` is stil an integer,
+  /// extended to work with doubles. In that case, `q` is still an integer,
   /// but `r` may have a non-integer value that still satisfies `0 <= r < |b|`.
   ///
   /// The sign of the returned value `r` is always positive.
@@ -133,9 +140,17 @@ abstract class num implements Comparable<num> {
   /// See [remainder] for the remainder of the truncating division.
   ///
   /// The result is an [int], as described by [int.%],
-  /// if both this number and [other] is an integer,
+  /// if both this number and [other] are integers,
   /// otherwise the result is a [double].
-  num operator %(num other);
+  ///
+  /// Example:
+  /// ```dart
+  /// print(5 % 3); // 2
+  /// print(-5 % 3); // 1
+  /// print(5 % -3); // 2
+  /// print(-5 % -3); // 1
+  /// ```
+ num operator %(num other);
 
   /// Divides this number by [other].
   double operator /(num other);
@@ -146,11 +161,11 @@ abstract class num implements Comparable<num> {
   /// Truncating division is division where a fractional result
   /// is converted to an integer by rounding towards zero.
   ///
-  /// If both operands are [int]s then [other] must not be zero.
+  /// If both operands are [int]s, then [other] must not be zero.
   /// Then `a ~/ b` corresponds to `a.remainder(b)`
   /// such that `a == (a ~/ b) * b + a.remainder(b)`.
   ///
-  /// If either operand is a [double] then the other operand is converted
+  /// If either operand is a [double], then the other operand is converted
   /// to a double before performing the division and truncation of the result.
   /// Then `a ~/ b` is equivalent to `(a / b).truncate()`.
   /// This means that the intermediate result of the double division
@@ -164,7 +179,7 @@ abstract class num implements Comparable<num> {
   /// numbers numerical value (the result of subtracting the
   /// number from zero), if that value *exists*.
   ///
-  /// Negating a double gives a number with same magnitude
+  /// Negating a double gives a number with the same magnitude
   /// as the original value (`number.abs() == (-number).abs()`),
   /// and the opposite sign (`-(number.sign) == (-number).sign`).
   ///
@@ -179,11 +194,20 @@ abstract class num implements Comparable<num> {
   ///
   /// The result `r` of this operation satisfies:
   /// `this == (this ~/ other) * other + r`.
-  /// As a consequence the remainder `r` has the same sign as the divider `this`.
+  /// As a consequence, the remainder `r` has the same sign as the divider
+  /// `this`.
   ///
   /// The result is an [int], as described by [int.remainder],
-  /// if both this number and [other] is an integer,
+  /// if both this number and [other] are integers,
   /// otherwise the result is a [double].
+  ///
+  /// Example:
+  /// ```dart
+  /// print(5.remainder(3)); // 2
+  /// print(-5.remainder(3)); // -2
+  /// print(5.remainder(-3)); // 2
+  /// print(-5.remainder(-3)); // -2
+  /// ```
   num remainder(num other);
 
   /// Whether this number is numerically smaller than [other].
@@ -256,6 +280,11 @@ abstract class num implements Comparable<num> {
   /// and `-value` if the value is negative.
   ///
   /// Integer overflow may cause the result of `-value` to stay negative.
+  ///
+  /// ```dart
+  /// print((2).abs()); // 2
+  /// print((-2.5).abs()); // 2.5
+  /// ```
   num abs();
 
   /// Negative one, zero or positive one depending on the sign and
@@ -336,7 +365,7 @@ abstract class num implements Comparable<num> {
   ///
   /// For the purpose of rounding, `-0.0` is considered to be below `0.0`,
   /// and `-0.0` is therefore considered closer to negative numbers than `0.0`.
-  /// This means that for a value, `d` in the range `-0.5 < d < 0.0`,
+  /// This means that for a value `d` in the range `-0.5 < d < 0.0`,
   /// the result is `-0.0`.
   double roundToDouble();
 
@@ -377,6 +406,14 @@ abstract class num implements Comparable<num> {
   ///
   /// The arguments [lowerLimit] and [upperLimit] must form a valid range where
   /// `lowerLimit.compareTo(upperLimit) <= 0`.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = 10.5.clamp(5, 10.0); // 10.0
+  /// result = 0.75.clamp(5, 10.0); // 5
+  /// result = (-10).clamp(-5, 5.0); // -5
+  /// result = (-0.0).clamp(-5, 5.0); // -0.0
+  /// ```
   num clamp(num lowerLimit, num upperLimit);
 
   /// Truncates this [num] to an integer and returns the result as an [int].
@@ -396,11 +433,11 @@ abstract class num implements Comparable<num> {
   /// before computing the string representation,
   /// as by [toDouble].
   ///
-  /// If the absolute value of `this` is greater then or equal to `10^21` then
+  /// If the absolute value of `this` is greater than or equal to `10^21`, then
   /// this methods returns an exponential representation computed by
   /// `this.toStringAsExponential()`. Otherwise the result
   /// is the closest string representation with exactly [fractionDigits] digits
-  /// after the decimal point. If [fractionDigits] equals 0 then the decimal
+  /// after the decimal point. If [fractionDigits] equals 0, then the decimal
   /// point is omitted.
   ///
   /// The parameter [fractionDigits] must be an integer satisfying:
@@ -422,13 +459,13 @@ abstract class num implements Comparable<num> {
   /// Converts this number to a [double]
   /// before computing the string representation.
   ///
-  /// If [fractionDigits] is given then it must be an integer satisfying:
+  /// If [fractionDigits] is given, then it must be an integer satisfying:
   /// `0 <= fractionDigits <= 20`. In this case the string contains exactly
   /// [fractionDigits] after the decimal point. Otherwise, without the parameter,
   /// the returned string uses the shortest number of digits that accurately
   /// represent this number.
   ///
-  /// If [fractionDigits] equals 0 then the decimal point is omitted.
+  /// If [fractionDigits] equals 0, then the decimal point is omitted.
   /// Examples:
   /// ```dart
   /// 1.toStringAsExponential();       // 1e+0
@@ -461,7 +498,7 @@ abstract class num implements Comparable<num> {
   /// ```
   String toStringAsPrecision(int precision);
 
-  /// The shortest string that correctly represent this number number.
+  /// The shortest string that correctly represents this number.
   ///
   /// All [double]s in the range `10^-6` (inclusive) to `10^21` (exclusive)
   /// are converted to their decimal representation with at least one digit
@@ -517,6 +554,22 @@ abstract class num implements Comparable<num> {
   /// The [onError] parameter is deprecated and will be removed.
   /// Instead of `num.parse(string, (string) { ... })`,
   /// you should use `num.tryParse(string) ?? (...)`.
+  ///
+  /// Examples:
+  /// ```dart
+  /// var value = num.parse('2021'); // 2021
+  /// value = num.parse('3.14'); // 3.14
+  /// value = num.parse('  3.14 \xA0'); // 3.14
+  /// value = num.parse('0.'); // 0.0
+  /// value = num.parse('.0'); // 0.0
+  /// value = num.parse('-1.e3'); // -1000.0
+  /// value = num.parse('1234E+7'); // 12340000000.0
+  /// value = num.parse('+.12e-9'); // 1.2e-10
+  /// value = num.parse('-NaN'); // NaN
+  /// value = num.parse('0xFF'); // 255
+  /// value = num.parse(double.infinity.toString()); // Infinity
+  /// value = num.parse('1f'); // Throws.
+  /// ```
   static num parse(String input, [@deprecated num onError(String input)?]) {
     num? result = tryParse(input);
     if (result != null) return result;
@@ -526,8 +579,24 @@ abstract class num implements Comparable<num> {
 
   /// Parses a string containing a number literal into a number.
   ///
-  /// Like [parse] except that this function returns `null` for invalid inputs
+  /// Like [parse], except that this function returns `null` for invalid inputs
   /// instead of throwing.
+  ///
+  /// Examples:
+  /// ```dart
+  /// var value = num.tryParse('2021'); // 2021
+  /// value = num.tryParse('3.14'); // 3.14
+  /// value = num.tryParse('  3.14 \xA0'); // 3.14
+  /// value = num.tryParse('0.'); // 0.0
+  /// value = num.tryParse('.0'); // 0.0
+  /// value = num.tryParse('-1.e3'); // -1000.0
+  /// value = num.tryParse('1234E+7'); // 12340000000.0
+  /// value = num.tryParse('+.12e-9'); // 1.2e-10
+  /// value = num.tryParse('-NaN'); // NaN
+  /// value = num.tryParse('0xFF'); // 255
+  /// value = num.tryParse(double.infinity.toString()); // Infinity
+  /// value = num.tryParse('1f'); // null
+  /// ```
   static num? tryParse(String input) {
     String source = input.trim();
     // TODO(lrn): Optimize to detect format and result type in one check.

@@ -6,9 +6,9 @@ class Class1 extends core::Object {
   final field core::int field1;
   final field core::int field2;
   static final field dynamic _redirecting# = <dynamic>[self::Class1::redirectPositionalSame, self::Class1::redirectPositionalFewer1, self::Class1::redirectPositionalFewer2, self::Class1::redirectNamedSame, self::Class1::redirectNamedReorder, self::Class1::redirectNamedFewer1, self::Class1::redirectNamedFewer2, self::Class1::redirectNamedFewer3]/*isLegacy*/;
-  constructor positional([core::int field1, core::int field2]) → self::Class1
+  constructor positional([core::int field1 = 1, core::int field2 = 2]) → self::Class1
     ;
-  constructor named({core::int field1, core::int field2}) → self::Class1
+  constructor named({core::int field1 = 1, core::int field2 = 2}) → self::Class1
     ;
   static method _#positional#tearOff([core::int field1, core::int field2]) → self::Class1
     return new self::Class1::positional(field1, field2);

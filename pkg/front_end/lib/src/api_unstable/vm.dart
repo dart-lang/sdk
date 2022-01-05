@@ -54,6 +54,8 @@ export '../fasta/compiler_context.dart' show CompilerContext;
 export '../fasta/fasta_codes.dart'
     show
         LocatedMessage,
+        messageFfiAbiSpecificIntegerInvalid,
+        messageFfiAbiSpecificIntegerMappingInvalid,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         messageFfiLeafCallMustNotReturnHandle,

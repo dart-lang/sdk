@@ -104,6 +104,19 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     addSource(testFile, content);
   }
 
+  /// A variant of [addTestSource] that can be invoked more than once,
+  /// and will notify the driver that the file changed.
+  void addTestSource2(String content) {
+    _completionOffset = content.indexOf('^');
+    expect(_completionOffset, greaterThanOrEqualTo(0), reason: 'missing ^');
+    var nextOffset = content.indexOf('^', _completionOffset + 1);
+    expect(nextOffset, equals(-1), reason: 'too many ^');
+    content = content.substring(0, _completionOffset) +
+        content.substring(_completionOffset + 1);
+    addSource(testFile, content);
+    driverFor(testFile).changeFile(testFile);
+  }
+
   void assertCoreTypeSuggestions() {
     assertSuggest('Comparable');
     assertSuggest('Comparator');

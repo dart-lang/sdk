@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+extension MyInt on core::int {
+  static field a = self2::MyInt|a;
+  static field b = self2::MyInt|b;
+}
+late static field core::int MyInt|a;
+late static field core::int MyInt|b;

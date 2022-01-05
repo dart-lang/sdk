@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "main_lib.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic {
+  mai::MyInt|a = 42;
+  core::print(mai::MyInt|a);
+  mai::MyInt|b = 87;
+  core::print(mai::MyInt|b);
+}
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+
+extension MyInt on core::int {
+  static field a = mai::MyInt|a;
+  static field b = mai::MyInt|b;
+}
+late static field core::int MyInt|a;
+late static field core::int MyInt|b = 42;

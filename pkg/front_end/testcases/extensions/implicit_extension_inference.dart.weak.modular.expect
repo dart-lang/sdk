@@ -1,0 +1,86 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+class C extends self::B {
+  synthetic constructor •() → self::C*
+    : super self::B::•()
+    ;
+}
+class GenericClass<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension GenericExtension<T extends core::Object* = dynamic> on self::GenericClass<T*>* {
+  get property = self::GenericExtension|get#property;
+  method method = self::GenericExtension|method;
+  tearoff method = self::GenericExtension|get#method;
+  method genericMethod1 = self::GenericExtension|genericMethod1;
+  tearoff genericMethod1 = self::GenericExtension|get#genericMethod1;
+}
+static method GenericExtension|get#property<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#property::T*>* #this) → self::GenericExtension|get#property::T*
+  return null;
+static method GenericExtension|method<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|method::T*>* #this, self::GenericExtension|method::T* t) → self::GenericExtension|method::T*
+  return null;
+static method GenericExtension|get#method<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#method::T*>* #this) → (self::GenericExtension|get#method::T*) →* self::GenericExtension|get#method::T*
+  return (self::GenericExtension|get#method::T* t) → self::GenericExtension|get#method::T* => self::GenericExtension|method<self::GenericExtension|get#method::T*>(#this, t);
+static method GenericExtension|genericMethod1<T extends core::Object* = dynamic, S extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|genericMethod1::T*>* #this, self::GenericExtension|genericMethod1::S* s) → self::GenericExtension|genericMethod1::S*
+  return null;
+static method GenericExtension|get#genericMethod1<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#genericMethod1::T*>* #this) → <S extends core::Object* = dynamic>(S*) →* S*
+  return <S extends core::Object* = dynamic>(S* s) → S* => self::GenericExtension|genericMethod1<self::GenericExtension|get#genericMethod1::T*, S*>(#this, s);
+static method main() → dynamic {
+  self::A* aVariable;
+  self::C* cVariable;
+  self::GenericClass<self::A*>* aClass;
+  self::GenericClass<self::B*>* bClass;
+  self::GenericClass<self::C*>* cClass;
+  cVariable = self::GenericExtension|get#property<self::A*>(aClass) as{TypeError} self::C*;
+  cVariable = self::GenericExtension|get#property<self::B*>(bClass) as{TypeError} self::C*;
+  aVariable = self::GenericExtension|get#property<self::C*>(cClass);
+  cVariable = self::GenericExtension|method<self::A*>(aClass, aVariable) as{TypeError} self::C*;
+  cVariable = self::GenericExtension|method<self::B*>(bClass, aVariable as{TypeError} self::B*) as{TypeError} self::C*;
+  aVariable = self::GenericExtension|method<self::C*>(cClass, aVariable as{TypeError} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::A*, self::C*>(aClass, aVariable as{TypeError} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::A*, self::A*>(aClass, aVariable) as{TypeError} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::A*, self::B*>(aClass, aVariable as{TypeError} self::B*) as{TypeError} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::A*, self::C*>(aClass, aVariable as{TypeError} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::B*, self::C*>(bClass, aVariable as{TypeError} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::B*, self::A*>(bClass, aVariable) as{TypeError} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::B*, self::B*>(bClass, aVariable as{TypeError} self::B*) as{TypeError} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::B*, self::C*>(bClass, aVariable as{TypeError} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::C*, self::C*>(cClass, aVariable as{TypeError} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::C*, self::A*>(cClass, aVariable) as{TypeError} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::C*, self::B*>(cClass, aVariable as{TypeError} self::B*) as{TypeError} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::C*, self::C*>(cClass, aVariable as{TypeError} self::C*);
+}

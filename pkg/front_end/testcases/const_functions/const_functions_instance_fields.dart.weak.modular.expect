@@ -1,0 +1,65 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field core::int y;
+  const constructor •(core::int y) → self::A
+    : self::A::y = y, super core::Object::•()
+    ;
+}
+class B extends self::A /*hasConstConstructor*/  {
+  const constructor •(core::int x) → self::B
+    : super self::A::•(x)
+    ;
+}
+class C extends self::A /*hasConstConstructor*/  {
+  @#C1
+  final field core::int y = 2;
+  const constructor •() → self::C
+    : super self::A::•(100)
+    ;
+}
+static const field core::int var1 = #C2;
+static const field core::int var2 = #C2;
+static const field core::int var3 = #C2;
+static const field core::int var4 = #C2;
+static const field core::int var5 = #C3;
+static method fn() → core::int
+  return #C4.{self::A::y}{core::int};
+static method fn2() → core::int {
+  self::A x = #C4;
+  return x.{self::A::y}{core::int};
+}
+static method fn4() → core::int
+  return #C5.{self::A::y}{core::int};
+static method fn5() → core::int
+  return #C7.{self::C::y}{core::int};
+static method main() → void {
+  exp::Expect::equals(#C2, 1);
+  exp::Expect::equals(#C2, 1);
+  exp::Expect::equals(#C2, 1);
+  exp::Expect::equals(#C2, 1);
+  exp::Expect::equals(#C3, 2);
+}
+
+constants  {
+  #C1 = core::_Override {}
+  #C2 = 1
+  #C3 = 2
+  #C4 = self::A {y:#C2}
+  #C5 = self::B {y:#C2}
+  #C6 = 100
+  #C7 = self::C {y:#C3, y:#C6}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_functions_instance_fields.dart:
+- A. (from org-dartlang-testcase:///const_functions_instance_fields.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- B. (from org-dartlang-testcase:///const_functions_instance_fields.dart:27:9)
+- C. (from org-dartlang-testcase:///const_functions_instance_fields.dart:37:9)

@@ -21,7 +21,7 @@ class DataDriven extends MultiCorrectionProducer {
   static List<TransformSet>? transformSetsForTests;
 
   @override
-  Iterable<CorrectionProducer> get producers sync* {
+  Stream<CorrectionProducer> get producers async* {
     var importedUris = <Uri>[];
     var library = resolvedResult.libraryElement;
     for (var importElement in library.imports) {
@@ -92,7 +92,7 @@ class DataDrivenFix extends CorrectionProducer {
     }
     var data = <Object>[];
     for (var change in changes) {
-      var result = change.validate(this);
+      var result = change.validate(this) as Object?;
       if (result == null) {
         return;
       }

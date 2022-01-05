@@ -307,7 +307,7 @@ class InstrumentationLog {
           if (entry.isServerStatus) {
             var analysisStatus = entry.param('analysis');
             if (analysisStatus is Map) {
-              if (analysisStatus['isAnalyzing']) {
+              if (analysisStatus['isAnalyzing'] as bool) {
                 if (analysisStartEntry != null) {
                   analysisStartEntry.recordProblem(
                       'Analysis started without being terminated.');
@@ -331,7 +331,7 @@ class InstrumentationLog {
             }
             var pubStatus = entry.param('pub');
             if (pubStatus is Map) {
-              if (pubStatus['isListingPackageDirs']) {
+              if (pubStatus['isListingPackageDirs'] as bool) {
                 if (pubStartEntry != null) {
                   pubStartEntry.recordProblem(
                       'Pub started without previous being terminated.');
@@ -441,9 +441,9 @@ abstract class JsonBasedEntry extends LogEntry {
       object.forEach((key, value) {
         var newIndent = indent + singleIndent;
         buffer.write(newIndent);
-        _format(buffer, newIndent, key);
+        _format(buffer, newIndent, key as Object);
         buffer.write(' : ');
-        _format(buffer, newIndent, value);
+        _format(buffer, newIndent, value as Object);
         buffer.write('<br>');
       });
       buffer.write(indent);
@@ -453,7 +453,7 @@ abstract class JsonBasedEntry extends LogEntry {
       object.forEach((element) {
         var newIndent = indent + singleIndent;
         buffer.write(newIndent);
-        _format(buffer, newIndent, element);
+        _format(buffer, newIndent, element as Object);
         buffer.write('<br>');
       });
       buffer.write(indent);
@@ -578,7 +578,7 @@ abstract class LogEntry {
       } else if (entryKind == InstrumentationLogAdapter.TAG_LOG_ENTRY) {
         // Fall through
       } else if (entryKind == InstrumentationLogAdapter.TAG_NOTIFICATION) {
-        Map requestData = json.decode(components[2]);
+        var requestData = json.decode(components[2]) as Map<Object?, Object?>;
         return NotificationEntry(index, timeStamp, requestData);
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_ERROR) {
         return PluginErrorEntry(index, timeStamp, entryKind,
@@ -588,25 +588,25 @@ abstract class LogEntry {
             components.sublist(2, 5), components.sublist(5));
       } else if (entryKind ==
           InstrumentationLogAdapter.TAG_PLUGIN_NOTIFICATION) {
-        Map requestData = json.decode(components[2]);
+        var requestData = json.decode(components[2]) as Map<Object?, Object?>;
         return PluginNotificationEntry(
             index, timeStamp, requestData, components.sublist(3));
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_REQUEST) {
-        Map requestData = json.decode(components[2]);
+        var requestData = json.decode(components[2]) as Map<Object?, Object?>;
         return PluginRequestEntry(
             index, timeStamp, requestData, components.sublist(3));
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_RESPONSE) {
-        Map responseData = json.decode(components[2]);
+        var responseData = json.decode(components[2]) as Map<Object?, Object?>;
         return PluginResponseEntry(
             index, timeStamp, responseData, components.sublist(3));
       } else if (entryKind == InstrumentationLogAdapter.TAG_PLUGIN_TIMEOUT) {
         return PluginErrorEntry(index, timeStamp, entryKind,
             components.sublist(2, 3), components.sublist(3));
       } else if (entryKind == InstrumentationLogAdapter.TAG_REQUEST) {
-        Map requestData = json.decode(components[2]);
+        var requestData = json.decode(components[2]) as Map<Object?, Object?>;
         return RequestEntry(index, timeStamp, requestData);
       } else if (entryKind == InstrumentationLogAdapter.TAG_RESPONSE) {
-        Map responseData = json.decode(components[2]);
+        var responseData = json.decode(components[2]) as Map<Object?, Object?>;
         return ResponseEntry(index, timeStamp, responseData);
       } else if (entryKind == InstrumentationLogAdapter.TAG_VERSION) {
         // Fall through
@@ -675,7 +675,7 @@ class NotificationEntry extends JsonBasedEntry {
       : super(index, timeStamp, notificationData);
 
   /// Return the event field of the request.
-  String get event => data['event'];
+  String get event => data['event'] as String;
 
   /// Return `true` if this is a server error notification.
   bool get isServerError => event == 'server.error';
@@ -747,7 +747,7 @@ class PluginNotificationEntry extends JsonBasedPluginEntry {
       : super(index, timeStamp, notificationData, pluginData);
 
   /// Return the event field of the notification.
-  String get event => data['event'];
+  String get event => data['event'] as String;
 
   @override
   String get kind => 'PluginNoti';
@@ -773,13 +773,13 @@ class PluginRequestEntry extends JsonBasedPluginEntry {
       : super(index, timeStamp, requestData, pluginData);
 
   /// Return the id field of the request.
-  String get id => data['id'];
+  String get id => data['id'] as String;
 
   @override
   String get kind => 'PluginReq';
 
   /// Return the method field of the request.
-  String get method => data['method'];
+  String get method => data['method'] as String;
 
   /// Return the value of the parameter with the given [parameterName], or
   /// `null` if there is no such parameter.
@@ -802,7 +802,7 @@ class PluginResponseEntry extends JsonBasedPluginEntry {
       : super(index, timeStamp, responseData, pluginData);
 
   /// Return the id field of the response.
-  String get id => data['id'];
+  String get id => data['id'] as String;
 
   @override
   String get kind => 'PluginRes';
@@ -827,16 +827,16 @@ class RequestEntry extends JsonBasedEntry {
       : super(index, timeStamp, requestData);
 
   /// Return the clientRequestTime field of the request.
-  int get clientRequestTime => data['clientRequestTime'];
+  int get clientRequestTime => data['clientRequestTime'] as int;
 
   /// Return the id field of the request.
-  String get id => data['id'];
+  String get id => data['id'] as String;
 
   @override
   String get kind => 'Req';
 
   /// Return the method field of the request.
-  String get method => data['method'];
+  String get method => data['method'] as String;
 
   /// Return the value of the parameter with the given [parameterName], or
   /// `null` if there is no such parameter.
@@ -858,7 +858,7 @@ class ResponseEntry extends JsonBasedEntry {
       : super(index, timeStamp, responseData);
 
   /// Return the id field of the response.
-  String get id => data['id'];
+  String get id => data['id'] as String;
 
   @override
   String get kind => 'Res';

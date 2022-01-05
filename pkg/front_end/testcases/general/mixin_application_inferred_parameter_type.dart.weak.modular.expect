@@ -1,0 +1,55 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/mixin_application_inferred_parameter_type.dart:20:13: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+//   new Class('');
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Super extends core::Object {
+  field core::int* field = 42;
+  constructor •(core::int* field) → self::Super*
+    : self::Super::field = field, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class = self::Super with self::Mixin {
+  synthetic constructor •(core::int* field) → self::Class*
+    : super self::Super::•(field)
+    ;
+}
+static method main() → dynamic {
+  new self::Class::•(0);
+}
+static method error() → dynamic {
+  new self::Class::•(invalid-expression "pkg/front_end/testcases/general/mixin_application_inferred_parameter_type.dart:20:13: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+  new Class('');
+            ^" in "" as{TypeError} core::int*);
+}

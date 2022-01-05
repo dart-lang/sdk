@@ -197,6 +197,12 @@ const char* MethodRecognizer::KindToCString(Kind kind) {
   return "?";
 }
 
+const char* MethodRecognizer::KindToFunctionNameCString(Kind kind) {
+  if (kind >= kUnknown && kind < kNumRecognizedMethods)
+    return recognized_methods[kind].function_name;
+  return "?";
+}
+
 // Is this method marked with the vm:recognized pragma?
 bool MethodRecognizer::IsMarkedAsRecognized(const Function& function,
                                             const char* kind) {

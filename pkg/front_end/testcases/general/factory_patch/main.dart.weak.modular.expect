@@ -1,0 +1,49 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:test" as test;
+
+import "dart:test";
+
+static method main() → dynamic {
+  test::Class::fact();
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/factory_patch/patch_lib.dart:22:52: Error: Can't have a default value here because any default values of 'Class._internal' would be used instead.
+// Try removing the default value.
+//   const factory Class.redirect({bool defaultValue: true}) = Class._internal;
+//                                                    ^
+//
+import self as test;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@#C1
+class Class extends core::Object {
+  final field core::bool defaultValue /* from org-dartlang-testcase:///patch_lib.dart */;
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
+  const constructor _internal({core::bool defaultValue = #C3}) → test::Class
+    : test::Class::defaultValue = defaultValue, super core::Object::•()
+    ;
+  @#C1
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ fact({core::bool defaultValue = #C4}) → test::Class
+    return new test::Class::_internal(defaultValue: defaultValue);
+  @#C1
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ constFact({core::bool defaultValue = #C4}) → test::Class
+    return throw "unsupported";
+  @#C1
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect({core::bool defaultValue = #C4}) → test::Class
+    return new test::Class::_internal(defaultValue: defaultValue);
+}
+
+constants  {
+  #C1 = _in::_Patch {}
+  #C2 = constructor-tearoff test::Class::redirect
+  #C3 = false
+  #C4 = true
+}

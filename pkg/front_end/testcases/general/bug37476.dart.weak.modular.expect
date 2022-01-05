@@ -1,0 +1,60 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::num*> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T*>*
+    : super core::Object::•()
+    ;
+  method foo() → <S extends self::A::T* = dynamic>(S*) →* void {
+    core::print("foo: T = ${self::A::T*}");
+    return <S extends self::A::T*>(S* a) → Null {};
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B<T extends core::num*> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T*>*
+    : super core::Object::•()
+    ;
+  method foo() → (self::B::T*) →* void {
+    core::print("foo: T = ${self::B::T*}");
+    return (self::B::T* a) → Null {};
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field self::A<core::num*>* a = new self::A::•<core::int*>();
+static field self::B<core::num*>* b = new self::B::•<core::int*>();
+static method main() → dynamic {
+  try {
+    self::a.{self::A::foo}(){() →* <S extends core::num* = dynamic>(S*) →* void} as{TypeError,CovarianceCheck} <S extends core::num* = dynamic>(S*) →* void;
+    throw "Expected TypeError";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+  try {
+    self::b.{self::B::foo}(){() →* (core::num*) →* void} as{TypeError,CovarianceCheck} (core::num*) →* void;
+    throw "Expected TypeError";
+  }
+  on core::TypeError* catch(final core::TypeError* e) {
+    core::print(e);
+  }
+}

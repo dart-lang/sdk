@@ -468,7 +468,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     }
 
     /// This path is needed for synthetically injected superclasses like
-    /// `Interceptor` and `JavaScriptObject`.
+    /// `Interceptor` and `LegacyJavaScriptObject`.
     KClassEnv env = classes.getEnv(superClass);
     ConstructorEntity constructor = env.lookupConstructor(this, target.name);
     if (constructor != null) {

@@ -1,0 +1,33 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/instantiate_to_bound/inference_super_bounded_rejected.dart:11:13: Error: Inferred type argument 'Comparable<dynamic>' doesn't conform to the bound 'Comparable<T>' of the type variable 'T' on 'B'.
+//  - 'Comparable' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+// var y = new B();
+//             ^
+// pkg/front_end/testcases/instantiate_to_bound/inference_super_bounded_rejected.dart:9:9: Context: This is the type variable whose bound isn't conformed to.
+// class B<T extends Comparable<T>> {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class B<T extends core::Comparable<self::B::T*>* = core::Comparable<dynamic>*> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field self::B<core::Comparable<dynamic>*>* y = new self::B::•<core::Comparable<dynamic>*>();
+static method main() → dynamic {}

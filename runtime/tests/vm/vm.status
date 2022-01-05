@@ -20,6 +20,7 @@ dart/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
 dart/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
 dart/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart/null_safety_autodetection_in_kernel_compiler_test: Pass, Slow # Spawns several subprocesses
+dart/print_object_layout_test: Pass, Slow # Spawns several subprocesses
 dart/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
@@ -32,6 +33,7 @@ dart_2/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
 dart_2/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
 dart_2/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart_2/null_safety_autodetection_in_kernel_compiler_test: Pass, Slow # Spawns several subprocesses
+dart_2/print_object_layout_test: Pass, Slow # Spawns several subprocesses
 dart_2/slow_path_shared_stub_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart_2/snapshot_version_test: Skip # This test is a Dart1 test (script snapshot)
 dart_2/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.

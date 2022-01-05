@@ -261,12 +261,23 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     capabilitiesComputer.performDynamicRegistration();
   }
 
-  /// Return the LineInfo for the file with the given [path]. The file is
-  /// analyzed in one of the analysis drivers to which the file was added,
-  /// otherwise in the first driver, otherwise `null` is returned.
+  /// Return a [LineInfo] for the file with the given [path].
+  ///
+  /// If the file does not exist or cannot be read, returns `null`.
+  ///
+  /// This method supports non-Dart files but uses the current content of the
+  /// file which may not be the latest analyzed version of the file if it was
+  /// recently modified, so using the lineInfo from an analyzed result may be
+  /// preferable.
   LineInfo? getLineInfo(String path) {
-    var result = getAnalysisDriver(path)?.getFileSync(path);
-    return result is FileResult ? result.lineInfo : null;
+    try {
+      final content = resourceProvider.getFile(path).readAsStringSync();
+      return LineInfo.fromContent(content);
+    } on FileSystemException {
+      // If the file does not exist or cannot be read, return null to allow
+      // the caller to decide how to handle this.
+      return null;
+    }
   }
 
   /// Gets the version of a document known to the server, returning a
@@ -896,7 +907,6 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
     var path = result.path;
 
     analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
-    analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
 
     final unit = result.unit;
     if (analysisServer.shouldSendClosingLabelsFor(path)) {

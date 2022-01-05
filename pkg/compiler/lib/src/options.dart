@@ -77,12 +77,13 @@ class FeatureOptions {
   FeatureOption useContentSecurityPolicy = FeatureOption('csp');
 
   /// [FeatureOption]s which are shipped and cannot be toggled.
-  late final List<FeatureOption> shipped = [];
+  late final List<FeatureOption> shipped = [
+    newHolders,
+  ];
 
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
     legacyJavaScript,
-    newHolders,
     useContentSecurityPolicy
   ];
 
@@ -168,8 +169,6 @@ class CompilerOptions implements DiagnosticOptions {
   }
 
   /// Location of the package configuration file.
-  ///
-  /// If not null then [packageRoot] should be null.
   Uri? packageConfig;
 
   /// List of kernel files to load.

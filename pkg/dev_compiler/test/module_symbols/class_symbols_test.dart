@@ -71,12 +71,10 @@ void main() async {
             expect(classSymbol.location.scriptId, endsWith('/foo.dart'));
           });
           test('has start token', () async {
-            expect(classSymbol.location.tokenPos,
-                22 + options.dartLangComment.length);
+            expect(classSymbol.location.tokenPos, source.indexOf('class A'));
           });
           test('has end token', () async {
-            expect(classSymbol.location.endTokenPos,
-                31 + options.dartLangComment.length);
+            expect(classSymbol.location.endTokenPos, source.lastIndexOf('}'));
           });
         });
         test('no fields', () async {

@@ -71,6 +71,7 @@ class TransformSetParser {
   static const String _oneOfKey = 'oneOf';
   static const String _requiredIfKey = 'requiredIf';
   static const String _setterKey = 'setter';
+  static const String _staticKey = 'static';
   static const String _styleKey = 'style';
   static const String _titleKey = 'title';
   static const String _transformsKey = 'transforms';
@@ -292,6 +293,7 @@ class TransformSetParser {
   /// Report any keys in the [map] whose values are not in [validKeys].
   void _reportUnsupportedKeys(YamlMap map, Set<String> validKeys) {
     for (var keyNode in map.nodes.keys) {
+      keyNode as YamlNode;
       var key = _translateKey(keyNode);
       if (key != null && !validKeys.contains(key)) {
         _reportError(TransformSetErrorCode.unsupportedKey, keyNode, [key]);
@@ -661,6 +663,8 @@ class TransformSetParser {
         return null;
       }
       var components = [elementName];
+      var isStatic = false;
+      var staticNode = node.valueAt(_staticKey);
       if (_containerKeyMap.containsKey(elementKey)) {
         var validContainerKeys = _containerKeyMap[elementKey]!;
         var containerKey =
@@ -683,6 +687,20 @@ class TransformSetParser {
         } else {
           components.add(containerName);
         }
+        if (staticNode != null) {
+          var staticValue = _translateBool(
+              staticNode, ErrorContext(key: _staticKey, parentNode: node));
+          if (staticValue != null) {
+            if (components.length == 1) {
+              _reportError(TransformSetErrorCode.unsupportedStatic,
+                  node.getKey(_staticKey)!);
+            }
+            isStatic = staticValue;
+          }
+        }
+      } else if (staticNode != null) {
+        _reportError(
+            TransformSetErrorCode.unsupportedStatic, node.getKey(_staticKey)!);
       }
       if (uris == null) {
         // The error has already been reported.
@@ -697,6 +715,7 @@ class TransformSetParser {
       return ElementDescriptor(
           libraryUris: uris,
           kind: ElementKindUtilities.fromName(elementKey)!,
+          isStatic: isStatic,
           components: components);
     } else if (node == null) {
       return _reportMissingKey(context);
@@ -910,7 +929,7 @@ class TransformSetParser {
     if (node is YamlMap) {
       var generators = <String, ValueGenerator>{};
       for (var entry in node.nodes.entries) {
-        var name = _translateKey(entry.key);
+        var name = _translateKey(entry.key as YamlNode);
         if (name != null) {
           var value = _translateValueGenerator(
               entry.value, ErrorContext(key: name, parentNode: node));

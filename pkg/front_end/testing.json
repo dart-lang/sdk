@@ -128,6 +128,23 @@
       ]
     },
     {
+      "name": "modular",
+      "kind": "Chain",
+      "source": "test/fasta/modular_suite.dart",
+      "path": "testcases/",
+      "status": "testcases/modular.status",
+      "pattern": [
+        "\\.dart$",
+        "\\.crash_dart$"
+      ],
+      "exclude": [
+        "/testcases/.*_part[0-9]*\\.dart$",
+        "/testcases/.*_lib[0-9]*\\.dart$",
+        "/testcases/dartino/",
+        "/testcases/expression/"
+      ]
+    },
+    {
       "name": "weak",
       "kind": "Chain",
       "source": "test/fasta/weak_suite.dart",

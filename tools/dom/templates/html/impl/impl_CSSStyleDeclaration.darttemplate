@@ -3139,6 +3139,15 @@ abstract class CssStyleDeclarationBase {
     setProperty('font-weight', value, '');
   }
 
+  /** Gets the value of "gap" */
+  String get gap =>
+    getPropertyValue('gap');
+
+  /** Sets the value of "gap" */
+  set gap(String value) {
+    setProperty('gap', value, '');
+  }
+
   /** Gets the value of "grid" */
   String get grid =>
     getPropertyValue('grid');
@@ -4190,6 +4199,15 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "right" */
   set right(String value) {
     setProperty('right', value, '');
+  }
+
+  /** Gets the value of "row-gap" */
+  String get rowGap =>
+    getPropertyValue('row-gap');
+
+  /** Sets the value of "row-gap" */
+  set rowGap(String value) {
+    setProperty('row-gap', value, '');
   }
 
   /** Gets the value of "rtl-ordering" */

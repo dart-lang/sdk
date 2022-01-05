@@ -12,9 +12,14 @@ main() {
   setUpJS();
   test('dom-is-js', () {
     var e = confuse(new html.DivElement());
-    // Currently, HTML types are not [JavaScriptObject]s. We could change that
-    // by having HTML types extend JavaScriptObject, in which case we would
-    // change this expectation.
+    // Currently, HTML types are not `LegacyJavaScriptObject`s, so therefore
+    // they cannot be used with the usual `package:js` types.
     expect(e is HTMLDivElement, isFalse);
+  });
+  test('dom-is-static-js', () {
+    var e = confuse(new html.DivElement());
+    // However, HTML types are `JavaScriptObject`s, so they can be used with
+    // static `package:js` types, using `@staticInterop`.
+    expect(e is StaticHTMLDivElement, isTrue);
   });
 }

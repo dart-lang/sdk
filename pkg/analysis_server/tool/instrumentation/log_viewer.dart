@@ -70,14 +70,14 @@ class Driver {
   void start(List<String> args) {
     var parser = createParser();
     var options = parser.parse(args);
-    if (options[helpFlag]) {
+    if (options[helpFlag] as bool) {
       printUsage(parser);
       return;
     }
 
     var port = defaultPortNumber;
     try {
-      port = int.parse(options[portOption]);
+      port = int.parse(options[portOption] as String);
     } catch (exception) {
       printUsage(parser, error: 'Invalid port number');
       return;

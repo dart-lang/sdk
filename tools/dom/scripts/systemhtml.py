@@ -732,7 +732,7 @@ class HtmlDartInterfaceGenerator(object):
         if mixins:
             mixins_str = ' with ' + ', '.join(mixins)
             if not base_class:
-                base_class = 'Interceptor'
+                base_class = 'JavaScriptObject'
             elif (base_class == 'NativeFieldWrapperClass2' and
                   self._options.dart_js_interop and
                   not (isinstance(self._backend, Dart2JSBackend))):
@@ -1831,7 +1831,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         pass
 
     def RootClassName(self):
-        return 'Interceptor'
+        return 'JavaScriptObject'
 
     def OmitOperationOverrides(self):
         return True

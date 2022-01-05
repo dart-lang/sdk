@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/required_named_parameter.dart:6:19: Error: Named parameter 'parameter' is required and can't have a default value.
+// foo({required int parameter = 42}) {}
+//                   ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/required_named_parameter.dart:7:11: Error: The parameter 'parameter' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// foo2({int parameter}) {}
+//           ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/required_named_parameter.dart:8:11: Error: The parameter 'parameter' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// foo3([int parameter]) {}
+//           ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method foo({required core::int parameter = #C1}) → dynamic {}
+static method foo2({core::int parameter = #C2}) → dynamic {}
+static method foo3([core::int parameter = #C2]) → dynamic {}
+static method bar({required core::int parameter = #C2}) → dynamic {}
+static method bar2({core::int parameter = #C1}) → dynamic {}
+static method bar3([core::int parameter = #C1]) → dynamic {}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 42
+  #C2 = null
+}

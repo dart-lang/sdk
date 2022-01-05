@@ -20,38 +20,14 @@ class ReplaceReturnTypeFutureTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
 
-  Future<void> test_adjacentNodes_withImport() async {
-    await resolveTestCode('''
-import 'dart:async';
-var v;int main() async => 0;
-''');
-    await assertHasFix('''
-import 'dart:async';
-var v;Future<int> main() async => 0;
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
-    });
-  }
-
-  Future<void> test_adjacentNodes_withoutImport() async {
-    await resolveTestCode('''
-var v;int main() async => 0;
-''');
-    await assertHasFix('''
-var v;Future<int> main() async => 0;
-''');
-  }
-
   Future<void> test_complexTypeName_withImport() async {
     await resolveTestCode('''
 import 'dart:async';
-List<int> main() async {
-}
+List<int> f() async {}
 ''');
     await assertHasFix('''
 import 'dart:async';
-Future<List<int>> main() async {
-}
+Future<List<int>> f() async {}
 ''', errorFilter: (error) {
       return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
     });
@@ -59,25 +35,21 @@ Future<List<int>> main() async {
 
   Future<void> test_complexTypeName_withoutImport() async {
     await resolveTestCode('''
-List<int> main() async {
-}
+List<int> f() async {}
 ''');
     await assertHasFix('''
-Future<List<int>> main() async {
-}
+Future<List<int>> f() async {}
 ''');
   }
 
   Future<void> test_importedWithPrefix() async {
     await resolveTestCode('''
 import 'dart:async' as al;
-int main() async {
-}
+int f() async {}
 ''');
     await assertHasFix('''
 import 'dart:async' as al;
-al.Future<int> main() async {
-}
+al.Future<int> f() async {}
 ''', errorFilter: (error) {
       return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
     });
@@ -86,11 +58,11 @@ al.Future<int> main() async {
   Future<void> test_simpleTypeName_withImport() async {
     await resolveTestCode('''
 import 'dart:async';
-int main() async => 0;
+int f() async {}
 ''');
     await assertHasFix('''
 import 'dart:async';
-Future<int> main() async => 0;
+Future<int> f() async {}
 ''', errorFilter: (error) {
       return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
     });
@@ -98,40 +70,10 @@ Future<int> main() async => 0;
 
   Future<void> test_simpleTypeName_withoutImport() async {
     await resolveTestCode('''
-int main() async => 0;
+int f() async {}
 ''');
     await assertHasFix('''
-Future<int> main() async => 0;
-''');
-  }
-
-  Future<void> test_withLibraryDirective_withImport() async {
-    await resolveTestCode('''
-library main;
-import 'dart:async';
-int main() async {
-}
-''');
-    await assertHasFix('''
-library main;
-import 'dart:async';
-Future<int> main() async {
-}
-''', errorFilter: (error) {
-      return error.errorCode == CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
-    });
-  }
-
-  Future<void> test_withLibraryDirective_withoutImport() async {
-    await resolveTestCode('''
-library main;
-int main() async {
-}
-''');
-    await assertHasFix('''
-library main;
-Future<int> main() async {
-}
+Future<int> f() async {}
 ''');
   }
 }

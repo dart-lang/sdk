@@ -2,25 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ToSourceVisitor2Test);
+    defineReflectiveTests(ToSourceVisitorTest);
   });
 }
 
 @reflectiveTest
-class ToSourceVisitor2Test {
+class ToSourceVisitorTest {
   void test_visitAdjacentStrings() {
     _assertSource(
         "'a' 'b'",
@@ -208,6 +211,13 @@ class ToSourceVisitor2Test {
             Keyword.ABSTRACT, "C", null, null, null, null));
   }
 
+  void test_visitClassDeclaration_abstractMacro() {
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        Keyword.ABSTRACT, "C", null, null, null, null,
+        isMacro: true);
+    _assertSource("abstract macro class C {}", declaration);
+  }
+
   void test_visitClassDeclaration_empty() {
     _assertSource("class C {}",
         AstTestFactory.classDeclaration(null, "C", null, null, null, null));
@@ -268,15 +278,23 @@ class ToSourceVisitor2Test {
             AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
   }
 
+  void test_visitClassDeclaration_macro() {
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        null, "C", null, null, null, null,
+        isMacro: true);
+    _assertSource("macro class C {}", declaration);
+  }
+
   void test_visitClassDeclaration_multipleMember() {
     _assertSource(
         "class C {var a; var b;}",
-        AstTestFactory.classDeclaration(null, "C", null, null, null, null, [
-          AstTestFactory.fieldDeclaration2(
-              false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")]),
-          AstTestFactory.fieldDeclaration2(
-              false, Keyword.VAR, [AstTestFactory.variableDeclaration("b")])
-        ]));
+        AstTestFactory.classDeclaration(null, "C", null, null, null, null,
+            members: [
+              AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
+                  [AstTestFactory.variableDeclaration("a")]),
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration("b")])
+            ]));
   }
 
   void test_visitClassDeclaration_parameters() {
@@ -349,10 +367,11 @@ class ToSourceVisitor2Test {
   void test_visitClassDeclaration_singleMember() {
     _assertSource(
         "class C {var a;}",
-        AstTestFactory.classDeclaration(null, "C", null, null, null, null, [
-          AstTestFactory.fieldDeclaration2(
-              false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")])
-        ]));
+        AstTestFactory.classDeclaration(null, "C", null, null, null, null,
+            members: [
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")])
+            ]));
   }
 
   void test_visitClassDeclaration_withMetadata() {
@@ -387,6 +406,19 @@ class ToSourceVisitor2Test {
             AstTestFactory.implementsClause([AstTestFactory.namedType4("I")])));
   }
 
+  void test_visitClassTypeAlias_abstractMacro() {
+    _assertSource(
+        "abstract macro class C = S with M1;",
+        AstTestFactory.classTypeAlias(
+            "C",
+            null,
+            Keyword.ABSTRACT,
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            null,
+            isMacro: true));
+  }
+
   void test_visitClassTypeAlias_generic() {
     _assertSource(
         "class C<E> = S<E> with M1<E>;",
@@ -411,6 +443,19 @@ class ToSourceVisitor2Test {
             AstTestFactory.namedType4("S"),
             AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
             AstTestFactory.implementsClause([AstTestFactory.namedType4("I")])));
+  }
+
+  void test_visitClassTypeAlias_macro() {
+    _assertSource(
+        "macro class C = S with M1;",
+        AstTestFactory.classTypeAlias(
+            "C",
+            null,
+            null,
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            null,
+            isMacro: true));
   }
 
   void test_visitClassTypeAlias_minimal() {
@@ -765,14 +810,62 @@ class ToSourceVisitor2Test {
     _assertSource(";", AstTestFactory.emptyStatement());
   }
 
-  void test_visitEnumDeclaration_multiple() {
-    _assertSource("enum E {ONE, TWO}",
-        AstTestFactory.enumDeclaration2("E", ["ONE", "TWO"]));
+  void test_visitEnumDeclaration_constants_multiple() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {one, two}
+''');
+    _assertSource(
+      'enum E {one, two}',
+      findNode.enumDeclaration('E'),
+    );
   }
 
-  void test_visitEnumDeclaration_single() {
+  void test_visitEnumDeclaration_constants_single() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {one}
+''');
     _assertSource(
-        "enum E {ONE}", AstTestFactory.enumDeclaration2("E", ["ONE"]));
+      'enum E {one}',
+      findNode.enumDeclaration('E'),
+    );
+  }
+
+  void test_visitEnumDeclaration_field_constructor() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {
+  one, two;
+  final int field;
+  E(this.field);
+}
+''');
+    _assertSource(
+      'enum E {one, two; final int field; E(this.field);}',
+      findNode.enumDeclaration('enum E'),
+    );
+  }
+
+  void test_visitEnumDeclaration_method() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {
+  one, two;
+  void myMethod() {}
+  int get myGetter => 0;
+}
+''');
+    _assertSource(
+      'enum E {one, two; void myMethod() {} int get myGetter => 0;}',
+      findNode.enumDeclaration('enum E'),
+    );
+  }
+
+  void test_visitEnumDeclaration_withoutMembers() {
+    var findNode = _parseStringToFindNode(r'''
+enum E<T> with M1, M2 implements I1, I2 {one, two}
+''');
+    _assertSource(
+      'enum E<T> with M1, M2 implements I1, I2 {one, two}',
+      findNode.enumDeclaration('E'),
+    );
   }
 
   void test_visitExportDirective_combinator() {
@@ -3349,11 +3442,25 @@ import 'foo.dart'
         AstTestFactory.yieldEachStatement(AstTestFactory.identifier3("e")));
   }
 
-  /// Assert that a `ToSourceVisitor2` will produce the [expectedSource] when
+  /// Assert that a [ToSourceVisitor] will produce the [expectedSource] when
   /// visiting the given [node].
   void _assertSource(String expectedSource, AstNode node) {
     StringBuffer buffer = StringBuffer();
     node.accept(ToSourceVisitor(buffer));
     expect(buffer.toString(), expectedSource);
+  }
+
+  FindNode _parseStringToFindNode(String content) {
+    var parseResult = parseString(
+      content: content,
+      featureSet: FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.currentVersion,
+        flags: [
+          Feature.enhanced_enums.enableString,
+          Feature.super_parameters.enableString,
+        ],
+      ),
+    );
+    return FindNode(parseResult.content, parseResult.unit);
   }
 }

@@ -117,13 +117,19 @@ class FormalParameterBuilder extends ModifierBuilderImpl
 
   bool get isInitializingFormal => (modifiers & initializingFormalMask) != 0;
 
+  bool get isSuperInitializingFormal =>
+      (modifiers & superInitializingFormalMask) != 0;
+
   bool get isCovariantByDeclaration => (modifiers & covariantMask) != 0;
 
   // An initializing formal parameter might be final without its
   // VariableDeclaration being final. See
   // [ProcedureBuilder.computeFormalParameterInitializerScope]..
   @override
-  bool get isAssignable => variable!.isAssignable && !isInitializingFormal;
+  bool get isAssignable =>
+      variable!.isAssignable &&
+      !isInitializingFormal &&
+      !isSuperInitializingFormal;
 
   @override
   String get fullNameForErrors => name;
@@ -171,19 +177,33 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   FormalParameterBuilder forFormalParameterInitializerScope() {
     // ignore: unnecessary_null_comparison
     assert(variable != null);
-    return !isInitializingFormal
-        ? this
-        : (new FormalParameterBuilder(
-            metadata,
-            modifiers | finalMask | initializingFormalMask,
-            type,
-            name,
-            null,
-            charOffset,
-            fileUri: fileUri,
-            isExtensionThis: isExtensionThis)
-          ..parent = parent
-          ..variable = variable);
+    if (isInitializingFormal) {
+      return new FormalParameterBuilder(
+          metadata,
+          modifiers | finalMask | initializingFormalMask,
+          type,
+          name,
+          null,
+          charOffset,
+          fileUri: fileUri,
+          isExtensionThis: isExtensionThis)
+        ..parent = parent
+        ..variable = variable;
+    } else if (isSuperInitializingFormal) {
+      return new FormalParameterBuilder(
+          metadata,
+          modifiers | finalMask | superInitializingFormalMask,
+          type,
+          name,
+          null,
+          charOffset,
+          fileUri: fileUri,
+          isExtensionThis: isExtensionThis)
+        ..parent = parent
+        ..variable = variable;
+    } else {
+      return this;
+    }
   }
 
   void finalizeInitializingFormal(ClassBuilder classBuilder) {
@@ -200,18 +220,22 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   void buildOutlineExpressions(SourceLibraryBuilder library,
       List<DelayedActionPerformer> delayedActionPerformers) {
     if (initializerToken != null) {
-      // For modular compilation we need to include initializers for optional
-      // and named parameters of const constructors into the outline - to enable
-      // constant evaluation. Similarly we need to include initializers for
-      // optional and named parameters of instance methods because these might
-      // be needed to generated noSuchMethod forwarders.
-      bool isConstConstructorParameter = false;
+      // For modular compilation we need to include default values for optional
+      // and named parameters in several cases:
+      // * for const constructors to enable constant evaluation,
+      // * for instance methods because these might be needed to generated
+      //   noSuchMethod forwarders, and
+      // * for generative constructors to support forwarding constructors
+      //   in mixin applications.
+      bool needsDefaultValues = false;
       if (parent is ConstructorBuilder) {
-        isConstConstructorParameter = parent!.isConst;
+        needsDefaultValues = true;
       } else if (parent is SourceFactoryBuilder) {
-        isConstConstructorParameter = parent!.isFactory && parent!.isConst;
+        needsDefaultValues = parent!.isFactory && parent!.isConst;
+      } else {
+        needsDefaultValues = parent!.isClassInstanceMember;
       }
-      if (isConstConstructorParameter || parent!.isClassInstanceMember) {
+      if (needsDefaultValues) {
         final ClassBuilder classBuilder = parent!.parent as ClassBuilder;
         Scope scope = classBuilder.scope;
         BodyBuilder bodyBuilder = library.loader

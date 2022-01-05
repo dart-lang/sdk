@@ -161,6 +161,7 @@ class ConstructorElementLinkedData
     );
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
+    element.superConstructor = reader.readElement() as ConstructorElement?;
     element.redirectedConstructor = reader.readElement() as ConstructorElement?;
     element.constantInitializers = reader._readNodeList();
     applyConstantOffsets?.perform();
@@ -942,6 +943,7 @@ class LibraryReader {
     return List.generate(length, (_) {
       var name = _reader.readStringReference();
       var isInitializingFormal = _reader.readBool();
+      var isSuperFormal = _reader.readBool();
       var reference = containerRef.getChild(name);
 
       var kindIndex = _reader.readByte();
@@ -951,6 +953,12 @@ class LibraryReader {
       if (kind.isRequiredPositional) {
         if (isInitializingFormal) {
           element = FieldFormalParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
+        } else if (isSuperFormal) {
+          element = SuperFormalParameterElementImpl(
             name: name,
             nameOffset: -1,
             parameterKind: kind,
@@ -965,6 +973,12 @@ class LibraryReader {
       } else {
         if (isInitializingFormal) {
           element = DefaultFieldFormalParameterElementImpl(
+            name: name,
+            nameOffset: -1,
+            parameterKind: kind,
+          );
+        } else if (isSuperFormal) {
+          element = DefaultSuperFormalParameterElementImpl(
             name: name,
             nameOffset: -1,
             parameterKind: kind,

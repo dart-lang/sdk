@@ -1,0 +1,51 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_36669.dart:11:7: Error: The superclass, 'NoUnnamedConstuctor with MixMeIn', has no unnamed constructor that takes no arguments.
+// class Foo extends NoUnnamedConstuctor with MixMeIn {}
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+class NoUnnamedConstuctor extends core::Object {
+  constructor _() → self::NoUnnamedConstuctor*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class MixMeIn extends core::Object {
+  synthetic constructor •() → self::MixMeIn*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class _Foo&NoUnnamedConstuctor&MixMeIn = self::NoUnnamedConstuctor with self::MixMeIn /*isAnonymousMixin*/  {
+  synthetic constructor _() → self::_Foo&NoUnnamedConstuctor&MixMeIn*
+    : super self::NoUnnamedConstuctor::_()
+    ;
+}
+class Foo extends self::_Foo&NoUnnamedConstuctor&MixMeIn {
+  synthetic constructor •() → self::Foo*
+    : invalid-initializer
+    ;
+}

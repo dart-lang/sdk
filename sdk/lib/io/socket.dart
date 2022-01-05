@@ -589,19 +589,22 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   /// be a [String] or an [InternetAddress]. If a [String] is passed it must
   /// hold a numeric IP address.
   ///
+  /// The [sourcePort] defines the local port to bind to. If [sourcePort] is
+  /// not specified or zero, a port will be chosen.
+  ///
   /// The argument [timeout] is used to specify the maximum allowed time to wait
   /// for a connection to be established. If [timeout] is longer than the system
   /// level timeout duration, a timeout may occur sooner than specified in
   /// [timeout]. On timeout, a [SocketException] is thrown and all ongoing
   /// connection attempts to [host] are cancelled.
   external static Future<RawSocket> connect(host, int port,
-      {sourceAddress, Duration? timeout});
+      {sourceAddress, int sourcePort = 0, Duration? timeout});
 
   /// Like [connect], but returns a [Future] that completes with a
   /// [ConnectionTask] that can be cancelled if the [RawSocket] is no
   /// longer needed.
   external static Future<ConnectionTask<RawSocket>> startConnect(host, int port,
-      {sourceAddress});
+      {sourceAddress, int sourcePort = 0});
 
   /// The number of received and non-read bytes in the socket that can be read.
   int available();
@@ -758,40 +761,46 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
   /// be a [String] or an [InternetAddress]. If a [String] is passed it must
   /// hold a numeric IP address.
   ///
+  /// The [sourcePort] defines the local port to bind to. If [sourcePort] is
+  /// not specified or zero, a port will be chosen.
+  ///
   /// The argument [timeout] is used to specify the maximum allowed time to wait
   /// for a connection to be established. If [timeout] is longer than the system
   /// level timeout duration, a timeout may occur sooner than specified in
   /// [timeout]. On timeout, a [SocketException] is thrown and all ongoing
   /// connection attempts to [host] are cancelled.
   static Future<Socket> connect(host, int port,
-      {sourceAddress, Duration? timeout}) {
+      {sourceAddress, int sourcePort = 0, Duration? timeout}) {
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       return Socket._connect(host, port,
-          sourceAddress: sourceAddress, timeout: timeout);
+          sourceAddress: sourceAddress,
+          sourcePort: sourcePort,
+          timeout: timeout);
     }
     return overrides.socketConnect(host, port,
-        sourceAddress: sourceAddress, timeout: timeout);
+        sourceAddress: sourceAddress, sourcePort: sourcePort, timeout: timeout);
   }
 
   /// Like [connect], but returns a [Future] that completes with a
   /// [ConnectionTask] that can be cancelled if the [Socket] is no
   /// longer needed.
   static Future<ConnectionTask<Socket>> startConnect(host, int port,
-      {sourceAddress}) {
+      {sourceAddress, int sourcePort = 0}) {
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
-      return Socket._startConnect(host, port, sourceAddress: sourceAddress);
+      return Socket._startConnect(host, port,
+          sourceAddress: sourceAddress, sourcePort: sourcePort);
     }
     return overrides.socketStartConnect(host, port,
-        sourceAddress: sourceAddress);
+        sourceAddress: sourceAddress, sourcePort: sourcePort);
   }
 
   external static Future<Socket> _connect(host, int port,
-      {sourceAddress, Duration? timeout});
+      {sourceAddress, int sourcePort = 0, Duration? timeout});
 
   external static Future<ConnectionTask<Socket>> _startConnect(host, int port,
-      {sourceAddress});
+      {sourceAddress, int sourcePort = 0});
 
   /// Destroys the socket in both directions.
   ///

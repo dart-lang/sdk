@@ -10,7 +10,7 @@ abstract class Interface extends core::Object {
 class Class<T extends core::Object? = dynamic> extends core::Object implements self::Interface {
   field core::int field;
   static final field dynamic _redirecting# = <dynamic>[self::Class::redirectingFactory]/*isLegacy*/;
-  constructor •([core::int field]) → self::Class<self::Class::T%>
+  constructor •([core::int field = 0]) → self::Class<self::Class::T%>
     ;
   constructor named(core::int field) → self::Class<self::Class::T%>
     ;

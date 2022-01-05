@@ -1,0 +1,9 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  function localFunction(core::int i) → core::int
+    return i.{core::num::*}(2){(core::num) → core::int};
+  core::List::generate<core::int>(10, (core::int i) → core::int => localFunction(i){(core::int) → core::int});
+}

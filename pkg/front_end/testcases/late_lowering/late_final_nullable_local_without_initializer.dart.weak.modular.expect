@@ -1,0 +1,62 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method main() → dynamic {
+  lowered final core::int? #lateLocal;
+  lowered core::bool #lateLocal#isSet = false;
+  function #lateLocal#get() → core::int?
+    return #lateLocal#isSet ?{core::int?} #lateLocal : throw new _in::LateError::localNI("lateLocal");
+  function #lateLocal#set(core::int? #t1) → dynamic
+    if(#lateLocal#isSet)
+      throw new _in::LateError::localAI("lateLocal");
+    else {
+      #lateLocal#isSet = true;
+      return #lateLocal = #t1;
+    }
+  self::throws(() → core::int? => #lateLocal#get(){() → core::int?}, "Read value from uninitialized lateLocal");
+  if(1 =={core::num::==}{(core::Object) → core::bool} 1) {
+    self::expect(123, #lateLocal#set(123){(core::int?) → dynamic});
+  }
+  self::expect(123, #lateLocal#get(){() → core::int?});
+  self::throws(() → core::int => #lateLocal#set(124){(core::int?) → dynamic}, "Write value to initialized lateLocal");
+  function local<T extends core::Object? = dynamic>(T? value) → Null {
+    lowered final T? #lateGenericLocal;
+    lowered core::bool #lateGenericLocal#isSet = false;
+    function #lateGenericLocal#get() → T?
+      return #lateGenericLocal#isSet ?{T?} #lateGenericLocal : throw new _in::LateError::localNI("lateGenericLocal");
+    function #lateGenericLocal#set(T? #t2) → dynamic
+      if(#lateGenericLocal#isSet)
+        throw new _in::LateError::localAI("lateGenericLocal");
+      else {
+        #lateGenericLocal#isSet = true;
+        return #lateGenericLocal = #t2;
+      }
+    self::throws(() → T? => #lateGenericLocal#get(){() → T?}, "Read value from uninitialized lateGenericLocal");
+    if(1 =={core::num::==}{(core::Object) → core::bool} 1) {
+      self::expect(value, #lateGenericLocal#set(value){(T?) → dynamic});
+    }
+    self::expect(value, #lateGenericLocal#get(){() → T?});
+    self::throws(() → T? => #lateGenericLocal#set(value){(T?) → dynamic}, "Write value to initialized lateGenericLocal");
+  }
+  local<core::int?>(null){(core::int?) → Null};
+  local<core::int?>(0){(core::int?) → Null};
+  local<core::int>(null){(core::int?) → Null};
+  local<core::int>(0){(core::int?) → Null};
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f(){() → dynamic};
+  }
+  on core::Error catch(final core::Error e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}

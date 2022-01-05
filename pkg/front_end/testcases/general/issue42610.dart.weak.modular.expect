@@ -1,0 +1,56 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue42610.dart:6:4: Error: 'final' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   #final;
+//    ^^^^^
+//
+// pkg/front_end/testcases/general/issue42610.dart:7:9: Error: The final variable 'x' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+//   final x;
+//         ^
+//
+// pkg/front_end/testcases/general/issue42610.dart:8:9: Error: The const variable 'y' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+//   const y;
+//         ^
+//
+// pkg/front_end/testcases/general/issue42610.dart:9:13: Error: The final variable 'z' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+//   final int z;
+//             ^
+//
+// pkg/front_end/testcases/general/issue42610.dart:10:13: Error: The const variable 'w' must be initialized.
+// Try adding an initializer ('= expression') to the declaration.
+//   const int w;
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  #C1;
+  final invalid-type x = invalid-expression "pkg/front_end/testcases/general/issue42610.dart:7:9: Error: The final variable 'x' must be initialized.
+Try adding an initializer ('= expression') to the declaration.
+  final x;
+        ^";
+  const invalid-type y = invalid-expression "pkg/front_end/testcases/general/issue42610.dart:8:9: Error: The const variable 'y' must be initialized.
+Try adding an initializer ('= expression') to the declaration.
+  const y;
+        ^";
+  final core::int* z = invalid-expression "pkg/front_end/testcases/general/issue42610.dart:9:13: Error: The final variable 'z' must be initialized.
+Try adding an initializer ('= expression') to the declaration.
+  final int z;
+            ^";
+  const core::int* w = invalid-expression "pkg/front_end/testcases/general/issue42610.dart:10:13: Error: The const variable 'w' must be initialized.
+Try adding an initializer ('= expression') to the declaration.
+  const int w;
+            ^";
+}
+static method main() → void {}
+
+constants  {
+  #C1 = #final
+}

@@ -1,0 +1,10 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+static method foo(Null x) → dynamic {
+  self::bar(let final Never #t1 = x! in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`."));
+}
+static method bar(core::int y) → dynamic {}
+static method main() → dynamic {}

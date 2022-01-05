@@ -64,13 +64,8 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return super.newFile(path, content: content);
   }
 
-  Future<void> resolveTestCode(String code) async {
-    addTestSource(code);
-    await resolveTestFile();
-  }
-
-  Future<void> resolveTestFile() async {
-    var result = await session.getResolvedUnit(testFile) as ResolvedUnitResult;
+  Future<void> resolveFile2(String path) async {
+    var result = await session.getResolvedUnit(path) as ResolvedUnitResult;
     testAnalysisResult = result;
     testCode = result.content;
     testUnit = result.unit;
@@ -89,6 +84,15 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testLibraryElement = testUnitElement.library;
     findNode = FindNode(testCode, testUnit);
     findElement = FindElement(testUnit);
+  }
+
+  Future<void> resolveTestCode(String code) async {
+    addTestSource(code);
+    await resolveTestFile();
+  }
+
+  Future<void> resolveTestFile() async {
+    await resolveFile2(testFile);
   }
 
   @override

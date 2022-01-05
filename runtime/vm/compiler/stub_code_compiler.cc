@@ -61,8 +61,7 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(Assembler* assembler,
   __ Comment("Calling initializer function");
   __ PushRegister(kFieldReg);
   __ LoadCompressedFieldFromOffset(
-      kFunctionReg, InitInstanceFieldABI::kFieldReg,
-      target::Field::initializer_function_offset());
+      kFunctionReg, kFieldReg, target::Field::initializer_function_offset());
   if (!FLAG_precompiled_mode) {
     __ LoadCompressedFieldFromOffset(CODE_REG, kFunctionReg,
                                      target::Function::code_offset());
@@ -1073,12 +1072,6 @@ EMIT_BOX_ALLOCATION(Int32x4)
 #undef EMIT_BOX_ALLOCATION
 
 void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
-#if defined(TARGET_ARCH_ARM)
-  if (!TargetCPUFeatures::vfp_supported()) {
-    __ Breakpoint();
-    return;
-  }
-#endif  // defined(TARGET_ARCH_ARM)
   Label call_runtime;
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     __ TryAllocate(compiler::DoubleClass(), &call_runtime,
@@ -1101,12 +1094,6 @@ void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateDoubleToIntegerStub(Assembler* assembler) {
-#if defined(TARGET_ARCH_ARM)
-  if (!TargetCPUFeatures::vfp_supported()) {
-    __ Breakpoint();
-    return;
-  }
-#endif  // defined(TARGET_ARCH_ARM)
   __ EnterStubFrame();
   __ StoreUnboxedDouble(DoubleToIntegerStubABI::kInputReg, THR,
                         target::Thread::unboxed_double_runtime_arg_offset());

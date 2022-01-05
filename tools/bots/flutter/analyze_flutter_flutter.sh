@@ -39,4 +39,4 @@ $dart --enable-asserts dev/bots/analyze.dart --dart-sdk $sdk
 $dart fix packages/flutter/test_fixes --compare-to-golden
 
 # Analyze the sample code in dartdoc snippets.
-$dart dev/bots/analyze_sample_code.dart
+PUB_CACHE=$checkout/.pub_cache $dart dev/bots/analyze_sample_code.dart
