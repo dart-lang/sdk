@@ -154,27 +154,12 @@
     }
   },
   "dart2js": {
+    "include": [
+      {
+        "target": "_dart2js_common"
+      }
+    ],
     "libraries": {
-      "async": {
-        "uri": "async/async.dart",
-        "patches": "_internal/js_runtime/lib/async_patch.dart"
-      },
-      "collection": {
-        "uri": "collection/collection.dart",
-        "patches": "_internal/js_runtime/lib/collection_patch.dart"
-      },
-      "convert": {
-        "uri": "convert/convert.dart",
-        "patches": "_internal/js_runtime/lib/convert_patch.dart"
-      },
-      "core": {
-        "uri": "core/core.dart",
-        "patches": "_internal/js_runtime/lib/core_patch.dart"
-      },
-      "developer": {
-        "uri": "developer/developer.dart",
-        "patches": "_internal/js_runtime/lib/developer_patch.dart"
-      },
       "html": {
         "uri": "html/dart2js/html_dart2js.dart"
       },
@@ -184,43 +169,9 @@
       "indexed_db": {
         "uri": "indexed_db/dart2js/indexed_db_dart2js.dart"
       },
-      "_http": {
-        "uri": "_http/http.dart"
-      },
-      "io": {
-        "uri": "io/io.dart",
-        "patches": "_internal/js_runtime/lib/io_patch.dart",
-        "supported": false
-      },
-      "isolate": {
-        "uri": "isolate/isolate.dart",
-        "patches": "_internal/js_runtime/lib/isolate_patch.dart",
-        "supported": false
-      },
-      "js": {
-        "uri": "js/js.dart",
-        "patches": "_internal/js_runtime/lib/js_patch.dart"
-      },
       "_js": {
         "uri": "js/_js.dart",
         "patches": "js/_js_client.dart"
-      },
-      "_js_annotations": {
-        "uri": "js/_js_annotations.dart"
-      },
-      "js_util": {
-        "uri": "js_util/js_util.dart"
-      },
-      "math": {
-        "uri": "math/math.dart",
-        "patches": "_internal/js_runtime/lib/math_patch.dart"
-      },
-      "typed_data": {
-        "uri": "typed_data/typed_data.dart",
-        "patches": "_internal/js_runtime/lib/typed_data_patch.dart"
-      },
-      "_native_typed_data": {
-        "uri": "_internal/js_runtime/lib/native_typed_data.dart"
       },
       "svg": {
         "uri": "svg/dart2js/svg_dart2js.dart"
@@ -234,46 +185,25 @@
       "_dart2js_runtime_metrics": {
         "uri": "_internal/js_runtime/lib/dart2js_runtime_metrics.dart"
       },
-      "_internal": {
-        "uri": "internal/internal.dart",
-        "patches": "_internal/js_runtime/lib/internal_patch.dart"
-      },
-      "_js_helper": {
-        "uri": "_internal/js_runtime/lib/js_helper.dart"
-      },
-      "_late_helper": {
-        "uri": "_internal/js_runtime/lib/late_helper.dart"
-      },
-      "_rti": {
-        "uri": "_internal/js_runtime/lib/rti.dart"
-      },
-      "_interceptors": {
-        "uri": "_internal/js_runtime/lib/interceptors.dart"
-      },
-      "_foreign_helper": {
-        "uri": "_internal/js_runtime/lib/foreign_helper.dart"
-      },
-      "_js_names": {
-        "uri": "_internal/js_runtime/lib/js_names.dart"
-      },
-      "_js_primitives": {
-        "uri": "_internal/js_runtime/lib/js_primitives.dart"
-      },
-      "_js_embedded_names": {
-        "uri": "_internal/js_runtime/lib/shared/embedded_names.dart"
-      },
-      "_async_await_error_codes": {
-        "uri": "_internal/js_runtime/lib/shared/async_await_error_codes.dart"
-      },
-      "_recipe_syntax": {
-        "uri": "_internal/js_runtime/lib/shared/recipe_syntax.dart"
-      },
       "_metadata": {
         "uri": "html/html_common/metadata.dart"
       }
     }
   },
   "dart2js_server": {
+    "include": [
+      {
+        "target": "_dart2js_common"
+      }
+    ],
+    "libraries": {
+      "_js": {
+        "uri": "js/_js.dart",
+        "patches": "js/_js_server.dart"
+      }
+    }
+  },
+  "_dart2js_common": {
     "libraries": {
       "async": {
         "uri": "async/async.dart",
@@ -311,10 +241,6 @@
       "js": {
         "uri": "js/js.dart",
         "patches": "_internal/js_runtime/lib/js_patch.dart"
-      },
-      "_js": {
-        "uri": "js/_js.dart",
-        "patches": "js/_js_server.dart"
       },
       "_js_annotations": {
         "uri": "js/_js_annotations.dart"

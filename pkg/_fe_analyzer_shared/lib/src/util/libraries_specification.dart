@@ -42,8 +42,8 @@
 ///   - a top level entry for each target. Keys are target names (e.g. "vm"
 ///     above), and values contain the entire specification of a target.
 ///
-///   - each target specification is a map. The supported keys are "libraries"
-///     and "include".
+///   - each target specification is a map. Today, only one key is supported on
+///     this map: "libraries".
 ///
 ///   - The "libraries" entry contains details for how each platform library is
 ///     implemented. The entry is a map, where keys are the name of the platform
@@ -75,30 +75,6 @@
 ///     eventually accessed). These backends can use `supported: false` to
 ///     report that such library is still not supported in conditional imports
 ///     and const `fromEnvironment` expressions.
-///
-///   - The "include" entry is a list of maps, each containing either a "path"
-///     and a "target" entry, or only a "target" entry.
-///
-///     If both "path" and "target" entries are present, the libraries
-///     specification file located at "path", relative to the location current
-///     libraries specification file is loaded, and the libraries defined
-///     in the target with the target name of the "target" entry are included in
-///     this target.
-///
-///     If only the "target" is present, the libraries in the target in the
-///     current libraries specification file with the target name of the
-///     "target" entry are included in this target.
-///
-///     The "include" mechanism support transitive inclusion but doesn't allow
-///     cyclic dependencies.
-///
-///     If the same library is defined in multiple included target
-///     specifications, the last included takes precedence. This means that
-///     if a target specification include a library and also defines it itself,
-///     the latter is used.
-///
-///     Currently it is not supported to include a subset of the libraries from
-///     an included target specifications.
 ///
 ///
 /// Note: we currently have several different files that need to be updated

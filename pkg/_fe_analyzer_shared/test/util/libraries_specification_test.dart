@@ -105,7 +105,7 @@ void main() {
 
     test('patches must be a string or list of string', () async {
       var jsonString = '''
-      {
+      { 
         "none": {
           "libraries": {
               "c" : {
@@ -122,7 +122,7 @@ void main() {
           throwsA(checkException(messagePatchesMustBeListOrString('c'))));
 
       jsonString = '''
-      {
+      { 
         "none": {
           "libraries": {
               "c" : {
@@ -139,7 +139,7 @@ void main() {
           Uri.parse('org-dartlang-test:///a.dart'));
 
       jsonString = '''
-      {
+      { 
         "none": {
           "libraries": {
               "c" : {
@@ -181,7 +181,7 @@ void main() {
 
     test('patches paths are resolved from spec uri', () async {
       var jsonString = '''
-      {
+      { 
         "none": {
           "libraries": {
               "c" : {
@@ -248,12 +248,12 @@ void main() {
     test('supported entry must be bool', () async {
       var jsonString = '''
       {
-        "vm":
+        "vm": 
         {
-          "libraries":
+          "libraries": 
           {
             "core": {
-              "uri": "main.dart",
+              "uri": "main.dart", 
               "supported": 3
             }
           }
@@ -313,7 +313,7 @@ void main() {
       var jsonString = '''
       {
         "target": {
-          "include": "",
+          "include": "", 
           "libraries": {}
         }
       }
@@ -328,7 +328,7 @@ void main() {
       var jsonString = '''
       {
         "target": {
-          "include": [""],
+          "include": [""], 
           "libraries": {}
         }
       }
@@ -344,7 +344,7 @@ void main() {
       var jsonString = '''
       {
         "target": {
-          "include": [{}],
+          "include": [{}], 
           "libraries": {}
         }
       }
@@ -358,7 +358,7 @@ void main() {
       jsonString = '''
       {
         "target": {
-          "include": [{"path": "dummy"}],
+          "include": [{"path": "dummy"}], 
           "libraries": {}
         }
       }
@@ -372,21 +372,7 @@ void main() {
       jsonString = '''
       {
         "target": {
-          "include": [{"path": 0, "target": 0}],
-          "libraries": {}
-        }
-      }
-      ''';
-      expect(
-          () =>
-              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
-          throwsA(checkException(
-              messageIncludeTargetIsNotAString('target', specUri))));
-
-      jsonString = '''
-      {
-        "target": {
-          "include": [{"path": "dummy", "target": 0}],
+          "include": [{"path": 0, "target": 0}], 
           "libraries": {}
         }
       }
@@ -402,7 +388,7 @@ void main() {
       var jsonString = '''
       {
         "target": {
-          "include": [{"path": 0, "target": "dummy"}],
+          "include": [{"path": 0, "target": "dummy"}], 
           "libraries": {}
         }
       }
@@ -412,13 +398,27 @@ void main() {
               LibrariesSpecification.load(specUri, read({specUri: jsonString})),
           throwsA(checkException(
               messageIncludePathIsNotAString('target', specUri))));
+
+      jsonString = '''
+      {
+        "target": {
+          "include": [{"path": "dummy", "target": 0}], 
+          "libraries": {}
+        }
+      }
+      ''';
+      expect(
+          () =>
+              LibrariesSpecification.load(specUri, read({specUri: jsonString})),
+          throwsA(checkException(
+              messageIncludeTargetIsNotAString('target', specUri))));
     });
 
     test('include entry path scheme can only be file', () async {
       var jsonString = '''
       {
         "target": {
-          "include": [{"path": "http://foo.dart", "target": "none"}],
+          "include": [{"path": "http://foo.dart", "target": "none"}], 
           "libraries": {}
         }
       }
@@ -436,7 +436,7 @@ void main() {
       var jsonString = '''
       {
         "target": {
-          "include": [{"path": "$otherFile", "target": "none"}],
+          "include": [{"path": "$otherFile", "target": "none"}], 
           "libraries": {}
         }
       }
@@ -463,7 +463,7 @@ void main() {
       var jsonString = '''
       {
         "target": {
-          "include": [{"target": "none"}],
+          "include": [{"target": "none"}], 
           "libraries": {}
         }
       }
@@ -482,7 +482,7 @@ void main() {
       var thisJsonString = '''
       {
         "target": {
-          "include": [{"path": "$thisFile", "target": "target"}],
+          "include": [{"path": "$thisFile", "target": "target"}], 
           "libraries": {}
         }
       }
@@ -495,7 +495,7 @@ void main() {
       thisJsonString = '''
       {
         "target": {
-          "include": [{"path": "$otherFile", "target": "none"}],
+          "include": [{"path": "$otherFile", "target": "none"}], 
           "libraries": {}
         }
       }
@@ -517,7 +517,7 @@ void main() {
       var jsonString = '''
       {
         "target": {
-          "include": [{"target": "target"}],
+          "include": [{"target": "target"}], 
           "libraries": {}
         }
       }
@@ -531,11 +531,11 @@ void main() {
       jsonString = '''
       {
         "a": {
-          "include": [{"target": "b"}],
+          "include": [{"target": "b"}], 
           "libraries": {}
         },
         "b": {
-          "include": [{"target": "a"}],
+          "include": [{"target": "a"}], 
           "libraries": {}
         }
       }
@@ -560,18 +560,18 @@ void main() {
         "foo": {
           "include": [
             {
-              "path": "$otherFile1",
+              "path": "$otherFile1", 
               "target": "foo"
             },
             {
-              "path": "$otherFile2",
+              "path": "$otherFile2", 
               "target": "foo"
             }
-          ],
+          ], 
           "libraries": {}
         },
         "bar": {
-          "include": [{"path": "$otherFile2", "target": "bar"}],
+          "include": [{"path": "$otherFile2", "target": "bar"}], 
           "libraries": {}
         }
       }
@@ -637,7 +637,7 @@ void main() {
       var jsonString = '''
       {
         "foo": {
-          "include": [{"target": "common"}],
+          "include": [{"target": "common"}], 
           "libraries": {
             "foo": {
               "uri": "foo.dart"
@@ -648,11 +648,11 @@ void main() {
           "include": [
             {
                "target": "common"
-            },
+            }, 
             {
                "target": "baz"
             }
-          ],
+          ], 
           "libraries": {
             "bar": {
               "uri": "bar.dart"
@@ -680,7 +680,7 @@ void main() {
               "uri": "bar/boz.dart"
             }
           }
-        }
+        }        
       }
       ''';
       var spec = await LibrariesSpecification.load(
@@ -870,7 +870,7 @@ void main() {
             }
           }
         }
-      }
+      }      
       '''
               .replaceAll(new RegExp('\\s'), ''));
     });
