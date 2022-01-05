@@ -4945,11 +4945,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             var type = parameterElement.type;
             if (typeSystem.isPotentiallyNonNullable(type)) {
               var parameterName = _parameterName(parameter);
-              errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
-                parameterName ?? parameter,
-                [parameterName?.name ?? '?'],
-              );
+              if (parameterElement.hasRequired) {
+                errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode
+                      .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION,
+                  parameterName ?? parameter,
+                );
+              } else {
+                errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
+                  parameterName ?? parameter,
+                  [parameterName?.name ?? '?'],
+                );
+              }
             }
           }
         }

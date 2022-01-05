@@ -7379,6 +7379,12 @@ CompileTimeErrorCode:
       void f(int x) {}
       void g({required int x}) {}
       ```
+  MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
+    sharedName: MISSING_DEFAULT_VALUE_FOR_PARAMETER
+    problemMessage: "With null safety, use the 'required' keyword, not the '@required' annotation."
+    correctionMessage: "Try removing the '@'."
+    hasPublishedDocs: true
+    comment: No parameters.
   MISSING_REQUIRED_ARGUMENT:
     problemMessage: "The named parameter '{0}' is required, but there's no corresponding argument."
     correctionMessage: Try adding the required argument.

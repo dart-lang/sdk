@@ -11,6 +11,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingDefaultValueForParameterTest);
+    defineReflectiveTests(MissingDefaultValueForParameterWithAnnotationTest);
   });
 }
 
@@ -631,6 +632,27 @@ class A<T extends Object?> {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 43, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class MissingDefaultValueForParameterWithAnnotationTest
+    extends PubPackageResolutionTest {
+  test_method_withAnnotation() async {
+    writeTestPackageConfigWithMeta();
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+class C {
+  void foo({@required int a}) {}
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION,
+          70,
+          1),
     ]);
   }
 }

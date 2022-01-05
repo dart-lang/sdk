@@ -8042,6 +8042,8 @@ Reinstall the Dart or Flutter SDK.
 _The parameter '{0}' can't have a value of 'null' because of its type, but the
 implicit default value is 'null'._
 
+_With null safety, use the 'required' keyword, not the '@required' annotation._
+
 #### Description
 
 The analyzer produces this diagnostic when an optional parameter, whether
