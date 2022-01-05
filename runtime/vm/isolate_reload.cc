@@ -991,7 +991,11 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
     TransitionVMToNative transition(Thread::Current());
     retval = KernelIsolate::CompileToKernel(
         root_lib_url, nullptr, 0, modified_scripts_count, modified_scripts,
-        true, false, nullptr);
+        /*incremental_compile=*/true,
+        /*snapshot_compile=*/false,
+        /*package_config=*/nullptr,
+        /*multiroot_filepaths=*/nullptr,
+        /*multiroot_scheme=*/nullptr, FLAG_sound_null_safety);
   }
   if (retval.status != Dart_KernelCompilationStatus_Ok) {
     if (retval.kernel != nullptr) {
