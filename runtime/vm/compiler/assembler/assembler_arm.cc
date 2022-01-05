@@ -1604,10 +1604,8 @@ void Assembler::LoadPoolPointer(Register reg) {
 void Assembler::SetupGlobalPoolAndDispatchTable() {
   ASSERT(FLAG_precompiled_mode);
   ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
-  if (FLAG_use_table_dispatch) {
-    ldr(DISPATCH_TABLE_REG,
-        Address(THR, target::Thread::dispatch_table_array_offset()));
-  }
+  ldr(DISPATCH_TABLE_REG,
+      Address(THR, target::Thread::dispatch_table_array_offset()));
 }
 
 void Assembler::LoadIsolate(Register rd) {

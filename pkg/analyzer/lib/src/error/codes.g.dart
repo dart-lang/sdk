@@ -7045,16 +7045,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
-   * 7.6 Constructors: It is a compile-time error if the name of a constructor
-   * is not a constructor name.
-   */
-  static const CompileTimeErrorCode INVALID_CONSTRUCTOR_NAME =
-      CompileTimeErrorCode(
-    'INVALID_CONSTRUCTOR_NAME',
-    "Invalid constructor name.",
-  );
-
-  /**
    * No parameters.
    */
   // #### Description

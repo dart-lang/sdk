@@ -1552,10 +1552,8 @@ void Assembler::SetupGlobalPoolAndDispatchTable() {
   ASSERT(FLAG_precompiled_mode);
   ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
   sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
-  if (FLAG_use_table_dispatch) {
-    ldr(DISPATCH_TABLE_REG,
-        Address(THR, target::Thread::dispatch_table_array_offset()));
-  }
+  ldr(DISPATCH_TABLE_REG,
+      Address(THR, target::Thread::dispatch_table_array_offset()));
 }
 
 void Assembler::CheckCodePointer() {

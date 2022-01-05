@@ -118,30 +118,34 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   }
 
   void assertCoreTypeSuggestions() {
-    assertSuggest('Comparable');
-    assertSuggest('Comparator');
-    assertSuggest('DateTime');
-    assertSuggest('Deprecated');
-    assertSuggest('Duration');
-    assertSuggest('Error');
-    assertSuggest('Exception');
-    assertSuggest('FormatException');
-    assertSuggest('Function');
-    assertSuggest('Future');
-    assertSuggest('Invocation');
-    assertSuggest('Iterable');
-    assertSuggest('Iterator');
-    assertSuggest('List');
-    assertSuggest('Map');
-    assertSuggest('MapEntry');
-    assertSuggest('Null');
-    assertSuggest('Object');
-    assertSuggest('Pattern');
-    assertSuggest('RegExp');
-    assertSuggest('Set');
-    assertSuggest('StackTrace');
-    assertSuggest('Stream');
-    assertSuggest('String');
+    assertSuggestClass('Comparable');
+    assertSuggestTypeAlias(
+      'Comparator',
+      aliasedType: 'int Function(T, T)',
+      returnType: 'int',
+    );
+    assertSuggestClass('DateTime');
+    assertSuggestClass('Deprecated');
+    assertSuggestClass('Duration');
+    assertSuggestClass('Error');
+    assertSuggestClass('Exception');
+    assertSuggestClass('FormatException');
+    assertSuggestClass('Function');
+    assertSuggestClass('Future');
+    assertSuggestClass('Invocation');
+    assertSuggestClass('Iterable');
+    assertSuggestClass('Iterator');
+    assertSuggestClass('List');
+    assertSuggestClass('Map');
+    assertSuggestClass('MapEntry');
+    assertSuggestClass('Null');
+    assertSuggestClass('Object');
+    assertSuggestClass('Pattern');
+    assertSuggestClass('RegExp');
+    assertSuggestClass('Set');
+    assertSuggestClass('StackTrace');
+    assertSuggestClass('Stream');
+    assertSuggestClass('String');
   }
 
   void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
@@ -242,7 +246,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestClass(String name,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.IDENTIFIER,
       bool isDeprecated = false,
       String? elemFile,
       String? elemName,
@@ -293,7 +297,11 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggestEnum(String completion,
       {bool isDeprecated = false}) {
-    var suggestion = assertSuggest(completion, isDeprecated: isDeprecated);
+    var suggestion = assertSuggest(
+      completion,
+      isDeprecated: isDeprecated,
+      csKind: CompletionSuggestionKind.IDENTIFIER,
+    );
     expect(suggestion.isDeprecated, isDeprecated);
     expect(suggestion.element!.kind, ElementKind.ENUM);
     return suggestion;
@@ -412,7 +420,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestMixin(String name,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      {CompletionSuggestionKind kind = CompletionSuggestionKind.IDENTIFIER,
       bool isDeprecated = false,
       String? elemFile,
       String? elemName,

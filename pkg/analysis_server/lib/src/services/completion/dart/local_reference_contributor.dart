@@ -213,7 +213,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     var classElt = declaration.declaredElement;
     if (classElt != null && visibilityTracker._isVisible(classElt)) {
       if (opType.includeTypeNameSuggestions) {
-        builder.suggestClass(classElt, kind: _defaultKind);
+        builder.suggestClass(classElt);
       }
 
       // Generate the suggestions for the constructors. We are required to loop
@@ -234,7 +234,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
     var declaredElement = declaration.declaredElement;
     if (declaredElement != null && opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaredElement, kind: _defaultKind);
+      builder.suggestClass(declaredElement);
     }
   }
 
@@ -249,7 +249,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (declaredElement != null &&
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaredElement, kind: _defaultKind);
+      builder.suggestClass(declaredElement);
       for (var enumConstant in declaration.constants) {
         if (!enumConstant.isSynthetic) {
           var constantElement = enumConstant.declaredElement;
@@ -385,7 +385,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         declaredElement != null &&
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaredElement, kind: _defaultKind);
+      builder.suggestClass(declaredElement);
     }
   }
 

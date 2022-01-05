@@ -3636,10 +3636,7 @@ void TypeTranslator::SetupUnboxingInfoMetadata(const Function& function,
   const auto unboxing_info =
       unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
 
-  // TODO(dartbug.com/32292): accept unboxed parameters and return value
-  // when FLAG_use_table_dispatch == false.
-  if (FLAG_precompiled_mode && unboxing_info != nullptr &&
-      FLAG_use_table_dispatch) {
+  if (FLAG_precompiled_mode && unboxing_info != nullptr) {
     for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
       SetupUnboxingInfoOfParameter(function, i, unboxing_info);
     }
@@ -3655,10 +3652,7 @@ void TypeTranslator::SetupUnboxingInfoMetadataForFieldAccessors(
   const auto unboxing_info =
       unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
 
-  // TODO(dartbug.com/32292): accept unboxed parameters and return value
-  // when FLAG_use_table_dispatch == false.
-  if (FLAG_precompiled_mode && unboxing_info != nullptr &&
-      FLAG_use_table_dispatch) {
+  if (FLAG_precompiled_mode && unboxing_info != nullptr) {
     if (field_accessor.IsImplicitSetterFunction()) {
       for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
         SetupUnboxingInfoOfParameter(field_accessor, i, unboxing_info);

@@ -487,10 +487,8 @@ void Precompiler::DoCompileAll() {
       // as well as other type checks.
       HierarchyInfo hierarchy_info(T);
 
-      if (FLAG_use_table_dispatch) {
-        dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
-        dispatch_table_generator_->Initialize(IG->class_table());
-      }
+      dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
+      dispatch_table_generator_->Initialize(IG->class_table());
 
       // Precompile constructors to compute information such as
       // optimized instruction count (used in inlining heuristics).
@@ -1446,8 +1444,6 @@ void Precompiler::AddSelector(const String& selector) {
 }
 
 void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
-  ASSERT(FLAG_use_table_dispatch);
-
   if (is_tracing()) {
     tracer_->WriteTableSelectorRef(selector->id);
   }
@@ -1459,10 +1455,6 @@ void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
 }
 
 bool Precompiler::IsHitByTableSelector(const Function& function) {
-  if (!FLAG_use_table_dispatch) {
-    return false;
-  }
-
   const int32_t selector_id = selector_map()->SelectorId(function);
   if (selector_id == compiler::SelectorMap::kInvalidSelectorId) return false;
   return seen_table_selectors_.HasKey(selector_id);
@@ -2011,7 +2003,6 @@ void Precompiler::TraceForRetainedFunctions() {
 
 void Precompiler::FinalizeDispatchTable() {
   PRECOMPILER_TIMER_SCOPE(this, FinalizeDispatchTable);
-  if (!FLAG_use_table_dispatch) return;
   HANDLESCOPE(T);
   // Build the entries used to serialize the dispatch table before
   // dropping functions, as we may clear references to Code objects.

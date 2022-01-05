@@ -10161,8 +10161,9 @@ bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
     return true;
   }
 
-  // If table dispatch is disabled, all instance calls use switchable calls.
-  if (!(FLAG_precompiled_mode && FLAG_use_table_dispatch)) {
+  // AOT mode uses table dispatch.
+  // In JIT mode all instance calls use switchable calls.
+  if (!FLAG_precompiled_mode) {
     return true;
   }
 
