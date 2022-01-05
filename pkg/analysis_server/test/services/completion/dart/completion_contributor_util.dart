@@ -459,7 +459,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestParameter(String name, String? returnType) {
-    var cs = assertSuggest(name, csKind: CompletionSuggestionKind.INVOCATION);
+    var cs = assertSuggest(name, csKind: CompletionSuggestionKind.IDENTIFIER);
     expect(cs.returnType, returnType ?? 'dynamic');
     var element = cs.element!;
     expect(element.kind, equals(ElementKind.PARAMETER));

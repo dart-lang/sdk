@@ -25,7 +25,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
   late MemberSuggestionBuilder memberBuilder;
 
   /// The kind of suggestion to make.
-  CompletionSuggestionKind? classMemberSuggestionKind;
+  late CompletionSuggestionKind classMemberSuggestionKind;
 
   /// The [_VisibilityTracker] tracks the set of elements already added in the
   /// completion list, this object helps prevents suggesting elements that have

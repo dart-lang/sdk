@@ -114,7 +114,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
   }
 
   void _addExtensionMembers(List<ExtensionElement> extensions,
-      CompletionSuggestionKind? kind, DartType type) {
+      CompletionSuggestionKind kind, DartType type) {
     var applicableExtensions = extensions.applicableTo(
       targetLibrary: request.libraryElement,
       targetType: type,
@@ -134,7 +134,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
   }
 
   void _addInstanceMembers(ExtensionElement extension,
-      CompletionSuggestionKind? kind, double inheritanceDistance) {
+      CompletionSuggestionKind kind, double inheritanceDistance) {
     for (var method in extension.methods) {
       if (!method.isStatic) {
         memberBuilder.addSuggestionForMethod(
@@ -151,7 +151,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
     }
   }
 
-  void _addTypeMembers(InterfaceType type, CompletionSuggestionKind? kind,
+  void _addTypeMembers(InterfaceType type, CompletionSuggestionKind kind,
       double inheritanceDistance) {
     for (var method in type.methods) {
       memberBuilder.addSuggestionForMethod(

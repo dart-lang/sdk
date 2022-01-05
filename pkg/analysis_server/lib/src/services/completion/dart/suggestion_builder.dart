@@ -87,7 +87,7 @@ class MemberSuggestionBuilder {
   /// Add a suggestion for the given [method].
   void addSuggestionForMethod(
       {required MethodElement method,
-      CompletionSuggestionKind? kind,
+      required CompletionSuggestionKind kind,
       required double inheritanceDistance}) {
     if (method.isAccessibleIn(request.libraryElement) &&
         _shouldAddSuggestion(method)) {
@@ -297,8 +297,14 @@ class SuggestionBuilder {
       elementKind: elementKind,
       isConstant: isConstant,
     );
-    _add(_createSuggestion(parameter,
-        elementKind: protocol.ElementKind.PARAMETER, relevance: relevance));
+    _add(
+      _createSuggestion(
+        parameter,
+        elementKind: protocol.ElementKind.PARAMETER,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for a [classElement]. If the class can only be
@@ -586,7 +592,13 @@ class SuggestionBuilder {
     // TODO(brianwilkerson) This might want to use the context type rather than
     //  a fixed value.
     var relevance = Relevance.loadLibrary;
-    _add(_createSuggestion(function, relevance: relevance));
+    _add(
+      _createSuggestion(
+        function,
+        kind: CompletionSuggestionKind.INVOCATION,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for a local [variable].
@@ -625,7 +637,8 @@ class SuggestionBuilder {
   /// used as the kind for the suggestion. The [inheritanceDistance] is the
   /// value of the inheritance distance feature computed for the method.
   void suggestMethod(MethodElement method,
-      {CompletionSuggestionKind? kind, required double inheritanceDistance}) {
+      {required CompletionSuggestionKind kind,
+      required double inheritanceDistance}) {
     // TODO(brianwilkerson) Refactor callers so that we're passing in the type
     //  of the target (assuming we don't already have that type available via
     //  the [request]) and compute the [inheritanceDistance] in this method.
@@ -840,7 +853,13 @@ class SuggestionBuilder {
       elementKind: elementKind,
       isConstant: isConstant,
     );
-    _add(_createSuggestion(parameter, relevance: relevance));
+    _add(
+      _createSuggestion(
+        parameter,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for a [prefix] associated with a [library].
@@ -1084,7 +1103,7 @@ class SuggestionBuilder {
   CompletionSuggestion? _createSuggestion(Element element,
       {String? completion,
       protocol.ElementKind? elementKind,
-      CompletionSuggestionKind? kind,
+      required CompletionSuggestionKind kind,
       String? prefix,
       required int relevance}) {
     var inputs = _CompletionSuggestionInputs(
@@ -1127,7 +1146,7 @@ class SuggestionBuilder {
     Element element, {
     required String? completion,
     required protocol.ElementKind? elementKind,
-    required CompletionSuggestionKind? kind,
+    required CompletionSuggestionKind kind,
     required String? prefix,
     required int relevance,
   }) {
@@ -1142,7 +1161,6 @@ class SuggestionBuilder {
     if (prefix != null && prefix.isNotEmpty) {
       completion = '$prefix.$completion';
     }
-    kind ??= CompletionSuggestionKind.INVOCATION;
     var suggestion = CompletionSuggestion(kind, relevance, completion,
         completion.length, 0, element.hasOrInheritsDeprecated, false);
 
@@ -1302,7 +1320,7 @@ class _CompletionSuggestionEntry {
 class _CompletionSuggestionInputs {
   final String? completion;
   final protocol.ElementKind? elementKind;
-  final CompletionSuggestionKind? kind;
+  final CompletionSuggestionKind kind;
   final String? prefix;
 
   _CompletionSuggestionInputs({
