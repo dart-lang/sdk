@@ -168,8 +168,8 @@ class JsBackendStrategy implements BackendStrategy {
         strategy.elementMap,
         closedWorld.liveMemberUsage,
         closedWorld.annotationsData);
-    ClosureDataBuilder closureDataBuilder =
-        ClosureDataBuilder(_elementMap, closedWorld.annotationsData);
+    ClosureDataBuilder closureDataBuilder = ClosureDataBuilder(
+        _compiler.reporter, _elementMap, closedWorld.annotationsData);
     JsClosedWorldBuilder closedWorldBuilder = JsClosedWorldBuilder(_elementMap,
         closureDataBuilder, _compiler.options, _compiler.abstractValueStrategy);
     JClosedWorld jClosedWorld = closedWorldBuilder.convertClosedWorld(
