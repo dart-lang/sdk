@@ -7,7 +7,7 @@ import 'api.dart';
 /// Exposes a platform specific [MacroExecutor], through a top level
 /// `Future<MacroExecutor> start()` function.
 import 'fake_executor/fake_executor.dart'
-    if (dart.mirrors) 'isolate_mirrors_executor/isolate_mirrors_executor.dart'
+    if (dart.library.mirrors) 'isolate_mirrors_executor/isolate_mirrors_executor.dart'
     as executor_impl show start;
 
 /// The interface used by Dart language implementations, in order to load
