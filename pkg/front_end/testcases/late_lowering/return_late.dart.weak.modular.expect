@@ -17,9 +17,9 @@ class Class<E extends core::Object? = dynamic> extends core::Object {
       }
       return #result{self::Class::E%};
     }
-    function #result#set(self::Class::E% #t1) → dynamic {
+    function #result#set(self::Class::E% result#param) → dynamic {
       #result#isSet = true;
-      return #result = #t1;
+      return #result = result#param;
     }
     return #result#get(){() → self::Class::E%};
   }
@@ -34,9 +34,9 @@ static method returnNonNullable(core::int value) → core::int {
     }
     return #result{core::int};
   }
-  function #result#set(core::int #t2) → dynamic {
+  function #result#set(core::int result#param) → dynamic {
     #result#isSet = true;
-    return #result = #t2;
+    return #result = result#param;
   }
   return #result#get(){() → core::int};
 }
@@ -50,9 +50,9 @@ static method returnNullable(core::int? value) → core::int? {
     }
     return #result;
   }
-  function #result#set(core::int? #t3) → dynamic {
+  function #result#set(core::int? result#param) → dynamic {
     #result#isSet = true;
-    return #result = #t3;
+    return #result = result#param;
   }
   return #result#get(){() → core::int?};
 }

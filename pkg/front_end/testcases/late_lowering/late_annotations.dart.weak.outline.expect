@@ -27,25 +27,25 @@ class A extends core::Object {
   @self::Annotation::•()
   get instanceField() → core::int;
   @self::Annotation::•()
-  set instanceField(core::int #t1) → void;
+  set instanceField(core::int instanceField#param) → void;
   @self::Annotation::•()
   get finalInstanceField() → core::int;
   @self::Annotation::•()
-  set finalInstanceField(core::int #t2) → void;
+  set finalInstanceField(core::int finalInstanceField#param) → void;
   @self::Annotation::•()
   get finalInstanceFieldWithInitializer() → core::int;
   @self::Annotation::•()
   get covariantInstanceField() → core::num;
   @self::Annotation::•()
-  set covariantInstanceField(covariant-by-declaration core::num #t3) → void;
+  set covariantInstanceField(covariant-by-declaration core::num covariantInstanceField#param) → void;
   @self::Annotation::•()
   static get staticField() → core::int;
   @self::Annotation::•()
-  static set staticField(core::int #t4) → void;
+  static set staticField(core::int staticField#param) → void;
   @self::Annotation::•()
   static get finalStaticField() → core::int;
   @self::Annotation::•()
-  static set finalStaticField(core::int #t5) → void;
+  static set finalStaticField(core::int finalStaticField#param) → void;
   @self::Annotation::•()
   static get finalStaticFieldWithInitializer() → core::int;
 }
@@ -67,25 +67,25 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   @self::Annotation::•()
   get instanceField() → core::int;
   @self::Annotation::•()
-  set instanceField(core::int #t6) → void;
+  set instanceField(core::int instanceField#param) → void;
   @self::Annotation::•()
   get finalInstanceField() → core::int;
   @self::Annotation::•()
-  set finalInstanceField(core::int #t7) → void;
+  set finalInstanceField(core::int finalInstanceField#param) → void;
   @self::Annotation::•()
   get finalInstanceFieldWithInitializer() → core::int;
   @self::Annotation::•()
   get covariantInstanceField() → core::num;
   @self::Annotation::•()
-  set covariantInstanceField(covariant-by-declaration core::num #t8) → void;
+  set covariantInstanceField(covariant-by-declaration core::num covariantInstanceField#param) → void;
   @self::Annotation::•()
   static get staticField() → core::int;
   @self::Annotation::•()
-  static set staticField(core::int #t9) → void;
+  static set staticField(core::int staticField#param) → void;
   @self::Annotation::•()
   static get finalStaticField() → core::int;
   @self::Annotation::•()
-  static set finalStaticField(core::int #t10) → void;
+  static set finalStaticField(core::int finalStaticField#param) → void;
   @self::Annotation::•()
   static get finalStaticFieldWithInitializer() → core::int;
 }
@@ -117,21 +117,21 @@ static field core::bool _#Extension|finalExtensionStaticFieldWithInitializer#isS
 @self::Annotation::•()
 static get topLevelField() → core::int;
 @self::Annotation::•()
-static set topLevelField(core::int #t11) → void;
+static set topLevelField(core::int topLevelField#param) → void;
 @self::Annotation::•()
 static get finalTopLevelField() → core::int;
 @self::Annotation::•()
-static set finalTopLevelField(core::int #t12) → void;
+static set finalTopLevelField(core::int finalTopLevelField#param) → void;
 @self::Annotation::•()
 static get finalTopLevelFieldWithInitializer() → core::int;
 @self::Annotation::•()
 static get Extension|extensionStaticField() → core::int;
 @self::Annotation::•()
-static set Extension|extensionStaticField(core::int #t13) → void;
+static set Extension|extensionStaticField(core::int Extension|extensionStaticField#param) → void;
 @self::Annotation::•()
 static get Extension|finalExtensionStaticField() → core::int;
 @self::Annotation::•()
-static set Extension|finalExtensionStaticField(core::int #t14) → void;
+static set Extension|finalExtensionStaticField(core::int Extension|finalExtensionStaticField#param) → void;
 @self::Annotation::•()
 static get Extension|finalExtensionStaticFieldWithInitializer() → core::int;
 static method main() → dynamic

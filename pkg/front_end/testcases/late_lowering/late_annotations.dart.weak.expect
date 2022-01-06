@@ -30,69 +30,69 @@ class A extends core::Object {
   get instanceField() → core::int
     return this.{self::A::_#A#instanceField#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::A::_#A#instanceField}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("instanceField");
   @#C1
-  set instanceField(core::int #t2) → void {
+  set instanceField(core::int instanceField#param) → void {
     this.{self::A::_#A#instanceField#isSet} = true;
-    this.{self::A::_#A#instanceField} = #t2;
+    this.{self::A::_#A#instanceField} = instanceField#param;
   }
   @#C1
   get finalInstanceField() → core::int
-    return this.{self::A::_#A#finalInstanceField#isSet}{core::bool} ?{core::int} let final core::int? #t3 = this.{self::A::_#A#finalInstanceField}{core::int?} in #t3{core::int} : throw new _in::LateError::fieldNI("finalInstanceField");
+    return this.{self::A::_#A#finalInstanceField#isSet}{core::bool} ?{core::int} let final core::int? #t2 = this.{self::A::_#A#finalInstanceField}{core::int?} in #t2{core::int} : throw new _in::LateError::fieldNI("finalInstanceField");
   @#C1
-  set finalInstanceField(core::int #t4) → void
+  set finalInstanceField(core::int finalInstanceField#param) → void
     if(this.{self::A::_#A#finalInstanceField#isSet}{core::bool})
       throw new _in::LateError::fieldAI("finalInstanceField");
     else {
       this.{self::A::_#A#finalInstanceField#isSet} = true;
-      this.{self::A::_#A#finalInstanceField} = #t4;
+      this.{self::A::_#A#finalInstanceField} = finalInstanceField#param;
     }
   @#C1
   get finalInstanceFieldWithInitializer() → core::int {
     if(!this.{self::A::_#A#finalInstanceFieldWithInitializer#isSet}{core::bool}) {
-      final core::int #t5 = 0;
+      final core::int #t3 = 0;
       if(this.{self::A::_#A#finalInstanceFieldWithInitializer#isSet}{core::bool})
         throw new _in::LateError::fieldADI("finalInstanceFieldWithInitializer");
-      this.{self::A::_#A#finalInstanceFieldWithInitializer} = #t5;
+      this.{self::A::_#A#finalInstanceFieldWithInitializer} = #t3;
       this.{self::A::_#A#finalInstanceFieldWithInitializer#isSet} = true;
     }
-    return let final core::int? #t6 = this.{self::A::_#A#finalInstanceFieldWithInitializer}{core::int?} in #t6{core::int};
+    return let final core::int? #t4 = this.{self::A::_#A#finalInstanceFieldWithInitializer}{core::int?} in #t4{core::int};
   }
   @#C1
   get covariantInstanceField() → core::num
-    return this.{self::A::_#A#covariantInstanceField#isSet}{core::bool} ?{core::num} let final core::num? #t7 = this.{self::A::_#A#covariantInstanceField}{core::num?} in #t7{core::num} : throw new _in::LateError::fieldNI("covariantInstanceField");
+    return this.{self::A::_#A#covariantInstanceField#isSet}{core::bool} ?{core::num} let final core::num? #t5 = this.{self::A::_#A#covariantInstanceField}{core::num?} in #t5{core::num} : throw new _in::LateError::fieldNI("covariantInstanceField");
   @#C1
-  set covariantInstanceField(covariant-by-declaration core::num #t8) → void {
+  set covariantInstanceField(covariant-by-declaration core::num covariantInstanceField#param) → void {
     this.{self::A::_#A#covariantInstanceField#isSet} = true;
-    this.{self::A::_#A#covariantInstanceField} = #t8;
+    this.{self::A::_#A#covariantInstanceField} = covariantInstanceField#param;
   }
   @#C1
   static get staticField() → core::int
-    return self::A::_#staticField#isSet ?{core::int} let final core::int? #t9 = self::A::_#staticField in #t9{core::int} : throw new _in::LateError::fieldNI("staticField");
+    return self::A::_#staticField#isSet ?{core::int} let final core::int? #t6 = self::A::_#staticField in #t6{core::int} : throw new _in::LateError::fieldNI("staticField");
   @#C1
-  static set staticField(core::int #t10) → void {
+  static set staticField(core::int staticField#param) → void {
     self::A::_#staticField#isSet = true;
-    self::A::_#staticField = #t10;
+    self::A::_#staticField = staticField#param;
   }
   @#C1
   static get finalStaticField() → core::int
-    return self::A::_#finalStaticField#isSet ?{core::int} let final core::int? #t11 = self::A::_#finalStaticField in #t11{core::int} : throw new _in::LateError::fieldNI("finalStaticField");
+    return self::A::_#finalStaticField#isSet ?{core::int} let final core::int? #t7 = self::A::_#finalStaticField in #t7{core::int} : throw new _in::LateError::fieldNI("finalStaticField");
   @#C1
-  static set finalStaticField(core::int #t12) → void
+  static set finalStaticField(core::int finalStaticField#param) → void
     if(self::A::_#finalStaticField#isSet)
       throw new _in::LateError::fieldAI("finalStaticField");
     else {
       self::A::_#finalStaticField#isSet = true;
-      self::A::_#finalStaticField = #t12;
+      self::A::_#finalStaticField = finalStaticField#param;
     }
   @#C1
   static get finalStaticFieldWithInitializer() → core::int {
     if(!self::A::_#finalStaticFieldWithInitializer#isSet) {
-      final core::int #t13 = 0;
+      final core::int #t8 = 0;
       if(self::A::_#finalStaticFieldWithInitializer#isSet)
         throw new _in::LateError::fieldADI("finalStaticFieldWithInitializer");
-      self::A::_#finalStaticFieldWithInitializer = #t13;
+      self::A::_#finalStaticFieldWithInitializer = #t8;
       self::A::_#finalStaticFieldWithInitializer#isSet = true;
     }
-    return let final core::int? #t14 = self::A::_#finalStaticFieldWithInitializer in #t14{core::int};
+    return let final core::int? #t9 = self::A::_#finalStaticFieldWithInitializer in #t9{core::int};
   }
 }
 abstract class B extends core::Object /*isMixinDeclaration*/  {
@@ -112,71 +112,71 @@ abstract class B extends core::Object /*isMixinDeclaration*/  {
   static field core::bool _#finalStaticFieldWithInitializer#isSet = false;
   @#C1
   get instanceField() → core::int
-    return this.{self::B::_#B#instanceField#isSet}{core::bool} ?{core::int} let final core::int? #t15 = this.{self::B::_#B#instanceField}{core::int?} in #t15{core::int} : throw new _in::LateError::fieldNI("instanceField");
+    return this.{self::B::_#B#instanceField#isSet}{core::bool} ?{core::int} let final core::int? #t10 = this.{self::B::_#B#instanceField}{core::int?} in #t10{core::int} : throw new _in::LateError::fieldNI("instanceField");
   @#C1
-  set instanceField(core::int #t16) → void {
+  set instanceField(core::int instanceField#param) → void {
     this.{self::B::_#B#instanceField#isSet} = true;
-    this.{self::B::_#B#instanceField} = #t16;
+    this.{self::B::_#B#instanceField} = instanceField#param;
   }
   @#C1
   get finalInstanceField() → core::int
-    return this.{self::B::_#B#finalInstanceField#isSet}{core::bool} ?{core::int} let final core::int? #t17 = this.{self::B::_#B#finalInstanceField}{core::int?} in #t17{core::int} : throw new _in::LateError::fieldNI("finalInstanceField");
+    return this.{self::B::_#B#finalInstanceField#isSet}{core::bool} ?{core::int} let final core::int? #t11 = this.{self::B::_#B#finalInstanceField}{core::int?} in #t11{core::int} : throw new _in::LateError::fieldNI("finalInstanceField");
   @#C1
-  set finalInstanceField(core::int #t18) → void
+  set finalInstanceField(core::int finalInstanceField#param) → void
     if(this.{self::B::_#B#finalInstanceField#isSet}{core::bool})
       throw new _in::LateError::fieldAI("finalInstanceField");
     else {
       this.{self::B::_#B#finalInstanceField#isSet} = true;
-      this.{self::B::_#B#finalInstanceField} = #t18;
+      this.{self::B::_#B#finalInstanceField} = finalInstanceField#param;
     }
   @#C1
   get finalInstanceFieldWithInitializer() → core::int {
     if(!this.{self::B::_#B#finalInstanceFieldWithInitializer#isSet}{core::bool}) {
-      final core::int #t19 = 0;
+      final core::int #t12 = 0;
       if(this.{self::B::_#B#finalInstanceFieldWithInitializer#isSet}{core::bool})
         throw new _in::LateError::fieldADI("finalInstanceFieldWithInitializer");
-      this.{self::B::_#B#finalInstanceFieldWithInitializer} = #t19;
+      this.{self::B::_#B#finalInstanceFieldWithInitializer} = #t12;
       this.{self::B::_#B#finalInstanceFieldWithInitializer#isSet} = true;
     }
-    return let final core::int? #t20 = this.{self::B::_#B#finalInstanceFieldWithInitializer}{core::int?} in #t20{core::int};
+    return let final core::int? #t13 = this.{self::B::_#B#finalInstanceFieldWithInitializer}{core::int?} in #t13{core::int};
   }
   @#C1
   get covariantInstanceField() → core::num
-    return this.{self::B::_#B#covariantInstanceField#isSet}{core::bool} ?{core::num} let final core::num? #t21 = this.{self::B::_#B#covariantInstanceField}{core::num?} in #t21{core::num} : throw new _in::LateError::fieldNI("covariantInstanceField");
+    return this.{self::B::_#B#covariantInstanceField#isSet}{core::bool} ?{core::num} let final core::num? #t14 = this.{self::B::_#B#covariantInstanceField}{core::num?} in #t14{core::num} : throw new _in::LateError::fieldNI("covariantInstanceField");
   @#C1
-  set covariantInstanceField(covariant-by-declaration core::num #t22) → void {
+  set covariantInstanceField(covariant-by-declaration core::num covariantInstanceField#param) → void {
     this.{self::B::_#B#covariantInstanceField#isSet} = true;
-    this.{self::B::_#B#covariantInstanceField} = #t22;
+    this.{self::B::_#B#covariantInstanceField} = covariantInstanceField#param;
   }
   @#C1
   static get staticField() → core::int
-    return self::B::_#staticField#isSet ?{core::int} let final core::int? #t23 = self::B::_#staticField in #t23{core::int} : throw new _in::LateError::fieldNI("staticField");
+    return self::B::_#staticField#isSet ?{core::int} let final core::int? #t15 = self::B::_#staticField in #t15{core::int} : throw new _in::LateError::fieldNI("staticField");
   @#C1
-  static set staticField(core::int #t24) → void {
+  static set staticField(core::int staticField#param) → void {
     self::B::_#staticField#isSet = true;
-    self::B::_#staticField = #t24;
+    self::B::_#staticField = staticField#param;
   }
   @#C1
   static get finalStaticField() → core::int
-    return self::B::_#finalStaticField#isSet ?{core::int} let final core::int? #t25 = self::B::_#finalStaticField in #t25{core::int} : throw new _in::LateError::fieldNI("finalStaticField");
+    return self::B::_#finalStaticField#isSet ?{core::int} let final core::int? #t16 = self::B::_#finalStaticField in #t16{core::int} : throw new _in::LateError::fieldNI("finalStaticField");
   @#C1
-  static set finalStaticField(core::int #t26) → void
+  static set finalStaticField(core::int finalStaticField#param) → void
     if(self::B::_#finalStaticField#isSet)
       throw new _in::LateError::fieldAI("finalStaticField");
     else {
       self::B::_#finalStaticField#isSet = true;
-      self::B::_#finalStaticField = #t26;
+      self::B::_#finalStaticField = finalStaticField#param;
     }
   @#C1
   static get finalStaticFieldWithInitializer() → core::int {
     if(!self::B::_#finalStaticFieldWithInitializer#isSet) {
-      final core::int #t27 = 0;
+      final core::int #t17 = 0;
       if(self::B::_#finalStaticFieldWithInitializer#isSet)
         throw new _in::LateError::fieldADI("finalStaticFieldWithInitializer");
-      self::B::_#finalStaticFieldWithInitializer = #t27;
+      self::B::_#finalStaticFieldWithInitializer = #t17;
       self::B::_#finalStaticFieldWithInitializer#isSet = true;
     }
-    return let final core::int? #t28 = self::B::_#finalStaticFieldWithInitializer in #t28{core::int};
+    return let final core::int? #t18 = self::B::_#finalStaticFieldWithInitializer in #t18{core::int};
   }
 }
 extension Extension on self::A {
@@ -206,63 +206,63 @@ static field core::int? _#Extension|finalExtensionStaticFieldWithInitializer = n
 static field core::bool _#Extension|finalExtensionStaticFieldWithInitializer#isSet = false;
 @#C1
 static get topLevelField() → core::int
-  return self::_#topLevelField#isSet ?{core::int} let final core::int? #t29 = self::_#topLevelField in #t29{core::int} : throw new _in::LateError::fieldNI("topLevelField");
+  return self::_#topLevelField#isSet ?{core::int} let final core::int? #t19 = self::_#topLevelField in #t19{core::int} : throw new _in::LateError::fieldNI("topLevelField");
 @#C1
-static set topLevelField(core::int #t30) → void {
+static set topLevelField(core::int topLevelField#param) → void {
   self::_#topLevelField#isSet = true;
-  self::_#topLevelField = #t30;
+  self::_#topLevelField = topLevelField#param;
 }
 @#C1
 static get finalTopLevelField() → core::int
-  return self::_#finalTopLevelField#isSet ?{core::int} let final core::int? #t31 = self::_#finalTopLevelField in #t31{core::int} : throw new _in::LateError::fieldNI("finalTopLevelField");
+  return self::_#finalTopLevelField#isSet ?{core::int} let final core::int? #t20 = self::_#finalTopLevelField in #t20{core::int} : throw new _in::LateError::fieldNI("finalTopLevelField");
 @#C1
-static set finalTopLevelField(core::int #t32) → void
+static set finalTopLevelField(core::int finalTopLevelField#param) → void
   if(self::_#finalTopLevelField#isSet)
     throw new _in::LateError::fieldAI("finalTopLevelField");
   else {
     self::_#finalTopLevelField#isSet = true;
-    self::_#finalTopLevelField = #t32;
+    self::_#finalTopLevelField = finalTopLevelField#param;
   }
 @#C1
 static get finalTopLevelFieldWithInitializer() → core::int {
   if(!self::_#finalTopLevelFieldWithInitializer#isSet) {
-    final core::int #t33 = 0;
+    final core::int #t21 = 0;
     if(self::_#finalTopLevelFieldWithInitializer#isSet)
       throw new _in::LateError::fieldADI("finalTopLevelFieldWithInitializer");
-    self::_#finalTopLevelFieldWithInitializer = #t33;
+    self::_#finalTopLevelFieldWithInitializer = #t21;
     self::_#finalTopLevelFieldWithInitializer#isSet = true;
   }
-  return let final core::int? #t34 = self::_#finalTopLevelFieldWithInitializer in #t34{core::int};
+  return let final core::int? #t22 = self::_#finalTopLevelFieldWithInitializer in #t22{core::int};
 }
 @#C1
 static get Extension|extensionStaticField() → core::int
-  return self::_#Extension|extensionStaticField#isSet ?{core::int} let final core::int? #t35 = self::_#Extension|extensionStaticField in #t35{core::int} : throw new _in::LateError::fieldNI("extensionStaticField");
+  return self::_#Extension|extensionStaticField#isSet ?{core::int} let final core::int? #t23 = self::_#Extension|extensionStaticField in #t23{core::int} : throw new _in::LateError::fieldNI("extensionStaticField");
 @#C1
-static set Extension|extensionStaticField(core::int #t36) → void {
+static set Extension|extensionStaticField(core::int Extension|extensionStaticField#param) → void {
   self::_#Extension|extensionStaticField#isSet = true;
-  self::_#Extension|extensionStaticField = #t36;
+  self::_#Extension|extensionStaticField = Extension|extensionStaticField#param;
 }
 @#C1
 static get Extension|finalExtensionStaticField() → core::int
-  return self::_#Extension|finalExtensionStaticField#isSet ?{core::int} let final core::int? #t37 = self::_#Extension|finalExtensionStaticField in #t37{core::int} : throw new _in::LateError::fieldNI("finalExtensionStaticField");
+  return self::_#Extension|finalExtensionStaticField#isSet ?{core::int} let final core::int? #t24 = self::_#Extension|finalExtensionStaticField in #t24{core::int} : throw new _in::LateError::fieldNI("finalExtensionStaticField");
 @#C1
-static set Extension|finalExtensionStaticField(core::int #t38) → void
+static set Extension|finalExtensionStaticField(core::int Extension|finalExtensionStaticField#param) → void
   if(self::_#Extension|finalExtensionStaticField#isSet)
     throw new _in::LateError::fieldAI("finalExtensionStaticField");
   else {
     self::_#Extension|finalExtensionStaticField#isSet = true;
-    self::_#Extension|finalExtensionStaticField = #t38;
+    self::_#Extension|finalExtensionStaticField = Extension|finalExtensionStaticField#param;
   }
 @#C1
 static get Extension|finalExtensionStaticFieldWithInitializer() → core::int {
   if(!self::_#Extension|finalExtensionStaticFieldWithInitializer#isSet) {
-    final core::int #t39 = 0;
+    final core::int #t25 = 0;
     if(self::_#Extension|finalExtensionStaticFieldWithInitializer#isSet)
       throw new _in::LateError::fieldADI("finalExtensionStaticFieldWithInitializer");
-    self::_#Extension|finalExtensionStaticFieldWithInitializer = #t39;
+    self::_#Extension|finalExtensionStaticFieldWithInitializer = #t25;
     self::_#Extension|finalExtensionStaticFieldWithInitializer#isSet = true;
   }
-  return let final core::int? #t40 = self::_#Extension|finalExtensionStaticFieldWithInitializer in #t40{core::int};
+  return let final core::int? #t26 = self::_#Extension|finalExtensionStaticFieldWithInitializer in #t26{core::int};
 }
 static method main() → dynamic {}
 

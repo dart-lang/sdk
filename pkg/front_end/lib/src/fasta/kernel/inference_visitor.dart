@@ -6655,7 +6655,7 @@ class InferenceVisitor
             isLowered: true)
           ..fileOffset = fileOffset;
         VariableDeclaration setterParameter =
-            new VariableDeclaration(null, type: node.type)
+            new VariableDeclaration("${node.name}#param", type: node.type)
               ..fileOffset = fileOffset;
         FunctionDeclaration setter = new FunctionDeclaration(
                 setVariable,

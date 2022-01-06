@@ -8,7 +8,7 @@ class Interface extends core::Object {
   synthetic constructor •() → self::Interface
     ;
   get implementedLateFieldDeclaredGetterSetter() → core::int;
-  set implementedLateFieldDeclaredGetterSetter(core::int #t1) → void;
+  set implementedLateFieldDeclaredGetterSetter(core::int implementedLateFieldDeclaredGetterSetter#param) → void;
 }
 class Class extends core::Object implements self::Interface {
   synthetic constructor •() → self::Class

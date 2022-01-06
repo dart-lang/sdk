@@ -961,7 +961,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       {required bool isCovariantByDeclaration}) {
     // ignore: unnecessary_null_comparison
     assert(isCovariantByDeclaration != null);
-    VariableDeclaration parameter = new VariableDeclaration(null)
+    VariableDeclaration parameter = new VariableDeclaration("${name}#param")
       ..isCovariantByDeclaration = isCovariantByDeclaration
       ..fileOffset = fileOffset;
     return new Procedure(

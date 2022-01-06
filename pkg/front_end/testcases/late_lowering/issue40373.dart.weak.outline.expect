@@ -11,7 +11,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     ;
   get p1() → core::num;
-  set p1(core::num #t1) → void;
+  set p1(core::num p1#param) → void;
   get p2() → core::num;
 }
 static method main() → dynamic

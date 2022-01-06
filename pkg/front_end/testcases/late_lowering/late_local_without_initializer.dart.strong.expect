@@ -7,8 +7,8 @@ static method main() → dynamic {
   lowered core::int? #lateLocal;
   function #lateLocal#get() → core::int
     return let final core::int? #t1 = #lateLocal in #t1 == null ?{core::int} throw new _in::LateError::localNI("lateLocal") : #t1{core::int};
-  function #lateLocal#set(core::int #t2) → dynamic
-    return #lateLocal = #t2;
+  function #lateLocal#set(core::int lateLocal#param) → dynamic
+    return #lateLocal = lateLocal#param;
   self::throws(() → core::int => #lateLocal#get(){() → core::int}, "Read value from uninitialized lateLocal");
   self::expect(123, #lateLocal#set(123){(core::int) → dynamic});
   self::expect(123, #lateLocal#get(){() → core::int});
@@ -17,9 +17,9 @@ static method main() → dynamic {
     lowered core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T%
       return #lateGenericLocal#isSet ?{T%} #lateGenericLocal{T%} : throw new _in::LateError::localNI("lateGenericLocal");
-    function #lateGenericLocal#set(T% #t3) → dynamic {
+    function #lateGenericLocal#set(T% lateGenericLocal#param) → dynamic {
       #lateGenericLocal#isSet = true;
-      return #lateGenericLocal = #t3;
+      return #lateGenericLocal = lateGenericLocal#param;
     }
     self::throws(() → T% => #lateGenericLocal#get(){() → T%}, "Read value from uninitialized lateGenericLocal");
     self::expect(value, #lateGenericLocal#set(value){(T%) → dynamic});

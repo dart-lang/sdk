@@ -14,17 +14,17 @@ static method main() → dynamic {
   lowered core::int? #local1;
   function #local1#get() → core::int
     return let final core::int? #t1 = #local1 in #t1 == null ?{core::int} throw new _in::LateError::localNI("local1") : #t1{core::int};
-  function #local1#set(core::int #t2) → dynamic
-    return #local1 = #t2;
+  function #local1#set(core::int local1#param) → dynamic
+    return #local1 = local1#param;
   #local1#set(0){(core::int) → dynamic};
   self::expect(0, #local1#get(){() → core::int});
   #local1#set(#local1#get(){() → core::int}.{core::num::+}(2){(core::num) → core::int}){(core::int) → dynamic};
   self::expect(2, #local1#get(){() → core::int});
   lowered core::int? #local2;
   function #local2#get() → core::int
-    return let final core::int? #t3 = #local2 in #t3 == null ?{core::int} #local2 = 1 : #t3{core::int};
-  function #local2#set(core::int #t4) → dynamic
-    return #local2 = #t4;
+    return let final core::int? #t2 = #local2 in #t2 == null ?{core::int} #local2 = 1 : #t2{core::int};
+  function #local2#set(core::int local2#param) → dynamic
+    return #local2 = local2#param;
   self::expect(1, #local2#get(){() → core::int});
   #local2#set(#local2#get(){() → core::int}.{core::num::+}(2){(core::num) → core::int}){(core::int) → dynamic};
   self::expect(3, #local2#get(){() → core::int});
@@ -32,10 +32,10 @@ static method main() → dynamic {
 static method error() → dynamic {
   lowered final core::int? #local;
   function #local#get() → core::int
-    return let final core::int? #t5 = #local in #t5 == null ?{core::int} throw new _in::LateError::localNI("local") : #t5{core::int};
-  function #local#set(core::int #t6) → dynamic
+    return let final core::int? #t3 = #local in #t3 == null ?{core::int} throw new _in::LateError::localNI("local") : #t3{core::int};
+  function #local#set(core::int local#param) → dynamic
     if(#local == null)
-      return #local = #t6;
+      return #local = local#param;
     else
       throw new _in::LateError::localAI("local");
   #local#set(invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
