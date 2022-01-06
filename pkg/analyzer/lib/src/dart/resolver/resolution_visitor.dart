@@ -348,13 +348,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           name: name,
           nameOffset: nameOffset,
           parameterKind: node.kind,
-        );
+        )..constantInitializer = node.defaultValue;
       } else {
         element = DefaultParameterElementImpl(
           name: name,
           nameOffset: nameOffset,
           parameterKind: node.kind,
-        );
+        )..constantInitializer = node.defaultValue;
       }
       _elementHolder.addParameter(element);
 
@@ -383,7 +383,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           defaultValue.accept(this);
         });
       });
-      element.defaultValueCode = defaultValue.toSource();
     }
   }
 

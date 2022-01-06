@@ -877,6 +877,17 @@ class SuggestionBuilder {
         relevance: relevance));
   }
 
+  /// Add a suggestion to reference a [parameter] in a super formal parameter.
+  void suggestSuperFormalParameter(ParameterElement parameter) {
+    _add(
+      _createSuggestion(
+        parameter,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: Relevance.superFormalParameter,
+      ),
+    );
+  }
+
   /// Add a suggestion for a top-level [function]. If a [kind] is provided it
   /// will be used as the kind for the suggestion. If the function can only be
   /// referenced using a prefix, then the [prefix] should be provided.

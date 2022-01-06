@@ -2602,9 +2602,7 @@ static void TestDirectAccess(Dart_Handle lib,
   // Now try allocating a string with outstanding Acquires and it should
   // return an error.
   result = NewString("We expect an error here");
-  EXPECT_ERROR(result,
-               "Internal Dart data pointers have been acquired, "
-               "please release them using Dart_TypedDataReleaseData.");
+  EXPECT_ERROR(result, "Callbacks into the Dart VM are currently prohibited");
 
   // Now modify the values in the directly accessible array and then check
   // it we see the changes back in dart.

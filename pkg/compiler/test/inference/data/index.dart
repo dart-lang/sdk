@@ -60,7 +60,7 @@ listIndexMixed() {
 mapLookupSingle() {
   var map = {0: 1};
   return map
-      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
+      /*Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [0];
 }
 
@@ -72,7 +72,7 @@ mapLookupSingle() {
 mapLookupMultiple() {
   var map = {0: 1, 2: 3, 4: 5};
   return map
-      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
+      /*Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [2];
 }
 
@@ -84,7 +84,7 @@ mapLookupMultiple() {
 mapLookupMissing() {
   var map = {0: 1};
   return map
-      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
+      /*Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [2];
 }
 
@@ -96,7 +96,7 @@ mapLookupMissing() {
 mapLookupMixedKeys() {
   var map = {0: 1, '': 2};
   return map
-      /*Map([subclass=JsLinkedHashMap], key: Union([exact=JSString], [exact=JSUInt31]), value: [null|exact=JSUInt31])*/
+      /*Map([exact=JsLinkedHashMap], key: Union([exact=JSString], [exact=JSUInt31]), value: [null|exact=JSUInt31])*/
       [''];
 }
 
@@ -108,7 +108,7 @@ mapLookupMixedKeys() {
 mapLookupMixedValues() {
   var map = {0: 1, 2: ''};
   return map
-      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: Union(null, [exact=JSString], [exact=JSUInt31]))*/
+      /*Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: Union(null, [exact=JSString], [exact=JSUInt31]))*/
       [2];
 }
 
@@ -120,7 +120,7 @@ mapLookupMixedValues() {
 dictionaryLookupSingle() {
   var map = {'foo': 'bar'};
   return map
-      /*Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: Value([null|exact=JSString], value: "bar"), map: {foo: Value([exact=JSString], value: "bar")})*/
+      /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: Value([null|exact=JSString], value: "bar"), map: {foo: Value([exact=JSString], value: "bar")})*/
       ['foo'];
 }
 
@@ -132,7 +132,7 @@ dictionaryLookupSingle() {
 dictionaryLookupMultiple() {
   var map = {'foo': 'bar', 'baz': 'boz'};
   return map
-      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([exact=JSString], value: "boz")})*/
+      /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([exact=JSString], value: "boz")})*/
       ['baz'];
 }
 
@@ -144,7 +144,7 @@ dictionaryLookupMultiple() {
 dictionaryLookupMissing() {
   var map = {'foo': 'bar', 'baz': 'boz'};
   return map
-      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([exact=JSString], value: "boz")})*/
+      /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([exact=JSString], value: "boz")})*/
       ['unknown'];
 }
 
@@ -156,7 +156,7 @@ dictionaryLookupMissing() {
 intDictionaryLookupSingle() {
   var map = {'foo': 0};
   return map
-      /*Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: [null|exact=JSUInt31], map: {foo: [exact=JSUInt31]})*/
+      /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: [null|exact=JSUInt31], map: {foo: [exact=JSUInt31]})*/
       ['foo'];
 }
 

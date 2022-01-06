@@ -55,7 +55,7 @@ main() {
         ..docSummary.isEqualTo('aaa')
         ..hasSelection(offset: 5)
         ..element.isNotNull.which((e) => e
-          ..isParameter
+          ..kind.isParameter
           ..name.isEqualTo('fff'))
     ]);
   }
@@ -79,7 +79,7 @@ main() {
         ..docSummary.isNull
         ..hasSelection(offset: 5)
         ..element.isNotNull.which((e) => e
-          ..isParameter
+          ..kind.isParameter
           ..name.isEqualTo('fff'))
     ]);
   }

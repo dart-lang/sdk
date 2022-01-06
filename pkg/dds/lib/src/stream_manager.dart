@@ -170,16 +170,19 @@ class StreamManager {
   /// `streamListen` request for `stream` to the VM service.
   Future<void> streamListen(
     DartDevelopmentServiceClient? client,
-    String stream,
-  ) async {
+    String stream, {
+    bool? includePrivates,
+  }) async {
     await _streamSubscriptionMutex.runGuarded(
       () async {
         assert(stream.isNotEmpty);
+        bool streamNewlySubscribed = false;
         if (!streamListeners.containsKey(stream)) {
           // Initialize the list of clients for the new stream before we do
           // anything else to ensure multiple clients registering for the same
           // stream in quick succession doesn't result in multiple streamListen
           // requests being sent to the VM service.
+          streamNewlySubscribed = true;
           streamListeners[stream] = <DartDevelopmentServiceClient>[];
           if ((stream == kDebugStream && client == null) ||
               stream != kDebugStream) {
@@ -188,12 +191,18 @@ class StreamManager {
             final result =
                 await dds.vmServiceClient.sendRequest('streamListen', {
               'streamId': stream,
+              if (includePrivates != null)
+                '_includePrivateMembers': includePrivates,
             });
             assert(result['type'] == 'Success');
           }
         }
         if (streamListeners[stream]!.contains(client)) {
           throw kStreamAlreadySubscribedException;
+        } else if (!streamNewlySubscribed && includePrivates != null) {
+          await dds.vmServiceClient.sendRequest(
+              '_setStreamIncludePrivateMembers',
+              {'streamId': stream, 'includePrivateMembers': includePrivates});
         }
         if (client != null) {
           streamListeners[stream]!.add(client);

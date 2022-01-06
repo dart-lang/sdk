@@ -95,6 +95,8 @@ Dart_Handle Api::true_handle_ = NULL;
 Dart_Handle Api::false_handle_ = NULL;
 Dart_Handle Api::null_handle_ = NULL;
 Dart_Handle Api::empty_string_handle_ = NULL;
+Dart_Handle Api::no_callbacks_error_handle_ = NULL;
+Dart_Handle Api::unwind_in_progress_error_handle_ = NULL;
 
 const char* CanonicalFunction(const char* func) {
   if (strncmp(func, "dart::", 6) == 0) {
@@ -478,23 +480,6 @@ Dart_Handle Api::NewArgumentError(const char* format, ...) {
   return Api::NewHandle(T, error.ptr());
 }
 
-Dart_Handle Api::AcquiredError(IsolateGroup* isolate_group) {
-  ApiState* state = isolate_group->api_state();
-  ASSERT(state != NULL);
-  PersistentHandle* acquired_error_handle = state->AcquiredError();
-  return reinterpret_cast<Dart_Handle>(acquired_error_handle);
-}
-
-Dart_Handle Api::UnwindInProgressError() {
-  Thread* T = Thread::Current();
-  CHECK_API_SCOPE(T);
-  TransitionToVM transition(T);
-  HANDLESCOPE(T);
-  const String& message = String::Handle(
-      Z, String::New("No api calls are allowed while unwind is in progress"));
-  return Api::NewHandle(T, UnwindError::New(message));
-}
-
 bool Api::IsValid(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   Thread* thread = Thread::Current();
@@ -551,6 +536,14 @@ void Api::InitHandles() {
 
   ASSERT(empty_string_handle_ == NULL);
   empty_string_handle_ = InitNewReadOnlyApiHandle(Symbols::Empty().ptr());
+
+  ASSERT(no_callbacks_error_handle_ == NULL);
+  no_callbacks_error_handle_ =
+      InitNewReadOnlyApiHandle(Object::no_callbacks_error().ptr());
+
+  ASSERT(unwind_in_progress_error_handle_ == NULL);
+  unwind_in_progress_error_handle_ =
+      InitNewReadOnlyApiHandle(Object::unwind_in_progress_error().ptr());
 }
 
 void Api::Cleanup() {
@@ -558,6 +551,8 @@ void Api::Cleanup() {
   false_handle_ = NULL;
   null_handle_ = NULL;
   empty_string_handle_ = NULL;
+  no_callbacks_error_handle_ = NULL;
+  unwind_in_progress_error_handle_ = NULL;
 }
 
 bool Api::StringGetPeerHelper(NativeArguments* arguments,
@@ -1156,9 +1151,9 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsActivePersistentHandle(object));
-  PersistentHandle* ref = PersistentHandle::Cast(object);
-  ASSERT(!state->IsProtectedHandle(ref));
-  if (!state->IsProtectedHandle(ref)) {
+  ASSERT(!Api::IsProtectedHandle(object));
+  if (!Api::IsProtectedHandle(object)) {
+    PersistentHandle* ref = PersistentHandle::Cast(object);
     state->FreePersistentHandle(ref);
   }
 }

@@ -1899,8 +1899,6 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
 
   final int? vmServicePort;
 
-  final bool? enableAsserts;
-
   /// Which console to run the program in.
   ///
   /// If "terminal" or "externalTerminal" will cause the program to be run by
@@ -1939,7 +1937,6 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     this.toolArgs,
     this.vmAdditionalArgs,
     this.console,
-    this.enableAsserts,
     this.customTool,
     this.customToolReplacesArgs,
     Object? restart,
@@ -1973,7 +1970,6 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         vmAdditionalArgs = (obj['vmAdditionalArgs'] as List?)?.cast<String>(),
         vmServicePort = obj['vmServicePort'] as int?,
         console = obj['console'] as String?,
-        enableAsserts = obj['enableAsserts'] as bool?,
         customTool = obj['customTool'] as String?,
         customToolReplacesArgs = obj['customToolReplacesArgs'] as int?,
         super.fromMap(obj);
@@ -1988,7 +1984,6 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         if (vmAdditionalArgs != null) 'vmAdditionalArgs': vmAdditionalArgs,
         if (vmServicePort != null) 'vmServicePort': vmServicePort,
         if (console != null) 'console': console,
-        if (enableAsserts != null) 'enableAsserts': enableAsserts,
         if (customTool != null) 'customTool': customTool,
         if (customToolReplacesArgs != null)
           'customToolReplacesArgs': customToolReplacesArgs,

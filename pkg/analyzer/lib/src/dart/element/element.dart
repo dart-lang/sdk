@@ -1745,6 +1745,32 @@ class DefaultSuperFormalParameterElementImpl
   String? get defaultValueCode {
     return constantInitializer?.toSource();
   }
+
+  @override
+  bool get hasDefaultValue {
+    if (super.hasDefaultValue) {
+      return true;
+    }
+    return computeConstantValue() != null;
+  }
+
+  @override
+  DartObject? computeConstantValue() {
+    if (constantInitializer != null) {
+      return super.computeConstantValue();
+    }
+
+    var superDefault = superConstructorParameter?.computeConstantValue();
+    var superDefaultType = superDefault?.type;
+    var libraryElement = library;
+    if (superDefaultType != null &&
+        libraryElement != null &&
+        libraryElement.typeSystem.isSubtypeOf(superDefaultType, type)) {
+      return superDefault;
+    }
+
+    return null;
+  }
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
@@ -5485,12 +5511,9 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
           return superParameters
               .firstWhereOrNull((e) => e.isNamed && e.name == name);
         } else {
+          var index = indexIn(enclosingElement);
           var positionalSuperParameters =
               superParameters.where((e) => e.isPositional).toList();
-          var index = enclosingElement.parameters
-              .whereType<SuperFormalParameterElementImpl>()
-              .toList()
-              .indexOf(this);
           if (index >= 0 && index < positionalSuperParameters.length) {
             return positionalSuperParameters[index];
           }
@@ -5503,6 +5526,14 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitSuperFormalParameterElement(this);
+
+  /// Return the index of this super-formal parameter among other super-formals.
+  int indexIn(ConstructorElementImpl enclosingElement) {
+    return enclosingElement.parameters
+        .whereType<SuperFormalParameterElementImpl>()
+        .toList()
+        .indexOf(this);
+  }
 }
 
 /// A concrete implementation of a [TopLevelVariableElement].

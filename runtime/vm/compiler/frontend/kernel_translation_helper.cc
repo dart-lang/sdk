@@ -740,6 +740,13 @@ FunctionPtr TranslationHelper::LookupDynamicFunction(const Class& klass,
 
 Type& TranslationHelper::GetDeclarationType(const Class& klass) {
   ASSERT(!klass.IsNull());
+  // Forward expression evaluation class to a real class when
+  // creating types.
+  if (GetExpressionEvaluationClass().ptr() == klass.ptr()) {
+    ASSERT(GetExpressionEvaluationRealClass().ptr() != klass.ptr());
+    return GetDeclarationType(GetExpressionEvaluationRealClass());
+  }
+  ASSERT(klass.id() != kIllegalCid);
   // Note that if cls is _Closure, the returned type will be _Closure,
   // and not the signature type.
   Type& type = Type::ZoneHandle(Z);
@@ -3556,6 +3563,14 @@ void TypeTranslator::LoadAndSetupBounds(
 
 const Type& TypeTranslator::ReceiverType(const Class& klass) {
   ASSERT(!klass.IsNull());
+  // Forward expression evaluation class to a real class when
+  // creating types.
+  if (translation_helper_.GetExpressionEvaluationClass().ptr() == klass.ptr()) {
+    ASSERT(translation_helper_.GetExpressionEvaluationRealClass().ptr() !=
+           klass.ptr());
+    return ReceiverType(translation_helper_.GetExpressionEvaluationRealClass());
+  }
+  ASSERT(klass.id() != kIllegalCid);
   // Note that if klass is _Closure, the returned type will be _Closure,
   // and not the signature type.
   Type& type = Type::ZoneHandle(Z);

@@ -28,6 +28,7 @@ import 'package:analysis_server/src/services/completion/dart/redirecting_contrib
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/services/completion/dart/super_formal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
@@ -155,6 +156,7 @@ class DartCompletionManager {
       if (enableOverrideContributor) OverrideContributor(request, builder),
       RedirectingContributor(request, builder),
       StaticMemberContributor(request, builder),
+      SuperFormalContributor(request, builder),
       TypeMemberContributor(request, builder),
       if (enableUriContributor) UriContributor(request, builder),
       VariableNameContributor(request, builder),

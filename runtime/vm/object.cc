@@ -1158,10 +1158,14 @@ void Object::Init(IsolateGroup* isolate_group) {
 
   String& error_str = String::Handle();
   error_str = String::New(
-      "Internal Dart data pointers have been acquired, please release them "
-      "using Dart_TypedDataReleaseData.",
+      "Callbacks into the Dart VM are currently prohibited. Either there are "
+      "outstanding pointers from Dart_TypedDataAcquireData that have not been "
+      "released with Dart_TypedDataReleaseData, or a finalizer is running.",
       Heap::kOld);
-  *typed_data_acquire_error_ = ApiError::New(error_str, Heap::kOld);
+  *no_callbacks_error_ = ApiError::New(error_str, Heap::kOld);
+  error_str = String::New(
+      "No api calls are allowed while unwind is in progress", Heap::kOld);
+  *unwind_in_progress_error_ = UnwindError::New(error_str, Heap::kOld);
   error_str = String::New("SnapshotWriter Error", Heap::kOld);
   *snapshot_writer_error_ =
       LanguageError::New(error_str, Report::kError, Heap::kOld);
@@ -1238,8 +1242,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(bool_false_->IsBool());
   ASSERT(smi_illegal_cid_->IsSmi());
   ASSERT(smi_zero_->IsSmi());
-  ASSERT(!typed_data_acquire_error_->IsSmi());
-  ASSERT(typed_data_acquire_error_->IsApiError());
+  ASSERT(!no_callbacks_error_->IsSmi());
+  ASSERT(no_callbacks_error_->IsApiError());
+  ASSERT(!unwind_in_progress_error_->IsSmi());
+  ASSERT(unwind_in_progress_error_->IsUnwindError());
   ASSERT(!snapshot_writer_error_->IsSmi());
   ASSERT(snapshot_writer_error_->IsLanguageError());
   ASSERT(!branch_offset_error_->IsSmi());
@@ -21294,10 +21300,8 @@ void Type::set_type_class_id(intptr_t id) const {
   ASSERT(Utils::IsUint(sizeof(untag()->type_class_id_) * kBitsPerByte, id));
   // We should never need a Type object for a top-level class.
   ASSERT(!ClassTable::IsTopLevelCid(id));
-  // We must allow Types with kIllegalCid type class ids, because the class
-  // used for evaluating expressions inside a instance method call context
-  // from the debugger is not registered (and thus has kIllegalCid as an id).
-  ASSERT(id == kIllegalCid || !IsInternalOnlyClassId(id));
+  ASSERT(id != kIllegalCid);
+  ASSERT(!IsInternalOnlyClassId(id));
   StoreNonPointer(&untag()->type_class_id_, id);
 }
 

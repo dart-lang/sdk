@@ -60,7 +60,7 @@ listIndexSetMixed() {
 mapUpdateEmpty() {
   var map = {};
   return map
-      /*update: Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
+      /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [0] = 42;
 }
 
@@ -72,7 +72,7 @@ mapUpdateEmpty() {
 mapUpdateSingle() {
   var map = {0: 1};
   return map
-      /*update: Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
+      /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [0] = 42;
 }
 
@@ -84,7 +84,7 @@ mapUpdateSingle() {
 mapUpdateMultiple() {
   var map = {0: 1, 2: 3, 4: 5};
   return map
-      /*update: Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
+      /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [2] = 42;
 }
 
@@ -96,7 +96,7 @@ mapUpdateMultiple() {
 mapUpdateMissing() {
   var map = {0: 1};
   return map
-      /*update: Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
+      /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [2] = 42;
 }
 
@@ -108,7 +108,7 @@ mapUpdateMissing() {
 mapUpdateMixedKeys() {
   dynamic map = {'': 2};
   return map
-      /*update: Map([subclass=JsLinkedHashMap], key: Union([exact=JSString], [exact=JSUInt31]), value: [null|exact=JSUInt31])*/
+      /*update: Map([exact=JsLinkedHashMap], key: Union([exact=JSString], [exact=JSUInt31]), value: [null|exact=JSUInt31])*/
       [0] = 42;
 }
 
@@ -120,7 +120,7 @@ mapUpdateMixedKeys() {
 mapUpdateMixedValues() {
   dynamic map = {2: ''};
   return map
-      /*update: Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: Union(null, [exact=JSString], [exact=JSUInt31]))*/
+      /*update: Map([exact=JsLinkedHashMap], key: [exact=JSUInt31], value: Union(null, [exact=JSString], [exact=JSUInt31]))*/
       [2] = 42;
 }
 
@@ -132,7 +132,7 @@ mapUpdateMixedValues() {
 dictionaryUpdateEmpty() {
   var map = {};
   return map
-      /*update: Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: Value([null|exact=JSString], value: "bar"), map: {foo: Value([null|exact=JSString], value: "bar")})*/
+      /*update: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: Value([null|exact=JSString], value: "bar"), map: {foo: Value([null|exact=JSString], value: "bar")})*/
       ['foo'] = 'bar';
 }
 
@@ -144,7 +144,7 @@ dictionaryUpdateEmpty() {
 dictionaryUpdateSingle() {
   var map = {'foo': 'bar'};
   return map
-      /*update: Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: [null|exact=JSString], map: {foo: [exact=JSString]})*/
+      /*update: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: [null|exact=JSString], map: {foo: [exact=JSString]})*/
       ['foo'] = 'boz';
 }
 
@@ -156,7 +156,7 @@ dictionaryUpdateSingle() {
 dictionaryReUpdateSingle() {
   var map = {'foo': 'bar'};
   return map
-      /*update: Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: Value([null|exact=JSString], value: "bar"), map: {foo: Value([exact=JSString], value: "bar")})*/
+      /*update: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: Value([null|exact=JSString], value: "bar"), map: {foo: Value([exact=JSString], value: "bar")})*/
       ['foo'] = 'bar';
 }
 
@@ -168,7 +168,7 @@ dictionaryReUpdateSingle() {
 dictionaryUpdateMultiple() {
   var map = {'foo': 'bar'};
   return map
-      /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([null|exact=JSString], value: "boz")})*/
+      /*update: Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([null|exact=JSString], value: "boz")})*/
       ['baz'] = 'boz';
 }
 
@@ -180,7 +180,7 @@ dictionaryUpdateMultiple() {
 intDictionaryUpdateSingle() {
   var map = {};
   return map
-      /*update: Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: [null|exact=JSUInt31], map: {foo: [null|exact=JSUInt31]})*/
+      /*update: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: [null|exact=JSUInt31], map: {foo: [null|exact=JSUInt31]})*/
       ['foo'] = 0;
 }
 
