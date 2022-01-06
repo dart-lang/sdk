@@ -501,6 +501,17 @@ class _ElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
+  void _writeFieldFormalParameterField(ParameterElement e) {
+    if (e is FieldFormalParameterElement) {
+      var field = e.field;
+      if (field != null) {
+        _writeElementReference('field', field);
+      } else {
+        _writelnWithIndent('field: <null>');
+      }
+    }
+  }
+
   void _writeFunctionElement(FunctionElement e) {
     _writeIndentedLine(() {
       _writeIf(e.isExternal, 'external ');
@@ -671,6 +682,7 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
+      _writeFieldFormalParameterField(e);
       _writeSuperConstructorParameter(e);
     });
   }
