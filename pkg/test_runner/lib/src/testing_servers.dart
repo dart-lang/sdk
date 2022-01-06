@@ -301,6 +301,7 @@ class TestingServers {
     <html>
     <head>
       <title>${request.uri.path}</title>
+      <meta charset="utf-8">
     </head>
     <body>
       <code>
