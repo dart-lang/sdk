@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 final bool strong = () {
   try {
-    int i = null as dynamic;
+    int i = null as dynamic; // ignore: unused_local_variable
     return false;
   } catch (e) {
     return true;
