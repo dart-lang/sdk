@@ -21294,10 +21294,8 @@ void Type::set_type_class_id(intptr_t id) const {
   ASSERT(Utils::IsUint(sizeof(untag()->type_class_id_) * kBitsPerByte, id));
   // We should never need a Type object for a top-level class.
   ASSERT(!ClassTable::IsTopLevelCid(id));
-  // We must allow Types with kIllegalCid type class ids, because the class
-  // used for evaluating expressions inside a instance method call context
-  // from the debugger is not registered (and thus has kIllegalCid as an id).
-  ASSERT(id == kIllegalCid || !IsInternalOnlyClassId(id));
+  ASSERT(id != kIllegalCid);
+  ASSERT(!IsInternalOnlyClassId(id));
   StoreNonPointer(&untag()->type_class_id_, id);
 }
 
