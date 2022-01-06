@@ -5511,12 +5511,9 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
           return superParameters
               .firstWhereOrNull((e) => e.isNamed && e.name == name);
         } else {
+          var index = indexIn(enclosingElement);
           var positionalSuperParameters =
               superParameters.where((e) => e.isPositional).toList();
-          var index = enclosingElement.parameters
-              .whereType<SuperFormalParameterElementImpl>()
-              .toList()
-              .indexOf(this);
           if (index >= 0 && index < positionalSuperParameters.length) {
             return positionalSuperParameters[index];
           }
@@ -5529,6 +5526,14 @@ class SuperFormalParameterElementImpl extends ParameterElementImpl
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitSuperFormalParameterElement(this);
+
+  /// Return the index of this super-formal parameter among other super-formals.
+  int indexIn(ConstructorElementImpl enclosingElement) {
+    return enclosingElement.parameters
+        .whereType<SuperFormalParameterElementImpl>()
+        .toList()
+        .indexOf(this);
+  }
 }
 
 /// A concrete implementation of a [TopLevelVariableElement].

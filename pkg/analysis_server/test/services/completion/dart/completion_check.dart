@@ -55,6 +55,20 @@ class CompletionSuggestionForTesting {
 
 extension CompletionResponseExtension
     on CheckTarget<CompletionResponseForTesting> {
+  CheckTarget<int> get replacementLength {
+    return nest(
+      value.replacementLength,
+      (selected) => 'has replacementLength ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<int> get replacementOffset {
+    return nest(
+      value.replacementOffset,
+      (selected) => 'has replacementOffset ${valueStr(selected)}',
+    );
+  }
+
   CheckTarget<List<CompletionSuggestionForTesting>> get suggestions {
     var suggestions = value.suggestions.map((e) {
       return CompletionSuggestionForTesting(
@@ -66,6 +80,19 @@ extension CompletionResponseExtension
       suggestions,
       (selected) => 'suggestions ${valueStr(selected)}',
     );
+  }
+
+  /// Check that the replacement offset is the completion request offset,
+  /// and the length of the replacement is zero.
+  void hasEmptyReplacement() {
+    hasReplacement(left: 0, right: 0);
+  }
+
+  /// Check that the replacement offset is the completion request offset
+  /// minus [left], and the length of the replacement is `left + right`.
+  void hasReplacement({int left = 0, int right = 0}) {
+    replacementOffset.isEqualTo(value.requestOffset - left);
+    replacementLength.isEqualTo(left + right);
   }
 }
 
@@ -113,6 +140,23 @@ extension CompletionSuggestionExtension
     );
   }
 
+  void get isField {
+    kind.isIdentifier;
+    element.isNotNull.kind.isField;
+  }
+
+  void get isParameter {
+    kind.isIdentifier;
+    element.isNotNull.kind.isParameter;
+  }
+
+  CheckTarget<CompletionSuggestionKind> get kind {
+    return nest(
+      value.suggestion.kind,
+      (selected) => 'has kind ${valueStr(selected)}',
+    );
+  }
+
   CheckTarget<String?> get parameterType {
     return nest(
       value.suggestion.parameterType,
@@ -133,6 +177,13 @@ extension CompletionSuggestionExtension
     return nest(
       value.replacementOffset,
       (selected) => 'has replacementOffset ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<String?> get returnType {
+    return nest(
+      value.suggestion.returnType,
+      (selected) => 'has returnType ${valueStr(selected)}',
     );
   }
 
@@ -169,8 +220,22 @@ extension CompletionSuggestionExtension
   }
 }
 
+extension CompletionSuggestionKindExtension
+    on CheckTarget<CompletionSuggestionKind> {
+  void get isIdentifier {
+    isEqualTo(CompletionSuggestionKind.IDENTIFIER);
+  }
+}
+
 extension CompletionSuggestionsExtension
     on CheckTarget<Iterable<CompletionSuggestionForTesting>> {
+  CheckTarget<List<String>> get completions {
+    return nest(
+      value.map((e) => e.suggestion.completion).toList(),
+      (selected) => 'completions ${valueStr(selected)}',
+    );
+  }
+
   CheckTarget<Iterable<CompletionSuggestionForTesting>> get namedArguments {
     var result = value
         .where((suggestion) =>
@@ -185,10 +250,6 @@ extension CompletionSuggestionsExtension
 }
 
 extension ElementExtension on CheckTarget<Element> {
-  void get isParameter {
-    kind.isEqualTo(ElementKind.PARAMETER);
-  }
-
   CheckTarget<ElementKind> get kind {
     return nest(
       value.kind,
@@ -201,5 +262,15 @@ extension ElementExtension on CheckTarget<Element> {
       value.name,
       (selected) => 'has name ${valueStr(selected)}',
     );
+  }
+}
+
+extension ElementKindExtension on CheckTarget<ElementKind> {
+  void get isField {
+    isEqualTo(ElementKind.FIELD);
+  }
+
+  void get isParameter {
+    isEqualTo(ElementKind.PARAMETER);
   }
 }

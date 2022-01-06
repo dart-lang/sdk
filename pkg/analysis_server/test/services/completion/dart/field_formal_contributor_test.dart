@@ -6,9 +6,10 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:test/test.dart';
+import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'completion_check.dart';
 import 'completion_contributor_util.dart';
 
 void main() {
@@ -31,183 +32,120 @@ class FieldFormalContributorTest extends DartCompletionContributorTest {
   Future<void> test_mixin_constructor() async {
     addTestSource('''
 mixin M {
+  var field = 0;
   M(this.^);
 }
 ''');
-    await computeSuggestions();
-    expect(suggestions, isEmpty);
+
+    var response = await computeSuggestions2();
+    check(response).suggestions.isEmpty;
   }
 
-  Future<void> test_ThisExpression_constructor_param() async {
-    // SimpleIdentifier  FieldFormalParameter  FormalParameterList
+  Future<void> test_replacement_left() async {
     addTestSource('''
-        main() { }
-        class I {X get f => new A();get _g => new A();}
-        class A implements I {
-          A(this.^) {}
-          A.z() {}
-          var b; X _c; static sb;
-          X get d => new A();get _e => new A();
-          // no semicolon between completion point and next statement
-          set s1(I x) {} set _s2(I x) {m(null);}
-          m(X x) {} I _n(X x) {}}
-        class X{}''');
-    await computeSuggestions();
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    assertSuggestField('b', null);
-    assertSuggestField('_c', 'X');
-    assertNotSuggested('sb');
-    assertNotSuggested('d');
-    assertNotSuggested('_e');
-    assertNotSuggested('f');
-    assertNotSuggested('_g');
-    assertNotSuggested('m');
-    assertNotSuggested('_n');
-    assertNotSuggested('s1');
-    assertNotSuggested('_s2');
-    assertNotSuggested('z');
-    assertNotSuggested('I');
-    assertNotSuggested('A');
-    assertNotSuggested('X');
-    assertNotSuggested('Object');
-    assertNotSuggested('==');
+class A {
+  var field = 0;
+  A(this.f^);
+}
+''');
+
+    var response = await computeSuggestions2();
+    check(response)
+      ..hasReplacement(left: 1)
+      ..suggestions.matchesInAnyOrder([
+        (suggestion) => suggestion
+          ..completion.isEqualTo('field')
+          ..isField
+          ..returnType.isEqualTo('int'),
+      ]);
   }
 
-  Future<void> test_ThisExpression_constructor_param2() async {
-    // SimpleIdentifier  FieldFormalParameter  FormalParameterList
+  Future<void> test_replacement_right() async {
     addTestSource('''
-        main() { }
-        class I {X get f => new A();get _g => new A();}
-        class A implements I {
-          A(this.b^) {}
-          A.z() {}
-          var b; X _c;
-          X get d => new A();get _e => new A();
-          // no semicolon between completion point and next statement
-          set s1(I x) {} set _s2(I x) {m(null);}
-          m(X x) {} I _n(X x) {}}
-        class X{}''');
-    await computeSuggestions();
-    expect(replacementOffset, completionOffset - 1);
-    expect(replacementLength, 1);
-    assertSuggestField('b', null);
-    assertSuggestField('_c', 'X');
-    assertNotSuggested('d');
-    assertNotSuggested('_e');
-    assertNotSuggested('f');
-    assertNotSuggested('_g');
-    assertNotSuggested('m');
-    assertNotSuggested('_n');
-    assertNotSuggested('s1');
-    assertNotSuggested('_s2');
-    assertNotSuggested('z');
-    assertNotSuggested('I');
-    assertNotSuggested('A');
-    assertNotSuggested('X');
-    assertNotSuggested('Object');
-    assertNotSuggested('==');
+class A {
+  var field = 0;
+  A(this.^f);
+}
+''');
+
+    var response = await computeSuggestions2();
+    check(response)
+      ..hasReplacement(right: 1)
+      ..suggestions.matchesInAnyOrder([
+        (suggestion) => suggestion
+          ..completion.isEqualTo('field')
+          ..isField
+          ..returnType.isEqualTo('int'),
+      ]);
   }
 
-  Future<void> test_ThisExpression_constructor_param3() async {
-    // SimpleIdentifier  FieldFormalParameter  FormalParameterList
+  Future<void> test_suggestions_onlyLocal() async {
     addTestSource('''
-        main() { }
-        class I {X get f => new A();get _g => new A();}
-        class A implements I {
-          A(this.^b) {}
-          A.z() {}
-          var b; X _c;
-          X get d => new A();get _e => new A();
-          // no semicolon between completion point and next statement
-          set s1(I x) {} set _s2(I x) {m(null);}
-          m(X x) {} I _n(X x) {}}
-        class X{}''');
-    await computeSuggestions();
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 1);
-    assertSuggestField('b', null);
-    assertSuggestField('_c', 'X');
-    assertNotSuggested('d');
-    assertNotSuggested('_e');
-    assertNotSuggested('f');
-    assertNotSuggested('_g');
-    assertNotSuggested('m');
-    assertNotSuggested('_n');
-    assertNotSuggested('s1');
-    assertNotSuggested('_s2');
-    assertNotSuggested('z');
-    assertNotSuggested('I');
-    assertNotSuggested('A');
-    assertNotSuggested('X');
-    assertNotSuggested('Object');
-    assertNotSuggested('==');
+class A {
+  var inherited = 0;
+}
+
+class B extends A {
+  var first = 0;
+  var second = 1.2;
+  B(this.^);
+  B.constructor() {}
+  void method() {}
+}
+''');
+
+    var response = await computeSuggestions2();
+    check(response)
+      ..hasEmptyReplacement()
+      ..suggestions.matchesInAnyOrder([
+        (suggestion) => suggestion
+          ..completion.isEqualTo('first')
+          ..isField
+          ..returnType.isEqualTo('int'),
+        (suggestion) => suggestion
+          ..completion.isEqualTo('second')
+          ..isField
+          ..returnType.isEqualTo('double'),
+      ]);
   }
 
-  Future<void> test_ThisExpression_constructor_param4() async {
-    // SimpleIdentifier  FieldFormalParameter  FormalParameterList
+  Future<void> test_suggestions_onlyNotSpecified_optionalNamed() async {
     addTestSource('''
-        main() { }
-        class I {X get f => new A();get _g => new A();}
-        class A implements I {
-          A(this.b, this.^) {}
-          A.z() {}
-          var b; X _c;
-          X get d => new A();get _e => new A();
-          // no semicolon between completion point and next statement
-          set s1(I x) {} set _s2(I x) {m(null);}
-          m(X x) {} I _n(X x) {}}
-        class X{}''');
-    await computeSuggestions();
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    assertNotSuggested('b');
-    assertSuggestField('_c', 'X');
-    assertNotSuggested('d');
-    assertNotSuggested('_e');
-    assertNotSuggested('f');
-    assertNotSuggested('_g');
-    assertNotSuggested('m');
-    assertNotSuggested('_n');
-    assertNotSuggested('s1');
-    assertNotSuggested('_s2');
-    assertNotSuggested('z');
-    assertNotSuggested('I');
-    assertNotSuggested('A');
-    assertNotSuggested('X');
-    assertNotSuggested('Object');
-    assertNotSuggested('==');
+class Point {
+  final int x;
+  final int y;
+  Point({this.x, this.^});
+}
+''');
+
+    var response = await computeSuggestions2();
+    check(response)
+      ..hasEmptyReplacement()
+      ..suggestions.matchesInAnyOrder([
+        (suggestion) => suggestion
+          ..completion.isEqualTo('y')
+          ..isField
+          ..returnType.isEqualTo('int'),
+      ]);
   }
 
-  Future<void> test_ThisExpression_constructor_param_optional() async {
-    // SimpleIdentifier  FieldFormalParameter  FormalParameterList
+  Future<void> test_suggestions_onlyNotSpecified_requiredPositional() async {
     addTestSource('''
-        main() { }
-        class Point {
-          int x;
-          int y;
-          Point({this.x, this.^}) {}
-          ''');
-    await computeSuggestions();
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    assertSuggestField('y', 'int');
-    assertNotSuggested('x');
-  }
+class Point {
+  final int x;
+  final int y;
+  Point(this.x, this.^);
+}
+''');
 
-  Future<void> test_ThisExpression_constructor_param_positional() async {
-    // SimpleIdentifier  FieldFormalParameter  FormalParameterList
-    addTestSource('''
-        main() { }
-        class Point {
-          int x;
-          int y;
-          Point({this.x, this.^}) {}
-          ''');
-    await computeSuggestions();
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    assertSuggestField('y', 'int');
-    assertNotSuggested('x');
+    var response = await computeSuggestions2();
+    check(response)
+      ..hasEmptyReplacement()
+      ..suggestions.matchesInAnyOrder([
+        (suggestion) => suggestion
+          ..completion.isEqualTo('y')
+          ..isField
+          ..returnType.isEqualTo('int'),
+      ]);
   }
 }
