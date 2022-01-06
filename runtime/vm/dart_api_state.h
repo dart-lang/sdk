@@ -702,31 +702,7 @@ class ApiGrowableArray : public BaseGrowableArray<T, ValueObject, Zone> {
 // group basis and destroyed when the isolate group is shutdown.
 class ApiState {
  public:
-  ApiState()
-      : persistent_handles_(),
-        weak_persistent_handles_(),
-        null_(NULL),
-        true_(NULL),
-        false_(NULL),
-        acquired_error_(NULL) {}
-  ~ApiState() {
-    if (null_ != NULL) {
-      persistent_handles_.FreeHandle(null_);
-      null_ = NULL;
-    }
-    if (true_ != NULL) {
-      persistent_handles_.FreeHandle(true_);
-      true_ = NULL;
-    }
-    if (false_ != NULL) {
-      persistent_handles_.FreeHandle(false_);
-      false_ = NULL;
-    }
-    if (acquired_error_ != NULL) {
-      persistent_handles_.FreeHandle(acquired_error_);
-      acquired_error_ = NULL;
-    }
-  }
+  ApiState() : persistent_handles_(), weak_persistent_handles_() {}
 
   void MergeOtherApiState(ApiState* api_state);
 
@@ -790,28 +766,9 @@ class ApiState {
            !weak_persistent_handles_.IsFreeHandle(object);
   }
 
-  bool IsProtectedHandle(PersistentHandle* object) {
-    MutexLocker ml(&mutex_);
-    if (object == NULL) return false;
-    return object == null_ || object == true_ || object == false_;
-  }
-
   int CountPersistentHandles() {
     MutexLocker ml(&mutex_);
     return persistent_handles_.CountHandles();
-  }
-
-  PersistentHandle* AcquiredError() {
-    // The ApiError pre-allocated in the "vm-isolate" since we will not be able
-    // to allocate it when the error actually occurs.
-    // When the error occurs there will be outstanding acquires to internal
-    // data pointers making it unsafe to allocate objects on the dart heap.
-    MutexLocker ml(&mutex_);
-    if (acquired_error_ == nullptr) {
-      acquired_error_ = persistent_handles_.AllocateHandle();
-      acquired_error_->set_ptr(ApiError::typed_data_acquire_error());
-    }
-    return acquired_error_;
   }
 
   void RunWithLockedPersistentHandles(
@@ -834,12 +791,6 @@ class ApiState {
   PersistentHandles persistent_handles_;
   FinalizablePersistentHandles weak_persistent_handles_;
   WeakTable acquired_table_;
-
-  // Persistent handles to important objects.
-  PersistentHandle* null_;
-  PersistentHandle* true_;
-  PersistentHandle* false_;
-  PersistentHandle* acquired_error_;
 
   DISALLOW_COPY_AND_ASSIGN(ApiState);
 };
