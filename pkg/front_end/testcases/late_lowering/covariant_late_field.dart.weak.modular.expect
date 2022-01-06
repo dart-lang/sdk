@@ -24,15 +24,15 @@ class A extends core::Object {
     ;
   get invariantField() → core::num
     return this.{self::A::_#A#invariantField#isSet}{core::bool} ?{core::num} let final core::num? #t1 = this.{self::A::_#A#invariantField}{core::num?} in #t1{core::num} : throw new _in::LateError::fieldNI("invariantField");
-  set invariantField(core::num #t2) → void {
+  set invariantField(core::num invariantField#param) → void {
     this.{self::A::_#A#invariantField#isSet} = true;
-    this.{self::A::_#A#invariantField} = #t2;
+    this.{self::A::_#A#invariantField} = invariantField#param;
   }
   get covariantField() → core::num
-    return this.{self::A::_#A#covariantField#isSet}{core::bool} ?{core::num} let final core::num? #t3 = this.{self::A::_#A#covariantField}{core::num?} in #t3{core::num} : throw new _in::LateError::fieldNI("covariantField");
-  set covariantField(covariant-by-declaration core::num #t4) → void {
+    return this.{self::A::_#A#covariantField#isSet}{core::bool} ?{core::num} let final core::num? #t2 = this.{self::A::_#A#covariantField}{core::num?} in #t2{core::num} : throw new _in::LateError::fieldNI("covariantField");
+  set covariantField(covariant-by-declaration core::num covariantField#param) → void {
     this.{self::A::_#A#covariantField#isSet} = true;
-    this.{self::A::_#A#covariantField} = #t4;
+    this.{self::A::_#A#covariantField} = covariantField#param;
   }
 }
 abstract class B extends core::Object implements self::A {

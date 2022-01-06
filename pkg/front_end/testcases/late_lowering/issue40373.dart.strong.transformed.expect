@@ -13,10 +13,10 @@ class C extends core::Object {
     ;
   get p1() → core::num
     return let final core::num? #t1 = this.{self::C::_#C#p1}{core::num?} in #t1 == null ?{core::num} this.{self::C::_#C#p1} = this.{self::C::pi}{core::num} : #t1{core::num};
-  set p1(core::num #t2) → void
-    this.{self::C::_#C#p1} = #t2;
+  set p1(core::num p1#param) → void
+    this.{self::C::_#C#p1} = p1#param;
   get p2() → core::num
-    return let final core::num? #t3 = this.{self::C::_#C#p2}{core::num?} in #t3 == null ?{core::num} let final core::num #t4 = this.{self::C::pi}{core::num} in this.{self::C::_#C#p2}{core::num?} == null ?{core::num} this.{self::C::_#C#p2} = #t4 : throw new _in::LateError::fieldADI("p2") : #t3{core::num};
+    return let final core::num? #t2 = this.{self::C::_#C#p2}{core::num?} in #t2 == null ?{core::num} let final core::num #t3 = this.{self::C::pi}{core::num} in this.{self::C::_#C#p2}{core::num?} == null ?{core::num} this.{self::C::_#C#p2} = #t3 : throw new _in::LateError::fieldADI("p2") : #t2{core::num};
 }
 static method main() → dynamic {
   self::expect(3.14, new self::C::•().{self::C::p1}{core::num});

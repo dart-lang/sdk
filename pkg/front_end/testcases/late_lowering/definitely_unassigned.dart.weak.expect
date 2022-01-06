@@ -102,27 +102,27 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
   lowered core::bool #local2#isSet = false;
   function #local2#get() → T%
     return #local2#isSet ?{T%} #local2{T%} : throw new _in::LateError::localNI("local2");
-  function #local2#set(T% #t1) → dynamic {
+  function #local2#set(T% local2#param) → dynamic {
     #local2#isSet = true;
-    return #local2 = #t1;
+    return #local2 = local2#param;
   }
   core::int local3;
   lowered core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t2) → dynamic {
+  function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
-    return #local4 = #t2;
+    return #local4 = local4#param;
   }
   FutureOr<core::int>local5;
   lowered FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
     return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
-  function #local6#set(FutureOr<core::int>#t3) → dynamic {
+  function #local6#set(FutureOr<core::int>local6#param) → dynamic {
     #local6#isSet = true;
-    return #local6 = #t3;
+    return #local6 = local6#param;
   }
   lowered T? #local7;
   lowered core::bool #local7#isSet = false;
@@ -133,9 +133,9 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
     }
     return #local7{T%};
   }
-  function #local7#set(T% #t4) → dynamic {
+  function #local7#set(T% local7#param) → dynamic {
     #local7#isSet = true;
-    return #local7 = #t4;
+    return #local7 = local7#param;
   }
   invalid-expression "pkg/front_end/testcases/late_lowering/definitely_unassigned.dart:34:3: Error: Non-nullable variable 'local1' must be assigned before it can be used.
   local1; // error
@@ -163,27 +163,27 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
   lowered core::bool #local2#isSet = false;
   function #local2#get() → T%
     return #local2#isSet ?{T%} #local2{T%} : throw new _in::LateError::localNI("local2");
-  function #local2#set(T% #t5) → dynamic {
+  function #local2#set(T% local2#param) → dynamic {
     #local2#isSet = true;
-    return #local2 = #t5;
+    return #local2 = local2#param;
   }
   core::int local3;
   lowered core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t6) → dynamic {
+  function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
-    return #local4 = #t6;
+    return #local4 = local4#param;
   }
   FutureOr<core::int>local5;
   lowered FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
     return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
-  function #local6#set(FutureOr<core::int>#t7) → dynamic {
+  function #local6#set(FutureOr<core::int>local6#param) → dynamic {
     #local6#isSet = true;
-    return #local6 = #t7;
+    return #local6 = local6#param;
   }
   lowered T? #local7;
   lowered core::bool #local7#isSet = false;
@@ -194,9 +194,9 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
     }
     return #local7{T%};
   }
-  function #local7#set(T% #t8) → dynamic {
+  function #local7#set(T% local7#param) → dynamic {
     #local7#isSet = true;
-    return #local7 = #t8;
+    return #local7 = local7#param;
   }
   if(b) {
     local1 = value;
@@ -227,9 +227,9 @@ static field () → Null fieldCompound = () → Null {
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t9) → dynamic {
+  function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
-    return #local4 = #t9;
+    return #local4 = local4#param;
   }
   local3 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_unassigned.dart:111:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.
   local3 += 0; // error
@@ -244,27 +244,27 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   lowered core::bool #local2#isSet = false;
   function #local2#get() → self::methodDirect::T%
     return #local2#isSet ?{self::methodDirect::T%} #local2{self::methodDirect::T%} : throw new _in::LateError::localNI("local2");
-  function #local2#set(self::methodDirect::T% #t10) → dynamic {
+  function #local2#set(self::methodDirect::T% local2#param) → dynamic {
     #local2#isSet = true;
-    return #local2 = #t10;
+    return #local2 = local2#param;
   }
   core::int local3;
   lowered core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t11) → dynamic {
+  function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
-    return #local4 = #t11;
+    return #local4 = local4#param;
   }
   FutureOr<core::int>local5;
   lowered FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
     return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
-  function #local6#set(FutureOr<core::int>#t12) → dynamic {
+  function #local6#set(FutureOr<core::int>local6#param) → dynamic {
     #local6#isSet = true;
-    return #local6 = #t12;
+    return #local6 = local6#param;
   }
   lowered self::methodDirect::T? #local7;
   lowered core::bool #local7#isSet = false;
@@ -275,9 +275,9 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
     }
     return #local7{self::methodDirect::T%};
   }
-  function #local7#set(self::methodDirect::T% #t13) → dynamic {
+  function #local7#set(self::methodDirect::T% local7#param) → dynamic {
     #local7#isSet = true;
-    return #local7 = #t13;
+    return #local7 = local7#param;
   }
   invalid-expression "pkg/front_end/testcases/late_lowering/definitely_unassigned.dart:16:3: Error: Non-nullable variable 'local1' must be assigned before it can be used.
   local1; // error
@@ -305,27 +305,27 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   lowered core::bool #local2#isSet = false;
   function #local2#get() → self::methodConditional::T%
     return #local2#isSet ?{self::methodConditional::T%} #local2{self::methodConditional::T%} : throw new _in::LateError::localNI("local2");
-  function #local2#set(self::methodConditional::T% #t14) → dynamic {
+  function #local2#set(self::methodConditional::T% local2#param) → dynamic {
     #local2#isSet = true;
-    return #local2 = #t14;
+    return #local2 = local2#param;
   }
   core::int local3;
   lowered core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t15) → dynamic {
+  function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
-    return #local4 = #t15;
+    return #local4 = local4#param;
   }
   FutureOr<core::int>local5;
   lowered FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
     return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
-  function #local6#set(FutureOr<core::int>#t16) → dynamic {
+  function #local6#set(FutureOr<core::int>local6#param) → dynamic {
     #local6#isSet = true;
-    return #local6 = #t16;
+    return #local6 = local6#param;
   }
   lowered self::methodConditional::T? #local7;
   lowered core::bool #local7#isSet = false;
@@ -336,9 +336,9 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
     }
     return #local7{self::methodConditional::T%};
   }
-  function #local7#set(self::methodConditional::T% #t17) → dynamic {
+  function #local7#set(self::methodConditional::T% local7#param) → dynamic {
     #local7#isSet = true;
-    return #local7 = #t17;
+    return #local7 = local7#param;
   }
   if(b) {
     local1 = value;
@@ -369,9 +369,9 @@ static method methodCompound() → dynamic {
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t18) → dynamic {
+  function #local4#set(core::int local4#param) → dynamic {
     #local4#isSet = true;
-    return #local4 = #t18;
+    return #local4 = local4#param;
   }
   local3 = invalid-expression "pkg/front_end/testcases/late_lowering/definitely_unassigned.dart:103:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.
   local3 += 0; // error

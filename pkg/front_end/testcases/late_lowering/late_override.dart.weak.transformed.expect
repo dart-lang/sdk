@@ -11,9 +11,9 @@ class Interface extends core::Object {
     ;
   get implementedLateFieldDeclaredGetterSetter() → core::int
     return this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("implementedLateFieldDeclaredGetterSetter");
-  set implementedLateFieldDeclaredGetterSetter(core::int #t2) → void {
+  set implementedLateFieldDeclaredGetterSetter(core::int implementedLateFieldDeclaredGetterSetter#param) → void {
     this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter#isSet} = true;
-    this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter} = #t2;
+    this.{self::Interface::_#Interface#implementedLateFieldDeclaredGetterSetter} = implementedLateFieldDeclaredGetterSetter#param;
   }
 }
 class Class extends core::Object implements self::Interface {

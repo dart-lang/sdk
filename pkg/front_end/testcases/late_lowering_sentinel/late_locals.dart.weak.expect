@@ -7,49 +7,49 @@ static method test() → dynamic {
   lowered core::int? #nullableTopLevelLocal = _in::createSentinel<core::int?>();
   function #nullableTopLevelLocal#get() → core::int?
     return let final core::int? #t1 = #nullableTopLevelLocal in _in::isSentinel(#t1) ?{core::int?} throw new _in::LateError::localNI("nullableTopLevelLocal") : #t1{core::int?};
-  function #nullableTopLevelLocal#set(core::int? #t2) → dynamic
-    return #nullableTopLevelLocal = #t2;
+  function #nullableTopLevelLocal#set(core::int? nullableTopLevelLocal#param) → dynamic
+    return #nullableTopLevelLocal = nullableTopLevelLocal#param;
   lowered core::int? #nonNullableTopLevelLocal = _in::createSentinel<core::int>();
   function #nonNullableTopLevelLocal#get() → core::int
-    return let final core::int? #t3 = #nonNullableTopLevelLocal in _in::isSentinel(#t3) ?{core::int} throw new _in::LateError::localNI("nonNullableTopLevelLocal") : #t3{core::int};
-  function #nonNullableTopLevelLocal#set(core::int #t4) → dynamic
-    return #nonNullableTopLevelLocal = #t4;
+    return let final core::int? #t2 = #nonNullableTopLevelLocal in _in::isSentinel(#t2) ?{core::int} throw new _in::LateError::localNI("nonNullableTopLevelLocal") : #t2{core::int};
+  function #nonNullableTopLevelLocal#set(core::int nonNullableTopLevelLocal#param) → dynamic
+    return #nonNullableTopLevelLocal = nonNullableTopLevelLocal#param;
   lowered core::int? #nullableTopLevelLocalWithInitializer = _in::createSentinel<core::int?>();
   function #nullableTopLevelLocalWithInitializer#get() → core::int?
-    return let final core::int? #t5 = #nullableTopLevelLocalWithInitializer in _in::isSentinel(#t5) ?{core::int?} #nullableTopLevelLocalWithInitializer = null : #t5{core::int?};
-  function #nullableTopLevelLocalWithInitializer#set(core::int? #t6) → dynamic
-    return #nullableTopLevelLocalWithInitializer = #t6;
+    return let final core::int? #t3 = #nullableTopLevelLocalWithInitializer in _in::isSentinel(#t3) ?{core::int?} #nullableTopLevelLocalWithInitializer = null : #t3{core::int?};
+  function #nullableTopLevelLocalWithInitializer#set(core::int? nullableTopLevelLocalWithInitializer#param) → dynamic
+    return #nullableTopLevelLocalWithInitializer = nullableTopLevelLocalWithInitializer#param;
   lowered core::int? #nonNullableTopLevelLocalWithInitializer = _in::createSentinel<core::int>();
   function #nonNullableTopLevelLocalWithInitializer#get() → core::int
-    return let final core::int? #t7 = #nonNullableTopLevelLocalWithInitializer in _in::isSentinel(#t7) ?{core::int} #nonNullableTopLevelLocalWithInitializer = 0 : #t7{core::int};
-  function #nonNullableTopLevelLocalWithInitializer#set(core::int #t8) → dynamic
-    return #nonNullableTopLevelLocalWithInitializer = #t8;
+    return let final core::int? #t4 = #nonNullableTopLevelLocalWithInitializer in _in::isSentinel(#t4) ?{core::int} #nonNullableTopLevelLocalWithInitializer = 0 : #t4{core::int};
+  function #nonNullableTopLevelLocalWithInitializer#set(core::int nonNullableTopLevelLocalWithInitializer#param) → dynamic
+    return #nonNullableTopLevelLocalWithInitializer = nonNullableTopLevelLocalWithInitializer#param;
   lowered final core::int? #nullableFinalTopLevelLocal = _in::createSentinel<core::int?>();
   function #nullableFinalTopLevelLocal#get() → core::int?
-    return let final core::int? #t9 = #nullableFinalTopLevelLocal in _in::isSentinel(#t9) ?{core::int?} throw new _in::LateError::localNI("nullableFinalTopLevelLocal") : #t9{core::int?};
-  function #nullableFinalTopLevelLocal#set(core::int? #t10) → dynamic
+    return let final core::int? #t5 = #nullableFinalTopLevelLocal in _in::isSentinel(#t5) ?{core::int?} throw new _in::LateError::localNI("nullableFinalTopLevelLocal") : #t5{core::int?};
+  function #nullableFinalTopLevelLocal#set(core::int? nullableFinalTopLevelLocal#param) → dynamic
     if(_in::isSentinel(#nullableFinalTopLevelLocal))
-      return #nullableFinalTopLevelLocal = #t10;
+      return #nullableFinalTopLevelLocal = nullableFinalTopLevelLocal#param;
     else
       throw new _in::LateError::localAI("nullableFinalTopLevelLocal");
   lowered final core::int? #nonNullableFinalTopLevelLocal = _in::createSentinel<core::int>();
   function #nonNullableFinalTopLevelLocal#get() → core::int
-    return let final core::int? #t11 = #nonNullableFinalTopLevelLocal in _in::isSentinel(#t11) ?{core::int} throw new _in::LateError::localNI("nonNullableFinalTopLevelLocal") : #t11{core::int};
-  function #nonNullableFinalTopLevelLocal#set(core::int #t12) → dynamic
+    return let final core::int? #t6 = #nonNullableFinalTopLevelLocal in _in::isSentinel(#t6) ?{core::int} throw new _in::LateError::localNI("nonNullableFinalTopLevelLocal") : #t6{core::int};
+  function #nonNullableFinalTopLevelLocal#set(core::int nonNullableFinalTopLevelLocal#param) → dynamic
     if(_in::isSentinel(#nonNullableFinalTopLevelLocal))
-      return #nonNullableFinalTopLevelLocal = #t12;
+      return #nonNullableFinalTopLevelLocal = nonNullableFinalTopLevelLocal#param;
     else
       throw new _in::LateError::localAI("nonNullableFinalTopLevelLocal");
   lowered final core::int? #nullableFinalTopLevelLocalWithInitializer = _in::createSentinel<core::int?>();
   function #nullableFinalTopLevelLocalWithInitializer#get() → core::int?
-    return let final core::int? #t13 = #nullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t13) ?{core::int?} let final core::int? #t14 = null in _in::isSentinel(#nullableFinalTopLevelLocalWithInitializer) ?{core::int?} #nullableFinalTopLevelLocalWithInitializer = #t14 : throw new _in::LateError::localADI("nullableFinalTopLevelLocalWithInitializer") : #t13;
+    return let final core::int? #t7 = #nullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t7) ?{core::int?} let final core::int? #t8 = null in _in::isSentinel(#nullableFinalTopLevelLocalWithInitializer) ?{core::int?} #nullableFinalTopLevelLocalWithInitializer = #t8 : throw new _in::LateError::localADI("nullableFinalTopLevelLocalWithInitializer") : #t7;
   lowered final core::int? #nonNullableFinalTopLevelLocalWithInitializer = _in::createSentinel<core::int>();
   function #nonNullableFinalTopLevelLocalWithInitializer#get() → core::int
-    return let final core::int #t15 = #nonNullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t15) ?{core::int} let final core::int #t16 = 0 in _in::isSentinel(#nonNullableFinalTopLevelLocalWithInitializer) ?{core::int} #nonNullableFinalTopLevelLocalWithInitializer = #t16 : throw new _in::LateError::localADI("nonNullableFinalTopLevelLocalWithInitializer") : #t15;
+    return let final core::int #t9 = #nonNullableFinalTopLevelLocalWithInitializer in _in::isSentinel(#t9) ?{core::int} let final core::int #t10 = 0 in _in::isSentinel(#nonNullableFinalTopLevelLocalWithInitializer) ?{core::int} #nonNullableFinalTopLevelLocalWithInitializer = #t10 : throw new _in::LateError::localADI("nonNullableFinalTopLevelLocalWithInitializer") : #t9;
   lowered Null #neverLocal = _in::createSentinel<Never>();
   function #neverLocal#get() → Never
-    return let final Never? #t17 = #neverLocal in _in::isSentinel(#t17) ?{Never} throw new _in::LateError::localNI("neverLocal") : #t17{Never};
-  function #neverLocal#set(Never #t18) → dynamic
-    return #neverLocal = #t18;
+    return let final Never? #t11 = #neverLocal in _in::isSentinel(#t11) ?{Never} throw new _in::LateError::localNI("neverLocal") : #t11{Never};
+  function #neverLocal#set(Never neverLocal#param) → dynamic
+    return #neverLocal = neverLocal#param;
 }
 static method main() → dynamic {}

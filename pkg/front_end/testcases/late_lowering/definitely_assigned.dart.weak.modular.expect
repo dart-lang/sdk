@@ -69,34 +69,34 @@ static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect = <T e
   lowered core::bool #local2#isSet = false;
   function #local2#get() → T%
     return #local2#isSet ?{T%} #local2{T%} : throw new _in::LateError::localNI("local2");
-  function #local2#set(T% #t1) → dynamic
+  function #local2#set(T% local2#param) → dynamic
     if(#local2#isSet)
       throw new _in::LateError::localAI("local2");
     else {
       #local2#isSet = true;
-      return #local2 = #t1;
+      return #local2 = local2#param;
     }
   lowered final core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t2) → dynamic
+  function #local4#set(core::int local4#param) → dynamic
     if(#local4#isSet)
       throw new _in::LateError::localAI("local4");
     else {
       #local4#isSet = true;
-      return #local4 = #t2;
+      return #local4 = local4#param;
     }
   lowered final FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
     return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
-  function #local6#set(FutureOr<core::int>#t3) → dynamic
+  function #local6#set(FutureOr<core::int>local6#param) → dynamic
     if(#local6#isSet)
       throw new _in::LateError::localAI("local6");
     else {
       #local6#isSet = true;
-      return #local6 = #t3;
+      return #local6 = local6#param;
     }
   #local2#set(value){(T%) → dynamic};
   #local4#set(0){(core::int) → dynamic};
@@ -116,34 +116,34 @@ static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldC
   lowered core::bool #local2#isSet = false;
   function #local2#get() → T%
     return #local2#isSet ?{T%} #local2{T%} : throw new _in::LateError::localNI("local2");
-  function #local2#set(T% #t4) → dynamic
+  function #local2#set(T% local2#param) → dynamic
     if(#local2#isSet)
       throw new _in::LateError::localAI("local2");
     else {
       #local2#isSet = true;
-      return #local2 = #t4;
+      return #local2 = local2#param;
     }
   lowered final core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t5) → dynamic
+  function #local4#set(core::int local4#param) → dynamic
     if(#local4#isSet)
       throw new _in::LateError::localAI("local4");
     else {
       #local4#isSet = true;
-      return #local4 = #t5;
+      return #local4 = local4#param;
     }
   lowered final FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
     return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
-  function #local6#set(FutureOr<core::int>#t6) → dynamic
+  function #local6#set(FutureOr<core::int>local6#param) → dynamic
     if(#local6#isSet)
       throw new _in::LateError::localAI("local6");
     else {
       #local6#isSet = true;
-      return #local6 = #t6;
+      return #local6 = local6#param;
     }
   if(b) {
     #local2#set(value){(T%) → dynamic};
@@ -168,12 +168,12 @@ static field () → Null fieldCompound = () → Null {
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t7) → dynamic
+  function #local4#set(core::int local4#param) → dynamic
     if(#local4#isSet)
       throw new _in::LateError::localAI("local4");
     else {
       #local4#isSet = true;
-      return #local4 = #t7;
+      return #local4 = local4#param;
     }
   #local4#set(0){(core::int) → dynamic};
   invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:88:3: Error: Late final variable '#local4' definitely assigned.
@@ -185,34 +185,34 @@ static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect
   lowered core::bool #local2#isSet = false;
   function #local2#get() → self::methodDirect::T%
     return #local2#isSet ?{self::methodDirect::T%} #local2{self::methodDirect::T%} : throw new _in::LateError::localNI("local2");
-  function #local2#set(self::methodDirect::T% #t8) → dynamic
+  function #local2#set(self::methodDirect::T% local2#param) → dynamic
     if(#local2#isSet)
       throw new _in::LateError::localAI("local2");
     else {
       #local2#isSet = true;
-      return #local2 = #t8;
+      return #local2 = local2#param;
     }
   lowered final core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t9) → dynamic
+  function #local4#set(core::int local4#param) → dynamic
     if(#local4#isSet)
       throw new _in::LateError::localAI("local4");
     else {
       #local4#isSet = true;
-      return #local4 = #t9;
+      return #local4 = local4#param;
     }
   lowered final FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
     return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
-  function #local6#set(FutureOr<core::int>#t10) → dynamic
+  function #local6#set(FutureOr<core::int>local6#param) → dynamic
     if(#local6#isSet)
       throw new _in::LateError::localAI("local6");
     else {
       #local6#isSet = true;
-      return #local6 = #t10;
+      return #local6 = local6#param;
     }
   #local2#set(value){(self::methodDirect::T%) → dynamic};
   #local4#set(0){(core::int) → dynamic};
@@ -232,34 +232,34 @@ static method methodConditional<T extends core::Object? = dynamic>(core::bool b,
   lowered core::bool #local2#isSet = false;
   function #local2#get() → self::methodConditional::T%
     return #local2#isSet ?{self::methodConditional::T%} #local2{self::methodConditional::T%} : throw new _in::LateError::localNI("local2");
-  function #local2#set(self::methodConditional::T% #t11) → dynamic
+  function #local2#set(self::methodConditional::T% local2#param) → dynamic
     if(#local2#isSet)
       throw new _in::LateError::localAI("local2");
     else {
       #local2#isSet = true;
-      return #local2 = #t11;
+      return #local2 = local2#param;
     }
   lowered final core::int? #local4;
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t12) → dynamic
+  function #local4#set(core::int local4#param) → dynamic
     if(#local4#isSet)
       throw new _in::LateError::localAI("local4");
     else {
       #local4#isSet = true;
-      return #local4 = #t12;
+      return #local4 = local4#param;
     }
   lowered final FutureOr<core::int>? #local6;
   lowered core::bool #local6#isSet = false;
   function #local6#get() → FutureOr<core::int>
     return #local6#isSet ?{FutureOr<core::int>} #local6{FutureOr<core::int>} : throw new _in::LateError::localNI("local6");
-  function #local6#set(FutureOr<core::int>#t13) → dynamic
+  function #local6#set(FutureOr<core::int>local6#param) → dynamic
     if(#local6#isSet)
       throw new _in::LateError::localAI("local6");
     else {
       #local6#isSet = true;
-      return #local6 = #t13;
+      return #local6 = local6#param;
     }
   if(b) {
     #local2#set(value){(self::methodConditional::T%) → dynamic};
@@ -284,12 +284,12 @@ static method methodCompound() → dynamic {
   lowered core::bool #local4#isSet = false;
   function #local4#get() → core::int
     return #local4#isSet ?{core::int} #local4{core::int} : throw new _in::LateError::localNI("local4");
-  function #local4#set(core::int #t14) → dynamic
+  function #local4#set(core::int local4#param) → dynamic
     if(#local4#isSet)
       throw new _in::LateError::localAI("local4");
     else {
       #local4#isSet = true;
-      return #local4 = #t14;
+      return #local4 = local4#param;
     }
   #local4#set(0){(core::int) → dynamic};
   invalid-expression "pkg/front_end/testcases/late_lowering/definitely_assigned.dart:80:3: Error: Late final variable '#local4' definitely assigned.

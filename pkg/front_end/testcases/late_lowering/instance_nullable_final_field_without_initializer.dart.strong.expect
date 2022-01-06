@@ -20,12 +20,12 @@ class Class extends core::Object {
     ;
   get field() → core::int?
     return this.{self::Class::_#Class#field#isSet}{core::bool} ?{core::int?} this.{self::Class::_#Class#field}{core::int?} : throw new _in::LateError::fieldNI("field");
-  set field(core::int? #t1) → void
+  set field(core::int? field#param) → void
     if(this.{self::Class::_#Class#field#isSet}{core::bool})
       throw new _in::LateError::fieldAI("field");
     else {
       this.{self::Class::_#Class#field#isSet} = true;
-      this.{self::Class::_#Class#field} = #t1;
+      this.{self::Class::_#Class#field} = field#param;
     }
 }
 class Subclass extends self::Class {
