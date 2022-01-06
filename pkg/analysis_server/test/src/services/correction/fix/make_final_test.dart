@@ -304,6 +304,19 @@ void fn({final String? test}) {
 ''');
   }
 
+  Future<void> test_named_optional_withDefault() async {
+    await resolveTestCode('''
+void fn({String test = 'value'}) {
+  print(test);
+}
+''');
+    await assertHasFix('''
+void fn({final String test = 'value'}) {
+  print(test);
+}
+''');
+  }
+
   Future<void> test_named_required() async {
     await resolveTestCode('''
 void fn({required String test}) {
@@ -330,6 +343,19 @@ void fn([final String? test]) {
 ''');
   }
 
+  Future<void> test_positional_optional_withDefault() async {
+    await resolveTestCode('''
+void fn([String? test = 'value']) {
+  print(test);
+}
+''');
+    await assertHasFix('''
+void fn([final String? test = 'value']) {
+  print(test);
+}
+''');
+  }
+
   Future<void> test_simple_hasType() async {
     await resolveTestCode('''
 void fn(String test) {
@@ -351,6 +377,19 @@ void fn(test) {
 ''');
     await assertHasFix('''
 void fn(final test) {
+  print(test);
+}
+''');
+  }
+
+  Future<void> test_simple_nullable() async {
+    await resolveTestCode('''
+void fn(String? test) {
+  print(test);
+}
+''');
+    await assertHasFix('''
+void fn(final String? test) {
   print(test);
 }
 ''');

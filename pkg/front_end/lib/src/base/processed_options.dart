@@ -533,12 +533,10 @@ class ProcessedOptions {
       return new TargetLibrariesSpecification(name);
     }
 
-    String json = await fileSystem
-        .entityForUri(librariesSpecificationUri!)
-        .readAsString();
     try {
-      LibrariesSpecification spec =
-          await LibrariesSpecification.parse(librariesSpecificationUri!, json);
+      LibrariesSpecification spec = await LibrariesSpecification.load(
+          librariesSpecificationUri!,
+          (Uri uri) => fileSystem.entityForUri(uri).readAsString());
       return spec.specificationFor(name);
     } on LibrariesSpecificationException catch (e) {
       reportWithoutLocation(

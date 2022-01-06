@@ -2455,11 +2455,6 @@ void Precompiler::TraceTypesFromRetainedClasses() {
       if (cls.is_allocated()) {
         retain = true;
       }
-      if (cls.is_enum_class()) {
-        // Enum classes have live instances, so we cannot unregister
-        // them.
-        retain = true;
-      }
 
       constants = cls.constants();
       retained_constants = GrowableObjectArray::New();

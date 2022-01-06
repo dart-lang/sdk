@@ -4521,27 +4521,30 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
       CompileTimeErrorCode(
-    'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
-    "External fields cannot have initializers.",
+    'EXTERNAL_WITH_INITIALIZER',
+    "External fields can't have initializers.",
     correctionMessage:
         "Try removing the field initializer or the 'external' keyword from the "
         "field declaration.",
+    uniqueName: 'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
   );
 
   static const CompileTimeErrorCode EXTERNAL_FIELD_INITIALIZER =
       CompileTimeErrorCode(
-    'EXTERNAL_FIELD_INITIALIZER',
-    "External fields cannot have initializers.",
+    'EXTERNAL_WITH_INITIALIZER',
+    "External fields can't have initializers.",
     correctionMessage:
         "Try removing the initializer or the 'external' keyword.",
+    uniqueName: 'EXTERNAL_FIELD_INITIALIZER',
   );
 
   static const CompileTimeErrorCode EXTERNAL_VARIABLE_INITIALIZER =
       CompileTimeErrorCode(
-    'EXTERNAL_VARIABLE_INITIALIZER',
-    "External variables cannot have initializers.",
+    'EXTERNAL_WITH_INITIALIZER',
+    "External variables can't have initializers.",
     correctionMessage:
         "Try removing the initializer or the 'external' keyword.",
+    uniqueName: 'EXTERNAL_VARIABLE_INITIALIZER',
   );
 
   /**
@@ -5950,6 +5953,28 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try replacing the reference to the instance member with a different "
         "expression",
     hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode
+      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT =
+      CompileTimeErrorCode(
+    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT',
+    "The named parameter '{0}' is required in the implicitly invoked unnamed "
+        "constructor of '{1}'.",
+    correctionMessage:
+        "Try declaring corresponding named super-parameter, or explicitly "
+        "invoking a different constructor.",
+  );
+
+  static const CompileTimeErrorCode
+      IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS =
+      CompileTimeErrorCode(
+    'IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS',
+    "The implicitly invoked unnamed constructor of '{0}' expects {1} "
+        "positional arguments, but {2} found.",
+    correctionMessage:
+        "Try declaring positional super-parameters, or explicitly invoking a "
+        "different constructor.",
   );
 
   /**
@@ -8514,6 +8539,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode
+      MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION =
+      CompileTimeErrorCode(
+    'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
+    "With null safety, use the 'required' keyword, not the '@required' "
+        "annotation.",
+    correctionMessage: "Try removing the '@'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
+  );
+
+  /**
    * Parameters:
    * 0: the name of the parameter
    */
@@ -8860,16 +8899,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The class '{0}' can't be used as a mixin because it declares a "
         "constructor.",
     hasPublishedDocs: true,
-  );
-
-  /**
-   * The <i>mixinMember</i> production allows the same instance or static
-   * members that a class would allow, but no constructors (for now).
-   */
-  static const CompileTimeErrorCode MIXIN_DECLARES_CONSTRUCTOR =
-      CompileTimeErrorCode(
-    'MIXIN_DECLARES_CONSTRUCTOR',
-    "Mixins can't declare constructors.",
   );
 
   /**
@@ -13079,6 +13108,21 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'STATIC_ACCESS_TO_INSTANCE_MEMBER',
     "Instance member '{0}' can't be accessed using static access.",
     hasPublishedDocs: true,
+  );
+
+  /**
+   * Parameters:
+   * 0: the type of super-parameter
+   * 1: the type of associated super-constructor parameter
+   */
+  static const CompileTimeErrorCode
+      SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED =
+      CompileTimeErrorCode(
+    'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
+    "The type '{0}' of this parameter is not a subtype of the type '{1}' of "
+        "the associated super-constructor parameter.",
+    correctionMessage:
+        "Try removing the explicit type annotation from the parameter.",
   );
 
   /**

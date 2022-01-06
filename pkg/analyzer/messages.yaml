@@ -3971,13 +3971,16 @@ CompileTimeErrorCode:
       If there are multiple cascaded accesses, you'll need to duplicate the
       extension override for each one.
   EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
-    problemMessage: External fields cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the field initializer or the 'external' keyword from the field declaration."
   EXTERNAL_FIELD_INITIALIZER:
-    problemMessage: External fields cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
   EXTERNAL_VARIABLE_INITIALIZER:
-    problemMessage: External variables cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External variables can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
   EXTRA_POSITIONAL_ARGUMENTS:
     problemMessage: "Too many positional arguments: {0} expected, but {1} found."
@@ -5185,6 +5188,12 @@ CompileTimeErrorCode:
         int get defaultX => 0;
       }
       ```
+  IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT:
+    problemMessage: The named parameter '{0}' is required in the implicitly invoked unnamed constructor of '{1}'.
+    correctionMessage: Try declaring corresponding named super-parameter, or explicitly invoking a different constructor.
+  IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS:
+    problemMessage: The implicitly invoked unnamed constructor of '{0}' expects {1} positional arguments, but {2} found.
+    correctionMessage: Try declaring positional super-parameters, or explicitly invoking a different constructor.
   IMPORT_INTERNAL_LIBRARY:
     problemMessage: "The library '{0}' is internal and can't be imported."
     hasPublishedDocs: true
@@ -7370,6 +7379,12 @@ CompileTimeErrorCode:
       void f(int x) {}
       void g({required int x}) {}
       ```
+  MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
+    sharedName: MISSING_DEFAULT_VALUE_FOR_PARAMETER
+    problemMessage: "With null safety, use the 'required' keyword, not the '@required' annotation."
+    correctionMessage: "Try removing the '@'."
+    hasPublishedDocs: true
+    comment: No parameters.
   MISSING_REQUIRED_ARGUMENT:
     problemMessage: "The named parameter '{0}' is required, but there's no corresponding argument."
     correctionMessage: Try adding the required argument.
@@ -7690,11 +7705,6 @@ CompileTimeErrorCode:
 
       class B extends A {}
       ```
-  MIXIN_DECLARES_CONSTRUCTOR:
-    problemMessage: "Mixins can't declare constructors."
-    comment: |-
-      The <i>mixinMember</i> production allows the same instance or static
-      members that a class would allow, but no constructors (for now).
   MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES:
     problemMessage: "Type parameters couldn't be inferred for the mixin '{0}' because the base class implements the mixin's supertype constraint '{1}' in multiple conflicting ways"
   MIXIN_INFERENCE_NO_MATCHING_CLASS:
@@ -11097,6 +11107,13 @@ CompileTimeErrorCode:
 
       int f(C c) => c.b;
       ```
+  SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
+    problemMessage: The type '{0}' of this parameter is not a subtype of the type '{1}' of the associated super-constructor parameter.
+    comment: |-
+      Parameters:
+      0: the type of super-parameter
+      1: the type of associated super-constructor parameter
+    correctionMessage: Try removing the explicit type annotation from the parameter.
   SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
     problemMessage: No associated named super-constructor parameter.
     comment: No parameters.

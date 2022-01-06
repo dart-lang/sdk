@@ -25,7 +25,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
   late MemberSuggestionBuilder memberBuilder;
 
   /// The kind of suggestion to make.
-  CompletionSuggestionKind? classMemberSuggestionKind;
+  late CompletionSuggestionKind classMemberSuggestionKind;
 
   /// The [_VisibilityTracker] tracks the set of elements already added in the
   /// completion list, this object helps prevents suggesting elements that have
@@ -314,8 +314,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       if (declaredElement is FunctionElement) {
         builder.suggestTopLevelFunction(declaredElement, kind: _defaultKind);
       } else if (declaredElement is PropertyAccessorElement) {
-        builder.suggestTopLevelPropertyAccessor(declaredElement,
-            kind: _defaultKind);
+        builder.suggestTopLevelPropertyAccessor(declaredElement);
       }
     }
   }
@@ -324,7 +323,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     var declaredElement = declaration.declaredElement;
     if (declaredElement != null && opType.includeTypeNameSuggestions) {
-      builder.suggestTypeAlias(declaredElement, kind: _defaultKind);
+      builder.suggestTypeAlias(declaredElement);
     }
   }
 
@@ -333,7 +332,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     var declaredElement = declaration.declaredElement;
     if (declaredElement is TypeAliasElement &&
         opType.includeTypeNameSuggestions) {
-      builder.suggestTypeAlias(declaredElement, kind: _defaultKind);
+      builder.suggestTypeAlias(declaredElement);
     }
   }
 

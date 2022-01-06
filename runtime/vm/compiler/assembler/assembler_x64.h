@@ -747,6 +747,7 @@ class Assembler : public AssemblerBase {
   void LoadImmediate(Register reg, int32_t immediate) {
     LoadImmediate(reg, Immediate(immediate));
   }
+  void LoadDImmediate(FpuRegister dst, double immediate);
 
   void LoadIsolate(Register dst);
   void LoadIsolateGroup(Register dst);

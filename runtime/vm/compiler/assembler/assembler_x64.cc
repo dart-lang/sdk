@@ -1379,6 +1379,17 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
   }
 }
 
+void Assembler::LoadDImmediate(FpuRegister dst, double immediate) {
+  int64_t bits = bit_cast<int64_t>(immediate);
+  if (bits == 0) {
+    xorps(dst, dst);
+  } else {
+    intptr_t index = FindImmediate(bits);
+    LoadUnboxedDouble(
+        dst, PP, target::ObjectPool::element_offset(index) - kHeapObjectTag);
+  }
+}
+
 void Assembler::LoadCompressed(Register dest, const Address& slot) {
 #if !defined(DART_COMPRESSED_POINTERS)
   movq(dest, slot);

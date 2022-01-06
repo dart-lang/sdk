@@ -125,7 +125,7 @@ Response _rootHandler(Request req) {
 }
 
 Response _echoHandler(Request request) {
-  final message = request.params['message'];
+  final message = params(request, 'message');
   return Response.ok('$message\n');
 }
 

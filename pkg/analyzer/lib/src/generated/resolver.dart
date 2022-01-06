@@ -60,6 +60,7 @@ import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
+import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
@@ -2332,9 +2333,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     ErrorReporter? errorReporter,
     ConstructorDeclaration? enclosingConstructor,
   }) {
-    if (parameters.isEmpty && argumentList.arguments.isEmpty) {
-      return const <ParameterElement>[];
-    }
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
     List<ParameterElement> unnamedParameters = <ParameterElement>[];
@@ -2360,9 +2358,36 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     List<ParameterElement?> resolvedParameters =
         List<ParameterElement?>.filled(argumentCount, null);
     int positionalArgumentCount = 0;
-    HashSet<String>? usedNames;
     bool noBlankArguments = true;
     Expression? firstUnresolvedArgument;
+    for (int i = 0; i < argumentCount; i++) {
+      Expression argument = arguments[i];
+      if (argument is! NamedExpressionImpl) {
+        if (argument is SimpleIdentifier && argument.name.isEmpty) {
+          noBlankArguments = false;
+        }
+        positionalArgumentCount++;
+        if (unnamedIndex < unnamedParameterCount) {
+          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
+        } else {
+          firstUnresolvedArgument ??= argument;
+        }
+      }
+    }
+
+    Set<String>? usedNames;
+    if (enclosingConstructor != null) {
+      var result = verifySuperFormalParameters(
+        constructor: enclosingConstructor,
+        hasExplicitPositionalArguments: positionalArgumentCount != 0,
+        errorReporter: errorReporter,
+      );
+      positionalArgumentCount += result.positionalArgumentCount;
+      if (result.namedArgumentNames.isNotEmpty) {
+        usedNames = result.namedArgumentNames.toSet();
+      }
+    }
+
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
       if (argument is NamedExpressionImpl) {
@@ -2376,56 +2401,10 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
           resolvedParameters[i] = element;
           nameNode.staticElement = element;
         }
-        usedNames ??= HashSet<String>();
+        usedNames ??= <String>{};
         if (!usedNames.add(name)) {
           errorReporter?.reportErrorForNode(
               CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, [name]);
-        }
-      } else {
-        if (argument is SimpleIdentifier && argument.name.isEmpty) {
-          noBlankArguments = false;
-        }
-        positionalArgumentCount++;
-        if (unnamedIndex < unnamedParameterCount) {
-          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
-        } else {
-          firstUnresolvedArgument ??= argument;
-        }
-      }
-    }
-
-    if (enclosingConstructor != null) {
-      var hasExplicitPositionalArguments = positionalArgumentCount != 0;
-      for (var formalParameter in enclosingConstructor.parameters.parameters) {
-        formalParameter = formalParameter.notDefault;
-        if (formalParameter is SuperFormalParameter) {
-          var element = formalParameter.declaredElement
-              as SuperFormalParameterElementImpl;
-          if (formalParameter.isNamed) {
-            if (element.superConstructorParameter == null) {
-              errorReporter?.reportErrorForNode(
-                CompileTimeErrorCode
-                    .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED,
-                formalParameter.identifier,
-              );
-            }
-          } else {
-            positionalArgumentCount++;
-            if (hasExplicitPositionalArguments) {
-              errorReporter?.reportErrorForNode(
-                CompileTimeErrorCode
-                    .POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT,
-                formalParameter.identifier,
-              );
-            }
-            if (element.superConstructorParameter == null) {
-              errorReporter?.reportErrorForNode(
-                CompileTimeErrorCode
-                    .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
-                formalParameter.identifier,
-              );
-            }
-          }
         }
       }
     }

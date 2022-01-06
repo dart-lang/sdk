@@ -4698,6 +4698,15 @@ class CompletionGetSuggestions2Params implements RequestParams {
   /// to true.
   int maxResults;
 
+  /// The mode of code completion being invoked. If no value is provided, BASIC
+  /// will be assumed. BASIC is also the only currently supported.
+  CompletionMode? completionMode;
+
+  /// The number of times that the user has invoked code completion at the same
+  /// code location, counting from 1. If no value is provided, 1 will be
+  /// assumed.
+  int? invocationCount;
+
   /// The approximate time in milliseconds that the server should spend. The
   /// server will perform some steps anyway, even if it takes longer than the
   /// specified timeout. This field is intended to be used for benchmarking,
@@ -4705,7 +4714,7 @@ class CompletionGetSuggestions2Params implements RequestParams {
   int? timeout;
 
   CompletionGetSuggestions2Params(this.file, this.offset, this.maxResults,
-      {this.timeout});
+      {this.completionMode, this.invocationCount, this.timeout});
 
   factory CompletionGetSuggestions2Params.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4730,11 +4739,23 @@ class CompletionGetSuggestions2Params implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'maxResults');
       }
+      CompletionMode? completionMode;
+      if (json.containsKey('completionMode')) {
+        completionMode = CompletionMode.fromJson(
+            jsonDecoder, jsonPath + '.completionMode', json['completionMode']);
+      }
+      int? invocationCount;
+      if (json.containsKey('invocationCount')) {
+        invocationCount = jsonDecoder.decodeInt(
+            jsonPath + '.invocationCount', json['invocationCount']);
+      }
       int? timeout;
       if (json.containsKey('timeout')) {
         timeout = jsonDecoder.decodeInt(jsonPath + '.timeout', json['timeout']);
       }
       return CompletionGetSuggestions2Params(file, offset, maxResults,
+          completionMode: completionMode,
+          invocationCount: invocationCount,
           timeout: timeout);
     } else {
       throw jsonDecoder.mismatch(
@@ -4753,6 +4774,14 @@ class CompletionGetSuggestions2Params implements RequestParams {
     result['file'] = file;
     result['offset'] = offset;
     result['maxResults'] = maxResults;
+    var completionMode = this.completionMode;
+    if (completionMode != null) {
+      result['completionMode'] = completionMode.toJson();
+    }
+    var invocationCount = this.invocationCount;
+    if (invocationCount != null) {
+      result['invocationCount'] = invocationCount;
+    }
     var timeout = this.timeout;
     if (timeout != null) {
       result['timeout'] = timeout;
@@ -4774,6 +4803,8 @@ class CompletionGetSuggestions2Params implements RequestParams {
       return file == other.file &&
           offset == other.offset &&
           maxResults == other.maxResults &&
+          completionMode == other.completionMode &&
+          invocationCount == other.invocationCount &&
           timeout == other.timeout;
     }
     return false;
@@ -4784,6 +4815,8 @@ class CompletionGetSuggestions2Params implements RequestParams {
         file,
         offset,
         maxResults,
+        completionMode,
+        invocationCount,
         timeout,
       );
 }
@@ -5088,6 +5121,58 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 
   @override
   int get hashCode => id.hashCode;
+}
+
+/// CompletionMode
+///
+/// enum {
+///   BASIC
+///   SMART
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionMode implements Enum {
+  /// Basic code completion invocation type, and the default for this
+  /// enumeration.
+  static const CompletionMode BASIC = CompletionMode._('BASIC');
+
+  /// Smart code completion, currently not implemented.
+  static const CompletionMode SMART = CompletionMode._('SMART');
+
+  /// A list containing all of the enum values that are defined.
+  static const List<CompletionMode> VALUES = <CompletionMode>[BASIC, SMART];
+
+  @override
+  final String name;
+
+  const CompletionMode._(this.name);
+
+  factory CompletionMode(String name) {
+    switch (name) {
+      case 'BASIC':
+        return BASIC;
+      case 'SMART':
+        return SMART;
+    }
+    throw Exception('Illegal enum value: $name');
+  }
+
+  factory CompletionMode.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    if (json is String) {
+      try {
+        return CompletionMode(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, 'CompletionMode', json);
+  }
+
+  @override
+  String toString() => 'CompletionMode.$name';
+
+  String toJson() => name;
 }
 
 /// completion.registerLibraryPaths params

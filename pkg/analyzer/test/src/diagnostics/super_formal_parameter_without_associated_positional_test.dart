@@ -16,11 +16,9 @@ main() {
 @reflectiveTest
 class SuperFormalParameterWithoutAssociatedPositionalTest
     extends PubPackageResolutionTest {
-  test_optional() async {
+  test_explicit_optional() async {
     await assertErrorsInCode(r'''
-class A {
-  A({int? a});
-}
+class A {}
 
 class B extends A {
   B([super.a]) : super();
@@ -29,16 +27,14 @@ class B extends A {
       error(
           CompileTimeErrorCode
               .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
-          59,
+          43,
           1)
     ]);
   }
 
-  test_required() async {
+  test_explicit_required() async {
     await assertErrorsInCode(r'''
-class A {
-  A({int? a});
-}
+class A {}
 
 class B extends A {
   B(super.a) : super();
@@ -47,7 +43,39 @@ class B extends A {
       error(
           CompileTimeErrorCode
               .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
-          58,
+          42,
+          1)
+    ]);
+  }
+
+  test_implicit_optional() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+class B extends A {
+  B([super.a]);
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+          43,
+          1)
+    ]);
+  }
+
+  test_implicit_required() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+class B extends A {
+  B(super.a);
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+          42,
           1)
     ]);
   }

@@ -1328,17 +1328,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     var unitElement = libraryContext.computeUnitElement(library, file)
         as CompilationUnitElementImpl;
 
-    var analyzer = LibraryAnalyzer(
-        analysisOptions as AnalysisOptionsImpl,
-        declaredVariables,
-        sourceFactory,
-        libraryContext.analysisContext,
-        libraryContext.elementFactory.libraryOfUri2(library.uriStr),
-        libraryContext.analysisSession.inheritanceManager,
-        library,
-        testingData: testingData);
-
-    var analysisResult = analyzer.analyzeForCompletion(
+    var analysisResult = LibraryAnalyzer(
+      analysisOptions as AnalysisOptionsImpl,
+      declaredVariables,
+      sourceFactory,
+      libraryContext.elementFactory.libraryOfUri2(library.uriStr),
+      libraryContext.analysisSession.inheritanceManager,
+      library,
+      testingData: testingData,
+    ).analyzeForCompletion(
       file: file,
       offset: offset,
       unitElement: unitElement,
@@ -1443,27 +1441,26 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
         libraryContext.load2(library!);
 
-        LibraryAnalyzer analyzer = LibraryAnalyzer(
-            analysisOptions as AnalysisOptionsImpl,
-            declaredVariables,
-            sourceFactory,
-            libraryContext.analysisContext,
-            libraryContext.elementFactory.libraryOfUri2(library.uriStr),
-            libraryContext.analysisSession.inheritanceManager,
-            library,
-            testingData: testingData);
-        Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
+        var results = LibraryAnalyzer(
+          analysisOptions as AnalysisOptionsImpl,
+          declaredVariables,
+          sourceFactory,
+          libraryContext.elementFactory.libraryOfUri2(library.uriStr),
+          libraryContext.analysisSession.inheritanceManager,
+          library,
+          testingData: testingData,
+        ).analyze();
 
         late Uint8List bytes;
         late CompilationUnit resolvedUnit;
-        for (FileState unitFile in results.keys) {
-          UnitAnalysisResult unitResult = results[unitFile]!;
+        for (var unitResult in results) {
           var unitBytes =
               _serializeResolvedUnit(unitResult.unit, unitResult.errors);
-          String unitSignature = _getResolvedUnitSignature(library, unitFile);
+          String unitSignature =
+              _getResolvedUnitSignature(library, unitResult.file);
           String unitKey = _getResolvedUnitKey(unitSignature);
           _byteStore.put(unitKey, unitBytes);
-          if (unitFile == file) {
+          if (unitResult.file == file) {
             bytes = unitBytes;
             resolvedUnit = unitResult.unit;
           }
@@ -1515,21 +1512,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _testView.numOfAnalyzedLibraries++;
       libraryContext.load2(library);
 
-      LibraryAnalyzer analyzer = LibraryAnalyzer(
-          analysisOptions as AnalysisOptionsImpl,
-          declaredVariables,
-          sourceFactory,
-          libraryContext.analysisContext,
-          libraryContext.elementFactory.libraryOfUri2(library.uriStr),
-          libraryContext.analysisSession.inheritanceManager,
-          library,
-          testingData: testingData);
-      Map<FileState, UnitAnalysisResult> unitResults = analyzer.analyze();
+      var unitResults = LibraryAnalyzer(
+              analysisOptions as AnalysisOptionsImpl,
+              declaredVariables,
+              sourceFactory,
+              libraryContext.elementFactory.libraryOfUri2(library.uriStr),
+              libraryContext.analysisSession.inheritanceManager,
+              library,
+              testingData: testingData)
+          .analyze();
       var resolvedUnits = <ResolvedUnitResult>[];
 
-      for (var entry in unitResults.entries) {
-        var unitFile = entry.key;
-        var unitResult = entry.value;
+      for (var unitResult in unitResults) {
+        var unitFile = unitResult.file;
         resolvedUnits.add(
           ResolvedUnitResultImpl(
             currentSession,

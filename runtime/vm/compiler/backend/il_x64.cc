@@ -560,22 +560,9 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ LoadObject(destination.reg(), value_);
     }
   } else if (destination.IsFpuRegister()) {
-    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
-      __ xorps(destination.fpu_reg(), destination.fpu_reg());
-    } else {
-      ASSERT(tmp != kNoRegister);
-      __ LoadObject(tmp, value_);
-      __ movsd(destination.fpu_reg(),
-               compiler::FieldAddress(tmp, Double::value_offset()));
-    }
+    __ LoadDImmediate(destination.fpu_reg(), Double::Cast(value_).value());
   } else if (destination.IsDoubleStackSlot()) {
-    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
-      __ xorps(FpuTMP, FpuTMP);
-    } else {
-      ASSERT(tmp != kNoRegister);
-      __ LoadObject(tmp, value_);
-      __ movsd(FpuTMP, compiler::FieldAddress(tmp, Double::value_offset()));
-    }
+    __ LoadDImmediate(FpuTMP, Double::Cast(value_).value());
     __ movsd(LocationToStackSlotAddress(destination), FpuTMP);
   } else {
     ASSERT(destination.IsStackSlot());
@@ -5438,13 +5425,11 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   XmmRegister base = locs->in(0).fpu_reg();
   XmmRegister exp = locs->in(1).fpu_reg();
   XmmRegister result = locs->out(0).fpu_reg();
-  Register temp = locs->temp(InvokeMathCFunctionInstr::kObjectTempIndex).reg();
   XmmRegister zero_temp =
       locs->temp(InvokeMathCFunctionInstr::kDoubleTempIndex).fpu_reg();
 
   __ xorps(zero_temp, zero_temp);
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1)));
-  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(result, 1.0);
 
   compiler::Label check_base, skip_call;
   // exponent == 0.0 -> return 1.0;
@@ -5458,15 +5443,13 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ j(EQUAL, &return_base, compiler::Assembler::kNearJump);
 
   // exponent == 2.0 ?
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(2.0)));
-  __ movsd(XMM0, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(XMM0, 2.0);
   __ comisd(exp, XMM0);
   compiler::Label return_base_times_2;
   __ j(EQUAL, &return_base_times_2, compiler::Assembler::kNearJump);
 
   // exponent == 3.0 ?
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(3.0)));
-  __ movsd(XMM0, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(XMM0, 3.0);
   __ comisd(exp, XMM0);
   __ j(NOT_EQUAL, &check_base);
 
@@ -5500,22 +5483,19 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ j(PARITY_ODD, &try_sqrt, compiler::Assembler::kNearJump);
   // Return NaN.
   __ Bind(&return_nan);
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(NAN)));
-  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(result, NAN);
   __ jmp(&skip_call);
 
   compiler::Label do_pow, return_zero;
   __ Bind(&try_sqrt);
   // Before calling pow, check if we could use sqrt instead of pow.
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(kNegInfinity)));
-  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(result, kNegInfinity);
   // base == -Infinity -> call pow;
   __ comisd(base, result);
   __ j(EQUAL, &do_pow, compiler::Assembler::kNearJump);
 
   // exponent == 0.5 ?
-  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0.5)));
-  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
+  __ LoadDImmediate(result, 0.5);
   __ comisd(exp, result);
   __ j(NOT_EQUAL, &do_pow, compiler::Assembler::kNearJump);
 

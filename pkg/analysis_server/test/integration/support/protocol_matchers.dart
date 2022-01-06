@@ -235,6 +235,15 @@ final Matcher isClosingLabel = LazyMatcher(() => MatchesJsonObject(
 /// String
 final Matcher isCompletionId = isString;
 
+/// CompletionMode
+///
+/// enum {
+///   BASIC
+///   SMART
+/// }
+final Matcher isCompletionMode =
+    MatchesEnum('CompletionMode', ['BASIC', 'SMART']);
+
 /// CompletionService
 ///
 /// enum {
@@ -2138,9 +2147,15 @@ final Matcher isCompletionGetSuggestionDetailsResult = LazyMatcher(() =>
 ///   "maxResults": int
 /// }
 final Matcher isCompletionGetSuggestions2Params = LazyMatcher(() =>
-    MatchesJsonObject('completion.getSuggestions2 params',
-        {'file': isFilePath, 'offset': isInt, 'maxResults': isInt},
-        optionalFields: {'timeout': isInt}));
+    MatchesJsonObject('completion.getSuggestions2 params', {
+      'file': isFilePath,
+      'offset': isInt,
+      'maxResults': isInt
+    }, optionalFields: {
+      'completionMode': isCompletionMode,
+      'invocationCount': isInt,
+      'timeout': isInt
+    }));
 
 /// completion.getSuggestions2 result
 ///

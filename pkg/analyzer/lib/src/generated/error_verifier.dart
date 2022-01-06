@@ -37,6 +37,7 @@ import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/error/return_type_verifier.dart';
+import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/error/use_result_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -1141,6 +1142,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
+    super.visitSuperFormalParameter(node);
+
     var constructor = node.parentFormalParameterList.parent;
     if (!(constructor is ConstructorDeclaration &&
         constructor.isNonRedirectingGenerative)) {
@@ -1148,9 +1151,33 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
         node.superKeyword,
       );
+      return;
     }
 
-    super.visitSuperFormalParameter(node);
+    var element = node.declaredElement as SuperFormalParameterElementImpl;
+    var superParameter = element.superConstructorParameter;
+
+    if (superParameter == null) {
+      errorReporter.reportErrorForNode(
+        node.isNamed
+            ? CompileTimeErrorCode
+                .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED
+            : CompileTimeErrorCode
+                .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+        node.identifier,
+      );
+      return;
+    }
+
+    if (!_currentLibrary.typeSystem
+        .isSubtypeOf(element.type, superParameter.type)) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode
+            .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
+        node.identifier,
+        [element.type, superParameter.type],
+      );
+    }
   }
 
   @override
@@ -1779,23 +1806,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   /// Verify all conflicts between type variable and enclosing class.
-  /// TODO(scheglov)
   void _checkForConflictingClassTypeVariableErrorCodes() {
-    for (TypeParameterElement typeParameter
-        in _enclosingClass!.typeParameters) {
+    var enclosingClass = _enclosingClass!;
+    for (TypeParameterElement typeParameter in enclosingClass.typeParameters) {
       String name = typeParameter.name;
       // name is same as the name of the enclosing class
-      if (_enclosingClass!.name == name) {
-        var code = _enclosingClass!.isMixin
+      if (enclosingClass.name == name) {
+        var code = enclosingClass.isMixin
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS;
         errorReporter.reportErrorForElement(code, typeParameter, [name]);
       }
       // check members
-      if (_enclosingClass!.getMethod(name) != null ||
-          _enclosingClass!.getGetter(name) != null ||
-          _enclosingClass!.getSetter(name) != null) {
-        var code = _enclosingClass!.isMixin
+      if (enclosingClass.getNamedConstructor(name) != null ||
+          enclosingClass.getMethod(name) != null ||
+          enclosingClass.getGetter(name) != null ||
+          enclosingClass.getSetter(name) != null) {
+        var code = enclosingClass.isMixin
             ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN
             : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS;
         errorReporter.reportErrorForElement(code, typeParameter, [name]);
@@ -4173,15 +4200,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    // TODO(scheglov) Restore when working on errors.
-    if (_currentLibrary.featureSet.isEnabled(Feature.super_parameters)) {
-      if (constructor.parameters.parameters.any((parameter) {
-        return parameter.notDefault is SuperFormalParameter;
-      })) {
-        return;
-      }
-    }
-
     // Ignore if the constructor has either an implicit super constructor
     // invocation or a redirecting constructor invocation.
     for (ConstructorInitializer constructorInitializer
@@ -4199,37 +4217,88 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     ClassElement superElement = superType.element;
+
     if (superElement.constructors
         .every((constructor) => constructor.isFactory)) {
       // Already reported [NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS].
       return;
     }
+
     var superUnnamedConstructor = superElement.unnamedConstructor;
     superUnnamedConstructor = superUnnamedConstructor != null
         ? _currentLibrary.toLegacyElementIfOptOut(superUnnamedConstructor)
         : superUnnamedConstructor;
-    if (superUnnamedConstructor != null) {
-      if (superUnnamedConstructor.isFactory) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
-            constructor.returnType,
-            [superUnnamedConstructor]);
-      } else if (!superUnnamedConstructor.isDefaultConstructor) {
-        Identifier returnType = constructor.returnType;
-        var name = constructor.name;
-        int offset = returnType.offset;
-        int length = (name != null ? name.end : returnType.end) - offset;
-        errorReporter.reportErrorForOffset(
-            CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
-            offset,
-            length,
-            [superType]);
-      }
-    } else {
+    if (superUnnamedConstructor == null) {
       errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
-          constructor.returnType,
-          [superElement.name]);
+        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+        constructor.returnType,
+        [superElement.name],
+      );
+      return;
+    }
+
+    if (superUnnamedConstructor.isFactory) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+        constructor.returnType,
+        [superUnnamedConstructor],
+      );
+      return;
+    }
+
+    var requiredPositionalParameterCount = superUnnamedConstructor.parameters
+        .where((parameter) => parameter.isRequiredPositional)
+        .length;
+    var requiredNamedParameters = superUnnamedConstructor.parameters
+        .where((parameter) => parameter.isRequiredNamed)
+        .map((parameter) => parameter.name)
+        .toSet();
+
+    void reportError(ErrorCode errorCode, List<Object> arguments) {
+      Identifier returnType = constructor.returnType;
+      var name = constructor.name;
+      int offset = returnType.offset;
+      int length = (name != null ? name.end : returnType.end) - offset;
+      errorReporter.reportErrorForOffset(errorCode, offset, length, arguments);
+    }
+
+    if (!_currentLibrary.featureSet.isEnabled(Feature.super_parameters)) {
+      if (requiredPositionalParameterCount != 0 ||
+          requiredNamedParameters.isNotEmpty) {
+        reportError(
+          CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
+          [superType],
+        );
+      }
+      return;
+    }
+
+    var superParametersResult = verifySuperFormalParameters(
+      constructor: constructor,
+      errorReporter: errorReporter,
+    );
+    requiredNamedParameters.removeAll(
+      superParametersResult.namedArgumentNames,
+    );
+
+    if (requiredPositionalParameterCount >
+        superParametersResult.positionalArgumentCount) {
+      reportError(
+        CompileTimeErrorCode
+            .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS,
+        [
+          superType,
+          requiredPositionalParameterCount,
+          superParametersResult.positionalArgumentCount,
+        ],
+      );
+    }
+    for (var requiredNamedParameterName in requiredNamedParameters) {
+      reportError(
+        CompileTimeErrorCode
+            .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT,
+        [requiredNamedParameterName, superType],
+      );
     }
   }
 
@@ -4871,14 +4940,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             );
           }
         } else if (defaultValuesAreExpected && parameter.defaultValue == null) {
-          var type = parameter.declaredElement!.type;
+          var parameterElement = parameter.declaredElement!;
+          var type = parameterElement.type;
           if (typeSystem.isPotentiallyNonNullable(type)) {
             var parameterName = _parameterName(parameter);
-            errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
-              parameterName ?? parameter,
-              [parameterName?.name ?? '?'],
-            );
+            if (parameterElement.hasRequired) {
+              errorReporter.reportErrorForNode(
+                CompileTimeErrorCode
+                    .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION,
+                parameterName ?? parameter,
+              );
+            } else {
+              errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
+                parameterName ?? parameter,
+                [parameterName?.name ?? '?'],
+              );
+            }
           }
         }
       }

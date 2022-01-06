@@ -1041,8 +1041,12 @@ abstract class IntegrationTestMixin {
   ///   requested maxResults.
   Future<CompletionGetSuggestions2Result> sendCompletionGetSuggestions2(
       String file, int offset, int maxResults,
-      {int? timeout}) async {
+      {CompletionMode? completionMode,
+      int? invocationCount,
+      int? timeout}) async {
     var params = CompletionGetSuggestions2Params(file, offset, maxResults,
+            completionMode: completionMode,
+            invocationCount: invocationCount,
             timeout: timeout)
         .toJson();
     var result = await server.send('completion.getSuggestions2', params);

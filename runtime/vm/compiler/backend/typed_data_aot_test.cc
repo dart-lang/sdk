@@ -95,7 +95,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
 
       void reverse%s(%s list) {
         final length = list.length;
-        final halfLength = length ~/ 2;
+        final halfLength = length >> 1;
         for (int i = 0; i < halfLength; ++i) {
           final tmp = list[length-i-1];
           list[length-i-1] = list[i];

@@ -6076,7 +6076,7 @@ Dart_CompileToKernel(const char* script_uri,
   result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, 0, NULL,
       incremental_compile, snapshot_compile, package_config, NULL, NULL,
-      verbosity);
+      FLAG_sound_null_safety, verbosity);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     Dart_KernelCompilationResult accept_result =
         KernelIsolate::AcceptCompilation();
@@ -6087,6 +6087,34 @@ Dart_CompileToKernel(const char* script_uri,
           accept_result.error);
     }
   }
+#endif
+  return result;
+}
+
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileToKernelWithGivenNullsafety(
+    const char* script_uri,
+    const uint8_t* platform_kernel,
+    intptr_t platform_kernel_size,
+    bool snapshot_compile,
+    const char* package_config,
+    bool null_safety,
+    Dart_KernelCompilationVerbosityLevel verbosity) {
+  API_TIMELINE_DURATION(Thread::Current());
+
+  Dart_KernelCompilationResult result = {};
+#if defined(DART_PRECOMPILED_RUNTIME)
+  result.status = Dart_KernelCompilationStatus_Unknown;
+  result.error = Utils::StrDup("Dart_CompileToKernel is unsupported.");
+#else
+  intptr_t null_safety_option =
+      null_safety ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
+  result = KernelIsolate::CompileToKernel(
+      script_uri, platform_kernel, platform_kernel_size,
+      /*source_files_count=*/0, /*source_files=*/nullptr,
+      /*incremental_compile=*/false, snapshot_compile, package_config,
+      /*multiroot_filepaths=*/nullptr, /*multiroot_scheme=*/nullptr,
+      null_safety_option, verbosity);
 #endif
   return result;
 }

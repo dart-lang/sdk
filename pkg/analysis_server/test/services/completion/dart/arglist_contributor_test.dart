@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_utilities/check/check.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_check.dart';
@@ -49,21 +46,22 @@ main() {
 }
 ''';
     addTestSource(content);
-    await computeSuggestions();
-    expect(suggestions, hasLength(1));
 
-    var suggestion = suggestions[0];
-    expect(suggestion.docSummary, 'aaa');
-    expect(suggestion.docComplete, 'aaa\n\nbbb\nccc');
-
-    var element = suggestion.element!;
-    expect(element.kind, ElementKind.PARAMETER);
-    expect(element.name, 'fff');
-    expect(element.location!.offset, content.indexOf('fff})'));
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).matchesInAnyOrder([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('fff: ')
+        ..docComplete.isEqualTo('aaa\n\nbbb\nccc')
+        ..docSummary.isEqualTo('aaa')
+        ..hasSelection(offset: 5)
+        ..element.isNotNull.which((e) => e
+          ..isParameter
+          ..name.isEqualTo('fff'))
+    ]);
   }
 
   Future<void> test_fieldFormal_noDocumentation() async {
-    var content = '''
+    addTestSource('''
 class A {
   int fff;
   A({this.fff});
@@ -71,19 +69,19 @@ class A {
 main() {
   new A(^);
 }
-''';
-    addTestSource(content);
-    await computeSuggestions();
-    expect(suggestions, hasLength(1));
+''');
 
-    var suggestion = suggestions[0];
-    expect(suggestion.docSummary, isNull);
-    expect(suggestion.docComplete, isNull);
-
-    var element = suggestion.element!;
-    expect(element.kind, ElementKind.PARAMETER);
-    expect(element.name, 'fff');
-    expect(element.location!.offset, content.indexOf('fff})'));
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).matchesInAnyOrder([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('fff: ')
+        ..docComplete.isNull
+        ..docSummary.isNull
+        ..hasSelection(offset: 5)
+        ..element.isNotNull.which((e) => e
+          ..isParameter
+          ..name.isEqualTo('fff'))
+    ]);
   }
 
   Future<void> test_flutter_InstanceCreationExpression_0() async {
@@ -97,13 +95,13 @@ build() => new Row(
   );
 ''');
 
-    await computeSuggestions();
-
-    assertSuggest('children: [],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null,
-        selectionOffset: 11,
-        defaultArgumentListTextRanges: null);
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).containsMatch((suggestion) {
+      suggestion
+        ..completion.isEqualTo('children: [],')
+        ..defaultArgumentListString.isNull
+        ..hasSelection(offset: 11);
+    });
   }
 
   Future<void> test_flutter_InstanceCreationExpression_01() async {
@@ -119,12 +117,13 @@ import 'package:flutter/material.dart';
   );
 ''');
 
-    await computeSuggestions();
-
-    assertSuggest('backgroundColor: ,',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null, // No default values.
-        selectionOffset: 17);
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).containsMatch((suggestion) {
+      suggestion
+        ..completion.isEqualTo('backgroundColor: ,')
+        ..defaultArgumentListString.isNull
+        ..hasSelection(offset: 17);
+    });
   }
 
   Future<void> test_flutter_InstanceCreationExpression_1() async {
@@ -139,13 +138,13 @@ build() => new Row(
   );
 ''');
 
-    await computeSuggestions();
-
-    assertSuggest('children: [],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null,
-        selectionOffset: 11,
-        defaultArgumentListTextRanges: null);
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).containsMatch((suggestion) {
+      suggestion
+        ..completion.isEqualTo('children: [],')
+        ..defaultArgumentListString.isNull
+        ..hasSelection(offset: 11);
+    });
   }
 
   Future<void> test_flutter_InstanceCreationExpression_2() async {
@@ -160,13 +159,13 @@ build() => new Row(
   );
 ''');
 
-    await computeSuggestions();
-
-    assertSuggest('children: [],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null,
-        selectionOffset: 11,
-        defaultArgumentListTextRanges: null);
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).containsMatch((suggestion) {
+      suggestion
+        ..completion.isEqualTo('children: [],')
+        ..defaultArgumentListString.isNull
+        ..hasSelection(offset: 11);
+    });
   }
 
   Future<void>
@@ -187,13 +186,13 @@ class DynamicRow extends Widget {
 }
 ''');
 
-    await computeSuggestions();
-
-    assertSuggest('children: [],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null,
-        selectionOffset: 11,
-        defaultArgumentListTextRanges: null);
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).matchesInAnyOrder([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('children: [],')
+        ..defaultArgumentListString.isNull
+        ..hasSelection(offset: 11),
+    ]);
   }
 
   Future<void> test_flutter_InstanceCreationExpression_children_Map() async {
@@ -212,12 +211,13 @@ class MapRow extends Widget {
 }
 ''');
 
-    await computeSuggestions();
-
-    assertSuggest('children: ,',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        selectionOffset: 10,
-        defaultArgListString: null);
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).matchesInAnyOrder([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('children: ,')
+        ..defaultArgumentListString.isNull
+        ..hasSelection(offset: 10),
+    ]);
   }
 
   Future<void> test_flutter_InstanceCreationExpression_slivers() async {
@@ -235,13 +235,13 @@ class CustomScrollView extends Widget {
 }
 ''');
 
-    await computeSuggestions();
-
-    assertSuggest('slivers: [],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null,
-        selectionOffset: 10,
-        defaultArgumentListTextRanges: null);
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).matchesInAnyOrder([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('slivers: [],')
+        ..defaultArgumentListString.isNull
+        ..hasSelection(offset: 10),
+    ]);
   }
 
   Future<void> test_flutter_MethodExpression_children() async {
@@ -261,11 +261,13 @@ main() {
 foo({String children}) {}
 ''');
 
-    await computeSuggestions();
-
-    assertSuggest('children: ',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        defaultArgListString: null);
+    var response = await computeSuggestions2();
+    _checkNamedArguments(response).matchesInAnyOrder([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('children: ')
+        ..defaultArgumentListString.isNull
+        ..defaultArgumentListTextRanges.isNull,
+    ]);
   }
 
   Future<void> test_named_01() async {
@@ -273,7 +275,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(^)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ')
             ..parameterType.isEqualTo('bool')
@@ -294,7 +296,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(o^)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ')
             ..parameterType.isEqualTo('bool')
@@ -315,7 +317,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(o^ two: 2)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ,')
             ..parameterType.isEqualTo('bool')
@@ -331,7 +333,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(o^, two: 2)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ')
             ..parameterType.isEqualTo('bool')
@@ -347,7 +349,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(o^ , two: 2)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ')
             ..parameterType.isEqualTo('bool')
@@ -363,7 +365,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(^o,)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ')
             ..parameterType.isEqualTo('bool')
@@ -384,7 +386,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(^ two: 2)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ,')
             ..parameterType.isEqualTo('bool')
@@ -400,7 +402,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(^two: 2)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ,')
             ..parameterType.isEqualTo('bool')
@@ -416,7 +418,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(^, two: 2)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ')
             ..parameterType.isEqualTo('bool')
@@ -432,7 +434,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(^ , two: 2)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ')
             ..parameterType.isEqualTo('bool')
@@ -448,7 +450,7 @@ foo({String children}) {}
       parameters: '(int one, {bool two, int three})',
       arguments: '(1, ^, three: 3)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('two: ')
             ..parameterType.isEqualTo('bool')
@@ -464,7 +466,7 @@ foo({String children}) {}
       parameters: '(int one, {bool two, int three})',
       arguments: '(1, ^ three: 3)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('two: ,')
             ..parameterType.isEqualTo('bool')
@@ -480,7 +482,7 @@ foo({String children}) {}
       parameters: '(int one, {bool two, int three})',
       arguments: '(1, ^three: 3)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('two: ,')
             ..parameterType.isEqualTo('bool')
@@ -497,7 +499,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(two: 2^)',
       check: (response) {
-        check(response).suggestions.namedArguments.isEmpty;
+        _checkNamedArguments(response).isEmpty;
       },
     );
   }
@@ -508,7 +510,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(two: 2 ^)',
       check: (response) {
-        check(response).suggestions.namedArguments.isEmpty;
+        _checkNamedArguments(response).isEmpty;
       },
     );
   }
@@ -518,7 +520,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(two: 2, ^)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ')
             ..parameterType.isEqualTo('bool')
@@ -534,7 +536,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(two: 2, o^)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ')
             ..parameterType.isEqualTo('bool')
@@ -550,7 +552,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(two: 2, o^,)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one: ')
             ..parameterType.isEqualTo('bool')
@@ -566,7 +568,7 @@ foo({String children}) {}
       parameters: '(int one, int two, int three, {int four, int five})',
       arguments: '(1, ^, 3)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('four: ')
             ..parameterType.isEqualTo('int')
@@ -588,7 +590,7 @@ foo({String children}) {}
       parameters: '(int one, int two, int three, {int four, int five})',
       arguments: '(1, ^, 3)',
       check: (response) {
-        check(response).suggestions.namedArguments.isEmpty;
+        _checkNamedArguments(response).isEmpty;
       },
     );
   }
@@ -598,7 +600,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(o^: false)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('one')
             ..parameterType.isEqualTo('bool')
@@ -619,7 +621,7 @@ foo({String children}) {}
       parameters: '(bool one, {int two, double three})',
       arguments: '(false, ^t: 2)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('two: ,')
             ..parameterType.isEqualTo('int')
@@ -640,7 +642,7 @@ foo({String children}) {}
       parameters: '(bool one, {int two})',
       arguments: '(false, foo^ba: 2)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             ..completion.isEqualTo('two')
             ..parameterType.isEqualTo('int')
@@ -656,7 +658,7 @@ foo({String children}) {}
       parameters: '(bool one, {int two, double three})',
       arguments: '(false, ^: 2)',
       check: (response) {
-        check(response).suggestions.namedArguments.matchesInAnyOrder([
+        _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
             // TODO(scheglov) This does not seem right.
             ..completion.isEqualTo('two: ')
@@ -679,7 +681,7 @@ foo({String children}) {}
       parameters: '({bool one, int two})',
       arguments: '(one: ^)',
       check: (response) {
-        check(response).suggestions.namedArguments.isEmpty;
+        _checkNamedArguments(response).isEmpty;
       },
     );
   }
@@ -695,15 +697,8 @@ foo({String children}) {}
         : '// no language version override';
 
     Future<void> computeAndCheck() async {
-      await computeSuggestions();
-      check(
-        CompletionResponseForTesting(
-          requestOffset: completionOffset,
-          replacementOffset: replacementOffset,
-          replacementLength: replacementLength,
-          suggestions: suggestions,
-        ),
-      );
+      var response = await computeSuggestions2();
+      check(response);
     }
 
     // Annotation, local class.
@@ -850,5 +845,10 @@ var v = foo$arguments;
 ''');
     await computeSuggestions();
     assertNoSuggestions();
+  }
+
+  static CheckTarget<Iterable<CompletionSuggestionForTesting>>
+      _checkNamedArguments(CompletionResponseForTesting response) {
+    return check(response).suggestions.namedArguments;
   }
 }

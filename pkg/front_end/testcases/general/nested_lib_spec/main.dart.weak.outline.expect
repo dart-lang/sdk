@@ -1,0 +1,90 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:test";
+import "dart:extra";
+import "dart:sub";
+import "dart:sub2";
+import "dart:super1";
+import "dart:super2";
+import "dart:common";
+
+static method main() → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@_in::patch
+class Class extends core::Object {
+  synthetic constructor •() → self2::Class
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as self3;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@_in::patch
+class Extra extends core::Object {
+  synthetic constructor •() → self3::Extra
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as self4;
+import "dart:core" as core;
+
+class Sub extends core::Object {
+  synthetic constructor •() → self4::Sub
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as self5;
+import "dart:core" as core;
+
+class Sub2 extends core::Object {
+  synthetic constructor •() → self5::Sub2
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as self6;
+import "dart:core" as core;
+
+class Super1 extends core::Object {
+  synthetic constructor •() → self6::Super1
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as self7;
+import "dart:core" as core;
+
+class Super2 extends core::Object {
+  synthetic constructor •() → self7::Super2
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as self8;
+import "dart:core" as core;
+
+class Common extends core::Object {
+  synthetic constructor •() → self8::Common
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///extra_lib.dart) -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 2, effectively constant: 2

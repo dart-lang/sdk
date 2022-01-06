@@ -192,6 +192,23 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   }
 
   @override
+  int visitVariableInitialization(js.VariableInitialization node) {
+    js.Expression left = node.declaration;
+    js.Expression right = node.value;
+
+    visit(left);
+    if (left is js.InterpolatedNode) {
+      // A bare interpolated expression should not be the LHS of an initialized
+      // variable declaration.
+      safe = false;
+    }
+    if (right != null) {
+      return visit(right);
+    }
+    return UNKNOWN_VALUE;
+  }
+
+  @override
   int visitCall(js.Call node) {
     // TODO(sra): Recognize JavaScript built-ins like
     // 'Object.prototype.hasOwnProperty.call'.

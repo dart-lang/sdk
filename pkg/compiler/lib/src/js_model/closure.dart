@@ -170,6 +170,7 @@ class ClosureDataImpl implements ClosureData {
 /// http://matt.might.net/articles/closure-conversion/.
 
 class ClosureDataBuilder {
+  final DiagnosticReporter _reporter;
   final JsToElementMap _elementMap;
   final AnnotationsData _annotationsData;
 
@@ -185,7 +186,7 @@ class ClosureDataBuilder {
 
   final Map<MemberEntity, MemberEntity> _enclosingMembers = {};
 
-  ClosureDataBuilder(this._elementMap, this._annotationsData);
+  ClosureDataBuilder(this._reporter, this._elementMap, this._annotationsData);
 
   void _updateScopeBasedOnRtiNeed(KernelScopeInfo scope, ClosureRtiNeed rtiNeed,
       MemberEntity outermostEntity) {
@@ -323,7 +324,7 @@ class ClosureDataBuilder {
       Map<MemberEntity, ClosureScopeModel> closureModels,
       ClosureRtiNeed rtiNeed,
       List<FunctionEntity> callMethods) {
-    closureModels.forEach((MemberEntity member, ClosureScopeModel model) {
+    void processModel(MemberEntity member, ClosureScopeModel model) {
       Map<ir.VariableDeclaration, JRecordField> allBoxedVariables =
           _elementMap.makeRecordContainer(model.scopeInfo, member);
       _scopeMap[member] = JsScopeInfo.from(
@@ -381,6 +382,12 @@ class ClosureDataBuilder {
         }
         callMethods.add(closureClassInfo.callMethod);
       }
+    }
+
+    closureModels.forEach((MemberEntity member, ClosureScopeModel model) {
+      _reporter.withCurrentElement(member, () {
+        processModel(member, model);
+      });
     });
     return ClosureDataImpl(
         _elementMap,

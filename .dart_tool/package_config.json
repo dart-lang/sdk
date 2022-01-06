@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-12-10T17:31:54.553345",
+  "generated": "2021-12-22T16:24:00.538300",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -629,7 +629,7 @@
       "name": "source_span",
       "rootUri": "../third_party/pkg/source_span",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "sourcemap_testing",

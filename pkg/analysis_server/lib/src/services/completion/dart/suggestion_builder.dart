@@ -87,7 +87,7 @@ class MemberSuggestionBuilder {
   /// Add a suggestion for the given [method].
   void addSuggestionForMethod(
       {required MethodElement method,
-      CompletionSuggestionKind? kind,
+      required CompletionSuggestionKind kind,
       required double inheritanceDistance}) {
     if (method.isAccessibleIn(request.libraryElement) &&
         _shouldAddSuggestion(method)) {
@@ -273,7 +273,13 @@ class SuggestionBuilder {
         superMatches: superMatches,
         inheritanceDistance: inheritanceDistance,
       );
-      _add(_createSuggestion(accessor, relevance: relevance));
+      _add(
+        _createSuggestion(
+          accessor,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          relevance: relevance,
+        ),
+      );
     }
   }
 
@@ -291,8 +297,14 @@ class SuggestionBuilder {
       elementKind: elementKind,
       isConstant: isConstant,
     );
-    _add(_createSuggestion(parameter,
-        elementKind: protocol.ElementKind.PARAMETER, relevance: relevance));
+    _add(
+      _createSuggestion(
+        parameter,
+        elementKind: protocol.ElementKind.PARAMETER,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for a [classElement]. If the class can only be
@@ -425,9 +437,9 @@ class SuggestionBuilder {
       suggestTopLevelFunction(element, kind: kind);
     } else if (element is PropertyAccessorElement &&
         element.enclosingElement is CompilationUnitElement) {
-      suggestTopLevelPropertyAccessor(element, kind: kind);
+      suggestTopLevelPropertyAccessor(element);
     } else if (element is TypeAliasElement) {
-      suggestTypeAlias(element, kind: kind);
+      suggestTypeAlias(element);
     } else {
       throw ArgumentError('Cannot suggest a ${element.runtimeType}');
     }
@@ -442,8 +454,15 @@ class SuggestionBuilder {
     var completion = '$enumName.$constantName';
     var relevance =
         _computeTopLevelRelevance(constant, elementType: constant.type);
-    _add(_createSuggestion(constant,
-        completion: completion, prefix: prefix, relevance: relevance));
+    _add(
+      _createSuggestion(
+        constant,
+        completion: completion,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        prefix: prefix,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for an [extension]. If a [kind] is provided it will be
@@ -484,14 +503,26 @@ class SuggestionBuilder {
       superMatches: superMatches,
       inheritanceDistance: inheritanceDistance,
     );
-    _add(_createSuggestion(field, relevance: relevance));
+    _add(
+      _createSuggestion(
+        field,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion to reference a [field] in a field formal parameter.
   void suggestFieldFormalParameter(FieldElement field) {
     // TODO(brianwilkerson) Add a parameter (`bool includePrefix`) indicating
     //  whether to include the `this.` prefix in the completion.
-    _add(_createSuggestion(field, relevance: Relevance.fieldFormalParameter));
+    _add(
+      _createSuggestion(
+        field,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: Relevance.fieldFormalParameter,
+      ),
+    );
   }
 
   /// Add a suggestion for the `call` method defined on functions.
@@ -561,7 +592,13 @@ class SuggestionBuilder {
     // TODO(brianwilkerson) This might want to use the context type rather than
     //  a fixed value.
     var relevance = Relevance.loadLibrary;
-    _add(_createSuggestion(function, relevance: relevance));
+    _add(
+      _createSuggestion(
+        function,
+        kind: CompletionSuggestionKind.INVOCATION,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for a local [variable].
@@ -585,7 +622,13 @@ class SuggestionBuilder {
       isConstant: isConstant,
       localVariableDistance: localVariableDistance,
     );
-    _add(_createSuggestion(variable, relevance: relevance));
+    _add(
+      _createSuggestion(
+        variable,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for a [method]. If the method is being invoked with a
@@ -594,7 +637,8 @@ class SuggestionBuilder {
   /// used as the kind for the suggestion. The [inheritanceDistance] is the
   /// value of the inheritance distance feature computed for the method.
   void suggestMethod(MethodElement method,
-      {CompletionSuggestionKind? kind, required double inheritanceDistance}) {
+      {required CompletionSuggestionKind kind,
+      required double inheritanceDistance}) {
     // TODO(brianwilkerson) Refactor callers so that we're passing in the type
     //  of the target (assuming we don't already have that type available via
     //  the [request]) and compute the [inheritanceDistance] in this method.
@@ -809,7 +853,13 @@ class SuggestionBuilder {
       elementKind: elementKind,
       isConstant: isConstant,
     );
-    _add(_createSuggestion(parameter, relevance: relevance));
+    _add(
+      _createSuggestion(
+        parameter,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for a [prefix] associated with a [library].
@@ -844,8 +894,7 @@ class SuggestionBuilder {
   /// can only be referenced using a prefix, then the [prefix] should be
   /// provided.
   void suggestTopLevelPropertyAccessor(PropertyAccessorElement accessor,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      String? prefix}) {
+      {String? prefix}) {
     assert(
         accessor.enclosingElement is CompilationUnitElement,
         'Enclosing element of ${accessor.runtimeType} is '
@@ -857,7 +906,7 @@ class SuggestionBuilder {
       if (accessor.isGetter) {
         var variable = accessor.variable;
         if (variable is TopLevelVariableElement) {
-          suggestTopLevelVariable(variable, kind: kind);
+          suggestTopLevelVariable(variable);
         }
       }
     } else {
@@ -881,7 +930,14 @@ class SuggestionBuilder {
         startsWithDollar: startsWithDollar,
         superMatches: superMatches,
       );
-      _add(_createSuggestion(accessor, prefix: prefix, relevance: relevance));
+      _add(
+        _createSuggestion(
+          accessor,
+          kind: CompletionSuggestionKind.IDENTIFIER,
+          prefix: prefix,
+          relevance: relevance,
+        ),
+      );
     }
   }
 
@@ -889,25 +945,34 @@ class SuggestionBuilder {
   /// will be used as the kind for the suggestion. If the variable can only be
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelVariable(TopLevelVariableElement variable,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      String? prefix}) {
+      {String? prefix}) {
     assert(variable.enclosingElement is CompilationUnitElement);
     var relevance =
         _computeTopLevelRelevance(variable, elementType: variable.type);
-    _add(_createSuggestion(variable,
-        kind: kind, prefix: prefix, relevance: relevance));
+    _add(
+      _createSuggestion(
+        variable,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        prefix: prefix,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for a [typeAlias]. If a [kind] is provided it
   /// will be used as the kind for the suggestion. If the alias can only be
   /// referenced using a prefix, then the [prefix] should be provided.
-  void suggestTypeAlias(TypeAliasElement typeAlias,
-      {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      String? prefix}) {
+  void suggestTypeAlias(TypeAliasElement typeAlias, {String? prefix}) {
     var relevance = _computeTopLevelRelevance(typeAlias,
         elementType: _instantiateTypeAlias(typeAlias));
-    _add(_createSuggestion(typeAlias,
-        kind: kind, prefix: prefix, relevance: relevance));
+    _add(
+      _createSuggestion(
+        typeAlias,
+        kind: CompletionSuggestionKind.IDENTIFIER,
+        prefix: prefix,
+        relevance: relevance,
+      ),
+    );
   }
 
   /// Add a suggestion for a type [parameter].
@@ -1038,7 +1103,7 @@ class SuggestionBuilder {
   CompletionSuggestion? _createSuggestion(Element element,
       {String? completion,
       protocol.ElementKind? elementKind,
-      CompletionSuggestionKind? kind,
+      required CompletionSuggestionKind kind,
       String? prefix,
       required int relevance}) {
     var inputs = _CompletionSuggestionInputs(
@@ -1081,7 +1146,7 @@ class SuggestionBuilder {
     Element element, {
     required String? completion,
     required protocol.ElementKind? elementKind,
-    required CompletionSuggestionKind? kind,
+    required CompletionSuggestionKind kind,
     required String? prefix,
     required int relevance,
   }) {
@@ -1096,7 +1161,6 @@ class SuggestionBuilder {
     if (prefix != null && prefix.isNotEmpty) {
       completion = '$prefix.$completion';
     }
-    kind ??= CompletionSuggestionKind.INVOCATION;
     var suggestion = CompletionSuggestion(kind, relevance, completion,
         completion.length, 0, element.hasOrInheritsDeprecated, false);
 
@@ -1256,7 +1320,7 @@ class _CompletionSuggestionEntry {
 class _CompletionSuggestionInputs {
   final String? completion;
   final protocol.ElementKind? elementKind;
-  final CompletionSuggestionKind? kind;
+  final CompletionSuggestionKind kind;
   final String? prefix;
 
   _CompletionSuggestionInputs({

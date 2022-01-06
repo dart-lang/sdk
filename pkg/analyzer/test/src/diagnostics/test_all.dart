@@ -628,6 +628,8 @@ import 'strict_raw_type_test.dart' as strict_raw_type;
 import 'subtype_of_ffi_class_test.dart' as subtype_of_ffi_class;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'subtype_of_struct_class_test.dart' as subtype_of_struct_class;
+import 'super_formal_parameter_type_is_not_subtype_of_associated_test.dart'
+    as super_formal_parameter_type_is_not_subtype_of_associated;
 import 'super_formal_parameter_without_associated_named_test.dart'
     as super_formal_parameter_without_associated_named;
 import 'super_formal_parameter_without_associated_positional_test.dart'
@@ -1146,6 +1148,7 @@ main() {
     subtype_of_ffi_class.main();
     subtype_of_sealed_class.main();
     subtype_of_struct_class.main();
+    super_formal_parameter_type_is_not_subtype_of_associated.main();
     super_formal_parameter_without_associated_named.main();
     super_formal_parameter_without_associated_positional.main();
     super_in_extension.main();
