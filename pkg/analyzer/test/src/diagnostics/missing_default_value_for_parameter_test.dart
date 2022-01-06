@@ -17,6 +17,34 @@ main() {
 
 @reflectiveTest
 class MissingDefaultValueForParameterTest extends PubPackageResolutionTest {
+  test_closure_nonNullable_named_optional_default() async {
+    await assertNoErrorsInCode('''
+var f = ({int a = 0}) {};
+''');
+  }
+
+  test_closure_nonNullable_named_optional_noDefault() async {
+    await assertErrorsInCode('''
+var f = ({int a}) {};
+''', [
+      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 14, 1),
+    ]);
+  }
+
+  test_closure_nonNullable_positional_optional_default() async {
+    await assertNoErrorsInCode('''
+var f = ([int a = 0]) {};
+''');
+  }
+
+  test_closure_nonNullable_positional_optional_noDefault() async {
+    await assertErrorsInCode('''
+var f = ([int a]) {};
+''', [
+      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 14, 1),
+    ]);
+  }
+
   test_constructor_externalFactory_nonNullable_named_optional_noDefault() async {
     await assertNoErrorsInCode('''
 class C {
@@ -82,6 +110,54 @@ class C {
     ]);
   }
 
+  test_constructor_generative_nonNullable_named_optional_super_hasDefault_explicit() async {
+    await assertNoErrorsInCode('''
+class A {
+  A({required int a});
+}
+class B extends A{
+  B({super.a = 0});
+}
+''');
+  }
+
+  test_constructor_generative_nonNullable_named_optional_super_hasDefault_fromSuper() async {
+    await assertNoErrorsInCode('''
+class A {
+  A({int a = 0});
+}
+class B extends A{
+  B({super.a});
+}
+''');
+  }
+
+  test_constructor_generative_nonNullable_named_optional_super_noDefault() async {
+    await assertErrorsInCode('''
+class A {
+  A({int? a});
+}
+class B extends A{
+  B({int super.a});
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 61, 1),
+    ]);
+  }
+
+  test_constructor_generative_nonNullable_named_optional_super_noDefault_fromSuper() async {
+    await assertErrorsInCode('''
+class A {
+  A({num a = 1.2});
+}
+class B extends A{
+  B({int super.a});
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 66, 1),
+    ]);
+  }
+
   test_constructor_generative_nonNullable_positional_optional_noDefault() async {
     await assertErrorsInCode('''
 class C {
@@ -89,6 +165,54 @@ class C {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 19, 1),
+    ]);
+  }
+
+  test_constructor_generative_nonNullable_positional_optional_super_hasDefault_explicit() async {
+    await assertNoErrorsInCode('''
+class A {
+  A(int a);
+}
+class B extends A{
+  B([super.a = 0]);
+}
+''');
+  }
+
+  test_constructor_generative_nonNullable_positional_optional_super_hasDefault_fromSuper() async {
+    await assertNoErrorsInCode('''
+class A {
+  A([int a = 0]);
+}
+class B extends A{
+  B([super.a]);
+}
+''');
+  }
+
+  test_constructor_generative_nonNullable_positional_optional_super_noDefault() async {
+    await assertErrorsInCode('''
+class A {
+  A([int? a]);
+}
+class B extends A{
+  B([int super.a]);
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 61, 1),
+    ]);
+  }
+
+  test_constructor_generative_nonNullable_positional_optional_super_noDefault_fromSuper() async {
+    await assertErrorsInCode('''
+class A {
+  A([num a = 1.2]);
+}
+class B extends A{
+  B([int super.a]);
+}
+''', [
+      error(CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER, 66, 1),
     ]);
   }
 
