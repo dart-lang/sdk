@@ -478,7 +478,7 @@ class Map<K, V> {
   factory Map.unmodifiable(Map other) = ConstantMap<K, V>.from;
 
   @patch
-  factory Map() = JsLinkedHashMap<K, V>.es6;
+  factory Map() = JsLinkedHashMap<K, V>;
 }
 
 @patch
