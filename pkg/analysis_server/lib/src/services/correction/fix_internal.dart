@@ -657,6 +657,14 @@ class FixProcessor extends BaseProcessor {
       DataDriven.newInstance,
       ImportLibrary.forType,
     ],
+    CompileTimeErrorCode
+        .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT: [
+      AddSuperConstructorInvocation.newInstance,
+    ],
+    CompileTimeErrorCode
+        .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
+      AddSuperConstructorInvocation.newInstance,
+    ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
