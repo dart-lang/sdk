@@ -8912,29 +8912,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'MIXIN_DEFERRED_CLASS',
   );
 
-  static const CompileTimeErrorCode
-      MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES = CompileTimeErrorCode(
-    'MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES',
-    "Type parameters couldn't be inferred for the mixin '{0}' because the base "
-        "class implements the mixin's supertype constraint '{1}' in multiple "
-        "conflicting ways",
-  );
-
-  static const CompileTimeErrorCode MIXIN_INFERENCE_NO_MATCHING_CLASS =
-      CompileTimeErrorCode(
-    'MIXIN_INFERENCE_NO_MATCHING_CLASS',
-    "Type parameters couldn't be inferred for the mixin '{0}' because the base "
-        "class doesn't implement the mixin's supertype constraint '{1}'",
-  );
-
-  static const CompileTimeErrorCode MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION =
-      CompileTimeErrorCode(
-    'MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION',
-    "Type parameters couldn't be inferred for the mixin '{0}' because no type "
-        "parameter substitution could be found matching the mixin's supertype "
-        "constraints",
-  );
-
   /**
    * Parameters:
    * 0: the name of the mixin that is invalid

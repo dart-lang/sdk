@@ -7705,12 +7705,6 @@ CompileTimeErrorCode:
 
       class B extends A {}
       ```
-  MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES:
-    problemMessage: "Type parameters couldn't be inferred for the mixin '{0}' because the base class implements the mixin's supertype constraint '{1}' in multiple conflicting ways"
-  MIXIN_INFERENCE_NO_MATCHING_CLASS:
-    problemMessage: "Type parameters couldn't be inferred for the mixin '{0}' because the base class doesn't implement the mixin's supertype constraint '{1}'"
-  MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION:
-    problemMessage: "Type parameters couldn't be inferred for the mixin '{0}' because no type parameter substitution could be found matching the mixin's supertype constraints"
   MIXIN_INHERITS_FROM_NOT_OBJECT:
     problemMessage: "The class '{0}' can't be used as a mixin because it extends a class other than 'Object'."
     hasPublishedDocs: true
