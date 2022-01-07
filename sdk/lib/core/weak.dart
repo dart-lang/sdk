@@ -69,6 +69,7 @@ class Expando<T extends Object> {
 /// Not all objects are supported as targets for weak references.
 /// The [WeakReference] constructor will reject any object that is not
 /// supported as an [Expando] key.
+@Since("2.17")
 abstract class WeakReference<T extends Object> {
   /// Creates a [WeakReference] pointing to the given [target].
   ///
@@ -162,6 +163,7 @@ abstract class WeakReference<T extends Object> {
 /// but as high-level events similar to timer events.
 ///
 /// Finalization callbacks must not throw.
+@Since("2.17")
 abstract class Finalizer<T> {
   /// Creates a finalizer with the given finalization callback.
   ///
