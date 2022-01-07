@@ -1,0 +1,19 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method _defaultCheck([dynamic _ = #C1]) → core::bool
+  return true;
+static method testStaticTypeOfConditional<T extends core::Object? = dynamic>([@vm.inferred-type.metadata=!] (self::testStaticTypeOfConditional::T%) →? core::bool check) → void {
+  if(#C2 is{ForNonNullableByDefault} self::testStaticTypeOfConditional::T% && (let final (self::testStaticTypeOfConditional::T%) →? core::bool #t1 = check in _in::unsafeCast<core::Function>(#t1{(self::testStaticTypeOfConditional::T%) → core::bool}))(#C2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool) {
+    core::print("ok");
+  }
+}
+static method main() → void {
+  self::testStaticTypeOfConditional<core::String>((core::String _) → core::bool => true);
+}
+constants  {
+  #C1 = null
+  #C2 = "hi"
+}
