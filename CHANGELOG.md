@@ -24,6 +24,10 @@
 
 #### `dart:io`
 
+- **Breaking Change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
+On Windows, `Directory.rename` will no longer delete a directory if
+`newPath` specifies one. Instead, a `FileSystemException` will be thrown.
+
 - **Breaking Change** [#47769](https://github.com/dart-lang/sdk/issues/47769):
 The `Platform.packageRoot` API has been removed. It had been marked deprecated
 in 2018, as it doesn't work with any Dart 2.x release.
