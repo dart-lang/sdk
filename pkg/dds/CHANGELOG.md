@@ -1,3 +1,15 @@
+# 2.1.7
+- Re-release 2.1.6+1.
+
+# 2.1.6+3
+- Roll back to 2.1.4.
+
+# 2.1.6+2
+- Roll back to 2.1.5.
+
+# 2.1.6+1
+- Fix dependencies.
+
 # 2.1.6
 - Improve performance of CPU sample caching.
 
