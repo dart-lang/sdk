@@ -51,7 +51,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
 
   var logger = PerformanceLog(null);
   var scheduler = AnalysisDriverScheduler(logger);
-  var driver = AnalysisDriver.tmp1(
+  var driver = AnalysisDriver(
     scheduler: scheduler,
     logger: logger,
     resourceProvider: resourceProvider,
