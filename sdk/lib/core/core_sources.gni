@@ -16,7 +16,6 @@ core_sdk_sources = [
   "enum.dart",
   "errors.dart",
   "exceptions.dart",
-  "expando.dart",
   "function.dart",
   "identical.dart",
   "int.dart",
@@ -41,4 +40,5 @@ core_sdk_sources = [
   "symbol.dart",
   "type.dart",
   "uri.dart",
+  "weak.dart",
 ]
