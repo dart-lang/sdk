@@ -1226,15 +1226,16 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
 
   const auto& values_field =
       Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
-  ASSERT(!values_field.IsNull() && values_field.is_static() &&
-         values_field.is_const());
+  if (!values_field.IsNull()) {
+    ASSERT(values_field.is_static() && values_field.is_const());
 
-  const auto& values =
-      Object::Handle(zone, values_field.StaticConstFieldValue());
-  if (values.IsError()) {
-    ReportError(Error::Cast(values));
+    const auto& values =
+        Object::Handle(zone, values_field.StaticConstFieldValue());
+    if (values.IsError()) {
+      ReportError(Error::Cast(values));
+    }
+    ASSERT(values.IsArray());
   }
-  ASSERT(values.IsArray());
 
   // The enum_cls is the actual declared class.
   // The shared super-class holds the fields for index and name.

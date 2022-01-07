@@ -325,9 +325,13 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
 
   {
     field = old_enum.LookupStaticField(Symbols::Values());
-    ASSERT(!field.IsNull() && field.is_static() && field.is_const());
-    old_enum_values ^= field.StaticConstFieldValue();
-    ASSERT(!old_enum_values.IsNull());
+    if (!field.IsNull()) {
+      ASSERT(field.is_static() && field.is_const());
+      old_enum_values ^= field.StaticConstFieldValue();
+      ASSERT(!old_enum_values.IsNull());
+    } else {
+      old_enum_values = Array::empty_array().ptr();
+    }
 
     field = old_enum.LookupStaticField(Symbols::_DeletedEnumSentinel());
     ASSERT(!field.IsNull() && field.is_static() && field.is_const());
@@ -357,9 +361,13 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
   bool enums_deleted = false;
   {
     field = LookupStaticField(Symbols::Values());
-    ASSERT(!field.IsNull() && field.is_static() && field.is_const());
-    enum_values ^= field.StaticConstFieldValue();
-    ASSERT(!enum_values.IsNull());
+    if (!field.IsNull()) {
+      ASSERT(field.is_static() && field.is_const());
+      enum_values ^= field.StaticConstFieldValue();
+      ASSERT(!enum_values.IsNull());
+    } else {
+      enum_values = Array::empty_array().ptr();
+    }
 
     field = LookupStaticField(Symbols::_DeletedEnumSentinel());
     ASSERT(!field.IsNull() && field.is_static() && field.is_const());
