@@ -343,6 +343,7 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
   Isolate::InitVM();
   UserTags::Init();
   PortMap::Init();
+  Service::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
   Api::Init();
@@ -802,6 +803,7 @@ char* Dart::Cleanup() {
   ShutdownIsolate();
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
+  Service::Cleanup();
   PortMap::Cleanup();
   UserTags::Cleanup();
   IsolateGroup::Cleanup();

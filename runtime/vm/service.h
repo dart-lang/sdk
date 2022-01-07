@@ -89,6 +89,9 @@ class StreamInfo {
 
 class Service : public AllStatic {
  public:
+  static void Init();
+  static void Cleanup();
+
   // Handles a message which is not directed to an isolate.
   static ErrorPtr HandleRootMessage(const Array& message);
 
@@ -158,6 +161,9 @@ class Service : public AllStatic {
                         const Instance& reply_port,
                         const Instance& id,
                         const Error& error);
+
+  // Logs the size of the contents of `js` to FLAG_log_service_response_sizes.
+  static void LogResponseSize(const char* method, JSONStream* js);
 
   // Enable/Disable timeline categories.
   // Returns True if the categories were successfully enabled, False otherwise.
@@ -249,6 +255,8 @@ class Service : public AllStatic {
   static Dart_ServiceStreamCancelCallback stream_cancel_callback_;
   static Dart_GetVMServiceAssetsArchive get_service_assets_callback_;
   static Dart_EmbedderInformationCallback embedder_information_callback_;
+
+  static void* service_response_size_log_file_;
 
   static const uint8_t* dart_library_kernel_;
   static intptr_t dart_library_kernel_len_;

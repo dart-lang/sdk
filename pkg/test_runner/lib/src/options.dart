@@ -338,7 +338,10 @@ has been specified on the command line.''',
         hide: true),
     _Option.bool('print_passing_stdout',
         'Print the stdout of passing, as well as failing, tests.',
-        hide: true)
+        hide: true),
+    _Option('service_response_sizes_directory',
+        'Log VM service response sizes in CSV files in the provided directory',
+        hide: true),
   ];
 
   /// For printing out reproducing command lines, we don't want to add these
@@ -777,6 +780,8 @@ has been specified on the command line.''',
           localIP: data["local_ip"] as String,
           sharedOptions: sharedOptions,
           packages: data["packages"] as String,
+          serviceResponseSizesDirectory:
+              data['service_response_sizes_directory'] as String,
           suiteDirectory: data["suite_dir"] as String,
           outputDirectory: data["output_directory"] as String,
           reproducingArguments:

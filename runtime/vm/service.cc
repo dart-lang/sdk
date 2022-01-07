@@ -72,6 +72,56 @@ DEFINE_FLAG(bool,
             "Print a message when an isolate is paused but there is no "
             "debugger attached.");
 
+DEFINE_FLAG(
+    charp,
+    log_service_response_sizes,
+    nullptr,
+    "Log sizes of service responses and events to a file in CSV format.");
+
+void* Service::service_response_size_log_file_ = nullptr;
+
+void Service::LogResponseSize(const char* method, JSONStream* js) {
+  if (service_response_size_log_file_ == nullptr) {
+    return;
+  }
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  char* entry =
+      OS::SCreate(nullptr, "%s, %" Pd "\n", method, js->buffer()->length());
+  (*file_write)(entry, strlen(entry), service_response_size_log_file_);
+  free(entry);
+}
+
+void Service::Init() {
+  if (FLAG_log_service_response_sizes == nullptr) {
+    return;
+  }
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
+  if ((file_open == nullptr) || (file_write == nullptr) ||
+      (file_close == nullptr)) {
+    OS::PrintErr("Error: Could not access file callbacks.");
+    UNREACHABLE();
+  }
+  ASSERT(service_response_size_log_file_ == nullptr);
+  service_response_size_log_file_ =
+      (*file_open)(FLAG_log_service_response_sizes, true);
+  if (service_response_size_log_file_ == nullptr) {
+    OS::PrintErr("Warning: Failed to open service response size log file: %s\n",
+                 FLAG_log_service_response_sizes);
+    return;
+  }
+}
+
+void Service::Cleanup() {
+  if (service_response_size_log_file_ == nullptr) {
+    return;
+  }
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
+  (*file_close)(service_response_size_log_file_);
+  service_response_size_log_file_ = nullptr;
+}
+
 static void PrintInvalidParamError(JSONStream* js, const char* param) {
 #if !defined(PRODUCT)
   js->PrintError(kInvalidParams, "%s: invalid '%s' parameter: %s", js->method(),
@@ -988,6 +1038,7 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
         return T->StealStickyError();
       }
       method->entry(T, &js);
+      Service::LogResponseSize(c_method_name, &js);
       js.PostReply();
       return T->StealStickyError();
     }
@@ -1238,6 +1289,8 @@ void Service::PostEventImpl(Isolate* isolate,
           kind, stream_id);
     }
   }
+
+  Service::LogResponseSize(kind, event);
 
   // Message is of the format [<stream id>, <json string>].
   //
