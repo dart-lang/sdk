@@ -508,7 +508,10 @@ class Object {
   /// or between different versions of the platform libraries,
   /// and it may depend on values that change on each program execution.
   @Since("2.14")
-  static int hashAll(Iterable<Object?> objects) {
+  static int hashAll(Iterable<Object?>? objects) {
+    if(objects == null) {
+      return SystemHash.finish(_hashSeed);
+    }
     int hash = _hashSeed;
     for (var object in objects) {
       hash = SystemHash.combine(hash, object.hashCode);
@@ -546,7 +549,10 @@ class Object {
   /// or between different versions of the platform libraries,
   /// and it may depend on values that change per program run
   @Since("2.14")
-  static int hashAllUnordered(Iterable<Object?> objects) {
+  static int hashAllUnordered(Iterable<Object?>? objects) {
+    if(objects == null) {
+      return SystemHash.finish(_hashSeed);
+    }
     int sum = 0;
     int count = 0;
     const int mask = 0x3FFFFFFF;
