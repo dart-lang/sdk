@@ -130,6 +130,25 @@ class B extends A {
     ]);
   }
 
+  /// No implicit coercions, like downcast from `dynamic`.
+  test_requiredPositional_explicit_notSubtype_dynamic() async {
+    await assertErrorsInCode(r'''
+class A {
+  A(int a);
+}
+
+class B extends A {
+  B(dynamic super.a);
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
+          63,
+          1),
+    ]);
+  }
+
   test_requiredPositional_explicit_same() async {
     await assertNoErrorsInCode(r'''
 class A {

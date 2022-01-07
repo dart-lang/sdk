@@ -450,7 +450,7 @@ class B extends A {
     addTestSource('''
 class A {
   A(int first, double second);
-  A.named(int third)
+  A.named(int third);
 }
 
 class B extends A {

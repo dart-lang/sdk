@@ -3478,6 +3478,7 @@ library
                 constantInitializer
                   SimpleStringLiteral
                     literal: 'hello' @37
+                field: self::@class::A::@field::f
         accessors
           synthetic get f @-1
             returnType: int

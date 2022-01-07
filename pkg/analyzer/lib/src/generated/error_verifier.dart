@@ -1329,7 +1329,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
       _checkImplementsSuperClass(implementsClause);
       _checkMixinsSuperClass(withClause);
-      _checkMixinInference(node, withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       _checkForConflictingGenerics(node);
       if (node is ClassDeclaration) {
@@ -4758,56 +4757,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkMixinInference(
-      NamedCompilationUnitMember node, WithClause? withClause) {
-    if (withClause == null) {
-      return;
-    }
-    var classElement = node.declaredElement as ClassElement;
-    var supertype = classElement.supertype;
-
-    var interfacesMerger = InterfacesMerger(typeSystem);
-    interfacesMerger.addWithSupertypes(supertype);
-
-    for (var namedType in withClause.mixinTypes2) {
-      var mixinType = namedType.type;
-      if (mixinType is InterfaceType) {
-        var mixinElement = mixinType.element;
-        if (namedType.typeArguments == null) {
-          var mixinSupertypeConstraints = typeSystem
-              .gatherMixinSupertypeConstraintsForInference(mixinElement);
-          if (mixinSupertypeConstraints.isNotEmpty) {
-            var matchingInterfaceTypes = _findInterfaceTypesForConstraints(
-              namedType,
-              mixinSupertypeConstraints,
-              interfacesMerger.typeList,
-            );
-            if (matchingInterfaceTypes != null) {
-              // Try to pattern match matchingInterfaceType against
-              // mixinSupertypeConstraint to find the correct set of type
-              // parameters to apply to the mixin.
-              var inferredTypeArguments = typeSystem.matchSupertypeConstraints(
-                mixinElement,
-                mixinSupertypeConstraints,
-                matchingInterfaceTypes,
-                genericMetadataIsEnabled: _currentLibrary.featureSet
-                    .isEnabled(Feature.generic_metadata),
-              );
-              if (inferredTypeArguments == null) {
-                errorReporter.reportErrorForToken(
-                    CompileTimeErrorCode
-                        .MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
-                    namedType.name.beginToken,
-                    [namedType]);
-              }
-            }
-          }
-        }
-        interfacesMerger.addWithSupertypes(mixinType);
-      }
-    }
-  }
-
   /// Checks the class for problems with the superclass, mixins, or implemented
   /// interfaces.
   void _checkMixinInheritance(MixinDeclaration node, OnClause? onClause,
@@ -4963,51 +4912,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
     }
-  }
-
-  InterfaceType? _findInterfaceTypeForMixin(NamedType mixin,
-      InterfaceType supertypeConstraint, List<InterfaceType> interfaceTypes) {
-    var element = supertypeConstraint.element;
-    InterfaceType? foundInterfaceType;
-    for (var interfaceType in interfaceTypes) {
-      if (interfaceType.element != element) continue;
-      if (foundInterfaceType == null) {
-        foundInterfaceType = interfaceType;
-      } else {
-        if (interfaceType != foundInterfaceType) {
-          errorReporter.reportErrorForToken(
-              CompileTimeErrorCode
-                  .MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES,
-              mixin.name.beginToken,
-              [mixin, supertypeConstraint]);
-        }
-      }
-    }
-    if (foundInterfaceType == null) {
-      errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
-          mixin.name.beginToken,
-          [mixin, supertypeConstraint]);
-    }
-    return foundInterfaceType;
-  }
-
-  List<InterfaceType>? _findInterfaceTypesForConstraints(
-      NamedType mixin,
-      List<InterfaceType> supertypeConstraints,
-      List<InterfaceType> interfaceTypes) {
-    var result = <InterfaceType>[];
-    for (var constraint in supertypeConstraints) {
-      var interfaceType =
-          _findInterfaceTypeForMixin(mixin, constraint, interfaceTypes);
-      if (interfaceType == null) {
-        // No matching interface type found, so inference fails.  The error has
-        // already been reported.
-        return null;
-      }
-      result.add(interfaceType);
-    }
-    return result;
   }
 
   /// Given an [expression] in a switch case whose value is expected to be an

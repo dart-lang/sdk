@@ -246,6 +246,7 @@ library
             parameters
               requiredPositional final this.x @36
                 type: dynamic
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -272,6 +273,7 @@ library
             parameters
               requiredPositional final this.x @32
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -298,6 +300,7 @@ library
             parameters
               requiredPositional final this.x @28
                 type: dynamic
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -332,6 +335,7 @@ library
                 parameters
                   requiredPositional b @37
                     type: double
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -366,6 +370,7 @@ library
                 parameters
                   requiredPositional b @41
                     type: double
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -403,6 +408,7 @@ library
                 parameters
                   requiredPositional t @53
                     type: T
+                field: self::@class::C::@field::f
         accessors
           synthetic get f @-1
             returnType: dynamic Function()
@@ -433,6 +439,7 @@ library
             parameters
               requiredPositional final this.x @17
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: int
@@ -465,6 +472,7 @@ library
             parameters
               requiredPositional final this.x @17
                 type: dynamic
+                field: <null>
 ''');
   }
 
@@ -484,6 +492,7 @@ library
             parameters
               requiredPositional final this.x @32
                 type: dynamic
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: num
@@ -510,6 +519,7 @@ library
             parameters
               requiredPositional final this.x @28
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: num
@@ -536,6 +546,7 @@ library
             parameters
               requiredPositional final this.x @24
                 type: num
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: num
@@ -562,6 +573,7 @@ library
             parameters
               requiredPositional final this.x @32
                 type: dynamic
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -588,6 +600,7 @@ library
             parameters
               requiredPositional final this.x @28
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -614,6 +627,7 @@ library
             parameters
               requiredPositional final this.x @24
                 type: dynamic
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -640,6 +654,7 @@ library
             parameters
               optionalNamed final this.x @25
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: int
@@ -670,6 +685,7 @@ library
                   IntegerLiteral
                     literal: 42 @28
                     staticType: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: int
@@ -696,6 +712,7 @@ library
             parameters
               optionalPositional final this.x @25
                 type: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: int
@@ -726,6 +743,7 @@ library
                   IntegerLiteral
                     literal: 42 @29
                     staticType: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: int
@@ -3640,6 +3658,7 @@ library
             parameters
               requiredPositional final this.foo @36
                 type: int
+                field: self::@class::A::@field::foo
         accessors
           synthetic get foo @-1
             returnType: int
@@ -3668,6 +3687,7 @@ library
             parameters
               requiredPositional final this.v @34
                 type: int
+                field: self::@class::C::@field::v
             superConstructor: self::@class::D::@constructor::•
         accessors
           synthetic get v @-1
@@ -9875,12 +9895,14 @@ library
             parameters
               requiredPositional final this.t @41
                 type: T
+                field: self::@class::C::@field::t
           const named @55
             periodOffset: 54
             nameEnd: 60
             parameters
               requiredPositional final this.t @66
                 type: T
+                field: self::@class::C::@field::t
         accessors
           synthetic get t @-1
             returnType: T
@@ -12525,6 +12547,7 @@ library
                     staticElement: self::@function::foo
                     staticType: int Function()
                     token: foo @40
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -12566,6 +12589,7 @@ library
                     staticElement: dart:core::@class::num::@method::+
                     staticInvokeType: num Function(num)
                     staticType: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -12604,6 +12628,7 @@ library
                     staticElement: dart:core::@class::num::@method::+
                     staticInvokeType: num Function(num)
                     staticType: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -15915,6 +15940,7 @@ library
                     staticType: void Function(dynamic)
                     typeArgumentTypes
                       dynamic
+                field: self::@class::X::@field::f
         accessors
           synthetic get f @-1
             returnType: void Function(dynamic)
@@ -17956,6 +17982,7 @@ library
         parameters
           requiredPositional final this.a @16
             type: int
+            field: <null>
         returnType: void
 ''');
   }
@@ -17976,6 +18003,7 @@ library
               IntegerLiteral
                 literal: 42 @20
                 staticType: int
+            field: <null>
         returnType: void
 ''');
   }
@@ -17995,6 +18023,7 @@ library
             parameters
               requiredPositional b @22
                 type: int
+            field: <null>
         returnType: void
 ''');
   }
@@ -19669,6 +19698,7 @@ library
             parameters
               requiredPositional final this.x @49
                 type: Object
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: Object
@@ -22558,6 +22588,7 @@ library
             parameters
               requiredPositional final this.foo @41
                 type: dynamic
+                field: <null>
             returnType: void
 ''');
   }
@@ -22583,6 +22614,7 @@ library
             parameters
               requiredPositional final this.x @23
                 type: dynamic
+                field: <null>
             returnType: void
 ''');
   }
@@ -24166,6 +24198,7 @@ library
             parameters
               requiredPositional final this.value @48
                 type: dynamic
+                field: self::@class::A::@field::value
         accessors
           synthetic get value @-1
             returnType: dynamic
@@ -24500,6 +24533,7 @@ library
                       staticElement: self::@getter::a
                       staticType: null
                       token: a @40
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -24549,6 +24583,7 @@ library
                   NullLiteral
                     literal: null @48
                     staticType: Null
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -28926,6 +28961,7 @@ library
                   IntegerLiteral
                     literal: 1 @44
                     staticType: int
+                field: self::@class::C::@field::x
           named @53
             periodOffset: 52
             nameEnd: 58
@@ -28936,6 +28972,7 @@ library
                   IntegerLiteral
                     literal: 1 @68
                     staticType: int
+                field: self::@class::C::@field::x
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -29615,6 +29652,7 @@ library
             parameters
               requiredPositional final this.value @34
                 type: T
+                field: self::@class::A::@field::value
         accessors
           synthetic get value @-1
             returnType: T
@@ -29672,6 +29710,7 @@ library
             parameters
               requiredPositional final this.value @34
                 type: T
+                field: self::@class::A::@field::value
         accessors
           synthetic get value @-1
             returnType: T
@@ -29753,6 +29792,7 @@ library
             parameters
               requiredPositional final this.f @35
                 type: int
+                field: self::@class::A::@field::f
         accessors
           synthetic get f @-1
             returnType: int
@@ -29937,6 +29977,7 @@ library
             parameters
               requiredPositional final this.f @85
                 type: T
+                field: self::@class::C::@field::f
         accessors
           synthetic get f @-1
             returnType: T
