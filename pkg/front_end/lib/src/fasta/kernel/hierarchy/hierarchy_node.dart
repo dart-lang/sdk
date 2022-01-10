@@ -48,9 +48,7 @@ class ClassHierarchyNodeBuilder {
     }
 
     List<Supertype> superclasses;
-
-    List<Supertype> interfaces;
-
+    List<Supertype> interfacesList;
     int maxInheritancePath;
 
     List<TypeBuilder>? directInterfaceBuilders;
@@ -62,7 +60,7 @@ class ClassHierarchyNodeBuilder {
     if (supernode == null) {
       // This should be Object.
       superclasses = new List<Supertype>.filled(0, dummySupertype);
-      interfaces = new List<Supertype>.filled(0, dummySupertype);
+      interfacesList = new List<Supertype>.filled(0, dummySupertype);
       maxInheritancePath = 0;
     } else {
       maxInheritancePath = supernode.maxInheritancePath + 1;
@@ -107,7 +105,7 @@ class ClassHierarchyNodeBuilder {
       }
 
       if (directInterfaceBuilders != null) {
-        interfaces = <Supertype>[];
+        Map<Class, Supertype> interfaces = {};
         // ignore: unnecessary_null_comparison
         if (superclassInterfaces != null) {
           for (int i = 0; i < superclassInterfaces.length; i++) {
@@ -145,16 +143,18 @@ class ClassHierarchyNodeBuilder {
             }
           }
         }
+        interfacesList = interfaces.values.toList();
         // ignore: unnecessary_null_comparison
       } else if (superclassInterfaces != null &&
           !classBuilder.library.isNonNullableByDefault &&
           supernode.classBuilder.library.isNonNullableByDefault) {
-        interfaces = <Supertype>[];
+        Map<Class, Supertype> interfaces = {};
         for (int i = 0; i < superclassInterfaces.length; i++) {
           addInterface(interfaces, superclasses, superclassInterfaces[i]);
         }
+        interfacesList = interfaces.values.toList();
       } else {
-        interfaces = superclassInterfaces;
+        interfacesList = superclassInterfaces;
       }
     }
 
@@ -162,8 +162,8 @@ class ClassHierarchyNodeBuilder {
       recordSupertype(superclass);
     }
     // ignore: unnecessary_null_comparison
-    if (interfaces != null) {
-      for (Supertype superinterface in interfaces) {
+    if (interfacesList != null) {
+      for (Supertype superinterface in interfacesList) {
         recordSupertype(superinterface);
       }
     }
@@ -180,7 +180,7 @@ class ClassHierarchyNodeBuilder {
         interfaceMemberMap,
         interfaceSetterMap,*/
       superclasses,
-      interfaces,
+      interfacesList,
       maxInheritancePath,
       /*hasNoSuchMethod,
         dataForTesting,*/
@@ -242,8 +242,8 @@ class ClassHierarchyNodeBuilder {
     return result ?? supertypes;
   }
 
-  void addInterface(List<Supertype> interfaces, List<Supertype> superclasses,
-      Supertype type) {
+  void addInterface(Map<Class, Supertype> interfaces,
+      List<Supertype> superclasses, Supertype type) {
     // ignore: unnecessary_null_comparison
     if (type == null) return null;
     if (!classBuilder.library.isNonNullableByDefault) {
@@ -273,31 +273,26 @@ class ClassHierarchyNodeBuilder {
       }
       return;
     } else {
-      for (int i = 0; i < interfaces.length; i++) {
-        // This is a quadratic algorithm, but normally, the number of
-        // interfaces is really small.
-        Supertype? interface = interfaces[i];
-        if (interface.classNode == type.classNode) {
-          // This is a potential conflict.
-          if (classBuilder.library.isNonNullableByDefault) {
-            interface = nnbdTopMergeSupertype(
-                hierarchy.coreTypes,
-                normSupertype(hierarchy.coreTypes, interface),
-                normSupertype(hierarchy.coreTypes, type));
-            if (interface == null) {
-              // This is a conflict.
-              // TODO(johnniwinther): Report errors here instead of through
-              // the computation of the [ClassHierarchy].
-              interface = interfaces[i];
-            } else {
-              interfaces[i] = interface;
-            }
+      Supertype? interface = interfaces[type.classNode];
+      if (interface != null) {
+        // This is a potential conflict.
+        if (classBuilder.library.isNonNullableByDefault) {
+          interface = nnbdTopMergeSupertype(
+              hierarchy.coreTypes,
+              normSupertype(hierarchy.coreTypes, interface),
+              normSupertype(hierarchy.coreTypes, type));
+          if (interface == null) {
+            // This is a conflict.
+            // TODO(johnniwinther): Report errors here instead of through
+            // the computation of the [ClassHierarchy].
+          } else {
+            interfaces[type.classNode] = interface;
           }
-          return;
         }
+        return;
       }
     }
-    interfaces.add(type);
+    interfaces[type.classNode] = type;
   }
 
   void inferMixinApplication() {
