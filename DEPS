@@ -226,6 +226,15 @@ deps = {
       "condition": "checkout_javascript_engines",
       "dep_type": "cipd",
   },
+  # TODO(b/186078239): remove this copy to the old location
+  Var("dart_root") + "/third_party/firefox_jsshell/linux/jsshell": {
+      "packages": [{
+          "package": "dart/third_party/jsshell/linux-amd64",
+          "version": Var("jsshell_tag"),
+      }],
+      "condition": "checkout_javascript_engines",
+      "dep_type": "cipd",
+  },
   Var("dart_root") + "/third_party/devtools": {
       "packages": [{
           "package": "dart/third_party/flutter/devtools",
