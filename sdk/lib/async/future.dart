@@ -360,10 +360,10 @@ abstract class Future<T> {
   /// Example:
   /// ```dart
   /// Future<int> getFuture() {
-  ///  return Future.error(Exception('Issue')); // Throws.
+  ///  return Future.error(Exception('Issue'));
   /// }
   ///
-  /// final error = await getFuture();
+  /// final error = await getFuture(); // Throws.
   /// ```
   factory Future.error(Object error, [StackTrace? stackTrace]) {
     // TODO(40614): Remove once non-nullability is sound.
@@ -588,7 +588,7 @@ abstract class Future<T> {
   /// void main() async {
   ///   final result =
   ///       await Future.any([slowInt(), delayedString(), fastInt()]);
-  ///   // The future of fastInt is finished first, others are ignored.
+  ///   // The future of fastInt completes first, others are ignored.
   ///   print(result); // 3
   /// }
   /// Future<int> slowInt() async {
@@ -603,7 +603,7 @@ abstract class Future<T> {
   ///
   /// Future<int> fastInt() async {
   ///   await Future.delayed(const Duration(seconds: 1));
-  ///   return  3;
+  ///   return 3;
   /// }
   /// ```
   static Future<T> any<T>(Iterable<Future<T>> futures) {
@@ -805,7 +805,7 @@ abstract class Future<T> {
   ///   const Duration(seconds: 1),
   ///   () => throw 401,
   /// ).then((value) {
-  ///   print('do something with result');
+  ///   throw 'Unreachable';
   /// }).catchError((err) {
   ///   print('Error: $err'); // Prints 401.
   /// }, test: (error) {
@@ -855,13 +855,13 @@ abstract class Future<T> {
   /// ```
   /// Example:
   /// ```dart
-  /// void main() async {
+  /// void main() {
   ///   waitTask().whenComplete(() => print('do some work here'));
   /// }
   ///
-  /// Future<String> waitTask() async {
-  ///   await Future.delayed(const Duration(seconds: 5));
-  ///   return 'done';
+  /// Future<String> waitTask() {
+  ///   Future.delayed(const Duration(seconds: 5));
+  ///   return Future.value('done');
   /// }
   /// // Outputs: 'do some work here' after waitTask is completed.
   /// ```
