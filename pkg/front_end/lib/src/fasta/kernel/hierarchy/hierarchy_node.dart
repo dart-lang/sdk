@@ -168,24 +168,13 @@ class ClassHierarchyNodeBuilder {
       }
     }
 
-    /*ClassHierarchyMemberNode memberNode =
-    buildMemberNode(supernode, directInterfaceBuilders);*/
-
     return new ClassHierarchyNode(
-      classBuilder,
-      supernode,
-      directInterfaceBuilders,
-      /*classMemberMap,
-        classSetterMap,
-        interfaceMemberMap,
-        interfaceSetterMap,*/
-      superclasses,
-      interfacesList,
-      maxInheritancePath,
-      /*hasNoSuchMethod,
-        dataForTesting,*/
-      /*memberNode*/
-    );
+        classBuilder,
+        supernode,
+        directInterfaceBuilders,
+        superclasses,
+        interfacesList,
+        maxInheritancePath);
   }
 
   Supertype recordSupertype(Supertype supertype) {
@@ -344,27 +333,6 @@ class ClassHierarchyNode {
 
   final List<TypeBuilder>? directInterfaceBuilders;
 
-  /*/// All the members of this class including [classMembers] of its
-  /// superclasses. The members are sorted by [compareDeclarations].
-  final Map<Name, ClassMember> classMemberMap;
-
-  /// Similar to [classMembers] but for setters.
-  final Map<Name, ClassMember> classSetterMap;
-
-  /// All the interface members of this class including [interfaceMembers] of
-  /// its supertypes. The members are sorted by [compareDeclarations].
-  ///
-  /// In addition to the members of [classMembers] this also contains members
-  /// from interfaces.
-  ///
-  /// This may be null, in which case [classMembers] is the interface members.
-  final Map<Name, ClassMember>? interfaceMemberMap;
-
-  /// Similar to [interfaceMembers] but for setters.
-  ///
-  /// This may be null, in which case [classSetters] is the interface setters.
-  final Map<Name, ClassMember>? interfaceSetterMap;*/
-
   /// All superclasses of [classBuilder] excluding itself. The classes are
   /// sorted by depth from the root (Object) in ascending order.
   final List<Supertype> superclasses;
@@ -378,27 +346,13 @@ class ClassHierarchyNode {
 
   int get depth => superclasses.length;
 
-  /*final bool hasNoSuchMethod;
-
-  final ClassHierarchyNodeDataForTesting? dataForTesting;*/
-
-  //final ClassHierarchyMemberNode memberNode;
-
   ClassHierarchyNode(
-    this.classBuilder,
-    this.supernode,
-    this.directInterfaceBuilders,
-    /*this.classMemberMap,
-      this.classSetterMap,
-      this.interfaceMemberMap,
-      this.interfaceSetterMap,*/
-    this.superclasses,
-    this.interfaces,
-    this.maxInheritancePath,
-    /*this.hasNoSuchMethod,
-      this.dataForTesting,*/
-    /*this.memberNode*/
-  );
+      this.classBuilder,
+      this.supernode,
+      this.directInterfaceBuilders,
+      this.superclasses,
+      this.interfaces,
+      this.maxInheritancePath);
 
   /// Returns a list of all supertypes of [classBuilder], including this node.
   List<ClassHierarchyNode> computeAllSuperNodes(
