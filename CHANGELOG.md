@@ -1,3 +1,14 @@
+# 1.18.0
+
+- extend `camel_case_types` to cover enums
+- fix `no_leading_underscores_for_local_identifiers` to not 
+  mis-flag field formal parameters with default values
+- fix `prefer_function_declarations_over_variables` to not
+  mis-flag non-final fields
+- performance improvements for `prefer_contains`
+- update `exhaustive_cases` to skip deprecated values that
+  redirect to other values
+
 # 1.17.1
 
 - update to `analyzer` version 3.0
