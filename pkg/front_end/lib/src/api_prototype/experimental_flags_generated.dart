@@ -33,26 +33,26 @@ enum ExperimentalFlag {
 }
 
 const Version enableAlternativeInvalidationStrategyVersion =
-    const Version(2, 16);
-const Version enableConstFunctionsVersion = const Version(2, 16);
+    const Version(2, 17);
+const Version enableConstFunctionsVersion = const Version(2, 17);
 const Version enableConstantUpdate2018Version = const Version(2, 0);
 const Version enableConstructorTearoffsVersion = const Version(2, 15);
 const Version enableControlFlowCollectionsVersion = const Version(2, 0);
-const Version enableEnhancedEnumsVersion = const Version(2, 16);
+const Version enableEnhancedEnumsVersion = const Version(2, 17);
 const Version enableExtensionMethodsVersion = const Version(2, 6);
-const Version enableExtensionTypesVersion = const Version(2, 16);
+const Version enableExtensionTypesVersion = const Version(2, 17);
 const Version enableGenericMetadataVersion = const Version(2, 14);
-const Version enableMacrosVersion = const Version(2, 16);
-const Version enableNamedArgumentsAnywhereVersion = const Version(2, 16);
+const Version enableMacrosVersion = const Version(2, 17);
+const Version enableNamedArgumentsAnywhereVersion = const Version(2, 17);
 const Version enableNonNullableVersion = const Version(2, 12);
 const Version enableNonfunctionTypeAliasesVersion = const Version(2, 13);
 const Version enableSetLiteralsVersion = const Version(2, 0);
 const Version enableSpreadCollectionsVersion = const Version(2, 0);
-const Version enableSuperParametersVersion = const Version(2, 16);
-const Version enableTestExperimentVersion = const Version(2, 16);
+const Version enableSuperParametersVersion = const Version(2, 17);
+const Version enableTestExperimentVersion = const Version(2, 17);
 const Version enableTripleShiftVersion = const Version(2, 14);
-const Version enableValueClassVersion = const Version(2, 16);
-const Version enableVarianceVersion = const Version(2, 16);
+const Version enableValueClassVersion = const Version(2, 17);
+const Version enableVarianceVersion = const Version(2, 17);
 
 ExperimentalFlag? parseExperimentalFlag(String flag) {
   switch (flag) {
@@ -147,49 +147,49 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
 };
 
 const Map<ExperimentalFlag, Version> experimentEnabledVersion = {
-  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 16),
-  ExperimentalFlag.constFunctions: const Version(2, 16),
+  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 17),
+  ExperimentalFlag.constFunctions: const Version(2, 17),
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.constructorTearoffs: const Version(2, 15),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
-  ExperimentalFlag.enhancedEnums: const Version(2, 16),
+  ExperimentalFlag.enhancedEnums: const Version(2, 17),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
-  ExperimentalFlag.extensionTypes: const Version(2, 16),
+  ExperimentalFlag.extensionTypes: const Version(2, 17),
   ExperimentalFlag.genericMetadata: const Version(2, 14),
-  ExperimentalFlag.macros: const Version(2, 16),
-  ExperimentalFlag.namedArgumentsAnywhere: const Version(2, 16),
+  ExperimentalFlag.macros: const Version(2, 17),
+  ExperimentalFlag.namedArgumentsAnywhere: const Version(2, 17),
   ExperimentalFlag.nonNullable: const Version(2, 12),
   ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 13),
   ExperimentalFlag.setLiterals: const Version(2, 0),
   ExperimentalFlag.spreadCollections: const Version(2, 0),
-  ExperimentalFlag.superParameters: const Version(2, 16),
-  ExperimentalFlag.testExperiment: const Version(2, 16),
+  ExperimentalFlag.superParameters: const Version(2, 17),
+  ExperimentalFlag.testExperiment: const Version(2, 17),
   ExperimentalFlag.tripleShift: const Version(2, 14),
-  ExperimentalFlag.valueClass: const Version(2, 16),
-  ExperimentalFlag.variance: const Version(2, 16),
+  ExperimentalFlag.valueClass: const Version(2, 17),
+  ExperimentalFlag.variance: const Version(2, 17),
 };
 
 const Map<ExperimentalFlag, Version> experimentReleasedVersion = {
-  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 16),
-  ExperimentalFlag.constFunctions: const Version(2, 16),
+  ExperimentalFlag.alternativeInvalidationStrategy: const Version(2, 17),
+  ExperimentalFlag.constFunctions: const Version(2, 17),
   ExperimentalFlag.constantUpdate2018: const Version(2, 0),
   ExperimentalFlag.constructorTearoffs: const Version(2, 15),
   ExperimentalFlag.controlFlowCollections: const Version(2, 0),
-  ExperimentalFlag.enhancedEnums: const Version(2, 16),
+  ExperimentalFlag.enhancedEnums: const Version(2, 17),
   ExperimentalFlag.extensionMethods: const Version(2, 6),
-  ExperimentalFlag.extensionTypes: const Version(2, 16),
+  ExperimentalFlag.extensionTypes: const Version(2, 17),
   ExperimentalFlag.genericMetadata: const Version(2, 14),
-  ExperimentalFlag.macros: const Version(2, 16),
-  ExperimentalFlag.namedArgumentsAnywhere: const Version(2, 16),
+  ExperimentalFlag.macros: const Version(2, 17),
+  ExperimentalFlag.namedArgumentsAnywhere: const Version(2, 17),
   ExperimentalFlag.nonNullable: const Version(2, 10),
   ExperimentalFlag.nonfunctionTypeAliases: const Version(2, 13),
   ExperimentalFlag.setLiterals: const Version(2, 0),
   ExperimentalFlag.spreadCollections: const Version(2, 0),
-  ExperimentalFlag.superParameters: const Version(2, 16),
-  ExperimentalFlag.testExperiment: const Version(2, 16),
+  ExperimentalFlag.superParameters: const Version(2, 17),
+  ExperimentalFlag.testExperiment: const Version(2, 17),
   ExperimentalFlag.tripleShift: const Version(2, 14),
-  ExperimentalFlag.valueClass: const Version(2, 16),
-  ExperimentalFlag.variance: const Version(2, 16),
+  ExperimentalFlag.valueClass: const Version(2, 17),
+  ExperimentalFlag.variance: const Version(2, 17),
 };
 
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
