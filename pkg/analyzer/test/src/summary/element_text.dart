@@ -318,7 +318,11 @@ class _ElementWriter {
       _writeElements('fields', e.fields, _writePropertyInducingElement);
 
       var constructors = e.constructors;
-      expect(constructors, isNotEmpty);
+      if (e.isEnum) {
+        expect(constructors, isEmpty);
+      } else {
+        expect(constructors, isNotEmpty);
+      }
       _writeElements('constructors', constructors, _writeConstructorElement);
 
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
@@ -772,7 +776,6 @@ class _ElementWriter {
       _writeIf(e.isLate, 'late ');
       _writeIf(e.isFinal, 'final ');
       _writeIf(e.isConst, 'const ');
-      _writeIf(e is FieldElementImpl && e.isEnumConstant, 'enumConstant ');
 
       _writeName(e);
     });

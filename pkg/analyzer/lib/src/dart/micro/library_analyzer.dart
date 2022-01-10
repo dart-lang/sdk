@@ -175,9 +175,7 @@ class LibraryAnalyzer {
   /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
   void _clearConstantEvaluationResults() {
     for (var constant in _libraryConstants) {
-      if (constant is ConstFieldElementImpl && constant.isEnumConstant) {
-        continue;
-      }
+      if (constant is ConstFieldElementImpl_ofEnum) continue;
       if (constant is ConstVariableElement) {
         constant.evaluationResult = null;
       }

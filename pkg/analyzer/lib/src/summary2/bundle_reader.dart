@@ -281,12 +281,15 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
     var indexField = element.getField('index') as FieldElementImpl;
     indexField.type = typeProvider.intType;
 
-    var valuesField = element.getField('values') as ConstFieldElementImpl;
-    valuesField.constantInitializer = reader._readRequiredNode() as Expression;
-    valuesField.type = typeProvider.listType(element.thisType);
-
     var toStringMethod = element.getMethod('toString') as MethodElementImpl;
     toStringMethod.returnType = typeProvider.stringType;
+
+    for (var constant in element.constants) {
+      constant as FieldElementImpl;
+      constant.metadata = reader._readAnnotationList(
+        unitElement: element.enclosingElement,
+      );
+    }
 
     applyConstantOffsets?.perform();
   }
@@ -565,7 +568,7 @@ class LibraryReader {
 
   List<ConstructorElementImpl> _readConstructors(
     CompilationUnitElementImpl unitElement,
-    AbstractClassElementImpl classElement,
+    ClassElementImpl classElement,
     Reference classReference,
   ) {
     var containerRef = classReference.getChild('@constructor');
@@ -606,46 +609,53 @@ class LibraryReader {
     );
     element.setLinkedData(reference, linkedData);
 
-    var accessors = <PropertyAccessorElement>[];
     var fields = <FieldElement>[];
+    var getters = <PropertyAccessorElement>[];
 
     // Build the 'index' field.
     {
-      var indexField = ConstFieldElementImpl('index', -1)
-        ..isFinal = true
-        ..isSynthetic = true;
-      indexField.bindReference(
-        reference.getChild('@field').getChild('index'),
+      var field = FieldElementImpl('index', -1)
+        ..enclosingElement = element
+        ..isSynthetic = true
+        ..isFinal = true;
+      fields.add(field);
+      getters.add(
+        PropertyAccessorElementImpl_ImplicitGetter(field,
+            reference: reference.getChild('@getter').getChild('index'))
+          ..enclosingElement = element,
       );
-      indexField.createImplicitAccessors(reference, 'index');
-      fields.add(indexField);
-      accessors.add(indexField.getter!);
     }
-
-    _readFields(unitElement, element, reference, accessors, fields);
-    _readPropertyAccessors(
-        unitElement, element, reference, accessors, fields, '@field');
 
     // Build the 'values' field.
     {
-      var field = ConstFieldElementImpl('values', -1)
-        ..isConst = true
-        ..isStatic = true
-        ..isSynthetic = true;
+      var field = ConstFieldElementImpl_EnumValues(element);
       fields.add(field);
-      accessors.add(
+      getters.add(
         PropertyAccessorElementImpl_ImplicitGetter(field,
             reference: reference.getChild('@getter').getChild('values'))
           ..enclosingElement = element,
       );
     }
 
+    // Build fields for all enum constants.
+    var containerRef = reference.getChild('@constant');
+    var constantCount = _reader.readUInt30();
+    for (var i = 0; i < constantCount; i++) {
+      var constantName = _reader.readStringReference();
+      var field = ConstFieldElementImpl_EnumValue(element, constantName, i);
+      var constantRef = containerRef.getChild(constantName);
+      field.reference = constantRef;
+      constantRef.element = field;
+      fields.add(field);
+      getters.add(
+        PropertyAccessorElementImpl_ImplicitGetter(field,
+            reference: reference.getChild('@getter').getChild(constantName))
+          ..enclosingElement = element,
+      );
+    }
+
     element.fields = fields;
-    element.accessors = accessors;
-
-    element.constructors = _readConstructors(unitElement, element, reference);
-    // element.methods = _readMethods(unitElement, element, reference);
-
+    element.accessors = getters;
     element.createToStringMethodElement();
 
     return element;
