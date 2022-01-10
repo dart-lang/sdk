@@ -5455,8 +5455,8 @@ NewAsSelector:
   script: |
     method(dynamic d) => d.new;
 
-EnumDeclaresFactory:
-  problemMessage: "Enums can't declare factory constructors."
+EnumDeclaresConstFactory:
+  problemMessage: "Enums can't declare const factory constructors."
   correctionMessage: "Try removing the factory constructor declaration."
 
 PositionalSuperParametersAndArguments:

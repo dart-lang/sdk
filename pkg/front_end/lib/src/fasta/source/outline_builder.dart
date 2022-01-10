@@ -1764,6 +1764,7 @@ class OutlineBuilder extends StackListenerImpl {
         case _MethodKind.classMethod:
         case _MethodKind.mixinMethod:
         case _MethodKind.extensionMethod:
+        case _MethodKind.enumMethod:
           break;
       }
       bool isStatic = (modifiers & staticMask) != 0;
@@ -3029,71 +3030,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endEnumFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    // TODO(cstefantsova): Call endClassFactoryMethod instead.
     debugEvent("EnumFactoryMethod");
-    MethodBody bodyKind = pop() as MethodBody;
-    if (bodyKind == MethodBody.RedirectingFactoryBody) {
-      pop(); // reference
-    }
-    pop(); // async marker
-    pop(); // formals
-    popCharOffset(); // formals char offset
-    pop(); // type variables
-    popCharOffset(); // char offset
-    pop(); // name
-    pop(); // modifiers
-    pop(); // metadata
-    popDeclarationContext();
-    // TODO(cstefantsova): Use actual type parameters.
-    libraryBuilder
-        .endNestedDeclaration(
-            TypeParameterScopeKind.factoryMethod, "#factory_method")
-        .resolveNamedTypes([], libraryBuilder);
-    // Skip the declaration. An error as already been produced by the parser.
-
-    if (libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(messageEnumDeclaresFactory, beginToken.charOffset, -1);
-    } else {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
-    }
-  }
-
-  @override
-  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
-    // TODO(cstefantsova): Call endClassMethod instead.
-    debugEvent("EnumMethod");
-    MethodBody bodyKind = pop() as MethodBody;
-    if (bodyKind == MethodBody.RedirectingFactoryBody) {
-      pop(); // reference
-    }
-    pop(); // async marker
-    pop(); // formals
-    popCharOffset(); // formals char offset
-    pop(); // type variables
-    popCharOffset(); // char offset
-    pop(); // name
-    pop(); // return type
-    int modifiers = Modifier.toMask(pop() as List<Modifier>?);
-    popCharOffset(); // final or const offset
-    pop(); // metadata
-    popDeclarationContext();
-    TypeParameterScopeKind scopeKind;
-    if ((modifiers & staticMask) != 0) {
-      scopeKind = TypeParameterScopeKind.staticMethod;
-    } else {
-      scopeKind = TypeParameterScopeKind.instanceMethod;
-    }
-    // TODO(cstefantsova): Use actual type parameters.
-    libraryBuilder
-        .endNestedDeclaration(scopeKind, "#method")
-        .resolveNamedTypes([], libraryBuilder);
-    // Skip the declaration. An error as already been produced by the parser.
-
     if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
       addProblem(
           templateExperimentNotEnabled.withArguments('enhanced-enums',
@@ -3101,6 +3038,23 @@ class OutlineBuilder extends StackListenerImpl {
           beginToken.charOffset,
           -1);
     }
+
+    _endFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('enhanced-enums',
+              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
+          beginToken.charOffset,
+          -1);
+    }
+
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.enumMethod);
   }
 
   @override
@@ -3134,10 +3088,10 @@ class OutlineBuilder extends StackListenerImpl {
               libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
           beginToken.charOffset,
           -1);
-    } else {
-      _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
-          endToken, _MethodKind.enumConstructor);
     }
+
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.enumConstructor);
   }
 
   @override
@@ -3322,4 +3276,5 @@ enum _MethodKind {
   extensionConstructor,
   extensionMethod,
   enumConstructor,
+  enumMethod,
 }

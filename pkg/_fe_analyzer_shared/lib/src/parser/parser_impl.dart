@@ -4375,8 +4375,6 @@ class Parser {
       case DeclarationKind.TopLevel:
         throw "Internal error: TopLevel factory.";
       case DeclarationKind.Enum:
-        reportRecoverableError(
-            factoryKeyword, codes.messageEnumDeclaresFactory);
         listener.endEnumFactoryMethod(beforeStart.next!, factoryKeyword, token);
         break;
     }

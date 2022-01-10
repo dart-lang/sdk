@@ -987,37 +987,15 @@ class DietListener extends StackListenerImpl {
   @override
   void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    // TODO(chloestefantsova): Call endClassConstructor instead.
-    debugEvent("EnumConstructor");
-    pop(); // bodyToken
-    pop(); // name
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    // Skip the declaration. An error as already been produced by the parser.
-  }
-
-  @override
-  void endEnumFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token endToken) {
-    // TODO(chloestefantsova): Call endClassFactoryMethod instead.
-    debugEvent("EnumFactoryMethod");
-    pop(); // bodyToken
-    pop(); // name
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    // Skip the declaration. An error as already been produced by the parser.
+    _endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken, true);
   }
 
   @override
   void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    // TODO(chloestefantsova): Call endClassMethod instead.
-    debugEvent("EnumMethod");
-    pop(); // bodyToken
-    pop(); // name
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    // Skip the declaration. An error as already been produced by the parser.
+    _endClassMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken, false);
   }
 
   @override
@@ -1031,12 +1009,8 @@ class DietListener extends StackListenerImpl {
       int count,
       Token beginToken,
       Token endToken) {
-    // TODO(chloestefantsova): Call endClassFields instead.
-    debugEvent("EnumFields");
-    const FixedNullableList<String>().pop(stack, count); // names
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    // Skip the declaration. An error as already been produced by the parser.
+    debugEvent("Fields");
+    buildFields(count, beginToken, false);
   }
 
   @override

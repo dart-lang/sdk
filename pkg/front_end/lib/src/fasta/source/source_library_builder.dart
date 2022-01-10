@@ -2830,7 +2830,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         new Scope(
             local: members,
             setters: setters,
-            parent: scope.withTypeVariables(<TypeVariableBuilder>[]),
+            parent: scope.withTypeVariables(typeVariables),
             debugName: "enum $name",
             isModifiable: false),
         new ConstructorScope(name, constructors));
