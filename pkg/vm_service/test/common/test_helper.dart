@@ -107,7 +107,6 @@ class _ServiceTesteeLauncher {
     bool pause_on_unhandled_exceptions,
     bool testeeControlsServer,
     bool useAuthToken,
-    List<String>? experiments,
     List<String>? extraArgs,
   ) {
     return _spawnDartProcess(
@@ -116,7 +115,6 @@ class _ServiceTesteeLauncher {
         pause_on_unhandled_exceptions,
         testeeControlsServer,
         useAuthToken,
-        experiments,
         extraArgs);
   }
 
@@ -126,7 +124,6 @@ class _ServiceTesteeLauncher {
       bool pause_on_unhandled_exceptions,
       bool testeeControlsServer,
       bool useAuthToken,
-      List<String>? experiments,
       List<String>? extraArgs) {
     String dartExecutable = io.Platform.executable;
 
@@ -146,9 +143,6 @@ class _ServiceTesteeLauncher {
       fullArgs.add('--pause-isolates-on-unhandled-exceptions');
     }
     fullArgs.add('--profiler');
-    if (experiments != null) {
-      fullArgs.addAll(experiments.map((e) => '--enable-experiment=$e'));
-    }
     if (extraArgs != null) {
       fullArgs.addAll(extraArgs);
     }
@@ -158,6 +152,7 @@ class _ServiceTesteeLauncher {
       fullArgs.add('--enable-vm-service:0');
     }
     fullArgs.addAll(args);
+
     return _spawnCommon(dartExecutable, fullArgs, <String, String>{});
   }
 
@@ -185,7 +180,6 @@ class _ServiceTesteeLauncher {
       bool pause_on_unhandled_exceptions,
       bool testeeControlsServer,
       bool useAuthToken,
-      List<String>? experiments,
       List<String>? extraArgs) {
     return _spawnProcess(
             pause_on_start,
@@ -193,7 +187,6 @@ class _ServiceTesteeLauncher {
             pause_on_unhandled_exceptions,
             testeeControlsServer,
             useAuthToken,
-            experiments,
             extraArgs)
         .then((p) {
       Completer<Uri> completer = Completer<Uri>();
@@ -254,27 +247,25 @@ void setupAddresses(Uri /*!*/ serverAddress) {
 }
 
 class _ServiceTesterRunner {
-  Future run({
-    List<String>? mainArgs,
-    List<String>? extraArgs,
-    List<String>? experiments,
-    List<VMTest>? vmTests,
-    List<IsolateTest>? isolateTests,
-    required String scriptName,
-    bool pause_on_start = false,
-    bool pause_on_exit = false,
-    bool verbose_vm = false,
-    bool pause_on_unhandled_exceptions = false,
-    bool testeeControlsServer = false,
-    bool useAuthToken = false,
-  }) async {
+  Future run(
+      {List<String>? mainArgs,
+      List<String>? extraArgs,
+      List<VMTest>? vmTests,
+      List<IsolateTest>? isolateTests,
+      required String scriptName,
+      bool pause_on_start = false,
+      bool pause_on_exit = false,
+      bool verbose_vm = false,
+      bool pause_on_unhandled_exceptions = false,
+      bool testeeControlsServer = false,
+      bool useAuthToken = false}) async {
     var process = _ServiceTesteeLauncher(scriptName);
     late VmService vm;
     late IsolateRef isolate;
     setUp(() async {
       await process
           .launch(pause_on_start, pause_on_exit, pause_on_unhandled_exceptions,
-              testeeControlsServer, useAuthToken, experiments, extraArgs)
+              testeeControlsServer, useAuthToken, extraArgs)
           .then((Uri serverAddress) async {
         if (mainArgs!.contains("--gdb")) {
           var pid = process.process!.pid;
@@ -286,6 +277,7 @@ class _ServiceTesterRunner {
         vm = await vmServiceConnectUri(serviceWebsocketAddress);
         print('Done loading VM');
         isolate = await getFirstIsolate(vm);
+        print('Got first isolate');
       });
     });
 
@@ -335,11 +327,13 @@ class _ServiceTesterRunner {
     Completer<dynamic>? completer = Completer();
     late StreamSubscription subscription;
     subscription = service.onIsolateEvent.listen((Event event) async {
+      print('Isolate event: $event');
       if (completer == null) {
         await subscription.cancel();
         return;
       }
       if (event.kind == EventKind.kIsolateRunnable) {
+        print(event.isolate!.name);
         vm = await service.getVM();
         await subscription.cancel();
         await service.streamCancel(EventStreams.kIsolate);
@@ -378,7 +372,6 @@ Future<void> runIsolateTests(
   bool pause_on_unhandled_exceptions = false,
   bool testeeControlsServer = false,
   bool useAuthToken = false,
-  List<String>? experiments,
   List<String>? extraArgs,
 }) async {
   assert(!pause_on_start || testeeBefore == null);
@@ -397,7 +390,6 @@ Future<void> runIsolateTests(
         pause_on_start: pause_on_start,
         pause_on_exit: pause_on_exit,
         verbose_vm: verbose_vm,
-        experiments: experiments,
         pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
         testeeControlsServer: testeeControlsServer,
         useAuthToken: useAuthToken);
