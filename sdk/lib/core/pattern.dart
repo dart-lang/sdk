@@ -49,7 +49,7 @@ abstract class Pattern {
   /// var regExp = RegExp(r'bird');
   /// var match = regExp.matchAsPrefix(string, 10); // Match found.
   ///
-  /// regExp = RegExp(r'Cat');
+  /// regExp = RegExp(r'bird');
   /// match = regExp.matchAsPrefix(string); // null
   /// ```
   Match? matchAsPrefix(String string, [int start = 0]);
