@@ -15,12 +15,12 @@ part of dart.core;
 /// bigInteger = BigInt.from(0.9999); // 0
 /// bigInteger = BigInt.from(-10.99); // -10
 /// ```
-/// To parse large integer value from string, use [parse] or [tryParse].
+/// To parse a large integer value from string, use [parse] or [tryParse].
 /// ```dart
 /// var value = BigInt.parse('0x1ffffffffffffffff'); // 36893488147419103231
 /// value = BigInt.parse('12345678901234567890'); // 12345678901234567890
 /// ```
-/// To check if big integer can be represented as an [int] without losing
+/// To check whether a big integer can be represented as an [int] without losing
 /// precision, use [isValidInt].
 /// ```dart continued
 /// print(bigNumber.isValidInt); // false
@@ -500,9 +500,8 @@ abstract class BigInt implements Comparable<BigInt> {
   /// If the number does not fit, clamps to the max (or min)
   /// integer.
   ///
-  /// **Warning:** the clamping behaves differently on dart2js, dev
-  /// compiler, and the VM, due to the differences in integer
-  /// precision.
+  /// **Warning:** the clamping behaves differently between the web and
+  /// native platforms due to the differences in integer precision.
   ///
   /// Example:
   /// ```dart
