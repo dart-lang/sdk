@@ -7,14 +7,14 @@ part of dart.core;
 /// Check whether two references are to the same object.
 /// ```dart
 /// void main() {
-/// Car micro = Car(type: 'Micro', color: 'Red');
-/// Car suv = Car(type: 'SUV', color: 'Black');
+///  Car micro = Car(type: 'Micro', color: 'Red');
+///  Car suv = Car(type: 'SUV', color: 'Black');
 ///
-/// var areObjectsIdentical = identical(micro, micro);
-/// print(areObjectsIdentical); // true
+///  var areObjectsIdentical = identical(micro, micro);
+///  print(areObjectsIdentical); // true
 ///
-/// areObjectsIdentical = identical(micro, suv);
-/// print(areObjectsIdentical); // false
+///  areObjectsIdentical = identical(micro, suv);
+///  print(areObjectsIdentical); // false
 /// }
 ///
 /// class Car {
@@ -39,7 +39,7 @@ external bool identical(Object? a, Object? b);
 ///  int identityHashCode = identityHashCode(micro);
 ///  print(identityHashCode); // Hash code of the object
 /// }
-/// 
+///
 /// class Car {
 ///  late final type;
 ///  late final color;
