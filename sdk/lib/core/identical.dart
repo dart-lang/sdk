@@ -6,6 +6,7 @@ part of dart.core;
 
 /// Check whether two references are to the same object.
 /// ```dart
+/// void main() {
 /// Car micro = Car(type: 'Micro', color: 'Red');
 /// Car suv = Car(type: 'SUV', color: 'Black');
 ///
@@ -33,10 +34,12 @@ external bool identical(Object? a, Object? b);
 /// This hash code is compatible with [identical],
 /// which just means that it's guaranteed to be stable over time.
 /// ```dart
+/// void main() {
 ///  Car micro = Car(type: 'Micro', color: 'Red');
 ///  int identityHashCode = identityHashCode(micro);
 ///  print(identityHashCode); // Hash code of the object
-///
+/// }
+/// 
 /// class Car {
 ///  late final type;
 ///  late final color;
