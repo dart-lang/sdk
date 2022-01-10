@@ -51,11 +51,11 @@ abstract class Iterator<E> {
   /// including the effect of reading [current].
   /// ```dart
   /// final colors = ['blue', 'yellow', 'red'];
-  /// final color = colors.iterator;
-  /// print(color.moveNext()); // true
-  /// print(color.moveNext()); // true
-  /// print(color.moveNext()); // true
-  /// print(color.moveNext()); // false
+  /// final colorsIterator = colors.iterator;
+  /// print(colorsIterator.moveNext()); // true
+  /// print(colorsIterator.moveNext()); // true
+  /// print(colorsIterator.moveNext()); // true
+  /// print(colorsIterator.moveNext()); // false
   /// ```
   bool moveNext();
 
@@ -75,9 +75,9 @@ abstract class Iterator<E> {
   /// the current value, but can keep reading it from the iterator.
   /// ```dart
   /// final colors = ['blue', 'yellow', 'red'];
-  ///   var color = colors.iterator;
-  ///   while (color.moveNext()) {
-  ///     print(color.current);
+  ///   var colorsIterator = colors.iterator;
+  ///   while (colorsIterator.moveNext()) {
+  ///     print(colorsIterator.current);
   ///   }
   /// ```
   /// The output of the example is:
