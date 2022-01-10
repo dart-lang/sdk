@@ -36,6 +36,13 @@ external bool identical(Object? a, Object? b);
 ///  Car micro = Car(type: 'Micro', color: 'Red');
 ///  int identityHashCode = identityHashCode(micro);
 ///  print(identityHashCode); // Hash code of the object
+///
+/// class Car {
+///  late final type;
+///  late final color;
+///
+///  Car({this.type, this.color});
+/// }
 /// ```
 @pragma("vm:entry-point")
 external int identityHashCode(Object? object);
