@@ -21,6 +21,7 @@ final lookupAndCallWorkerThatCallsIsolateExit =
     ffiTestFunctions.lookupFunction<Void Function(Int64), void Function(int)>(
         'IsolateExitTest_LookupAndCallIsolateExit');
 
+@pragma('vm:entry-point')
 void recurseLookupAndCallWorker(int i) {
   lookupAndCallWorkerThatCallsIsolateExit(i);
   print(
@@ -30,6 +31,7 @@ void recurseLookupAndCallWorker(int i) {
 
 // This method is looked up and called by ffi method that ignores unwinding
 // error raised by 'Isolate.exit'.
+@pragma('vm:entry-point')
 Never callIsolateExit() {
   Isolate.exit();
 }
