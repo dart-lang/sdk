@@ -439,7 +439,9 @@ class Scavenger {
   RelaxedAtomic<bool> failed_to_promote_;
   RelaxedAtomic<bool> abort_;
 
-  bool growth_control_;
+  // When the isolate group is ready it will enable growth control via
+  // InitGrowthControl.
+  bool growth_control_ = false;
 
   // Protects new space during the allocation of new TLABs
   mutable Mutex space_lock_;
