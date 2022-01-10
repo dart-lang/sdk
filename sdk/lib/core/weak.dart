@@ -167,7 +167,7 @@ abstract class WeakReference<T extends Object> {
 abstract class Finalizer<T> {
   /// Creates a finalizer with the given finalization callback.
   ///
-  /// The [callback] is bound to the [current zone](Zone.current)
+  /// The [callback] is bound to the current zone
   /// when the [Finalizer] is created, and will run in that zone when called.
   external factory Finalizer(void Function(T) callback);
 
