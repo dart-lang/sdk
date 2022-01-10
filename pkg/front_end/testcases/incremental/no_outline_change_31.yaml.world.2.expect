@@ -46,34 +46,34 @@ library from "org-dartlang-test:///main.dart" as main {
     }
     return main::_#field1;
   }
-  static set field1(dart.core::int? field1#param) → void {
+  static set field1(dart.core::int? #t1) → void {
     main::_#field1#isSet = true;
-    main::_#field1 = field1#param;
+    main::_#field1 = #t1;
   }
   static get field2() → dart.core::int?
     return main::_#field2#isSet ?{dart.core::int?} main::_#field2 : throw new dart._internal::LateError::fieldNI("field2");
-  static set field2(dart.core::int? field2#param) → void {
+  static set field2(dart.core::int? #t2) → void {
     main::_#field2#isSet = true;
-    main::_#field2 = field2#param;
+    main::_#field2 = #t2;
   }
   static get field3() → dart.core::int? {
     if(!main::_#field3#isSet) {
-      final dart.core::int? #t1 = 42;
+      final dart.core::int? #t3 = 42;
       if(main::_#field3#isSet)
         throw new dart._internal::LateError::fieldADI("field3");
-      main::_#field3 = #t1;
+      main::_#field3 = #t3;
       main::_#field3#isSet = true;
     }
     return main::_#field3;
   }
   static get field4() → dart.core::int?
     return main::_#field4#isSet ?{dart.core::int?} main::_#field4 : throw new dart._internal::LateError::fieldNI("field4");
-  static set field4(dart.core::int? field4#param) → void
+  static set field4(dart.core::int? #t4) → void
     if(main::_#field4#isSet)
       throw new dart._internal::LateError::fieldAI("field4");
     else {
       main::_#field4#isSet = true;
-      main::_#field4 = field4#param;
+      main::_#field4 = #t4;
     }
   static get _extension#0|field5() → dart.core::int? {
     if(!main::_#_extension#0|field5#isSet) {
@@ -82,34 +82,34 @@ library from "org-dartlang-test:///main.dart" as main {
     }
     return main::_#_extension#0|field5;
   }
-  static set _extension#0|field5(dart.core::int? library org-dartlang-test:///main.dart::_extension#0|field5#param) → void {
+  static set _extension#0|field5(dart.core::int? #t5) → void {
     main::_#_extension#0|field5#isSet = true;
-    main::_#_extension#0|field5 = library org-dartlang-test:///main.dart::_extension#0|field5#param;
+    main::_#_extension#0|field5 = #t5;
   }
   static get _extension#0|field6() → dart.core::int?
     return main::_#_extension#0|field6#isSet ?{dart.core::int?} main::_#_extension#0|field6 : throw new dart._internal::LateError::fieldNI("field6");
-  static set _extension#0|field6(dart.core::int? library org-dartlang-test:///main.dart::_extension#0|field6#param) → void {
+  static set _extension#0|field6(dart.core::int? #t6) → void {
     main::_#_extension#0|field6#isSet = true;
-    main::_#_extension#0|field6 = library org-dartlang-test:///main.dart::_extension#0|field6#param;
+    main::_#_extension#0|field6 = #t6;
   }
   static get _extension#0|field7() → dart.core::int? {
     if(!main::_#_extension#0|field7#isSet) {
-      final dart.core::int? #t2 = 42;
+      final dart.core::int? #t7 = 42;
       if(main::_#_extension#0|field7#isSet)
         throw new dart._internal::LateError::fieldADI("field7");
-      main::_#_extension#0|field7 = #t2;
+      main::_#_extension#0|field7 = #t7;
       main::_#_extension#0|field7#isSet = true;
     }
     return main::_#_extension#0|field7;
   }
   static get _extension#0|field8() → dart.core::int?
     return main::_#_extension#0|field8#isSet ?{dart.core::int?} main::_#_extension#0|field8 : throw new dart._internal::LateError::fieldNI("field8");
-  static set _extension#0|field8(dart.core::int? library org-dartlang-test:///main.dart::_extension#0|field8#param) → void
+  static set _extension#0|field8(dart.core::int? #t8) → void
     if(main::_#_extension#0|field8#isSet)
       throw new dart._internal::LateError::fieldAI("field8");
     else {
       main::_#_extension#0|field8#isSet = true;
-      main::_#_extension#0|field8 = library org-dartlang-test:///main.dart::_extension#0|field8#param;
+      main::_#_extension#0|field8 = #t8;
     }
   static method main() → dynamic {
     main::field1 = 44;

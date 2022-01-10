@@ -402,6 +402,19 @@ Fragment FlowGraphBuilder::FfiCall(
   return body;
 }
 
+Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
+  Fragment instructions;
+  Value* exception = Pop();
+  instructions += Fragment(new (Z) ThrowInstr(InstructionSource(position),
+                                              GetNextDeoptId(), exception))
+                      .closed();
+  // Use its side effect of leaving a constant on the stack (does not change
+  // the graph).
+  NullConstant();
+
+  return instructions;
+}
+
 Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
                                             int catch_try_index) {
   Fragment instructions;
@@ -927,7 +940,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kDoubleFloorToInt:
       if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 #if defined(TARGET_ARCH_X64)
-      return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
+      return CompilerState::Current().is_aot();
 #elif defined(TARGET_ARCH_ARM64)
       return true;
 #else
@@ -4478,8 +4491,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   const char* error = nullptr;
   const auto marshaller_ptr =
       compiler::ffi::CallMarshaller::FromFunction(Z, function, &error);
-  // AbiSpecific integers can be incomplete causing us to not know the calling
-  // convention. However, this is caught in asFunction in both JIT/AOT.
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;
@@ -4631,8 +4642,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   const char* error = nullptr;
   const auto marshaller_ptr =
       compiler::ffi::CallbackMarshaller::FromFunction(Z, function, &error);
-  // AbiSpecific integers can be incomplete causing us to not know the calling
-  // convention. However, this is caught fromFunction in both JIT/AOT.
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;

@@ -41,7 +41,7 @@ class M extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class D = self::C<core::String*> with self::M {
-  synthetic constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::D*
+  synthetic constructor •({dynamic a, dynamic b}) → self::D*
     : super self::C::•(a: a, b: b)
     ;
 }
@@ -50,7 +50,7 @@ class E extends self::D {
     ;
 }
 abstract class _F&C&M = self::C<core::int*> with self::M /*isAnonymousMixin*/  {
-  synthetic constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::_F&C&M*
+  synthetic constructor •({dynamic a, dynamic b}) → self::_F&C&M*
     : super self::C::•(a: a, b: b)
     ;
 }
@@ -64,6 +64,4 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:9:15 -> TypeLiteralConstant(<invalid>)
-Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:14:7 -> TypeLiteralConstant(<invalid>)
-Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:18:7 -> TypeLiteralConstant(<invalid>)
-Extra constant evaluation: evaluated: 7, effectively constant: 3
+Extra constant evaluation: evaluated: 5, effectively constant: 1

@@ -3,20 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
-
-import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+
 import 'package:front_end/src/fasta/builder/class_builder.dart';
 import 'package:front_end/src/fasta/builder/extension_builder.dart';
 import 'package:front_end/src/fasta/builder/formal_parameter_builder.dart';
+import 'package:front_end/src/fasta/builder/function_builder.dart';
 import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/builder/type_builder.dart';
 import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
-import 'package:front_end/src/fasta/source/source_function_builder.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
@@ -38,34 +38,44 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   const ExtensionsDataComputer();
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    member.accept(
-        new ExtensionsDataExtractor(testResultData.compilerResult, actualMap));
+    member.accept(new ExtensionsDataExtractor(compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new ExtensionsDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForClass(cls);
+    new ExtensionsDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new ExtensionsDataExtractor(testResultData.compilerResult, actualMap)
+    new ExtensionsDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeExtensionData(TestResultData testResultData, Extension extension,
+  void computeExtensionData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Extension extension,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new ExtensionsDataExtractor(testResultData.compilerResult, actualMap)
+    new ExtensionsDataExtractor(compilerResult, actualMap)
         .computeForExtension(extension);
   }
 
@@ -73,8 +83,8 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   bool get supportsErrors => true;
 
   @override
-  Features computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+  Features computeErrorData(TestConfig config, InternalCompilerResult compiler,
+      Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     for (FormattedMessage error in errors) {
       if (error.problemMessage.contains(',')) {
@@ -230,7 +240,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     MemberBuilder memberBuilder = lookupMemberBuilder(compilerResult, member)!;
     Features features = new Features();
     features[Tags.builderName] = memberBuilder.name;
-    if (memberBuilder is SourceFunctionBuilder) {
+    if (memberBuilder is FunctionBuilder) {
       if (memberBuilder.formals != null) {
         for (FormalParameterBuilder parameter in memberBuilder.formals!) {
           if (parameter.isRequired) {

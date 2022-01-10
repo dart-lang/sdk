@@ -64,7 +64,6 @@ class TestConfiguration {
       this.keepGeneratedFiles,
       this.sharedOptions,
       String packages,
-      this.serviceResponseSizesDirectory,
       this.suiteDirectory,
       this.outputDirectory,
       this.reproducingArguments,
@@ -177,7 +176,6 @@ class TestConfiguration {
     return _packages;
   }
 
-  final String serviceResponseSizesDirectory;
   final String outputDirectory;
   final String suiteDirectory;
   String get babel => configuration.babel;

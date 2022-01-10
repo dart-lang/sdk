@@ -160,7 +160,7 @@ mixin VmServiceInfoFileUtils {
     final completer = Completer<Uri>();
     late final StreamSubscription<FileSystemEvent> vmServiceInfoFileWatcher;
 
-    void tryParseServiceInfoFile(FileSystemEvent event) {
+    Uri? tryParseServiceInfoFile(FileSystemEvent event) {
       final uri = _readVmServiceInfoFile(logger, vmServiceInfoFile);
       if (uri != null && !completer.isCompleted) {
         vmServiceInfoFileWatcher.cancel();
@@ -200,7 +200,6 @@ mixin VmServiceInfoFileUtils {
       // It's possible we tried to read the file before it was completely
       // written so ignore and try again on the next event.
       logger?.call('Ignoring error parsing vm-service-info file: $e');
-      return null;
     }
   }
 }

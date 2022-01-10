@@ -25,7 +25,6 @@ import 'package:analysis_server/src/services/correction/dart/add_null_check.dart
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
-import 'package:analysis_server/src/services/correction/dart/add_return_null.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_static.dart';
 import 'package:analysis_server/src/services/correction/dart/add_super_constructor_invocation.dart';
@@ -151,8 +150,6 @@ import 'package:analysis_server/src/services/correction/dart/replace_new_with_co
 import 'package:analysis_server/src/services/correction/dart/replace_null_with_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_return_type_future.dart';
-import 'package:analysis_server/src/services/correction/dart/replace_return_type_iterable.dart';
-import 'package:analysis_server/src/services/correction/dart/replace_return_type_stream.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_var_with_dynamic.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_brackets.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
@@ -312,7 +309,7 @@ class FixInFileProcessor {
 
   List<ProducerGenerator> _getGenerators(ErrorCode errorCode) {
     if (errorCode is LintCode) {
-      return FixProcessor.lintProducerMap[errorCode.uniqueLintName] ?? [];
+      return FixProcessor.lintProducerMap[errorCode.name] ?? [];
     } else {
       // todo (pq): consider support for multiGenerators
       return FixProcessor.nonLintProducerMap[errorCode] ?? [];
@@ -326,12 +323,6 @@ class FixProcessor extends BaseProcessor {
   /// used to create correction producers. The generators are then used to build
   /// fixes for those diagnostics. The generators used for non-lint diagnostics
   /// are in the [nonLintProducerMap].
-  ///
-  /// The keys of the map are the unique names of the lint codes without the
-  /// `LintCode.` prefix. Generally the unique name is the same as the name of
-  /// the lint, so most of the keys are constants defined by [LintNames]. But
-  /// when a lint produces multiple codes, each with a different unique name,
-  /// the unique name must be used here.
   static final Map<String, List<ProducerGenerator>> lintProducerMap = {
     LintNames.always_declare_return_types: [
       AddReturnType.newInstance,
@@ -657,14 +648,6 @@ class FixProcessor extends BaseProcessor {
       DataDriven.newInstance,
       ImportLibrary.forType,
     ],
-    CompileTimeErrorCode
-        .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT: [
-      AddSuperConstructorInvocation.newInstance,
-    ],
-    CompileTimeErrorCode
-        .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS: [
-      AddSuperConstructorInvocation.newInstance,
-    ],
     CompileTimeErrorCode.INVALID_ANNOTATION: [
       ImportLibrary.forTopLevelVariable,
       ImportLibrary.forType,
@@ -858,14 +841,8 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
       AddFieldFormalParameters.newInstance,
     ],
-    CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE: [
-      ReplaceReturnTypeStream.newInstance,
-    ],
     CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE: [
       ReplaceReturnTypeFuture.newInstance,
-    ],
-    CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE: [
-      ReplaceReturnTypeIterable.newInstance,
     ],
     CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [
       ChangeTo.classOrMixin,
@@ -896,9 +873,6 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER: [
       AddRequiredKeyword.newInstance,
       MakeVariableNullable.newInstance,
-    ],
-    CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION: [
-      AddRequiredKeyword.newInstance,
     ],
     CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
       AddMissingRequiredArgument.newInstance,
@@ -1103,9 +1077,6 @@ class FixProcessor extends BaseProcessor {
       MakeReturnTypeNullable.newInstance,
     ],
 
-    HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
-      AddReturnNull.newInstance,
-    ],
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
       ReplaceWithNullAware.inChain,
     ],
@@ -1372,7 +1343,7 @@ class FixProcessor extends BaseProcessor {
 
     var errorCode = error.errorCode;
     if (errorCode is LintCode) {
-      var generators = lintProducerMap[errorCode.uniqueLintName] ?? [];
+      var generators = lintProducerMap[errorCode.name] ?? [];
       for (var generator in generators) {
         await compute(generator());
       }
@@ -1444,13 +1415,4 @@ class _NotEmptyFixState implements _FixState {
     required this.fixKind,
     required this.fixCount,
   });
-}
-
-extension on LintCode {
-  String get uniqueLintName {
-    if (uniqueName.startsWith('LintCode.')) {
-      return uniqueName.substring(9);
-    }
-    return uniqueName;
-  }
 }

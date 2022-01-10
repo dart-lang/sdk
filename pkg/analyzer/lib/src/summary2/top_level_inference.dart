@@ -141,8 +141,7 @@ class _BaseConstructor {
 class _ConstructorInferenceNode extends _InferenceNode {
   final _InferenceWalker _walker;
   final ConstructorElement _constructor;
-  final List<_FieldFormalParameter> _fieldParameters = [];
-  final List<_SuperFormalParameter> _superParameters = [];
+  final List<_FieldFormalParameterWithField> _parameters = [];
 
   /// If this node is a constructor of a mixin application, this field
   /// is the corresponding constructor of the superclass.
@@ -157,17 +156,8 @@ class _ConstructorInferenceNode extends _InferenceNode {
         if (parameter.hasImplicitType) {
           var field = parameter.field;
           if (field != null) {
-            _fieldParameters.add(
-              _FieldFormalParameter(parameter, field),
-            );
-          }
-        }
-      } else if (parameter is SuperFormalParameterElementImpl) {
-        if (parameter.hasImplicitType) {
-          var superParameter = parameter.superConstructorParameter;
-          if (superParameter != null) {
-            _superParameters.add(
-              _SuperFormalParameter(parameter, superParameter),
+            _parameters.add(
+              _FieldFormalParameterWithField(parameter, field),
             );
           }
         }
@@ -197,12 +187,10 @@ class _ConstructorInferenceNode extends _InferenceNode {
 
   @override
   List<_InferenceNode> computeDependencies() {
-    var dependencies = [
-      ..._fieldParameters.map((e) => _walker.getNode(e.field)).whereNotNull(),
-      ..._superParameters
-          .map((e) => _walker.getNode(e.superParameter))
-          .whereNotNull(),
-    ];
+    var dependencies = _parameters
+        .map((e) => _walker.getNode(e.field))
+        .whereNotNull()
+        .toList();
 
     dependencies.addIfNotNull(
       _walker.getNode(_baseConstructor?.element),
@@ -213,11 +201,9 @@ class _ConstructorInferenceNode extends _InferenceNode {
 
   @override
   void evaluate() {
-    for (var fieldParameter in _fieldParameters) {
-      fieldParameter.parameter.type = fieldParameter.field.type;
-    }
-    for (var superParameter in _superParameters) {
-      superParameter.parameter.type = superParameter.superParameter.type;
+    for (var parameterWithField in _parameters) {
+      var parameter = parameterWithField.parameter;
+      parameter.type = parameterWithField.field.type;
     }
 
     // We have inferred formal parameter types of the base constructor.
@@ -255,22 +241,20 @@ class _ConstructorInferenceNode extends _InferenceNode {
 
   @override
   void markCircular(List<_InferenceNode> cycle) {
-    for (var fieldParameter in _fieldParameters) {
-      fieldParameter.parameter.type = DynamicTypeImpl.instance;
-    }
-    for (var superParameter in _superParameters) {
-      superParameter.parameter.type = DynamicTypeImpl.instance;
+    for (var parameterWithField in _parameters) {
+      var parameter = parameterWithField.parameter;
+      parameter.type = DynamicTypeImpl.instance;
     }
     isEvaluated = true;
   }
 }
 
 /// A field formal parameter with a non-nullable field.
-class _FieldFormalParameter {
+class _FieldFormalParameterWithField {
   final FieldFormalParameterElementImpl parameter;
   final FieldElement field;
 
-  _FieldFormalParameter(this.parameter, this.field);
+  _FieldFormalParameterWithField(this.parameter, this.field);
 }
 
 class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
@@ -422,14 +406,6 @@ class _PropertyInducingElementTypeInference
       _node._walker.walk(_node);
     }
   }
-}
-
-/// A super formal parameter with a non-nullable super-constructor parameter.
-class _SuperFormalParameter {
-  final SuperFormalParameterElementImpl parameter;
-  final ParameterElement superParameter;
-
-  _SuperFormalParameter(this.parameter, this.superParameter);
 }
 
 class _VariableInferenceNode extends _InferenceNode {

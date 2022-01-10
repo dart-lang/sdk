@@ -209,27 +209,14 @@ class TranslationHelper {
     }
     return *expression_evaluation_function_;
   }
-  void SetExpressionEvaluationClass(const Class& cls) {
-    ASSERT(expression_evaluation_class_ == nullptr);
-    ASSERT(!cls.IsNull());
-    expression_evaluation_class_ = &Class::Handle(zone_, cls.ptr());
-  }
-  const Class& GetExpressionEvaluationClass() {
-    if (expression_evaluation_class_ == nullptr) {
-      return Class::null_class();
-    }
-    return *expression_evaluation_class_;
-  }
   void SetExpressionEvaluationRealClass(const Class& real_class) {
     ASSERT(expression_evaluation_real_class_ == nullptr);
     ASSERT(!real_class.IsNull());
     expression_evaluation_real_class_ = &Class::Handle(zone_, real_class.ptr());
   }
-  const Class& GetExpressionEvaluationRealClass() {
-    if (expression_evaluation_real_class_ == nullptr) {
-      return Class::null_class();
-    }
-    return *expression_evaluation_real_class_;
+  ClassPtr GetExpressionEvaluationRealClass() {
+    ASSERT(expression_evaluation_real_class_ != nullptr);
+    return expression_evaluation_real_class_->ptr();
   }
 
  private:
@@ -263,14 +250,6 @@ class TranslationHelper {
   Smi& name_index_handle_;
   GrowableObjectArray* potential_extension_libraries_ = nullptr;
   Function* expression_evaluation_function_ = nullptr;
-
-  // A temporary class needed to contain the function to which an eval
-  // expression is compiled. This is a fresh class so loading the kernel
-  // isn't a no-op. It should be unreachable after the eval function is loaded.
-  Class* expression_evaluation_class_ = nullptr;
-
-  // The original class that is the scope in which the eval expression is
-  // evaluated.
   Class* expression_evaluation_real_class_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
@@ -737,7 +716,6 @@ class ClassHelper {
     kIsEliminatedMixin = 1 << 3,
     kFlagMixinDeclaration = 1 << 4,
     kHasConstConstructor = 1 << 5,
-    kIsMacro = 1 << 6,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)

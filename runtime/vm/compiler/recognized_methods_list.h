@@ -191,32 +191,28 @@ namespace dart {
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x92ae104f)                \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x3ff5ae9c)        \
   V(::, _nativeEffect, NativeEffect, 0x61e00b59)                               \
-  V(::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x7807e872)                \
-  V(::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex, 0x6aa4cab4)  \
-  V(::, _loadInt8, FfiLoadInt8, 0x0f04e397)                                    \
-  V(::, _loadInt16, FfiLoadInt16, 0xec4434ee)                                  \
-  V(::, _loadInt32, FfiLoadInt32, 0xee224384)                                  \
-  V(::, _loadInt64, FfiLoadInt64, 0xdeefc364)                                  \
-  V(::, _loadUint8, FfiLoadUint8, 0xe14e2092)                                  \
-  V(::, _loadUint16, FfiLoadUint16, 0x0cd660ab)                                \
-  V(::, _loadUint32, FfiLoadUint32, 0xf66e9416)                                \
-  V(::, _loadUint64, FfiLoadUint64, 0x0506018d)                                \
+  V(::, _loadInt8, FfiLoadInt8, 0x0f04dfd6)                                    \
+  V(::, _loadInt16, FfiLoadInt16, 0xec44312d)                                  \
+  V(::, _loadInt32, FfiLoadInt32, 0xee223fc3)                                  \
+  V(::, _loadInt64, FfiLoadInt64, 0xdeefbfa3)                                  \
+  V(::, _loadUint8, FfiLoadUint8, 0xe14e1cd1)                                  \
+  V(::, _loadUint16, FfiLoadUint16, 0x0cd65cea)                                \
+  V(::, _loadUint32, FfiLoadUint32, 0xf66e9055)                                \
+  V(::, _loadUint64, FfiLoadUint64, 0x0505fdcc)                                \
   V(::, _loadIntPtr, FfiLoadIntPtr, 0xebd9b43e)                                \
   V(::, _loadFloat, FfiLoadFloat, 0xf8d9845d)                                  \
   V(::, _loadFloatUnaligned, FfiLoadFloatUnaligned, 0xc8c8dfff)                \
   V(::, _loadDouble, FfiLoadDouble, 0xf70cc619)                                \
   V(::, _loadDoubleUnaligned, FfiLoadDoubleUnaligned, 0xc99ebd39)              \
   V(::, _loadPointer, FfiLoadPointer, 0x4e79d0fc)                              \
-  V(::, _storeAbiSpecificInt, FfiStoreAbiSpecificInt, 0xc70954c0)              \
-  V(::, _storeAbiSpecificIntAtIndex, FfiStoreAbiSpecificIntAtIndex, 0xc64efe4b)\
-  V(::, _storeInt8, FfiStoreInt8, 0xdf50b2cd)                                  \
-  V(::, _storeInt16, FfiStoreInt16, 0xd84df6f3)                                \
-  V(::, _storeInt32, FfiStoreInt32, 0xfbe6301e)                                \
-  V(::, _storeInt64, FfiStoreInt64, 0xf1d4113b)                                \
-  V(::, _storeUint8, FfiStoreUint8, 0x056dd6b7)                                \
-  V(::, _storeUint16, FfiStoreUint16, 0xe2fdae9f)                              \
-  V(::, _storeUint32, FfiStoreUint32, 0xe5d7ec86)                              \
-  V(::, _storeUint64, FfiStoreUint64, 0xe2d935fa)                              \
+  V(::, _storeInt8, FfiStoreInt8, 0xdf50af0c)                                  \
+  V(::, _storeInt16, FfiStoreInt16, 0xd84df332)                                \
+  V(::, _storeInt32, FfiStoreInt32, 0xfbe62c5d)                                \
+  V(::, _storeInt64, FfiStoreInt64, 0xf1d40d7a)                                \
+  V(::, _storeUint8, FfiStoreUint8, 0x056dd2f6)                                \
+  V(::, _storeUint16, FfiStoreUint16, 0xe2fdaade)                              \
+  V(::, _storeUint32, FfiStoreUint32, 0xe5d7e8c5)                              \
+  V(::, _storeUint64, FfiStoreUint64, 0xe2d93239)                              \
   V(::, _storeIntPtr, FfiStoreIntPtr, 0x080266a8)                              \
   V(::, _storeFloat, FfiStoreFloat, 0x6484f07e)                                \
   V(::, _storeFloatUnaligned, FfiStoreFloatUnaligned, 0x600a9203)              \
@@ -294,6 +290,7 @@ namespace dart {
   V(_FunctionType, get:hashCode, FunctionType_getHashCode, 0x75e0d454)         \
   V(_FunctionType, ==, FunctionType_equality, 0x465868ae)                      \
   V(::, _getHash, Object_getHash, 0xc60ff758)                                  \
+  V(::, _setHashIfNotSetYet, Object_setHashIfNotSetYet, 0x4e17c2f5)            \
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
   V(_IntegerImplementation, >, Integer_greaterThan, 0xf741693b)                \

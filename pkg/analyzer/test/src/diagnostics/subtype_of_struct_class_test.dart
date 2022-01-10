@@ -45,23 +45,6 @@ class C extends S {}
 
 @reflectiveTest
 class SubtypeOfStructClassInImplementsTest extends PubPackageResolutionTest {
-  test_implements_abi_specific_int() async {
-    await assertErrorsInCode(r'''
-import 'dart:ffi';
-@AbiSpecificIntegerMapping({
-  Abi.androidArm: Uint32(),
-})
-class AbiSpecificInteger1 extends AbiSpecificInteger {
-  const AbiSpecificInteger1();
-}
-class AbiSpecificInteger4 implements AbiSpecificInteger1 {
-  const AbiSpecificInteger4();
-}
-''', [
-      error(FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS, 204, 19),
-    ]);
-  }
-
   test_implements_struct() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';

@@ -18,6 +18,7 @@ namespace dart {
   V(DartAsync_fatal, 1)                                                        \
   V(Object_equals, 2)                                                          \
   V(Object_getHash, 1)                                                         \
+  V(Object_setHashIfNotSetYet, 2)                                              \
   V(Object_toString, 1)                                                        \
   V(Object_runtimeType, 1)                                                     \
   V(Object_haveSameRuntimeType, 2)                                             \
@@ -361,12 +362,10 @@ namespace dart {
   V(VMService_OnStart, 0)                                                      \
   V(VMService_OnExit, 0)                                                       \
   V(VMService_OnServerAddressChange, 1)                                        \
-  V(VMService_ListenStream, 2)                                                 \
+  V(VMService_ListenStream, 1)                                                 \
   V(VMService_CancelStream, 1)                                                 \
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
-  V(VMService_AddUserTagsToStreamableSampleList, 1)                            \
-  V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_loadInt8, 2)                                                           \
   V(Ffi_loadInt16, 2)                                                          \
   V(Ffi_loadInt32, 2)                                                          \

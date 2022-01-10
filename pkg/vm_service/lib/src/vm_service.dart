@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.55.0';
+const String vmServiceVersion = '3.54.0';
 
 /// @optional
 const String optional = 'optional';
@@ -245,7 +245,6 @@ Map<String, List<String>> _methodReturnTypes = {
   'setVMName': const ['Success'],
   'setVMTimelineFlags': const ['Success'],
   'streamCancel': const ['Success'],
-  'streamCpuSamplesWithUserTag': const ['Success'],
   'streamListen': const ['Success'],
 };
 
@@ -1206,15 +1205,6 @@ abstract class VmServiceInterface {
   /// See [Success].
   Future<Success> streamCancel(String streamId);
 
-  /// The `streamCpuSamplesWithUserTag` RPC allows for clients to specify which
-  /// CPU samples collected by the profiler should be sent over the `Profiler`
-  /// stream. When called, the VM will stream `CpuSamples` events containing
-  /// `CpuSample`'s collected while a user tag contained in `userTags` was
-  /// active.
-  ///
-  /// See [Success].
-  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags);
-
   /// The `streamListen` RPC subscribes to a stream in the VM. Once subscribed,
   /// the client will begin receiving events from the stream.
   ///
@@ -1649,11 +1639,6 @@ class VmServerConnection {
           }
           await existing.cancel();
           response = Success();
-          break;
-        case 'streamCpuSamplesWithUserTag':
-          response = await _serviceImplementation.streamCpuSamplesWithUserTag(
-            List<String>.from(params!['userTags'] ?? []),
-          );
           break;
         case 'streamListen':
           var id = params!['streamId'];
@@ -2182,10 +2167,6 @@ class VmService implements VmServiceInterface {
   @override
   Future<Success> streamCancel(String streamId) =>
       _call('streamCancel', {'streamId': streamId});
-
-  @override
-  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>
-      _call('streamCpuSamplesWithUserTag', {'userTags': userTags});
 
   @override
   Future<Success> streamListen(String streamId) =>

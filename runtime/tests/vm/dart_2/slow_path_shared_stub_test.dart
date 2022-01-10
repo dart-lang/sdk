@@ -5,6 +5,7 @@
 // @dart = 2.9
 
 // VMOptions=--optimization_counter_threshold=10 --no-background-compilation --shared-slow-path-triggers-gc
+// VMOptions=--optimization_counter_threshold=10 --no-background-compilation --shared-slow-path-triggers-gc --no-use-vfp
 
 // This tests the stackmaps and environments for safepoints corresponding to
 // slow-path code which uses shared runtime stubs.

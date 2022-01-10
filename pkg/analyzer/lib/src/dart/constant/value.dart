@@ -165,7 +165,7 @@ class DartObjectImpl implements DartObject {
   /// Create an object to represent an unknown value.
   factory DartObjectImpl.validWithUnknownValue(
     TypeSystemImpl typeSystem,
-    DartType type,
+    ParameterizedType type,
   ) {
     if (type.element!.library!.isDartCore) {
       if (type.isDartCoreBool) {

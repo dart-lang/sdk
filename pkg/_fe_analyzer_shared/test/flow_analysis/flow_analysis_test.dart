@@ -5871,17 +5871,17 @@ class _MockNonPromotionReason extends NonPromotionReason {
 }
 
 extension on FlowModel<Var, Type> {
-  ExpressionInfo<Var, Type> _tryMarkNonNullable(Harness h, Var variable) =>
-      tryMarkNonNullable(h, _varRefWithType(variable));
-
-  ExpressionInfo<Var, Type> _tryPromoteForTypeCheck(
-          Harness h, Var variable, String type) =>
-      tryPromoteForTypeCheck(h, _varRefWithType(variable), Type(type));
-
   Reference<Var, Type> _varRef(Var variable) =>
       new VariableReference<Var, Type>(variable);
 
   ReferenceWithType<Var, Type> _varRefWithType(Var variable) =>
       new ReferenceWithType<Var, Type>(_varRef(variable),
           variableInfo[variable]?.promotedTypes?.last ?? variable.type);
+
+  ExpressionInfo<Var, Type> _tryPromoteForTypeCheck(
+          Harness h, Var variable, String type) =>
+      tryPromoteForTypeCheck(h, _varRefWithType(variable), Type(type));
+
+  ExpressionInfo<Var, Type> _tryMarkNonNullable(Harness h, Var variable) =>
+      tryMarkNonNullable(h, _varRefWithType(variable));
 }

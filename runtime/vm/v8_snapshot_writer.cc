@@ -279,7 +279,6 @@ intptr_t V8SnapshotProfileWriter::StringsTable::AddFormatted(const char* fmt,
   va_list args;
   va_start(args, fmt);
   const char* str = OS::VSCreate(zone_, fmt, args);
-  va_end(args);
   if (auto const kv = index_map_.Lookup(str)) {
     return kv->value;
   }

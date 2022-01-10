@@ -39,19 +39,24 @@ class StaticTypeDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    new StaticTypeDataExtractor(testResultData.compilerResult, actualMap)
+    new StaticTypeDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    member.accept(
-        new StaticTypeDataExtractor(testResultData.compilerResult, actualMap));
+    member.accept(new StaticTypeDataExtractor(compilerResult, actualMap));
   }
 
   @override

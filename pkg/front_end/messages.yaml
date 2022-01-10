@@ -189,10 +189,6 @@ ConstEvalFailedAssertionWithMessage:
   problemMessage: "This assertion failed with message: #stringOKEmpty"
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
 
-ConstEvalFailedAssertionWithNonStringMessage:
-  problemMessage: "This assertion failed with a non-String message."
-  analyzerCode: CONST_EVAL_THROWS_EXCEPTION
-
 ConstEvalNonConstantVariableGet:
   problemMessage: "The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed."
   analyzerCode: NON_CONSTANT_VALUE_IN_INITIALIZER
@@ -4557,16 +4553,6 @@ StaticAndInstanceConflict:
 StaticAndInstanceConflictCause:
   problemMessage: "This is the instance member."
   severity: CONTEXT
-
-FfiAbiSpecificIntegerInvalid:
-  # Used by dart:ffi
-  problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments."
-  external: test/ffi_test.dart
-
-FfiAbiSpecificIntegerMappingInvalid:
-  # Used by dart:ffi
-  problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size."
-  external: test/ffi_test.dart
 
 FfiTypeMismatch:
   # Used by dart:ffi

@@ -45,11 +45,11 @@ abstract class A extends core::Object {
   constructor •(core::int property4, core::int? property5, core::int property6) → self::A
     ;
   get property4() → core::int;
-  set property4(core::int property4#param) → void;
+  set property4(core::int #t1) → void;
   get property5() → core::int?;
-  set property5(core::int? property5#param) → void;
+  set property5(core::int? #t2) → void;
   get property6() → core::int;
-  set property6(covariant-by-declaration core::int property6#param) → void;
+  set property6(covariant-by-declaration core::int #t3) → void;
 }
 abstract class B1 extends core::Object {
   field core::int? _#B1#property4;
@@ -61,11 +61,11 @@ abstract class B1 extends core::Object {
   constructor •(core::int property4, core::int property5, core::int? property6) → self::B1
     ;
   get property4() → core::int;
-  set property4(core::int property4#param) → void;
+  set property4(core::int #t4) → void;
   get property5() → core::int;
-  set property5(core::int property5#param) → void;
+  set property5(core::int #t5) → void;
   get property6() → core::int?;
-  set property6(core::int? property6#param) → void;
+  set property6(core::int? #t6) → void;
 }
 abstract class B2 extends core::Object implements self::B1 {
   synthetic constructor •() → self::B2
@@ -84,11 +84,11 @@ abstract class C1 extends core::Object {
   constructor •(core::int property4, core::int property5, core::int property6) → self::C1
     ;
   get property4() → core::int;
-  set property4(core::int property4#param) → void;
+  set property4(core::int #t7) → void;
   get property5() → core::int;
-  set property5(core::int property5#param) → void;
+  set property5(core::int #t8) → void;
   get property6() → core::int;
-  set property6(core::int property6#param) → void;
+  set property6(core::int #t9) → void;
 }
 abstract class C2 extends core::Object implements self::C1 {
   synthetic constructor •() → self::C2

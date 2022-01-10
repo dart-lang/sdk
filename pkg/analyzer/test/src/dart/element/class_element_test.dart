@@ -1331,6 +1331,10 @@ class A {}
 }
 
 extension on ClassElement {
+  MethodElement? _lookUpInheritedMethod(String name) {
+    return lookUpInheritedMethod(name, library);
+  }
+
   PropertyAccessorElement? _lookUpInheritedConcreteGetter(String name) {
     return lookUpInheritedConcreteGetter(name, library);
   }
@@ -1341,9 +1345,5 @@ extension on ClassElement {
 
   PropertyAccessorElement? _lookUpInheritedConcreteSetter(String name) {
     return lookUpInheritedConcreteSetter(name, library);
-  }
-
-  MethodElement? _lookUpInheritedMethod(String name) {
-    return lookUpInheritedMethod(name, library);
   }
 }

@@ -13,45 +13,45 @@ class C extends core::Object {
     ;
   static get s() → dynamic
     return self::C::_#s#isSet ?{dynamic} self::C::_#s : throw new _in::LateError::fieldNI("s");
-  static set s(dynamic s#param) → void
+  static set s(dynamic #t1) → void
     if(self::C::_#s#isSet)
       throw new _in::LateError::fieldAI("s");
     else {
       self::C::_#s#isSet = true;
-      self::C::_#s = s#param;
+      self::C::_#s = #t1;
     }
   get v() → dynamic
     return this.{self::C::_#C#v#isSet}{core::bool} ?{dynamic} this.{self::C::_#C#v}{dynamic} : throw new _in::LateError::fieldNI("v");
-  set v(dynamic v#param) → void
+  set v(dynamic #t2) → void
     if(this.{self::C::_#C#v#isSet}{core::bool})
       throw new _in::LateError::fieldAI("v");
     else {
       this.{self::C::_#C#v#isSet} = true;
-      this.{self::C::_#C#v} = v#param;
+      this.{self::C::_#C#v} = #t2;
     }
 }
 static field dynamic _#g = null;
 static field core::bool _#g#isSet = false;
 static get g() → dynamic
   return self::_#g#isSet ?{dynamic} self::_#g : throw new _in::LateError::fieldNI("g");
-static set g(dynamic g#param) → void
+static set g(dynamic #t3) → void
   if(self::_#g#isSet)
     throw new _in::LateError::fieldAI("g");
   else {
     self::_#g#isSet = true;
-    self::_#g = g#param;
+    self::_#g = #t3;
   }
 static method main() → dynamic {
   lowered final dynamic #l;
   lowered core::bool #l#isSet = false;
   function #l#get() → dynamic
     return #l#isSet ?{dynamic} #l : throw new _in::LateError::localNI("l");
-  function #l#set(dynamic l#param) → dynamic
+  function #l#set(dynamic #t4) → dynamic
     if(#l#isSet)
       throw new _in::LateError::localAI("l");
     else {
       #l#isSet = true;
-      return #l = l#param;
+      return #l = #t4;
     }
   self::g = "Lily";
   self::C::s = "was";

@@ -58,11 +58,10 @@ class FieldElementFlags {
   static const int _isAbstract = 1 << 3;
   static const int _isConst = 1 << 4;
   static const int _isCovariant = 1 << 5;
-  static const int _isEnumConstant = 1 << 6;
-  static const int _isExternal = 1 << 7;
-  static const int _isFinal = 1 << 8;
-  static const int _isLate = 1 << 9;
-  static const int _isStatic = 1 << 10;
+  static const int _isExternal = 1 << 6;
+  static const int _isFinal = 1 << 7;
+  static const int _isLate = 1 << 8;
+  static const int _isStatic = 1 << 9;
 
   static void read(SummaryDataReader reader, FieldElementImpl element) {
     var byte = reader.readUInt30();
@@ -72,7 +71,6 @@ class FieldElementFlags {
     element.isAbstract = (byte & _isAbstract) != 0;
     element.isConst = (byte & _isConst) != 0;
     element.isCovariant = (byte & _isCovariant) != 0;
-    element.isEnumConstant = (byte & _isEnumConstant) != 0;
     element.isExternal = (byte & _isExternal) != 0;
     element.isFinal = (byte & _isFinal) != 0;
     element.isLate = (byte & _isLate) != 0;
@@ -87,7 +85,6 @@ class FieldElementFlags {
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isConst ? _isConst : 0;
     result |= element.isCovariant ? _isCovariant : 0;
-    result |= element.isEnumConstant ? _isEnumConstant : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;

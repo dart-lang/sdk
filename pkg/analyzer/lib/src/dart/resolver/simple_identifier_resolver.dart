@@ -180,15 +180,21 @@ class SimpleIdentifierResolver {
         !identical(element, enclosingClass)) {
       // This error is now reported by the parser.
       element = null;
-    } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-        node,
-        [element.name],
-      );
-    } else if (element == null) {
+    } else if ((element is PrefixElement?) &&
+        (element == null || !_isValidAsPrefix(node))) {
       // TODO(brianwilkerson) Recover from this error.
-      if (node.name == "await" && _resolver.enclosingFunction != null) {
+      if (_isConstructorReturnType(node)) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME, node);
+      } else if (parent is Annotation) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.UNDEFINED_ANNOTATION, parent, [node.name]);
+      } else if (element != null) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+            node,
+            [element.name]);
+      } else if (node.name == "await" && _resolver.enclosingFunction != null) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
           node,

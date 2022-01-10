@@ -2,12 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/generated/resolver.dart' show ResolverVisitor;
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/static_type_analyzer.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
+import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../src/dart/resolution/context_collection_resolution.dart';
+import 'elements_types_mixin.dart';
+import 'test_analysis_context.dart';
+import 'test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -15,118 +34,155 @@ main() {
   });
 }
 
-@reflectiveTest
-class StaticTypeAnalyzerTest extends PubPackageResolutionTest {
-  test_flatten_derived() async {
-    await assertNoErrorsInCode('''
-abstract class Derived<T> extends Future<T> {
-  factory Derived() => throw 'foo';
+/// Wrapper around the test package's `fail` function.
+///
+/// Unlike the test package's `fail` function, this function is not annotated
+/// with @alwaysThrows, so we can call it at the top of a test method without
+/// causing the rest of the method to be flagged as dead code.
+void _fail(String message) {
+  fail(message);
 }
-late Derived<dynamic> derivedDynamic;
-late Derived<int> derivedInt;
-late Derived<Derived> derivedDerived;
-late Derived<Derived<int>> derivedDerivedInt;
-    ''');
-    var dynamicType = typeProvider.dynamicType;
-    var derivedDynamicType = findElement.topVar('derivedDynamic').type;
-    var derivedIntType = findElement.topVar('derivedInt').type;
-    var derivedDerivedType = findElement.topVar('derivedDerived').type;
-    var derivedDerivedIntType = findElement.topVar('derivedDerivedInt').type;
+
+@reflectiveTest
+class StaticTypeAnalyzerTest with ResourceProviderMixin, ElementsTypesMixin {
+  /// The error listener to which errors will be reported.
+  late final GatheringErrorListener _listener;
+
+  /// The resolver visitor used to create the analyzer.
+  late final ResolverVisitor _visitor;
+
+  /// The library containing the code being resolved.
+  late final LibraryElementImpl _definingLibrary;
+
+  /// The analyzer being used to analyze the test cases.
+  late final StaticTypeAnalyzer _analyzer;
+
+  /// The type provider used to access the types.
+  late final TypeProvider _typeProvider;
+
+  @override
+  TypeProvider get typeProvider => _definingLibrary.typeProvider;
+
+  /// The type system used to analyze the test cases.
+  TypeSystemImpl get _typeSystem => _definingLibrary.typeSystem;
+
+  void fail_visitFunctionExpressionInvocation() {
+    _fail("Not yet tested");
+    _listener.assertNoErrors();
+  }
+
+  void fail_visitMethodInvocation() {
+    _fail("Not yet tested");
+    _listener.assertNoErrors();
+  }
+
+  void fail_visitSimpleIdentifier() {
+    _fail("Not yet tested");
+    _listener.assertNoErrors();
+  }
+
+  void setUp() {
+    _listener = GatheringErrorListener();
+    _createAnalyzer();
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
+  void test_flatten_derived() {
     // class Derived<T> extends Future<T> { ... }
+    ClassElementImpl derivedClass =
+        ElementFactory.classElement2('Derived', ['T']);
+    derivedClass.supertype =
+        futureType(typeParameterTypeStar(derivedClass.typeParameters[0]));
+    InterfaceType intType = _typeProvider.intType;
+    DartType dynamicType = _typeProvider.dynamicType;
+    InterfaceType derivedIntType =
+        interfaceTypeStar(derivedClass, typeArguments: [intType]);
     // flatten(Derived) = dynamic
+    InterfaceType derivedDynamicType =
+        interfaceTypeStar(derivedClass, typeArguments: [dynamicType]);
     expect(_flatten(derivedDynamicType), dynamicType);
     // flatten(Derived<int>) = int
     expect(_flatten(derivedIntType), intType);
     // flatten(Derived<Derived>) = Derived
-    expect(_flatten(derivedDerivedType), derivedDynamicType);
+    expect(
+        _flatten(interfaceTypeStar(derivedClass,
+            typeArguments: [derivedDynamicType])),
+        derivedDynamicType);
     // flatten(Derived<Derived<int>>) = Derived<int>
-    expect(_flatten(derivedDerivedIntType), derivedIntType);
+    expect(
+        _flatten(
+            interfaceTypeStar(derivedClass, typeArguments: [derivedIntType])),
+        derivedIntType);
   }
 
-  test_flatten_inhibit_recursion() async {
-    await assertErrorsInCode('''
-class A extends B {}
-class B extends A {}
-late A a;
-late B b;
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
-    ]);
-    var aType = findElement.topVar('a').type;
-    var bType = findElement.topVar('b').type;
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
+  void test_flatten_inhibit_recursion() {
+    // class A extends B
+    // class B extends A
+    ClassElementImpl classA = ElementFactory.classElement2('A', []);
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    classA.supertype = interfaceTypeStar(classB);
+    classB.supertype = interfaceTypeStar(classA);
     // flatten(A) = A and flatten(B) = B, since neither class contains Future
     // in its class hierarchy.  Even though there is a loop in the class
     // hierarchy, flatten() should terminate.
-    expect(_flatten(aType), aType);
-    expect(_flatten(bType), bType);
+    expect(_flatten(interfaceTypeStar(classA)), interfaceTypeStar(classA));
+    expect(_flatten(interfaceTypeStar(classB)), interfaceTypeStar(classB));
   }
 
-  test_flatten_related_derived_types() async {
-    await assertErrorsInCode('''
-abstract class Derived<T> extends Future<T> {
-  factory Derived() => throw 'foo';
-}
-abstract class A extends Derived<int> implements Derived<num> {
-  factory A() => throw 'foo';
-}
-abstract class B extends Future<num> implements Future<int> {
-  factory B() => throw 'foo';
-}
-late A a;
-late B b;
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 99, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 99, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 133, 12),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 195, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 228, 11),
-    ]);
-    InterfaceType intType = typeProvider.intType;
-    InterfaceType numType = typeProvider.numType;
-    var aType = findElement.topVar('a').type;
-    var bType = findElement.topVar('b').type;
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
+  void test_flatten_related_derived_types() {
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType numType = _typeProvider.numType;
+    // class Derived<T> extends Future<T>
+    ClassElementImpl derivedClass =
+        ElementFactory.classElement2('Derived', ['T']);
+    derivedClass.supertype =
+        futureType(typeParameterTypeStar(derivedClass.typeParameters[0]));
+    // class A extends Derived<int> implements Derived<num> { ... }
+    ClassElementImpl classA = ElementFactory.classElement(
+        'A', interfaceTypeStar(derivedClass, typeArguments: [intType]));
+    classA.interfaces = <InterfaceType>[
+      interfaceTypeStar(derivedClass, typeArguments: [numType]),
+    ];
+    // class B extends Future<num> implements Future<int> { ... }
+    ClassElementImpl classB = ElementFactory.classElement(
+        'B', interfaceTypeStar(derivedClass, typeArguments: [numType]));
+    classB.interfaces = <InterfaceType>[
+      interfaceTypeStar(derivedClass, typeArguments: [intType])
+    ];
+    // flatten(A) = flatten(B) = int, since int is more specific than num.
     // The code in flatten() that inhibits infinite recursion shouldn't be
     // fooled by the fact that Derived appears twice in the type hierarchy.
-    expect(_flatten(aType), intType);
-    expect(_flatten(bType), numType);
+    expect(_flatten(interfaceTypeStar(classA)), intType);
+    expect(_flatten(interfaceTypeStar(classB)), intType);
   }
 
-  test_flatten_related_types() async {
-    await assertErrorsInCode('''
-abstract class A extends Future<int> implements Future<num> {
-  factory A() => throw 'foo';
-}
-abstract class B extends Future<num> implements Future<int> {
-  factory B() => throw 'foo';
-}
-late A a;
-late B b;
-''', [
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 15, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 48, 11),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 109, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 142, 11),
-    ]);
-    InterfaceType intType = typeProvider.intType;
-    InterfaceType numType = typeProvider.numType;
-    var aType = findElement.topVar('a').type;
-    var bType = findElement.topVar('b').type;
-    expect(_flatten(aType), intType);
-    expect(_flatten(bType), numType);
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
+  void test_flatten_related_types() {
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType numType = _typeProvider.numType;
+    // class A extends Future<int> implements Future<num> { ... }
+    ClassElementImpl classA =
+        ElementFactory.classElement('A', _typeProvider.futureType(intType));
+    classA.interfaces = <InterfaceType>[_typeProvider.futureType(numType)];
+    // class B extends Future<num> implements Future<int> { ... }
+    ClassElementImpl classB =
+        ElementFactory.classElement('B', _typeProvider.futureType(numType));
+    classB.interfaces = <InterfaceType>[_typeProvider.futureType(intType)];
+    // flatten(A) = flatten(B) = int, since int is more specific than num.
+    expect(_flatten(interfaceTypeStar(classA)), intType);
+    expect(_flatten(interfaceTypeStar(classB)), intType);
   }
 
-  test_flatten_simple() async {
-    // No code needs to be analyzed but we still need to call
-    // assertNoErrorsInCode to get the typeProvider initialized.
-    await assertNoErrorsInCode('');
-    InterfaceType intType = typeProvider.intType;
-    DartType dynamicType = typeProvider.dynamicType;
-    InterfaceType futureDynamicType = typeProvider.futureDynamicType;
-    InterfaceType futureIntType = typeProvider.futureType(intType);
+  void test_flatten_simple() {
+    InterfaceType intType = _typeProvider.intType;
+    DartType dynamicType = _typeProvider.dynamicType;
+    InterfaceType futureDynamicType = _typeProvider.futureDynamicType;
+    InterfaceType futureIntType = _typeProvider.futureType(intType);
     InterfaceType futureFutureDynamicType =
-        typeProvider.futureType(futureDynamicType);
-    InterfaceType futureFutureIntType = typeProvider.futureType(futureIntType);
+        _typeProvider.futureType(futureDynamicType);
+    InterfaceType futureFutureIntType = _typeProvider.futureType(futureIntType);
     // flatten(int) = int
     expect(_flatten(intType), intType);
     // flatten(dynamic) = dynamic
@@ -141,269 +197,381 @@ late B b;
     expect(_flatten(futureFutureIntType), futureIntType);
   }
 
-  test_flatten_unrelated_types() async {
-    await assertErrorsInCode('''
-abstract class A extends Future<int> implements Future<String> {
-  factory A() => throw 'foo';
-}
-abstract class B extends Future<String> implements Future<int> {
-  factory B() => throw 'foo';
-}
-late A a;
-late B b;
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 15, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 15, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 48, 14),
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
-      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 112, 1),
-      error(CompileTimeErrorCode.INCONSISTENT_INHERITANCE, 112, 1),
-      error(CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS, 148, 11),
-    ]);
-    var aType = findElement.topVar('a').type;
-    var bType = findElement.topVar('b').type;
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
+  void test_flatten_unrelated_types() {
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType stringType = _typeProvider.stringType;
+    // class A extends Future<int> implements Future<String> { ... }
+    ClassElementImpl classA =
+        ElementFactory.classElement('A', _typeProvider.futureType(intType));
+    classA.interfaces = <InterfaceType>[_typeProvider.futureType(stringType)];
+    // class B extends Future<String> implements Future<int> { ... }
+    ClassElementImpl classB =
+        ElementFactory.classElement('B', _typeProvider.futureType(stringType));
+    classB.interfaces = <InterfaceType>[_typeProvider.futureType(intType)];
     // flatten(A) = A and flatten(B) = B, since neither string nor int is more
     // specific than the other.
-    expect(_flatten(aType), intType);
-    expect(_flatten(bType), stringType);
+    expect(_flatten(interfaceTypeStar(classA)), interfaceTypeStar(classA));
+    expect(_flatten(interfaceTypeStar(classB)), interfaceTypeStar(classB));
   }
 
-  test_visitAdjacentStrings() async {
-    await assertNoErrorsInCode('''
-test() => 'a' 'b';
-''');
-    expect(findNode.adjacentStrings("'a' 'b'").staticType,
-        same(typeProvider.stringType));
+  void test_visitAdjacentStrings() {
+    // "a" "b"
+    Expression node = AstTestFactory.adjacentStrings(
+        [_resolvedString("a"), _resolvedString("b")]);
+    expect(_analyze(node), same(_typeProvider.stringType));
+    _listener.assertNoErrors();
   }
 
-  test_visitAsExpression() async {
-    await assertNoErrorsInCode('''
-class A {
-  test() => this as B;
-}
-class B extends A {}
-late B b;
-''');
-    var bType = findElement.topVar('b').type;
-    expect(findNode.as_('this as B').staticType, bType);
+  void test_visitAsExpression() {
+    // class A { ... this as B ... }
+    // class B extends A {}
+    ClassElement superclass = ElementFactory.classElement2("A");
+    InterfaceType superclassType = interfaceTypeStar(superclass);
+    ClassElement subclass = ElementFactory.classElement("B", superclassType);
+    Expression node = AstTestFactory.asExpression(
+        AstTestFactory.thisExpression(), AstTestFactory.namedType(subclass));
+    expect(_analyze(node, superclassType), interfaceTypeStar(subclass));
+    _listener.assertNoErrors();
   }
 
-  test_visitAwaitExpression_flattened() async {
-    await assertNoErrorsInCode('''
-test(Future<Future<int>> e) async => await e;
-''');
-    InterfaceType futureIntType = typeProvider.futureType(typeProvider.intType);
-    expect(findNode.awaitExpression('await e').staticType, futureIntType);
+  void test_visitAwaitExpression_flattened() {
+    // await e, where e has type Future<Future<int>>
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType futureIntType = _typeProvider.futureType(intType);
+    InterfaceType futureFutureIntType = _typeProvider.futureType(futureIntType);
+    Expression node = AstTestFactory.awaitExpression(
+        _resolvedVariable(futureFutureIntType, 'e'));
+    expect(_analyze(node), same(futureIntType));
+    _listener.assertNoErrors();
   }
 
-  test_visitAwaitExpression_simple() async {
-    await assertNoErrorsInCode('''
-test(Future<int> e) async => await e;
-''');
+  void test_visitAwaitExpression_simple() {
     // await e, where e has type Future<int>
-    InterfaceType intType = typeProvider.intType;
-    expect(findNode.awaitExpression('await e').staticType, intType);
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType futureIntType = _typeProvider.futureType(intType);
+    Expression node =
+        AstTestFactory.awaitExpression(_resolvedVariable(futureIntType, 'e'));
+    expect(_analyze(node), same(intType));
+    _listener.assertNoErrors();
   }
 
-  test_visitBooleanLiteral_false() async {
-    await assertNoErrorsInCode('''
-test() => false;
-''');
-    expect(findNode.booleanLiteral('false').staticType,
-        same(typeProvider.boolType));
+  void test_visitBooleanLiteral_false() {
+    // false
+    Expression node = AstTestFactory.booleanLiteral(false);
+    expect(_analyze(node), same(_typeProvider.boolType));
+    _listener.assertNoErrors();
   }
 
-  test_visitBooleanLiteral_true() async {
-    await assertNoErrorsInCode('''
-test() => true;
-''');
-    expect(findNode.booleanLiteral('true').staticType,
-        same(typeProvider.boolType));
+  void test_visitBooleanLiteral_true() {
+    // true
+    Expression node = AstTestFactory.booleanLiteral(true);
+    expect(_analyze(node), same(_typeProvider.boolType));
+    _listener.assertNoErrors();
   }
 
-  test_visitCascadeExpression() async {
-    await assertNoErrorsInCode('''
-test(String a) => a..length;
-''');
-    expect(findNode.cascade('a..length').staticType, typeProvider.stringType);
+  void test_visitCascadeExpression() {
+    // a..length
+    Expression node = AstTestFactory.cascadeExpression(
+        _resolvedString("a"), [AstTestFactory.propertyAccess2(null, "length")]);
+    expect(_analyze(node), same(_typeProvider.stringType));
+    _listener.assertNoErrors();
   }
 
-  test_visitConditionalExpression_differentTypes() async {
-    await assertNoErrorsInCode('''
-test(bool b) => b ? 1.0 : 0;
-''');
-    expect(findNode.conditionalExpression('b ? 1.0 : 0').staticType,
-        typeProvider.numType);
+  void test_visitConditionalExpression_differentTypes() {
+    // true ? 1.0 : 0
+    Expression node = AstTestFactory.conditionalExpression(
+        AstTestFactory.booleanLiteral(true),
+        _resolvedDouble(1.0),
+        _resolvedInteger(0));
+    expect(_analyze(node), _typeProvider.numType);
+    _listener.assertNoErrors();
   }
 
-  test_visitConditionalExpression_sameTypes() async {
-    await assertNoErrorsInCode('''
-test(bool b) => b ? 1 : 0;
-''');
-    expect(findNode.conditionalExpression('b ? 1 : 0').staticType,
-        same(typeProvider.intType));
+  void test_visitConditionalExpression_sameTypes() {
+    // true ? 1 : 0
+    Expression node = AstTestFactory.conditionalExpression(
+        AstTestFactory.booleanLiteral(true),
+        _resolvedInteger(1),
+        _resolvedInteger(0));
+    expect(_analyze(node), same(_typeProvider.intType));
+    _listener.assertNoErrors();
   }
 
-  test_visitDoubleLiteral() async {
-    await assertNoErrorsInCode('''
-test() => 4.33;
-''');
-    expect(findNode.doubleLiteral('4.33').staticType,
-        same(typeProvider.doubleType));
+  void test_visitDoubleLiteral() {
+    // 4.33
+    Expression node = AstTestFactory.doubleLiteral(4.33);
+    expect(_analyze(node), same(_typeProvider.doubleType));
+    _listener.assertNoErrors();
   }
 
-  test_visitInstanceCreationExpression_named() async {
-    await assertNoErrorsInCode('''
-class C {
-  C.m();
-}
-test() => new C.m();
-late C c;
-''');
-    var cType = findElement.topVar('c').type;
-    expect(findNode.instanceCreation('new C.m()').staticType, cType);
+  void test_visitInstanceCreationExpression_named() {
+    // new C.m()
+    ClassElementImpl classElement = ElementFactory.classElement2("C");
+    String constructorName = "m";
+    ConstructorElementImpl constructor =
+        ElementFactory.constructorElement2(classElement, constructorName);
+    classElement.constructors = <ConstructorElement>[constructor];
+    InstanceCreationExpression node =
+        AstTestFactory.instanceCreationExpression2(
+            null,
+            AstTestFactory.namedType(classElement),
+            [AstTestFactory.identifier3(constructorName)]);
+    expect(_analyze(node), interfaceTypeStar(classElement));
+    _listener.assertNoErrors();
   }
 
-  test_visitInstanceCreationExpression_typeParameters() async {
-    await assertNoErrorsInCode('''
-class C<E> {}
-class I {}
-test() => new C<I>();
-late I i;
-''');
-    var iType = findElement.topVar('i').type;
-    InterfaceType type =
-        findNode.instanceCreation('new C<I>()').staticType as InterfaceType;
+  void test_visitInstanceCreationExpression_typeParameters() {
+    // new C<I>()
+    ClassElementImpl elementC = ElementFactory.classElement2("C", ["E"]);
+    ClassElementImpl elementI = ElementFactory.classElement2("I");
+    ConstructorElementImpl constructor =
+        ElementFactory.constructorElement2(elementC, null);
+    elementC.constructors = <ConstructorElement>[constructor];
+    var typeName = AstTestFactory.namedType(
+        elementC, [AstTestFactory.namedType(elementI)]);
+    typeName.type = interfaceTypeStar(elementC,
+        typeArguments: [interfaceTypeStar(elementI)]);
+    InstanceCreationExpression node =
+        AstTestFactory.instanceCreationExpression2(null, typeName);
+    InterfaceType type = _analyze(node) as InterfaceType;
     List<DartType> typeArgs = type.typeArguments;
     expect(typeArgs.length, 1);
-    expect(typeArgs[0], iType);
+    expect(typeArgs[0], interfaceTypeStar(elementI));
+    _listener.assertNoErrors();
   }
 
-  test_visitInstanceCreationExpression_unnamed() async {
-    await assertNoErrorsInCode('''
-class C {}
-test() => new C();
-late C c;
-''');
-    var cType = findElement.topVar('c').type;
-    expect(findNode.instanceCreation('new C()').staticType, cType);
+  void test_visitInstanceCreationExpression_unnamed() {
+    // new C()
+    ClassElementImpl classElement = ElementFactory.classElement2("C");
+    ConstructorElementImpl constructor =
+        ElementFactory.constructorElement2(classElement, null);
+    classElement.constructors = <ConstructorElement>[constructor];
+    InstanceCreationExpression node =
+        AstTestFactory.instanceCreationExpression2(
+            null, AstTestFactory.namedType(classElement));
+    expect(_analyze(node), interfaceTypeStar(classElement));
+    _listener.assertNoErrors();
   }
 
-  test_visitIntegerLiteral() async {
-    await assertNoErrorsInCode('''
-test() => 42;
-''');
-    var node = findNode.integerLiteral('42');
-    expect(node.staticType, same(typeProvider.intType));
+  void test_visitIntegerLiteral() {
+    // 42
+    Expression node = _resolvedInteger(42);
+    AstTestFactory.argumentList([node]);
+    expect(_analyze(node), same(_typeProvider.intType));
+    _listener.assertNoErrors();
   }
 
-  test_visitIsExpression_negated() async {
-    await assertNoErrorsInCode('''
-test(Object a) => a is! String;
-''');
-    expect(findNode.isExpression('a is! String').staticType,
-        same(typeProvider.boolType));
+  void test_visitIsExpression_negated() {
+    // a is! String
+    Expression node = AstTestFactory.isExpression(
+        _resolvedString("a"), true, AstTestFactory.namedType4("String"));
+    expect(_analyze(node), same(_typeProvider.boolType));
+    _listener.assertNoErrors();
   }
 
-  test_visitIsExpression_notNegated() async {
-    await assertNoErrorsInCode('''
-test(Object a) => a is String;
-''');
-    expect(findNode.isExpression('a is String').staticType,
-        same(typeProvider.boolType));
+  void test_visitIsExpression_notNegated() {
+    // a is String
+    Expression node = AstTestFactory.isExpression(
+        _resolvedString("a"), false, AstTestFactory.namedType4("String"));
+    expect(_analyze(node), same(_typeProvider.boolType));
+    _listener.assertNoErrors();
   }
 
-  test_visitMethodInvocation() async {
-    await assertNoErrorsInCode('''
-m() => 0;
-test() => m();
-''');
+  @FailingTest(reason: 'This is an old unit test, port and remove')
+  void test_visitMethodInvocation_then() {
+    // then()
+    Expression node = AstTestFactory.methodInvocation(null, "then");
+    _analyze(node);
+    _listener.assertNoErrors();
   }
 
-  test_visitNamedExpression() async {
-    await assertNoErrorsInCode('''
-test(dynamic d, String a) => d(n: a);
-''');
+  void test_visitNamedExpression() {
+    // n: a
+    Expression node =
+        AstTestFactory.namedExpression2("n", _resolvedString("a"));
+    expect(_analyze(node), same(_typeProvider.stringType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitNullLiteral() {
+    // null
+    Expression node = AstTestFactory.nullLiteral();
+    expect(_analyze(node), same(_typeProvider.nullType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitParenthesizedExpression() {
+    // (0)
+    Expression node =
+        AstTestFactory.parenthesizedExpression(_resolvedInteger(0));
+    expect(_analyze(node), same(_typeProvider.intType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitSimpleStringLiteral() {
+    // "a"
+    Expression node = _resolvedString("a");
+    expect(_analyze(node), same(_typeProvider.stringType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitStringInterpolation() {
+    // "a${'b'}c"
+    Expression node = AstTestFactory.string([
+      AstTestFactory.interpolationString("a", "a"),
+      AstTestFactory.interpolationExpression(_resolvedString("b")),
+      AstTestFactory.interpolationString("c", "c")
+    ]);
+    expect(_analyze(node), same(_typeProvider.stringType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitSuperExpression() {
+    // super
+    InterfaceType superType =
+        interfaceTypeStar(ElementFactory.classElement2("A"));
+    InterfaceType thisType =
+        interfaceTypeStar(ElementFactory.classElement("B", superType));
+    Expression node = AstTestFactory.superExpression();
+    expect(_analyze(node, thisType), same(thisType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitSymbolLiteral() {
+    expect(_analyze(AstTestFactory.symbolLiteral(["a"])),
+        same(_typeProvider.symbolType));
+  }
+
+  void test_visitThisExpression() {
+    // this
+    InterfaceType thisType = interfaceTypeStar(ElementFactory.classElement(
+        "B", interfaceTypeStar(ElementFactory.classElement2("A"))));
+    Expression node = AstTestFactory.thisExpression();
+    expect(_analyze(node, thisType), same(thisType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitThrowExpression_withValue() {
+    // throw 0
+    Expression node = AstTestFactory.throwExpression2(_resolvedInteger(0));
+    expect(_analyze(node), same(_typeProvider.bottomType));
+    _listener.assertNoErrors();
+  }
+
+  /// Return the type associated with the given [node] after the static type
+  /// analyzer has computed a type for it. If [thisType] is provided, it is the
+  /// type of 'this'.
+  DartType _analyze(Expression node, [InterfaceType? thisType]) {
+    if (thisType != null) {
+      _visitor.setThisInterfaceType(thisType);
+    }
+    node.accept(_analyzer);
+    return node.typeOrThrow;
+  }
+
+  void _assertType(
+      InterfaceTypeImpl expectedType, InterfaceTypeImpl actualType) {
     expect(
-        findNode.namedExpression('n: a').staticType, typeProvider.stringType);
+      actualType.getDisplayString(withNullability: false),
+      expectedType.getDisplayString(withNullability: false),
+    );
+    expect(actualType.element, expectedType.element);
+    List<DartType> expectedArguments = expectedType.typeArguments;
+    int length = expectedArguments.length;
+    List<DartType> actualArguments = actualType.typeArguments;
+    expect(actualArguments, hasLength(length));
+    for (int i = 0; i < length; i++) {
+      _assertType2(expectedArguments[i], actualArguments[i]);
+    }
   }
 
-  test_visitNullLiteral() async {
-    await assertNoErrorsInCode('''
-test() => null;
-''');
-    expect(
-        findNode.nullLiteral('null').staticType, same(typeProvider.nullType));
+  void _assertType2(DartType expectedType, DartType actualType) {
+    if (expectedType is InterfaceTypeImpl) {
+      _assertType(expectedType, actualType as InterfaceTypeImpl);
+    }
+    // TODO(brianwilkerson) Compare other kinds of types then make this a shared
+    // utility method.
   }
 
-  test_visitParenthesizedExpression() async {
-    await assertNoErrorsInCode('''
-test() => (0);
-''');
-    expect(
-        findNode.parenthesized('(0)').staticType, same(typeProvider.intType));
+  /// Create the analyzer used by the tests.
+  void _createAnalyzer() {
+    var context = TestAnalysisContext();
+    var inheritance = InheritanceManager3();
+    Source source = FileSource(getFile("/lib.dart"));
+    CompilationUnitElementImpl definingCompilationUnit =
+        CompilationUnitElementImpl();
+    definingCompilationUnit.librarySource =
+        definingCompilationUnit.source = source;
+    var featureSet = FeatureSet.latestLanguageVersion();
+
+    _definingLibrary = LibraryElementImpl(
+        context, _AnalysisSessionMock(), 'name', -1, 0, featureSet);
+    _definingLibrary.definingCompilationUnit = definingCompilationUnit;
+
+    _definingLibrary.typeProvider = context.typeProviderLegacy;
+    _definingLibrary.typeSystem = context.typeSystemLegacy;
+    _typeProvider = context.typeProviderLegacy;
+
+    _visitor = ResolverVisitor(
+        inheritance, _definingLibrary, source, _typeProvider, _listener,
+        featureSet: featureSet,
+        flowAnalysisHelper:
+            FlowAnalysisHelper(context.typeSystemLegacy, false, featureSet));
+    _analyzer = _visitor.typeAnalyzer;
   }
 
-  test_visitSimpleStringLiteral() async {
-    await assertNoErrorsInCode('''
-test() => 'a';
-''');
-    expect(findNode.stringLiteral("'a'").staticType,
-        same(typeProvider.stringType));
+  DartType _flatten(DartType type) => _typeSystem.flatten(type);
+
+  /// Return an integer literal that has been resolved to the correct type.
+  ///
+  /// @param value the value of the literal
+  /// @return an integer literal that has been resolved to the correct type
+  DoubleLiteral _resolvedDouble(double value) {
+    var literal = AstTestFactory.doubleLiteral(value);
+    literal.staticType = _typeProvider.doubleType;
+    return literal;
   }
 
-  test_visitStringInterpolation() async {
-    await assertNoErrorsInCode(r'''
-test() => "a${'b'}c";
-''');
-    expect(findNode.stringInterpolation(r'''"a${'b'}c"''').staticType,
-        same(typeProvider.stringType));
+  /// Return an integer literal that has been resolved to the correct type.
+  ///
+  /// @param value the value of the literal
+  /// @return an integer literal that has been resolved to the correct type
+  IntegerLiteral _resolvedInteger(int value) {
+    var literal = AstTestFactory.integer(value);
+    literal.staticType = _typeProvider.intType;
+    return literal;
   }
 
-  test_visitSuperExpression() async {
-    await assertNoErrorsInCode('''
-class A {
-  int get foo => 0;
+  /// Return a string literal that has been resolved to the correct type.
+  ///
+  /// @param value the value of the literal
+  /// @return a string literal that has been resolved to the correct type
+  SimpleStringLiteral _resolvedString(String value) {
+    var string = AstTestFactory.string2(value);
+    string.staticType = _typeProvider.stringType;
+    return string;
+  }
+
+  /// Return a simple identifier that has been resolved to a variable element
+  /// with the given type.
+  ///
+  /// @param type the type of the variable being represented
+  /// @param variableName the name of the variable
+  /// @return a simple identifier that has been resolved to a variable element
+  ///           with the given type
+  SimpleIdentifier _resolvedVariable(InterfaceType type, String variableName) {
+    var identifier = AstTestFactory.identifier3(variableName);
+    VariableElementImpl element =
+        ElementFactory.localVariableElement(identifier);
+    element.type = type;
+    identifier.staticElement = element;
+    identifier.staticType = type;
+    return identifier;
+  }
 }
-class B extends A {
-  test() => super.foo;
-}
-late B b;
-''');
-    var bType = findElement.topVar('b').type;
-    expect(findNode.super_('super').staticType, bType);
-  }
 
-  test_visitSymbolLiteral() async {
-    await assertNoErrorsInCode('''
-test() => #a;
-''');
-    expect(
-        findNode.symbolLiteral('#a').staticType, same(typeProvider.symbolType));
-  }
-
-  test_visitThisExpression() async {
-    await assertNoErrorsInCode('''
-class A {}
-class B extends A {
-  test() => this;
-}
-late B b;
-''');
-    var bType = findElement.topVar('b').type;
-    expect(findNode.this_('this').staticType, bType);
-  }
-
-  test_visitThrowExpression_withValue() async {
-    await assertNoErrorsInCode('''
-test() => throw 0;
-''');
-    var node = findNode.throw_('throw 0');
-    expect(node.staticType, same(typeProvider.bottomType));
-  }
-
-  DartType _flatten(DartType type) => typeSystem.flatten(type);
+class _AnalysisSessionMock implements AnalysisSession {
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

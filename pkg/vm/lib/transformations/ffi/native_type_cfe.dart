@@ -16,8 +16,7 @@ import 'common.dart';
 abstract class NativeTypeCfe {
   factory NativeTypeCfe(FfiTransformer transformer, DartType dartType,
       {List<int>? arrayDimensions,
-      Map<Class, NativeTypeCfe> compoundCache = const {},
-      alreadyInAbiSpecificType = false}) {
+      Map<Class, NativeTypeCfe> compoundCache = const {}}) {
     if (transformer.isPrimitiveType(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
       final nativeType = transformer.getType(clazz)!;
@@ -48,32 +47,6 @@ abstract class NativeTypeCfe {
         return elementCfeType;
       }
       return ArrayNativeTypeCfe.multi(elementCfeType, arrayDimensions);
-    }
-    if (transformer.isAbiSpecificIntegerSubtype(dartType)) {
-      final clazz = (dartType as InterfaceType).classNode;
-      final mappingConstants =
-          transformer.getAbiSpecificIntegerMappingAnnotations(clazz);
-      if (alreadyInAbiSpecificType || mappingConstants.length != 1) {
-        // Unsupported mapping.
-        return AbiSpecificNativeTypeCfe({}, clazz);
-      }
-      final mapping =
-          Map.fromEntries(mappingConstants.first.entries.map((e) => MapEntry(
-              transformer.constantAbis[e.key]!,
-              NativeTypeCfe(
-                transformer,
-                (e.value as InstanceConstant).classNode.getThisType(
-                    transformer.coreTypes, Nullability.nonNullable),
-                alreadyInAbiSpecificType: true,
-              ))));
-      for (final value in mapping.values) {
-        if (value is! PrimitiveNativeTypeCfe ||
-            !nativeIntTypesFixedSize.contains(value.nativeType)) {
-          // Unsupported mapping.
-          return AbiSpecificNativeTypeCfe({}, clazz);
-        }
-      }
-      return AbiSpecificNativeTypeCfe(mapping, clazz);
     }
     throw "Invalid type $dartType";
   }
@@ -582,66 +555,6 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
             transformer.runtimeBranchOnLayout(size),
           ]))
         ..fileOffset = fileOffset);
-}
-
-class AbiSpecificNativeTypeCfe implements NativeTypeCfe {
-  final Map<Abi, NativeTypeCfe> abiSpecificTypes;
-
-  final Class clazz;
-
-  AbiSpecificNativeTypeCfe(this.abiSpecificTypes, this.clazz);
-
-  @override
-  Map<Abi, int?> get size => abiSpecificTypes
-      .map((abi, nativeTypeCfe) => MapEntry(abi, nativeTypeCfe.size[abi]));
-
-  @override
-  Map<Abi, int?> get alignment => abiSpecificTypes
-      .map((abi, nativeTypeCfe) => MapEntry(abi, nativeTypeCfe.alignment[abi]));
-
-  @override
-  Constant generateConstant(FfiTransformer transformer) =>
-      TypeLiteralConstant(InterfaceType(clazz, Nullability.nonNullable));
-
-  @override
-  ReturnStatement generateGetterStatement(
-    DartType dartType,
-    int fileOffset,
-    Map<Abi, int?> offsets,
-    bool unalignedAccess,
-    FfiTransformer transformer,
-  ) {
-    return ReturnStatement(
-      transformer.abiSpecificLoadOrStoreExpression(
-        this,
-        typedDataBase: transformer.getCompoundTypedDataBaseField(
-            ThisExpression(), fileOffset),
-        offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
-        fileOffset: fileOffset,
-      ),
-    );
-  }
-
-  @override
-  ReturnStatement generateSetterStatement(
-    DartType dartType,
-    int fileOffset,
-    Map<Abi, int?> offsets,
-    bool unalignedAccess,
-    VariableDeclaration argument,
-    FfiTransformer transformer,
-  ) {
-    return ReturnStatement(
-      transformer.abiSpecificLoadOrStoreExpression(
-        this,
-        typedDataBase: transformer.getCompoundTypedDataBaseField(
-            ThisExpression(), fileOffset),
-        offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
-        value: VariableGet(argument),
-        fileOffset: fileOffset,
-      ),
-    );
-  }
 }
 
 extension on int? {

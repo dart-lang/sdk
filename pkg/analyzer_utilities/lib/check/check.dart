@@ -10,7 +10,6 @@ export 'package:analyzer_utilities/check/check_target.dart';
 export 'package:analyzer_utilities/check/equality.dart';
 export 'package:analyzer_utilities/check/int.dart';
 export 'package:analyzer_utilities/check/iterable.dart';
-export 'package:analyzer_utilities/check/nullability.dart';
 export 'package:analyzer_utilities/check/string.dart';
 export 'package:analyzer_utilities/check/type.dart';
 

@@ -422,18 +422,6 @@ stack."""),
       bool_,
       """
 Returning a bool."""),
-  FunctionType(
-      [
-        wchar,
-        structArrayWChar,
-        uintptr,
-        uintptr,
-        long,
-        ulong,
-      ],
-      wchar,
-      """
-Returning a wchar."""),
 ];
 
 final functionsStructReturn = [
@@ -684,7 +672,6 @@ final compounds = [
   union12bytesInt,
   union16bytesFloat,
   union16bytesFloat2,
-  structArrayWChar,
 ];
 
 final struct1byteBool = StructType([bool_]);
@@ -876,6 +863,3 @@ final union16bytesFloat =
 /// This union has homogenous floats of different sizes.
 final union16bytesFloat2 =
     UnionType([struct8bytesFloat, struct12bytesFloat, struct16bytesFloat]);
-
-/// This struct contains an AbiSpecificInt type.
-final structArrayWChar = StructType([FixedLengthArrayType(wchar, 10)]);

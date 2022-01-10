@@ -2400,18 +2400,6 @@ void Isolate::FreeSampleBlock(SampleBlock* block) {
                                                    std::memory_order_release));
 }
 
-class StreamableSampleFilter : public SampleFilter {
- public:
-  explicit StreamableSampleFilter(Dart_Port port)
-      : SampleFilter(port, kNoTaskFilter, -1, -1) {}
-
-  bool FilterSample(Sample* sample) override {
-    const UserTag& tag =
-        UserTag::Handle(UserTag::FindTagById(sample->user_tag()));
-    return tag.streamable();
-  }
-};
-
 void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
   SampleBlock* head = free_block_list_.exchange(nullptr);
   if (head == nullptr) {
@@ -2438,14 +2426,11 @@ void Isolate::ProcessFreeSampleBlocks(Thread* thread) {
     SampleBlockListProcessor buffer(head);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
-    StreamableSampleFilter filter(main_port());
     Profile profile;
-    profile.Build(thread, &filter, &buffer);
-    if (profile.sample_count() > 0) {
-      ServiceEvent event(this, ServiceEvent::kCpuSamples);
-      event.set_cpu_profile(&profile);
-      Service::HandleEvent(&event);
-    }
+    profile.Build(thread, nullptr, &buffer);
+    ServiceEvent event(this, ServiceEvent::kCpuSamples);
+    event.set_cpu_profile(&profile);
+    Service::HandleEvent(&event);
   }
 
   do {

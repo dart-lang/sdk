@@ -118,36 +118,6 @@ AlignmentType RecognizedMethodAlignment(MethodRecognizer::Kind kind) {
   }
 }
 
-MethodRecognizer::Kind FfiLoad(const NativeType& native_type) {
-  if (native_type.IsPrimitive()) {
-    switch (native_type.AsPrimitive().representation()) {
-#define CASE(type)                                                             \
-  case k##type:                                                                \
-    return MethodRecognizer::kFfiLoad##type;
-      CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(CASE)
-#undef CASE
-      default:
-        break;
-    }
-  }
-  UNIMPLEMENTED();
-}
-
-MethodRecognizer::Kind FfiStore(const NativeType& native_type) {
-  if (native_type.IsPrimitive()) {
-    switch (native_type.AsPrimitive().representation()) {
-#define CASE(type)                                                             \
-  case k##type:                                                                \
-    return MethodRecognizer::kFfiStore##type;
-      CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(CASE)
-#undef CASE
-      default:
-        break;
-    }
-  }
-  UNIMPLEMENTED();
-}
-
 }  // namespace ffi
 
 }  // namespace compiler

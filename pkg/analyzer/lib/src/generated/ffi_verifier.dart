@@ -92,7 +92,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             _validatePackedAnnotation(node.metadata);
           }
         } else if (className == _abiSpecificIntegerClassName) {
-          _validateAbiSpecificIntegerAnnotation(node);
           _validateAbiSpecificIntegerMappingAnnotation(
               node.name, node.metadata);
         } else if (className != _allocatorClassName &&
@@ -103,8 +102,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               superclass.name,
               [node.name.name, superclass.name.name]);
         }
-      } else if (superclass.isCompoundSubtype ||
-          superclass.isAbiSpecificIntegerSubtype) {
+      } else if (superclass.isCompoundSubtype) {
         _errorReporter.reportErrorForNode(
             FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
             superclass,
@@ -122,8 +120,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (typename.ffiClass != null) {
         _errorReporter.reportErrorForNode(subtypeOfFfiCode, typename,
             [node.name.name, typename.name.toSource()]);
-      } else if (typename.isCompoundSubtype ||
-          typename.isAbiSpecificIntegerSubtype) {
+      } else if (typename.isCompoundSubtype) {
         _errorReporter.reportErrorForNode(subtypeOfStructCode, typename,
             [node.name.name, typename.name.toSource()]);
       }
@@ -615,16 +612,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return _PrimitiveDartType.none;
-  }
-
-  void _validateAbiSpecificIntegerAnnotation(ClassDeclaration node) {
-    if ((node.typeParameters?.length ?? 0) != 0 ||
-        node.members.length != 1 ||
-        node.members.single is! ConstructorDeclaration ||
-        (node.members.single as ConstructorDeclaration).constKeyword == null) {
-      _errorReporter.reportErrorForNode(
-          FfiCode.ABI_SPECIFIC_INTEGER_INVALID, node.name);
-    }
   }
 
   /// Validate that the [annotations] include at most one mapping annotation.
@@ -1259,14 +1246,6 @@ enum _PrimitiveDartType {
 }
 
 extension on Annotation {
-  bool get isAbiSpecificIntegerMapping {
-    final element = this.element;
-    return element is ConstructorElement &&
-        element.ffiClass != null &&
-        element.enclosingElement.name ==
-            FfiVerifier._abiSpecificIntegerMappingClassName;
-  }
-
   bool get isArray {
     final element = this.element;
     return element is ConstructorElement &&
@@ -1280,9 +1259,33 @@ extension on Annotation {
         element.ffiClass != null &&
         element.enclosingElement.name == 'Packed';
   }
+
+  bool get isAbiSpecificIntegerMapping {
+    final element = this.element;
+    return element is ConstructorElement &&
+        element.ffiClass != null &&
+        element.enclosingElement.name ==
+            FfiVerifier._abiSpecificIntegerMappingClassName;
+  }
 }
 
 extension on ElementAnnotation {
+  bool get isArray {
+    final element = this.element;
+    return element is ConstructorElement &&
+        element.ffiClass != null &&
+        element.enclosingElement.name == 'Array';
+    // Note: this is 'Array' instead of '_ArraySize' because it finds the
+    // forwarding factory instead of the forwarded constructor.
+  }
+
+  bool get isPacked {
+    final element = this.element;
+    return element is ConstructorElement &&
+        element.ffiClass != null &&
+        element.enclosingElement.name == 'Packed';
+  }
+
   List<int> get arraySizeDimensions {
     assert(isArray);
     final value = computeConstantValue();
@@ -1318,22 +1321,6 @@ extension on ElementAnnotation {
     return result;
   }
 
-  bool get isArray {
-    final element = this.element;
-    return element is ConstructorElement &&
-        element.ffiClass != null &&
-        element.enclosingElement.name == 'Array';
-    // Note: this is 'Array' instead of '_ArraySize' because it finds the
-    // forwarding factory instead of the forwarded constructor.
-  }
-
-  bool get isPacked {
-    final element = this.element;
-    return element is ConstructorElement &&
-        element.ffiClass != null &&
-        element.enclosingElement.name == 'Packed';
-  }
-
   int? get packedMemberAlignment {
     assert(isPacked);
     final value = computeConstantValue();
@@ -1342,46 +1329,11 @@ extension on ElementAnnotation {
 }
 
 extension on Element? {
-  /// If this is a class element from `dart:ffi`, return it.
-  ClassElement? get ffiClass {
-    var element = this;
-    if (element is ConstructorElement) {
-      element = element.enclosingElement;
-    }
-    if (element is ClassElement && element.isFfiClass) {
-      return element;
-    }
-    return null;
-  }
-
-  /// Return `true` if this represents the class `AbiSpecificInteger`.
-  bool get isAbiSpecificInteger {
-    final element = this;
-    return element is ClassElement &&
-        element.name == FfiVerifier._abiSpecificIntegerClassName &&
-        element.isFfiClass;
-  }
-
-  /// Return `true` if this represents a subclass of the class
-  /// `AbiSpecificInteger`.
-  bool get isAbiSpecificIntegerSubclass {
-    final element = this;
-    return element is ClassElement && element.supertype.isAbiSpecificInteger;
-  }
-
   /// Return `true` if this represents the extension `AllocatorAlloc`.
   bool get isAllocatorExtension {
     final element = this;
     return element is ExtensionElement &&
         element.name == FfiVerifier._allocatorExtensionName &&
-        element.isFfiExtension;
-  }
-
-  /// Return `true` if this represents the extension `DynamicLibraryExtension`.
-  bool get isDynamicLibraryExtension {
-    final element = this;
-    return element is ExtensionElement &&
-        element.name == 'DynamicLibraryExtension' &&
         element.isFfiExtension;
   }
 
@@ -1403,6 +1355,14 @@ extension on Element? {
     final element = this;
     return element is ExtensionElement &&
         element.name == 'StructPointer' &&
+        element.isFfiExtension;
+  }
+
+  /// Return `true` if this represents the extension `DynamicLibraryExtension`.
+  bool get isDynamicLibraryExtension {
+    final element = this;
+    return element is ExtensionElement &&
+        element.name == 'DynamicLibraryExtension' &&
         element.isFfiExtension;
   }
 
@@ -1440,6 +1400,33 @@ extension on Element? {
   bool get isUnionSubclass {
     final element = this;
     return element is ClassElement && element.supertype.isUnion;
+  }
+
+  /// Return `true` if this represents the class `AbiSpecificInteger`.
+  bool get isAbiSpecificInteger {
+    final element = this;
+    return element is ClassElement &&
+        element.name == FfiVerifier._abiSpecificIntegerClassName &&
+        element.isFfiClass;
+  }
+
+  /// Return `true` if this represents a subclass of the class
+  /// `AbiSpecificInteger`.
+  bool get isAbiSpecificIntegerSubclass {
+    final element = this;
+    return element is ClassElement && element.supertype.isAbiSpecificInteger;
+  }
+
+  /// If this is a class element from `dart:ffi`, return it.
+  ClassElement? get ffiClass {
+    var element = this;
+    if (element is ConstructorElement) {
+      element = element.enclosingElement;
+    }
+    if (element is ClassElement && element.isFfiClass) {
+      return element;
+    }
+    return null;
   }
 }
 
@@ -1487,11 +1474,6 @@ extension on ExtensionElement {
 }
 
 extension on DartType? {
-  bool get isAbiSpecificInteger {
-    final self = this;
-    return self is InterfaceType && self.element.isAbiSpecificInteger;
-  }
-
   bool get isStruct {
     final self = this;
     return self is InterfaceType && self.element.isStruct;
@@ -1501,9 +1483,24 @@ extension on DartType? {
     final self = this;
     return self is InterfaceType && self.element.isUnion;
   }
+
+  bool get isAbiSpecificInteger {
+    final self = this;
+    return self is InterfaceType && self.element.isAbiSpecificInteger;
+  }
 }
 
 extension on DartType {
+  /// Return `true` if this represents the class `Array`.
+  bool get isArray {
+    final self = this;
+    if (self is InterfaceType) {
+      final element = self.element;
+      return element.name == FfiVerifier._arrayClassName && element.isFfiClass;
+    }
+    return false;
+  }
+
   int get arrayDimensions {
     DartType iterator = this;
     int dimensions = 0;
@@ -1526,65 +1523,9 @@ extension on DartType {
     return iterator;
   }
 
-  bool get isAbiSpecificInteger {
+  bool get isPointer {
     final self = this;
-    if (self is InterfaceType) {
-      final element = self.element;
-      final name = element.name;
-      return name == FfiVerifier._abiSpecificIntegerClassName &&
-          element.isFfiClass;
-    }
-    return false;
-  }
-
-  /// Returns `true` iff this is an Abi-specific integer type,
-  /// i.e. a subtype of `AbiSpecificInteger`.
-  bool get isAbiSpecificIntegerSubtype {
-    final self = this;
-    if (self is InterfaceType) {
-      final superType = self.element.supertype;
-      if (superType != null) {
-        final superClassElement = superType.element;
-        return superClassElement.name ==
-                FfiVerifier._abiSpecificIntegerClassName &&
-            superClassElement.isFfiClass;
-      }
-    }
-    return false;
-  }
-
-  /// Return `true` if this represents the class `Array`.
-  bool get isArray {
-    final self = this;
-    if (self is InterfaceType) {
-      final element = self.element;
-      return element.name == FfiVerifier._arrayClassName && element.isFfiClass;
-    }
-    return false;
-  }
-
-  bool get isCompound {
-    final self = this;
-    if (self is InterfaceType) {
-      final element = self.element;
-      final name = element.name;
-      return (name == FfiVerifier._structClassName ||
-              name == FfiVerifier._unionClassName) &&
-          element.isFfiClass;
-    }
-    return false;
-  }
-
-  /// Returns `true` if this is a struct type, i.e. a subtype of `Struct`.
-  bool get isCompoundSubtype {
-    final self = this;
-    if (self is InterfaceType) {
-      final superType = self.element.supertype;
-      if (superType != null) {
-        return superType.isCompound;
-      }
-    }
-    return false;
+    return self is InterfaceType && self.element.isPointer;
   }
 
   bool get isHandle {
@@ -1616,6 +1557,22 @@ extension on DartType {
     return false;
   }
 
+  /// Returns `true` iff this is an Abi-specific integer type,
+  /// i.e. a subtype of `AbiSpecificInteger`.
+  bool get isAbiSpecificIntegerSubtype {
+    final self = this;
+    if (self is InterfaceType) {
+      final superType = self.element.supertype;
+      if (superType != null) {
+        final superClassElement = superType.element;
+        return superClassElement.name ==
+                FfiVerifier._abiSpecificIntegerClassName &&
+            superClassElement.isFfiClass;
+      }
+    }
+    return false;
+  }
+
   /// Returns `true` iff this is a opaque type, i.e. a subtype of `Opaque`.
   bool get isOpaqueSubtype {
     final self = this;
@@ -1630,9 +1587,28 @@ extension on DartType {
     return false;
   }
 
-  bool get isPointer {
+  bool get isCompound {
     final self = this;
-    return self is InterfaceType && self.element.isPointer;
+    if (self is InterfaceType) {
+      final element = self.element;
+      final name = element.name;
+      return (name == FfiVerifier._structClassName ||
+              name == FfiVerifier._unionClassName) &&
+          element.isFfiClass;
+    }
+    return false;
+  }
+
+  /// Returns `true` if this is a struct type, i.e. a subtype of `Struct`.
+  bool get isCompoundSubtype {
+    final self = this;
+    if (self is InterfaceType) {
+      final superType = self.element.supertype;
+      if (superType != null) {
+        return superType.isCompound;
+      }
+    }
+    return false;
   }
 }
 
@@ -1640,15 +1616,6 @@ extension on NamedType {
   /// If this is a name of class from `dart:ffi`, return it.
   ClassElement? get ffiClass {
     return name.staticElement.ffiClass;
-  }
-
-  /// Return `true` if this represents a subtype of `Struct` or `Union`.
-  bool get isAbiSpecificIntegerSubtype {
-    var element = name.staticElement;
-    if (element is ClassElement) {
-      return element.allSupertypes.any((e) => e.isAbiSpecificInteger);
-    }
-    return false;
   }
 
   /// Return `true` if this represents a subtype of `Struct` or `Union`.

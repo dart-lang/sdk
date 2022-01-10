@@ -240,15 +240,13 @@ class AstTestFactory {
           ExtendsClause? extendsClause,
           WithClause? withClause,
           ImplementsClause? implementsClause,
-          {List<ClassMember> members = const [],
-          bool isMacro = false}) =>
+          [List<ClassMember> members = const []]) =>
       astFactory.classDeclaration(
           null,
           null,
           abstractKeyword == null
               ? null
               : TokenFactory.tokenFromKeyword(abstractKeyword),
-          isMacro ? TokenFactory.tokenFromString('macro') : null,
           TokenFactory.tokenFromKeyword(Keyword.CLASS),
           identifier3(name),
           typeParameters,
@@ -265,8 +263,7 @@ class AstTestFactory {
           Keyword? abstractKeyword,
           NamedType superclass,
           WithClause withClause,
-          ImplementsClause? implementsClause,
-          {bool isMacro = false}) =>
+          ImplementsClause? implementsClause) =>
       astFactory.classTypeAlias(
           null,
           null,
@@ -277,7 +274,6 @@ class AstTestFactory {
           abstractKeyword == null
               ? null
               : TokenFactory.tokenFromKeyword(abstractKeyword),
-          isMacro ? TokenFactory.tokenFromString('macro') : null,
           superclass,
           withClause,
           implementsClause,

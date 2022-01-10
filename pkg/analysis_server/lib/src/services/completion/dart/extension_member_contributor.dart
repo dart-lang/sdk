@@ -7,10 +7,10 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 
 /// A contributor that produces suggestions based on the members of an
 /// extension.
@@ -114,27 +114,27 @@ class ExtensionMemberContributor extends DartCompletionContributor {
   }
 
   void _addExtensionMembers(List<ExtensionElement> extensions,
-      CompletionSuggestionKind kind, DartType type) {
-    var applicableExtensions = extensions.applicableTo(
-      targetLibrary: request.libraryElement,
-      targetType: type,
-    );
-    for (var instantiatedExtension in applicableExtensions) {
-      var extendedType = instantiatedExtension.extendedType;
-      var inheritanceDistance = 0.0;
-      if (type is InterfaceType && extendedType is InterfaceType) {
-        inheritanceDistance = memberBuilder.request.featureComputer
-            .inheritanceDistanceFeature(type.element, extendedType.element);
+      CompletionSuggestionKind? kind, DartType type) {
+    var containingLibrary = request.libraryElement;
+    var typeSystem = containingLibrary.typeSystem;
+    for (var extension in extensions) {
+      var extendedType =
+          extension.resolvedExtendedType(containingLibrary, type);
+      if (extendedType != null && typeSystem.isSubtypeOf(type, extendedType)) {
+        var inheritanceDistance = 0.0;
+        if (type is InterfaceType && extendedType is InterfaceType) {
+          inheritanceDistance = memberBuilder.request.featureComputer
+              .inheritanceDistanceFeature(type.element, extendedType.element);
+        }
+        // TODO(brianwilkerson) We might want to apply the substitution to the
+        //  members of the extension for display purposes.
+        _addInstanceMembers(extension, kind, inheritanceDistance);
       }
-      // TODO(brianwilkerson) We might want to apply the substitution to the
-      //  members of the extension for display purposes.
-      _addInstanceMembers(
-          instantiatedExtension.extension, kind, inheritanceDistance);
     }
   }
 
   void _addInstanceMembers(ExtensionElement extension,
-      CompletionSuggestionKind kind, double inheritanceDistance) {
+      CompletionSuggestionKind? kind, double inheritanceDistance) {
     for (var method in extension.methods) {
       if (!method.isStatic) {
         memberBuilder.addSuggestionForMethod(
@@ -151,7 +151,7 @@ class ExtensionMemberContributor extends DartCompletionContributor {
     }
   }
 
-  void _addTypeMembers(InterfaceType type, CompletionSuggestionKind kind,
+  void _addTypeMembers(InterfaceType type, CompletionSuggestionKind? kind,
       double inheritanceDistance) {
     for (var method in type.methods) {
       memberBuilder.addSuggestionForMethod(

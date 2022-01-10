@@ -91,22 +91,17 @@ bool BaseMarshaller::IsCompound(intptr_t arg_index) const {
   if (IsFfiTypeClassId(type.type_class_id())) {
     return false;
   }
+#ifdef DEBUG
   const auto& cls = Class::Handle(this->zone_, type.type_class());
   const auto& superClass = Class::Handle(this->zone_, cls.SuperClass());
-  const bool is_abi_specific_int =
-      String::Handle(this->zone_, superClass.UserVisibleName())
-          .Equals(Symbols::AbiSpecificInteger());
-  if (is_abi_specific_int) {
-    return false;
-  }
-#ifdef DEBUG
+  // TODO(http://dartbug.com/42563): Implement AbiSpecificInt.
   const bool is_struct =
       String::Handle(this->zone_, superClass.UserVisibleName())
           .Equals(Symbols::Struct());
   const bool is_union =
       String::Handle(this->zone_, superClass.UserVisibleName())
           .Equals(Symbols::Union());
-  ASSERT(is_struct || is_union);
+  RELEASE_ASSERT(is_struct || is_union);
 #endif
   return true;
 }

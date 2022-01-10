@@ -1,11 +1,6 @@
 # Changelog
 
-## 8.1.0
-- Update to version `3.55` of the spec.
-- Added `streamCpuSamplesWithUserTag` RPC.
-
 ## 8.0.0
-- Update to version `3.54` of the spec.
 - *breaking* Updated type of `Event.cpuSamples` from `CpuSamples` to
   `CpuSamplesEvent`, which is less expensive to generate and serialize.
 - Added `CpuSamplesEvent` object.

@@ -7,7 +7,6 @@ ffi_sdk_sources = [
 
   # The above file needs to be first as it lists the parts below.
   "abi.dart",
-  "abi_specific.dart",
   "allocation.dart",
   "annotations.dart",
   "dynamic_library.dart",

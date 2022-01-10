@@ -840,15 +840,7 @@ class Printer implements NodeVisitor {
 
   @override
   visitVariableInitialization(VariableInitialization initialization) {
-    visitNestedExpression(initialization.declaration, CALL,
-        newInForInit: inForInit, newAtStatementBegin: atStatementBegin);
-    if (initialization.value != null) {
-      spaceOut();
-      out("=");
-      spaceOut();
-      visitNestedExpression(initialization.value, ASSIGNMENT,
-          newInForInit: inForInit, newAtStatementBegin: false);
-    }
+    visitAssignment(initialization);
   }
 
   @override
@@ -1484,7 +1476,7 @@ class Printer implements NodeVisitor {
   }
 }
 
-class _StringContentsCollector extends BaseVisitorVoid {
+class _StringContentsCollector extends BaseVisitor<void> {
   final StringBuffer _buffer = StringBuffer();
   final bool isDebugContext;
 
@@ -1559,7 +1551,7 @@ class OrderedSet<T> {
 
 // Collects all the var declarations in the function.  We need to do this in a
 // separate pass because JS vars are lifted to the top of the function.
-class VarCollector extends BaseVisitorVoid {
+class VarCollector extends BaseVisitor {
   bool nested;
   bool enableRenaming = true;
   final OrderedSet<String> vars;
@@ -1638,10 +1630,8 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
   bool visitNode(Node node) {
     context.error("Forgot node: $node");
-    return true;
+    return null;
   }
-
-  bool visitComment(Comment node) => true;
 
   bool visitBlock(Block node) => false;
   bool visitExpressionStatement(ExpressionStatement node) => false;

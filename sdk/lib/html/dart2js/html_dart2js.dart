@@ -7061,14 +7061,6 @@ abstract class CssStyleDeclarationBase {
     setProperty('font-weight', value, '');
   }
 
-  /** Gets the value of "gap" */
-  String get gap => getPropertyValue('gap');
-
-  /** Sets the value of "gap" */
-  set gap(String value) {
-    setProperty('gap', value, '');
-  }
-
   /** Gets the value of "grid" */
   String get grid => getPropertyValue('grid');
 
@@ -8003,14 +7995,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "right" */
   set right(String value) {
     setProperty('right', value, '');
-  }
-
-  /** Gets the value of "row-gap" */
-  String get rowGap => getPropertyValue('row-gap');
-
-  /** Sets the value of "row-gap" */
-  set rowGap(String value) {
-    setProperty('row-gap', value, '');
   }
 
   /** Gets the value of "rtl-ordering" */
@@ -9165,19 +9149,12 @@ class DataTransferItem extends JavaScriptObject {
   Entry getAsEntry() {
     Entry entry = _webkitGetAsEntry() as Entry;
 
-    if (entry.isFile!) {
+    if (entry.isFile!)
       applyExtension('FileEntry', entry);
-      applyExtension('webkitFileSystemFileEntry', entry);
-      applyExtension('FileSystemFileEntry', entry);
-    } else if (entry.isDirectory!) {
+    else if (entry.isDirectory!)
       applyExtension('DirectoryEntry', entry);
-      applyExtension('webkitFileSystemDirectoryEntry', entry);
-      applyExtension('FileSystemDirectoryEntry', entry);
-    } else {
+    else
       applyExtension('Entry', entry);
-      applyExtension('webkitFileSystemEntry', entry);
-      applyExtension('FileSystemEntry', entry);
-    }
 
     return entry;
   }
@@ -9604,8 +9581,7 @@ class DialogElement extends HtmlElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Native(
-    "DirectoryEntry,webkitFileSystemDirectoryEntry,FileSystemDirectoryEntry")
+@Native("DirectoryEntry")
 class DirectoryEntry extends Entry {
   /**
    * Create a new directory with the specified `path`. If `exclusive` is true,
@@ -9620,9 +9596,6 @@ class DirectoryEntry extends Entry {
   DirectoryReader createReader() {
     DirectoryReader reader = _createReader();
     applyExtension('DirectoryReader', reader);
-    applyExtension('WebKitDirectoryReader', reader);
-    applyExtension('webkitFileSystemDirectoryReader', reader);
-    applyExtension('FileSystemDirectoryReader', reader);
     return reader;
   }
 
@@ -9743,8 +9716,6 @@ class DirectoryEntry extends Entry {
     var completer = new Completer<Entry>();
     __getFile(path, options, (value) {
       applyExtension('FileEntry', value);
-      applyExtension('webkitFileSystemFileEntry', value);
-      applyExtension('FileSystemFileEntry', value);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);
@@ -9771,8 +9742,7 @@ class DirectoryEntry extends Entry {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Native(
-    "DirectoryReader,WebKitDirectoryReader,webkitFileSystemDirectoryReader,FileSystemDirectoryReader")
+@Native("DirectoryReader")
 class DirectoryReader extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory DirectoryReader._() {
@@ -9788,18 +9758,10 @@ class DirectoryReader extends JavaScriptObject {
     _readEntries((values) {
       values.forEach((value) {
         applyExtension('Entry', value);
-        applyExtension('webkitFileSystemEntry', value);
-        applyExtension('FileSystemEntry', value);
         Entry entry = value as Entry;
-        if (entry.isFile!) {
+        if (entry.isFile!)
           applyExtension('FileEntry', entry);
-          applyExtension('webkitFileSystemFileEntry', entry);
-          applyExtension('FileSystemFileEntry', entry);
-        } else if (entry.isDirectory!) {
-          applyExtension('DirectoryEntry', entry);
-          applyExtension('webkitFileSystemDirectoryEntry', entry);
-          applyExtension('FileSystemDirectoryEntry', entry);
-        }
+        else if (entry.isDirectory!) applyExtension('DirectoryEntry', entry);
       });
       completer.complete(new List<Entry>.from(values));
     }, (error) {
@@ -15356,7 +15318,7 @@ typedef void _EntriesCallback(List entries);
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Native("Entry,webkitFileSystemEntry,FileSystemEntry")
+@Native("Entry")
 class Entry extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Entry._() {
@@ -15415,8 +15377,6 @@ class Entry extends JavaScriptObject {
     var completer = new Completer<Entry>();
     _getParent((value) {
       applyExtension('Entry', value);
-      applyExtension('webkitFileSystemEntry', value);
-      applyExtension('FileSystemEntry', value);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);
@@ -16117,7 +16077,7 @@ typedef void _FileCallback(File? file);
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Native("FileEntry,webkitFileSystemFileEntry,FileSystemFileEntry")
+@Native("FileEntry")
 class FileEntry extends Entry {
   // To suppress missing implicit constructor warnings.
   factory FileEntry._() {
@@ -16336,7 +16296,7 @@ class FileReader extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 @SupportedBrowser(SupportedBrowser.CHROME)
-@Native("DOMFileSystem,WebKitFileSystem,webkitFileSystem,FileSystem")
+@Native("DOMFileSystem")
 class FileSystem extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory FileSystem._() {
@@ -33379,12 +33339,7 @@ class Window extends EventTarget
     var completer = new Completer<FileSystem>();
     __requestFileSystem(type, size, (value) {
       applyExtension('DOMFileSystem', value);
-      applyExtension('WebKitFileSystem', value);
-      applyExtension('webkitFileSystem', value);
-      applyExtension('FileSystem', value);
       applyExtension('DirectoryEntry', value.root);
-      applyExtension('webkitFileSystemDirectoryEntry', value.root);
-      applyExtension('FileSystemDirectoryEntry', value.root);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);

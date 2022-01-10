@@ -595,7 +595,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var node = export.node;
     if (node is Procedure && node.name.text == 'main') {
       // Don't allow redefining names from this library.
-      var name = _emitTopLevelName(node);
+      var name = _emitTopLevelName(export.node);
       moduleItems.add(js.statement(
           '#.# = #;', [emitLibraryName(library), name.selector, name]));
     }
@@ -2390,11 +2390,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
   js_ast.Expression _declareMemberName(Member m, {bool useExtension}) {
-    var c = m.enclosingClass;
     return _emitMemberName(m.name.text,
         isStatic: m is Field ? m.isStatic : (m as Procedure).isStatic,
         useExtension:
-            useExtension ?? c != null && _extensionTypes.isNativeClass(c),
+            useExtension ?? _extensionTypes.isNativeClass(m.enclosingClass),
         member: m);
   }
 
@@ -4698,18 +4697,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// null-checked in sound null-safety.
   ///
   /// This is true for non-nullable native return types.
-  bool _isNullCheckableNative(Member member) {
-    var c = member.enclosingClass;
-    return _options.soundNullSafety &&
-        member != null &&
-        member.isExternal &&
-        c != null &&
-        _extensionTypes.isNativeClass(c) &&
-        member is Procedure &&
-        member.function != null &&
-        member.function.returnType.isPotentiallyNonNullable &&
-        _isWebLibrary(member.enclosingLibrary?.importUri);
-  }
+  bool _isNullCheckableNative(Member member) =>
+      _options.soundNullSafety &&
+      member != null &&
+      member.isExternal &&
+      _extensionTypes.isNativeClass(member.enclosingClass) &&
+      member is Procedure &&
+      member.function != null &&
+      member.function.returnType.isPotentiallyNonNullable &&
+      _isWebLibrary(member.enclosingLibrary?.importUri);
 
   // TODO(jmesserly): can we encapsulate REPL name lookups and remove this?
   // _emitMemberName would be a nice place to handle it, but we don't have

@@ -62,6 +62,7 @@ class ParsedFunction;
 class Range;
 class RangeAnalysis;
 class RangeBoundary;
+class SuccessorsIterable;
 class TypeUsageInfo;
 class UnboxIntegerInstr;
 
@@ -768,64 +769,6 @@ class BinaryFeedback : public ZoneAllocated {
 typedef ZoneGrowableArray<Value*> InputsArray;
 typedef ZoneGrowableArray<PushArgumentInstr*> PushArgumentsArray;
 
-template <typename Trait>
-class InstructionIndexedPropertyIterable {
- public:
-  struct Iterator {
-    const Instruction* instr;
-    intptr_t index;
-
-    decltype(Trait::At(instr, index)) operator*() const {
-      return Trait::At(instr, index);
-    }
-    Iterator& operator++() {
-      index++;
-      return *this;
-    }
-
-    bool operator==(const Iterator& other) {
-      return instr == other.instr && index == other.index;
-    }
-
-    bool operator!=(const Iterator& other) { return !(*this == other); }
-  };
-
-  explicit InstructionIndexedPropertyIterable(const Instruction* instr)
-      : instr_(instr) {}
-
-  Iterator begin() const { return {instr_, 0}; }
-  Iterator end() const { return {instr_, Trait::Length(instr_)}; }
-
- private:
-  const Instruction* instr_;
-};
-
-class ValueListIterable {
- public:
-  struct Iterator {
-    Value* value;
-
-    Value* operator*() const { return value; }
-
-    Iterator& operator++() {
-      value = value->next_use();
-      return *this;
-    }
-
-    bool operator==(const Iterator& other) { return value == other.value; }
-
-    bool operator!=(const Iterator& other) { return !(*this == other); }
-  };
-
-  explicit ValueListIterable(Value* value) : value_(value) {}
-
-  Iterator begin() const { return {value_}; }
-  Iterator end() const { return {nullptr}; }
-
- private:
-  Value* value_;
-};
-
 class Instruction : public ZoneAllocated {
  public:
 #define DECLARE_TAG(type, attrs) k##type,
@@ -884,20 +827,6 @@ class Instruction : public ZoneAllocated {
     value->set_use_index(i);
     RawSetInputAt(i, value);
   }
-
-  struct InputsTrait {
-    static Definition* At(const Instruction* instr, intptr_t index) {
-      return instr->InputAt(index)->definition();
-    }
-
-    static intptr_t Length(const Instruction* instr) {
-      return instr->InputCount();
-    }
-  };
-
-  using InputsIterable = InstructionIndexedPropertyIterable<InputsTrait>;
-
-  InputsIterable inputs() { return InputsIterable(this); }
 
   // Remove all inputs (including in the environment) from their
   // definition's use lists.
@@ -988,22 +917,7 @@ class Instruction : public ZoneAllocated {
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
-  struct SuccessorsTrait {
-    static BlockEntryInstr* At(const Instruction* instr, intptr_t index) {
-      return instr->SuccessorAt(index);
-    }
-
-    static intptr_t Length(const Instruction* instr) {
-      return instr->SuccessorCount();
-    }
-  };
-
-  using SuccessorsIterable =
-      InstructionIndexedPropertyIterable<SuccessorsTrait>;
-
-  inline SuccessorsIterable successors() const {
-    return SuccessorsIterable(this);
-  }
+  inline SuccessorsIterable successors() const;
 
   void Goto(JoinEntryInstr* entry);
 
@@ -2382,10 +2296,6 @@ class Definition : public Instruction {
 
   Value* env_use_list() const { return env_use_list_; }
   void set_env_use_list(Value* head) { env_use_list_ = head; }
-
-  ValueListIterable input_uses() const {
-    return ValueListIterable(input_use_list_);
-  }
 
   void AddInputUse(Value* value) { Value::AddToList(value, &input_use_list_); }
   void AddEnvUse(Value* value) { Value::AddToList(value, &env_use_list_); }
@@ -4474,13 +4384,9 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
       const compiler::TableSelector* selector);
 
   DECLARE_INSTRUCTION(DispatchTableCall)
-  DECLARE_ATTRIBUTES(selector_name())
 
   const Function& interface_target() const { return interface_target_; }
   const compiler::TableSelector* selector() const { return selector_; }
-  const char* selector_name() const {
-    return String::Handle(interface_target().name()).ToCString();
-  }
 
   Value* class_id() const { return InputAt(InputCount() - 1); }
 
@@ -5690,8 +5596,12 @@ class TemplateLoadField : public TemplateDefinition<N, Throws> {
                     const Field* field = nullptr)
       : Base(source, deopt_id),
         token_pos_(source.token_pos),
-        throw_exception_on_initialization_(
-            field != nullptr && !field->has_initializer() && field->is_late()),
+        calls_runtime_on_initialization_(
+            field != nullptr &&
+            (!field->is_late() || field->needs_load_guard())),
+        throw_exception_on_initialization_(field != nullptr &&
+                                           !field->has_initializer() &&
+                                           !calls_runtime_on_initialization_),
         calls_initializer_(calls_initializer) {
     ASSERT(!calls_initializer || field != nullptr);
     ASSERT(!calls_initializer || (deopt_id != DeoptId::kNone));
@@ -5724,17 +5634,15 @@ class TemplateLoadField : public TemplateDefinition<N, Throws> {
   }
 
   virtual bool CanCallDart() const {
-    // The slow path (running the field initializer) always calls one of a
-    // specific set of stubs. For those stubs that do not simply call the
-    // runtime, the GC recognizes their frames and restores write barriers
-    // automatically (see Thread::RestoreWriteBarrierInvariant).
-    return false;
+    return calls_initializer() && !throw_exception_on_initialization() &&
+           !calls_runtime_on_initialization_;
   }
   virtual bool CanTriggerGC() const { return calls_initializer(); }
   virtual bool MayThrow() const { return calls_initializer(); }
 
  private:
   const TokenPosition token_pos_;
+  const bool calls_runtime_on_initialization_;
   const bool throw_exception_on_initialization_;
   bool calls_initializer_;
 
@@ -9858,6 +9766,37 @@ inline bool Value::CanBe(const Object& value) {
   return (constant == nullptr) || constant->value().ptr() == value.ptr();
 }
 
+class SuccessorsIterable {
+ public:
+  struct Iterator {
+    const Instruction* instr;
+    intptr_t index;
+
+    BlockEntryInstr* operator*() const { return instr->SuccessorAt(index); }
+    Iterator& operator++() {
+      index++;
+      return *this;
+    }
+
+    bool operator==(const Iterator& other) {
+      return instr == other.instr && index == other.index;
+    }
+
+    bool operator!=(const Iterator& other) { return !(*this == other); }
+  };
+
+  explicit SuccessorsIterable(const Instruction* instr) : instr_(instr) {}
+
+  Iterator begin() const { return {instr_, 0}; }
+  Iterator end() const { return {instr_, instr_->SuccessorCount()}; }
+
+ private:
+  const Instruction* instr_;
+};
+
+SuccessorsIterable Instruction::successors() const {
+  return SuccessorsIterable(this);
+}
 
 }  // namespace dart
 

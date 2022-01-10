@@ -95,8 +95,6 @@ class AstBinaryReader {
         return _readGenericFunctionType();
       case Tag.IfElement:
         return _readIfElement();
-      case Tag.ImplicitCallReference:
-        return _readImplicitCallReference();
       case Tag.IndexExpression:
         return _readIndexExpression();
       case Tag.IntegerLiteralNegative1:
@@ -647,22 +645,6 @@ class AstBinaryReader {
       rightParenthesis: Tokens.closeParenthesis(),
       thenElement: thenElement,
     );
-  }
-
-  ImplicitCallReference _readImplicitCallReference() {
-    var expression = readNode() as Expression;
-    var typeArguments = _readOptionalNode() as TypeArgumentList?;
-    var typeArgumentTypes = _reader.readOptionalTypeList()!;
-    var staticElement = _reader.readElement() as MethodElement;
-
-    var node = astFactory.implicitCallReference(
-      expression: expression,
-      staticElement: staticElement,
-      typeArguments: typeArguments,
-      typeArgumentTypes: typeArgumentTypes,
-    );
-    _readExpressionResolution(node);
-    return node;
   }
 
   IndexExpression _readIndexExpression() {

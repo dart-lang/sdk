@@ -12,18 +12,11 @@ $!MEMBERS
     _readEntries((values) {
       values.forEach((value) {
         applyExtension('Entry', value);
-        applyExtension('webkitFileSystemEntry', value);
-        applyExtension('FileSystemEntry', value);
         Entry entry = value as Entry;
-        if (entry.isFile$NULLASSERT) {
+        if (entry.isFile$NULLASSERT)
           applyExtension('FileEntry', entry);
-          applyExtension('webkitFileSystemFileEntry', entry);
-          applyExtension('FileSystemFileEntry', entry);
-        } else if (entry.isDirectory$NULLASSERT) {
+        else if (entry.isDirectory$NULLASSERT)
           applyExtension('DirectoryEntry', entry);
-          applyExtension('webkitFileSystemDirectoryEntry', entry);
-          applyExtension('FileSystemDirectoryEntry', entry);
-        }
       });
       completer.complete(new List<Entry>.from(values));
     }, (error) {

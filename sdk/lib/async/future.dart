@@ -1097,6 +1097,7 @@ void _completeWithErrorCallback(
   } else {
     stackTrace ??= AsyncError.defaultStackTrace(error);
   }
+  if (stackTrace == null) throw "unreachable"; // TODO(40088).
   result._completeError(error, stackTrace);
 }
 

@@ -19,7 +19,7 @@ Future<void> main() async {
 void defineTest(List<Experiment> experiments) {
   TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() => p?.dispose());
 
   test('--help', () async {
     p = project();

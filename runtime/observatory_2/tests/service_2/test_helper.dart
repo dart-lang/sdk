@@ -20,10 +20,6 @@ export 'service_test_common.dart' show DDSTest, IsolateTest, VMTest;
 /// Determines whether DDS is enabled for this test run.
 const bool useDds = const bool.fromEnvironment('USE_DDS');
 
-/// The directory to output VM service response size data files to.
-const String serviceResponseSizesDir =
-    const String.fromEnvironment('SERVICE_RESPONSE_SIZES_DIR');
-
 /// The extra arguments to use
 const List<String> extraDebuggingArgs = ['--lazy-async-stacks'];
 
@@ -181,15 +177,6 @@ class _ServiceTesteeLauncher {
     fullArgs.addAll(executableArgs);
     if (!testeeControlsServer) {
       fullArgs.add('--enable-vm-service:$port');
-    }
-    if (serviceResponseSizesDir != null) {
-      // Dump service response size details to a CSV. This feature is not used
-      // on the build bots and the generated output will persist after the test
-      // has completed.
-      final dir = path.prettyUri(serviceResponseSizesDir);
-      final testName = path.withoutExtension(path.basename(args.last));
-      final logName = '${testName}_${useDds ? "" : "no_"}dds_sizes.csv';
-      fullArgs.add('--log_service_response_sizes=$dir/$logName');
     }
     fullArgs.addAll(args);
 

@@ -123,6 +123,9 @@ class _RunningIsolate {
 
   void handleEvent(Event event) {
     switch (event.kind) {
+      case EventKind.kUserTagChanged:
+        cpuSamplesManager.handleUserTagEvent(event);
+        return;
       case EventKind.kCpuSamples:
         cpuSamplesManager.handleCpuSamplesEvent(event);
         return;
@@ -235,14 +238,6 @@ class IsolateManager {
             // If the isolate doesn't have a pauseEvent, assume it's running.
             isolateStarted(id, name);
           }
-        }
-        if (dds.cachedUserTags.isNotEmpty) {
-          await dds.vmServiceClient.sendRequest(
-            'streamCpuSamplesWithUserTag',
-            {
-              'userTags': dds.cachedUserTags,
-            },
-          );
         }
       },
     );

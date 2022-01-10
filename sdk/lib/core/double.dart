@@ -16,11 +16,6 @@ part of dart.core;
 ///
 /// It is a compile-time error for a class to attempt to extend or implement
 /// double.
-///
-/// **See also:**
-/// * [num] the super class for [double].
-/// * [Numbers](https://dart.dev/guides/language/numbers) in
-/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
 abstract class double extends num {
   static const double nan = 0.0 / 0.0;
   static const double infinity = 1.0 / 0.0;
@@ -59,14 +54,7 @@ abstract class double extends num {
   ///  `(3.5).round() == 4` and `(-3.5).round() == -4`.
   ///
   /// Throws an [UnsupportedError] if this number is not finite
-  /// (NaN or an infinity).
-  /// ```dart
-  /// print(3.0.round()); // 3
-  /// print(3.25.round()); // 3
-  /// print(3.5.round()); // 4
-  /// print(3.75.round()); // 4
-  /// print((-3.5).round()); // -4
-  /// ```
+  /// (NaN or an infinity), .
   int round();
 
   /// Returns the greatest integer no greater than this number.
@@ -74,31 +62,15 @@ abstract class double extends num {
   /// Rounds the number towards negative infinity.
   ///
   /// Throws an [UnsupportedError] if this number is not finite
-  /// (NaN or infinity).
-  /// ```dart
-  /// print(1.99999.floor()); // 1
-  /// print(2.0.floor()); // 2
-  /// print(2.99999.floor()); // 2
-  /// print((-1.99999).floor()); // -2
-  /// print((-2.0).floor()); // -2
-  /// print((-2.00001).floor()); // -3
-  /// ```
+  /// (NaN or infinity), .
   int floor();
 
-  /// Returns the least integer that is not smaller than this number.
+  /// Returns the least integer which is not smaller than this number.
   ///
   /// Rounds the number towards infinity.
   ///
   /// Throws an [UnsupportedError] if this number is not finite
-  /// (NaN or an infinity).
-  /// ```dart
-  /// print(1.99999.ceil()); // 2
-  /// print(2.0.ceil()); // 2
-  /// print(2.00001.ceil()); // 3
-  /// print((-1.99999).ceil()); // -1
-  /// print((-2.0).ceil()); // -2
-  /// print((-2.00001).ceil()); // -2
-  /// ```
+  /// (NaN or an infinity), .
   int ceil();
 
   /// Returns the integer obtained by discarding any fractional
@@ -107,15 +79,7 @@ abstract class double extends num {
   /// Rounds the number towards zero.
   ///
   /// Throws an [UnsupportedError] if this number is not finite
-  /// (NaN or an infinity).
-  /// ```dart
-  /// print(2.00001.truncate()); // 2
-  /// print(1.99999.truncate()); // 1
-  /// print(0.5.truncate()); // 0
-  /// print((-0.5).truncate()); // 0
-  /// print((-1.5).truncate()); // -1
-  /// print((-2.5).truncate()); // -2
-  /// ```
+  /// (NaN or an infinity), .
   int truncate();
 
   /// Returns the integer double value closest to `this`.
@@ -128,15 +92,8 @@ abstract class double extends num {
   ///
   /// For the purpose of rounding, `-0.0` is considered to be below `0.0`,
   /// and `-0.0` is therefore considered closer to negative numbers than `0.0`.
-  /// This means that for a value `d` in the range `-0.5 < d < 0.0`,
+  /// This means that for a value, `d` in the range `-0.5 < d < 0.0`,
   /// the result is `-0.0`.
-  /// ```dart
-  /// print(3.0.roundToDouble()); // 3.0
-  /// print(3.25.roundToDouble()); // 3.0
-  /// print(3.5.roundToDouble()); // 4.0
-  /// print(3.75.roundToDouble()); // 4.0
-  /// print((-3.5).roundToDouble()); // -4.0
-  /// ```
   double roundToDouble();
 
   /// Returns the greatest integer double value no greater than `this`.
@@ -146,14 +103,6 @@ abstract class double extends num {
   ///
   /// For the purpose of rounding, `-0.0` is considered to be below `0.0`.
   /// A number `d` in the range `0.0 < d < 1.0` will return `0.0`.
-  /// ```dart
-  /// print(1.99999.floorToDouble()); // 1.0
-  /// print(2.0.floorToDouble()); // 2.0
-  /// print(2.99999.floorToDouble()); // 2.0
-  /// print((-1.99999).floorToDouble()); // -2.0
-  /// print((-2.0).floorToDouble()); // -2.0
-  /// print((-2.00001).floorToDouble()); // -3.0
-  /// ```
   double floorToDouble();
 
   /// Returns the least integer double value no smaller than `this`.
@@ -163,14 +112,6 @@ abstract class double extends num {
   ///
   /// For the purpose of rounding, `-0.0` is considered to be below `0.0`.
   /// A number `d` in the range `-1.0 < d < 0.0` will return `-0.0`.
-  /// ```dart
-  /// print(1.99999.ceilToDouble()); // 2.0
-  /// print(2.0.ceilToDouble()); // 2.0
-  /// print(2.00001.ceilToDouble()); // 3.0
-  /// print((-1.99999).ceilToDouble()); // -1.0
-  /// print((-2.0).ceilToDouble()); // -2.0
-  /// print((-2.00001).ceilToDouble()); // -2.0
-  /// ```
   double ceilToDouble();
 
   /// Returns the integer double value obtained by discarding any fractional
@@ -182,15 +123,6 @@ abstract class double extends num {
   /// For the purpose of rounding, `-0.0` is considered to be below `0.0`.
   /// A number `d` in the range `-1.0 < d < 0.0` will return `-0.0`, and
   /// in the range `0.0 < d < 1.0` it will return 0.0.
-  /// ```dart
-  /// print(2.5.truncateToDouble()); // 2.0
-  /// print(2.00001.truncateToDouble()); // 2.0
-  /// print(1.99999.truncateToDouble()); // 1.0
-  /// print(0.5.truncateToDouble()); // 0.0
-  /// print((-0.5).truncateToDouble()); // -0.0
-  /// print((-1.5).truncateToDouble()); // -1.0
-  /// print((-2.5).truncateToDouble()); // -2.0
-  /// ```
   double truncateToDouble();
 
   /// Provide a representation of this [double] value.
@@ -207,7 +139,7 @@ abstract class double extends num {
   /// `d` is NaN).
   String toString();
 
-  /// Parse [source] as a double literal and return its value.
+  /// Parse [source] as an double literal and return its value.
   ///
   /// Accepts an optional sign (`+` or `-`) followed by either the characters
   /// "Infinity", the characters "NaN" or a floating-point representation.
@@ -244,23 +176,9 @@ abstract class double extends num {
   external static double parse(String source,
       [@deprecated double onError(String source)?]);
 
-  /// Parse [source] as a double literal and return its value.
+  /// Parse [source] as an double literal and return its value.
   ///
-  /// Like [parse], except that this function returns `null` for invalid inputs
+  /// Like [parse] except that this function returns `null` for invalid inputs
   /// instead of throwing.
-  ///
-  /// Example:
-  /// ```dart
-  /// var value = double.tryParse('3.14'); // 3.14
-  /// value = double.tryParse('  3.14 \xA0'); // 3.14
-  /// value = double.tryParse('0.'); // 0.0
-  /// value = double.tryParse('.0'); // 0.0
-  /// value = double.tryParse('-1.e3'); // -1000.0
-  /// value = double.tryParse('1234E+7'); // 12340000000.0
-  /// value = double.tryParse('+.12e-9'); // 1.2e-10
-  /// value = double.tryParse('-NaN'); // NaN
-  /// value = double.tryParse('0xFF'); // null
-  /// value = double.tryParse(double.infinity.toString()); // Infinity
-  /// ```
   external static double? tryParse(String source);
 }

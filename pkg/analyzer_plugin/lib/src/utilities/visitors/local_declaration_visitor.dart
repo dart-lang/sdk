@@ -3,12 +3,21 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 
 /// A visitor that visits an [AstNode] and its parent recursively along with any
 /// declarations in those nodes. Consumers typically call [visit] which catches
 /// the exception thrown by [finished].
 abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
+  static final NamedType STACKTRACE_TYPE = astFactory.namedType(
+    name: astFactory.simpleIdentifier(
+      StringToken(TokenType.IDENTIFIER, 'StackTrace', 0),
+    ),
+  );
+
   final int offset;
 
   LocalDeclarationVisitor(this.offset);
@@ -72,16 +81,14 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitCatchClause(CatchClause node) {
-    var exceptionParameter = node.exceptionParameter;
-    if (exceptionParameter != null) {
-      declaredParam(exceptionParameter, node.exceptionType);
+    var param = node.exceptionParameter;
+    if (param != null) {
+      declaredParam(param, node.exceptionType);
     }
-
-    var stackTraceParameter = node.stackTraceParameter;
-    if (stackTraceParameter != null) {
-      declaredParam(stackTraceParameter, null);
+    param = node.stackTraceParameter;
+    if (param != null) {
+      declaredParam(param, STACKTRACE_TYPE);
     }
-
     visitNode(node);
   }
 

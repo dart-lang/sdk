@@ -394,10 +394,6 @@ class ClassTable {
 
   void Print();
 
-#if defined(DART_PRECOMPILER)
-  void PrintObjectLayout(const char* filename);
-#endif
-
 #ifndef PRODUCT
   // Describes layout of heap stats for code generation. See offset_extractor.cc
   struct ArrayTraits {

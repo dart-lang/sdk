@@ -202,13 +202,6 @@ class TokenPosition {
     return TokenPosition((kLastPos - 1) - value);
   }
 
-  // Encode the token position for storage in the coverage array.
-  intptr_t EncodeCoveragePosition(bool is_branch_coverage);
-
-  // Decode a token position that was stored in the coverage array.
-  static TokenPosition DecodeCoveragePosition(intptr_t encoded_position,
-                                              bool* is_branch_coverage);
-
   const char* ToCString() const;
 
  private:

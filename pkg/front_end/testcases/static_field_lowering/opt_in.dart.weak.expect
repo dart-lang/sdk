@@ -38,9 +38,9 @@ class Class extends core::Object {
     }
     return let final core::int? #t1 = self::Class::_#nonNullableStaticFieldWithInitializer1 in #t1{core::int};
   }
-  static set nonNullableStaticFieldWithInitializer1(core::int nonNullableStaticFieldWithInitializer1#param) → void {
+  static set nonNullableStaticFieldWithInitializer1(core::int #t2) → void {
     self::Class::_#nonNullableStaticFieldWithInitializer1#isSet = true;
-    self::Class::_#nonNullableStaticFieldWithInitializer1 = nonNullableStaticFieldWithInitializer1#param;
+    self::Class::_#nonNullableStaticFieldWithInitializer1 = #t2;
   }
   static get nullableStaticFieldWithInitializer1() → core::int? {
     if(!self::Class::_#nullableStaticFieldWithInitializer1#isSet) {
@@ -49,20 +49,20 @@ class Class extends core::Object {
     }
     return self::Class::_#nullableStaticFieldWithInitializer1;
   }
-  static set nullableStaticFieldWithInitializer1(core::int? nullableStaticFieldWithInitializer1#param) → void {
+  static set nullableStaticFieldWithInitializer1(core::int? #t3) → void {
     self::Class::_#nullableStaticFieldWithInitializer1#isSet = true;
-    self::Class::_#nullableStaticFieldWithInitializer1 = nullableStaticFieldWithInitializer1#param;
+    self::Class::_#nullableStaticFieldWithInitializer1 = #t3;
   }
   static get nonNullableStaticFieldWithInitializer2() → core::int {
     if(!self::Class::_#nonNullableStaticFieldWithInitializer2#isSet) {
       self::Class::_#nonNullableStaticFieldWithInitializer2 = self::init<core::int>(55);
       self::Class::_#nonNullableStaticFieldWithInitializer2#isSet = true;
     }
-    return let final core::int? #t2 = self::Class::_#nonNullableStaticFieldWithInitializer2 in #t2{core::int};
+    return let final core::int? #t4 = self::Class::_#nonNullableStaticFieldWithInitializer2 in #t4{core::int};
   }
-  static set nonNullableStaticFieldWithInitializer2(core::int nonNullableStaticFieldWithInitializer2#param) → void {
+  static set nonNullableStaticFieldWithInitializer2(core::int #t5) → void {
     self::Class::_#nonNullableStaticFieldWithInitializer2#isSet = true;
-    self::Class::_#nonNullableStaticFieldWithInitializer2 = nonNullableStaticFieldWithInitializer2#param;
+    self::Class::_#nonNullableStaticFieldWithInitializer2 = #t5;
   }
   static get nullableStaticFieldWithInitializer2() → core::int? {
     if(!self::Class::_#nullableStaticFieldWithInitializer2#isSet) {
@@ -71,26 +71,26 @@ class Class extends core::Object {
     }
     return self::Class::_#nullableStaticFieldWithInitializer2;
   }
-  static set nullableStaticFieldWithInitializer2(core::int? nullableStaticFieldWithInitializer2#param) → void {
+  static set nullableStaticFieldWithInitializer2(core::int? #t6) → void {
     self::Class::_#nullableStaticFieldWithInitializer2#isSet = true;
-    self::Class::_#nullableStaticFieldWithInitializer2 = nullableStaticFieldWithInitializer2#param;
+    self::Class::_#nullableStaticFieldWithInitializer2 = #t6;
   }
   static get nonNullableStaticFinalFieldWithInitializer1() → core::int {
     if(!self::Class::_#nonNullableStaticFinalFieldWithInitializer1#isSet) {
-      final core::int #t3 = self::init<core::int>(73);
+      final core::int #t7 = self::init<core::int>(73);
       if(self::Class::_#nonNullableStaticFinalFieldWithInitializer1#isSet)
         throw new _in::LateError::fieldADI("nonNullableStaticFinalFieldWithInitializer1");
-      self::Class::_#nonNullableStaticFinalFieldWithInitializer1 = #t3;
+      self::Class::_#nonNullableStaticFinalFieldWithInitializer1 = #t7;
       self::Class::_#nonNullableStaticFinalFieldWithInitializer1#isSet = true;
     }
-    return let final core::int? #t4 = self::Class::_#nonNullableStaticFinalFieldWithInitializer1 in #t4{core::int};
+    return let final core::int? #t8 = self::Class::_#nonNullableStaticFinalFieldWithInitializer1 in #t8{core::int};
   }
   static get nullableStaticFinalFieldWithInitializer1() → core::int? {
     if(!self::Class::_#nullableStaticFinalFieldWithInitializer1#isSet) {
-      final core::int? #t5 = self::init<core::int?>(19);
+      final core::int? #t9 = self::init<core::int?>(19);
       if(self::Class::_#nullableStaticFinalFieldWithInitializer1#isSet)
         throw new _in::LateError::fieldADI("nullableStaticFinalFieldWithInitializer1");
-      self::Class::_#nullableStaticFinalFieldWithInitializer1 = #t5;
+      self::Class::_#nullableStaticFinalFieldWithInitializer1 = #t9;
       self::Class::_#nullableStaticFinalFieldWithInitializer1#isSet = true;
     }
     return self::Class::_#nullableStaticFinalFieldWithInitializer1;
@@ -100,39 +100,39 @@ class Class extends core::Object {
       self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init = 0;
       self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init#isSet = true;
     }
-    return let final core::int? #t6 = self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init in #t6{core::int};
+    return let final core::int? #t10 = self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init in #t10{core::int};
   }
-  static set nonNullableStaticFinalFieldWithInitializer2Init(core::int nonNullableStaticFinalFieldWithInitializer2Init#param) → void {
+  static set nonNullableStaticFinalFieldWithInitializer2Init(core::int #t11) → void {
     self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init#isSet = true;
-    self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init = nonNullableStaticFinalFieldWithInitializer2Init#param;
+    self::Class::_#nonNullableStaticFinalFieldWithInitializer2Init = #t11;
   }
   static get nonNullableStaticFinalFieldWithInitializer2() → core::int {
     if(!self::Class::_#nonNullableStaticFinalFieldWithInitializer2#isSet) {
-      final core::int #t7 = (let final core::int #t8 = self::Class::nonNullableStaticFinalFieldWithInitializer2Init in let final core::int #t9 = self::Class::nonNullableStaticFinalFieldWithInitializer2Init = #t8.{core::num::+}(1){(core::num) → core::int} in #t8) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::Class::nonNullableStaticFinalFieldWithInitializer2.{core::num::+}(1){(core::num) → core::int} : 87;
+      final core::int #t12 = (let final core::int #t13 = self::Class::nonNullableStaticFinalFieldWithInitializer2Init in let final core::int #t14 = self::Class::nonNullableStaticFinalFieldWithInitializer2Init = #t13.{core::num::+}(1){(core::num) → core::int} in #t13) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::Class::nonNullableStaticFinalFieldWithInitializer2.{core::num::+}(1){(core::num) → core::int} : 87;
       if(self::Class::_#nonNullableStaticFinalFieldWithInitializer2#isSet)
         throw new _in::LateError::fieldADI("nonNullableStaticFinalFieldWithInitializer2");
-      self::Class::_#nonNullableStaticFinalFieldWithInitializer2 = #t7;
+      self::Class::_#nonNullableStaticFinalFieldWithInitializer2 = #t12;
       self::Class::_#nonNullableStaticFinalFieldWithInitializer2#isSet = true;
     }
-    return let final core::int? #t10 = self::Class::_#nonNullableStaticFinalFieldWithInitializer2 in #t10{core::int};
+    return let final core::int? #t15 = self::Class::_#nonNullableStaticFinalFieldWithInitializer2 in #t15{core::int};
   }
   static get nullableStaticFinalFieldWithInitializer2Init() → core::int {
     if(!self::Class::_#nullableStaticFinalFieldWithInitializer2Init#isSet) {
       self::Class::_#nullableStaticFinalFieldWithInitializer2Init = 0;
       self::Class::_#nullableStaticFinalFieldWithInitializer2Init#isSet = true;
     }
-    return let final core::int? #t11 = self::Class::_#nullableStaticFinalFieldWithInitializer2Init in #t11{core::int};
+    return let final core::int? #t16 = self::Class::_#nullableStaticFinalFieldWithInitializer2Init in #t16{core::int};
   }
-  static set nullableStaticFinalFieldWithInitializer2Init(core::int nullableStaticFinalFieldWithInitializer2Init#param) → void {
+  static set nullableStaticFinalFieldWithInitializer2Init(core::int #t17) → void {
     self::Class::_#nullableStaticFinalFieldWithInitializer2Init#isSet = true;
-    self::Class::_#nullableStaticFinalFieldWithInitializer2Init = nullableStaticFinalFieldWithInitializer2Init#param;
+    self::Class::_#nullableStaticFinalFieldWithInitializer2Init = #t17;
   }
   static get nullableStaticFinalFieldWithInitializer2() → core::int? {
     if(!self::Class::_#nullableStaticFinalFieldWithInitializer2#isSet) {
-      final core::int? #t12 = (let final core::int #t13 = self::Class::nullableStaticFinalFieldWithInitializer2Init in let final core::int #t14 = self::Class::nullableStaticFinalFieldWithInitializer2Init = #t13.{core::num::+}(1){(core::num) → core::int} in #t13) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::Class::nullableStaticFinalFieldWithInitializer2!.{core::num::+}(1){(core::num) → core::int} : 32;
+      final core::int? #t18 = (let final core::int #t19 = self::Class::nullableStaticFinalFieldWithInitializer2Init in let final core::int #t20 = self::Class::nullableStaticFinalFieldWithInitializer2Init = #t19.{core::num::+}(1){(core::num) → core::int} in #t19) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::Class::nullableStaticFinalFieldWithInitializer2!.{core::num::+}(1){(core::num) → core::int} : 32;
       if(self::Class::_#nullableStaticFinalFieldWithInitializer2#isSet)
         throw new _in::LateError::fieldADI("nullableStaticFinalFieldWithInitializer2");
-      self::Class::_#nullableStaticFinalFieldWithInitializer2 = #t12;
+      self::Class::_#nullableStaticFinalFieldWithInitializer2 = #t18;
       self::Class::_#nullableStaticFinalFieldWithInitializer2#isSet = true;
     }
     return self::Class::_#nullableStaticFinalFieldWithInitializer2;
@@ -170,11 +170,11 @@ static get nonNullableTopLevelFieldWithInitializer1() → core::int {
     self::_#nonNullableTopLevelFieldWithInitializer1 = self::init<core::int>(42);
     self::_#nonNullableTopLevelFieldWithInitializer1#isSet = true;
   }
-  return let final core::int? #t15 = self::_#nonNullableTopLevelFieldWithInitializer1 in #t15{core::int};
+  return let final core::int? #t21 = self::_#nonNullableTopLevelFieldWithInitializer1 in #t21{core::int};
 }
-static set nonNullableTopLevelFieldWithInitializer1(core::int nonNullableTopLevelFieldWithInitializer1#param) → void {
+static set nonNullableTopLevelFieldWithInitializer1(core::int #t22) → void {
   self::_#nonNullableTopLevelFieldWithInitializer1#isSet = true;
-  self::_#nonNullableTopLevelFieldWithInitializer1 = nonNullableTopLevelFieldWithInitializer1#param;
+  self::_#nonNullableTopLevelFieldWithInitializer1 = #t22;
 }
 static get nullableTopLevelFieldWithInitializer() → core::int? {
   if(!self::_#nullableTopLevelFieldWithInitializer#isSet) {
@@ -183,20 +183,20 @@ static get nullableTopLevelFieldWithInitializer() → core::int? {
   }
   return self::_#nullableTopLevelFieldWithInitializer;
 }
-static set nullableTopLevelFieldWithInitializer(core::int? nullableTopLevelFieldWithInitializer#param) → void {
+static set nullableTopLevelFieldWithInitializer(core::int? #t23) → void {
   self::_#nullableTopLevelFieldWithInitializer#isSet = true;
-  self::_#nullableTopLevelFieldWithInitializer = nullableTopLevelFieldWithInitializer#param;
+  self::_#nullableTopLevelFieldWithInitializer = #t23;
 }
 static get nonNullableTopLevelFieldWithInitializer2() → core::int {
   if(!self::_#nonNullableTopLevelFieldWithInitializer2#isSet) {
     self::_#nonNullableTopLevelFieldWithInitializer2 = self::init<core::int>(42);
     self::_#nonNullableTopLevelFieldWithInitializer2#isSet = true;
   }
-  return let final core::int? #t16 = self::_#nonNullableTopLevelFieldWithInitializer2 in #t16{core::int};
+  return let final core::int? #t24 = self::_#nonNullableTopLevelFieldWithInitializer2 in #t24{core::int};
 }
-static set nonNullableTopLevelFieldWithInitializer2(core::int nonNullableTopLevelFieldWithInitializer2#param) → void {
+static set nonNullableTopLevelFieldWithInitializer2(core::int #t25) → void {
   self::_#nonNullableTopLevelFieldWithInitializer2#isSet = true;
-  self::_#nonNullableTopLevelFieldWithInitializer2 = nonNullableTopLevelFieldWithInitializer2#param;
+  self::_#nonNullableTopLevelFieldWithInitializer2 = #t25;
 }
 static get nullableTopLevelFieldWithInitializer2() → core::int? {
   if(!self::_#nullableTopLevelFieldWithInitializer2#isSet) {
@@ -205,26 +205,26 @@ static get nullableTopLevelFieldWithInitializer2() → core::int? {
   }
   return self::_#nullableTopLevelFieldWithInitializer2;
 }
-static set nullableTopLevelFieldWithInitializer2(core::int? nullableTopLevelFieldWithInitializer2#param) → void {
+static set nullableTopLevelFieldWithInitializer2(core::int? #t26) → void {
   self::_#nullableTopLevelFieldWithInitializer2#isSet = true;
-  self::_#nullableTopLevelFieldWithInitializer2 = nullableTopLevelFieldWithInitializer2#param;
+  self::_#nullableTopLevelFieldWithInitializer2 = #t26;
 }
 static get nonNullableFinalTopLevelFieldWithInitializer1() → core::int {
   if(!self::_#nonNullableFinalTopLevelFieldWithInitializer1#isSet) {
-    final core::int #t17 = self::init<core::int>(87);
+    final core::int #t27 = self::init<core::int>(87);
     if(self::_#nonNullableFinalTopLevelFieldWithInitializer1#isSet)
       throw new _in::LateError::fieldADI("nonNullableFinalTopLevelFieldWithInitializer1");
-    self::_#nonNullableFinalTopLevelFieldWithInitializer1 = #t17;
+    self::_#nonNullableFinalTopLevelFieldWithInitializer1 = #t27;
     self::_#nonNullableFinalTopLevelFieldWithInitializer1#isSet = true;
   }
-  return let final core::int? #t18 = self::_#nonNullableFinalTopLevelFieldWithInitializer1 in #t18{core::int};
+  return let final core::int? #t28 = self::_#nonNullableFinalTopLevelFieldWithInitializer1 in #t28{core::int};
 }
 static get nullableFinalTopLevelFieldWithInitializer1() → core::int? {
   if(!self::_#nullableFinalTopLevelFieldWithInitializer1#isSet) {
-    final core::int? #t19 = self::init<core::int?>(32);
+    final core::int? #t29 = self::init<core::int?>(32);
     if(self::_#nullableFinalTopLevelFieldWithInitializer1#isSet)
       throw new _in::LateError::fieldADI("nullableFinalTopLevelFieldWithInitializer1");
-    self::_#nullableFinalTopLevelFieldWithInitializer1 = #t19;
+    self::_#nullableFinalTopLevelFieldWithInitializer1 = #t29;
     self::_#nullableFinalTopLevelFieldWithInitializer1#isSet = true;
   }
   return self::_#nullableFinalTopLevelFieldWithInitializer1;
@@ -234,39 +234,39 @@ static get nonNullableFinalTopLevelFieldWithInitializer2Init() → core::int {
     self::_#nonNullableFinalTopLevelFieldWithInitializer2Init = 0;
     self::_#nonNullableFinalTopLevelFieldWithInitializer2Init#isSet = true;
   }
-  return let final core::int? #t20 = self::_#nonNullableFinalTopLevelFieldWithInitializer2Init in #t20{core::int};
+  return let final core::int? #t30 = self::_#nonNullableFinalTopLevelFieldWithInitializer2Init in #t30{core::int};
 }
-static set nonNullableFinalTopLevelFieldWithInitializer2Init(core::int nonNullableFinalTopLevelFieldWithInitializer2Init#param) → void {
+static set nonNullableFinalTopLevelFieldWithInitializer2Init(core::int #t31) → void {
   self::_#nonNullableFinalTopLevelFieldWithInitializer2Init#isSet = true;
-  self::_#nonNullableFinalTopLevelFieldWithInitializer2Init = nonNullableFinalTopLevelFieldWithInitializer2Init#param;
+  self::_#nonNullableFinalTopLevelFieldWithInitializer2Init = #t31;
 }
 static get nonNullableFinalTopLevelFieldWithInitializer2() → core::int {
   if(!self::_#nonNullableFinalTopLevelFieldWithInitializer2#isSet) {
-    final core::int #t21 = (let final core::int #t22 = self::nonNullableFinalTopLevelFieldWithInitializer2Init in let final core::int #t23 = self::nonNullableFinalTopLevelFieldWithInitializer2Init = #t22.{core::num::+}(1){(core::num) → core::int} in #t22) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::nonNullableFinalTopLevelFieldWithInitializer2.{core::num::+}(1){(core::num) → core::int} : 87;
+    final core::int #t32 = (let final core::int #t33 = self::nonNullableFinalTopLevelFieldWithInitializer2Init in let final core::int #t34 = self::nonNullableFinalTopLevelFieldWithInitializer2Init = #t33.{core::num::+}(1){(core::num) → core::int} in #t33) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::nonNullableFinalTopLevelFieldWithInitializer2.{core::num::+}(1){(core::num) → core::int} : 87;
     if(self::_#nonNullableFinalTopLevelFieldWithInitializer2#isSet)
       throw new _in::LateError::fieldADI("nonNullableFinalTopLevelFieldWithInitializer2");
-    self::_#nonNullableFinalTopLevelFieldWithInitializer2 = #t21;
+    self::_#nonNullableFinalTopLevelFieldWithInitializer2 = #t32;
     self::_#nonNullableFinalTopLevelFieldWithInitializer2#isSet = true;
   }
-  return let final core::int? #t24 = self::_#nonNullableFinalTopLevelFieldWithInitializer2 in #t24{core::int};
+  return let final core::int? #t35 = self::_#nonNullableFinalTopLevelFieldWithInitializer2 in #t35{core::int};
 }
 static get nullableFinalTopLevelFieldWithInitializer2Init() → core::int {
   if(!self::_#nullableFinalTopLevelFieldWithInitializer2Init#isSet) {
     self::_#nullableFinalTopLevelFieldWithInitializer2Init = 0;
     self::_#nullableFinalTopLevelFieldWithInitializer2Init#isSet = true;
   }
-  return let final core::int? #t25 = self::_#nullableFinalTopLevelFieldWithInitializer2Init in #t25{core::int};
+  return let final core::int? #t36 = self::_#nullableFinalTopLevelFieldWithInitializer2Init in #t36{core::int};
 }
-static set nullableFinalTopLevelFieldWithInitializer2Init(core::int nullableFinalTopLevelFieldWithInitializer2Init#param) → void {
+static set nullableFinalTopLevelFieldWithInitializer2Init(core::int #t37) → void {
   self::_#nullableFinalTopLevelFieldWithInitializer2Init#isSet = true;
-  self::_#nullableFinalTopLevelFieldWithInitializer2Init = nullableFinalTopLevelFieldWithInitializer2Init#param;
+  self::_#nullableFinalTopLevelFieldWithInitializer2Init = #t37;
 }
 static get nullableFinalTopLevelFieldWithInitializer2() → core::int? {
   if(!self::_#nullableFinalTopLevelFieldWithInitializer2#isSet) {
-    final core::int? #t26 = (let final core::int #t27 = self::nullableFinalTopLevelFieldWithInitializer2Init in let final core::int #t28 = self::nullableFinalTopLevelFieldWithInitializer2Init = #t27.{core::num::+}(1){(core::num) → core::int} in #t27) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::nullableFinalTopLevelFieldWithInitializer2!.{core::num::+}(1){(core::num) → core::int} : 32;
+    final core::int? #t38 = (let final core::int #t39 = self::nullableFinalTopLevelFieldWithInitializer2Init in let final core::int #t40 = self::nullableFinalTopLevelFieldWithInitializer2Init = #t39.{core::num::+}(1){(core::num) → core::int} in #t39) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::nullableFinalTopLevelFieldWithInitializer2!.{core::num::+}(1){(core::num) → core::int} : 32;
     if(self::_#nullableFinalTopLevelFieldWithInitializer2#isSet)
       throw new _in::LateError::fieldADI("nullableFinalTopLevelFieldWithInitializer2");
-    self::_#nullableFinalTopLevelFieldWithInitializer2 = #t26;
+    self::_#nullableFinalTopLevelFieldWithInitializer2 = #t38;
     self::_#nullableFinalTopLevelFieldWithInitializer2#isSet = true;
   }
   return self::_#nullableFinalTopLevelFieldWithInitializer2;

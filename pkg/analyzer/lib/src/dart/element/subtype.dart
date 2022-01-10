@@ -31,21 +31,21 @@ class SubtypeHelper {
         _objectNone = typeSystem.objectNone,
         _objectQuestion = typeSystem.objectQuestion;
 
-  /// Return `true` if [T0_] is a subtype of [T1_].
-  bool isSubtypeOf(DartType T0_, DartType T1_) {
+  /// Return `true` if [_T0] is a subtype of [_T1].
+  bool isSubtypeOf(DartType _T0, DartType _T1) {
     // Reflexivity: if `T0` and `T1` are the same type then `T0 <: T1`.
-    if (identical(T0_, T1_)) {
+    if (identical(_T0, _T1)) {
       return true;
     }
 
     // `_` is treated as a top and a bottom type during inference.
-    if (identical(T0_, UnknownInferredType.instance) ||
-        identical(T1_, UnknownInferredType.instance)) {
+    if (identical(_T0, UnknownInferredType.instance) ||
+        identical(_T1, UnknownInferredType.instance)) {
       return true;
     }
 
-    var T0 = T0_ as TypeImpl;
-    var T1 = T1_ as TypeImpl;
+    var T0 = _T0 as TypeImpl;
+    var T1 = _T1 as TypeImpl;
 
     var T1_nullability = T1.nullabilitySuffix;
     var T0_nullability = T0.nullabilitySuffix;

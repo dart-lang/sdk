@@ -775,7 +775,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
 /// InterpolatedNodeAnalysis determines which AST trees contain
 /// [InterpolatedNode]s, and the names of the named interpolated nodes.
-class InterpolatedNodeAnalysis extends BaseVisitorVoid {
+class InterpolatedNodeAnalysis extends BaseVisitor {
   final Set<Node> containsInterpolatedNode = {};
   final Set<String> holeNames = {};
   int count = 0;

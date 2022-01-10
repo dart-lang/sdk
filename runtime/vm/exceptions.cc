@@ -650,9 +650,6 @@ void Exceptions::JumpToFrame(Thread* thread,
   ExcpHandler func =
       reinterpret_cast<ExcpHandler>(StubCode::JumpToFrame().EntryPoint());
 
-  if (thread->is_unwind_in_progress()) {
-    thread->SetUnwindErrorInProgress(true);
-  }
   func(program_counter, stack_pointer, frame_pointer, thread);
 
 #endif

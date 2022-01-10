@@ -471,8 +471,6 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
                               const char* script_name,
                               const char* package_config) {
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM) && !defined(TESTING)
-  ASSERT(Dart_CurrentIsolate() == nullptr);
-
   uint8_t* kernel_buffer = NULL;
   intptr_t kernel_buffer_size = 0;
   dfe.ReadScript(script_name, &kernel_buffer, &kernel_buffer_size);
@@ -480,23 +478,10 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
     WriteSnapshotFile(snapshot_filename, kernel_buffer, kernel_buffer_size);
     free(kernel_buffer);
   } else {
-    PathSanitizer script_uri_sanitizer(script_name);
-    PathSanitizer packages_config_sanitizer(package_config);
-
-    bool null_safety =
-        Dart_DetectNullSafety(script_uri_sanitizer.sanitized_uri(),
-                              packages_config_sanitizer.sanitized_uri(),
-                              DartUtils::original_working_directory,
-                              /*isolate_snapshot_data=*/nullptr,
-                              /*isolate_snapshot_instructions=*/nullptr,
-                              /*kernel_buffer=*/nullptr,
-                              /*kernel_buffer_size=*/0);
-
-    Dart_KernelCompilationResult result = dfe.CompileScriptWithGivenNullsafety(
-        script_name, package_config, /*snapshot=*/true, null_safety);
+    Dart_KernelCompilationResult result =
+        dfe.CompileScript(script_name, false, package_config, true);
     if (result.status != Dart_KernelCompilationStatus_Ok) {
-      Syslog::PrintErr("%s\n", result.error);
-      Platform::Exit(kCompilationErrorExitCode);
+      ErrorExit(kErrorExitCode, "%s\n", result.error);
     }
     WriteSnapshotFile(snapshot_filename, result.kernel, result.kernel_size);
     free(result.kernel);

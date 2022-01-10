@@ -90,7 +90,9 @@ void PrecompilerTracer::WriteEntityTable() {
       const auto& fun = Function::Cast(obj);
       cls_ = fun.Owner();
       const intptr_t selector_id =
-          precompiler_->selector_map()->SelectorId(fun);
+          FLAG_use_table_dispatch
+              ? precompiler_->selector_map()->SelectorId(fun)
+              : -1;
       Write("\"%c\",%" Pd ",%" Pd ",%" Pd "",
             fun.IsDynamicFunction() ? 'F' : 'S', InternEntity(cls_),
             InternString(NameForTrace(fun)), selector_id);

@@ -991,11 +991,7 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
     TransitionVMToNative transition(Thread::Current());
     retval = KernelIsolate::CompileToKernel(
         root_lib_url, nullptr, 0, modified_scripts_count, modified_scripts,
-        /*incremental_compile=*/true,
-        /*snapshot_compile=*/false,
-        /*package_config=*/nullptr,
-        /*multiroot_filepaths=*/nullptr,
-        /*multiroot_scheme=*/nullptr, FLAG_sound_null_safety);
+        true, false, nullptr);
   }
   if (retval.status != Dart_KernelCompilationStatus_Ok) {
     if (retval.kernel != nullptr) {
@@ -1560,8 +1556,9 @@ void ProgramReloadContext::CommitBeforeInstanceMorphing() {
           ASSERT(new_cls.is_enum_class() == old_cls.is_enum_class());
           if (new_cls.is_enum_class() && new_cls.is_finalized()) {
             new_cls.ReplaceEnum(this, old_cls);
+          } else {
+            new_cls.CopyStaticFieldValues(this, old_cls);
           }
-          new_cls.CopyStaticFieldValues(this, old_cls);
           old_cls.PatchFieldsAndFunctions();
           old_cls.MigrateImplicitStaticClosures(this, new_cls);
         }

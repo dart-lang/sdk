@@ -494,8 +494,7 @@ class Parser {
     token = parseMetadataStar(token);
     Token next = token.next!;
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(/* start = */ token,
-          /* keyword = */ next, /* macroToken = */ null, directiveState);
+      return parseTopLevelKeywordDeclaration(token, next, directiveState);
     }
     Token start = token;
     // Skip modifiers to find a top level keyword or identifier
@@ -514,16 +513,8 @@ class Parser {
       }
     }
     next = token.next!;
-    Token? macroToken;
-    if (next.isIdentifier &&
-        next.lexeme == 'macro' &&
-        optional('class', next.next!)) {
-      macroToken = next;
-      next = next.next!;
-    }
     if (next.isTopLevelKeyword) {
-      return parseTopLevelKeywordDeclaration(/* start = */ start,
-          /* keyword = */ next, /* macroToken = */ macroToken, directiveState);
+      return parseTopLevelKeywordDeclaration(start, next, directiveState);
     } else if (next.isKeywordOrIdentifier) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
@@ -600,16 +591,14 @@ class Parser {
 
   /// Parse any top-level declaration that begins with a keyword.
   /// [start] is the token before any modifiers preceding [keyword].
-  Token parseTopLevelKeywordDeclaration(Token start, Token keyword,
-      Token? macroToken, DirectiveContext? directiveState) {
+  Token parseTopLevelKeywordDeclaration(
+      Token start, Token keyword, DirectiveContext? directiveState) {
     assert(keyword.isTopLevelKeyword);
     final String? value = keyword.stringValue;
     if (identical(value, 'class')) {
       directiveState?.checkDeclaration();
-      Token? abstractToken =
-          parseClassDeclarationModifiers(start, macroToken ?? keyword);
-      return parseClassOrNamedMixinApplication(
-          abstractToken, macroToken, keyword);
+      Token? abstractToken = parseClassDeclarationModifiers(start, keyword);
+      return parseClassOrNamedMixinApplication(abstractToken, keyword);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
       parseTopLevelKeywordModifiers(start, keyword);
@@ -2066,7 +2055,7 @@ class Parser {
   }
 
   Token parseClassOrNamedMixinApplication(
-      Token? abstractToken, Token? macroToken, Token classKeyword) {
+      Token? abstractToken, Token classKeyword) {
     assert(optional('class', classKeyword));
     Token begin = abstractToken ?? classKeyword;
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(begin);
@@ -2076,11 +2065,10 @@ class Parser {
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
     if (optional('=', token.next!)) {
-      listener.beginNamedMixinApplication(
-          begin, abstractToken, macroToken, name);
+      listener.beginNamedMixinApplication(begin, abstractToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
     } else {
-      listener.beginClassDeclaration(begin, abstractToken, macroToken, name);
+      listener.beginClassDeclaration(begin, abstractToken, name);
       return parseClass(token, begin, classKeyword, name.lexeme);
     }
   }
@@ -8367,33 +8355,26 @@ class Parser {
       newKeyword = token;
       token = token.next!;
     }
-    Token? firstToken, firstPeriod, secondToken, secondPeriod;
+    Token? prefix, period;
     if (token.isIdentifier && optional('.', token.next!)) {
-      secondToken = token;
-      secondPeriod = token.next!;
-      if (secondPeriod.next!.isIdentifier &&
-          optional('.', secondPeriod.next!.next!)) {
-        firstToken = secondToken;
-        firstPeriod = secondPeriod;
-        secondToken = secondPeriod.next!;
-        secondPeriod = secondToken.next!;
-      }
-      Token identifier = secondPeriod.next!;
+      prefix = token;
+      period = token.next!;
+      Token identifier = period.next!;
       if (identifier.kind == KEYWORD_TOKEN && optional('new', identifier)) {
         // Treat `new` after `.` is as an identifier so that it can represent an
         // unnamed constructor. This support is separate from the
         // constructor-tearoffs feature.
         rewriter.replaceTokenFollowing(
-            secondPeriod,
+            period,
             new StringToken(TokenType.IDENTIFIER, identifier.lexeme,
                 identifier.charOffset));
       }
-      token = secondPeriod.next!;
+      token = period.next!;
     }
     if (token.isEof) {
       // Recovery: Insert a synthetic identifier for code completion
       token = rewriter.insertSyntheticIdentifier(
-          secondPeriod ?? newKeyword ?? syntheticPreviousToken(token));
+          period ?? newKeyword ?? syntheticPreviousToken(token));
       if (begin == token.next!) {
         begin = token;
       }
@@ -8405,21 +8386,21 @@ class Parser {
     }
     if (token.isUserDefinableOperator) {
       if (token.next!.isEof) {
-        parseOneCommentReferenceRest(begin, referenceOffset, newKeyword,
-            firstToken, firstPeriod, secondToken, secondPeriod, token);
+        parseOneCommentReferenceRest(
+            begin, referenceOffset, newKeyword, prefix, period, token);
         return true;
       }
     } else {
       token = operatorKeyword ?? token;
       if (token.next!.isEof) {
         if (token.isIdentifier) {
-          parseOneCommentReferenceRest(begin, referenceOffset, newKeyword,
-              firstToken, firstPeriod, secondToken, secondPeriod, token);
+          parseOneCommentReferenceRest(
+              begin, referenceOffset, newKeyword, prefix, period, token);
           return true;
         }
         Keyword? keyword = token.keyword;
         if (newKeyword == null &&
-            secondToken == null &&
+            prefix == null &&
             (keyword == Keyword.THIS ||
                 keyword == Keyword.NULL ||
                 keyword == Keyword.TRUE ||
@@ -8440,10 +8421,8 @@ class Parser {
       Token begin,
       int referenceOffset,
       Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
+      Token? prefix,
+      Token? period,
       Token identifierOrOperator) {
     // Adjust the token offsets to match the enclosing comment token.
     Token token = begin;
@@ -8452,8 +8431,8 @@ class Parser {
       token = token.next!;
     } while (!token.isEof);
 
-    listener.handleCommentReference(newKeyword, firstToken, firstPeriod,
-        secondToken, secondPeriod, identifierOrOperator);
+    listener.handleCommentReference(
+        newKeyword, prefix, period, identifierOrOperator);
   }
 
   /// Given that we have just found bracketed text within the given [comment],

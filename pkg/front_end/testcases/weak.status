@@ -4,8 +4,6 @@
 
 # Status file for the weak_suite.dart test suite.
 
-dart2js/flutter_issue94561/main: SemiFuzzFailure
-dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
 dart2js/late_fields: SemiFuzzFailure
 dart2js/late_from_dill/main: SemiFuzzFailure
 dart2js/late_statics: SemiFuzzFailure
@@ -14,6 +12,7 @@ dart2js/mixin_from_opt_in/main.no_link: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
 general/error_recovery/issue_39202.crash: SemiFuzzCrash
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
+general/issue47339: SemiFuzzCrash
 general/platform_invalid_uris/main: SemiFuzzFailure
 nnbd_mixed/mixin_from_opt_in/main: SemiFuzzFailure
 nnbd_mixed/mixin_from_opt_in/main.no_link: SemiFuzzFailure
@@ -104,7 +103,6 @@ general/issue41210a: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
 general/issue44733: TypeCheckError
-general/issue47994b: RuntimeError # Assertions are not enabled
 general/issue_46886: RuntimeError
 general/micro: RuntimeError
 general/mixin_application_override: ExpectationFileMismatch # Too many errors.

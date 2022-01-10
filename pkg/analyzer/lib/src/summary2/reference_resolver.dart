@@ -376,22 +376,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitSuperFormalParameter(SuperFormalParameter node) {
-    var outerScope = scope;
-
-    var element = node.declaredElement as SuperFormalParameterElementImpl;
-
-    scope = TypeParameterScope(scope, element.typeParameters);
-
-    node.type?.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters?.accept(this);
-    nodesToBuildType.addDeclaration(node);
-
-    scope = outerScope;
-  }
-
-  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     node.variables.accept(this);
   }

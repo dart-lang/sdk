@@ -738,7 +738,7 @@ void f(var a) {
   }
 
   Future<void> test_createChange_MethodElement_potential_inPubCache() async {
-    var externalPath = '$packagesRootPath/aaa/lib/lib.dart';
+    var externalPath = '/.pub-cache/aaa/lib/lib.dart';
     newFile(externalPath, content: r'''
 processObj(p) {
   p.test();
@@ -747,7 +747,7 @@ processObj(p) {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$packagesRootPath/aaa'),
+        ..add(name: 'aaa', rootPath: '/.pub-cache/aaa/'),
     );
 
     await indexTestUnit('''

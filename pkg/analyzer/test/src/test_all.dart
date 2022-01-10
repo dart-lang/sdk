@@ -4,7 +4,6 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'clients/test_all.dart' as clients;
 import 'context/test_all.dart' as context;
 import 'dart/test_all.dart' as dart;
 import 'dartdoc/test_all.dart' as dartdoc;
@@ -26,7 +25,6 @@ import 'workspace/test_all.dart' as workspace;
 
 main() {
   defineReflectiveSuite(() {
-    clients.main();
     context.main();
     dart.main();
     dartdoc.main();

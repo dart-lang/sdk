@@ -20,7 +20,7 @@ beginCompilationUnit(class)
     // WARNING: Reporting at eof for .
     handleIdentifier(, classOrMixinDeclaration)
     handleNoTypeVariables()
-    beginClassDeclaration(class, null, null, )
+    beginClassDeclaration(class, null, )
       handleNoType()
       handleClassExtends(null, 1)
       handleClassNoWithClause()

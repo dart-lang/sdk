@@ -9,12 +9,6 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class ReplaceReturnTypeFuture extends CorrectionProducer {
-  /// The text for the type argument to 'Future'.
-  String _typeArgument = '';
-
-  @override
-  List<Object>? get fixArguments => [_typeArgument];
-
   @override
   FixKind get fixKind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
 
@@ -25,7 +19,6 @@ class ReplaceReturnTypeFuture extends CorrectionProducer {
     if (typeAnnotation == null) {
       return;
     }
-    _typeArgument = utils.getNodeText(typeAnnotation);
 
     await builder.addDartFileEdit(file, (builder) {
       builder.replaceTypeWithFuture(typeAnnotation, typeProvider);

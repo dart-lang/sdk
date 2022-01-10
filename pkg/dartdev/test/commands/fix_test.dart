@@ -26,7 +26,7 @@ void defineFix() {
 
   setUp(() => p = null);
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() => p?.dispose());
 
   void assertResult({int exitCode = 0}) {
     String message;

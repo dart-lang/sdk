@@ -15,9 +15,9 @@ class C extends core::Object {
     }
     return self::C::_#s;
   }
-  static set s(core::String? s#param) → void {
+  static set s(core::String? #t1) → void {
     self::C::_#s#isSet = true;
-    self::C::_#s = s#param;
+    self::C::_#s = #t1;
   }
 }
 static field core::bool _called = false;

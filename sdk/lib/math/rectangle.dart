@@ -11,7 +11,7 @@ part of dart.math;
 /// computer graphics.
 ///
 /// See also:
-///    [W3C Coordinate Systems Specification](https://www.w3.org/TR/SVG/coords.html#InitialCoordinateSystem).
+///    [W3C Coordinate Systems Specification](http://www.w3.org/TR/SVG/coords.html#InitialCoordinateSystem).
 ///
 /// The rectangle is the set of points with representable coordinates greater
 /// than or equal to left/top, and with distance to left/top no greater than
@@ -135,15 +135,6 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
   ///
   /// If `width` and `height` are zero, the "rectangle" comprises only the
   /// single point `(left, top)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// var rectangle = const Rectangle(20, 50, 300, 600);
-  /// print(rectangle.left); // 20
-  /// print(rectangle.top); // 50
-  /// print(rectangle.right); // 320
-  /// print(rectangle.bottom); // 650
-  /// ```
   const Rectangle(this.left, this.top, T width, T height)
       : width = (width < 0)
             ? (width == double.negativeInfinity ? 0.0 : (-width * 0)) as dynamic
@@ -163,19 +154,6 @@ class Rectangle<T extends num> extends _RectangleBase<T> {
   /// (which can happen if one or both is a double),
   /// the actual right edge might be slightly off from `max(a.x, b.x)`.
   /// Similar for the y-coordinates and the bottom edge.
-  ///
-  /// Example:
-  /// ```dart
-  /// var leftTop = const Point(20, 50);
-  /// var rightBottom = const Point(300, 600);
-  ///
-  /// var rectangle = Rectangle.fromPoints(leftTop, rightBottom);
-  /// print(rectangle); // Rectangle (20, 50) 280 x 550
-  /// print(rectangle.left); // 20
-  /// print(rectangle.top); // 50
-  /// print(rectangle.right); // 300
-  /// print(rectangle.bottom); // 600
-  /// ```
   factory Rectangle.fromPoints(Point<T> a, Point<T> b) {
     T left = min(a.x, b.x);
     T width = (max(a.x, b.x) - left) as T;
@@ -213,26 +191,6 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
   ///
   /// If `width` and `height` are zero, the "rectangle" comprises only the
   /// single point `(left, top)`.
-  ///
-  /// Example:
-  /// ```dart
-  /// var rectangle = MutableRectangle(20, 50, 300, 600);
-  /// print(rectangle); // Rectangle (20, 50) 300 x 600
-  /// print(rectangle.left); // 20
-  /// print(rectangle.top); // 50
-  /// print(rectangle.right); // 320
-  /// print(rectangle.bottom); // 650
-  ///
-  /// // Change rectangle width and height.
-  /// rectangle.width = 200;
-  /// rectangle.height = 100;
-  ///
-  /// print(rectangle); // Rectangle (20, 50) 200 x 100
-  /// print(rectangle.left); // 20
-  /// print(rectangle.top); // 50
-  /// print(rectangle.right); // 220
-  /// print(rectangle.bottom); // 150
-  /// ```
   MutableRectangle(this.left, this.top, T width, T height)
       : this._width =
             (width < 0) ? _clampToZero<T>(width) : (width + 0 as dynamic),
@@ -249,18 +207,6 @@ class MutableRectangle<T extends num> extends _RectangleBase<T>
   /// (which can happen if one or both is a double),
   /// the actual right edge might be slightly off from `max(a.x, b.x)`.
   /// Similar for the y-coordinates and the bottom edge.
-  ///
-  /// Example:
-  /// ```dart
-  /// var leftTop = const Point(20, 50);
-  /// var rightBottom = const Point(300, 600);
-  /// var rectangle = MutableRectangle.fromPoints(leftTop, rightBottom);
-  /// print(rectangle); // Rectangle (20, 50) 280 x 550
-  /// print(rectangle.left); // 20
-  /// print(rectangle.top); // 50
-  /// print(rectangle.right); // 300
-  /// print(rectangle.bottom); // 600
-  /// ```
   factory MutableRectangle.fromPoints(Point<T> a, Point<T> b) {
     T left = min(a.x, b.x);
     T width = (max(a.x, b.x) - left) as T;

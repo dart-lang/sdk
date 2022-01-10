@@ -63,9 +63,9 @@ multiMapIndex() {
   var a = {
     'a': {'b': 0}
   };
-  return a /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Dictionary([null|exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]}), map: {a: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]})})*/
+  return a /*Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Dictionary([null|subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]}), map: {a: Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]})})*/
               ['a']
-          /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]})*/
+          /*Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|exact=JSUInt31], map: {b: [exact=JSUInt31]})*/
           ['b']
       . /*invoke: [exact=JSUInt31]*/
       abs();
@@ -77,9 +77,9 @@ multiMapIndexCall() {
   var a = {
     'a': {'b': closure}
   };
-  return a /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Dictionary([null|exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]}), map: {a: Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]})})*/
+  return a /*Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Dictionary([null|subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]}), map: {a: Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]})})*/
           ['a']
-      /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]})*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "b"), value: [null|subclass=Closure], map: {b: [subclass=Closure]})*/
       ['b'](d: 0);
 }
 
@@ -89,7 +89,7 @@ multiMapListIndexCall() {
   var a = {
     'a': [closure]
   };
-  return a /*Dictionary([exact=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1), map: {a: Container([exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
+  return a /*Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "a"), value: Container([null|exact=JSExtendableArray], element: [subclass=Closure], length: 1), map: {a: Container([exact=JSExtendableArray], element: [subclass=Closure], length: 1)})*/
           ['a']
       /*Container([exact=JSExtendableArray], element: [subclass=Closure], length: 1)*/
       [0](d: 0);

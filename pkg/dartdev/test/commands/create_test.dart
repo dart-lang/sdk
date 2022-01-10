@@ -21,7 +21,7 @@ void defineCreateTests() {
 
   setUp(() => p = null);
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() => p?.dispose());
 
   test('--help', () async {
     p = project();

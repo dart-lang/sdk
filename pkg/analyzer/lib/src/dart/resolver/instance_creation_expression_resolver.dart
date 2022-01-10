@@ -88,9 +88,7 @@ class InstanceCreationExpressionResolver {
         // Fix up the parameter elements based on inferred method.
         arguments.correspondingStaticParameters =
             ResolverVisitor.resolveArgumentsToParameters(
-          argumentList: arguments,
-          parameters: inferred.parameters,
-        );
+                arguments, inferred.parameters, null);
 
         constructorName.type2.type = inferred.returnType;
 

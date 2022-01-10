@@ -8,9 +8,9 @@ static method main() → dynamic {
   lowered final core::int? #lateLocal;
   function #lateLocal#get() → core::int
     return let final core::int? #t1 = #lateLocal in #t1 == null ?{core::int} throw new _in::LateError::localNI("lateLocal") : #t1{core::int};
-  function #lateLocal#set(core::int lateLocal#param) → dynamic
+  function #lateLocal#set(core::int #t2) → dynamic
     if(#lateLocal == null)
-      return #lateLocal = lateLocal#param;
+      return #lateLocal = #t2;
     else
       throw new _in::LateError::localAI("lateLocal");
   if(b) {
@@ -27,12 +27,12 @@ static method main() → dynamic {
     lowered core::bool #lateGenericLocal#isSet = false;
     function #lateGenericLocal#get() → T%
       return #lateGenericLocal#isSet ?{T%} #lateGenericLocal{T%} : throw new _in::LateError::localNI("lateGenericLocal");
-    function #lateGenericLocal#set(T% lateGenericLocal#param) → dynamic
+    function #lateGenericLocal#set(T% #t3) → dynamic
       if(#lateGenericLocal#isSet)
         throw new _in::LateError::localAI("lateGenericLocal");
       else {
         #lateGenericLocal#isSet = true;
-        return #lateGenericLocal = lateGenericLocal#param;
+        return #lateGenericLocal = #t3;
       }
     if(b) {
       #lateGenericLocal#set(value){(T%) → dynamic};

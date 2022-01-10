@@ -19,11 +19,7 @@ class TopLevelDeclarations {
     return analysisContext as DriverBasedAnalysisContext;
   }
 
-  /// Return the mapping from a library (that is available to this context) to
-  /// a top-level declaration that is exported (not necessary declared) by this
-  /// library, and has the requested base name. For getters and setters the
-  /// corresponding top-level variable is returned.
-  Future<Map<LibraryElement, Element>> withName(String baseName) async {
+  Future<Map<LibraryElement, List<Element>>> withName(String name) async {
     var analysisDriver = _analysisContext.driver;
     await analysisDriver.discoverAvailableFiles();
 
@@ -32,7 +28,7 @@ class TopLevelDeclarations {
       fsState.getFileForPath(resolvedUnit.path),
     );
 
-    var result = <LibraryElement, Element>{};
+    var result = <LibraryElement, List<Element>>{};
 
     for (var file in fsState.knownFiles.toList()) {
       if (!filter.shouldInclude(file)) {
@@ -44,28 +40,25 @@ class TopLevelDeclarations {
         continue;
       }
 
-      addElement(result, libraryElement, baseName);
+      addElement(result, libraryElement, name);
     }
 
     return result;
   }
 
   static void addElement(
-    Map<LibraryElement, Element> result,
+    Map<LibraryElement, List<Element>> result,
     LibraryElement libraryElement,
-    String baseName,
+    String name,
   ) {
-    void addSingle(String name) {
-      var element = libraryElement.exportNamespace.get(name);
+    var exportNamespace = libraryElement.exportNamespace;
+    var element = exportNamespace.get(name);
+    if (element != null) {
+      // TODO(scheglov) Separate getters and setters.
       if (element is PropertyAccessorElement) {
         element = element.variable;
       }
-      if (element != null) {
-        result[libraryElement] = element;
-      }
+      (result[libraryElement] ??= []).add(element);
     }
-
-    addSingle(baseName);
-    addSingle('$baseName=');
   }
 }

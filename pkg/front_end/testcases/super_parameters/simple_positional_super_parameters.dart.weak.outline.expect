@@ -2,31 +2,17 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class A1 extends core::Object {
+class A extends core::Object {
   final field core::int foo;
-  constructor •(core::int foo) → self::A1
+  constructor •(core::int foo) → self::A
     ;
 }
-class B1 extends self::A1 {
-  constructor •(core::int foo) → self::B1
+class B extends self::A {
+  constructor •(dynamic foo) → self::B
     ;
 }
-class C1 extends self::A1 {
-  constructor •(core::int foo) → self::C1
-    ;
-}
-class A2 extends core::Object {
-  final field core::int foo;
-  final field core::String bar;
-  constructor •(core::int foo, core::String bar) → self::A2
-    ;
-}
-class B2 extends self::A2 {
-  constructor •() → self::B2
-    ;
-}
-class C2 extends self::A2 {
-  constructor •(core::int foo) → self::C2
+class C extends self::A {
+  constructor •(dynamic foo) → self::C
     ;
 }
 static method main() → dynamic

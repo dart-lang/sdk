@@ -49,18 +49,24 @@ class InheritanceDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    new InheritanceDataExtractor(testResultData, actualMap)
+    new InheritanceDataExtractor(config, compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    new InheritanceDataExtractor(testResultData, actualMap)
+    new InheritanceDataExtractor(config, compilerResult, actualMap)
         .computeForClass(cls);
   }
 
@@ -68,8 +74,8 @@ class InheritanceDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   @override
-  String computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+  String computeErrorData(TestConfig config, InternalCompilerResult compiler,
+      Id id, List<FormattedMessage> errors) {
     return errorsToText(errors, useCodes: true);
   }
 
@@ -78,15 +84,12 @@ class InheritanceDataComputer extends DataComputer<String> {
 }
 
 class InheritanceDataExtractor extends CfeDataExtractor<String> {
-  final TestResultData _testResultData;
+  final TestConfig _config;
+  final InternalCompilerResult _compilerResult;
 
   InheritanceDataExtractor(
-      this._testResultData, Map<Id, ActualData<String>> actualMap)
-      : super(_testResultData.compilerResult, actualMap);
-
-  TestConfig get _config => _testResultData.config;
-
-  InternalCompilerResult get _compilerResult => _testResultData.compilerResult;
+      this._config, this._compilerResult, Map<Id, ActualData<String>> actualMap)
+      : super(_compilerResult, actualMap);
 
   ClassHierarchy get _hierarchy => _compilerResult.classHierarchy!;
 

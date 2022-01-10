@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
+// @dart = 2.9
 
+import 'dart:collection';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-
 import 'constants.dart';
 import 'kernel_helpers.dart';
 import 'target.dart' show allowedNativeTest;
@@ -154,11 +154,11 @@ class NativeTypeSet {
     return const [];
   }
 
-  /// If this [annotation] is `@Native` or `@JsPeerInterface`, returns the
-  /// "name" field (which is also the constructor parameter).
-  String? _getNativeAnnotationName(Expression annotation) {
+  /// If this [annotation] is `@Native` or `@JsPeerInterface`, returns the "name"
+  /// field (which is also the constructor parameter).
+  String _getNativeAnnotationName(Expression annotation) {
     if (!_isNativeAnnotation(annotation)) return null;
-    return constants.getFieldValueFromAnnotation(annotation, 'name') as String?;
+    return constants.getFieldValueFromAnnotation(annotation, 'name') as String;
   }
 }
 

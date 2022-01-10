@@ -17,33 +17,33 @@ class Class extends core::Object {
     ;
   get field1() → core::int
     return this.{self::Class::_#Class#field1#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::Class::_#Class#field1}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("field1");
-  set field1(core::int field1#param) → void {
+  set field1(core::int #t2) → void {
     this.{self::Class::_#Class#field1#isSet} = true;
-    this.{self::Class::_#Class#field1} = field1#param;
+    this.{self::Class::_#Class#field1} = #t2;
   }
   get field2() → core::int
-    return this.{self::Class::_#Class#field2#isSet}{core::bool} ?{core::int} let final core::int? #t2 = this.{self::Class::_#Class#field2}{core::int?} in #t2{core::int} : throw new _in::LateError::fieldNI("field2");
-  set field2(core::int field2#param) → void {
+    return this.{self::Class::_#Class#field2#isSet}{core::bool} ?{core::int} let final core::int? #t3 = this.{self::Class::_#Class#field2}{core::int?} in #t3{core::int} : throw new _in::LateError::fieldNI("field2");
+  set field2(core::int #t4) → void {
     this.{self::Class::_#Class#field2#isSet} = true;
-    this.{self::Class::_#Class#field2} = field2#param;
+    this.{self::Class::_#Class#field2} = #t4;
   }
   get field3() → core::int
-    return this.{self::Class::_#Class#field3#isSet}{core::bool} ?{core::int} let final core::int? #t3 = this.{self::Class::_#Class#field3}{core::int?} in #t3{core::int} : throw new _in::LateError::fieldNI("field3");
-  set field3(core::int field3#param) → void
+    return this.{self::Class::_#Class#field3#isSet}{core::bool} ?{core::int} let final core::int? #t5 = this.{self::Class::_#Class#field3}{core::int?} in #t5{core::int} : throw new _in::LateError::fieldNI("field3");
+  set field3(core::int #t6) → void
     if(this.{self::Class::_#Class#field3#isSet}{core::bool})
       throw new _in::LateError::fieldAI("field3");
     else {
       this.{self::Class::_#Class#field3#isSet} = true;
-      this.{self::Class::_#Class#field3} = field3#param;
+      this.{self::Class::_#Class#field3} = #t6;
     }
   get field4() → core::int
-    return this.{self::Class::_#Class#field4#isSet}{core::bool} ?{core::int} let final core::int? #t4 = this.{self::Class::_#Class#field4}{core::int?} in #t4{core::int} : throw new _in::LateError::fieldNI("field4");
-  set field4(core::int field4#param) → void
+    return this.{self::Class::_#Class#field4#isSet}{core::bool} ?{core::int} let final core::int? #t7 = this.{self::Class::_#Class#field4}{core::int?} in #t7{core::int} : throw new _in::LateError::fieldNI("field4");
+  set field4(core::int #t8) → void
     if(this.{self::Class::_#Class#field4#isSet}{core::bool})
       throw new _in::LateError::fieldAI("field4");
     else {
       this.{self::Class::_#Class#field4#isSet} = true;
-      this.{self::Class::_#Class#field4} = field4#param;
+      this.{self::Class::_#Class#field4} = #t8;
     }
 }
 class SubClass extends self::Class {
@@ -59,40 +59,40 @@ class SubClass extends self::Class {
     : super self::Class::•()
     ;
   get field1() → core::int
-    return this.{self::SubClass::_#SubClass#field1#isSet}{core::bool} ?{core::int} let final core::int? #t5 = this.{self::SubClass::_#SubClass#field1}{core::int?} in #t5{core::int} : throw new _in::LateError::fieldNI("field1");
-  set field1(core::int field1#param) → void {
+    return this.{self::SubClass::_#SubClass#field1#isSet}{core::bool} ?{core::int} let final core::int? #t9 = this.{self::SubClass::_#SubClass#field1}{core::int?} in #t9{core::int} : throw new _in::LateError::fieldNI("field1");
+  set field1(core::int #t10) → void {
     this.{self::SubClass::_#SubClass#field1#isSet} = true;
-    this.{self::SubClass::_#SubClass#field1} = field1#param;
+    this.{self::SubClass::_#SubClass#field1} = #t10;
   }
   get field2() → core::int {
     if(!this.{self::SubClass::_#SubClass#field2#isSet}{core::bool}) {
       this.{self::SubClass::_#SubClass#field2} = 0;
       this.{self::SubClass::_#SubClass#field2#isSet} = true;
     }
-    return let final core::int? #t6 = this.{self::SubClass::_#SubClass#field2}{core::int?} in #t6{core::int};
+    return let final core::int? #t11 = this.{self::SubClass::_#SubClass#field2}{core::int?} in #t11{core::int};
   }
-  set field2(core::int field2#param) → void {
+  set field2(core::int #t12) → void {
     this.{self::SubClass::_#SubClass#field2#isSet} = true;
-    this.{self::SubClass::_#SubClass#field2} = field2#param;
+    this.{self::SubClass::_#SubClass#field2} = #t12;
   }
   get field3() → core::int
-    return this.{self::SubClass::_#SubClass#field3#isSet}{core::bool} ?{core::int} let final core::int? #t7 = this.{self::SubClass::_#SubClass#field3}{core::int?} in #t7{core::int} : throw new _in::LateError::fieldNI("field3");
-  set field3(core::int field3#param) → void
+    return this.{self::SubClass::_#SubClass#field3#isSet}{core::bool} ?{core::int} let final core::int? #t13 = this.{self::SubClass::_#SubClass#field3}{core::int?} in #t13{core::int} : throw new _in::LateError::fieldNI("field3");
+  set field3(core::int #t14) → void
     if(this.{self::SubClass::_#SubClass#field3#isSet}{core::bool})
       throw new _in::LateError::fieldAI("field3");
     else {
       this.{self::SubClass::_#SubClass#field3#isSet} = true;
-      this.{self::SubClass::_#SubClass#field3} = field3#param;
+      this.{self::SubClass::_#SubClass#field3} = #t14;
     }
   get field4() → core::int {
     if(!this.{self::SubClass::_#SubClass#field4#isSet}{core::bool}) {
-      final core::int #t8 = 0;
+      final core::int #t15 = 0;
       if(this.{self::SubClass::_#SubClass#field4#isSet}{core::bool})
         throw new _in::LateError::fieldADI("field4");
-      this.{self::SubClass::_#SubClass#field4} = #t8;
+      this.{self::SubClass::_#SubClass#field4} = #t15;
       this.{self::SubClass::_#SubClass#field4#isSet} = true;
     }
-    return let final core::int? #t9 = this.{self::SubClass::_#SubClass#field4}{core::int?} in #t9{core::int};
+    return let final core::int? #t16 = this.{self::SubClass::_#SubClass#field4}{core::int?} in #t16{core::int};
   }
   get directField1() → core::int
     return super.{self::Class::field1};

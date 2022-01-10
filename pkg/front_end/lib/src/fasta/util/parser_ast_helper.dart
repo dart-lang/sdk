@@ -165,13 +165,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
     ClassDeclarationBegin data = new ClassDeclarationBegin(ParserAstType.BEGIN,
-        begin: begin,
-        abstractToken: abstractToken,
-        macroToken: macroToken,
-        name: name);
+        begin: begin, abstractToken: abstractToken, name: name);
     seen(data);
   }
 
@@ -921,12 +917,11 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+      Token begin, Token? abstractToken, Token name) {
     NamedMixinApplicationBegin data = new NamedMixinApplicationBegin(
         ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
-        macroToken: macroToken,
         name: name);
     seen(data);
   }
@@ -2557,20 +2552,13 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void handleCommentReference(
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token thirdToken) {
+      Token? newKeyword, Token? prefix, Token? period, Token token) {
     CommentReferenceHandle data = new CommentReferenceHandle(
         ParserAstType.HANDLE,
         newKeyword: newKeyword,
-        firstToken: firstToken,
-        firstPeriod: firstPeriod,
-        secondToken: secondToken,
-        secondPeriod: secondPeriod,
-        thirdToken: thirdToken);
+        prefix: prefix,
+        period: period,
+        token: token);
     seen(data);
   }
 
@@ -2830,21 +2818,16 @@ class ClassOrMixinOrNamedMixinApplicationPreludeBegin extends ParserAstNode {
 class ClassDeclarationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
-  final Token? macroToken;
   final Token name;
 
   ClassDeclarationBegin(ParserAstType type,
-      {required this.begin,
-      this.abstractToken,
-      this.macroToken,
-      required this.name})
+      {required this.begin, this.abstractToken, required this.name})
       : super("ClassDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "abstractToken": abstractToken,
-        "macroToken": macroToken,
         "name": name,
       };
 }
@@ -4198,21 +4181,16 @@ class EnumNoWithClauseHandle extends ParserAstNode {
 class NamedMixinApplicationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
-  final Token? macroToken;
   final Token name;
 
   NamedMixinApplicationBegin(ParserAstType type,
-      {required this.begin,
-      this.abstractToken,
-      this.macroToken,
-      required this.name})
+      {required this.begin, this.abstractToken, required this.name})
       : super("NamedMixinApplication", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "begin": begin,
         "abstractToken": abstractToken,
-        "macroToken": macroToken,
         "name": name,
       };
 }
@@ -7138,29 +7116,20 @@ class CommentReferenceTextHandle extends ParserAstNode {
 
 class CommentReferenceHandle extends ParserAstNode {
   final Token? newKeyword;
-  final Token? firstToken;
-  final Token? firstPeriod;
-  final Token? secondToken;
-  final Token? secondPeriod;
-  final Token thirdToken;
+  final Token? prefix;
+  final Token? period;
+  final Token token;
 
   CommentReferenceHandle(ParserAstType type,
-      {this.newKeyword,
-      this.firstToken,
-      this.firstPeriod,
-      this.secondToken,
-      this.secondPeriod,
-      required this.thirdToken})
+      {this.newKeyword, this.prefix, this.period, required this.token})
       : super("CommentReference", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "newKeyword": newKeyword,
-        "firstToken": firstToken,
-        "firstPeriod": firstPeriod,
-        "secondToken": secondToken,
-        "secondPeriod": secondPeriod,
-        "thirdToken": thirdToken,
+        "prefix": prefix,
+        "period": period,
+        "token": token,
       };
 }
 

@@ -131,7 +131,7 @@ Stream<Future> asyncStarThrowAsync() async* {
 
 Future listenAsyncStarThrowAsync() async {
   // Listening to an async* doesn't create the usual await-for StreamIterator.
-  StreamSubscription ss = asyncStarThrowAsync().listen((Future f) => 42);
+  StreamSubscription ss = asyncStarThrowAsync().listen((Future f) {});
   await ss.asFuture();
 }
 

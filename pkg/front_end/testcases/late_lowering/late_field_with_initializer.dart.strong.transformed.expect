@@ -16,42 +16,42 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     ;
   static get lateStaticField1() → core::int
     return let final core::int? #t1 = self::Class::_#lateStaticField1 in #t1 == null ?{core::int} self::Class::_#lateStaticField1 = 87 : #t1{core::int};
-  static set lateStaticField1(core::int lateStaticField1#param) → void
-    self::Class::_#lateStaticField1 = lateStaticField1#param;
+  static set lateStaticField1(core::int #t2) → void
+    self::Class::_#lateStaticField1 = #t2;
   static get lateStaticField2() → core::int
-    return let final core::int? #t2 = self::Class::_#lateStaticField2 in #t2 == null ?{core::int} self::Class::_#lateStaticField2 = 42 : #t2{core::int};
-  static set lateStaticField2(core::int lateStaticField2#param) → void
-    self::Class::_#lateStaticField2 = lateStaticField2#param;
+    return let final core::int? #t3 = self::Class::_#lateStaticField2 in #t3 == null ?{core::int} self::Class::_#lateStaticField2 = 42 : #t3{core::int};
+  static set lateStaticField2(core::int #t4) → void
+    self::Class::_#lateStaticField2 = #t4;
   static method staticMethod() → dynamic {
     self::expect(42, self::Class::lateStaticField2);
     self::Class::lateStaticField2 = 43;
     self::expect(43, self::Class::lateStaticField2);
   }
   get lateInstanceField() → core::int
-    return let final core::int? #t3 = this.{self::Class::_#Class#lateInstanceField}{core::int?} in #t3 == null ?{core::int} this.{self::Class::_#Class#lateInstanceField} = 16 : #t3{core::int};
-  set lateInstanceField(core::int lateInstanceField#param) → void
-    this.{self::Class::_#Class#lateInstanceField} = lateInstanceField#param;
+    return let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField}{core::int?} in #t5 == null ?{core::int} this.{self::Class::_#Class#lateInstanceField} = 16 : #t5{core::int};
+  set lateInstanceField(core::int #t6) → void
+    this.{self::Class::_#Class#lateInstanceField} = #t6;
   get lateGenericField1() → self::Class::T% {
     if(!this.{self::Class::_#Class#lateGenericField1#isSet}{core::bool}) {
       this.{self::Class::_#Class#lateGenericField1} = this.{self::Class::field}{self::Class::T%};
       this.{self::Class::_#Class#lateGenericField1#isSet} = true;
     }
-    return let final self::Class::T? #t4 = this.{self::Class::_#Class#lateGenericField1}{self::Class::T?} in #t4{self::Class::T%};
+    return let final self::Class::T? #t7 = this.{self::Class::_#Class#lateGenericField1}{self::Class::T?} in #t7{self::Class::T%};
   }
-  set lateGenericField1(covariant-by-class self::Class::T% lateGenericField1#param) → void {
+  set lateGenericField1(covariant-by-class self::Class::T% #t8) → void {
     this.{self::Class::_#Class#lateGenericField1#isSet} = true;
-    this.{self::Class::_#Class#lateGenericField1} = lateGenericField1#param;
+    this.{self::Class::_#Class#lateGenericField1} = #t8;
   }
   get lateGenericField2() → self::Class::T% {
     if(!this.{self::Class::_#Class#lateGenericField2#isSet}{core::bool}) {
       this.{self::Class::_#Class#lateGenericField2} = this.{self::Class::field}{self::Class::T%};
       this.{self::Class::_#Class#lateGenericField2#isSet} = true;
     }
-    return let final self::Class::T? #t5 = this.{self::Class::_#Class#lateGenericField2}{self::Class::T?} in #t5{self::Class::T%};
+    return let final self::Class::T? #t9 = this.{self::Class::_#Class#lateGenericField2}{self::Class::T?} in #t9{self::Class::T%};
   }
-  set lateGenericField2(covariant-by-class self::Class::T% lateGenericField2#param) → void {
+  set lateGenericField2(covariant-by-class self::Class::T% #t10) → void {
     this.{self::Class::_#Class#lateGenericField2#isSet} = true;
-    this.{self::Class::_#Class#lateGenericField2} = lateGenericField2#param;
+    this.{self::Class::_#Class#lateGenericField2} = #t10;
   }
   method instanceMethod(covariant-by-class self::Class::T% value) → dynamic {
     self::expect(16, this.{self::Class::lateInstanceField}{core::int});
@@ -77,17 +77,17 @@ static field core::int? _#lateTopLevelField1 = null;
 static field core::int? _#Extension|lateExtensionField1 = null;
 static field core::int? _#Extension|lateExtensionField2 = null;
 static get lateTopLevelField1() → core::int
-  return let final core::int? #t6 = self::_#lateTopLevelField1 in #t6 == null ?{core::int} self::_#lateTopLevelField1 = 123 : #t6{core::int};
-static set lateTopLevelField1(core::int lateTopLevelField1#param) → void
-  self::_#lateTopLevelField1 = lateTopLevelField1#param;
+  return let final core::int? #t11 = self::_#lateTopLevelField1 in #t11 == null ?{core::int} self::_#lateTopLevelField1 = 123 : #t11{core::int};
+static set lateTopLevelField1(core::int #t12) → void
+  self::_#lateTopLevelField1 = #t12;
 static get Extension|lateExtensionField1() → core::int
-  return let final core::int? #t7 = self::_#Extension|lateExtensionField1 in #t7 == null ?{core::int} self::_#Extension|lateExtensionField1 = 87 : #t7{core::int};
-static set Extension|lateExtensionField1(core::int Extension|lateExtensionField1#param) → void
-  self::_#Extension|lateExtensionField1 = Extension|lateExtensionField1#param;
+  return let final core::int? #t13 = self::_#Extension|lateExtensionField1 in #t13 == null ?{core::int} self::_#Extension|lateExtensionField1 = 87 : #t13{core::int};
+static set Extension|lateExtensionField1(core::int #t14) → void
+  self::_#Extension|lateExtensionField1 = #t14;
 static get Extension|lateExtensionField2() → core::int
-  return let final core::int? #t8 = self::_#Extension|lateExtensionField2 in #t8 == null ?{core::int} self::_#Extension|lateExtensionField2 = 42 : #t8{core::int};
-static set Extension|lateExtensionField2(core::int Extension|lateExtensionField2#param) → void
-  self::_#Extension|lateExtensionField2 = Extension|lateExtensionField2#param;
+  return let final core::int? #t15 = self::_#Extension|lateExtensionField2 in #t15 == null ?{core::int} self::_#Extension|lateExtensionField2 = 42 : #t15{core::int};
+static set Extension|lateExtensionField2(core::int #t16) → void
+  self::_#Extension|lateExtensionField2 = #t16;
 static method Extension|staticMethod() → dynamic {
   self::expect(42, self::Extension|lateExtensionField2);
   self::Extension|lateExtensionField2 = 43;

@@ -2,24 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macro_builder/macro_builder.dart';
 
-macro class Macro1 implements Macro {
+class Macro1 implements Macro {
   const Macro1();
-
-  const Macro1.named();
 }
 
-macro class Macro2 implements Macro {
+class Macro2 implements Macro {
   const Macro2();
-
-  const Macro2.named();
 }
 
-macro class Macro3<T> implements Macro {
+class Macro3 implements Macro {
   const Macro3();
-
-  const Macro3.named();
 }
 
 class NonMacro {

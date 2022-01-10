@@ -13,21 +13,21 @@ class A extends core::Object {
     ;
   get x() → core::int
     return this.{self::A::_#A#x#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::A::_#A#x}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("x");
-  set x(core::int x#param) → void
+  set x(core::int #t2) → void
     if(this.{self::A::_#A#x#isSet}{core::bool})
       throw new _in::LateError::fieldAI("x");
     else {
       this.{self::A::_#A#x#isSet} = true;
-      this.{self::A::_#A#x} = x#param;
+      this.{self::A::_#A#x} = #t2;
     }
   get y() → core::int?
     return this.{self::A::_#A#y#isSet}{core::bool} ?{core::int?} this.{self::A::_#A#y}{core::int?} : throw new _in::LateError::fieldNI("y");
-  set y(core::int? y#param) → void
+  set y(core::int? #t3) → void
     if(this.{self::A::_#A#y#isSet}{core::bool})
       throw new _in::LateError::fieldAI("y");
     else {
       this.{self::A::_#A#y#isSet} = true;
-      this.{self::A::_#A#y} = y#param;
+      this.{self::A::_#A#y} = #t3;
     }
 }
 class B extends self::A {
@@ -49,20 +49,20 @@ class C extends self::A {
     ;
   get x() → core::int {
     if(!this.{self::C::_#C#x#isSet}{core::bool}) {
-      final core::int #t2 = 2;
+      final core::int #t4 = 2;
       if(this.{self::C::_#C#x#isSet}{core::bool})
         throw new _in::LateError::fieldADI("x");
-      this.{self::C::_#C#x} = #t2;
+      this.{self::C::_#C#x} = #t4;
       this.{self::C::_#C#x#isSet} = true;
     }
-    return let final core::int? #t3 = this.{self::C::_#C#x}{core::int?} in #t3{core::int};
+    return let final core::int? #t5 = this.{self::C::_#C#x}{core::int?} in #t5{core::int};
   }
   get y() → core::int? {
     if(!this.{self::C::_#C#y#isSet}{core::bool}) {
-      final core::int? #t4 = 2;
+      final core::int? #t6 = 2;
       if(this.{self::C::_#C#y#isSet}{core::bool})
         throw new _in::LateError::fieldADI("y");
-      this.{self::C::_#C#y} = #t4;
+      this.{self::C::_#C#y} = #t6;
       this.{self::C::_#C#y#isSet} = true;
     }
     return this.{self::C::_#C#y}{core::int?};

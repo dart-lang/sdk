@@ -60,7 +60,7 @@ class DartFixContextImpl implements DartFixContext {
       this.resolveResult, this.error);
 
   @override
-  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
+  Future<Map<LibraryElement, List<Element>>> getTopLevelDeclarations(
       String name) async {
     return TopLevelDeclarations(resolveResult).withName(name);
   }
@@ -212,16 +212,6 @@ class DartFixKind {
     'dart.fix.add.required.multi',
     DartFixKindPriority.IN_FILE,
     "Add 'required' keywords everywhere in file",
-  );
-  static const ADD_RETURN_NULL = FixKind(
-    'dart.fix.add.returnNull',
-    DartFixKindPriority.DEFAULT,
-    "Add 'return null'",
-  );
-  static const ADD_RETURN_NULL_MULTI = FixKind(
-    'dart.fix.add.returnNull.multi',
-    DartFixKindPriority.IN_FILE,
-    "Add 'return null' everywhere in file",
   );
   static const ADD_RETURN_TYPE = FixKind(
     'dart.fix.add.returnType',
@@ -1261,17 +1251,7 @@ class DartFixKind {
   static const REPLACE_RETURN_TYPE_FUTURE = FixKind(
     'dart.fix.replace.returnTypeFuture',
     DartFixKindPriority.DEFAULT,
-    "Return 'Future<{0}>'",
-  );
-  static const REPLACE_RETURN_TYPE_ITERABLE = FixKind(
-    'dart.fix.replace.returnTypeIterable',
-    DartFixKindPriority.DEFAULT,
-    "Return 'Iterable<{0}>'",
-  );
-  static const REPLACE_RETURN_TYPE_STREAM = FixKind(
-    'dart.fix.replace.returnTypeStream',
-    DartFixKindPriority.DEFAULT,
-    "Return 'Stream<{0}>'",
+    "Return 'Future' from 'async' function",
   );
   static const REPLACE_CONTAINER_WITH_SIZED_BOX = FixKind(
     'dart.fix.replace.containerWithSizedBox',

@@ -61,11 +61,8 @@ class _List<E> extends FixedLengthListBase<E> {
   factory _List._ofGrowableList(_GrowableList<E> elements) {
     final int length = elements.length;
     final list = _List<E>(length);
-    // TODO(30102): Remove this loop zero-trip guard.
-    if (length > 0) {
-      for (int i = 0; i < length; i++) {
-        list[i] = elements[i];
-      }
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
     }
     return list;
   }
@@ -73,11 +70,8 @@ class _List<E> extends FixedLengthListBase<E> {
   factory _List._ofList(_List<E> elements) {
     final int length = elements.length;
     final list = _List<E>(length);
-    // TODO(30102): Remove this loop zero-trip guard.
-    if (length > 0) {
-      for (int i = 0; i < length; i++) {
-        list[i] = elements[i];
-      }
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
     }
     return list;
   }
@@ -85,11 +79,8 @@ class _List<E> extends FixedLengthListBase<E> {
   factory _List._ofImmutableList(_ImmutableList<E> elements) {
     final int length = elements.length;
     final list = _List<E>(length);
-    // TODO(30102): Remove this loop zero-trip guard.
-    if (length > 0) {
-      for (int i = 0; i < length; i++) {
-        list[i] = elements[i];
-      }
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
     }
     return list;
   }

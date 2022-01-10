@@ -1074,18 +1074,35 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         arguments.positional[positionalIndex++].accept(this);
         builtArguments.add(pop());
       } else {
-        builtArguments.add(_defaultValueForParameter(member, parameter));
+        ConstantValue constantValue = _elementMap.getConstantValue(
+            member, parameter.initializer,
+            implicitNull: true);
+        assert(
+            constantValue != null,
+            failedAt(_elementMap.getMethod(function.parent),
+                'No constant computed for $parameter'));
+        builtArguments.add(graph.addConstant(constantValue, closedWorld));
       }
     });
-    // Evaluate named arguments in given order.
-    Map<String, HInstruction> namedArguments = _visitNamedArguments(arguments);
-    // And add them to `builtArguments` in calling-convention order.
     function.namedParameters.toList()
       ..sort(namedOrdering)
       ..forEach((ir.VariableDeclaration parameter) {
-        var argument = namedArguments[parameter.name];
-        argument ??= _defaultValueForParameter(member, parameter);
-        builtArguments.add(argument);
+        var correspondingNamed = arguments.named.firstWhere(
+            (named) => named.name == parameter.name,
+            orElse: () => null);
+        if (correspondingNamed != null) {
+          correspondingNamed.value.accept(this);
+          builtArguments.add(pop());
+        } else {
+          ConstantValue constantValue = _elementMap.getConstantValue(
+              member, parameter.initializer,
+              implicitNull: true);
+          assert(
+              constantValue != null,
+              failedAt(_elementMap.getMethod(function.parent),
+                  'No constant computed for $parameter'));
+          builtArguments.add(graph.addConstant(constantValue, closedWorld));
+        }
       });
 
     return builtArguments;
@@ -3569,8 +3586,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
   }
 
-  /// Generate instructions to evaluate the positional arguments in source
-  /// order.
+  /// Extracts the list of instructions for the positional subset of arguments.
   List<HInstruction> _visitPositionalArguments(ir.Arguments arguments) {
     List<HInstruction> result = [];
     for (ir.Expression argument in arguments.positional) {
@@ -3578,17 +3594,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       result.add(pop());
     }
     return result;
-  }
-
-  /// Generate instructions to evaluate the named arguments in source order.
-  /// Returns a fresh map from parameter name to evaluated argument.
-  Map<String, HInstruction> _visitNamedArguments(ir.Arguments arguments) {
-    Map<String, HInstruction> values = {};
-    for (ir.NamedExpression argument in arguments.named) {
-      argument.value.accept(this);
-      values[argument.name] = pop();
-    }
-    return values;
   }
 
   /// Builds the list of instructions for the expressions in the arguments to a
@@ -3601,7 +3606,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     List<HInstruction> values = _visitPositionalArguments(arguments);
 
     if (arguments.named.isNotEmpty) {
-      Map<String, HInstruction> namedValues = _visitNamedArguments(arguments);
+      Map<String, HInstruction> namedValues = {};
+      for (ir.NamedExpression argument in arguments.named) {
+        argument.value.accept(this);
+        namedValues[argument.name] = pop();
+      }
       for (String name in selector.callStructure.getOrderedNamedArguments()) {
         values.add(namedValues[name]);
       }
@@ -3629,7 +3638,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       if (function is ConstructorEntity && function.isFactoryConstructor) {
         // TODO(sra): Have a "CompiledArguments" structure to just update with
         // what values we have rather than creating a map and de-populating it.
-        Map<String, HInstruction> namedValues = _visitNamedArguments(arguments);
+        Map<String, HInstruction> namedValues = {};
+        for (ir.NamedExpression argument in arguments.named) {
+          argument.value.accept(this);
+          namedValues[argument.name] = pop();
+        }
 
         // Visit named arguments in parameter-position order, selecting provided
         // or default value.
@@ -3706,7 +3719,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     }
 
     if (parameterStructure.namedParameters.isNotEmpty) {
-      Map<String, HInstruction> namedValues = _visitNamedArguments(arguments);
+      Map<String, HInstruction> namedValues = {};
+      for (ir.NamedExpression argument in arguments.named) {
+        argument.value.accept(this);
+        namedValues[argument.name] = pop();
+      }
 
       // Visit named arguments in parameter-position order, selecting provided
       // or default value.

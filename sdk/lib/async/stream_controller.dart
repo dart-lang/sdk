@@ -18,54 +18,12 @@ typedef FutureOr<void> ControllerCancelCallback();
 ///
 /// This controller allows sending data, error and done events on
 /// its [stream].
-///
 /// This class can be used to create a simple stream that others
 /// can listen on, and to push events to that stream.
 ///
 /// It's possible to check whether the stream is paused or not, and whether
 /// it has subscribers or not, as well as getting a callback when either of
 /// these change.
-///
-/// Example:
-/// ```dart
-/// final streamController = StreamController(
-///   onPause: () => print('Paused'),
-///   onResume: () => print('Resumed'),
-///   onCancel: () => print('Cancelled'),
-///   onListen: () => print('Listens'),
-/// );
-///
-/// streamController.stream.listen(
-///   (event) => print('Event: $event'),
-///   onDone: () => print('Done'),
-///   onError: (error) => print(error),
-/// );
-/// ```
-/// To check whether there is a subscriber on the stream, use [hasListener].
-/// ```dart continued
-/// var hasListener = streamController.hasListener; // true
-/// ```
-/// To send data events to the stream, use [add] or [addStream].
-/// ```dart continued
-/// streamController.add(999);
-/// final stream = Stream<int>.periodic(
-///     const Duration(milliseconds: 200), (count) => count * count).take(4);
-/// await streamController.addStream(stream);
-/// ```
-/// To send an error event to the stream, use [addError] or [addStream].
-/// ```dart continued
-/// streamController.addError(Exception('Issue 101'));
-/// await streamController.addStream(Stream.error(Exception('Issue 404')));
-/// ```
-/// To check whether the stream is closed, use [isClosed].
-/// ```dart continued
-/// var isClosed = streamController.isClosed; // false
-/// ```
-/// To close the stream, use [close].
-/// ```dart continued
-/// await streamController.close();
-/// isClosed = streamController.isClosed; // true
-/// ```
 abstract class StreamController<T> implements StreamSink<T> {
   /// The stream that this controller is controlling.
   Stream<T> get stream;
@@ -328,7 +286,7 @@ abstract class StreamController<T> implements StreamSink<T> {
 /// or microtask. This means that if it throws, the error will be reported as
 /// uncaught as soon as possible.
 /// This is one reason to add the event as the last thing in the original event
-/// handler – any action done after adding the event will delay the report of
+/// handler - any action done after adding the event will delay the report of
 /// errors in the event listener callbacks.
 ///
 /// If an event is added in a setting that isn't known to be another event,
@@ -607,6 +565,7 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
     } else {
       stackTrace ??= AsyncError.defaultStackTrace(error);
     }
+    if (stackTrace == null) throw "unreachable"; // TODO(40088)
     _addError(error, stackTrace);
   }
 

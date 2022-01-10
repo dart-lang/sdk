@@ -131,9 +131,6 @@ features:
   super-parameters:
     help: "Super-Initializer Parameters"
 
-  macros:
-    help: "Static meta-programming"
-
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

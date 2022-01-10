@@ -67,10 +67,6 @@ DEFINE_FLAG(bool,
             "Print per-phase breakdown of time spent precompiling");
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynamic targets");
 DEFINE_FLAG(bool, print_gop, false, "Print global object pool");
-DEFINE_FLAG(charp,
-            print_object_layout_to,
-            nullptr,
-            "Print layout of Dart objects to the given file");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 DEFINE_FLAG(
     int,
@@ -473,10 +469,6 @@ void Precompiler::DoCompileAll() {
       FinalizeAllClasses();
       ASSERT(Error::Handle(Z, T->sticky_error()).IsNull());
 
-      if (FLAG_print_object_layout_to != nullptr) {
-        IG->class_table()->PrintObjectLayout(FLAG_print_object_layout_to);
-      }
-
       ClassFinalizer::SortClasses();
 
       // Collects type usage information which allows us to decide when/how to
@@ -487,8 +479,10 @@ void Precompiler::DoCompileAll() {
       // as well as other type checks.
       HierarchyInfo hierarchy_info(T);
 
-      dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
-      dispatch_table_generator_->Initialize(IG->class_table());
+      if (FLAG_use_table_dispatch) {
+        dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
+        dispatch_table_generator_->Initialize(IG->class_table());
+      }
 
       // Precompile constructors to compute information such as
       // optimized instruction count (used in inlining heuristics).
@@ -1444,6 +1438,8 @@ void Precompiler::AddSelector(const String& selector) {
 }
 
 void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
+  ASSERT(FLAG_use_table_dispatch);
+
   if (is_tracing()) {
     tracer_->WriteTableSelectorRef(selector->id);
   }
@@ -1455,6 +1451,10 @@ void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
 }
 
 bool Precompiler::IsHitByTableSelector(const Function& function) {
+  if (!FLAG_use_table_dispatch) {
+    return false;
+  }
+
   const int32_t selector_id = selector_map()->SelectorId(function);
   if (selector_id == compiler::SelectorMap::kInvalidSelectorId) return false;
   return seen_table_selectors_.HasKey(selector_id);
@@ -2003,6 +2003,7 @@ void Precompiler::TraceForRetainedFunctions() {
 
 void Precompiler::FinalizeDispatchTable() {
   PRECOMPILER_TIMER_SCOPE(this, FinalizeDispatchTable);
+  if (!FLAG_use_table_dispatch) return;
   HANDLESCOPE(T);
   // Build the entries used to serialize the dispatch table before
   // dropping functions, as we may clear references to Code objects.
@@ -2453,6 +2454,11 @@ void Precompiler::TraceTypesFromRetainedClasses() {
         retain = true;
       }
       if (cls.is_allocated()) {
+        retain = true;
+      }
+      if (cls.is_enum_class()) {
+        // Enum classes have live instances, so we cannot unregister
+        // them.
         retain = true;
       }
 

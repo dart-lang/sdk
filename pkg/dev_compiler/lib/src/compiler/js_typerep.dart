@@ -1,8 +1,7 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 /// An abstraction of the JS types
+
+// @dart = 2.9
+
 abstract class JSType {
   const JSType();
 
@@ -21,7 +20,7 @@ abstract class JSType {
   bool get isFalsey;
 
   /// The JS `typeof` value, if unambiguous.
-  String? get primitiveTypeOf => null;
+  String get primitiveTypeOf => null;
 
   static const jsBoolean = JSBoolean();
   static const jsNumber = JSNumber();

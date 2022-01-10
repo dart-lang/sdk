@@ -71,30 +71,33 @@ class AnalysisDriver_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
 
     // Reference "inner" using a non-canonical URI.
     {
-      var a = newFile(convertPath('$outerLibPath/a.dart'), content: r'''
+      var path = convertPath('$outerLibPath/a.dart');
+      newFile(path, content: r'''
 import 'inner/lib/b.dart';
 ''');
-      var result = await analysisSession.getResolvedUnit(a.path);
+      var result = await analysisSession.getResolvedUnit(path);
       result as ResolvedUnitResult;
       assertInnerUri(result);
     }
 
     // Reference "inner" using the canonical URI, via relative.
     {
-      var c = newFile('$outerLibPath/inner/lib/c.dart', content: r'''
+      var path = '$outerLibPath/inner/lib/c.dart';
+      newFile(path, content: r'''
 import 'b.dart';
 ''');
-      var result = await analysisSession.getResolvedUnit(c.path);
+      var result = await analysisSession.getResolvedUnit(path);
       result as ResolvedUnitResult;
       assertInnerUri(result);
     }
 
     // Reference "inner" using the canonical URI, via absolute.
     {
-      var d = newFile('$outerLibPath/inner/lib/d.dart', content: '''
+      var path = '$outerLibPath/inner/lib/d.dart';
+      newFile(path, content: '''
 import '$innerUri';
 ''');
-      var result = await analysisSession.getResolvedUnit(d.path);
+      var result = await analysisSession.getResolvedUnit(path);
       result as ResolvedUnitResult;
       assertInnerUri(result);
     }
@@ -116,7 +119,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
   AnalysisDriver newDriver() {
     var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
-    AnalysisDriver driver = AnalysisDriver(
+    AnalysisDriver driver = AnalysisDriver.tmp1(
       scheduler: scheduler,
       logger: logger,
       resourceProvider: resourceProvider,
@@ -3425,6 +3428,10 @@ class _SourceMock implements Source {
 }
 
 extension on AnalysisDriver {
+  FileResult getFileSyncValid(String path) {
+    return getFileSync(path) as FileResult;
+  }
+
   Set<String> get loadedLibraryUriSet {
     var elementFactory = this.test.libraryContext!.elementFactory;
     var libraryReferences = elementFactory.rootReference.children;
@@ -3446,15 +3453,11 @@ extension on AnalysisDriver {
     }
   }
 
-  FileResult getFileSyncValid(String path) {
-    return getFileSync(path) as FileResult;
+  Future<ResolvedUnitResult> getResultValid(String path) async {
+    return await getResult(path) as ResolvedUnitResult;
   }
 
   Future<LibraryElementResult> getLibraryByUriValid(String uriStr) async {
     return await getLibraryByUri(uriStr) as LibraryElementResult;
-  }
-
-  Future<ResolvedUnitResult> getResultValid(String path) async {
-    return await getResult(path) as ResolvedUnitResult;
   }
 }

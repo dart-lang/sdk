@@ -328,15 +328,13 @@ abstract class _AbstractRenameParameterInTest
   /// Return the kind of element containing the parameter being renamed.
   String get _kind;
 
-  Transform _rename(List<String> components, String oldName, String newName,
-          {bool isStatic = false}) =>
+  Transform _rename(List<String> components, String oldName, String newName) =>
       Transform(
           title: 'title',
           date: DateTime.now(),
           element: ElementDescriptor(
               libraryUris: [Uri.parse(importUri)],
               kind: ElementKindUtilities.fromName(_kind)!,
-              isStatic: isStatic,
               components: components),
           bulkApply: false,
           changesSelector: UnconditionalChangesSelector([

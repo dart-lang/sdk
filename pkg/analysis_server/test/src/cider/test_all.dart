@@ -8,7 +8,6 @@ import 'assists_test.dart' as assists;
 import 'completion_test.dart' as completion;
 import 'fixes_test.dart' as fixes;
 import 'rename_test.dart' as rename;
-import 'signature_help_test.dart' as signature;
 
 void main() {
   defineReflectiveSuite(() {
@@ -16,6 +15,5 @@ void main() {
     completion.main();
     fixes.main();
     rename.main();
-    signature.main();
   });
 }

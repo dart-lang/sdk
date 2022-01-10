@@ -318,7 +318,11 @@ class _ElementWriter {
       _writeElements('fields', e.fields, _writePropertyInducingElement);
 
       var constructors = e.constructors;
-      expect(constructors, isNotEmpty);
+      if (e.isEnum) {
+        expect(constructors, isEmpty);
+      } else {
+        expect(constructors, isNotEmpty);
+      }
       _writeElements('constructors', constructors, _writeConstructorElement);
 
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
@@ -351,19 +355,6 @@ class _ElementWriter {
   void _writeConstructorElement(ConstructorElement e) {
     e as ConstructorElementImpl;
 
-    // Check that the reference exists, and filled with the element.
-    var reference = e.reference;
-    if (reference == null) {
-      fail('Every constructor must have a reference.');
-    } else {
-      var classReference = reference.parent!.parent!;
-      // We need this `if` for duplicate declarations.
-      // The reference might be filled by another declaration.
-      if (identical(classReference.element, e.enclosingElement)) {
-        expect(reference.element, same(e));
-      }
-    }
-
     _writeIndentedLine(() {
       _writeIf(e.isSynthetic, 'synthetic ');
       _writeIf(e.isExternal, 'external ');
@@ -393,13 +384,6 @@ class _ElementWriter {
         e.constantInitializers,
         _writeNode,
       );
-
-      var superConstructor = e.superConstructor;
-      if (superConstructor != null) {
-        if (!superConstructor.enclosingElement.isDartCoreObject) {
-          _writeElementReference('superConstructor', superConstructor);
-        }
-      }
 
       var redirectedConstructor = e.redirectedConstructor;
       if (redirectedConstructor != null) {
@@ -495,17 +479,6 @@ class _ElementWriter {
     });
 
     _assertNonSyntheticElementSelf(e);
-  }
-
-  void _writeFieldFormalParameterField(ParameterElement e) {
-    if (e is FieldFormalParameterElement) {
-      var field = e.field;
-      if (field != null) {
-        _writeElementReference('field', field);
-      } else {
-        _writelnWithIndent('field: <null>');
-      }
-    }
   }
 
   void _writeFunctionElement(FunctionElement e) {
@@ -652,7 +625,7 @@ class _ElementWriter {
       } else if (e.isOptionalPositional) {
         buffer.write('optionalPositional ');
       } else if (e.isRequiredNamed) {
-        buffer.write('requiredNamed ');
+        buffer.write('requiredName ');
       } else if (e.isOptionalNamed) {
         buffer.write('optionalNamed ');
       }
@@ -663,8 +636,6 @@ class _ElementWriter {
 
       if (e is FieldFormalParameterElement) {
         buffer.write('this.');
-      } else if (e is SuperFormalParameterElement) {
-        buffer.write('super.');
       }
 
       _writeName(e);
@@ -678,8 +649,6 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
-      _writeFieldFormalParameterField(e);
-      _writeSuperConstructorParameter(e);
     });
   }
 
@@ -772,7 +741,6 @@ class _ElementWriter {
       _writeIf(e.isLate, 'late ');
       _writeIf(e.isFinal, 'final ');
       _writeIf(e.isConst, 'const ');
-      _writeIf(e is FieldElementImpl && e.isEnumConstant, 'enumConstant ');
 
       _writeName(e);
     });
@@ -786,17 +754,6 @@ class _ElementWriter {
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
     });
-  }
-
-  void _writeSuperConstructorParameter(ParameterElement e) {
-    if (e is SuperFormalParameterElement) {
-      var superParameter = e.superConstructorParameter;
-      if (superParameter != null) {
-        _writeElementReference('superConstructorParameter', superParameter);
-      } else {
-        _writelnWithIndent('superConstructorParameter: <null>');
-      }
-    }
   }
 
   void _writeType(DartType type, {String? name}) {

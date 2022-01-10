@@ -378,9 +378,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       // Fix up the parameter elements based on inferred method.
       arguments.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(
-        argumentList: arguments,
-        parameters: inferred.parameters,
-      );
+              arguments, inferred.parameters, null);
       typeName.type = inferred.returnType;
       // Update the static element as well. This is used in some cases, such as
       // computing constant values. It is stored in two places.

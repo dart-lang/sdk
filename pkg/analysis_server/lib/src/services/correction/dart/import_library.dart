@@ -13,11 +13,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class ImportLibrary extends MultiCorrectionProducer {
   final _ImportKind _importKind;
@@ -153,13 +153,8 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       foundImport = true;
-      var instantiatedExtensions = importedLibrary.exportedExtensions
-          .hasMemberWithBaseName(memberName)
-          .applicableTo(
-            targetLibrary: libraryElement,
-            targetType: targetType,
-          );
-      for (var instantiatedExtension in instantiatedExtensions) {
+      for (var extension in importedLibrary.matchingExtensionsWithMember(
+          libraryElement, targetType, memberName)) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
         var combinators = imp.combinators;
@@ -170,7 +165,7 @@ class ImportLibrary extends MultiCorrectionProducer {
             //  hide combinator.
           } else if (combinator is ShowElementCombinator) {
             yield _ImportLibraryShow(libraryToImport.source.uri.toString(),
-                combinator, instantiatedExtension.extension.name!);
+                combinator, extension.name!);
           }
         }
       }
@@ -272,41 +267,42 @@ class ImportLibrary extends MultiCorrectionProducer {
     var librariesWithElements = await getTopLevelDeclarations(name);
     for (var libraryEntry in librariesWithElements.entries) {
       var libraryElement = libraryEntry.key;
-      var declaration = libraryEntry.value;
-      var librarySource = libraryElement.source;
-      // Check the kind.
-      if (!kinds.contains(declaration.kind)) {
-        continue;
+      for (var declaration in libraryEntry.value) {
+        var librarySource = libraryElement.source;
+        // Check the kind.
+        if (!kinds.contains(declaration.kind)) {
+          continue;
+        }
+        // Check the source.
+        if (alreadyImportedWithPrefix.contains(libraryElement)) {
+          continue;
+        }
+        // Check that the import doesn't end with '.template.dart'
+        if (librarySource.uri.path.endsWith('.template.dart')) {
+          continue;
+        }
+        // Compute the fix kind.
+        FixKind fixKind;
+        if (librarySource.uri.isScheme('dart')) {
+          fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
+        } else if (_isLibSrcPath(librarySource.fullName)) {
+          // Bad: non-API.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
+        } else if (declaration.library != libraryElement) {
+          // Ugly: exports.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT2;
+        } else {
+          // Good: direct declaration.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
+        }
+        // If both files are in the same package's lib folder, also include a
+        // relative import.
+        var includeRelativeUri = canBeRelativeImport(
+            librarySource.uri, this.libraryElement.librarySource.uri);
+        // Add the fix(es).
+        yield* _importLibrary(fixKind, librarySource.uri,
+            includeRelativeFix: includeRelativeUri);
       }
-      // Check the source.
-      if (alreadyImportedWithPrefix.contains(libraryElement)) {
-        continue;
-      }
-      // Check that the import doesn't end with '.template.dart'
-      if (librarySource.uri.path.endsWith('.template.dart')) {
-        continue;
-      }
-      // Compute the fix kind.
-      FixKind fixKind;
-      if (librarySource.uri.isScheme('dart')) {
-        fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
-      } else if (_isLibSrcPath(librarySource.fullName)) {
-        // Bad: non-API.
-        fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
-      } else if (declaration.library != libraryElement) {
-        // Ugly: exports.
-        fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT2;
-      } else {
-        // Good: direct declaration.
-        fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
-      }
-      // If both files are in the same package's lib folder, also include a
-      // relative import.
-      var includeRelativeUri = canBeRelativeImport(
-          librarySource.uri, this.libraryElement.librarySource.uri);
-      // Add the fix(es).
-      yield* _importLibrary(fixKind, librarySource.uri,
-          includeRelativeFix: includeRelativeUri);
     }
   }
 
@@ -455,13 +451,9 @@ class _ImportLibraryContainingExtension extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var instantiatedExtensions = library.exportedExtensions
-        .hasMemberWithBaseName(memberName)
-        .applicableTo(
-          targetLibrary: libraryElement,
-          targetType: targetType,
-        );
-    if (instantiatedExtensions.isNotEmpty) {
+    if (library
+        .matchingExtensionsWithMember(libraryElement, targetType, memberName)
+        .isNotEmpty) {
       await builder.addDartFileEdit(file, (builder) {
         _uriText = builder.importLibrary(library.source.uri);
       });
@@ -475,23 +467,24 @@ class _ImportLibraryPrefix extends CorrectionProducer {
   final LibraryElement _importedLibrary;
   final PrefixElement _importPrefix;
 
+  String _libraryName = '';
+
+  String _prefixName = '';
+
   _ImportLibraryPrefix(this._importedLibrary, this._importPrefix);
 
   @override
-  List<Object> get fixArguments {
-    var uriStr = _importedLibrary.source.uri.toString();
-    return [uriStr, _prefixName];
-  }
+  List<Object> get fixArguments => [_libraryName, _prefixName];
 
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_PREFIX;
 
-  String get _prefixName => _importPrefix.name;
-
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    _libraryName = _importedLibrary.displayName;
+    _prefixName = _importPrefix.displayName;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, '$_prefixName.');
+      builder.addSimpleReplacement(range.startLength(node, 0), '$_prefixName.');
     });
   }
 }

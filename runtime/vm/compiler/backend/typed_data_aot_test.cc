@@ -85,6 +85,62 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Inlining) {
   EXPECT(load_indexed->InputAt(0)->definition() == load_untagged);
 }
 
+// This test asserts that we are not inlining accesses to typed data interfaces
+// (e.g. Uint8List) if there are instantiated 3rd party classes (e.g.
+// UnmodifiableUint8ListView).
+ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_NotInlining) {
+  const char* kScript =
+      R"(
+      import 'dart:typed_data';
+
+      createThirdPartyUint8List() => UnmodifiableUint8ListView(Uint8List(10));
+
+      void foo(Uint8List list, int from) {
+        if (from >= list.length) {
+          list[from];
+        }
+      }
+      )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+
+  // Firstly we ensure a non internal/external/view Uint8List is allocated.
+  Invoke(root_library, "createThirdPartyUint8List");
+
+  // Now we ensure that we don't perform the inlining of the `list[from]`
+  // access.
+  const auto& function = Function::Handle(GetFunction(root_library, "foo"));
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  InstanceCallInstr* length_call = nullptr;
+  PushArgumentInstr* pusharg1 = nullptr;
+  PushArgumentInstr* pusharg2 = nullptr;
+  InstanceCallInstr* index_get_call = nullptr;
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMoveGlob,
+      {kMatchAndMoveInstanceCall, &length_call},
+      kMoveGlob,
+      kMatchAndMoveBranchTrue,
+      kMoveGlob,
+      {kMatchAndMovePushArgument, &pusharg1},
+      {kMatchAndMovePushArgument, &pusharg2},
+      {kMatchAndMoveInstanceCall, &index_get_call},
+      kMoveGlob,
+      kMatchReturn,
+  }));
+
+  EXPECT(length_call->Selector() == Symbols::GetLength().ptr());
+  EXPECT(pusharg1->InputAt(0)->definition()->IsParameter());
+  EXPECT(pusharg2->InputAt(0)->definition()->IsParameter());
+  EXPECT(index_get_call->Selector() == Symbols::IndexToken().ptr());
+}
+
 // This test asserts that we are inlining get:length, [] and []= for all typed
 // data interfaces.  It also ensures that the asserted IR actually works by
 // exercising it.
@@ -95,7 +151,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalGetSet) {
 
       void reverse%s(%s list) {
         final length = list.length;
-        final halfLength = length >> 1;
+        final halfLength = length ~/ 2;
         for (int i = 0; i < halfLength; ++i) {
           final tmp = list[length-i-1];
           list[length-i-1] = list[i];
@@ -390,6 +446,51 @@ ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_FunctionalIndexError) {
     run_test("Float32List", "double", float32_list, float_value, stage);
     run_test("Float64List", "double", float64_list, float_value, stage);
   }
+}
+
+ISOLATE_UNIT_TEST_CASE(IRTest_TypedDataAOT_Regress43534) {
+  const char* kScript =
+      R"(
+      import 'dart:typed_data';
+
+      @pragma('vm:never-inline')
+      void callWith<T>(void Function(T arg) fun, T arg) {
+        fun(arg);
+      }
+
+      void test() {
+        callWith<Uint8List>((Uint8List list) {
+          if (list[0] != 0) throw 'a';
+        }, Uint8List(10));
+      }
+      )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  Invoke(root_library, "test");
+  const auto& test_function =
+      Function::Handle(GetFunction(root_library, "test"));
+
+  const auto& function = Function::Handle(
+      ClosureFunctionsCache::GetUniqueInnerClosure(test_function));
+  RELEASE_ASSERT(function.IsFunction());
+
+  TestPipeline pipeline(function, CompilerPass::kAOT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+  ILMatcher cursor(flow_graph, entry, /*trace=*/true);
+  RELEASE_ASSERT(cursor.TryMatch(
+      {
+          kMatchAndMoveLoadField,
+          kMatchAndMoveGenericCheckBound,
+          kMatchAndMoveLoadUntagged,
+          kMatchAndMoveLoadIndexed,
+          kMatchAndMoveBranchFalse,
+          kMoveGlob,
+          kMatchReturn,
+      },
+      kMoveGlob));
 }
 
 #endif  // defined(DART_PRECOMPILER)

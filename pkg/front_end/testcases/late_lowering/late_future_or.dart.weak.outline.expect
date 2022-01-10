@@ -18,15 +18,15 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::T%>
     ;
   get field1() → FutureOr<dynamic>;
-  set field1(FutureOr<dynamic>field1#param) → void;
+  set field1(FutureOr<dynamic>#t1) → void;
   get field2() → FutureOr<dynamic>?;
-  set field2(FutureOr<dynamic>? field2#param) → void;
+  set field2(FutureOr<dynamic>? #t2) → void;
   get field3() → FutureOr<self::C::T%>;
-  set field3(covariant-by-class FutureOr<self::C::T%>field3#param) → void;
+  set field3(covariant-by-class FutureOr<self::C::T%>#t3) → void;
   get field4() → FutureOr<self::C::T?>;
-  set field4(covariant-by-class FutureOr<self::C::T?>field4#param) → void;
+  set field4(covariant-by-class FutureOr<self::C::T?>#t4) → void;
   get field5() → FutureOr<self::C::T?>?;
-  set field5(covariant-by-class FutureOr<self::C::T?>? field5#param) → void;
+  set field5(covariant-by-class FutureOr<self::C::T?>? #t5) → void;
   method method() → dynamic
     ;
 }
@@ -55,16 +55,16 @@ static method method5() → FutureOr<core::int?>
 static method method6() → FutureOr<core::int?>?
   ;
 static get field1() → FutureOr<dynamic>;
-static set field1(FutureOr<dynamic>field1#param) → void;
+static set field1(FutureOr<dynamic>#t6) → void;
 static get field2() → FutureOr<dynamic>?;
-static set field2(FutureOr<dynamic>? field2#param) → void;
+static set field2(FutureOr<dynamic>? #t7) → void;
 static get field3() → FutureOr<dynamic>;
-static set field3(FutureOr<dynamic>field3#param) → void;
+static set field3(FutureOr<dynamic>#t8) → void;
 static get field4() → FutureOr<core::int>;
-static set field4(FutureOr<core::int>field4#param) → void;
+static set field4(FutureOr<core::int>#t9) → void;
 static get field5() → FutureOr<core::int?>;
-static set field5(FutureOr<core::int?>field5#param) → void;
+static set field5(FutureOr<core::int?>#t10) → void;
 static get field6() → FutureOr<core::int?>?;
-static set field6(FutureOr<core::int?>? field6#param) → void;
+static set field6(FutureOr<core::int?>? #t11) → void;
 static method main() → dynamic
   ;

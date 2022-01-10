@@ -667,7 +667,7 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
   return Api::NewHandle(thread, val.ptr());
 }
 
-#if !defined(PRODUCT) && (defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64))
+#if !defined(PRODUCT) && defined(TARGET_ARCH_IA32)
 static bool IsHex(int c) {
   return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f');
 }
@@ -705,11 +705,9 @@ void AssemblerTest::Assemble() {
   }
   Disassembler::Disassemble(start, start + assembler_->CodeSize(), disassembly_,
                             DISASSEMBLY_SIZE);
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-  // Blank out absolute addressing constants on ia32, since they are not stable
-  // from run to run.
-  // Blank out thread-relative offsets on x64 since they change when new fields
-  // are added to thread object.
+#if defined(TARGET_ARCH_IA32)
+  // Blank out absolute addressing constants, since they are not stable from run
+  // to run.
   bool in_hex_constant = false;
   for (char* p = disassembly_; *p != '\0'; p++) {
     if (in_hex_constant) {
@@ -719,24 +717,14 @@ void AssemblerTest::Assemble() {
         in_hex_constant = false;
       }
     } else {
-#if defined(TARGET_ARCH_IA32)
       if (*p == '[' && *(p + 1) == '0' && *(p + 2) == 'x' && IsHex(*(p + 3)) &&
           IsHex(*(p + 4))) {
         p += 2;
         in_hex_constant = true;
       }
-#endif  // defined(TARGET_ARCH_IA32)
-#if defined(TARGET_ARCH_X64)
-      if (*p == '[' && *(p + 1) == 't' && *(p + 2) == 'h' && *(p + 3) == 'r' &&
-          *(p + 4) == '+' && *(p + 5) == '0' && *(p + 6) == 'x' &&
-          IsHex(*(p + 7)) && IsHex(*(p + 8))) {
-        p += 6;
-        in_hex_constant = true;
-      }
-#endif  // defined(TARGET_ARCH_X64)
     }
   }
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#endif  // TARGET_ARCH_IA32
 #endif  // !PRODUCT
 }
 

@@ -197,15 +197,40 @@ struct simd128_value_t {
 #if defined(_M_X64) || defined(__x86_64__)
 #define HOST_ARCH_X64 1
 #define ARCH_IS_64_BIT 1
+#define kFpuRegisterSize 16
+typedef simd128_value_t fpu_register_t;
 #elif defined(_M_IX86) || defined(__i386__)
 #define HOST_ARCH_IA32 1
 #define ARCH_IS_32_BIT 1
+#define kFpuRegisterSize 16
+typedef simd128_value_t fpu_register_t;
 #elif defined(__ARMEL__)
 #define HOST_ARCH_ARM 1
 #define ARCH_IS_32_BIT 1
+#define kFpuRegisterSize 16
+// Mark the fact that we have defined simd_value_t.
+#define SIMD_VALUE_T_
+typedef struct {
+  union {
+    uint32_t u;
+    float f;
+  } data_[4];
+} simd_value_t;
+typedef simd_value_t fpu_register_t;
+#define simd_value_safe_load(addr) (*reinterpret_cast<simd_value_t*>(addr))
+#define simd_value_safe_store(addr, value)                                     \
+  do {                                                                         \
+    reinterpret_cast<simd_value_t*>(addr)->data_[0] = value.data_[0];          \
+    reinterpret_cast<simd_value_t*>(addr)->data_[1] = value.data_[1];          \
+    reinterpret_cast<simd_value_t*>(addr)->data_[2] = value.data_[2];          \
+    reinterpret_cast<simd_value_t*>(addr)->data_[3] = value.data_[3];          \
+  } while (0)
+
 #elif defined(__aarch64__)
 #define HOST_ARCH_ARM64 1
 #define ARCH_IS_64_BIT 1
+#define kFpuRegisterSize 16
+typedef simd128_value_t fpu_register_t;
 #else
 #error Architecture was not detected as supported by Dart.
 #endif
@@ -628,7 +653,7 @@ static inline void USE(T&&) {}
 // gcc enough that it can no longer see that you have cast one pointer
 // type to another thus avoiding the warning.
 template <class D, class S>
-DART_FORCE_INLINE D bit_cast(const S& source) {
+inline D bit_cast(const S& source) {
   static_assert(sizeof(D) == sizeof(S),
                 "Source and destination must have the same size");
 
@@ -644,7 +669,7 @@ DART_FORCE_INLINE D bit_cast(const S& source) {
 // obscure details in the C++ standard that make reinterpret_cast
 // virtually useless.
 template <class D, class S>
-DART_FORCE_INLINE D bit_copy(const S& source) {
+inline D bit_copy(const S& source) {
   D destination;
   // This use of memcpy is safe: source and destination cannot overlap.
   memcpy(&destination, reinterpret_cast<const void*>(&source),

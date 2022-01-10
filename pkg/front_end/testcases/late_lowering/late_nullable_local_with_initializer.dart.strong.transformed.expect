@@ -14,9 +14,9 @@ static method main() → dynamic {
     }
     return #lateLocal;
   }
-  function #lateLocal#set(core::int? lateLocal#param) → dynamic {
+  function #lateLocal#set(core::int? #t1) → dynamic {
     #lateLocal#isSet = true;
-    return #lateLocal = lateLocal#param;
+    return #lateLocal = #t1;
   }
   self::expect(123, #lateLocal#get(){() → core::int?});
   self::expect(124, #lateLocal#set(124){(core::int?) → dynamic});
@@ -31,9 +31,9 @@ static method main() → dynamic {
       }
       return #lateGenericLocal;
     }
-    function #lateGenericLocal#set(T? lateGenericLocal#param) → dynamic {
+    function #lateGenericLocal#set(T? #t2) → dynamic {
       #lateGenericLocal#isSet = true;
-      return #lateGenericLocal = lateGenericLocal#param;
+      return #lateGenericLocal = #t2;
     }
     self::expect(value1, #lateGenericLocal#get(){() → T?});
     self::expect(value2, #lateGenericLocal#set(value2){(T?) → dynamic});

@@ -44,7 +44,6 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
-#include "vm/tags.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
 #include "vm/timeline.h"
@@ -341,9 +340,7 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
 #endif
   IsolateGroup::Init();
   Isolate::InitVM();
-  UserTags::Init();
   PortMap::Init();
-  Service::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
   Api::Init();
@@ -803,9 +800,7 @@ char* Dart::Cleanup() {
   ShutdownIsolate();
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
-  Service::Cleanup();
   PortMap::Cleanup();
-  UserTags::Cleanup();
   IsolateGroup::Cleanup();
   ICData::Cleanup();
   SubtypeTestCache::Cleanup();
@@ -1178,8 +1173,6 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
       ADD_ISOLATE_GROUP_FLAG(use_field_guards, use_field_guards,
                              FLAG_use_field_guards);
       ADD_ISOLATE_GROUP_FLAG(use_osr, use_osr, FLAG_use_osr);
-      ADD_ISOLATE_GROUP_FLAG(branch_coverage, branch_coverage,
-                             FLAG_branch_coverage);
     }
 
 // Generated code must match the host architecture and ABI.

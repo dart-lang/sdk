@@ -16,7 +16,6 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 part 'abi.dart';
-part 'abi_specific.dart';
 part 'native_type.dart';
 part 'allocation.dart';
 part 'annotations.dart';
@@ -739,22 +738,6 @@ extension UnionPointer<T extends Union> on Pointer<T> {
   external T operator [](int index);
 }
 
-/// Extension on [Pointer] specialized for the type argument
-/// [AbiSpecificInteger].
-extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
-    on Pointer<T> {
-  /// The integer at [address].
-  external int get value;
-
-  external void set value(int value);
-
-  /// The integer at `address + sizeOf<T>() * index`.
-  external int operator [](int index);
-
-  /// The integer at `address + sizeOf<T>() * index`.
-  external void operator []=(int index, int value);
-}
-
 /// Bounds checking indexing methods on [Array]s of [Pointer].
 extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
   external Pointer<T> operator [](int index);
@@ -779,13 +762,6 @@ extension ArrayArray<T extends NativeType> on Array<Array<T>> {
   external Array<T> operator [](int index);
 
   external void operator []=(int index, Array<T> value);
-}
-
-/// Bounds checking indexing methods on [Array]s of [AbiSpecificInteger].
-extension AbiSpecificIntegerArray on Array<AbiSpecificInteger> {
-  external int operator [](int index);
-
-  external void operator []=(int index, int value);
 }
 
 /// Extension to retrieve the native `Dart_Port` from a [SendPort].

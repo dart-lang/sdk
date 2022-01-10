@@ -41,8 +41,6 @@ import 'await_in_late_local_variable_initializer_test.dart'
     as await_in_late_local_variable_initializer;
 import 'await_in_wrong_context_test.dart' as await_in_wrong_context;
 import 'binary_operator_written_out_test.dart' as binary_operator_written_out;
-import 'body_might_complete_normally_nullable_test.dart'
-    as body_might_complete_normally_nullable;
 import 'body_might_complete_normally_test.dart' as body_might_complete_normally;
 import 'built_in_identifier_as_extension_name_test.dart'
     as built_in_as_extension_name;
@@ -194,7 +192,6 @@ import 'extra_annotation_on_struct_field_test.dart'
     as extra_annotation_on_struct_field;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
-import 'extraneous_modifier_test.dart' as extraneous_modifier;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
 import 'ffi_native_test.dart' as ffi_native_test;
@@ -228,7 +225,6 @@ import 'for_in_of_invalid_element_type_test.dart'
     as for_in_of_invalid_element_type;
 import 'for_in_of_invalid_type_test.dart' as for_in_of_invalid_type;
 import 'for_in_with_const_variable_test.dart' as for_in_with_const_variable;
-import 'function_typed_parameter_var_test.dart' as function_typed_parameter_var;
 import 'generic_function_type_cannot_be_bound_test.dart'
     as generic_function_type_cannot_be_bound;
 import 'generic_struct_subclass_test.dart' as generic_struct_subclass;
@@ -348,8 +344,6 @@ import 'invalid_required_optional_positional_param_test.dart'
 import 'invalid_required_positional_param_test.dart'
     as invalid_required_positional_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
-import 'invalid_super_formal_parameter_location_test.dart'
-    as invalid_super_formal_parameter_location;
 import 'invalid_super_in_initializer_test.dart' as invalid_super_in_initializer;
 import 'invalid_type_argument_in_const_list_test.dart'
     as invalid_type_argument_in_const_list;
@@ -546,8 +540,6 @@ import 'packed_annotation_test.dart' as packed_annotation;
 import 'packed_nesting_non_packed_test.dart' as packed_nesting_non_packed;
 import 'part_of_different_library_test.dart' as part_of_different_library;
 import 'part_of_non_part_test.dart' as part_of_non_part;
-import 'positional_super_formal_parameter_with_positional_argument_test.dart'
-    as positional_super_formal_parameter_with_positional_argument;
 import 'prefix_collides_with_top_level_member_test.dart'
     as prefix_collides_with_top_level_member;
 import 'prefix_identifier_not_followed_by_dot_test.dart'
@@ -628,12 +620,6 @@ import 'strict_raw_type_test.dart' as strict_raw_type;
 import 'subtype_of_ffi_class_test.dart' as subtype_of_ffi_class;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'subtype_of_struct_class_test.dart' as subtype_of_struct_class;
-import 'super_formal_parameter_type_is_not_subtype_of_associated_test.dart'
-    as super_formal_parameter_type_is_not_subtype_of_associated;
-import 'super_formal_parameter_without_associated_named_test.dart'
-    as super_formal_parameter_without_associated_named;
-import 'super_formal_parameter_without_associated_positional_test.dart'
-    as super_formal_parameter_without_associated_positional;
 import 'super_in_extension_test.dart' as super_in_extension;
 import 'super_in_invalid_context_test.dart' as super_in_invalid_context;
 import 'super_in_redirecting_constructor_test.dart'
@@ -765,7 +751,6 @@ main() {
     await_in_late_local_variable_initializer.main();
     await_in_wrong_context.main();
     binary_operator_written_out.main();
-    body_might_complete_normally_nullable.main();
     body_might_complete_normally.main();
     built_in_as_extension_name.main();
     built_in_as_prefix_name.main();
@@ -867,7 +852,6 @@ main() {
     extra_annotation_on_struct_field.main();
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
-    extraneous_modifier.main();
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native_test.main();
     field_in_struct_with_initializer.main();
@@ -887,7 +871,6 @@ main() {
     for_in_of_invalid_element_type.main();
     for_in_of_invalid_type.main();
     for_in_with_const_variable.main();
-    function_typed_parameter_var.main();
     generic_function_type_cannot_be_bound.main();
     generic_struct_subclass.main();
     getter_not_assignable_setter_types.main();
@@ -966,7 +949,6 @@ main() {
     invalid_required_optional_positional_param.main();
     invalid_required_positional_param.main();
     invalid_sealed_annotation.main();
-    invalid_super_formal_parameter_location.main();
     invalid_super_in_initializer.main();
     invalid_type_argument_in_const_list.main();
     invalid_type_argument_in_const_map.main();
@@ -1097,7 +1079,6 @@ main() {
     packed_nesting_non_packed.main();
     part_of_different_library.main();
     part_of_non_part.main();
-    positional_super_formal_parameter_with_positional_argument.main();
     prefix_collides_with_top_level_member.main();
     prefix_identifier_not_followed_by_dot.main();
     prefix_shadowed_by_local_declaration.main();
@@ -1148,9 +1129,6 @@ main() {
     subtype_of_ffi_class.main();
     subtype_of_sealed_class.main();
     subtype_of_struct_class.main();
-    super_formal_parameter_type_is_not_subtype_of_associated.main();
-    super_formal_parameter_without_associated_named.main();
-    super_formal_parameter_without_associated_positional.main();
     super_in_extension.main();
     super_in_invalid_context.main();
     super_in_redirecting_constructor.main();

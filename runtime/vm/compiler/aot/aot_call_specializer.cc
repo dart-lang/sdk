@@ -646,6 +646,10 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
       case Token::kMUL:
         FALL_THROUGH;
       case Token::kDIV: {
+        if (op_kind == Token::kDIV &&
+            !FlowGraphCompiler::SupportsHardwareDivision()) {
+          return false;
+        }
         left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
         right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
         replacement = new (Z) BinaryDoubleOpInstr(

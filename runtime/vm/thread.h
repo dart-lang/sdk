@@ -151,8 +151,6 @@ class Thread;
     StubCode::LazySpecializeTypeTest().ptr(), nullptr)                         \
   V(CodePtr, enter_safepoint_stub_, StubCode::EnterSafepoint().ptr(), nullptr) \
   V(CodePtr, exit_safepoint_stub_, StubCode::ExitSafepoint().ptr(), nullptr)   \
-  V(CodePtr, exit_safepoint_ignore_unwind_in_progress_stub_,                   \
-    StubCode::ExitSafepointIgnoreUnwindInProgress().ptr(), nullptr)            \
   V(CodePtr, call_native_through_safepoint_stub_,                              \
     StubCode::CallNativeThroughSafepoint().ptr(), nullptr)
 
@@ -567,10 +565,7 @@ class Thread : public ThreadState {
 
   bool is_unwind_in_progress() const { return is_unwind_in_progress_; }
 
-  void StartUnwindError() {
-    is_unwind_in_progress_ = true;
-    SetUnwindErrorInProgress(true);
-  }
+  void StartUnwindError() { is_unwind_in_progress_ = true; }
 
 #if defined(DEBUG)
   void EnterCompiler() {
@@ -818,9 +813,6 @@ class Thread : public ThreadState {
    * - Bit 4 of the safepoint_state_ field is used to indicate that the thread
    *   is blocked at a (deopt)safepoint and has to be woken up once the
    *   (deopt)safepoint operation is complete.
-   * - Bit 6 of the safepoint_state_ field is used to indicate that the isolate
-   *   running on this thread has triggered unwind error, which requires
-   *   enforced exit on a transition from native back to generated.
    *
    * The safepoint execution state (described above) for a thread is stored in
    * in the execution_state_ field.
@@ -911,15 +903,6 @@ class Thread : public ThreadState {
   static uword SetBypassSafepoints(bool value, uword state) {
     return BypassSafepointsField::update(value, state);
   }
-  bool UnwindErrorInProgress() const {
-    return UnwindErrorInProgressField::decode(safepoint_state_);
-  }
-  void SetUnwindErrorInProgress(bool value) {
-    safepoint_state_ =
-        UnwindErrorInProgressField::update(value, safepoint_state_);
-  }
-
-  uword safepoint_state() { return safepoint_state_; }
 
   enum ExecutionState {
     kThreadInVM = 0,
@@ -1047,7 +1030,6 @@ class Thread : public ThreadState {
   void InitVMConstants();
 
   Random* random() { return &thread_random_; }
-  static intptr_t random_offset() { return OFFSET_OF(Thread, thread_random_); }
 
   uint64_t* GetFfiMarshalledArguments(intptr_t size) {
     if (ffi_marshalled_arguments_size_ < size) {
@@ -1156,7 +1138,6 @@ class Thread : public ThreadState {
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
   uint8_t double_truncate_round_supported_;
-  ALIGN8 Random thread_random_;
 
   TsanUtils* tsan_utils_ = nullptr;
 
@@ -1196,6 +1177,8 @@ class Thread : public ThreadState {
 
   ErrorPtr sticky_error_;
 
+  Random thread_random_;
+
   intptr_t ffi_marshalled_arguments_size_ = 0;
   uint64_t* ffi_marshalled_arguments_;
 
@@ -1227,8 +1210,6 @@ class Thread : public ThreadState {
                         1> {};
   class BypassSafepointsField
       : public BitField<uword, bool, BlockedForSafepointField::kNextBit, 1> {};
-  class UnwindErrorInProgressField
-      : public BitField<uword, bool, BypassSafepointsField::kNextBit, 1> {};
 
   static uword AtSafepointBits(SafepointLevel level) {
     switch (level) {

@@ -162,7 +162,6 @@ class BundleWriter {
 
     _resolutionSink.localElements.withElements(element.parameters, () {
       _writeList(element.parameters, _writeParameterElement);
-      _resolutionSink.writeElement(element.superConstructor);
       _resolutionSink.writeElement(element.redirectedConstructor);
       _resolutionSink._writeNodeList(element.constantInitializers);
     });
@@ -174,19 +173,12 @@ class BundleWriter {
     _sink._writeStringReference(element.name);
     _resolutionSink._writeAnnotationList(element.metadata);
 
-    var valuesField = element.getField('values') as ConstFieldElementImpl;
-    _resolutionSink._writeNode(valuesField.constantInitializer!);
-
-    _writeList(
-      element.fields.where((e) => !e.isSynthetic).toList(),
-      _writeFieldElement,
-    );
-    _writeList(
-      element.accessors.where((e) => !e.isSynthetic).toList(),
-      _writePropertyAccessorElement,
-    );
-    _writeList(element.constructors, _writeConstructorElement);
-    // _writeList(element.methods, _writeMethodElement);
+    var constants =
+        element.fields.whereType<ConstFieldElementImpl_EnumValue>().toList();
+    _writeList<FieldElement>(constants, (field) {
+      _sink._writeStringReference(field.name);
+      _resolutionSink._writeAnnotationList(field.metadata);
+    });
   }
 
   void _writeExportElement(ExportElement element) {
@@ -343,7 +335,6 @@ class BundleWriter {
     element as ParameterElementImpl;
     _sink._writeStringReference(element.name);
     _sink.writeBool(element.isInitializingFormal);
-    _sink.writeBool(element.isSuperFormal);
     _sink._writeFormalParameterKind(element);
     ParameterElementFlags.write(_sink, element);
 

@@ -97,29 +97,13 @@ class DartDevelopmentServiceClient {
   void _registerJsonRpcMethods() {
     _clientPeer.registerMethod('streamListen', (parameters) async {
       final streamId = parameters['streamId'].asString;
-      final includePrivates =
-          parameters['_includePrivateMembers'].asBoolOr(false);
-      await dds.streamManager.streamListen(
-        this,
-        streamId,
-        includePrivates: includePrivates,
-      );
+      await dds.streamManager.streamListen(this, streamId);
       return RPCResponses.success;
     });
 
     _clientPeer.registerMethod('streamCancel', (parameters) async {
       final streamId = parameters['streamId'].asString;
       await dds.streamManager.streamCancel(this, streamId);
-      return RPCResponses.success;
-    });
-
-    _clientPeer.registerMethod('streamCpuSamplesWithUserTag',
-        (parameters) async {
-      final userTags = parameters['userTags'].asList.cast<String>();
-      profilerUserTagFilters.clear();
-      profilerUserTagFilters.addAll(userTags);
-
-      await dds.streamManager.updateUserTagSubscriptions(userTags);
       return RPCResponses.success;
     });
 
@@ -328,7 +312,6 @@ class DartDevelopmentServiceClient {
   final DartDevelopmentServiceImpl dds;
   final StreamChannel connection;
   final Map<String, String> services = {};
-  final Set<String> profilerUserTagFilters = {};
   final json_rpc.Peer _vmServicePeer;
   late json_rpc.Peer _clientPeer;
 }

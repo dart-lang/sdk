@@ -105,7 +105,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       return true;
   }
   if (func.is_abstract() || func.IsImplicitConstructor() ||
-      func.is_synthetic() || func.is_redirecting_factory()) {
+      func.is_synthetic()) {
     return true;
   }
   if (func.IsNonImplicitClosureFunction() &&
@@ -346,14 +346,11 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   const Array& coverage_array = Array::Handle(function.GetCoverageArray());
   if (!coverage_array.IsNull()) {
     for (intptr_t i = 0; i < coverage_array.Length(); i += 2) {
-      bool is_branch_coverage;
-      const TokenPosition token_pos = TokenPosition::DecodeCoveragePosition(
-          Smi::Value(Smi::RawCast(coverage_array.At(i))), &is_branch_coverage);
-      if (!is_branch_coverage) {
-        const bool was_executed =
-            Smi::Value(Smi::RawCast(coverage_array.At(i + 1))) != 0;
-        update_coverage(token_pos, was_executed);
-      }
+      const TokenPosition token_pos = TokenPosition::Deserialize(
+          Smi::Value(Smi::RawCast(coverage_array.At(i))));
+      const bool was_executed =
+          Smi::Value(Smi::RawCast(coverage_array.At(i + 1))) != 0;
+      update_coverage(token_pos, was_executed);
     }
   }
 

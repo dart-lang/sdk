@@ -21,9 +21,9 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     ;
   get invariantField() → core::num;
-  set invariantField(core::num invariantField#param) → void;
+  set invariantField(core::num #t1) → void;
   get covariantField() → core::num;
-  set covariantField(covariant-by-declaration core::num covariantField#param) → void;
+  set covariantField(covariant-by-declaration core::num #t2) → void;
 }
 abstract class B extends core::Object implements self::A {
   synthetic constructor •() → self::B

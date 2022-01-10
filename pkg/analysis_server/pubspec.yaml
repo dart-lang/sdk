@@ -20,6 +20,7 @@ dependencies:
   dart_style: any
   http: any
   html: any
+  intl: any
   linter: any
   meta:
     path: ../meta

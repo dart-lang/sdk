@@ -9,19 +9,12 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   Entry getAsEntry() {
     Entry entry = _webkitGetAsEntry() $#NULLSAFECAST(as Entry);
 
-    if (entry.isFile$NULLASSERT) {
+    if (entry.isFile$NULLASSERT)
       applyExtension('FileEntry', entry);
-      applyExtension('webkitFileSystemFileEntry', entry);
-      applyExtension('FileSystemFileEntry', entry);
-    } else if (entry.isDirectory$NULLASSERT) {
+    else if (entry.isDirectory$NULLASSERT)
       applyExtension('DirectoryEntry', entry);
-      applyExtension('webkitFileSystemDirectoryEntry', entry);
-      applyExtension('FileSystemDirectoryEntry', entry);
-    } else {
+    else
       applyExtension('Entry', entry);
-      applyExtension('webkitFileSystemEntry', entry);
-      applyExtension('FileSystemEntry', entry);
-    }
 
     return entry;
   }

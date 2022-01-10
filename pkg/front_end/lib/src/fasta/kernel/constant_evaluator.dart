@@ -1999,12 +1999,14 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               statement.condition,
               templateConstEvalFailedAssertionWithMessage
                   .withArguments(message.value));
-        } else if (message is NullConstant) {
-          return createEvaluationErrorConstant(
-              statement.condition, messageConstEvalFailedAssertion);
         } else {
-          return createEvaluationErrorConstant(statement.message!,
-              messageConstEvalFailedAssertionWithNonStringMessage);
+          return createEvaluationErrorConstant(
+              statement.message!,
+              templateConstEvalInvalidType.withArguments(
+                  message,
+                  typeEnvironment.coreTypes.stringLegacyRawType,
+                  message.getType(_staticTypeContext!),
+                  isNonNullableByDefault));
         }
       }
     } else {

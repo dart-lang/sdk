@@ -432,6 +432,35 @@ class AnnotationResolver {
     }
   }
 
+  /// Given an [argumentList] and the [executableElement] that will be invoked
+  /// using those argument, compute the list of parameters that correspond to
+  /// the list of arguments. An error will be reported if any of the arguments
+  /// cannot be matched to a parameter. Return the parameters that correspond to
+  /// the arguments, or `null` if no correspondence could be computed.
+  ///
+  /// TODO(scheglov) this is duplicate
+  List<ParameterElement?>? _resolveArgumentsToFunction(
+      ArgumentList argumentList, ExecutableElement? executableElement) {
+    if (executableElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters = executableElement.parameters;
+    return _resolveArgumentsToParameters(argumentList, parameters);
+  }
+
+  /// Given an [argumentList] and the [parameters] related to the element that
+  /// will be invoked using those arguments, compute the list of parameters that
+  /// correspond to the list of arguments. An error will be reported if any of
+  /// the arguments cannot be matched to a parameter. Return the parameters that
+  /// correspond to the arguments.
+  ///
+  /// TODO(scheglov) this is duplicate
+  List<ParameterElement?> _resolveArgumentsToParameters(
+      ArgumentList argumentList, List<ParameterElement> parameters) {
+    return ResolverVisitor.resolveArgumentsToParameters(
+        argumentList, parameters, _errorReporter.reportErrorForNode);
+  }
+
   void _resolveConstructorInvocationArguments(AnnotationImpl node) {
     var argumentList = node.arguments;
     // error will be reported in ConstantVerifier
@@ -441,12 +470,10 @@ class AnnotationResolver {
     // resolve arguments to parameters
     var constructor = node.element;
     if (constructor is ConstructorElement) {
-      argumentList.correspondingStaticParameters =
-          ResolverVisitor.resolveArgumentsToParameters(
-        argumentList: argumentList,
-        parameters: constructor.parameters,
-        errorReporter: _errorReporter,
-      );
+      var parameters = _resolveArgumentsToFunction(argumentList, constructor);
+      if (parameters != null) {
+        argumentList.correspondingStaticParameters = parameters;
+      }
     }
   }
 

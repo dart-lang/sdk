@@ -8,7 +8,7 @@ class A extends core::Object {
     ;
 }
 class B extends self::A {
-  constructor •(core::int foo) → self::B
+  constructor •(dynamic foo) → self::B
     ;
 }
 static method main() → dynamic

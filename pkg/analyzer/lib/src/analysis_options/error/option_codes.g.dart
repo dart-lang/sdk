@@ -193,8 +193,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
     'SPEC_MODE_REMOVED',
     "The option 'strong-mode: false' is no longer supported.",
     correctionMessage:
-        "It's recommended to remove the 'strong-mode:' setting (and make your "
-        "code Dart 2 compliant).",
+        "It's recommended to remove the 'strong-mode:' setting (and make your code Dart 2 compliant).",
   );
 
   /**
@@ -236,8 +235,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUE =
       AnalysisOptionsWarningCode(
     'UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
-    "The option '{1}' isn't supported by '{0}'. Try using the only supported "
-        "option: '{2}'.",
+    "The option '{1}' isn't supported by '{0}'. Try using the only supported option: '{2}'.",
   );
 
   /**

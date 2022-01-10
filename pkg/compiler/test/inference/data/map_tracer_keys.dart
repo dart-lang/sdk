@@ -29,16 +29,16 @@ consume1(
 test1() {
   var theMap = {'a': 2.2, 'b': 3.3, 'c': 4.4};
   theMap
-      /*update: Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [null|exact=JSNumNotInt]})*/
+      /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [null|exact=JSNumNotInt]})*/
       ['d'] = 5.5;
   /*iterator: [exact=LinkedHashMapKeyIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
-      /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [null|exact=JSNumNotInt]})*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [null|exact=JSNumNotInt]})*/
       keys) {
     aDouble1 = theMap
-        /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [null|exact=JSNumNotInt]})*/
+        /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [null|exact=JSNumNotInt]})*/
         [key];
   }
   // We have to reference it somewhere, so that it always gets resolved.
@@ -60,16 +60,16 @@ consume2(
 test2() {
   dynamic theMap = {'a': 2.2, 'b': 3.3, 'c': 4.4};
   theMap
-      /*update: Map([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt])*/
+      /*update: Map([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt])*/
       [aList2] = 5.5;
   /*iterator: [exact=LinkedHashMapKeyIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
-      /*Map([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt])*/
+      /*Map([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt])*/
       keys) {
     aDouble2 = theMap
-        /*Map([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt])*/
+        /*Map([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt])*/
         [key];
   }
   // We have to reference it somewhere, so that it always gets resolved.
@@ -91,16 +91,16 @@ consume3(
 test3() {
   dynamic theMap = <dynamic, dynamic>{'a': 2.2, 'b': 3.3, 'c': 4.4};
   theMap
-      /*update: Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
+      /*update: Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
       ['d'] = aList3;
   /*iterator: [exact=LinkedHashMapKeyIterable]*/
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
-      /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
       keys) {
     aDouble3 = theMap
-        /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
+        /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([null|exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
         [key];
   }
   // We have to reference it somewhere, so that it always gets resolved.
@@ -125,10 +125,10 @@ test4() {
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
-      /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [exact=JSNumNotInt]})*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [exact=JSNumNotInt]})*/
       keys) {
     aDouble4 = theMap
-        /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [exact=JSNumNotInt]})*/
+        /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSNumNotInt], map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: [exact=JSNumNotInt]})*/
         [key];
   }
   // We have to reference it somewhere, so that it always gets resolved.
@@ -153,10 +153,10 @@ test5() {
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
-      /*Map([exact=JsLinkedHashMap], key: Union([exact=JSExtendableArray], [exact=JSString]), value: [null|exact=JSNumNotInt])*/
+      /*Map([subclass=JsLinkedHashMap], key: Union([exact=JSExtendableArray], [exact=JSString]), value: [null|exact=JSNumNotInt])*/
       keys) {
     aDouble5 = theMap
-        /*Map([exact=JsLinkedHashMap], key: Union([exact=JSExtendableArray], [exact=JSString]), value: [null|exact=JSNumNotInt])*/
+        /*Map([subclass=JsLinkedHashMap], key: Union([exact=JSExtendableArray], [exact=JSString]), value: [null|exact=JSNumNotInt])*/
         [key];
   }
   // We have to reference it somewhere, so that it always gets resolved.
@@ -180,10 +180,10 @@ test6() {
   /*current: [exact=LinkedHashMapKeyIterator]*/
   /*moveNext: [exact=LinkedHashMapKeyIterator]*/
   for (var key in theMap.
-      /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
       keys) {
     aDouble6 = theMap
-        /*Dictionary([exact=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
+        /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: Union(null, [exact=JSExtendableArray], [exact=JSNumNotInt]), map: {a: [exact=JSNumNotInt], b: [exact=JSNumNotInt], c: [exact=JSNumNotInt], d: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)})*/
         [key];
   }
   // We have to reference it somewhere, so that it always gets resolved.

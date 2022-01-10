@@ -8,14 +8,14 @@
  macrosAreAvailable
 */
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macro_builder/macro_builder.dart';
 import 'macro_lib2a.dart';
 
+@Macro2a()
 /*class: Macro2b:
- appliedMacros=[Macro2a.new],
+ appliedMacros=[Macro2a],
  macrosAreApplied
 */
-@Macro2a()
-macro class Macro2b implements Macro {
+class Macro2b implements Macro {
   const Macro2b();
 }

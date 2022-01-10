@@ -12,6 +12,12 @@ extension StringExtension on CheckTarget<String> {
     }
   }
 
+  void startsWith(Pattern other) {
+    if (!value.startsWith(other)) {
+      fail('does not start with ${valueStr(other)}');
+    }
+  }
+
   @UseResult.unless(parameterDefined: 'expected')
   CheckTarget<int> hasLength([int? expected]) {
     var actual = value.length;
@@ -21,11 +27,5 @@ extension StringExtension on CheckTarget<String> {
     }
 
     return nest(actual, (length) => 'has length $length');
-  }
-
-  void startsWith(Pattern other) {
-    if (!value.startsWith(other)) {
-      fail('does not start with ${valueStr(other)}');
-    }
   }
 }

@@ -26,7 +26,7 @@ abstract class Pattern {
   ///
   /// Returns a match if the pattern matches a substring of [string]
   /// starting at [start], and `null` if the pattern doesn't match
-  /// at that point.
+  /// a that point.
   ///
   /// The [start] must be non-negative and no greater than `string.length`.
   Match? matchAsPrefix(String string, [int start = 0]);
@@ -41,10 +41,10 @@ abstract class Pattern {
 /// The following example finds all matches of a [RegExp] in a [String]
 /// and iterates through the returned iterable of `Match` objects.
 /// ```dart
-/// final regExp = RegExp(r'(\w+)');
-/// const string = 'Parse my string';
-/// final matches = regExp.allMatches(string);
-/// for (final m in matches) {
+/// RegExp exp = RegExp(r"(\w+)");
+/// String str = "Parse my string";
+/// Iterable<Match> matches = exp.allMatches(str);
+/// for (Match m in matches) {
 ///   String match = m[0]!;
 ///   print(match);
 /// }
@@ -72,17 +72,6 @@ abstract class Match {
   ///
   /// The result may be `null` if the pattern didn't assign a value to it
   /// as part of this match.
-  /// ```dart import dart:convert
-  ///
-  /// final string = '[00:13.37] This is a chat message.';
-  /// final regExp = RegExp(r'^\[\s*(\d+):(\d+)\.(\d+)\]\s*(.*)$');
-  /// final match = regExp.firstMatch(string)!;
-  /// final message = jsonEncode(match[0]!); // '[00:13.37] This is a chat message.'
-  /// final hours = jsonEncode(match[1]!); // '00'
-  /// final minutes = jsonEncode(match[2]!); // '13'
-  /// final seconds = jsonEncode(match[3]!); // '37'
-  /// final text = jsonEncode(match[4]!); // 'This is a chat message.'
-  /// ```
   String? group(int group);
 
   /// The string matched by the given [group].
@@ -96,14 +85,6 @@ abstract class Match {
   ///
   /// The list contains the strings returned by [group] for each index in
   /// [groupIndices].
-  /// ```dart import dart:convert
-  ///
-  /// final string = '[00:13.37] This is a chat message.';
-  /// final regExp = RegExp(r'^\[\s*(\d+):(\d+)\.(\d+)\]\s*(.*)$');
-  /// final match = regExp.firstMatch(string)!;
-  /// final message = jsonEncode(match.groups([1, 2, 3, 4]));
-  /// // ['00','13','37','This is a chat message.']
-  /// ```
   List<String?> groups(List<int> groupIndices);
 
   /// Returns the number of captured groups in the match.

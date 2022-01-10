@@ -51,8 +51,7 @@ class E {
   static const E a = E._(0);
   static const E b = E._(1);
   static const E c = E._(2);
-  final int x;
-  const E._(this.x);
+  const E._(int x);
 }
 ''');
     await assertHasFixWithFilter('''
@@ -73,8 +72,7 @@ class E {
   static const E a = E._(0);
   static const E b = E._(1);
   static const E c = E._(2);
-  final int x;
-  const E._(this.x);
+  const E._(int x);
 }
 ''');
   }
@@ -88,8 +86,7 @@ class E {
   static const E a = E._(0);
   static const E b = E._(1);
   static const E c = E._(2);
-  final int x;
-  const E._(this.x);
+  const E._(int x);
 }
 ''');
     await assertHasFixWithFilter('''
@@ -110,8 +107,7 @@ class E {
   static const E a = E._(0);
   static const E b = E._(1);
   static const E c = E._(2);
-  final int x;
-  const E._(this.x);
+  const E._(int x);
 }
 ''');
   }
@@ -130,8 +126,7 @@ class E {
   static const E a = E._(0);
   static const E b = E._(1);
   static const E c = E._(2);
-  final int x;
-  const E._(this.x);
+  const E._(int x);
 }
 ''');
     await assertHasFix('''
@@ -150,8 +145,7 @@ class E {
   static const E a = E._(0);
   static const E b = E._(1);
   static const E c = E._(2);
-  final int x;
-  const E._(this.x);
+  const E._(int x);
 }
 ''');
   }

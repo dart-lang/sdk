@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
@@ -75,7 +76,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     Set<ElementKind>? includedElementKinds,
     Set<String>? includedElementNames,
     List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags,
-    NotImportedSuggestions? notImportedSuggestions,
+    Map<CompletionSuggestion, Uri>? notImportedSuggestions,
   }) async {
     //
     // Allow plugins to start computing fixes.
@@ -357,7 +358,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         );
         setNewRequest(completionRequest);
 
-        var notImportedSuggestions = NotImportedSuggestions();
+        var notImportedSuggestions =
+            HashMap<CompletionSuggestion, Uri>.identity();
         var suggestions = <CompletionSuggestion>[];
         try {
           suggestions = await computeSuggestions(
@@ -388,6 +390,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         });
 
         var lengthRestricted = suggestions.take(params.maxResults).toList();
+        var isIncomplete = lengthRestricted.length < suggestions.length;
         completionPerformance.suggestionCount = lengthRestricted.length;
 
         // Update `libraryUriToImportIndex` for not yet imported.
@@ -395,7 +398,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         var librariesToImport = <Uri, int>{};
         for (var i = 0; i < lengthRestricted.length; i++) {
           var suggestion = lengthRestricted[i];
-          var libraryToImport = notImportedSuggestions.map[suggestion];
+          var libraryToImport = notImportedSuggestions[suggestion];
           if (libraryToImport != null) {
             var index = librariesToImport.putIfAbsent(
               libraryToImport,
@@ -406,9 +409,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
             );
           }
         }
-
-        var isIncomplete = notImportedSuggestions.isIncomplete ||
-            lengthRestricted.length < suggestions.length;
 
         performance.run('sendResponse', (_) {
           server.sendResponse(
@@ -518,7 +518,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
         var resolvedUnit = await server.getResolvedUnit(file);
         if (resolvedUnit == null) {
-          server.sendResponse(Response.fileNotAnalyzed(request, file));
+          server
+              .sendResponse(Response.fileNotAnalyzed(request, 'params.offset'));
           return;
         }
 

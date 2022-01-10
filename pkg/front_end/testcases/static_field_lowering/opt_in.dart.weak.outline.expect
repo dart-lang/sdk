@@ -30,20 +30,20 @@ class Class extends core::Object {
   synthetic constructor •() → self::Class
     ;
   static get nonNullableStaticFieldWithInitializer1() → core::int;
-  static set nonNullableStaticFieldWithInitializer1(core::int nonNullableStaticFieldWithInitializer1#param) → void;
+  static set nonNullableStaticFieldWithInitializer1(core::int #t1) → void;
   static get nullableStaticFieldWithInitializer1() → core::int?;
-  static set nullableStaticFieldWithInitializer1(core::int? nullableStaticFieldWithInitializer1#param) → void;
+  static set nullableStaticFieldWithInitializer1(core::int? #t2) → void;
   static get nonNullableStaticFieldWithInitializer2() → core::int;
-  static set nonNullableStaticFieldWithInitializer2(core::int nonNullableStaticFieldWithInitializer2#param) → void;
+  static set nonNullableStaticFieldWithInitializer2(core::int #t3) → void;
   static get nullableStaticFieldWithInitializer2() → core::int?;
-  static set nullableStaticFieldWithInitializer2(core::int? nullableStaticFieldWithInitializer2#param) → void;
+  static set nullableStaticFieldWithInitializer2(core::int? #t4) → void;
   static get nonNullableStaticFinalFieldWithInitializer1() → core::int;
   static get nullableStaticFinalFieldWithInitializer1() → core::int?;
   static get nonNullableStaticFinalFieldWithInitializer2Init() → core::int;
-  static set nonNullableStaticFinalFieldWithInitializer2Init(core::int nonNullableStaticFinalFieldWithInitializer2Init#param) → void;
+  static set nonNullableStaticFinalFieldWithInitializer2Init(core::int #t5) → void;
   static get nonNullableStaticFinalFieldWithInitializer2() → core::int;
   static get nullableStaticFinalFieldWithInitializer2Init() → core::int;
-  static set nullableStaticFinalFieldWithInitializer2Init(core::int nullableStaticFinalFieldWithInitializer2Init#param) → void;
+  static set nullableStaticFinalFieldWithInitializer2Init(core::int #t6) → void;
   static get nullableStaticFinalFieldWithInitializer2() → core::int?;
 }
 static field dynamic lastInit;
@@ -72,20 +72,20 @@ static field core::bool _#nullableFinalTopLevelFieldWithInitializer2#isSet;
 static method init<T extends core::Object? = dynamic>(self::init::T% value) → self::init::T%
   ;
 static get nonNullableTopLevelFieldWithInitializer1() → core::int;
-static set nonNullableTopLevelFieldWithInitializer1(core::int nonNullableTopLevelFieldWithInitializer1#param) → void;
+static set nonNullableTopLevelFieldWithInitializer1(core::int #t7) → void;
 static get nullableTopLevelFieldWithInitializer() → core::int?;
-static set nullableTopLevelFieldWithInitializer(core::int? nullableTopLevelFieldWithInitializer#param) → void;
+static set nullableTopLevelFieldWithInitializer(core::int? #t8) → void;
 static get nonNullableTopLevelFieldWithInitializer2() → core::int;
-static set nonNullableTopLevelFieldWithInitializer2(core::int nonNullableTopLevelFieldWithInitializer2#param) → void;
+static set nonNullableTopLevelFieldWithInitializer2(core::int #t9) → void;
 static get nullableTopLevelFieldWithInitializer2() → core::int?;
-static set nullableTopLevelFieldWithInitializer2(core::int? nullableTopLevelFieldWithInitializer2#param) → void;
+static set nullableTopLevelFieldWithInitializer2(core::int? #t10) → void;
 static get nonNullableFinalTopLevelFieldWithInitializer1() → core::int;
 static get nullableFinalTopLevelFieldWithInitializer1() → core::int?;
 static get nonNullableFinalTopLevelFieldWithInitializer2Init() → core::int;
-static set nonNullableFinalTopLevelFieldWithInitializer2Init(core::int nonNullableFinalTopLevelFieldWithInitializer2Init#param) → void;
+static set nonNullableFinalTopLevelFieldWithInitializer2Init(core::int #t11) → void;
 static get nonNullableFinalTopLevelFieldWithInitializer2() → core::int;
 static get nullableFinalTopLevelFieldWithInitializer2Init() → core::int;
-static set nullableFinalTopLevelFieldWithInitializer2Init(core::int nullableFinalTopLevelFieldWithInitializer2Init#param) → void;
+static set nullableFinalTopLevelFieldWithInitializer2Init(core::int #t12) → void;
 static get nullableFinalTopLevelFieldWithInitializer2() → core::int?;
 static method main() → dynamic
   ;

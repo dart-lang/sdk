@@ -194,21 +194,6 @@ Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
                               package_config, verbosity());
 }
 
-Dart_KernelCompilationResult DFE::CompileScriptWithGivenNullsafety(
-    const char* script_uri,
-    const char* package_config,
-    bool snapshot,
-    bool null_safety) {
-  // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
-  // instead of vm_platform.dill to Frontend for compilation.
-  PathSanitizer path_sanitizer(script_uri);
-  const char* sanitized_uri = path_sanitizer.sanitized_uri();
-
-  return Dart_CompileToKernelWithGivenNullsafety(
-      sanitized_uri, platform_strong_dill, platform_strong_dill_size, snapshot,
-      package_config, null_safety, verbosity());
-}
-
 void DFE::CompileAndReadScript(const char* script_uri,
                                uint8_t** kernel_buffer,
                                intptr_t* kernel_buffer_size,

@@ -333,8 +333,9 @@ class CommunicationsPage extends DiagnosticPageWithNav {
         latencyCount > 0 ? (perf.slowRequestCount / latencyCount) : 0.0;
 
     buf.write('<table>');
-    writeRow(['$requestCount', 'requests'], classes: ['right', null]);
-    writeRow(['$latencyCount', 'requests with latency information'],
+    writeRow([printInteger(requestCount), 'requests'],
+        classes: ['right', null]);
+    writeRow([printInteger(latencyCount), 'requests with latency information'],
         classes: ['right', null]);
     if (latencyCount > 0) {
       writeRow([printMilliseconds(averageLatency), 'average latency'],
@@ -430,7 +431,7 @@ class ContextsPage extends DiagnosticPageWithNav {
                 'An analysis context defines the options and the set of sources being analyzed.');
 
   @override
-  String get navDetail => '${server.driverMap.length}';
+  String get navDetail => printInteger(server.driverMap.length);
 
   String describe(AnalysisOptionsImpl options) {
     var b = StringBuffer();
@@ -897,7 +898,7 @@ class ExceptionsPage extends DiagnosticPageWithNav {
   Iterable<ServerException> get exceptions => server.exceptions.items;
 
   @override
-  String get navDetail => '${exceptions.length}';
+  String get navDetail => printInteger(exceptions.length);
 
   @override
   Future generateContent(Map<String, String> params) async {
@@ -1063,7 +1064,8 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
     if (usage != null) {
       buf.writeln(
           writeOption('CPU', printPercentage(usage.cpuPercentage / 100.0)));
-      buf.writeln(writeOption('Memory', '${usage.memoryMB.round()} MB'));
+      buf.writeln(
+          writeOption('Memory', '${printInteger(usage.memoryMB.round())} MB'));
 
       h3('VM');
 

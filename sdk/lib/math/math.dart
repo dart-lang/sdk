@@ -8,71 +8,6 @@
 /// ```dart
 /// import 'dart:math';
 /// ```
-///
-/// ## Random
-/// [Random] is a generator of [bool], [int] or [double] values.
-/// ```dart
-/// var intValue = Random().nextInt(10); // Value is >= 0.0 and < 1.0.
-/// var doubleValue = Random().nextDouble(); // Value is >= 0.0 and < 1.0.
-/// var boolValue = Random().nextBool(); // true or false, with equal chance.
-/// ```
-///
-/// ## Point
-/// [Point] is a utility class for representing two-dimensional positions.
-/// ```dart
-/// var leftTop = const Point(0, 0);
-/// var rightBottom = const Point(200, 400);
-/// ```
-///
-/// ## Rectangle
-/// [Rectangle] is a class for representing two-dimensional axis-aligned
-/// rectangles whose properties are immutable.
-///
-/// Create a rectangle spanned by the points.
-/// ```dart
-/// var leftTop = const Point(20, 50);
-/// var rightBottom = const Point(300, 600);
-/// var rectangle = Rectangle.fromPoints(leftTop, rightBottom);
-/// print(rectangle.left); // 20
-/// print(rectangle.top); // 50
-/// print(rectangle.right); // 300
-/// print(rectangle.bottom); // 600
-/// ```
-///
-/// Create a rectangle spanned by `(left, top)` and
-/// `(left+width, top+height)`.
-/// ```dart
-/// var rectangle = const Rectangle(20, 50, 300, 600);
-/// print(rectangle.left); // 20
-/// print(rectangle.top); // 50
-/// print(rectangle.right); // 320
-/// print(rectangle.bottom); // 650
-/// ```
-///
-/// ## MutableRectangle
-/// [MutableRectangle] is a class for representing two-dimensional axis-aligned
-/// rectangles with mutable properties.
-///
-/// Create a mutable rectangle spanned by `(left, top)` and
-/// `(left+width, top+height)`.
-/// ```dart
-/// var rectangle = MutableRectangle(20, 50, 300, 600);
-/// print(rectangle); // Rectangle (20, 50) 300 x 600
-/// print(rectangle.left); // 20
-/// print(rectangle.top); // 50
-/// print(rectangle.right); // 320
-/// print(rectangle.bottom); // 650
-///
-/// // Change rectangle width and height.
-/// rectangle.width = 200;
-/// rectangle.height = 100;
-/// print(rectangle); // Rectangle (20, 50) 200 x 100
-/// print(rectangle.left); // 20
-/// print(rectangle.top); // 50
-/// print(rectangle.right); // 220
-/// print(rectangle.bottom); // 150
-/// ```
-///
 /// {@category Core}
 library dart.math;
 
@@ -166,7 +101,7 @@ external double atan2(num a, num b);
 ///
 /// - if `y` is zero (0.0 or -0.0), the result is always 1.0.
 /// - if `x` is 1.0, the result is always 1.0.
-/// - otherwise, if either `x` or `y` is NaN, then the result is NaN.
+/// - otherwise, if either `x` or `y` is NaN then the result is NaN.
 /// - if `x` is negative (but not -0.0) and `y` is a finite non-integer, the
 ///   result is NaN.
 /// - if `x` is Infinity and `y` is negative, the result is 0.0.
@@ -230,16 +165,6 @@ external double atan(num x);
 /// value.
 ///
 /// Returns -0.0 if [x] is -0.0, and NaN if [x] is otherwise negative or NaN.
-/// ```dart
-/// var result = sqrt(9.3);
-/// print(result); // 3.0495901363953815
-/// result = sqrt(2);
-/// print(result); // 1.4142135623730951
-/// result = sqrt(0);
-/// print(result); // 0.0
-/// result = sqrt(-2.2);
-/// print(result); // NaN
-/// ```
 external double sqrt(num x);
 
 /// Converts [x] to a [double] and returns the natural exponent, [e],

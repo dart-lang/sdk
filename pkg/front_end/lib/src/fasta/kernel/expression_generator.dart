@@ -4576,14 +4576,7 @@ class ThisAccessGenerator extends Generator {
       // The check of the arguments is done later for super initializers if the
       // 'super-parameters' language feature is enabled. In that case the
       // additional parameters can be added at a later stage.
-      bool isPotentialSuperParametersReceiver =
-          isSuper && _helper.libraryBuilder.enableSuperParametersInLibrary;
-      // Additional arguments are added to the redirecting initializer of an
-      // enum constructor, so the check is performed later.
-      bool isEnumConstructorRedirectingInitializer =
-          constructor.enclosingClass.isEnum;
-      if (!isPotentialSuperParametersReceiver &&
-          !isEnumConstructorRedirectingInitializer) {
+      if (!(isSuper && _helper.libraryBuilder.enableSuperParametersInLibrary)) {
         message = _helper.checkArgumentsForFunction(
             constructor.function, arguments, offset, <TypeParameter>[]);
       }

@@ -1,7 +1,3 @@
-## 0.4.5
-
-- Handle stack traces larger than 100 entries.
-
 ## 0.4.5-dev
 
 - Require Dart >= 2.14

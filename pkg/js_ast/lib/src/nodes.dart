@@ -85,11 +85,13 @@ abstract class NodeVisitor<T> {
   T visitInterpolatedDeclaration(InterpolatedDeclaration node);
 }
 
-abstract class BaseVisitor<T> implements NodeVisitor<T> {
+class BaseVisitor<T> implements NodeVisitor<T> {
   const BaseVisitor();
 
-  T visitNode(Node node);
-  T visitComment(Comment node);
+  T visitNode(Node node) {
+    node.visitChildren(this);
+    return null;
+  }
 
   T visitProgram(Program node) => visitNode(node);
 
@@ -126,8 +128,13 @@ abstract class BaseVisitor<T> implements NodeVisitor<T> {
   T visitVariableDeclarationList(VariableDeclarationList node) =>
       visitExpression(node);
   T visitAssignment(Assignment node) => visitExpression(node);
-  T visitVariableInitialization(VariableInitialization node) =>
-      visitExpression(node);
+  T visitVariableInitialization(VariableInitialization node) {
+    if (node.value != null) {
+      return visitAssignment(node);
+    } else {
+      return visitExpression(node);
+    }
+  }
 
   T visitConditional(Conditional node) => visitExpression(node);
   T visitNew(New node) => visitExpression(node);
@@ -191,17 +198,11 @@ abstract class BaseVisitor<T> implements NodeVisitor<T> {
     return visitInterpolatedNode(node);
   }
 
+  // Ignore comments by default.
+  T visitComment(Comment node) => null;
+
   T visitAwait(Await node) => visitExpression(node);
   T visitDartYield(DartYield node) => visitStatement(node);
-}
-
-class BaseVisitorVoid extends BaseVisitor<void> {
-  void visitNode(Node node) {
-    node.visitChildren(this);
-  }
-
-  // Ignore comments by default.
-  void visitComment(Comment node) {}
 }
 
 abstract class NodeVisitor1<R, A> {
@@ -285,11 +286,13 @@ abstract class NodeVisitor1<R, A> {
   R visitInterpolatedDeclaration(InterpolatedDeclaration node, A arg);
 }
 
-abstract class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
+class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
   const BaseVisitor1();
 
-  R visitNode(Node node, A arg);
-  R visitComment(Comment node, A arg);
+  R visitNode(Node node, A arg) {
+    node.visitChildren1(this, arg);
+    return null;
+  }
 
   R visitProgram(Program node, A arg) => visitNode(node, arg);
 
@@ -333,8 +336,13 @@ abstract class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
   R visitVariableDeclarationList(VariableDeclarationList node, A arg) =>
       visitExpression(node, arg);
   R visitAssignment(Assignment node, A arg) => visitExpression(node, arg);
-  R visitVariableInitialization(VariableInitialization node, A arg) =>
-      visitExpression(node, arg);
+  R visitVariableInitialization(VariableInitialization node, A arg) {
+    if (node.value != null) {
+      return visitAssignment(node, arg);
+    } else {
+      return visitExpression(node, arg);
+    }
+  }
 
   R visitConditional(Conditional node, A arg) => visitExpression(node, arg);
   R visitNew(New node, A arg) => visitExpression(node, arg);
@@ -404,17 +412,11 @@ abstract class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
     return visitInterpolatedNode(node, arg);
   }
 
+  // Ignore comments by default.
+  R visitComment(Comment node, A arg) => null;
+
   R visitAwait(Await node, A arg) => visitExpression(node, arg);
   R visitDartYield(DartYield node, A arg) => visitStatement(node, arg);
-}
-
-class BaseVisitor1Void<A> extends BaseVisitor1<void, A> {
-  void visitNode(Node node, A arg) {
-    node.visitChildren1(this, arg);
-  }
-
-  // Ignore comments by default.
-  void visitComment(Comment node, A arg) {}
 }
 
 /// This tag interface has no behaviour but must be implemented by any class
@@ -1152,13 +1154,12 @@ class Parentheses extends Expression {
 class Assignment extends Expression {
   final Expression leftHandSide;
   final String op; // Null, if the assignment is not compound.
-  final Expression value;
+  final Expression value; // May be null, for [VariableInitialization]s.
 
   Assignment(leftHandSide, value) : this.compound(leftHandSide, null, value);
 
   // If `this.op == null` this will be a non-compound assignment.
-  Assignment.compound(this.leftHandSide, this.op, this.value)
-      : assert(value != null);
+  Assignment.compound(this.leftHandSide, this.op, this.value);
 
   int get precedenceLevel => ASSIGNMENT;
 
@@ -1171,42 +1172,29 @@ class Assignment extends Expression {
 
   void visitChildren<T>(NodeVisitor<T> visitor) {
     leftHandSide.accept(visitor);
-    value.accept(visitor);
+    if (value != null) value.accept(visitor);
   }
 
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
     leftHandSide.accept1(visitor, arg);
-    value.accept1(visitor, arg);
+    if (value != null) value.accept1(visitor, arg);
   }
 
   Assignment _clone() => Assignment.compound(leftHandSide, op, value);
 }
 
-class VariableInitialization extends Expression {
-  // TODO(sra): Can [VariableInitialization] be a non-expression?
+class VariableInitialization extends Assignment {
+  /// [value] may be null.
+  VariableInitialization(Declaration declaration, Expression value)
+      : super(declaration, value);
 
-  final Declaration declaration;
-  final Expression value; // [value] may be null.
-
-  VariableInitialization(this.declaration, this.value);
-
-  int get precedenceLevel => ASSIGNMENT;
+  Declaration get declaration => leftHandSide;
 
   T accept<T>(NodeVisitor<T> visitor) =>
       visitor.visitVariableInitialization(this);
 
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
       visitor.visitVariableInitialization(this, arg);
-
-  void visitChildren<T>(NodeVisitor<T> visitor) {
-    declaration.accept(visitor);
-    value?.accept(visitor);
-  }
-
-  void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg) {
-    declaration.accept1(visitor, arg);
-    value?.accept1(visitor, arg);
-  }
 
   VariableInitialization _clone() => VariableInitialization(declaration, value);
 }

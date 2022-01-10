@@ -763,8 +763,6 @@ class StandardTestSuite extends TestSuite {
           ...vmOptionsList[vmOptionsVariant],
           ...extraVmOptions,
           if (emitDdsTest) '-DUSE_DDS=true',
-          if (configuration.serviceResponseSizesDirectory != null)
-            '-DSERVICE_RESPONSE_SIZES_DIR=${configuration.serviceResponseSizesDirectory}',
         ];
         var isCrashExpected = expectations.contains(Expectation.crash);
         var commands = _makeCommands(

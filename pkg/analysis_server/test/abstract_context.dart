@@ -50,7 +50,6 @@ class AbstractContextTest with ResourceProviderMixin {
   List<String> get experiments => [
         EnableString.constructor_tearoffs,
         EnableString.named_arguments_anywhere,
-        EnableString.super_parameters,
       ];
 
   String get latestLanguageVersion =>

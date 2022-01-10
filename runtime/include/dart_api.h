@@ -606,7 +606,6 @@ typedef struct {
   bool null_safety;
   bool is_system_isolate;
   bool snapshot_is_dontneed_safe;
-  bool branch_coverage;
 } Dart_IsolateFlags;
 
 /**
@@ -3684,43 +3683,6 @@ Dart_CompileToKernel(const char* script_uri,
                      bool snapshot_compile,
                      const char* package_config,
                      Dart_KernelCompilationVerbosityLevel verbosity);
-
-/**
- * Compiles the given `script_uri` to a kernel file.
- *
- * \param platform_kernel A buffer containing the kernel of the platform (e.g.
- * `vm_platform_strong.dill`). The VM does not take ownership of this memory.
- *
- * \param platform_kernel_size The length of the platform_kernel buffer.
- *
- * \param snapshot_compile Set to `true` when the compilation is for a snapshot.
- * This is used by the frontend to determine if compilation related information
- * should be printed to console (e.g., null safety mode).
- *
- * \param null_safety Provides null-safety mode setting for the compiler.
- *
- * \param verbosity Specifies the logging behavior of the kernel compilation
- * service.
- *
- * \return Returns the result of the compilation.
- *
- * On a successful compilation the returned [Dart_KernelCompilationResult] has
- * a status of [Dart_KernelCompilationStatus_Ok] and the `kernel`/`kernel_size`
- * fields are set. The caller takes ownership of the malloc()ed buffer.
- *
- * On a failed compilation the `error` might be set describing the reason for
- * the failed compilation. The caller takes ownership of the malloc()ed
- * error.
- */
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileToKernelWithGivenNullsafety(
-    const char* script_uri,
-    const uint8_t* platform_kernel,
-    const intptr_t platform_kernel_size,
-    bool snapshot_compile,
-    const char* package_config,
-    const bool null_safety,
-    Dart_KernelCompilationVerbosityLevel verbosity);
 
 typedef struct {
   const char* uri;

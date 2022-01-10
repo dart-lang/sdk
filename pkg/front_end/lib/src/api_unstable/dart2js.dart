@@ -228,11 +228,9 @@ Future<Component?> compile(
 // dart2js.
 // TODO(sigmund): delete after all constant evaluation is done in the CFE, as
 // this data will no longer be needed on the dart2js side.
-Future<Iterable<String>> getSupportedLibraryNames(
-    Uri librariesSpecificationUri, String target,
-    {required Future<String> readJson(Uri uri)}) async {
-  return (await LibrariesSpecification.load(
-          librariesSpecificationUri, readJson))
+Iterable<String> getSupportedLibraryNames(
+    Uri librariesSpecificationUri, String json, String target) {
+  return LibrariesSpecification.parse(librariesSpecificationUri, json)
       .specificationFor(target)
       .allLibraries
       .where((l) => l.isSupported)

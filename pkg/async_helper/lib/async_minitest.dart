@@ -215,14 +215,14 @@ void isNull(dynamic o) {
   Expect.isNull(o);
 }
 
-void _checkThrow<T extends Object>(dynamic v, void onError(error)) {
+void _checkThrow<T>(dynamic v, void onError(error)) {
   if (v is Future) {
     asyncStart();
     v.then((_) {
       Expect.fail("Did not throw");
     }, onError: (e, s) {
       if (e is! T) throw e;
-      onError(e);
+      if (onError != null) onError(e);
       asyncEnd();
     });
     return;

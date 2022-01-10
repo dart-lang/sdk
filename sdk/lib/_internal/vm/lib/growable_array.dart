@@ -110,10 +110,7 @@ class _GrowableList<T> extends ListBase<T> {
   // Specialization of List.empty constructor for growable == true.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
-  factory _GrowableList.empty() {
-    // Specialization of `return _GrowableList(0);`.
-    return _GrowableList<T>._withData(_emptyList);
-  }
+  factory _GrowableList.empty() => _GrowableList(0);
 
   // Specialization of List.filled constructor for growable == true.
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
@@ -157,61 +154,43 @@ class _GrowableList<T> extends ListBase<T> {
 
   factory _GrowableList._ofList(_List<T> elements) {
     final int length = elements.length;
-    if (length > 0) {
-      final data = _List(_adjustedCapacity(length));
-      for (int i = 0; i < length; i++) {
-        data[i] = elements[i];
-      }
-      final list = _GrowableList<T>._withData(data);
-      list._setLength(length);
-      return list;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
     }
-    return _GrowableList<T>.empty();
+    return list;
   }
 
   factory _GrowableList._ofGrowableList(_GrowableList<T> elements) {
     final int length = elements.length;
-    if (length > 0) {
-      final data = _List(_adjustedCapacity(length));
-      for (int i = 0; i < length; i++) {
-        data[i] = elements[i];
-      }
-      final list = _GrowableList<T>._withData(data);
-      list._setLength(length);
-      return list;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
     }
-    return _GrowableList<T>.empty();
+    return list;
   }
 
   factory _GrowableList._ofImmutableList(_ImmutableList<T> elements) {
     final int length = elements.length;
-    if (length > 0) {
-      final data = _List(_adjustedCapacity(length));
-      for (int i = 0; i < length; i++) {
-        data[i] = elements[i];
-      }
-      final list = _GrowableList<T>._withData(data);
-      list._setLength(length);
-      return list;
+    final list = _GrowableList<T>(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = elements[i];
     }
-    return _GrowableList<T>.empty();
+    return list;
   }
 
   factory _GrowableList._ofEfficientLengthIterable(
       EfficientLengthIterable<T> elements) {
     final int length = elements.length;
+    final list = _GrowableList<T>(length);
     if (length > 0) {
-      final data = _List(_adjustedCapacity(length));
       int i = 0;
       for (var element in elements) {
-        data[i++] = element;
+        list[i++] = element;
       }
       if (i != length) throw ConcurrentModificationError(elements);
-      final list = _GrowableList<T>._withData(data);
-      list._setLength(length);
-      return list;
     }
-    return _GrowableList<T>.empty();
+    return list;
   }
 
   factory _GrowableList._ofOther(Iterable<T> elements) {
@@ -379,12 +358,10 @@ class _GrowableList<T> extends ListBase<T> {
       // Use shared empty list as backing.
       return _emptyList;
     }
-    return _List(_adjustedCapacity(capacity));
+    // Round up size to the next odd number, since this is free
+    // because of alignment requirements of the GC.
+    return new _List(capacity | 1);
   }
-
-  // Round up size to the next odd number, since this is free
-  // because of alignment requirements of the GC.
-  static int _adjustedCapacity(int capacity) => capacity | 1;
 
   // Grow from 0 to 3, and then double + 1.
   int _nextCapacity(int old_capacity) => (old_capacity * 2) | 3;
@@ -524,22 +501,14 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   List<T> toList({bool growable: true}) {
-    // TODO(sra): We should be able to replace the following with:
-    //
-    //     return growable
-    //         ? _GrowableList<T>._ofGrowableList(this)
-    //         : _List<T>._ofGrowableList(this);
-    //
-    // However, the extra call causes a 5% regression in `ListCopy.toList.2`.
-
     final length = this.length;
     if (growable) {
       if (length > 0) {
-        final data = new _List(_adjustedCapacity(length));
+        final list = new _List(length);
         for (int i = 0; i < length; i++) {
-          data[i] = this[i];
+          list[i] = this[i];
         }
-        final result = new _GrowableList<T>._withData(data);
+        final result = new _GrowableList<T>._withData(list);
         result._setLength(length);
         return result;
       }

@@ -20,11 +20,8 @@ abstract class Client {
   set name(String? n) => _name = (n ?? defaultClientName);
   late String _name;
 
-  /// The set of streams the client is subscribed to.
+  /// A set streamIds which describes the streams the client is connected to
   final streams = <String>{};
-
-  /// The set of user tags that the client wants to receive CPU samples for.
-  final profilerUserTagFilters = <String>{};
 
   /// Services registered and their aliases
   /// key: service

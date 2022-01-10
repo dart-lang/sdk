@@ -23,7 +23,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     ;
   get b() → core::int;
-  set b(core::int b#param) → void;
+  set b(core::int #t1) → void;
   method foo(core::int x) → dynamic
     ;
 }
@@ -35,13 +35,13 @@ class B extends core::Object /*hasConstConstructor*/  {
     ;
   get x() → core::int {
     if(!this.{self::B::_#B#x#isSet}{core::bool}) {
-      final core::int #t1 = 42;
+      final core::int #t2 = 42;
       if(this.{self::B::_#B#x#isSet}{core::bool})
         throw new _in::LateError::fieldADI("x");
-      this.{self::B::_#B#x} = #t1;
+      this.{self::B::_#B#x} = #t2;
       this.{self::B::_#B#x#isSet} = true;
     }
-    return let final core::int? #t2 = this.{self::B::_#B#x}{core::int?} in #t2{core::int};
+    return let final core::int? #t3 = this.{self::B::_#B#x}{core::int?} in #t3{core::int};
   }
 }
 class C extends core::Object {
@@ -50,7 +50,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     ;
   get x() → core::int;
-  set x(core::int x#param) → void;
+  set x(core::int #t4) → void;
   method initVars() → dynamic
     ;
 }

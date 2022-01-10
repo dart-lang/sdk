@@ -4,12 +4,12 @@
 
 /*library: 
  compilationSequence=[
-  package:_fe_analyzer_shared/src/macros/api.dart,
+  package:macro_builder/src/macro.dart,
   main.dart],
  macrosAreAvailable
 */
 
 // ignore: unused_import
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:macro_builder/src/macro.dart';
 
 void main() {}

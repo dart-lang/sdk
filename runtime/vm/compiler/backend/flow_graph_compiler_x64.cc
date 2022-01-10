@@ -70,6 +70,10 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return FLAG_enable_simd_inline;
 }
 
+bool FlowGraphCompiler::SupportsHardwareDivision() {
+  return true;
+}
+
 bool FlowGraphCompiler::CanConvertInt64ToDouble() {
   return true;
 }
@@ -866,7 +870,14 @@ void FlowGraphCompiler::EmitMove(Location destination,
   } else {
     ASSERT(!source.IsInvalid());
     ASSERT(source.IsConstant());
-    source.constant_instruction()->EmitMoveToLocation(this, destination);
+    if (destination.IsFpuRegister() || destination.IsDoubleStackSlot()) {
+      Register scratch = tmp->AllocateTemporary();
+      source.constant_instruction()->EmitMoveToLocation(this, destination,
+                                                        scratch);
+      tmp->ReleaseTemporary();
+    } else {
+      source.constant_instruction()->EmitMoveToLocation(this, destination);
+    }
   }
 }
 

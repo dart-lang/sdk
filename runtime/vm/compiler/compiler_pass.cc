@@ -470,7 +470,9 @@ COMPILER_PASS(SelectRepresentations, {
 });
 
 COMPILER_PASS(UseTableDispatch, {
-  state->call_specializer->ReplaceInstanceCallsWithDispatchTableCalls();
+  if (FLAG_use_table_dispatch) {
+    state->call_specializer->ReplaceInstanceCallsWithDispatchTableCalls();
+  }
 });
 
 COMPILER_PASS_REPEAT(CSE, { return DominatorBasedCSE::Optimize(flow_graph); });

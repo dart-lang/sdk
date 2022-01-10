@@ -1370,9 +1370,6 @@ class _InformativeDataWriter {
       } else if (notDefault is FunctionTypedFormalParameter) {
         _writeTypeParameters(notDefault.typeParameters);
         _writeFormalParameters(notDefault.parameters);
-      } else if (notDefault is SuperFormalParameter) {
-        _writeTypeParameters(notDefault.typeParameters);
-        _writeFormalParameters(notDefault.parameters);
       } else {
         _writeTypeParameters(null);
         _writeFormalParameters(null);

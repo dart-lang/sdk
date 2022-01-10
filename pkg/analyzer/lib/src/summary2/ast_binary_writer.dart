@@ -359,18 +359,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitImplicitCallReference(ImplicitCallReference node) {
-    _writeByte(Tag.ImplicitCallReference);
-    _writeNode(node.expression);
-    _writeOptionalNode(node.typeArguments);
-    _sink.writeOptionalTypeList(node.typeArgumentTypes);
-
-    _sink.writeElement(node.staticElement);
-
-    _storeExpression(node);
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     _writeByte(Tag.IndexExpression);
     _writeByte(

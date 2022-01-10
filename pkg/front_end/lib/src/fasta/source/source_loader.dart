@@ -35,26 +35,28 @@ import '../../api_prototype/file_system.dart';
 import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
+import '../dill/dill_class_builder.dart';
+import '../dill/dill_library_builder.dart';
+import '../builder_graph.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
+import '../builder/constructor_builder.dart';
 import '../builder/declaration_builder.dart';
+import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
-import '../builder_graph.dart';
 import '../crash.dart' show firstSourceUri;
 import '../denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
-import '../dill/dill_library_builder.dart';
 import '../export.dart' show Export;
 import '../fasta_codes.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -66,12 +68,11 @@ import '../kernel/kernel_helper.dart'
     show SynthesizedFunctionNode, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/macro.dart';
-import '../kernel/macro_annotation_parser.dart';
 import '../kernel/transform_collections.dart' show CollectionTransformer;
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../loader.dart' show Loader, untranslatableUriScheme;
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unhandled;
 import '../scope.dart';
 import '../ticker.dart' show Ticker;
 import '../type_inference/type_inference_engine.dart';
@@ -82,16 +83,12 @@ import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'name_scheme.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
-import 'source_constructor_builder.dart';
-import 'source_enum_builder.dart';
-import 'source_field_builder.dart';
 import 'source_library_builder.dart'
     show
         ImplicitLanguageVersion,
         InvalidLanguageVersion,
         LanguageVersion,
         SourceLibraryBuilder;
-import 'source_procedure_builder.dart';
 import 'stack_listener_impl.dart' show offsetForToken;
 
 class SourceLoader extends Loader {
@@ -507,68 +504,8 @@ class SourceLoader extends Loader {
   /// compile-time error.
   LibraryBuilder read(Uri uri, int charOffset,
       {Uri? fileUri,
-      required LibraryBuilder accessor,
-      LibraryBuilder? origin,
-      Library? referencesFrom,
-      bool? referenceIsPartOwner}) {
-    LibraryBuilder libraryBuilder = _read(uri,
-        fileUri: fileUri,
-        origin: origin,
-        referencesFrom: referencesFrom,
-        referenceIsPartOwner: referenceIsPartOwner);
-    libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
-    if (!_hasLibraryAccess(imported: uri, importer: accessor.importUri) &&
-        !accessor.isPatch) {
-      accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
-          noLength, accessor.fileUri);
-    }
-    return libraryBuilder;
-  }
-
-  /// Reads the library [uri] as an entry point. This is used for reading the
-  /// entry point library of a script or the explicitly mention libraries of
-  /// a modular or incremental compilation.
-  ///
-  /// This differs from [read] in that there is no accessor library, meaning
-  /// that access to platform private libraries cannot be granted.
-  LibraryBuilder readAsEntryPoint(Uri uri,
-      {Uri? fileUri, Library? referencesFrom}) {
-    LibraryBuilder libraryBuilder =
-        _read(uri, fileUri: fileUri, referencesFrom: referencesFrom);
-    // TODO(johnniwinther): Avoid using the first library, if present, as the
-    // accessor of [libraryBuilder]. Currently the incremental compiler doesn't
-    // handle errors reported without an accessor, since the messages are not
-    // associated with a library. This currently has the side effect that
-    // the first library is the accessor of itself.
-    LibraryBuilder? firstLibrary = first;
-    if (firstLibrary != null) {
-      libraryBuilder.recordAccess(-1, noLength, firstLibrary.fileUri);
-    }
-    if (!_hasLibraryAccess(imported: uri, importer: firstLibrary?.importUri)) {
-      if (firstLibrary != null) {
-        firstLibrary.addProblem(
-            messagePlatformPrivateLibraryAccess, -1, noLength, firstUri);
-      } else {
-        addProblem(messagePlatformPrivateLibraryAccess, -1, noLength, null);
-      }
-    }
-    return libraryBuilder;
-  }
-
-  bool _hasLibraryAccess({required Uri imported, required Uri? importer}) {
-    if (imported.scheme == "dart" && imported.path.startsWith("_")) {
-      if (importer == null) {
-        return false;
-      } else {
-        return target.backendTarget
-            .allowPlatformPrivateLibraryAccess(importer, imported);
-      }
-    }
-    return true;
-  }
-
-  LibraryBuilder _read(Uri uri,
-      {Uri? fileUri,
+      LibraryBuilder? accessor,
+      Uri? accessorUri,
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner}) {
@@ -585,18 +522,34 @@ class SourceLoader extends Loader {
             referencesFrom,
             referenceIsPartOwner);
       }
+
       _builders[uri] = libraryBuilder;
+    }
+    accessor ??= _builders[accessorUri];
+    if (accessor == null) {
+      if (libraryBuilder.loader == this && first != libraryBuilder) {
+        unhandled("null", "accessor", charOffset, uri);
+      }
+    } else {
+      libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
+      if (!accessor.isPatch &&
+          !accessor.isPart &&
+          !target.backendTarget
+              .allowPlatformPrivateLibraryAccess(accessor.importUri, uri)) {
+        accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
+            noLength, accessor.fileUri);
+      }
     }
     return libraryBuilder;
   }
 
   void _ensureCoreLibrary() {
     if (_coreLibrary == null) {
-      readAsEntryPoint(Uri.parse("dart:core"));
+      read(Uri.parse("dart:core"), 0, accessorUri: firstUri);
       // TODO(askesc): When all backends support set literals, we no longer
       // need to index dart:collection, as it is only needed for desugaring of
       // const sets. We can remove it from this list at that time.
-      readAsEntryPoint(Uri.parse("dart:collection"));
+      read(Uri.parse("dart:collection"), 0, accessorUri: firstUri);
       assert(_coreLibrary != null);
     }
   }
@@ -912,7 +865,7 @@ severity: $severity
   }
 
   void registerConstructorToBeInferred(
-      Constructor constructor, DeclaredSourceConstructorBuilder builder) {
+      Constructor constructor, ConstructorBuilder builder) {
     _typeInferenceEngine!.toBeInferred[constructor] = builder;
   }
 
@@ -1305,7 +1258,7 @@ severity: $severity
     ticker.logMs("Resolved $typeCount types");
   }
 
-  void computeMacroDeclarations() {
+  void computeMacroDeclarations(List<SourceClassBuilder> sourceClassBuilders) {
     if (!enableMacros) return;
 
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
@@ -1327,18 +1280,42 @@ severity: $severity
     Set<ClassBuilder> macroClasses = {macroClassBuilder};
     Set<Uri> macroLibraries = {macroLibraryBuilder.importUri};
 
-    for (SourceLibraryBuilder sourceLibraryBuilder in sourceLibraryBuilders) {
-      Iterator<Builder> iterator = sourceLibraryBuilder.iterator;
-      while (iterator.moveNext()) {
-        Builder builder = iterator.current;
-        if (builder is SourceClassBuilder && builder.isMacro) {
-          macroClasses.add(builder);
-          macroLibraries.add(builder.library.importUri);
-          if (retainDataForTesting) {
-            (dataForTesting!.macroDeclarationData
-                    .macroDeclarations[builder.library.importUri] ??= [])
-                .add(builder.name);
+    bool isMacroClass(TypeDeclarationBuilder? typeDeclarationBuilder) {
+      if (typeDeclarationBuilder == null) return false;
+      while (typeDeclarationBuilder is TypeAliasBuilder) {
+        typeDeclarationBuilder =
+            typeDeclarationBuilder.unaliasDeclaration(null);
+      }
+      if (typeDeclarationBuilder is ClassBuilder) {
+        if (macroClasses.contains(typeDeclarationBuilder)) return true;
+        if (typeDeclarationBuilder is DillClassBuilder) {
+          // TODO(johnniwinther): Recognize macro classes from dill.
+        }
+      }
+      return false;
+    }
+
+    for (SourceClassBuilder sourceClassBuilder in sourceClassBuilders) {
+      bool isMacro =
+          isMacroClass(sourceClassBuilder.supertypeBuilder?.declaration);
+      if (!isMacro && sourceClassBuilder.interfaceBuilders != null) {
+        for (TypeBuilder interfaceBuilder
+            in sourceClassBuilder.interfaceBuilders!) {
+          if (isMacroClass(interfaceBuilder.declaration)) {
+            isMacro = true;
+            break;
           }
+        }
+      }
+      isMacro = isMacro ||
+          isMacroClass(sourceClassBuilder.mixedInTypeBuilder?.declaration);
+      if (isMacro) {
+        macroClasses.add(sourceClassBuilder);
+        macroLibraries.add(sourceClassBuilder.library.importUri);
+        if (retainDataForTesting) {
+          (dataForTesting!.macroDeclarationData.macroDeclarations[
+                  sourceClassBuilder.library.importUri] ??= [])
+              .add(sourceClassBuilder.name);
         }
       }
     }
@@ -1387,116 +1364,82 @@ severity: $severity
     }
   }
 
-  Future<void> computeMacroApplications() async {
+  void computeMacroApplications() {
     if (!enableMacros || _macroClassBuilder == null) return;
+    Class macroClass = _macroClassBuilder!.cls;
 
-    MacroApplications? computeApplications(
-        SourceLibraryBuilder enclosingLibrary,
-        Scope scope,
-        Uri fileUri,
-        List<MetadataBuilder>? annotations) {
-      List<MacroApplication>? result = prebuildAnnotations(
-          enclosingLibrary: enclosingLibrary,
-          metadataBuilders: annotations,
-          fileUri: fileUri,
-          scope: scope);
-      return result != null ? new MacroApplications(result) : null;
+    Class? computeApplication(Expression expression) {
+      if (expression is ConstructorInvocation) {
+        Class cls = expression.target.enclosingClass;
+        if (hierarchy.isSubtypeOf(cls, macroClass)) {
+          return cls;
+        }
+      }
+      return null;
     }
 
-    MacroApplicationData macroApplicationData = new MacroApplicationData();
+    MacroApplications? computeApplications(List<Expression> annotations) {
+      List<Class> macros = [];
+      for (Expression annotation in annotations) {
+        Class? cls = computeApplication(annotation);
+        if (cls != null) {
+          macros.add(cls);
+        }
+      }
+      return macros.isNotEmpty ? new MacroApplications(macros) : null;
+    }
+
     for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
       // TODO(johnniwinther): Handle patch libraries.
       LibraryMacroApplicationData libraryMacroApplicationData =
           new LibraryMacroApplicationData();
-      Iterator<Builder> iterator = libraryBuilder.iterator;
-      while (iterator.moveNext()) {
-        Builder builder = iterator.current;
-        if (builder is SourceClassBuilder) {
-          SourceClassBuilder classBuilder = builder;
-          ClassMacroApplicationData classMacroApplicationData =
-              new ClassMacroApplicationData();
-          classMacroApplicationData.classApplications = computeApplications(
-              libraryBuilder,
-              classBuilder.scope,
-              classBuilder.fileUri,
-              classBuilder.metadata);
-          builder.forEach((String name, Builder memberBuilder) {
-            if (memberBuilder is SourceProcedureBuilder) {
-              MacroApplications? macroApplications = computeApplications(
-                  libraryBuilder,
-                  classBuilder.scope,
-                  memberBuilder.fileUri,
-                  memberBuilder.metadata);
-              if (macroApplications != null) {
-                classMacroApplicationData.memberApplications[memberBuilder] =
-                    macroApplications;
-              }
-            } else if (memberBuilder is SourceFieldBuilder) {
-              MacroApplications? macroApplications = computeApplications(
-                  libraryBuilder,
-                  classBuilder.scope,
-                  memberBuilder.fileUri,
-                  memberBuilder.metadata);
-              if (macroApplications != null) {
-                classMacroApplicationData.memberApplications[memberBuilder] =
-                    macroApplications;
-              }
-            }
-          });
-          classBuilder.forEachConstructor((String name, Builder memberBuilder) {
-            if (memberBuilder is DeclaredSourceConstructorBuilder) {
-              MacroApplications? macroApplications = computeApplications(
-                  libraryBuilder,
-                  classBuilder.scope,
-                  memberBuilder.fileUri,
-                  memberBuilder.metadata);
-              if (macroApplications != null) {
-                classMacroApplicationData.memberApplications[memberBuilder] =
-                    macroApplications;
-              }
-            }
-          });
-
-          if (classMacroApplicationData.classApplications != null ||
-              classMacroApplicationData.memberApplications.isNotEmpty) {
-            libraryMacroApplicationData.classData[builder] =
-                classMacroApplicationData;
-          }
-        } else if (builder is SourceProcedureBuilder) {
-          MacroApplications? macroApplications = computeApplications(
-              libraryBuilder,
-              libraryBuilder.scope,
-              builder.fileUri,
-              builder.metadata);
+      Library library = libraryBuilder.library;
+      libraryMacroApplicationData.libraryApplications =
+          computeApplications(library.annotations);
+      for (Class cls in library.classes) {
+        ClassMacroApplicationData classMacroApplicationData =
+            new ClassMacroApplicationData();
+        classMacroApplicationData.classApplications =
+            computeApplications(cls.annotations);
+        for (Member member in cls.members) {
+          MacroApplications? macroApplications =
+              computeApplications(member.annotations);
           if (macroApplications != null) {
-            libraryMacroApplicationData.memberApplications[builder] =
-                macroApplications;
-          }
-        } else if (builder is SourceFieldBuilder) {
-          MacroApplications? macroApplications = computeApplications(
-              libraryBuilder,
-              libraryBuilder.scope,
-              builder.fileUri,
-              builder.metadata);
-          if (macroApplications != null) {
-            libraryMacroApplicationData.memberApplications[builder] =
+            classMacroApplicationData.memberApplications[member] =
                 macroApplications;
           }
         }
+        if (classMacroApplicationData.classApplications != null ||
+            classMacroApplicationData.memberApplications.isNotEmpty) {
+          libraryMacroApplicationData.classData[cls] =
+              classMacroApplicationData;
+        }
       }
-      if (libraryMacroApplicationData.classData.isNotEmpty ||
+      for (Member member in library.members) {
+        MacroApplications? macroApplications =
+            computeApplications(member.annotations);
+        if (macroApplications != null) {
+          libraryMacroApplicationData.memberApplications[member] =
+              macroApplications;
+        }
+      }
+      for (Typedef typedef in library.typedefs) {
+        MacroApplications? macroApplications =
+            computeApplications(typedef.annotations);
+        if (macroApplications != null) {
+          libraryMacroApplicationData.typedefApplications[typedef] =
+              macroApplications;
+        }
+      }
+      if (libraryMacroApplicationData.libraryApplications != null ||
+          libraryMacroApplicationData.classData.isNotEmpty ||
+          libraryMacroApplicationData.typedefApplications.isNotEmpty ||
           libraryMacroApplicationData.memberApplications.isNotEmpty) {
-        macroApplicationData.libraryData[libraryBuilder] =
-            libraryMacroApplicationData;
         if (retainDataForTesting) {
-          dataForTesting!.macroApplicationData.libraryData[libraryBuilder] =
+          dataForTesting!.macroApplicationData.libraryData[library] =
               libraryMacroApplicationData;
         }
       }
-    }
-    if (macroApplicationData.libraryData.isNotEmpty) {
-      await macroApplicationData
-          .loadMacroIds(target.context.options.macroExecutorProvider);
     }
   }
 
@@ -1687,7 +1630,7 @@ severity: $severity
         directSupertypeMap.keys.toList();
     for (int i = 0; i < directSupertypes.length; i++) {
       TypeDeclarationBuilder? supertype = directSupertypes[i];
-      if (supertype is SourceEnumBuilder) {
+      if (supertype is EnumBuilder) {
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
       } else if (!cls.library.mayImplementRestrictedTypes &&
@@ -1953,13 +1896,13 @@ severity: $severity
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
+  void buildOutlineExpressions(CoreTypes coreTypes,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     List<DelayedActionPerformer> delayedActionPerformers =
         <DelayedActionPerformer>[];
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       library.buildOutlineExpressions(
-          classHierarchy, synthesizedFunctionNodes, delayedActionPerformers);
+          coreTypes, synthesizedFunctionNodes, delayedActionPerformers);
     }
     for (DelayedActionPerformer delayedActionPerformer
         in delayedActionPerformers) {
@@ -1992,7 +1935,7 @@ severity: $severity
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
     membersBuilder.computeTypes();
 
-    List<SourceFieldBuilder> allImplicitlyTypedFields = [];
+    List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       library.collectImplicitlyTypedFields(allImplicitlyTypedFields);
     }

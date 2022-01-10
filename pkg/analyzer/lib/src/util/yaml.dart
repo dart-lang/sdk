@@ -106,15 +106,12 @@ class Merger {
 }
 
 extension YamlMapExtensions on YamlMap {
-  /// Return [nodes] as a Map with [YamlNode] keys.
-  Map<YamlNode, YamlNode> get nodeMap => nodes.cast<YamlNode, YamlNode>();
-
-  /// Return the [YamlNode] associated with the given [key], or `null` if there
-  /// is no matching key.
-  YamlNode? getKey(String key) {
-    for (YamlNode k in nodes.keys) {
-      if (k is YamlScalar && k.value == key) {
-        return k;
+  /// Return the value associated with the key whose value matches the given
+  /// [key], or `null` if there is no matching key.
+  YamlNode? valueAt(String key) {
+    for (var keyNode in nodes.keys) {
+      if (keyNode is YamlScalar && keyNode.value == key) {
+        return nodes[keyNode];
       }
     }
     return null;
@@ -131,14 +128,17 @@ extension YamlMapExtensions on YamlMap {
     return null;
   }
 
-  /// Return the value associated with the key whose value matches the given
-  /// [key], or `null` if there is no matching key.
-  YamlNode? valueAt(String key) {
-    for (var keyNode in nodes.keys) {
-      if (keyNode is YamlScalar && keyNode.value == key) {
-        return nodes[keyNode];
+  /// Return the [YamlNode] associated with the given [key], or `null` if there
+  /// is no matching key.
+  YamlNode? getKey(String key) {
+    for (YamlNode k in nodes.keys) {
+      if (k is YamlScalar && k.value == key) {
+        return k;
       }
     }
     return null;
   }
+
+  /// Return [nodes] as a Map with [YamlNode] keys.
+  Map<YamlNode, YamlNode> get nodeMap => nodes.cast<YamlNode, YamlNode>();
 }

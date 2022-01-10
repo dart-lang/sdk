@@ -243,13 +243,9 @@ class Expect {
         buffer.write('_');
       } else {
         int first = equivalence[0];
-        buffer
-          ..write('#')
-          ..write(first);
+        buffer..write('#')..write(first);
         if (first == i) {
-          buffer
-            ..write('=')
-            ..write(objects[i]);
+          buffer..write('=')..write(objects[i]);
         }
       }
     }
@@ -263,10 +259,7 @@ class Expect {
     if (first.isNotEmpty && first.length == objects.length) return;
     var buffer = new StringBuffer("Expect.allIdentical([");
     _writeEquivalences(objects, equivalences, buffer);
-    buffer
-      ..write("]")
-      ..write(msg)
-      ..write(")");
+    buffer..write("]")..write(msg)..write(")");
     _fail(buffer.toString());
   }
 
@@ -297,10 +290,7 @@ class Expect {
     if (!hasEquivalence) return;
     var buffer = new StringBuffer("Expect.allDistinct([");
     _writeEquivalences(objects, equivalences, buffer);
-    buffer
-      ..write("]")
-      ..write(msg)
-      ..write(")");
+    buffer..write("]")..write(msg)..write(")");
     _fail(buffer.toString());
   }
 
@@ -397,7 +387,7 @@ class Expect {
     String defaultMessage =
         'Expect.stringEquals(expected: <$expected>", <$actual>$msg) fails';
 
-    if ((expected as dynamic) == null || (actual as dynamic) == null) {
+    if ((expected == null) || (actual == null)) {
       _fail('$defaultMessage');
     }
 
@@ -593,52 +583,45 @@ class Expect {
     }
   }
 
-  static bool _defaultCheck([dynamic _]) => true;
+  static bool _defaultCheck([dynamic e]) => true;
 
   /**
-   * Verifies that [computation] throws a [T].
+   * Calls the function [f] and verifies that it throws a `T`.
+   * The optional [check] function can provide additional validation
+   * that the correct object is being thrown.  For example, to check
+   * the content of the thrown boject you could write this:
    *
-   * Calls the [computation] function and fails if that call doesn't throw,
-   * throws something which is not a [T], or throws a [T] which does not
-   * satisfy the optional [check] function.
+   *     Expect.throws<MyException>(myThrowingFunction,
+   *          (e) => e.myMessage.contains("WARNING"));
    *
-   * Returns the accepted thrown [T] object, if one is caught.
-   * This value can be checked further, instead of checking it in the [check]
-   * function. For example, to check the content of the thrown object,
-   * you could write this:
-   * ```
-   * var e = Expect.throws<MyException>(myThrowingFunction);
-   * Expect.isTrue(e.myMessage.contains("WARNING"));
-   * ```
-   * The type variable can be omitted, in which case it defaults to [Object],
-   * and the (sub-)type of the object can be checked in [check] instead.
-   * This was traditionally done before Dart had generic methods.
+   * The type variable can be omitted and the type checked in [check]
+   * instead. This was traditionally done before Dart had generic methods.
    *
-   * If `computation` fails another test expectation
-   * (i.e., throws an [ExpectException]),
-   * that exception cannot be caught and accepted by [Expect.throws].
-   * The test is still considered failing.
+   * If `f` fails an expectation (i.e., throws an [ExpectException]), that
+   * exception is not caught by [Expect.throws]. The test is still considered
+   * failing.
    */
-  static T throws<T extends Object>(void Function() computation,
-      [bool Function(T error)? check, String? reason]) {
+  static void throws<T>(void f(),
+      [bool check(T error) = _defaultCheck, String reason = ""]) {
     // TODO(vsm): Make check and reason nullable or change call sites.
     // Existing tests pass null to set a reason and/or pass them through
     // via helpers.
     // TODO(rnystrom): Using the strange form below instead of "??=" to avoid
     // warnings of unnecessary null checks when analyzed as NNBD code.
-    reason ??= "";
+    if ((check as dynamic) == null) check = _defaultCheck;
+    if ((reason as dynamic) == null) reason = "";
     String msg = reason.isEmpty ? "" : "($reason)";
-    if ((computation as dynamic) == null) {
+    if (f is! Function()) {
       // Only throws from executing the function body should count as throwing.
       // The failure to even call `f` should throw outside the try/catch.
-      testError("Function must not be null");
+      _fail("Expect.throws$msg: Function f not callable with zero arguments");
     }
     try {
-      computation();
+      f();
     } catch (e, s) {
       // A test failure doesn't count as throwing.
       if (e is ExpectException) rethrow;
-      if (e is T && (check ?? _defaultCheck)(e)) return e;
+      if (e is T && check(e as dynamic)) return;
       // Throws something unexpected.
       String type = "";
       if (T != dynamic && T != Object) {
@@ -650,41 +633,47 @@ class Expect {
     _fail('Expect.throws$msg fails: Did not throw');
   }
 
-  static ArgumentError throwsArgumentError(void f(),
-          [String reason = "ArgumentError"]) =>
-      Expect.throws<ArgumentError>(f, _defaultCheck, reason);
+  static void throwsArgumentError(void f(), [String reason = "ArgumentError"]) {
+    Expect.throws(f, (error) => error is ArgumentError, reason);
+  }
 
-  static AssertionError throwsAssertionError(void f(),
-          [String reason = "AssertionError"]) =>
-      Expect.throws<AssertionError>(f, _defaultCheck, reason);
+  static void throwsAssertionError(void f(),
+      [String reason = "AssertionError"]) {
+    Expect.throws(f, (error) => error is AssertionError, reason);
+  }
 
-  static FormatException throwsFormatException(void f(),
-          [String reason = "FormatException"]) =>
-      Expect.throws<FormatException>(f, _defaultCheck, reason);
+  static void throwsFormatException(void f(),
+      [String reason = "FormatException"]) {
+    Expect.throws(f, (error) => error is FormatException, reason);
+  }
 
-  static NoSuchMethodError throwsNoSuchMethodError(void f(),
-          [String reason = "NoSuchMethodError"]) =>
-      Expect.throws<NoSuchMethodError>(f, _defaultCheck, reason);
+  static void throwsNoSuchMethodError(void f(),
+      [String reason = "NoSuchMethodError"]) {
+    Expect.throws(f, (error) => error is NoSuchMethodError, reason);
+  }
 
-  static Error throwsReachabilityError(void f(),
-          [String reason = "ReachabilityError"]) =>
-      Expect.throws<Error>(f,
-          (error) => error.toString().startsWith('ReachabilityError'), reason);
+  static void throwsReachabilityError(void f(),
+      [String reason = "ReachabilityError"]) {
+    Expect.throws(
+        f, (error) => error.toString().startsWith('ReachabilityError'), reason);
+  }
 
-  static RangeError throwsRangeError(void f(),
-          [String reason = "RangeError"]) =>
-      Expect.throws<RangeError>(f, _defaultCheck, reason);
+  static void throwsRangeError(void f(), [String reason = "RangeError"]) {
+    Expect.throws(f, (error) => error is RangeError, reason);
+  }
 
-  static StateError throwsStateError(void f(),
-          [String reason = "StateError"]) =>
-      Expect.throws<StateError>(f, _defaultCheck, reason);
+  static void throwsStateError(void f(), [String reason = "StateError"]) {
+    Expect.throws(f, (error) => error is StateError, reason);
+  }
 
-  static TypeError throwsTypeError(void f(), [String reason = "TypeError"]) =>
-      Expect.throws<TypeError>(f, _defaultCheck, reason);
+  static void throwsTypeError(void f(), [String reason = "TypeError"]) {
+    Expect.throws(f, (error) => error is TypeError, reason);
+  }
 
-  static UnsupportedError throwsUnsupportedError(void f(),
-          [String reason = "UnsupportedError"]) =>
-      Expect.throws<UnsupportedError>(f, _defaultCheck, reason);
+  static void throwsUnsupportedError(void f(),
+      [String reason = "UnsupportedError"]) {
+    Expect.throws(f, (error) => error is UnsupportedError, reason);
+  }
 
   /// Reports that there is an error in the test itself and not the code under
   /// test.
@@ -759,20 +748,20 @@ class ExpectException {
     _getTestName = getName;
   }
 
-  static String Function() _getTestName = _kEmptyString;
+  // TODO(rnystrom): Type this `String Function()?` once this library doesn't
+  // need to be NNBD-agnostic.
+  static dynamic _getTestName;
 
   final String message;
   final String name;
 
-  ExpectException(this.message) : name = _getTestName();
+  ExpectException(this.message)
+      : name = (_getTestName == null) ? "" : _getTestName();
 
   String toString() {
     if (name != "") return 'In test "$name" $message';
     return message;
   }
-
-  /// Initial value for _getTestName.
-  static String _kEmptyString() => "";
 }
 
 /// Is true iff type assertions are enabled.
@@ -780,7 +769,7 @@ class ExpectException {
 final bool typeAssertionsEnabled = (() {
   try {
     dynamic i = 42;
-    String s = i; // ignore: unused_local_variable
+    String s = i;
   } on TypeError {
     return true;
   }

@@ -111,7 +111,6 @@ ConstEvalExternalFactory/analyzerCode: Fail
 ConstEvalExternalFactory/example: Fail
 ConstEvalFailedAssertion/example: Fail
 ConstEvalFailedAssertionWithMessage/example: Fail
-ConstEvalFailedAssertionWithNonStringMessage/example: Fail
 ConstEvalFreeTypeParameter/analyzerCode: Fail
 ConstEvalFreeTypeParameter/example: Fail
 ConstEvalGetterNotFound/analyzerCode: Fail
@@ -335,8 +334,6 @@ FastaUsageLong/analyzerCode: Fail
 FastaUsageLong/example: Fail
 FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
-FfiAbiSpecificIntegerInvalid/analyzerCode: Fail
-FfiAbiSpecificIntegerMappingInvalid/analyzerCode: Fail
 FfiDartTypeMismatch/analyzerCode: Fail
 FfiEmptyStruct/analyzerCode: Fail
 FfiExceptionalReturnNull/analyzerCode: Fail

@@ -7,6 +7,8 @@
 
 part of _js_helper;
 
+const _USE_ES6_MAPS = const bool.fromEnvironment("dart2js.use.es6.maps");
+
 class JsLinkedHashMap<K, V> extends MapBase<K, V>
     implements LinkedHashMap<K, V>, InternalMap {
   int _length = 0;
@@ -33,7 +35,20 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
   // iterated over.
   int _modifications = 0;
 
+  static bool get _supportsEs6Maps {
+    return JS('returns:bool;depends:none;effects:none;throws:never;gvn:true',
+        'typeof Map != "undefined"');
+  }
+
   JsLinkedHashMap();
+
+  /// If ES6 Maps are available returns a linked hash-map backed by an ES6 Map.
+  @pragma('dart2js:tryInline')
+  factory JsLinkedHashMap.es6() {
+    return (_USE_ES6_MAPS && JsLinkedHashMap._supportsEs6Maps)
+        ? new Es6LinkedHashMap<K, V>()
+        : new JsLinkedHashMap<K, V>();
+  }
 
   int get length => _length;
   bool get isEmpty => _length == 0;
@@ -324,6 +339,38 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     _setTableEntry(table, temporaryKey, table);
     _deleteTableEntry(table, temporaryKey);
     return table;
+  }
+}
+
+class Es6LinkedHashMap<K, V> extends JsLinkedHashMap<K, V> {
+  @override
+  LinkedHashMapCell? _getTableCell(var table, var key) {
+    return JS('var', '#.get(#)', table, key);
+  }
+
+  @override
+  List<LinkedHashMapCell>? _getTableBucket(var table, var key) {
+    return JS('var', '#.get(#)', table, key);
+  }
+
+  @override
+  void _setTableEntry(var table, var key, var value) {
+    JS('void', '#.set(#, #)', table, key, value);
+  }
+
+  @override
+  void _deleteTableEntry(var table, var key) {
+    JS('void', '#.delete(#)', table, key);
+  }
+
+  @override
+  bool _containsTableEntry(var table, var key) {
+    return JS('bool', '#.has(#)', table, key);
+  }
+
+  @override
+  _newHashTable() {
+    return JS('var', 'new Map()');
   }
 }
 

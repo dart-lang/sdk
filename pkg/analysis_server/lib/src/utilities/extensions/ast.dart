@@ -8,18 +8,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 extension AstNodeExtensions on AstNode {
-  /// Return the [IfStatement] associated with `this`.
-  IfStatement? get enclosingIfStatement {
-    for (var node in withParents) {
-      if (node is IfStatement) {
-        return node;
-      } else if (node is! Expression) {
-        return null;
-      }
-    }
-    return null;
-  }
-
   /// Return `true` if this node has an `override` annotation.
   bool get hasOverride {
     var node = this;
@@ -73,6 +61,18 @@ extension AstNodeExtensions on AstNode {
   bool get inSwitch => thisOrAncestorOfType<SwitchStatement>() != null;
 
   bool get inWhileLoop => thisOrAncestorOfType<WhileStatement>() != null;
+
+  /// Return the [IfStatement] associated with `this`.
+  IfStatement? get enclosingIfStatement {
+    for (var node in withParents) {
+      if (node is IfStatement) {
+        return node;
+      } else if (node is! Expression) {
+        return null;
+      }
+    }
+    return null;
+  }
 
   /// Return this node and all its parents.
   Iterable<AstNode> get withParents sync* {

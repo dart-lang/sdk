@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 
 import '../fasta_codes.dart'
     show templateInternalProblemNotFoundIn, templateTypeArgumentMismatch;
@@ -37,7 +37,7 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
 
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      ClassHierarchy classHierarchy,
+      CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes);
 

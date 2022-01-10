@@ -288,8 +288,6 @@ const SRegister STMP DART_USED = EvenSRegisterOf(DTMP);
 typedef QRegister FpuRegister;
 
 const FpuRegister FpuTMP = QTMP;
-const int kFpuRegisterSize = 16;
-typedef simd128_value_t fpu_register_t;
 const int kNumberOfFpuRegisters = kNumberOfQRegisters;
 const FpuRegister kNoFpuRegister = kNoQRegister;
 

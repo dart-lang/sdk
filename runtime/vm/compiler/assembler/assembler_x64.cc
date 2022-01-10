@@ -184,7 +184,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   }
 }
 
-void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
+void Assembler::ExitFullSafepoint() {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
   Label done, slow_path;
@@ -209,14 +209,7 @@ void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   }
 
   Bind(&slow_path);
-  if (ignore_unwind_in_progress) {
-    movq(TMP,
-         Address(THR,
-                 target::Thread::
-                     exit_safepoint_ignore_unwind_in_progress_stub_offset()));
-  } else {
-    movq(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
-  }
+  movq(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
   movq(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
 
   // Use call instead of CallCFunction to avoid having to clean up shadow space
@@ -227,13 +220,10 @@ void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   Bind(&done);
 }
 
-void Assembler::TransitionNativeToGenerated(bool leave_safepoint,
-                                            bool ignore_unwind_in_progress) {
+void Assembler::TransitionNativeToGenerated(bool leave_safepoint) {
   if (leave_safepoint) {
-    ExitFullSafepoint(ignore_unwind_in_progress);
+    ExitFullSafepoint();
   } else {
-    // flag only makes sense if we are leaving safepoint
-    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movq(TMP, Address(THR, target::Thread::safepoint_state_offset()));
@@ -1386,17 +1376,6 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
   } else {
     LoadImmediate(TMP, imm);
     movq(dst, TMP);
-  }
-}
-
-void Assembler::LoadDImmediate(FpuRegister dst, double immediate) {
-  int64_t bits = bit_cast<int64_t>(immediate);
-  if (bits == 0) {
-    xorps(dst, dst);
-  } else {
-    intptr_t index = FindImmediate(bits);
-    LoadUnboxedDouble(
-        dst, PP, target::ObjectPool::element_offset(index) - kHeapObjectTag);
   }
 }
 

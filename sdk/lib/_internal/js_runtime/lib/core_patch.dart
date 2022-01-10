@@ -118,22 +118,6 @@ class Expando<T extends Object> {
 }
 
 @patch
-class WeakReference<T extends Object> {
-  @patch
-  factory WeakReference(T object) {
-    throw UnimplementedError("WeakReference");
-  }
-}
-
-@patch
-class Finalizer<T> {
-  @patch
-  factory Finalizer(void Function(T) object) {
-    throw UnimplementedError("Finalizer");
-  }
-}
-
-@patch
 class int {
   @patch
   static int parse(String source,
@@ -494,7 +478,7 @@ class Map<K, V> {
   factory Map.unmodifiable(Map other) = ConstantMap<K, V>.from;
 
   @patch
-  factory Map() = JsLinkedHashMap<K, V>;
+  factory Map() = JsLinkedHashMap<K, V>.es6;
 }
 
 @patch

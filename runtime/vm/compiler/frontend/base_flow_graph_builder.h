@@ -166,6 +166,7 @@ class BaseFlowGraphBuilder {
 
   const Array& coverage_array() const { return coverage_array_; }
 
+  intptr_t GetCoverageIndexFor(TokenPosition token_pos);
   void FinalizeCoverageArray();
 
   Fragment LoadField(const Field& field, bool calls_initializer);
@@ -348,7 +349,6 @@ class BaseFlowGraphBuilder {
   Fragment TestAnyTypeArgs(Fragment present, Fragment absent);
 
   JoinEntryInstr* BuildThrowNoSuchMethod();
-  Fragment ThrowException(TokenPosition position);
 
   Fragment AssertBool(TokenPosition position);
   Fragment BooleanNegate();
@@ -473,7 +473,6 @@ class BaseFlowGraphBuilder {
 
   // Records coverage for this position, if the current VM mode supports it.
   Fragment RecordCoverage(TokenPosition position);
-  Fragment RecordBranchCoverage(TokenPosition position);
 
   // Returns whether this function has a saved arguments descriptor array.
   bool has_saved_args_desc_array() {
@@ -488,8 +487,6 @@ class BaseFlowGraphBuilder {
 
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
-  Fragment RecordCoverageImpl(TokenPosition position, bool is_branch_coverage);
-  intptr_t GetCoverageIndexFor(intptr_t encoded_position);
 
   const ParsedFunction* parsed_function_;
   const Function& function_;
@@ -510,7 +507,7 @@ class BaseFlowGraphBuilder {
   const bool inlining_unchecked_entry_;
   const Array& saved_args_desc_array_;
 
-  GrowableArray<intptr_t> coverage_array_positions_;
+  GrowableArray<TokenPosition> coverage_array_positions_;
   Array& coverage_array_;
 
   friend class StreamingFlowGraphBuilder;

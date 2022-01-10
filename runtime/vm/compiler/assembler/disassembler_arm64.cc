@@ -244,7 +244,7 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
         buffer_pos_ +=
             Utils::SNPrint(current_position_in_buffer(),
                            remaining_size_in_buffer(), ", #%d", imm9);
-        Print("]!");
+        Print("] !");
         break;
       }
       default: { Print("???"); }
@@ -269,13 +269,13 @@ void ARM64Decoder::PrintPairMemOperand(Instr* instr) {
       // rn + (imm7 << (2 + B31)), pre-index, no writeback.
       buffer_pos_ +=
           Utils::SNPrint(current_position_in_buffer(),
-                         remaining_size_in_buffer(), ", #%d]", offset);
+                         remaining_size_in_buffer(), ", #%d ]", offset);
       break;
     case 3:
       // rn + (imm7 << (2 + B31)), pre-index, writeback.
       buffer_pos_ +=
           Utils::SNPrint(current_position_in_buffer(),
-                         remaining_size_in_buffer(), ", #%d]!", offset);
+                         remaining_size_in_buffer(), ", #%d ]!", offset);
       break;
     default:
       Print(", ???]");
@@ -453,7 +453,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       if (shift != 0) {
         buffer_pos_ +=
             Utils::SNPrint(current_position_in_buffer(),
-                           remaining_size_in_buffer(), " lsl %d", shift);
+                           remaining_size_in_buffer(), "lsl %d", shift);
       }
       return 2;
     }
@@ -505,7 +505,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
         }
         buffer_pos_ +=
             Utils::SNPrint(current_position_in_buffer(),
-                           remaining_size_in_buffer(), "#0x%" Px64, imm);
+                           remaining_size_in_buffer(), "0x%" Px64, imm);
         return ret;
       } else {
         ASSERT(STRING_STARTS_WITH(format, "imm"));
@@ -631,8 +631,7 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
             sz_str = "w";
             break;
           case 3:
-            // 64-bit width is most commonly used, no need to print "x".
-            sz_str = "";
+            sz_str = "x";
             break;
           default:
             sz_str = "?";
@@ -684,13 +683,13 @@ void ARM64Decoder::Unknown(Instr* instr) {
 void ARM64Decoder::DecodeMoveWide(Instr* instr) {
   switch (instr->Bits(29, 2)) {
     case 0:
-      Format(instr, "movn'sf 'rd, 'imm16'hw");
+      Format(instr, "movn'sf 'rd, 'imm16 'hw");
       break;
     case 2:
-      Format(instr, "movz'sf 'rd, 'imm16'hw");
+      Format(instr, "movz'sf 'rd, 'imm16 'hw");
       break;
     case 3:
-      Format(instr, "movk'sf 'rd, 'imm16'hw");
+      Format(instr, "movk'sf 'rd, 'imm16 'hw");
       break;
     default:
       Unknown(instr);
@@ -741,8 +740,11 @@ void ARM64Decoder::DecodeLoadRegLiteral(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
-  if (instr->Bit(32) != 1 || instr->Bit(21) != 0 ||
-      instr->Bit(23) != instr->Bit(15)) {
+  if (instr->Bit(21) != 0 || instr->Bit(23) != instr->Bit(15)) {
+    Unknown(instr);
+  }
+  const int32_t size = instr->Bits(30, 2);
+  if (size != 3) {
     Unknown(instr);
   }
 
@@ -752,16 +754,16 @@ void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
   if (is_load) {
     const bool is_load_acquire = !is_exclusive && is_ordered;
     if (is_load_acquire) {
-      Format(instr, "ldar'sz 'rt, 'rn");
+      Format(instr, "ldar 'rt, 'rn");
     } else {
-      Format(instr, "ldxr'sz 'rt, 'rn");
+      Format(instr, "ldxr 'rt, 'rn");
     }
   } else {
     const bool is_store_release = !is_exclusive && is_ordered;
     if (is_store_release) {
-      Format(instr, "stlr'sz 'rt, 'rn");
+      Format(instr, "stlr 'rt, 'rn");
     } else {
-      Format(instr, "stxr'sz 'rs, 'rt, 'rn");
+      Format(instr, "stxr 'rs, 'rt, 'rn");
     }
   }
 }
@@ -770,22 +772,22 @@ void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   switch (instr->Bit(30)) {
     case 0: {
       if ((instr->RdField() == R31) && (instr->SField() == 1)) {
-        Format(instr, "cmn'sf 'rn, 'imm12s");
+        Format(instr, "cmni'sf 'rn, 'imm12s");
       } else {
         if (((instr->RdField() == R31) || (instr->RnField() == R31)) &&
             (instr->Imm12Field() == 0) && (instr->Bit(29) == 0)) {
           Format(instr, "mov'sf 'rd, 'rn");
         } else {
-          Format(instr, "add'sf's 'rd, 'rn, 'imm12s");
+          Format(instr, "addi'sf's 'rd, 'rn, 'imm12s");
         }
       }
       break;
     }
     case 1: {
       if ((instr->RdField() == R31) && (instr->SField() == 1)) {
-        Format(instr, "cmp'sf 'rn, 'imm12s");
+        Format(instr, "cmpi'sf 'rn, 'imm12s");
       } else {
-        Format(instr, "sub'sf's 'rd, 'rn, 'imm12s");
+        Format(instr, "subi'sf's 'rd, 'rn, 'imm12s");
       }
       break;
     }
@@ -854,25 +856,21 @@ void ARM64Decoder::DecodeLogicalImm(Instr* instr) {
   int op = instr->Bits(29, 2);
   switch (op) {
     case 0:
-      Format(instr, "and'sf 'rd, 'rn, 'bitimm");
+      Format(instr, "andi'sf 'rd, 'rn, 'bitimm");
       break;
     case 1: {
       if (instr->RnField() == R31) {
         Format(instr, "mov'sf 'rd, 'bitimm");
       } else {
-        Format(instr, "orr'sf 'rd, 'rn, 'bitimm");
+        Format(instr, "orri'sf 'rd, 'rn, 'bitimm");
       }
       break;
     }
     case 2:
-      Format(instr, "eor'sf 'rd, 'rn, 'bitimm");
+      Format(instr, "eori'sf 'rd, 'rn, 'bitimm");
       break;
     case 3:
-      if (instr->RdField() == R31) {
-        Format(instr, "tst'sf 'rn, 'bitimm");
-      } else {
-        Format(instr, "and'sfs 'rd, 'rn, 'bitimm");
-      }
+      Format(instr, "andi'sfs 'rd, 'rn, 'bitimm");
       break;
     default:
       Unknown(instr);
@@ -950,11 +948,7 @@ void ARM64Decoder::DecodeUnconditionalBranchReg(Instr* instr) {
         Format(instr, "blr 'rn");
         break;
       case 2:
-        if (instr->RnField() == LINK_REGISTER) {
-          Format(instr, "ret");
-        } else {
-          Format(instr, "ret 'rn");
-        }
+        Format(instr, "ret 'rn");
         break;
       default:
         Unknown(instr);
@@ -1046,11 +1040,7 @@ void ARM64Decoder::DecodeAddSubShiftExt(Instr* instr) {
       if ((instr->RdField() == R31) && (instr->SFField())) {
         Format(instr, "cmp'sf 'rn, 'shift_op");
       } else {
-        if (instr->RnField() == R31) {
-          Format(instr, "neg'sf's 'rd, 'shift_op");
-        } else {
-          Format(instr, "sub'sf's 'rd, 'rn, 'shift_op");
-        }
+        Format(instr, "sub'sf's 'rd, 'rn, 'shift_op");
       }
       break;
     }
@@ -1126,9 +1116,6 @@ void ARM64Decoder::DecodeMiscDP1Source(Instr* instr) {
 
   const int op = instr->Bits(10, 10);
   switch (op) {
-    case 0:
-      Format(instr, "rbit'sf 'rd, 'rn");
-      break;
     case 4:
       Format(instr, "clz'sf 'rd, 'rn");
       break;
@@ -1221,24 +1208,24 @@ void ARM64Decoder::DecodeConditionalSelect(Instr* instr) {
   bool non_select =
       (instr->RnField() == instr->RmField()) && ((cond & 0xe) != 0xe);
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 0)) {
-    Format(instr, "csel'sf 'rd, 'rn, 'rm, 'cond");
+    Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 1)) {
     if (non_select) {
-      Format(instr, "csinc'sf 'rd, 'rn, 'rm, 'cond");
+      Format(instr, "csinc'sf'cond 'rd, 'rn, 'rm");
     } else {
-      Format(instr, "cinc'sf 'rd, 'rn, 'condinverted");
+      Format(instr, "cinc'sf'condinverted 'rd, 'rn");
     }
   } else if ((instr->Bits(29, 2) == 2) && (instr->Bits(10, 2) == 0)) {
     if (non_select) {
-      Format(instr, "cinv'sf 'rd, 'rn, 'condinverted");
+      Format(instr, "cinv'sf'condinverted 'rd, 'rn");
     } else {
-      Format(instr, "csinv'sf 'rd, 'rn, 'rm, 'cond");
+      Format(instr, "csinv'sf'cond 'rd, 'rn, 'rm");
     }
   } else if ((instr->Bits(29, 2) == 2) && (instr->Bits(10, 2) == 1)) {
     if (non_select) {
-      Format(instr, "cneg'sf 'rd, 'rn, 'condinverted");
+      Format(instr, "cneg'sf'condinverted 'rd, 'rn");
     } else {
-      Format(instr, "csneg'sf 'rd, 'rn, 'rm, 'cond");
+      Format(instr, "csneg'sf'cond 'rd, 'rn, 'rm");
     }
   } else {
     Unknown(instr);

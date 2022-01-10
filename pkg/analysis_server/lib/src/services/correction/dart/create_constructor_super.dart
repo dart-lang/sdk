@@ -76,61 +76,26 @@ class _CreateConstructor extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var constructorName = _constructor.name;
-    var requiredPositionalParameters = _constructor.parameters
+    var requiredParameters = _constructor.parameters
         .where((parameter) => parameter.isRequiredPositional);
-    var requiredNamedParameters =
-        _constructor.parameters.where((parameter) => parameter.isRequiredNamed);
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(_targetLocation.offset, (builder) {
-        void writeParameters(bool isDefinition) {
-          void writeParameter(ParameterElement parameter) {
-            var parameterName = parameter.displayName;
-            var includeType = isDefinition;
-            var includeRequired = isDefinition && parameter.isRequiredNamed;
-            var includeLabel = !isDefinition && parameter.isRequiredNamed;
-
-            if (parameterName.length > 1 && parameterName.startsWith('_')) {
-              parameterName = parameterName.substring(1);
-            }
-            if (includeRequired) {
-              builder.write('required ');
-            }
-            if (includeType && builder.writeType(parameter.type)) {
-              builder.write(' ');
-            }
-            if (includeLabel) {
-              builder.write('$parameterName: ');
-            }
-            builder.write(parameterName);
-          }
-
+        void writeParameters(bool includeType) {
           var firstParameter = true;
-          void writeComma() {
+          for (var parameter in requiredParameters) {
             if (firstParameter) {
               firstParameter = false;
             } else {
               builder.write(', ');
             }
-          }
-
-          for (var parameter in requiredPositionalParameters) {
-            writeComma();
-            writeParameter(parameter);
-          }
-          if (requiredNamedParameters.isNotEmpty) {
-            var includeBraces = isDefinition;
-            if (includeBraces) {
-              writeComma();
-              firstParameter = true; // Reset since we just included a comma.
-              builder.write('{');
+            var parameterName = parameter.displayName;
+            if (parameterName.length > 1 && parameterName.startsWith('_')) {
+              parameterName = parameterName.substring(1);
             }
-            for (var parameter in requiredNamedParameters) {
-              writeComma();
-              writeParameter(parameter);
+            if (includeType && builder.writeType(parameter.type)) {
+              builder.write(' ');
             }
-            if (includeBraces) {
-              builder.write('}');
-            }
+            builder.write(parameterName);
           }
         }
 

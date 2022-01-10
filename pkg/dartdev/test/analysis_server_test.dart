@@ -21,7 +21,7 @@ void main() {
       p = project();
     });
 
-    tearDown(() async => await p?.dispose());
+    tearDown(() => p?.dispose());
 
     test('can start', () async {
       AnalysisServer server = AnalysisServer(

@@ -2095,9 +2095,6 @@ class NodeReplacer implements AstVisitor<bool> {
     if (identical(node.type, _oldNode)) {
       node.type = _newNode as TypeAnnotation;
       return true;
-    } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
-      return true;
     } else if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterList;
       return true;
@@ -2224,9 +2221,6 @@ class NodeReplacer implements AstVisitor<bool> {
     if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterList;
       return true;
-    } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
-      return true;
     } else if (identical(node.body, _oldNode)) {
       node.body = _newNode as FunctionBody;
       return true;
@@ -2242,9 +2236,6 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.argumentList, _oldNode)) {
       node.argumentList = _newNode as ArgumentList;
-      return true;
-    } else if (identical(node.typeArguments, _oldNode)) {
-      node.typeArguments = _newNode as TypeArgumentList;
       return true;
     }
     return visitNode(node);
@@ -2288,9 +2279,6 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterList;
-      return true;
-    } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
       return true;
     }
     return visitNormalFormalParameter(node);
@@ -2525,9 +2513,6 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterList;
       return true;
-    } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterList;
-      return true;
     } else if (identical(node.body, _oldNode)) {
       node.body = _newNode as FunctionBody;
       return true;
@@ -2545,9 +2530,6 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.argumentList, _oldNode)) {
       node.argumentList = _newNode as ArgumentList;
-      return true;
-    } else if (identical(node.typeArguments, _oldNode)) {
-      node.typeArguments = _newNode as TypeArgumentList;
       return true;
     }
     return visitNode(node);

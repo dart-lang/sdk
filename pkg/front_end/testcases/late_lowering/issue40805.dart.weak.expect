@@ -11,12 +11,12 @@ class C extends core::Object {
     ;
   get x() → core::int
     return this.{self::C::_#C#x#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::C::_#C#x}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("x");
-  set x(covariant-by-declaration core::int x#param) → void
+  set x(covariant-by-declaration core::int #t2) → void
     if(this.{self::C::_#C#x#isSet}{core::bool})
       throw new _in::LateError::fieldAI("x");
     else {
       this.{self::C::_#C#x#isSet} = true;
-      this.{self::C::_#C#x} = x#param;
+      this.{self::C::_#C#x} = #t2;
     }
 }
 class D extends self::C {

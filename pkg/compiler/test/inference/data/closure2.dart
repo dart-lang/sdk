@@ -14,7 +14,7 @@ returnInt1() {
   return a;
 }
 
-/*member: returnDyn1:Union([exact=JSUInt31], [exact=JsLinkedHashMap])*/
+/*member: returnDyn1:Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/
 returnDyn1() {
   dynamic a = 42;
   // ignore: unused_local_variable
@@ -34,7 +34,7 @@ returnInt2() {
   return a;
 }
 
-/*member: returnDyn2:Union([exact=JSUInt31], [exact=JsLinkedHashMap])*/
+/*member: returnDyn2:Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/
 returnDyn2() {
   dynamic a = 42;
   // ignore: unused_local_variable
@@ -60,10 +60,10 @@ returnInt3() {
   return a;
 }
 
-/*member: returnDyn3:Union([exact=JSUInt31], [exact=JsLinkedHashMap])*/
+/*member: returnDyn3:Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/
 returnDyn3() {
   dynamic a = 42;
-  if (a /*invoke: Union([exact=JSUInt31], [exact=JsLinkedHashMap])*/ == 53) {
+  if (a /*invoke: Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/ == 53) {
     // ignore: unused_local_variable
     var f = /*[null]*/ () {
       a = {};

@@ -39,34 +39,10 @@ class StreamManager {
         if (isBinaryData) {
           listener.connection.sink.add(data);
         } else {
-          Map<String, dynamic> processed = data;
-          if (streamId == kProfilerStream) {
-            processed = _processProfilerEvents(listener, data);
-          }
-          listener.sendNotification('streamNotify', processed);
+          listener.sendNotification('streamNotify', data);
         }
       }
     }
-  }
-
-  static Map<String, dynamic> _processProfilerEvents(
-    DartDevelopmentServiceClient client,
-    Map<String, dynamic> data,
-  ) {
-    final event = Event.parse(data['event'])!;
-    if (event.kind != EventKind.kCpuSamples) {
-      return data;
-    }
-    final cpuSamplesEvent = event.cpuSamples!;
-    cpuSamplesEvent.samples = cpuSamplesEvent.samples!
-        .where(
-          (e) => client.profilerUserTagFilters.contains(e.userTag),
-        )
-        .toList();
-    cpuSamplesEvent.sampleCount = cpuSamplesEvent.samples!.length;
-    final updated = Map<String, dynamic>.from(data);
-    updated['event']['cpuSamples'] = cpuSamplesEvent.toJson();
-    return updated;
   }
 
   static Map<String, dynamic> _buildStreamRegisteredEvent(
@@ -170,19 +146,16 @@ class StreamManager {
   /// `streamListen` request for `stream` to the VM service.
   Future<void> streamListen(
     DartDevelopmentServiceClient? client,
-    String stream, {
-    bool? includePrivates,
-  }) async {
-    await _streamSubscriptionMutex.runGuarded(
+    String stream,
+  ) async {
+    await _mutex.runGuarded(
       () async {
         assert(stream.isNotEmpty);
-        bool streamNewlySubscribed = false;
         if (!streamListeners.containsKey(stream)) {
           // Initialize the list of clients for the new stream before we do
           // anything else to ensure multiple clients registering for the same
           // stream in quick succession doesn't result in multiple streamListen
           // requests being sent to the VM service.
-          streamNewlySubscribed = true;
           streamListeners[stream] = <DartDevelopmentServiceClient>[];
           if ((stream == kDebugStream && client == null) ||
               stream != kDebugStream) {
@@ -191,18 +164,12 @@ class StreamManager {
             final result =
                 await dds.vmServiceClient.sendRequest('streamListen', {
               'streamId': stream,
-              if (includePrivates != null)
-                '_includePrivateMembers': includePrivates,
             });
             assert(result['type'] == 'Success');
           }
         }
         if (streamListeners[stream]!.contains(client)) {
           throw kStreamAlreadySubscribedException;
-        } else if (!streamNewlySubscribed && includePrivates != null) {
-          await dds.vmServiceClient.sendRequest(
-              '_setStreamIncludePrivateMembers',
-              {'streamId': stream, 'includePrivateMembers': includePrivates});
         }
         if (client != null) {
           streamListeners[stream]!.add(client);
@@ -251,7 +218,7 @@ class StreamManager {
     String stream, {
     bool cancelCoreStream = false,
   }) async {
-    await _streamSubscriptionMutex.runGuarded(
+    await _mutex.runGuarded(
       () async {
         assert(stream.isNotEmpty);
         final listeners = streamListeners[stream];
@@ -279,28 +246,6 @@ class StreamManager {
     );
   }
 
-  Future<void> updateUserTagSubscriptions(
-      [List<String> userTags = const []]) async {
-    await _profilerUserTagSubscriptionsMutex.runGuarded(() async {
-      _profilerUserTagSubscriptions.addAll(userTags);
-      for (final subscribedTag in _profilerUserTagSubscriptions.toList()) {
-        bool hasSubscriber = false;
-        for (final c in dds.clientManager.clients) {
-          if (c.profilerUserTagFilters.contains(subscribedTag)) {
-            hasSubscriber = true;
-            break;
-          }
-        }
-        if (!hasSubscriber) {
-          _profilerUserTagSubscriptions.remove(subscribedTag);
-        }
-      }
-      await dds.vmServiceClient.sendRequest('streamCpuSamplesWithUserTag', {
-        'userTags': _profilerUserTagSubscriptions.toList(),
-      });
-    });
-  }
-
   /// Cleanup stream subscriptions for `client` when it has disconnected.
   void clientDisconnect(DartDevelopmentServiceClient client) {
     for (final streamId in streamListeners.keys.toList()) {
@@ -311,11 +256,6 @@ class StreamManager {
         test: (e) => (e is json_rpc.RpcException) || (e is StateError),
       );
     }
-    updateUserTagSubscriptions().catchError(
-      (_) => null,
-      test: (e) => (e is json_rpc.RpcException) || (e is StateError),
-    );
-
     // Notify other service clients of service extensions that are being
     // unregistered.
     _sendServiceUnregisteredEvents(client);
@@ -372,7 +312,5 @@ class StreamManager {
 
   final DartDevelopmentServiceImpl dds;
   final streamListeners = <String, List<DartDevelopmentServiceClient>>{};
-  final _profilerUserTagSubscriptions = <String>{};
-  final _streamSubscriptionMutex = Mutex();
-  final _profilerUserTagSubscriptionsMutex = Mutex();
+  final _mutex = Mutex();
 }

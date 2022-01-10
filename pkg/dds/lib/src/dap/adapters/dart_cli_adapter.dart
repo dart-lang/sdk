@@ -98,6 +98,9 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         '-DSILENT_OBSERVATORY=true',
         '--write-service-info=${Uri.file(vmServiceInfoFile.path)}'
       ],
+      // Default to asserts on, this seems like the most useful behaviour for
+      // editor-spawned debug sessions.
+      if (args.enableAsserts ?? true) '--enable-asserts',
     ];
 
     // Handle customTool and deletion of any arguments for it.
@@ -146,6 +149,11 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         workingDirectory: args.cwd,
         env: args.env,
       );
+    }
+
+    // Delay responding until the debugger is connected.
+    if (debug) {
+      await debuggerInitialized;
     }
   }
 

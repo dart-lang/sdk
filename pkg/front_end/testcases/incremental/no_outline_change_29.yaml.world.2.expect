@@ -28,34 +28,34 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return this.{main::C::_#C#field5}{dart.core::int?};
     }
-    set field5(dart.core::int? field5#param) → void {
+    set field5(dart.core::int? #t1) → void {
       this.{main::C::_#C#field5#isSet} = true;
-      this.{main::C::_#C#field5} = field5#param;
+      this.{main::C::_#C#field5} = #t1;
     }
     get field6() → dart.core::int?
       return this.{main::C::_#C#field6#isSet}{dart.core::bool} ?{dart.core::int?} this.{main::C::_#C#field6}{dart.core::int?} : throw new dart._internal::LateError::fieldNI("field6");
-    set field6(dart.core::int? field6#param) → void {
+    set field6(dart.core::int? #t2) → void {
       this.{main::C::_#C#field6#isSet} = true;
-      this.{main::C::_#C#field6} = field6#param;
+      this.{main::C::_#C#field6} = #t2;
     }
     get field7() → dart.core::int? {
       if(!this.{main::C::_#C#field7#isSet}{dart.core::bool}) {
-        final dart.core::int? #t1 = 42;
+        final dart.core::int? #t3 = 42;
         if(this.{main::C::_#C#field7#isSet}{dart.core::bool})
           throw new dart._internal::LateError::fieldADI("field7");
-        this.{main::C::_#C#field7} = #t1;
+        this.{main::C::_#C#field7} = #t3;
         this.{main::C::_#C#field7#isSet} = true;
       }
       return this.{main::C::_#C#field7}{dart.core::int?};
     }
     get field8() → dart.core::int?
       return this.{main::C::_#C#field8#isSet}{dart.core::bool} ?{dart.core::int?} this.{main::C::_#C#field8}{dart.core::int?} : throw new dart._internal::LateError::fieldNI("field8");
-    set field8(dart.core::int? field8#param) → void
+    set field8(dart.core::int? #t4) → void
       if(this.{main::C::_#C#field8#isSet}{dart.core::bool})
         throw new dart._internal::LateError::fieldAI("field8");
       else {
         this.{main::C::_#C#field8#isSet} = true;
-        this.{main::C::_#C#field8} = field8#param;
+        this.{main::C::_#C#field8} = #t4;
       }
     static get field9() → dart.core::int? {
       if(!main::C::_#field9#isSet) {
@@ -64,34 +64,34 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return main::C::_#field9;
     }
-    static set field9(dart.core::int? field9#param) → void {
+    static set field9(dart.core::int? #t5) → void {
       main::C::_#field9#isSet = true;
-      main::C::_#field9 = field9#param;
+      main::C::_#field9 = #t5;
     }
     static get field10() → dart.core::int?
       return main::C::_#field10#isSet ?{dart.core::int?} main::C::_#field10 : throw new dart._internal::LateError::fieldNI("field10");
-    static set field10(dart.core::int? field10#param) → void {
+    static set field10(dart.core::int? #t6) → void {
       main::C::_#field10#isSet = true;
-      main::C::_#field10 = field10#param;
+      main::C::_#field10 = #t6;
     }
     static get field11() → dart.core::int? {
       if(!main::C::_#field11#isSet) {
-        final dart.core::int? #t2 = 42;
+        final dart.core::int? #t7 = 42;
         if(main::C::_#field11#isSet)
           throw new dart._internal::LateError::fieldADI("field11");
-        main::C::_#field11 = #t2;
+        main::C::_#field11 = #t7;
         main::C::_#field11#isSet = true;
       }
       return main::C::_#field11;
     }
     static get field12() → dart.core::int?
       return main::C::_#field12#isSet ?{dart.core::int?} main::C::_#field12 : throw new dart._internal::LateError::fieldNI("field12");
-    static set field12(dart.core::int? field12#param) → void
+    static set field12(dart.core::int? #t8) → void
       if(main::C::_#field12#isSet)
         throw new dart._internal::LateError::fieldAI("field12");
       else {
         main::C::_#field12#isSet = true;
-        main::C::_#field12 = field12#param;
+        main::C::_#field12 = #t8;
       }
   }
   static field dart.core::int? _#field1 = null;
@@ -109,34 +109,34 @@ library from "org-dartlang-test:///main.dart" as main {
     }
     return main::_#field1;
   }
-  static set field1(dart.core::int? field1#param) → void {
+  static set field1(dart.core::int? #t9) → void {
     main::_#field1#isSet = true;
-    main::_#field1 = field1#param;
+    main::_#field1 = #t9;
   }
   static get field2() → dart.core::int?
     return main::_#field2#isSet ?{dart.core::int?} main::_#field2 : throw new dart._internal::LateError::fieldNI("field2");
-  static set field2(dart.core::int? field2#param) → void {
+  static set field2(dart.core::int? #t10) → void {
     main::_#field2#isSet = true;
-    main::_#field2 = field2#param;
+    main::_#field2 = #t10;
   }
   static get field3() → dart.core::int? {
     if(!main::_#field3#isSet) {
-      final dart.core::int? #t3 = 42;
+      final dart.core::int? #t11 = 42;
       if(main::_#field3#isSet)
         throw new dart._internal::LateError::fieldADI("field3");
-      main::_#field3 = #t3;
+      main::_#field3 = #t11;
       main::_#field3#isSet = true;
     }
     return main::_#field3;
   }
   static get field4() → dart.core::int?
     return main::_#field4#isSet ?{dart.core::int?} main::_#field4 : throw new dart._internal::LateError::fieldNI("field4");
-  static set field4(dart.core::int? field4#param) → void
+  static set field4(dart.core::int? #t12) → void
     if(main::_#field4#isSet)
       throw new dart._internal::LateError::fieldAI("field4");
     else {
       main::_#field4#isSet = true;
-      main::_#field4 = field4#param;
+      main::_#field4 = #t12;
     }
   static method main() → dynamic {
     main::field1 = 44;

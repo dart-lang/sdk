@@ -10,9 +10,9 @@ static method main() → dynamic {
   lowered core::bool #local#isSet = false;
   function #local#get() → core::int
     return #local#isSet ?{core::int} #local{core::int} : throw new _in::LateError::localNI("local");
-  function #local#set(core::int local#param) → dynamic {
+  function #local#set(core::int #t1) → dynamic {
     #local#isSet = true;
-    return #local = local#param;
+    return #local = #t1;
   }
   #local#set(self::f<core::int>(0)){(core::int) → dynamic};
 }

@@ -199,17 +199,11 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
     seen(begin);
     seen(abstractToken);
-    seen(macroToken);
     seen(name);
-    doPrint('beginClassDeclaration('
-        '$begin, '
-        '$abstractToken, '
-        '$macroToken, '
-        '$name)');
+    doPrint('beginClassDeclaration(' '$begin, ' '$abstractToken, ' '$name)');
     indent++;
   }
 
@@ -1023,16 +1017,12 @@ class ParserTestListener implements Listener {
 
   @override
   void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token? macroToken, Token name) {
+      Token begin, Token? abstractToken, Token name) {
     seen(begin);
     seen(abstractToken);
-    seen(macroToken);
     seen(name);
-    doPrint('beginNamedMixinApplication('
-        '$begin, '
-        '$abstractToken, '
-        '$macroToken, '
-        '$name)');
+    doPrint(
+        'beginNamedMixinApplication(' '$begin, ' '$abstractToken, ' '$name)');
     indent++;
   }
 
@@ -2670,25 +2660,16 @@ class ParserTestListener implements Listener {
 
   @override
   void handleCommentReference(
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token thirdToken) {
+      Token? newKeyword, Token? prefix, Token? period, Token token) {
     seen(newKeyword);
-    seen(firstToken);
-    seen(firstPeriod);
-    seen(secondToken);
-    seen(secondPeriod);
-    seen(thirdToken);
+    seen(prefix);
+    seen(period);
+    seen(token);
     doPrint('handleCommentReference('
         '$newKeyword, '
-        '$firstToken, '
-        '$firstPeriod, '
-        '$secondToken, '
-        '$secondPeriod, '
-        '$thirdToken)');
+        '$prefix, '
+        '$period, '
+        '$token)');
   }
 
   @override

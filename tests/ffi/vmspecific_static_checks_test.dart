@@ -848,35 +848,3 @@ class TestStruct1802 extends Struct {
   @Array.multi([2, 2, 2, 2, 2, 2, -1]) //# 1802: compile-time error
   external Array<Uint8> inlineArray; //# 1802: compile-time error
 }
-
-@AbiSpecificIntegerMapping({
-  Abi.androidArm: Uint32(),
-  Abi.androidArm64: IntPtr(), //# 1900: compile-time error
-  Abi.androidIA32: AbiSpecificInteger1(), //# 1901: compile-time error
-})
-@AbiSpecificIntegerMapping({}) //# 1902: compile-time error
-class AbiSpecificInteger1 extends AbiSpecificInteger {
-  const AbiSpecificInteger1();
-
-  int get a => 4; //# 1910: compile-time error
-
-  external int b; //# 1911: compile-time error
-}
-
-class AbiSpecificInteger2
-    implements AbiSpecificInteger //# 1903: compile-time error
-{
-  const AbiSpecificInteger2();
-}
-
-class AbiSpecificInteger3
-    extends AbiSpecificInteger1 //# 1904: compile-time error
-{
-  const AbiSpecificInteger3();
-}
-
-class AbiSpecificInteger4
-    implements AbiSpecificInteger1 //# 1905: compile-time error
-{
-  const AbiSpecificInteger4();
-}

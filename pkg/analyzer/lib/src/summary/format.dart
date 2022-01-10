@@ -241,24 +241,24 @@ abstract class _AnalysisDriverExceptionContextMixin
     implements idl.AnalysisDriverExceptionContext {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_exception = exception;
     if (local_exception != '') {
-      result["exception"] = local_exception;
+      _result["exception"] = local_exception;
     }
     var local_files = files;
     if (local_files.isNotEmpty) {
-      result["files"] = local_files.map((value) => value.toJson()).toList();
+      _result["files"] = local_files.map((_value) => _value.toJson()).toList();
     }
     var local_path = path;
     if (local_path != '') {
-      result["path"] = local_path;
+      _result["path"] = local_path;
     }
     var local_stackTrace = stackTrace;
     if (local_stackTrace != '') {
-      result["stackTrace"] = local_stackTrace;
+      _result["stackTrace"] = local_stackTrace;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -367,16 +367,16 @@ abstract class _AnalysisDriverExceptionFileMixin
     implements idl.AnalysisDriverExceptionFile {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_content = content;
     if (local_content != '') {
-      result["content"] = local_content;
+      _result["content"] = local_content;
     }
     var local_path = path;
     if (local_path != '') {
-      result["path"] = local_path;
+      _result["path"] = local_path;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -512,16 +512,17 @@ abstract class _AnalysisDriverResolvedUnitMixin
     implements idl.AnalysisDriverResolvedUnit {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_errors = errors;
     if (local_errors.isNotEmpty) {
-      result["errors"] = local_errors.map((value) => value.toJson()).toList();
+      _result["errors"] =
+          local_errors.map((_value) => _value.toJson()).toList();
     }
     var local_index = index;
     if (local_index != null) {
-      result["index"] = local_index.toJson();
+      _result["index"] = local_index.toJson();
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -633,16 +634,16 @@ abstract class _AnalysisDriverSubtypeMixin
     implements idl.AnalysisDriverSubtype {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_members = members;
     if (local_members.isNotEmpty) {
-      result["members"] = local_members;
+      _result["members"] = local_members;
     }
     var local_name = name;
     if (local_name != 0) {
-      result["name"] = local_name;
+      _result["name"] = local_name;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -858,33 +859,33 @@ abstract class _AnalysisDriverUnitErrorMixin
     implements idl.AnalysisDriverUnitError {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_contextMessages = contextMessages;
     if (local_contextMessages.isNotEmpty) {
-      result["contextMessages"] =
-          local_contextMessages.map((value) => value.toJson()).toList();
+      _result["contextMessages"] =
+          local_contextMessages.map((_value) => _value.toJson()).toList();
     }
     var local_correction = correction;
     if (local_correction != '') {
-      result["correction"] = local_correction;
+      _result["correction"] = local_correction;
     }
     var local_length = length;
     if (local_length != 0) {
-      result["length"] = local_length;
+      _result["length"] = local_length;
     }
     var local_message = message;
     if (local_message != '') {
-      result["message"] = local_message;
+      _result["message"] = local_message;
     }
     var local_offset = offset;
     if (local_offset != 0) {
-      result["offset"] = local_offset;
+      _result["offset"] = local_offset;
     }
     var local_uniqueName = uniqueName;
     if (local_uniqueName != '') {
-      result["uniqueName"] = local_uniqueName;
+      _result["uniqueName"] = local_uniqueName;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -1710,95 +1711,96 @@ abstract class _AnalysisDriverUnitIndexMixin
     implements idl.AnalysisDriverUnitIndex {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_elementKinds = elementKinds;
     if (local_elementKinds.isNotEmpty) {
-      result["elementKinds"] = local_elementKinds
-          .map((value) => value.toString().split('.')[1])
+      _result["elementKinds"] = local_elementKinds
+          .map((_value) => _value.toString().split('.')[1])
           .toList();
     }
     var local_elementNameClassMemberIds = elementNameClassMemberIds;
     if (local_elementNameClassMemberIds.isNotEmpty) {
-      result["elementNameClassMemberIds"] = local_elementNameClassMemberIds;
+      _result["elementNameClassMemberIds"] = local_elementNameClassMemberIds;
     }
     var local_elementNameParameterIds = elementNameParameterIds;
     if (local_elementNameParameterIds.isNotEmpty) {
-      result["elementNameParameterIds"] = local_elementNameParameterIds;
+      _result["elementNameParameterIds"] = local_elementNameParameterIds;
     }
     var local_elementNameUnitMemberIds = elementNameUnitMemberIds;
     if (local_elementNameUnitMemberIds.isNotEmpty) {
-      result["elementNameUnitMemberIds"] = local_elementNameUnitMemberIds;
+      _result["elementNameUnitMemberIds"] = local_elementNameUnitMemberIds;
     }
     var local_elementUnits = elementUnits;
     if (local_elementUnits.isNotEmpty) {
-      result["elementUnits"] = local_elementUnits;
+      _result["elementUnits"] = local_elementUnits;
     }
     var local_nullStringId = nullStringId;
     if (local_nullStringId != 0) {
-      result["nullStringId"] = local_nullStringId;
+      _result["nullStringId"] = local_nullStringId;
     }
     var local_strings = strings;
     if (local_strings.isNotEmpty) {
-      result["strings"] = local_strings;
+      _result["strings"] = local_strings;
     }
     var local_subtypes = subtypes;
     if (local_subtypes.isNotEmpty) {
-      result["subtypes"] =
-          local_subtypes.map((value) => value.toJson()).toList();
+      _result["subtypes"] =
+          local_subtypes.map((_value) => _value.toJson()).toList();
     }
     var local_supertypes = supertypes;
     if (local_supertypes.isNotEmpty) {
-      result["supertypes"] = local_supertypes;
+      _result["supertypes"] = local_supertypes;
     }
     var local_unitLibraryUris = unitLibraryUris;
     if (local_unitLibraryUris.isNotEmpty) {
-      result["unitLibraryUris"] = local_unitLibraryUris;
+      _result["unitLibraryUris"] = local_unitLibraryUris;
     }
     var local_unitUnitUris = unitUnitUris;
     if (local_unitUnitUris.isNotEmpty) {
-      result["unitUnitUris"] = local_unitUnitUris;
+      _result["unitUnitUris"] = local_unitUnitUris;
     }
     var local_usedElementIsQualifiedFlags = usedElementIsQualifiedFlags;
     if (local_usedElementIsQualifiedFlags.isNotEmpty) {
-      result["usedElementIsQualifiedFlags"] = local_usedElementIsQualifiedFlags;
+      _result["usedElementIsQualifiedFlags"] =
+          local_usedElementIsQualifiedFlags;
     }
     var local_usedElementKinds = usedElementKinds;
     if (local_usedElementKinds.isNotEmpty) {
-      result["usedElementKinds"] = local_usedElementKinds
-          .map((value) => value.toString().split('.')[1])
+      _result["usedElementKinds"] = local_usedElementKinds
+          .map((_value) => _value.toString().split('.')[1])
           .toList();
     }
     var local_usedElementLengths = usedElementLengths;
     if (local_usedElementLengths.isNotEmpty) {
-      result["usedElementLengths"] = local_usedElementLengths;
+      _result["usedElementLengths"] = local_usedElementLengths;
     }
     var local_usedElementOffsets = usedElementOffsets;
     if (local_usedElementOffsets.isNotEmpty) {
-      result["usedElementOffsets"] = local_usedElementOffsets;
+      _result["usedElementOffsets"] = local_usedElementOffsets;
     }
     var local_usedElements = usedElements;
     if (local_usedElements.isNotEmpty) {
-      result["usedElements"] = local_usedElements;
+      _result["usedElements"] = local_usedElements;
     }
     var local_usedNameIsQualifiedFlags = usedNameIsQualifiedFlags;
     if (local_usedNameIsQualifiedFlags.isNotEmpty) {
-      result["usedNameIsQualifiedFlags"] = local_usedNameIsQualifiedFlags;
+      _result["usedNameIsQualifiedFlags"] = local_usedNameIsQualifiedFlags;
     }
     var local_usedNameKinds = usedNameKinds;
     if (local_usedNameKinds.isNotEmpty) {
-      result["usedNameKinds"] = local_usedNameKinds
-          .map((value) => value.toString().split('.')[1])
+      _result["usedNameKinds"] = local_usedNameKinds
+          .map((_value) => _value.toString().split('.')[1])
           .toList();
     }
     var local_usedNameOffsets = usedNameOffsets;
     if (local_usedNameOffsets.isNotEmpty) {
-      result["usedNameOffsets"] = local_usedNameOffsets;
+      _result["usedNameOffsets"] = local_usedNameOffsets;
     }
     var local_usedNames = usedNames;
     if (local_usedNames.isNotEmpty) {
-      result["usedNames"] = local_usedNames;
+      _result["usedNames"] = local_usedNames;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -2497,110 +2499,110 @@ class _AvailableDeclarationImpl extends Object
 abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_children = children;
     if (local_children.isNotEmpty) {
-      result["children"] =
-          local_children.map((value) => value.toJson()).toList();
+      _result["children"] =
+          local_children.map((_value) => _value.toJson()).toList();
     }
     var local_codeLength = codeLength;
     if (local_codeLength != 0) {
-      result["codeLength"] = local_codeLength;
+      _result["codeLength"] = local_codeLength;
     }
     var local_codeOffset = codeOffset;
     if (local_codeOffset != 0) {
-      result["codeOffset"] = local_codeOffset;
+      _result["codeOffset"] = local_codeOffset;
     }
     var local_defaultArgumentListString = defaultArgumentListString;
     if (local_defaultArgumentListString != '') {
-      result["defaultArgumentListString"] = local_defaultArgumentListString;
+      _result["defaultArgumentListString"] = local_defaultArgumentListString;
     }
     var local_defaultArgumentListTextRanges = defaultArgumentListTextRanges;
     if (local_defaultArgumentListTextRanges.isNotEmpty) {
-      result["defaultArgumentListTextRanges"] =
+      _result["defaultArgumentListTextRanges"] =
           local_defaultArgumentListTextRanges;
     }
     var local_docComplete = docComplete;
     if (local_docComplete != '') {
-      result["docComplete"] = local_docComplete;
+      _result["docComplete"] = local_docComplete;
     }
     var local_docSummary = docSummary;
     if (local_docSummary != '') {
-      result["docSummary"] = local_docSummary;
+      _result["docSummary"] = local_docSummary;
     }
     var local_fieldMask = fieldMask;
     if (local_fieldMask != 0) {
-      result["fieldMask"] = local_fieldMask;
+      _result["fieldMask"] = local_fieldMask;
     }
     var local_isAbstract = isAbstract;
     if (local_isAbstract != false) {
-      result["isAbstract"] = local_isAbstract;
+      _result["isAbstract"] = local_isAbstract;
     }
     var local_isConst = isConst;
     if (local_isConst != false) {
-      result["isConst"] = local_isConst;
+      _result["isConst"] = local_isConst;
     }
     var local_isDeprecated = isDeprecated;
     if (local_isDeprecated != false) {
-      result["isDeprecated"] = local_isDeprecated;
+      _result["isDeprecated"] = local_isDeprecated;
     }
     var local_isFinal = isFinal;
     if (local_isFinal != false) {
-      result["isFinal"] = local_isFinal;
+      _result["isFinal"] = local_isFinal;
     }
     var local_isStatic = isStatic;
     if (local_isStatic != false) {
-      result["isStatic"] = local_isStatic;
+      _result["isStatic"] = local_isStatic;
     }
     var local_kind = kind;
     if (local_kind != idl.AvailableDeclarationKind.CLASS) {
-      result["kind"] = local_kind.toString().split('.')[1];
+      _result["kind"] = local_kind.toString().split('.')[1];
     }
     var local_locationOffset = locationOffset;
     if (local_locationOffset != 0) {
-      result["locationOffset"] = local_locationOffset;
+      _result["locationOffset"] = local_locationOffset;
     }
     var local_locationStartColumn = locationStartColumn;
     if (local_locationStartColumn != 0) {
-      result["locationStartColumn"] = local_locationStartColumn;
+      _result["locationStartColumn"] = local_locationStartColumn;
     }
     var local_locationStartLine = locationStartLine;
     if (local_locationStartLine != 0) {
-      result["locationStartLine"] = local_locationStartLine;
+      _result["locationStartLine"] = local_locationStartLine;
     }
     var local_name = name;
     if (local_name != '') {
-      result["name"] = local_name;
+      _result["name"] = local_name;
     }
     var local_parameterNames = parameterNames;
     if (local_parameterNames.isNotEmpty) {
-      result["parameterNames"] = local_parameterNames;
+      _result["parameterNames"] = local_parameterNames;
     }
     var local_parameters = parameters;
     if (local_parameters != '') {
-      result["parameters"] = local_parameters;
+      _result["parameters"] = local_parameters;
     }
     var local_parameterTypes = parameterTypes;
     if (local_parameterTypes.isNotEmpty) {
-      result["parameterTypes"] = local_parameterTypes;
+      _result["parameterTypes"] = local_parameterTypes;
     }
     var local_relevanceTags = relevanceTags;
     if (local_relevanceTags.isNotEmpty) {
-      result["relevanceTags"] = local_relevanceTags;
+      _result["relevanceTags"] = local_relevanceTags;
     }
     var local_requiredParameterCount = requiredParameterCount;
     if (local_requiredParameterCount != 0) {
-      result["requiredParameterCount"] = local_requiredParameterCount;
+      _result["requiredParameterCount"] = local_requiredParameterCount;
     }
     var local_returnType = returnType;
     if (local_returnType != '') {
-      result["returnType"] = local_returnType;
+      _result["returnType"] = local_returnType;
     }
     var local_typeParameters = typeParameters;
     if (local_typeParameters != '') {
-      result["typeParameters"] = local_typeParameters;
+      _result["typeParameters"] = local_typeParameters;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -2898,37 +2900,38 @@ class _AvailableFileImpl extends Object
 abstract class _AvailableFileMixin implements idl.AvailableFile {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_declarations = declarations;
     if (local_declarations.isNotEmpty) {
-      result["declarations"] =
-          local_declarations.map((value) => value.toJson()).toList();
+      _result["declarations"] =
+          local_declarations.map((_value) => _value.toJson()).toList();
     }
     var local_directiveInfo = directiveInfo;
     if (local_directiveInfo != null) {
-      result["directiveInfo"] = local_directiveInfo.toJson();
+      _result["directiveInfo"] = local_directiveInfo.toJson();
     }
     var local_exports = exports;
     if (local_exports.isNotEmpty) {
-      result["exports"] = local_exports.map((value) => value.toJson()).toList();
+      _result["exports"] =
+          local_exports.map((_value) => _value.toJson()).toList();
     }
     var local_isLibrary = isLibrary;
     if (local_isLibrary != false) {
-      result["isLibrary"] = local_isLibrary;
+      _result["isLibrary"] = local_isLibrary;
     }
     var local_isLibraryDeprecated = isLibraryDeprecated;
     if (local_isLibraryDeprecated != false) {
-      result["isLibraryDeprecated"] = local_isLibraryDeprecated;
+      _result["isLibraryDeprecated"] = local_isLibraryDeprecated;
     }
     var local_lineStarts = lineStarts;
     if (local_lineStarts.isNotEmpty) {
-      result["lineStarts"] = local_lineStarts;
+      _result["lineStarts"] = local_lineStarts;
     }
     var local_parts = parts;
     if (local_parts.isNotEmpty) {
-      result["parts"] = local_parts;
+      _result["parts"] = local_parts;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -3054,17 +3057,17 @@ class _AvailableFileExportImpl extends Object
 abstract class _AvailableFileExportMixin implements idl.AvailableFileExport {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_combinators = combinators;
     if (local_combinators.isNotEmpty) {
-      result["combinators"] =
-          local_combinators.map((value) => value.toJson()).toList();
+      _result["combinators"] =
+          local_combinators.map((_value) => _value.toJson()).toList();
     }
     var local_uri = uri;
     if (local_uri != '') {
-      result["uri"] = local_uri;
+      _result["uri"] = local_uri;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -3191,16 +3194,16 @@ abstract class _AvailableFileExportCombinatorMixin
     implements idl.AvailableFileExportCombinator {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_hides = hides;
     if (local_hides.isNotEmpty) {
-      result["hides"] = local_hides;
+      _result["hides"] = local_hides;
     }
     var local_shows = shows;
     if (local_shows.isNotEmpty) {
-      result["shows"] = local_shows;
+      _result["shows"] = local_shows;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -3337,16 +3340,17 @@ class _CiderUnitErrorsImpl extends Object
 abstract class _CiderUnitErrorsMixin implements idl.CiderUnitErrors {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_errors = errors;
     if (local_errors.isNotEmpty) {
-      result["errors"] = local_errors.map((value) => value.toJson()).toList();
+      _result["errors"] =
+          local_errors.map((_value) => _value.toJson()).toList();
     }
     var local_signature = signature;
     if (local_signature.isNotEmpty) {
-      result["signature"] = local_signature;
+      _result["signature"] = local_signature;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -3520,28 +3524,28 @@ class _DiagnosticMessageImpl extends Object
 abstract class _DiagnosticMessageMixin implements idl.DiagnosticMessage {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_filePath = filePath;
     if (local_filePath != '') {
-      result["filePath"] = local_filePath;
+      _result["filePath"] = local_filePath;
     }
     var local_length = length;
     if (local_length != 0) {
-      result["length"] = local_length;
+      _result["length"] = local_length;
     }
     var local_message = message;
     if (local_message != '') {
-      result["message"] = local_message;
+      _result["message"] = local_message;
     }
     var local_offset = offset;
     if (local_offset != 0) {
-      result["offset"] = local_offset;
+      _result["offset"] = local_offset;
     }
     var local_url = url;
     if (local_url != '') {
-      result["url"] = local_url;
+      _result["url"] = local_url;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -3668,16 +3672,16 @@ class _DirectiveInfoImpl extends Object
 abstract class _DirectiveInfoMixin implements idl.DirectiveInfo {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_templateNames = templateNames;
     if (local_templateNames.isNotEmpty) {
-      result["templateNames"] = local_templateNames;
+      _result["templateNames"] = local_templateNames;
     }
     var local_templateValues = templateValues;
     if (local_templateValues.isNotEmpty) {
-      result["templateValues"] = local_templateValues;
+      _result["templateValues"] = local_templateValues;
     }
-    return result;
+    return _result;
   }
 
   @override
@@ -3758,12 +3762,12 @@ class _PackageBundleImpl extends Object
 abstract class _PackageBundleMixin implements idl.PackageBundle {
   @override
   Map<String, Object> toJson() {
-    Map<String, Object> result = <String, Object>{};
+    Map<String, Object> _result = <String, Object>{};
     var local_fake = fake;
     if (local_fake != 0) {
-      result["fake"] = local_fake;
+      _result["fake"] = local_fake;
     }
-    return result;
+    return _result;
   }
 
   @override

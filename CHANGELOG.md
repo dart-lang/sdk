@@ -1,32 +1,18 @@
-## 2.17.0
-
-### Core libraries
-
-#### `dart:core`
-
-- Add `Finalizer` and `WeakReference` which can potentially detect when
-  objects are "garbage collected".
-
 ## 2.16.0
 
 ### Core libraries
 
 #### `dart:core`
 
+- **Breaking Change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
+  On Windows, `Directory.rename` will no longer delete a directory if
+  `newPath` specifies one. Instead, a `FileSystemException` will be thrown.
+
 - Add `Error.throwWithStackTrace` which can `throw` an
   error with an existing stack trace, instead of creating
   a new stack trace.
 
-#### `dart:indexed_db`
-
-- `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
-  `false`.
-
 #### `dart:io`
-
-- **Breaking Change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
-On Windows, `Directory.rename` will no longer delete a directory if
-`newPath` specifies one. Instead, a `FileSystemException` will be thrown.
 
 - **Breaking Change** [#47769](https://github.com/dart-lang/sdk/issues/47769):
 The `Platform.packageRoot` API has been removed. It had been marked deprecated
@@ -63,8 +49,7 @@ in 2018, as it doesn't work with any Dart 2.x release.
 
 #### Linter
 
-Updated the Linter to `1.17.1`, which includes changes that
-- adds new lint: `unnecessary_late`.
+Updated the Linter to `1.16.0`, which includes changes that
 - improves docs for `prefer_initializing_formals`.
 - updates `secure_pubspec_urls` to check `issue_tracker` and
   `repository` entries.
@@ -79,18 +64,7 @@ Updated the Linter to `1.17.1`, which includes changes that
 - adds new lint: `use_decorated_box`.
 - improves docs for `omit_local_variable_types`.
 
-## 2.15.1 - 2021-12-14
-
-This is a patch release that fixes:
-
-- an AOT compilation failure in some Flutter apps (issue [#47878][]).
-- `dart pub publish` for servers with a path in the URL (pr
-  [dart-lang/pub#3244][]).
-
-[#47878]: https://github.com/dart-lang/sdk/issues/47878
-[dart-lang/pub#3244]: https://github.com/dart-lang/pub/pull/3244
-
-## 2.15.0 - 2021-12-08
+## 2.15.0
 
 ### Language
 

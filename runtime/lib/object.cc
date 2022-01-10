@@ -48,14 +48,20 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
   // Please note that no handle is created for the argument.
   // This is safe since the argument is only used in a tail call.
   // The performance benefit is more than 5% when using hashCode.
-  intptr_t hash = GetHash(isolate, arguments->NativeArgAt(0));
-  if (LIKELY(hash != 0)) {
-    return Smi::New(hash);
-  }
+  return Smi::New(GetHash(isolate, arguments->NativeArgAt(0)));
+}
 
+DEFINE_NATIVE_ENTRY(Object_setHashIfNotSetYet, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, hash, arguments->NativeArgAt(1));
+#if defined(HASH_IN_OBJECT_HEADER)
+  return Smi::New(
+      Object::SetCachedHashIfNotSet(arguments->NativeArgAt(0), hash.Value()));
+#else
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  return instance.IdentityHashCode(arguments->thread());
+  Heap* heap = thread->heap();
+  return Smi::New(heap->SetHashIfNotSet(instance.ptr(), hash.Value()));
+#endif
 }
 
 DEFINE_NATIVE_ENTRY(Object_toString, 0, 1) {

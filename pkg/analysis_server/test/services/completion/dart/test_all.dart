@@ -21,7 +21,6 @@ import 'named_constructor_contributor_test.dart' as named_contributor_test;
 import 'override_contributor_test.dart' as override_contributor_test;
 import 'relevance/test_all.dart' as relevance_tests;
 import 'static_member_contributor_test.dart' as static_contributor_test;
-import 'super_formal_contributor_test.dart' as super_formal_contributor;
 import 'type_member_contributor_test.dart' as type_member_contributor_test;
 import 'uri_contributor_test.dart' as uri_contributor_test;
 import 'variable_name_contributor_test.dart' as variable_name_contributor_test;
@@ -45,7 +44,6 @@ void main() {
     override_contributor_test.main();
     relevance_tests.main();
     static_contributor_test.main();
-    super_formal_contributor.main();
     type_member_contributor_test.main();
     uri_contributor_test.main();
     variable_name_contributor_test.main();

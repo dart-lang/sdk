@@ -4,7 +4,6 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
@@ -12,7 +11,8 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/builder/builder.dart';
 import 'package:front_end/src/fasta/builder/class_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
-import 'package:front_end/src/fasta/source/source_member_builder.dart';
+
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
@@ -65,26 +65,33 @@ class PatchingDataComputer extends DataComputer<Features> {
   const PatchingDataComputer();
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    member.accept(
-        new PatchingDataExtractor(testResultData.compilerResult, actualMap));
+    member.accept(new PatchingDataExtractor(compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new PatchingDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForClass(cls);
+    new PatchingDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new PatchingDataExtractor(testResultData.compilerResult, actualMap)
+    new PatchingDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
@@ -92,8 +99,8 @@ class PatchingDataComputer extends DataComputer<Features> {
   bool get supportsErrors => true;
 
   @override
-  Features computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+  Features computeErrorData(TestConfig config, InternalCompilerResult compiler,
+      Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     features[Tags.error] = errorsToText(errors);
     return features;
@@ -167,9 +174,9 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
         features.addElement(Tags.initializers, desc);
       }
     }
-    SourceMemberBuilder? memberBuilder =
+    MemberBuilderImpl? memberBuilder =
         lookupMemberBuilder(compilerResult, member, required: false)
-            as SourceMemberBuilder?;
+            as MemberBuilderImpl?;
     MemberBuilder? patchMember = memberBuilder?.dataForTesting?.patchForTesting;
     if (patchMember != null) {
       features.add(Tags.patch);

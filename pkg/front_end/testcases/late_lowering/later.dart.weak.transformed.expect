@@ -81,9 +81,9 @@ class A extends core::Object {
     }
     return let final core::int? #t1 = this.{self::A::_#A#b}{core::int?} in #t1{core::int};
   }
-  set b(core::int b#param) → void {
+  set b(core::int #t2) → void {
     this.{self::A::_#A#b#isSet} = true;
-    this.{self::A::_#A#b} = b#param;
+    this.{self::A::_#A#b} = #t2;
   }
   method foo(core::int x) → dynamic {}
 }
@@ -95,13 +95,13 @@ class B extends core::Object /*hasConstConstructor*/  {
     ;
   get x() → core::int {
     if(!this.{self::B::_#B#x#isSet}{core::bool}) {
-      final core::int #t2 = 42;
+      final core::int #t3 = 42;
       if(this.{self::B::_#B#x#isSet}{core::bool})
         throw new _in::LateError::fieldADI("x");
-      this.{self::B::_#B#x} = #t2;
+      this.{self::B::_#B#x} = #t3;
       this.{self::B::_#B#x#isSet} = true;
     }
-    return let final core::int? #t3 = this.{self::B::_#B#x}{core::int?} in #t3{core::int};
+    return let final core::int? #t4 = this.{self::B::_#B#x}{core::int?} in #t4{core::int};
   }
 }
 class C extends core::Object {
@@ -111,13 +111,13 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   get x() → core::int
-    return this.{self::C::_#C#x#isSet}{core::bool} ?{core::int} let final core::int? #t4 = this.{self::C::_#C#x}{core::int?} in #t4{core::int} : throw new _in::LateError::fieldNI("x");
-  set x(core::int x#param) → void
+    return this.{self::C::_#C#x#isSet}{core::bool} ?{core::int} let final core::int? #t5 = this.{self::C::_#C#x}{core::int?} in #t5{core::int} : throw new _in::LateError::fieldNI("x");
+  set x(core::int #t6) → void
     if(this.{self::C::_#C#x#isSet}{core::bool})
       throw new _in::LateError::fieldAI("x");
     else {
       this.{self::C::_#C#x#isSet} = true;
-      this.{self::C::_#C#x} = x#param;
+      this.{self::C::_#C#x} = #t6;
     }
   method initVars() → dynamic {
     this.{self::C::x} = 42;
@@ -151,10 +151,10 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
     }
   }
   block {
-    final core::List<core::int> #t5 = core::_GrowableList::•<core::int>(0);
+    final core::List<core::int> #t7 = core::_GrowableList::•<core::int>(0);
     for (core::int i = 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
-      #t5.{core::List::add}{Invariant}(i){(core::int) → void};
-  } =>#t5;
+      #t7.{core::List::add}{Invariant}(i){(core::int) → void};
+  } =>#t7;
 }
 static method hest() → dynamic /* originally async */ {
   final asy::_Future<dynamic> :async_future = new asy::_Future::•<dynamic>();
@@ -178,8 +178,8 @@ static method hest() → dynamic /* originally async */ {
           try
             #L2:
             while (true) {
-              dynamic #t6 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t7 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
+              dynamic #t8 = asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t9 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}, :async_op_then, :async_op_error, :async_op) in null;
               if(_in::unsafeCast<core::bool>(:result)) {
                 core::String s = :for-iterator.{asy::_StreamIterator::current}{core::String};
                 {
@@ -191,7 +191,7 @@ static method hest() → dynamic /* originally async */ {
             }
           finally
             if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<core::String>?} == null)) {
-              [yield] let dynamic #t8 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
+              [yield] let dynamic #t10 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>}, :async_op_then, :async_op_error, :async_op) in null;
               :result;
             }
         }
@@ -233,9 +233,9 @@ static method fisk() → dynamic /* originally async */ {
           }
           return #s1{core::String};
         }
-        function #s1#set(core::String s1#param) → dynamic {
+        function #s1#set(core::String #t11) → dynamic {
           #s1#isSet = true;
-          return #s1 = s1#param;
+          return #s1 = #t11;
         }
         lowered core::String? #s2;
         lowered core::bool #s2#isSet = false;
@@ -248,9 +248,9 @@ static method fisk() → dynamic /* originally async */ {
           }
           return #s2{core::String};
         }
-        function #s2#set(core::String s2#param) → dynamic {
+        function #s2#set(core::String #t12) → dynamic {
           #s2#isSet = true;
-          return #s2 = s2#param;
+          return #s2 = #t12;
         }
         lowered core::Function? #f;
         lowered core::bool #f#isSet = false;
@@ -269,7 +269,7 @@ static method fisk() → dynamic /* originally async */ {
                 try {
                   #L4:
                   {
-                    [yield] let dynamic #t9 = asy::_awaitHelper(self::hest(), :async_op_then, :async_op_error, :async_op) in null;
+                    [yield] let dynamic #t13 = asy::_awaitHelper(self::hest(), :async_op_then, :async_op_error, :async_op) in null;
                     :return_value = :result;
                     break #L4;
                   }
@@ -289,9 +289,9 @@ static method fisk() → dynamic /* originally async */ {
           }
           return #f{core::Function};
         }
-        function #f#set(core::Function f#param) → dynamic {
+        function #f#set(core::Function #t14) → dynamic {
           #f#isSet = true;
-          return #f = f#param;
+          return #f = #t14;
         }
       }
       asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);

@@ -17,17 +17,17 @@ namespace dart {
 namespace embedder {
 
 static char* MallocFormatedString(const char* format, ...) {
-  va_list measure_args;
-  va_start(measure_args, format);
-  intptr_t len = vsnprintf(NULL, 0, format, measure_args);
-  va_end(measure_args);
+  va_list args;
+  va_start(args, format);
+  intptr_t len = vsnprintf(NULL, 0, format, args);
+  va_end(args);
 
   char* buffer = reinterpret_cast<char*>(malloc(len + 1));
   MSAN_UNPOISON(buffer, (len + 1));
-  va_list print_args;
-  va_start(print_args, format);
-  vsnprintf(buffer, (len + 1), format, print_args);
-  va_end(print_args);
+  va_list args2;
+  va_start(args2, format);
+  vsnprintf(buffer, (len + 1), format, args2);
+  va_end(args2);
   return buffer;
 }
 

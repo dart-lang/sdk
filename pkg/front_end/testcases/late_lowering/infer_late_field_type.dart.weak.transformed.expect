@@ -17,9 +17,9 @@ class B extends core::Object implements self::A {
     ;
   get field() → core::int?
     return this.{self::B::_#B#field#isSet}{core::bool} ?{core::int?} this.{self::B::_#B#field}{core::int?} : throw new _in::LateError::fieldNI("field");
-  set field(core::int? field#param) → void {
+  set field(core::int? #t1) → void {
     this.{self::B::_#B#field#isSet} = true;
-    this.{self::B::_#B#field} = field#param;
+    this.{self::B::_#B#field} = #t1;
   }
 }
 static method main() → dynamic {}

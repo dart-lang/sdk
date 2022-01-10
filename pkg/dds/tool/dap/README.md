@@ -39,6 +39,7 @@ Arguments specific to `launchRequest` are:
 - `List<String>? toolArgs` - arguments passed after the tool that will run `program` (after `dart` for CLI scripts and after `dart run test:test` for test scripts)
 - `List<String>? vmAdditionalArgs` - arguments passed directly to the Dart VM (after `dart` for both CLI scripts and test scripts)
 - `String? console` - if set to `"terminal"` or `"externalTerminal"` will be run using the `runInTerminal` reverse-request; otherwise the debug adapter spawns the Dart process
+- `bool? enableAsserts` - whether to enable asserts (if not supplied, defaults to enabled)
 - `String? customTool` - an optional tool to run instead of `dart` - the custom tool must be completely compatible with the tool/command it is replacing
 - `int? customToolReplacesArgs` - the number of arguments to delete from the beginning of the argument list when invoking `customTool` - e.g. setting `customTool` to `dart_test` and
   `customToolReplacesArgs` to `2` for a test run would invoke `dart_test foo_test.dart` instead of `dart run test:test foo_test.dart` (if larger than the number of computed arguments all arguments will be removed, if not supplied will default to `0`)

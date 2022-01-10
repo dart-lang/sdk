@@ -29,6 +29,7 @@ abstract class _Completer<T> implements Completer<T> {
     } else {
       stackTrace ??= AsyncError.defaultStackTrace(error);
     }
+    if (stackTrace == null) throw "unreachable"; // TODO(40088)
     _completeError(error, stackTrace);
   }
 

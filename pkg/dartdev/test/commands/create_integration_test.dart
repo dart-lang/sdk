@@ -18,7 +18,7 @@ void defineCreateTests() {
 
   setUp(() => p = null);
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() => p?.dispose());
 
   // Create tests for each template.
   for (String templateId in CreateCommand.legalTemplateIds) {

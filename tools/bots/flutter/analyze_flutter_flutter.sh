@@ -11,6 +11,10 @@ checkout=$(pwd)
 dart=$checkout/out/ReleaseX64/dart-sdk/bin/dart
 sdk=$checkout/out/ReleaseX64/dart-sdk
 tmpdir=$(mktemp -d)
+cleanup() {
+  rm -rf "$tmpdir"
+}
+trap cleanup EXIT HUP INT QUIT TERM PIPE
 cd "$tmpdir"
 
 git clone --single-branch -vv \
@@ -33,3 +37,6 @@ $dart --enable-asserts dev/bots/analyze.dart --dart-sdk $sdk
 
 # Test flutter's use of data-driven fixes.
 $dart fix packages/flutter/test_fixes --compare-to-golden
+
+# Analyze the sample code in dartdoc snippets.
+PUB_CACHE=$checkout/.pub_cache $dart dev/bots/analyze_sample_code.dart

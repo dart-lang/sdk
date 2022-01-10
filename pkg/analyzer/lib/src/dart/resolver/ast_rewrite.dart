@@ -232,7 +232,7 @@ class AstRewriter {
       return node;
     }
     if (parent is CommentReference) {
-      // TODO(srawlins): This probably should be allowed to be rewritten to a
+      // TODO(srawlins): This probably should be rewritten to a
       // [ConstructorReference] at some point.
       return node;
     }
@@ -279,11 +279,6 @@ class AstRewriter {
     if (node.isCascaded) {
       // For example, `List..filled`: this is a property access on an instance
       // `Type`.
-      return node;
-    }
-    if (node.parent is CommentReference) {
-      // TODO(srawlins): This probably should be allowed to be rewritten to a
-      // [ConstructorReference] at some point.
       return node;
     }
     var receiver = node.target!;

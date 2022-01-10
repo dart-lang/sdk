@@ -48,21 +48,21 @@ abstract class A extends core::Object {
     ;
   get property4() → core::int
     return this.{self::A::_#A#property4#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::A::_#A#property4}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("property4");
-  set property4(core::int property4#param) → void {
+  set property4(core::int #t2) → void {
     this.{self::A::_#A#property4#isSet} = true;
-    this.{self::A::_#A#property4} = property4#param;
+    this.{self::A::_#A#property4} = #t2;
   }
   get property5() → core::int?
     return this.{self::A::_#A#property5#isSet}{core::bool} ?{core::int?} this.{self::A::_#A#property5}{core::int?} : throw new _in::LateError::fieldNI("property5");
-  set property5(core::int? property5#param) → void {
+  set property5(core::int? #t3) → void {
     this.{self::A::_#A#property5#isSet} = true;
-    this.{self::A::_#A#property5} = property5#param;
+    this.{self::A::_#A#property5} = #t3;
   }
   get property6() → core::int
-    return this.{self::A::_#A#property6#isSet}{core::bool} ?{core::int} let final core::int? #t2 = this.{self::A::_#A#property6}{core::int?} in #t2{core::int} : throw new _in::LateError::fieldNI("property6");
-  set property6(covariant-by-declaration core::int property6#param) → void {
+    return this.{self::A::_#A#property6#isSet}{core::bool} ?{core::int} let final core::int? #t4 = this.{self::A::_#A#property6}{core::int?} in #t4{core::int} : throw new _in::LateError::fieldNI("property6");
+  set property6(covariant-by-declaration core::int #t5) → void {
     this.{self::A::_#A#property6#isSet} = true;
-    this.{self::A::_#A#property6} = property6#param;
+    this.{self::A::_#A#property6} = #t5;
   }
 }
 abstract class B1 extends core::Object {
@@ -76,31 +76,31 @@ abstract class B1 extends core::Object {
     : self::B1::_#B1#property4#isSet = true, self::B1::_#B1#property4 = property4, self::B1::_#B1#property5#isSet = true, self::B1::_#B1#property5 = property5, self::B1::_#B1#property6#isSet = true, self::B1::_#B1#property6 = property6, super core::Object::•()
     ;
   get property4() → core::int
-    return this.{self::B1::_#B1#property4#isSet}{core::bool} ?{core::int} let final core::int? #t3 = this.{self::B1::_#B1#property4}{core::int?} in #t3{core::int} : throw new _in::LateError::fieldNI("property4");
-  set property4(core::int property4#param) → void
+    return this.{self::B1::_#B1#property4#isSet}{core::bool} ?{core::int} let final core::int? #t6 = this.{self::B1::_#B1#property4}{core::int?} in #t6{core::int} : throw new _in::LateError::fieldNI("property4");
+  set property4(core::int #t7) → void
     if(this.{self::B1::_#B1#property4#isSet}{core::bool})
       throw new _in::LateError::fieldAI("property4");
     else {
       this.{self::B1::_#B1#property4#isSet} = true;
-      this.{self::B1::_#B1#property4} = property4#param;
+      this.{self::B1::_#B1#property4} = #t7;
     }
   get property5() → core::int
-    return this.{self::B1::_#B1#property5#isSet}{core::bool} ?{core::int} let final core::int? #t4 = this.{self::B1::_#B1#property5}{core::int?} in #t4{core::int} : throw new _in::LateError::fieldNI("property5");
-  set property5(core::int property5#param) → void
+    return this.{self::B1::_#B1#property5#isSet}{core::bool} ?{core::int} let final core::int? #t8 = this.{self::B1::_#B1#property5}{core::int?} in #t8{core::int} : throw new _in::LateError::fieldNI("property5");
+  set property5(core::int #t9) → void
     if(this.{self::B1::_#B1#property5#isSet}{core::bool})
       throw new _in::LateError::fieldAI("property5");
     else {
       this.{self::B1::_#B1#property5#isSet} = true;
-      this.{self::B1::_#B1#property5} = property5#param;
+      this.{self::B1::_#B1#property5} = #t9;
     }
   get property6() → core::int?
     return this.{self::B1::_#B1#property6#isSet}{core::bool} ?{core::int?} this.{self::B1::_#B1#property6}{core::int?} : throw new _in::LateError::fieldNI("property6");
-  set property6(core::int? property6#param) → void
+  set property6(core::int? #t10) → void
     if(this.{self::B1::_#B1#property6#isSet}{core::bool})
       throw new _in::LateError::fieldAI("property6");
     else {
       this.{self::B1::_#B1#property6#isSet} = true;
-      this.{self::B1::_#B1#property6} = property6#param;
+      this.{self::B1::_#B1#property6} = #t10;
     }
 }
 abstract class B2 extends core::Object implements self::B1 {
@@ -122,22 +122,22 @@ abstract class C1 extends core::Object {
     : self::C1::_#C1#property4#isSet = true, self::C1::_#C1#property4 = property4, self::C1::_#C1#property5#isSet = true, self::C1::_#C1#property5 = property5, self::C1::_#C1#property6#isSet = true, self::C1::_#C1#property6 = property6, super core::Object::•()
     ;
   get property4() → core::int
-    return this.{self::C1::_#C1#property4#isSet}{core::bool} ?{core::int} let final core::int? #t5 = this.{self::C1::_#C1#property4}{core::int?} in #t5{core::int} : throw new _in::LateError::fieldNI("property4");
-  set property4(core::int property4#param) → void {
+    return this.{self::C1::_#C1#property4#isSet}{core::bool} ?{core::int} let final core::int? #t11 = this.{self::C1::_#C1#property4}{core::int?} in #t11{core::int} : throw new _in::LateError::fieldNI("property4");
+  set property4(core::int #t12) → void {
     this.{self::C1::_#C1#property4#isSet} = true;
-    this.{self::C1::_#C1#property4} = property4#param;
+    this.{self::C1::_#C1#property4} = #t12;
   }
   get property5() → core::int
-    return this.{self::C1::_#C1#property5#isSet}{core::bool} ?{core::int} let final core::int? #t6 = this.{self::C1::_#C1#property5}{core::int?} in #t6{core::int} : throw new _in::LateError::fieldNI("property5");
-  set property5(core::int property5#param) → void {
+    return this.{self::C1::_#C1#property5#isSet}{core::bool} ?{core::int} let final core::int? #t13 = this.{self::C1::_#C1#property5}{core::int?} in #t13{core::int} : throw new _in::LateError::fieldNI("property5");
+  set property5(core::int #t14) → void {
     this.{self::C1::_#C1#property5#isSet} = true;
-    this.{self::C1::_#C1#property5} = property5#param;
+    this.{self::C1::_#C1#property5} = #t14;
   }
   get property6() → core::int
-    return this.{self::C1::_#C1#property6#isSet}{core::bool} ?{core::int} let final core::int? #t7 = this.{self::C1::_#C1#property6}{core::int?} in #t7{core::int} : throw new _in::LateError::fieldNI("property6");
-  set property6(core::int property6#param) → void {
+    return this.{self::C1::_#C1#property6#isSet}{core::bool} ?{core::int} let final core::int? #t15 = this.{self::C1::_#C1#property6}{core::int?} in #t15{core::int} : throw new _in::LateError::fieldNI("property6");
+  set property6(core::int #t16) → void {
     this.{self::C1::_#C1#property6#isSet} = true;
-    this.{self::C1::_#C1#property6} = property6#param;
+    this.{self::C1::_#C1#property6} = #t16;
   }
 }
 abstract class C2 extends core::Object implements self::C1 {

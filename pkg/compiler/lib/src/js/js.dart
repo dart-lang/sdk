@@ -37,7 +37,6 @@ CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
     bool allowVariableMinification = true,
     List<CodeOutputListener> listeners = const []}) {
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
-      utf8: compilerOptions.features.writeUtf8.isEnabled,
       shouldCompressOutput: compilerOptions.enableMinification,
       minifyLocalVariables: allowVariableMinification);
   CodeBuffer outBuffer = CodeBuffer(listeners);
@@ -102,9 +101,9 @@ abstract class TokenFinalizer {
 }
 
 /// Implements reference counting for instances of [ReferenceCountedAstNode]
-class TokenCounter extends BaseVisitorVoid {
+class TokenCounter extends BaseVisitor {
   @override
-  void visitNode(Node node) {
+  visitNode(Node node) {
     if (node is AstContainer) {
       for (Node element in node.containedNodes) {
         element.accept(this);

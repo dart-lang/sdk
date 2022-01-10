@@ -1,6 +1,3 @@
-## 0.9.0
-- Support version `3.x` of the `analyzer` package
-
 ## 0.8.0
 - Require SDK `2.14` to use `Object.hash()`.
 - Require `yaml 3.1.0` to use `recover`.

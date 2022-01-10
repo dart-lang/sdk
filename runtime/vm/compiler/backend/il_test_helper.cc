@@ -94,6 +94,10 @@ ObjectPtr Invoke(const Library& lib, const char* name) {
 
 FlowGraph* TestPipeline::RunPasses(
     std::initializer_list<CompilerPass::Id> passes) {
+  // The table dispatch transformation needs a precompiler, which is not
+  // available in the test pipeline.
+  SetFlagScope<bool> sfs(&FLAG_use_table_dispatch, false);
+
   auto thread = Thread::Current();
   auto zone = thread->zone();
   const bool optimized = true;

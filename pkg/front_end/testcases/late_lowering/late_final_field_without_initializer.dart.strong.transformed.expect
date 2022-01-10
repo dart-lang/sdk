@@ -12,16 +12,16 @@ class Class extends core::Object {
     ;
   static get lateStaticField1() → core::int
     return let final core::int? #t1 = self::Class::_#lateStaticField1 in #t1 == null ?{core::int} throw new _in::LateError::fieldNI("lateStaticField1") : #t1{core::int};
-  static set lateStaticField1(core::int lateStaticField1#param) → void
+  static set lateStaticField1(core::int #t2) → void
     if(self::Class::_#lateStaticField1 == null)
-      self::Class::_#lateStaticField1 = lateStaticField1#param;
+      self::Class::_#lateStaticField1 = #t2;
     else
       throw new _in::LateError::fieldAI("lateStaticField1");
   static get lateStaticField2() → core::int
-    return let final core::int? #t2 = self::Class::_#lateStaticField2 in #t2 == null ?{core::int} throw new _in::LateError::fieldNI("lateStaticField2") : #t2{core::int};
-  static set lateStaticField2(core::int lateStaticField2#param) → void
+    return let final core::int? #t3 = self::Class::_#lateStaticField2 in #t3 == null ?{core::int} throw new _in::LateError::fieldNI("lateStaticField2") : #t3{core::int};
+  static set lateStaticField2(core::int #t4) → void
     if(self::Class::_#lateStaticField2 == null)
-      self::Class::_#lateStaticField2 = lateStaticField2#param;
+      self::Class::_#lateStaticField2 = #t4;
     else
       throw new _in::LateError::fieldAI("lateStaticField2");
   static method staticMethod() → dynamic {
@@ -31,10 +31,10 @@ class Class extends core::Object {
     self::throws(() → core::int => self::Class::lateStaticField2 = 43, "Write value to initialized Class.lateStaticField2");
   }
   get lateInstanceField() → core::int
-    return let final core::int? #t3 = this.{self::Class::_#Class#lateInstanceField}{core::int?} in #t3 == null ?{core::int} throw new _in::LateError::fieldNI("lateInstanceField") : #t3{core::int};
-  set lateInstanceField(core::int lateInstanceField#param) → void
+    return let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField}{core::int?} in #t5 == null ?{core::int} throw new _in::LateError::fieldNI("lateInstanceField") : #t5{core::int};
+  set lateInstanceField(core::int #t6) → void
     if(this.{self::Class::_#Class#lateInstanceField}{core::int?} == null)
-      this.{self::Class::_#Class#lateInstanceField} = lateInstanceField#param;
+      this.{self::Class::_#Class#lateInstanceField} = #t6;
     else
       throw new _in::LateError::fieldAI("lateInstanceField");
   method instanceMethod() → dynamic {
@@ -57,24 +57,24 @@ static field core::int? _#lateTopLevelField = null;
 static field core::int? _#Extension|lateExtensionField1 = null;
 static field core::int? _#Extension|lateExtensionField2 = null;
 static get lateTopLevelField() → core::int
-  return let final core::int? #t4 = self::_#lateTopLevelField in #t4 == null ?{core::int} throw new _in::LateError::fieldNI("lateTopLevelField") : #t4{core::int};
-static set lateTopLevelField(core::int lateTopLevelField#param) → void
+  return let final core::int? #t7 = self::_#lateTopLevelField in #t7 == null ?{core::int} throw new _in::LateError::fieldNI("lateTopLevelField") : #t7{core::int};
+static set lateTopLevelField(core::int #t8) → void
   if(self::_#lateTopLevelField == null)
-    self::_#lateTopLevelField = lateTopLevelField#param;
+    self::_#lateTopLevelField = #t8;
   else
     throw new _in::LateError::fieldAI("lateTopLevelField");
 static get Extension|lateExtensionField1() → core::int
-  return let final core::int? #t5 = self::_#Extension|lateExtensionField1 in #t5 == null ?{core::int} throw new _in::LateError::fieldNI("lateExtensionField1") : #t5{core::int};
-static set Extension|lateExtensionField1(core::int Extension|lateExtensionField1#param) → void
+  return let final core::int? #t9 = self::_#Extension|lateExtensionField1 in #t9 == null ?{core::int} throw new _in::LateError::fieldNI("lateExtensionField1") : #t9{core::int};
+static set Extension|lateExtensionField1(core::int #t10) → void
   if(self::_#Extension|lateExtensionField1 == null)
-    self::_#Extension|lateExtensionField1 = Extension|lateExtensionField1#param;
+    self::_#Extension|lateExtensionField1 = #t10;
   else
     throw new _in::LateError::fieldAI("lateExtensionField1");
 static get Extension|lateExtensionField2() → core::int
-  return let final core::int? #t6 = self::_#Extension|lateExtensionField2 in #t6 == null ?{core::int} throw new _in::LateError::fieldNI("lateExtensionField2") : #t6{core::int};
-static set Extension|lateExtensionField2(core::int Extension|lateExtensionField2#param) → void
+  return let final core::int? #t11 = self::_#Extension|lateExtensionField2 in #t11 == null ?{core::int} throw new _in::LateError::fieldNI("lateExtensionField2") : #t11{core::int};
+static set Extension|lateExtensionField2(core::int #t12) → void
   if(self::_#Extension|lateExtensionField2 == null)
-    self::_#Extension|lateExtensionField2 = Extension|lateExtensionField2#param;
+    self::_#Extension|lateExtensionField2 = #t12;
   else
     throw new _in::LateError::fieldAI("lateExtensionField2");
 static method Extension|staticMethod() → dynamic {

@@ -12,13 +12,13 @@ class Class extends core::Object {
   synthetic constructor •() → self::Class
     ;
   static get lateStaticField1() → core::int;
-  static set lateStaticField1(core::int lateStaticField1#param) → void;
+  static set lateStaticField1(core::int #t1) → void;
   static get lateStaticField2() → core::int;
-  static set lateStaticField2(core::int lateStaticField2#param) → void;
+  static set lateStaticField2(core::int #t2) → void;
   static method staticMethod() → dynamic
     ;
   get lateInstanceField() → core::int;
-  set lateInstanceField(core::int lateInstanceField#param) → void;
+  set lateInstanceField(core::int #t3) → void;
   method instanceMethod() → dynamic
     ;
 }
@@ -40,11 +40,11 @@ static field core::bool _#Extension|lateExtensionField1#isSet;
 static field core::int? _#Extension|lateExtensionField2;
 static field core::bool _#Extension|lateExtensionField2#isSet;
 static get lateTopLevelField() → core::int;
-static set lateTopLevelField(core::int lateTopLevelField#param) → void;
+static set lateTopLevelField(core::int #t4) → void;
 static get Extension|lateExtensionField1() → core::int;
-static set Extension|lateExtensionField1(core::int Extension|lateExtensionField1#param) → void;
+static set Extension|lateExtensionField1(core::int #t5) → void;
 static get Extension|lateExtensionField2() → core::int;
-static set Extension|lateExtensionField2(core::int Extension|lateExtensionField2#param) → void;
+static set Extension|lateExtensionField2(core::int #t6) → void;
 static method Extension|staticMethod() → dynamic
   ;
 static method main() → dynamic

@@ -5,15 +5,17 @@
 library fasta.implicit_type;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+
 import 'package:kernel/ast.dart';
+
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/printer.dart';
 
+import '../builder/field_builder.dart';
 import '../constant_context.dart';
 import '../fasta_codes.dart';
 import '../problems.dart' show unsupported;
-import '../source/source_field_builder.dart';
 import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 import 'body_builder.dart';

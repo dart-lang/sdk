@@ -361,7 +361,7 @@ static void GetLastErrorAsString(char** error) {
   *error = status != nullptr ? strdup(status) : nullptr;
 #elif defined(DART_HOST_OS_WINDOWS)
   const int status = GetLastError();
-  *error = status != 0 ? Utils::SCreate("error code %i", status) : nullptr;
+  *error = status != 0 ? Utils::SCreate("error code %i", error) : nullptr;
 #else
   *error = Utils::StrDup("loading dynamic libraries is not supported");
 #endif

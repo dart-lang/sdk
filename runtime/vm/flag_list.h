@@ -184,6 +184,7 @@ constexpr bool FLAG_support_il_printer = false;
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
+  P(use_table_dispatch, bool, true, "Enable dispatch table based calls.")      \
   P(retain_function_objects, bool, true,                                       \
     "Serialize function objects for all code objects even if not otherwise "   \
     "needed in the precompiled runtime.")                                      \
@@ -192,8 +193,6 @@ constexpr bool FLAG_support_il_printer = false;
     "needed in the precompiled runtime.")                                      \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
-  P(target_unknown_cpu, bool, false,                                           \
-    "Generate code for a generic CPU, unknown at compile time")                \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \
   D(trace_ic, bool, false, "Trace IC handling")                                \
@@ -247,7 +246,6 @@ constexpr bool FLAG_support_il_printer = false;
   D(support_rr, bool, false, "Support running within RR.")                     \
   P(verify_entry_points, bool, false,                                          \
     "Throw API error on invalid member access throuh native API. See "         \
-    "entry_point_pragma.md")                                                   \
-  C(branch_coverage, false, false, bool, false, "Enable branch coverage")
+    "entry_point_pragma.md")
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

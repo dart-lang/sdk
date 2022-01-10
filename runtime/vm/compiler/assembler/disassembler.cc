@@ -80,16 +80,14 @@ void DisassembleToJSONStream::ConsumeInstruction(char* hex_buffer,
 }
 
 void DisassembleToJSONStream::Print(const char* format, ...) {
-  va_list measure_args;
-  va_start(measure_args, format);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
-  va_end(measure_args);
-
+  va_list args;
+  va_start(args, format);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args);
+  va_end(args);
   char* p = reinterpret_cast<char*>(malloc(len + 1));
-  va_list print_args;
-  va_start(print_args, format);
-  intptr_t len2 = Utils::VSNPrint(p, len, format, print_args);
-  va_end(print_args);
+  va_start(args, format);
+  intptr_t len2 = Utils::VSNPrint(p, len, format, args);
+  va_end(args);
   ASSERT(len == len2);
   for (intptr_t i = 0; i < len; i++) {
     if (p[i] == '\n' || p[i] == '\r') {
@@ -136,10 +134,10 @@ void DisassembleToMemory::Print(const char* format, ...) {
   if (overflowed_) {
     return;
   }
-  va_list measure_args;
-  va_start(measure_args, format);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
-  va_end(measure_args);
+  va_list args;
+  va_start(args, format);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args);
+  va_end(args);
   if (remaining_ < len + 100) {
     *buffer_++ = '.';
     *buffer_++ = '.';
@@ -149,10 +147,9 @@ void DisassembleToMemory::Print(const char* format, ...) {
     overflowed_ = true;
     return;
   }
-  va_list print_args;
-  va_start(print_args, format);
-  intptr_t len2 = Utils::VSNPrint(buffer_, len, format, print_args);
-  va_end(print_args);
+  va_start(args, format);
+  intptr_t len2 = Utils::VSNPrint(buffer_, len, format, args);
+  va_end(args);
   ASSERT(len == len2);
   buffer_ += len;
   remaining_ -= len;
@@ -296,9 +293,10 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   {
     const auto& stackmaps =
         CompressedStackMaps::Handle(zone, code.compressed_stackmaps());
+    CompressedStackMaps::Iterator it(thread, stackmaps);
     TextBuffer buffer(100);
     buffer.Printf("StackMaps for function '%s' {\n", function_fullname);
-    stackmaps.WriteToBuffer(&buffer, "\n");
+    it.WriteToBuffer(&buffer, "\n");
     buffer.AddString("}\n");
     THR_Print("%s", buffer.buffer());
   }

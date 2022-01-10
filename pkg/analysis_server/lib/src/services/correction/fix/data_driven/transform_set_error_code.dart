@@ -156,14 +156,6 @@ class TransformSetErrorCode extends ErrorCode {
   /**
    * No parameters.
    */
-  static const TransformSetErrorCode unsupportedStatic = TransformSetErrorCode(
-      'unsupported_static',
-      "The key 'static' is only supported for elements in a class, enum, "
-          "extension, or mixin.");
-
-  /**
-   * No parameters.
-   */
   static const TransformSetErrorCode unsupportedUriChange = TransformSetErrorCode(
       'unsupported_uri_change',
       "The set of URIs for the replacement element must match the transformed "

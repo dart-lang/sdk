@@ -268,8 +268,6 @@ ddc_extensions = monitored.Dict(
             'getDirectory': [''],
             'getFile': [
                 'applyExtension(\'FileEntry\', value);',
-                'applyExtension(\'webkitFileSystemFileEntry\', value);',
-                'applyExtension(\'FileSystemFileEntry\', value);',
             ]
         },
         'Entry': {
@@ -278,8 +276,6 @@ ddc_extensions = monitored.Dict(
             ],
             'getParent': [
                 'applyExtension(\'Entry\', value);',
-                'applyExtension(\'webkitFileSystemEntry\', value);',
-                'applyExtension(\'FileSystemEntry\', value);',
             ]
         },
         'FileEntry': {
@@ -295,12 +291,7 @@ ddc_extensions = monitored.Dict(
         'Window': {
             'webkitRequestFileSystem': [
                 'applyExtension(\'DOMFileSystem\', value);',
-                'applyExtension(\'WebKitFileSystem\', value);',
-                'applyExtension(\'webkitFileSystem\', value);',
-                'applyExtension(\'FileSystem\', value);',
                 'applyExtension(\'DirectoryEntry\', value.root);',
-                'applyExtension(\'webkitFileSystemDirectoryEntry\', value.root);',
-                'applyExtension(\'FileSystemDirectoryEntry\', value.root);',
             ]
         },
     })

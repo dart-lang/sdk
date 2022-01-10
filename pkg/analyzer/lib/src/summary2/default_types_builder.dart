@@ -246,6 +246,7 @@ class DefaultTypesBuilder {
           void recurseParameters(List<TypeParameterElement> parameters) {
             for (var parameter in parameters) {
               var parameterNode = _linker.getLinkingNode(parameter);
+              // TODO(scheglov) How to we skip already linked?
               if (parameterNode is TypeParameter) {
                 var bound = parameterNode.bound;
                 if (bound != null) {

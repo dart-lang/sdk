@@ -93,8 +93,6 @@ enum XmmRegister {
 // Architecture independent aliases.
 typedef XmmRegister FpuRegister;
 const FpuRegister FpuTMP = XMM15;
-const int kFpuRegisterSize = 16;
-typedef simd128_value_t fpu_register_t;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
 const FpuRegister kNoFpuRegister = kNoXmmRegister;
 

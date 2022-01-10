@@ -95,7 +95,7 @@ class ContextBuilderImpl implements ContextBuilder {
       updateAnalysisOptions(options);
     }
 
-    var driver = AnalysisDriver(
+    var driver = AnalysisDriver.tmp1(
       scheduler: scheduler,
       logger: performanceLog,
       resourceProvider: resourceProvider,

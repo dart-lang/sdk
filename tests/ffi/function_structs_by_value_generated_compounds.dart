@@ -7,9 +7,6 @@
 
 import 'dart:ffi';
 
-// Reuse the AbiSpecificInts.
-import 'abi_specific_ints.dart';
-
 class Struct1ByteBool extends Struct {
   @Bool()
   external bool a0;
@@ -1259,11 +1256,4 @@ class Union16BytesNestedFloat extends Union {
   external Struct16BytesHomogeneousFloat a2;
 
   String toString() => "(${a0}, ${a1}, ${a2})";
-}
-
-class StructInlineArrayInt extends Struct {
-  @Array(10)
-  external Array<WChar> a0;
-
-  String toString() => "(${[for (var i0 = 0; i0 < 10; i0 += 1) a0[i0]]})";
 }

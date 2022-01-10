@@ -22,32 +22,52 @@ import 'package:kernel/ast.dart'
         TreeNode,
         TypeParameter,
         getAsTypeArguments;
+
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyMembers;
+
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/src/legacy_erasure.dart';
+
 import 'package:kernel/text/text_serialization_verifier.dart';
+
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
+
 import 'package:kernel/type_environment.dart'
     show SubtypeCheckMode, TypeEnvironment;
 
+import 'package:kernel/src/legacy_erasure.dart';
+
+import '../dill/dill_member_builder.dart';
+
 import '../fasta_codes.dart';
+
 import '../kernel/kernel_helper.dart';
+
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
+
 import '../loader.dart';
+
 import '../modifier.dart';
+
 import '../names.dart' show noSuchMethodName;
+
 import '../problems.dart' show internalProblem, unhandled;
+
 import '../scope.dart';
-import '../source/source_factory_builder.dart';
+
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import '../source/source_loader.dart';
-import '../source/source_member_builder.dart';
+
 import '../type_inference/type_schema.dart' show UnknownType;
+
 import '../util/helpers.dart' show DelayedActionPerformer;
+
 import 'builder.dart';
+import 'constructor_builder.dart';
 import 'constructor_reference_builder.dart';
 import 'declaration_builder.dart';
+import 'field_builder.dart';
 import 'function_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
@@ -55,6 +75,7 @@ import 'metadata_builder.dart';
 import 'named_type_builder.dart';
 import 'never_type_declaration_builder.dart';
 import 'nullability_builder.dart';
+import 'factory_builder.dart';
 import 'type_alias_builder.dart';
 import 'type_builder.dart';
 import 'type_declaration_builder.dart';
@@ -86,9 +107,9 @@ abstract class ClassBuilder implements DeclarationBuilder {
   @override
   Uri get fileUri;
 
-  bool get isAbstract;
+  ClassBuilder? get patchForTesting;
 
-  bool get isMacro;
+  bool get isAbstract;
 
   bool get declaresConstConstructor;
 
@@ -102,7 +123,7 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      ClassHierarchy classHierarchy,
+      CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes);
 
@@ -114,6 +135,13 @@ abstract class ClassBuilder implements DeclarationBuilder {
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 
   void forEach(void f(String name, Builder builder));
+
+  void forEachDeclaredField(
+      void Function(String name, FieldBuilder fieldBuilder) f);
+
+  void forEachDeclaredConstructor(
+      void Function(String name, ConstructorBuilder constructorBuilder)
+          callback);
 
   /// The [Class] built by this builder.
   ///
@@ -247,12 +275,16 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   ClassBuilder? actualOrigin;
 
   @override
+  ClassBuilder? get patchForTesting => _patchBuilder;
+
+  @override
   bool isNullClass = false;
 
   InterfaceType? _legacyRawType;
   InterfaceType? _nullableRawType;
   InterfaceType? _nonNullableRawType;
   InterfaceType? _thisType;
+  ClassBuilder? _patchBuilder;
 
   ClassBuilderImpl(
       List<MetadataBuilder>? metadata,
@@ -303,18 +335,26 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           includeInjectedConstructors: includeInjectedConstructors);
     } else {
       constructors.forEach(f);
+      if (includeInjectedConstructors) {
+        _patchBuilder?.constructors
+            .forEach((String name, MemberBuilder builder) {
+          if (!builder.isPatch) {
+            f(name, builder);
+          }
+        });
+      }
     }
   }
 
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      ClassHierarchy classHierarchy,
+      CoreTypes coreTypes,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     void build(String ignore, Builder declaration) {
-      SourceMemberBuilder member = declaration as SourceMemberBuilder;
-      member.buildOutlineExpressions(library, classHierarchy,
+      MemberBuilder member = declaration as MemberBuilder;
+      member.buildOutlineExpressions(library, coreTypes,
           delayedActionPerformers, synthesizedFunctionNodes);
     }
 
@@ -323,7 +363,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(library, this, null,
-            classHierarchy, delayedActionPerformers, scope.parent!);
+            coreTypes, delayedActionPerformers, scope.parent!);
       }
     }
 
@@ -389,6 +429,56 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   void forEach(void f(String name, Builder builder)) {
     scope.forEach(f);
+  }
+
+  @override
+  void forEachDeclaredField(
+      void Function(String name, FieldBuilder fieldBuilder) callback) {
+    void callbackFilteringFieldBuilders(String name, Builder builder) {
+      if (builder is FieldBuilder) {
+        callback(name, builder);
+      }
+    }
+
+    // Currently, fields can't be patched, but can be injected.  When the fields
+    // will be made available for patching, the following code should iterate
+    // first over the fields from the patch and then -- over the fields in the
+    // original declaration, filtering out the patched fields.  For now, the
+    // assert checks that the names of the fields from the original declaration
+    // and from the patch don't intersect.
+    assert(
+        _patchBuilder == null ||
+            _patchBuilder!.scope.localMembers
+                .where((b) => b is FieldBuilder)
+                .map((b) => (b as FieldBuilder).name)
+                .toSet()
+                .intersection(scope.localMembers
+                    .where((b) => b is FieldBuilder)
+                    .map((b) => (b as FieldBuilder).name)
+                    .toSet())
+                .isEmpty,
+        "Detected an attempt to patch a field.");
+    _patchBuilder?.scope.forEach(callbackFilteringFieldBuilders);
+    scope.forEach(callbackFilteringFieldBuilders);
+  }
+
+  @override
+  void forEachDeclaredConstructor(
+      void Function(String name, ConstructorBuilder constructorBuilder)
+          callback) {
+    Set<String> visitedConstructorNames = {};
+    void callbackFilteringFieldBuilders(String name, Builder builder) {
+      if (builder is ConstructorBuilder &&
+          visitedConstructorNames.add(builder.name)) {
+        callback(name, builder);
+      }
+    }
+
+    // Constructors can be patched, so iterate first over constructors in the
+    // patch, and then over constructors in the original declaration skipping
+    // those with the names that are in the patch.
+    _patchBuilder?.constructors.forEach(callbackFilteringFieldBuilders);
+    constructors.forEach(callbackFilteringFieldBuilders);
   }
 
   @override
@@ -744,6 +834,55 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
+  void applyPatch(Builder patch) {
+    if (patch is ClassBuilder) {
+      patch.actualOrigin = this;
+      _patchBuilder = patch;
+      // TODO(ahe): Complain if `patch.supertype` isn't null.
+      scope.forEachLocalMember((String name, Builder member) {
+        Builder? memberPatch =
+            patch.scope.lookupLocalMember(name, setter: false);
+        if (memberPatch != null) {
+          member.applyPatch(memberPatch);
+        }
+      });
+      scope.forEachLocalSetter((String name, Builder member) {
+        Builder? memberPatch =
+            patch.scope.lookupLocalMember(name, setter: true);
+        if (memberPatch != null) {
+          member.applyPatch(memberPatch);
+        }
+      });
+      constructors.local.forEach((String name, Builder member) {
+        Builder? memberPatch = patch.constructors.local[name];
+        if (memberPatch != null) {
+          member.applyPatch(memberPatch);
+        }
+      });
+
+      int originLength = typeVariables?.length ?? 0;
+      int patchLength = patch.typeVariables?.length ?? 0;
+      if (originLength != patchLength) {
+        patch.addProblem(messagePatchClassTypeVariablesMismatch,
+            patch.charOffset, noLength, context: [
+          messagePatchClassOrigin.withLocation(fileUri, charOffset, noLength)
+        ]);
+      } else if (typeVariables != null) {
+        int count = 0;
+        for (TypeVariableBuilder t in patch.typeVariables!) {
+          typeVariables![count++].applyPatch(t);
+        }
+      }
+    } else {
+      library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
+          noLength, patch.fileUri, context: [
+        messagePatchDeclarationOrigin.withLocation(
+            fileUri, charOffset, noLength)
+      ]);
+    }
+  }
+
+  @override
   FunctionType? computeRedirecteeType(
       RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
     ConstructorReferenceBuilder redirectionTarget = factory.redirectionTarget;
@@ -752,6 +891,28 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (targetBuilder == null) return null;
     if (targetBuilder is FunctionBuilder) {
       targetNode = targetBuilder.function;
+    } else if (targetBuilder is DillConstructorBuilder) {
+      // It seems that the [redirectionTarget.target] is an instance of
+      // [DillMemberBuilder] whenever the redirectee is an implicit constructor,
+      // e.g.
+      //
+      //   class A {
+      //     factory A() = B;
+      //   }
+      //   class B implements A {}
+      //
+      targetNode = targetBuilder.constructor.function;
+    } else if (targetBuilder is DillFactoryBuilder) {
+      // It seems that the [redirectionTarget.target] is an instance of
+      // [DillMemberBuilder] whenever the redirectee is an implicit constructor,
+      // e.g.
+      //
+      //   class A {
+      //     factory A() = B;
+      //   }
+      //   class B implements A {}
+      //
+      targetNode = targetBuilder.procedure.function;
     } else if (targetBuilder is AmbiguousBuilder) {
       // Multiple definitions with the same name: An error has already been
       // issued.

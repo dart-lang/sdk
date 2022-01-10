@@ -6,17 +6,53 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:test/test.dart';
 
 main() {
-  test('formatList', () {
-    expect(
-      format('Hello, {0} {1}!', 'John', 'Doe'),
-      'Hello, John Doe!',
-    );
-  });
+  group('Character', () {
+    group('isLetter', () {
+      test('digits', () {
+        expect(Character.isLetter('0'.codeUnitAt(0)), isFalse);
+        expect(Character.isLetter('1'.codeUnitAt(0)), isFalse);
+        expect(Character.isLetter('9'.codeUnitAt(0)), isFalse);
+      });
 
-  test('formatList', () {
-    expect(
-      formatList('Hello, {0} {1}!', ['John', 'Doe']),
-      'Hello, John Doe!',
-    );
+      test('letters', () {
+        expect(Character.isLetter('a'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetter('b'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetter('z'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetter('C'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetter('D'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetter('Y'.codeUnitAt(0)), isTrue);
+      });
+
+      test('other', () {
+        expect(Character.isLetter(' '.codeUnitAt(0)), isFalse);
+        expect(Character.isLetter('.'.codeUnitAt(0)), isFalse);
+        expect(Character.isLetter('-'.codeUnitAt(0)), isFalse);
+        expect(Character.isLetter('+'.codeUnitAt(0)), isFalse);
+      });
+    });
+
+    group('isLetterOrDigit', () {
+      test('digits', () {
+        expect(Character.isLetterOrDigit('0'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetterOrDigit('1'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetterOrDigit('9'.codeUnitAt(0)), isTrue);
+      });
+
+      test('letters', () {
+        expect(Character.isLetterOrDigit('a'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetterOrDigit('b'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetterOrDigit('z'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetterOrDigit('C'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetterOrDigit('D'.codeUnitAt(0)), isTrue);
+        expect(Character.isLetterOrDigit('Y'.codeUnitAt(0)), isTrue);
+      });
+
+      test('other', () {
+        expect(Character.isLetterOrDigit(' '.codeUnitAt(0)), isFalse);
+        expect(Character.isLetterOrDigit('.'.codeUnitAt(0)), isFalse);
+        expect(Character.isLetterOrDigit('-'.codeUnitAt(0)), isFalse);
+        expect(Character.isLetterOrDigit('+'.codeUnitAt(0)), isFalse);
+      });
+    });
   });
 }

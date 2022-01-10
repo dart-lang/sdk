@@ -547,6 +547,14 @@
         "use-sdk": true
       }
     },
+    "dart2js-canary-(linux|mac|win)-chrome": {
+      "options": {
+        "use-sdk": true,
+        "dart2js-options": [
+          "--canary"
+        ]
+      }
+    },
     "dart2js-(linux|mac|win)-chrome-unsound": {
       "options": {
         "use-sdk": true,
@@ -691,17 +699,7 @@
     "dart2js-canary-(linux|mac|win)-d8": {
       "options": {
         "builder-tag": "dart2js_canary",
-        "host-checked": true,
-        "timeout": 240,
-        "dart2js-options": [
-          "--canary"
-        ]
-      }
-    },
-    "dart2js-canary-(linux|mac|win)-chrome": {
-      "options": {
-        "host-checked": true,
-        "timeout": 240,
+        "use-sdk": true,
         "dart2js-options": [
           "--canary"
         ]
@@ -800,8 +798,7 @@
     },
     "dartkp-linux-(debug|product|release)-simarm-crossword": {
       "options": {
-        "builder-tag": "crossword",
-        "use-elf": true
+        "builder-tag": "crossword"
       }
     },
     "dartkp-weak-asserts-linux-(debug|product|release)-simarm-crossword": {
@@ -3756,10 +3753,6 @@
         {
           "name": "analyze flutter/plugins",
           "script": "tools/bots/flutter/analyze_flutter_plugins.sh"
-        },
-        {
-          "name": "analyze flutter/gallery",
-          "script": "tools/bots/flutter/analyze_flutter_gallery.sh"
         }
       ]
     },

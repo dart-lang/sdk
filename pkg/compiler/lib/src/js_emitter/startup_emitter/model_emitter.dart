@@ -64,6 +64,7 @@ import '../../js_backend/deferred_holder_expression.dart'
         DeferredHolderParameter,
         DeferredHolderResource,
         DeferredHolderResourceKind,
+        LegacyDeferredHolderExpressionFinalizerImpl,
         mainResourceName;
 import '../../js_backend/type_reference.dart'
     show

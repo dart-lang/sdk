@@ -5,15 +5,15 @@
 import 'package:analyzer_utilities/check/check.dart';
 
 extension BoolExtension on CheckTarget<bool> {
-  void get isFalse {
-    if (value) {
-      fail('is not false');
-    }
-  }
-
   void get isTrue {
     if (!value) {
       fail('is not true');
+    }
+  }
+
+  void get isFalse {
+    if (value) {
+      fail('is not false');
     }
   }
 }

@@ -1069,12 +1069,12 @@ class _MixinGenerator extends _BaseGenerator {
         if (convertItem == null) {
           convertField = localName;
         } else if (type.isList) {
-          convertField = '$localName.map((value) =>'
-              ' ${convertItem('value')}).toList()';
+          convertField = '$localName.map((_value) =>'
+              ' ${convertItem('_value')}).toList()';
         } else {
           convertField = convertItem(localName);
         }
-        return 'result[${quoted(name)}] = $convertField';
+        return '_result[${quoted(name)}] = $convertField';
       }
 
       void writeConditionalStatement(String condition, String statement) {
@@ -1087,7 +1087,7 @@ class _MixinGenerator extends _BaseGenerator {
       out('@override');
       out('Map<String, Object> toJson() {');
       indent(() {
-        out('Map<String, Object> result = <String, Object>{};');
+        out('Map<String, Object> _result = <String, Object>{};');
 
         indent(() {
           for (idl_model.FieldDeclaration field in cls.fields) {
@@ -1099,7 +1099,7 @@ class _MixinGenerator extends _BaseGenerator {
           }
         });
 
-        out('return result;');
+        out('return _result;');
       });
       out('}');
       out();

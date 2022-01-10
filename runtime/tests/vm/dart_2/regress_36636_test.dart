@@ -4,6 +4,6 @@
 
 // @dart = 2.9
 
-// VMOptions=--intrinsify=false
+// VMOptions=--intrinsify=false --no-use-vfp
 
 main() {}

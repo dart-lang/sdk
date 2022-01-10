@@ -52,7 +52,7 @@ abstract class _SubClass&Class&Mixin = self2::Class with self2::Mixin /*isAnonym
   synthetic constructor unpatched() → self2::_SubClass&Class&Mixin*
     : super self2::Class::unpatched()
     ;
-  synthetic constructor _internal({core::bool* value = false}) → self2::_SubClass&Class&Mixin*
+  synthetic constructor _internal({core::bool* value}) → self2::_SubClass&Class&Mixin*
     : super self2::Class::_internal(value: value)
     ;
 }

@@ -47,9 +47,14 @@ import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// Analyzer of a single library.
 class LibraryAnalyzer {
+  /// A marker object used to prevent the initialization of
+  /// [_versionConstraintFromPubspec] when the previous initialization attempt
+  /// failed.
+  static final VersionRange noSpecifiedRange = VersionRange();
   final AnalysisOptionsImpl _analysisOptions;
   final DeclaredVariables _declaredVariables;
   final SourceFactory _sourceFactory;
@@ -175,9 +180,7 @@ class LibraryAnalyzer {
   /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/31925
   void _clearConstantEvaluationResults() {
     for (var constant in _libraryConstants) {
-      if (constant is ConstFieldElementImpl && constant.isEnumConstant) {
-        continue;
-      }
+      if (constant is ConstFieldElementImpl_ofEnum) continue;
       if (constant is ConstVariableElement) {
         constant.evaluationResult = null;
       }
@@ -193,8 +196,8 @@ class LibraryAnalyzer {
 
   /// Compute [_constants] in all units.
   void _computeConstants() {
-    computeConstants(
-        _declaredVariables, _constants.toList(), _libraryElement.featureSet);
+    computeConstants(_typeProvider, _typeSystem, _declaredVariables,
+        _constants.toList(), _libraryElement.featureSet);
   }
 
   void _computeDiagnostics({

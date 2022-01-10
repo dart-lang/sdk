@@ -17,17 +17,17 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   constructor •(self::Class::T% field) → self::Class<self::Class::T%>
     ;
   static get lateStaticField1() → core::int;
-  static set lateStaticField1(core::int lateStaticField1#param) → void;
+  static set lateStaticField1(core::int #t1) → void;
   static get lateStaticField2() → core::int;
-  static set lateStaticField2(core::int lateStaticField2#param) → void;
+  static set lateStaticField2(core::int #t2) → void;
   static method staticMethod() → dynamic
     ;
   get lateInstanceField() → core::int;
-  set lateInstanceField(core::int lateInstanceField#param) → void;
+  set lateInstanceField(core::int #t3) → void;
   get lateGenericField1() → self::Class::T%;
-  set lateGenericField1(covariant-by-class self::Class::T% lateGenericField1#param) → void;
+  set lateGenericField1(covariant-by-class self::Class::T% #t4) → void;
   get lateGenericField2() → self::Class::T%;
-  set lateGenericField2(covariant-by-class self::Class::T% lateGenericField2#param) → void;
+  set lateGenericField2(covariant-by-class self::Class::T% #t5) → void;
   method instanceMethod(covariant-by-class self::Class::T% value) → dynamic
     ;
 }
@@ -49,11 +49,11 @@ static field core::bool _#Extension|lateExtensionField1#isSet;
 static field core::int? _#Extension|lateExtensionField2;
 static field core::bool _#Extension|lateExtensionField2#isSet;
 static get lateTopLevelField1() → core::int;
-static set lateTopLevelField1(core::int lateTopLevelField1#param) → void;
+static set lateTopLevelField1(core::int #t6) → void;
 static get Extension|lateExtensionField1() → core::int;
-static set Extension|lateExtensionField1(core::int Extension|lateExtensionField1#param) → void;
+static set Extension|lateExtensionField1(core::int #t7) → void;
 static get Extension|lateExtensionField2() → core::int;
-static set Extension|lateExtensionField2(core::int Extension|lateExtensionField2#param) → void;
+static set Extension|lateExtensionField2(core::int #t8) → void;
 static method Extension|staticMethod() → dynamic
   ;
 static method main() → dynamic

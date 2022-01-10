@@ -22,7 +22,7 @@ class Class extends core::Object {
   constructor baz(core::int foo) → self2::Class
     ;
   get /* from org-dartlang-testcase:///patch_lib.dart */ foo() → core::int;
-  set /* from org-dartlang-testcase:///patch_lib.dart */ foo(core::int foo#param) → void;
+  set /* from org-dartlang-testcase:///patch_lib.dart */ foo(core::int #t1) → void;
 }
 
 

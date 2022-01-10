@@ -597,9 +597,15 @@ class RegisterSet : public ValueObject {
       Add(Location::RegisterLocation(reg));
     }
 
+#if defined(TARGET_ARCH_ARM)
+    if (TargetCPUFeatures::vfp_supported()) {
+#endif
       for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
         Add(Location::FpuRegisterLocation(static_cast<FpuRegister>(i)));
       }
+#if defined(TARGET_ARCH_ARM)
+    }
+#endif
   }
 
   void AddAllArgumentRegisters() {

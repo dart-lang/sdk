@@ -10,8 +10,6 @@
 # automatic tools might move it to the top of the file.
 
 JS
-abispecificinteger
-abispecificintegermapping
 adjusting
 api
 argument(s)
@@ -67,7 +65,6 @@ placing
 pubspec.yaml
 re
 sdksummary
-size
 solutions
 stacktrace
 staticinterop

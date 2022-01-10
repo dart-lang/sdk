@@ -19,7 +19,7 @@ Future<FixOutput> runFix(List<String> args) async {
 
 void _driver() {
   TestProject p;
-  tearDown(() async => await p?.dispose());
+  tearDown(() => p?.dispose());
 
   test('no fixes', () async {
     p = project(mainSrc: 'int get foo => 1;\n');

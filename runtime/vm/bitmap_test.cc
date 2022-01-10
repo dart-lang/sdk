@@ -53,7 +53,7 @@ ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
   // Create a CompressedStackMaps object and verify its contents.
   const auto& maps1 = CompressedStackMaps::Handle(
       thread->zone(), MapsFromBuilder(thread->zone(), builder1));
-  auto it1 = maps1.iterator(thread);
+  CompressedStackMaps::Iterator it1(thread, maps1);
   EXPECT(it1.MoveNext());
 
   EXPECT_EQ(kTestPcOffset, it1.pc_offset());
@@ -86,7 +86,7 @@ ISOLATE_UNIT_TEST_CASE(BitmapBuilder) {
 
   const auto& maps2 = CompressedStackMaps::Handle(
       thread->zone(), MapsFromBuilder(thread->zone(), builder1));
-  auto it2 = maps2.iterator(thread);
+  CompressedStackMaps::Iterator it2(thread, maps2);
   EXPECT(it2.MoveNext());
 
   EXPECT_EQ(kTestPcOffset, it2.pc_offset());

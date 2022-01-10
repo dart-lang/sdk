@@ -33,11 +33,13 @@ class TypePromotionDataComputer extends DataComputer<DartType> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<DartType>> actualMap,
       {bool? verbose}) {
-    member.accept(new TypePromotionDataExtractor(
-        testResultData.compilerResult, actualMap));
+    member.accept(new TypePromotionDataExtractor(compilerResult, actualMap));
   }
 }
 

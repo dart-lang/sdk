@@ -24,9 +24,9 @@ class Class extends core::Object {
     }
     return this.{self::Class::_#Class#field}{core::int?};
   }
-  set field(core::int? field#param) → void {
+  set field(core::int? #t1) → void {
     this.{self::Class::_#Class#field#isSet} = true;
-    this.{self::Class::_#Class#field} = field#param;
+    this.{self::Class::_#Class#field} = #t1;
   }
 }
 class Subclass extends self::Class {

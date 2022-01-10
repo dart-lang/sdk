@@ -1,9 +1,4 @@
-## 3.1.0-dev
-* New internal API for `package:dart_style`.
-* Removed deprecated non-API `MockSdk` class.
-* Removed deprecated `AnalysisDriver` constructor.
-
-## 3.0.0
+## 3.0.0 (Not yet released - breaking changes)
 * Removed deprecated `DartType.aliasElement/aliasArguments`.
 * Removed deprecated constructors from `FeatureSet`.
 * Removed `UnitElementResult.signature` - unused by clients.

@@ -1583,22 +1583,12 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isExtendedBoolLiteral(condition)) {
       final bool value = _getExtendedBoolLiteralValue(condition);
       final Expression expr = transform(value ? node.then : node.otherwise);
-      Expression result;
       if (condition is BlockExpression) {
         condition.value = expr;
         expr.parent = condition;
-        result = condition;
+        return condition;
       } else {
-        result = expr;
-      }
-      if (node.staticType != result.getStaticType(staticTypeContext)) {
-        return StaticInvocation(
-            unsafeCast,
-            Arguments([result],
-                types: [visitDartType(node.staticType, cannotRemoveSentinel)]))
-          ..fileOffset = node.fileOffset;
-      } else {
-        return result;
+        return expr;
       }
     }
     node.condition = condition..parent = node;

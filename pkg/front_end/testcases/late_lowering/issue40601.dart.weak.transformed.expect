@@ -14,9 +14,9 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
     lowered core::bool #value#isSet = false;
     function #value#get() → self::A::T%
       return #value#isSet ?{self::A::T%} #value{self::A::T%} : throw new _in::LateError::localNI("value");
-    function #value#set(self::A::T% value#param) → dynamic {
+    function #value#set(self::A::T% #t1) → dynamic {
       #value#isSet = true;
-      return #value = value#param;
+      return #value = #t1;
     }
     () → dynamic result = () → dynamic => this.{self::A::bar}(#value#get(){() → self::A::T%}){(self::A::T%) → dynamic};
     (() → Null {

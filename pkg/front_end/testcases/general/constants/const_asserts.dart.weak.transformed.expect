@@ -34,7 +34,7 @@ library;
 // pkg/front_end/testcases/general/constants/const_asserts.dart:34:24: Error: Constant evaluation error:
 // const Foo foo4 = const Foo.withInvalidMessage(42);
 //                        ^
-// pkg/front_end/testcases/general/constants/const_asserts.dart:16:56: Context: This assertion failed with a non-String message.
+// pkg/front_end/testcases/general/constants/const_asserts.dart:16:56: Context: Expected constant '42' to be of type 'String', but was of type 'int'.
 //   const Foo.withInvalidMessage(this.x) : assert(x < 0, x);
 //                                                        ^
 // pkg/front_end/testcases/general/constants/const_asserts.dart:34:11: Context: While analyzing:
@@ -182,7 +182,7 @@ class Bar extends core::Object /*hasConstConstructor*/  {
 static const field self::Foo* foo1 = #C4;
 static const field self::Foo* foo2 = invalid-expression "This assertion failed with message: x is not positive";
 static const field self::Foo* foo3 = invalid-expression "This assertion failed with message: btw foo was false";
-static const field self::Foo* foo4 = invalid-expression "This assertion failed with a non-String message.";
+static const field self::Foo* foo4 = invalid-expression "Expected constant '42' to be of type 'String', but was of type 'int'.";
 static const field self::Foo* foo5 = invalid-expression "pkg/front_end/testcases/general/constants/const_asserts.dart:17:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   const Foo.withInvalidCondition(this.x) : assert(x);
                                                   ^";

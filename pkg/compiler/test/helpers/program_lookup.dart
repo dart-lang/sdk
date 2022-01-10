@@ -234,7 +234,7 @@ void forEachNode(js.Node root,
   root.accept(visitor);
 }
 
-class CallbackVisitor extends js.BaseVisitorVoid {
+class CallbackVisitor extends js.BaseVisitor {
   final void Function(js.Call) onCall;
   final void Function(js.PropertyAccess) onPropertyAccess;
   final void Function(js.Assignment) onAssignment;
@@ -244,25 +244,25 @@ class CallbackVisitor extends js.BaseVisitorVoid {
       {this.onCall, this.onPropertyAccess, this.onAssignment, this.onSwitch});
 
   @override
-  void visitCall(js.Call node) {
+  visitCall(js.Call node) {
     if (onCall != null) onCall(node);
     super.visitCall(node);
   }
 
   @override
-  void visitAccess(js.PropertyAccess node) {
+  visitAccess(js.PropertyAccess node) {
     if (onPropertyAccess != null) onPropertyAccess(node);
     super.visitAccess(node);
   }
 
   @override
-  void visitAssignment(js.Assignment node) {
+  visitAssignment(js.Assignment node) {
     if (onAssignment != null) onAssignment(node);
     return super.visitAssignment(node);
   }
 
   @override
-  void visitSwitch(js.Switch node) {
+  visitSwitch(js.Switch node) {
     if (onSwitch != null) onSwitch(node);
     return super.visitSwitch(node);
   }

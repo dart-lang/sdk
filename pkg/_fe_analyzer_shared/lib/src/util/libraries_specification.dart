@@ -96,10 +96,9 @@ import 'relativize.dart' show relativizeUri, isWindows;
 /// Contains information about all libraries on all target platforms defined in
 /// that file.
 class LibrariesSpecification {
-  final Uri specUri;
   final Map<String, TargetLibrariesSpecification> _targets;
 
-  const LibrariesSpecification(this.specUri,
+  const LibrariesSpecification(
       [this._targets = const <String, TargetLibrariesSpecification>{}]);
 
   /// The library specification for a given [target], or throws if none is
@@ -108,53 +107,23 @@ class LibrariesSpecification {
     TargetLibrariesSpecification? targetSpec = _targets[target];
     if (targetSpec == null) {
       throw new LibrariesSpecificationException(
-          messageMissingTarget(target, specUri));
+          'No library specification for target "$target"');
     }
     return targetSpec;
   }
 
-  static Future<LibrariesSpecification> load(
-      Uri uri, Future<String> Function(Uri uri) read) {
-    Map<Uri, LibrariesSpecification?> cache = {};
-    Future<LibrariesSpecification> loadSpecification(Uri uri) async {
-      if (cache.containsKey(uri)) {
-        LibrariesSpecification? specification = cache[uri];
-        if (specification == null) {
-          throw new LibrariesSpecificationException(messageCyclicSpec(uri));
-        }
-        return specification;
-      }
-      cache[uri] = null;
-      String json;
-      try {
-        json = await read(uri);
-      } catch (e) {
-        throw new LibrariesSpecificationException(
-            messageIncludePathCouldNotBeRead(uri, e));
-      }
-      return cache[uri] =
-          await LibrariesSpecification.parse(uri, json, loadSpecification);
-    }
-
-    return loadSpecification(uri);
-  }
-
   /// Parse the given [json] as a library specification, resolving any relative
-  /// paths from [specUri].
+  /// paths from [baseUri].
   ///
   /// May throw an exception if [json] is not properly formatted or contains
   /// invalid values.
-  static Future<LibrariesSpecification> parse(
-      Uri specUri,
-      String? json,
-      Future<LibrariesSpecification> Function(Uri uri)
-          loadSpecification) async {
-    if (json == null) return new LibrariesSpecification(specUri);
+  static LibrariesSpecification parse(Uri baseUri, String? json) {
+    if (json == null) return const LibrariesSpecification();
     Map<String, dynamic> jsonData;
     try {
       dynamic data = jsonDecode(json);
       if (data is! Map<String, dynamic>) {
-        return _reportError(messageTopLevelIsNotAMap(specUri));
+        return _reportError('top-level specification is not a map');
       }
       jsonData = data;
     } on FormatException catch (e) {
@@ -162,129 +131,62 @@ class LibrariesSpecification {
     }
     Map<String, TargetLibrariesSpecification> targets =
         <String, TargetLibrariesSpecification>{};
-
-    Set<String> currentTargets = {};
-
-    Future<TargetLibrariesSpecification> resolveTargetData(
-        String targetName) async {
-      TargetLibrariesSpecification? spec = targets[targetName];
-      if (spec != null) {
-        return spec;
-      }
-      if (currentTargets.contains(targetName)) {
-        _reportError(messageCyclicInternalInclude(targetName, specUri));
-      }
-
-      currentTargets.add(targetName);
+    jsonData.forEach((String targetName, targetData) {
+      if (targetName.startsWith("comment:")) return null;
       Map<String, LibraryInfo> libraries = <String, LibraryInfo>{};
-      Object? targetData = jsonData[targetName];
       if (targetData is! Map) {
-        _reportError(messageTargetIsNotAMap(targetName, specUri));
-      }
-
-      Object? include = targetData["include"];
-      if (include != null) {
-        if (include is! List) {
-          _reportError(messageIncludeIsNotAList(targetName, specUri));
-        }
-        for (Object? map in include) {
-          if (map is! Map<String, dynamic>) {
-            _reportError(messageIncludeEntryIsNotAMap(targetName, specUri));
-          }
-          if (!map.containsKey("target")) {
-            _reportError(messageIncludeTargetMissing(targetName, specUri));
-          }
-          Object? target = map["target"];
-          if (target is! String) {
-            _reportError(messageIncludeTargetIsNotAString(targetName, specUri));
-          }
-          if (!map.containsKey("path")) {
-            if (!jsonData.containsKey(target)) {
-              _reportError(messageMissingTarget(target, specUri));
-            }
-            TargetLibrariesSpecification targetLibrariesSpecification =
-                await resolveTargetData(target);
-            libraries.addAll(targetLibrariesSpecification._libraries);
-          } else {
-            Object? path = map["path"];
-            if (path is! String) {
-              _reportError(messageIncludePathIsNotAString(targetName, specUri));
-            }
-            Uri uri = Uri.parse(path);
-            if (uri.scheme != '' && uri.scheme != 'file') {
-              return _reportError(messageUnsupportedUriScheme(path, specUri));
-            }
-            LibrariesSpecification specification =
-                await loadSpecification(specUri.resolveUri(uri));
-            TargetLibrariesSpecification targetSpecification =
-                specification.specificationFor(target);
-            for (LibraryInfo libraryInfo in targetSpecification.allLibraries) {
-              libraries[libraryInfo.name] = libraryInfo;
-            }
-          }
-        }
+        _reportError("target specification for '$targetName' is not a map");
       }
       if (!targetData.containsKey("libraries")) {
-        _reportError(messageTargetLibrariesMissing(targetName, specUri));
+        _reportError("target specification "
+            "for '$targetName' doesn't have a libraries entry");
       }
-      Object? librariesData = targetData["libraries"];
+      dynamic librariesData = targetData["libraries"];
       if (librariesData is! Map<String, dynamic>) {
-        _reportError(messageLibrariesEntryIsNotAMap(targetName, specUri));
+        _reportError("libraries entry for '$targetName' is not a map");
       }
-      librariesData.forEach((String libraryName, Object? data) {
+      librariesData.forEach((String name, data) {
         if (data is! Map<String, dynamic>) {
           _reportError(
-              messageLibraryDataIsNotAMap(libraryName, targetName, specUri));
+              "library data for '$name' in target '$targetName' is not a map");
         }
-        Uri checkAndResolve(Object? uriString) {
+        Uri checkAndResolve(uriString) {
           if (uriString is! String) {
-            return _reportError(messageLibraryUriIsNotAString(
-                uriString, libraryName, targetName, specUri));
+            return _reportError("uri value '$uriString' is not a string"
+                "(from library '$name' in target '$targetName')");
           }
           Uri uri = Uri.parse(uriString);
           if (uri.scheme != '' && uri.scheme != 'file') {
-            return _reportError(
-                messageUnsupportedUriScheme(uriString, specUri));
+            return _reportError("uri scheme in '$uriString' is not supported.");
           }
-          return specUri.resolveUri(uri);
+          return baseUri.resolveUri(uri);
         }
 
-        if (!data.containsKey('uri')) {
-          _reportError(
-              messageLibraryUriMissing(libraryName, targetName, specUri));
-        }
         Uri uri = checkAndResolve(data['uri']);
         List<Uri> patches;
         if (data['patches'] is List) {
           patches =
-              data['patches'].map<Uri>((s) => specUri.resolve(s)).toList();
+              data['patches'].map<Uri>((s) => baseUri.resolve(s)).toList();
         } else if (data['patches'] is String) {
           patches = [checkAndResolve(data['patches'])];
         } else if (data['patches'] == null) {
           patches = const [];
         } else {
-          _reportError(messagePatchesMustBeListOrString(libraryName));
+          _reportError("patches entry for '$name' is not a list or a string");
         }
 
         dynamic supported = data['supported'] ?? true;
         if (supported is! bool) {
-          _reportError(messageSupportedIsNotABool(supported));
+          _reportError("\"supported\" entry: expected a 'bool' but "
+              "got a '${supported.runtimeType}' ('$supported')");
         }
-        libraries[libraryName] =
-            new LibraryInfo(libraryName, uri, patches, isSupported: supported);
+        libraries[name] =
+            new LibraryInfo(name, uri, patches, isSupported: supported);
       });
-      currentTargets.remove(targetName);
-      return targets[targetName] =
+      targets[targetName] =
           new TargetLibrariesSpecification(targetName, libraries);
-    }
-
-    for (String targetName in jsonData.keys) {
-      if (targetName.startsWith("comment:")) {
-        continue;
-      }
-      await resolveTargetData(targetName);
-    }
-    return new LibrariesSpecification(specUri, targets);
+    });
+    return new LibrariesSpecification(targets);
   }
 
   static Never _reportError(String error) =>
@@ -362,67 +264,3 @@ class LibrariesSpecificationException {
   @override
   String toString() => '$error';
 }
-
-String messageMissingTarget(String targetName, Uri specUri) =>
-    'No library specification for target "$targetName" in ${specUri}.';
-
-String messageCyclicSpec(Uri specUri) => 'Cyclic dependency in ${specUri}.';
-
-String messageCyclicInternalInclude(String targetName, Uri specUri) =>
-    'Cyclic dependency of target "$targetName" in ${specUri}.';
-
-String messageTopLevelIsNotAMap(Uri specUri) =>
-    'Top-level specification is not a map in ${specUri}.';
-
-String messageTargetIsNotAMap(String targetName, Uri specUri) =>
-    'Target specification for "$targetName" is not a map in $specUri.';
-
-String messageIncludeIsNotAList(String targetName, Uri specUri) =>
-    '"include" specification for "$targetName" is not a list in $specUri.';
-
-String messageIncludeEntryIsNotAMap(String targetName, Uri specUri) =>
-    '"include" entry in "$targetName" is not a map in $specUri.';
-
-String messageIncludePathIsNotAString(String targetName, Uri specUri) =>
-    '"include" path in "$targetName" is not a string in  $specUri.';
-
-String messageIncludePathCouldNotBeRead(Uri includeUri, Object error) =>
-    '"include" path \'$includeUri\' could not be read: $error';
-
-String messageIncludeTargetMissing(String targetName, Uri specUri) =>
-    '"include" target in "$targetName" is missing in $specUri.';
-
-String messageIncludeTargetIsNotAString(String targetName, Uri specUri) =>
-    '"include" target in "$targetName" is not a string in $specUri.';
-
-String messageTargetLibrariesMissing(String targetName, Uri specUri) =>
-    'Target specification '
-    'for "$targetName" doesn\'t have a libraries entry in $specUri.';
-
-String messageLibrariesEntryIsNotAMap(String targetName, Uri specUri) =>
-    '"libraries" entry for "$targetName" is not a map in $specUri.';
-
-String messageLibraryDataIsNotAMap(
-        String libraryName, String targetName, Uri specUri) =>
-    'Library data for \'$libraryName\' in target "$targetName" is not a map '
-    'in $specUri.';
-
-String messageLibraryUriMissing(
-        String libraryName, String targetName, Uri specUri) =>
-    '"uri" is missing '
-    'from library \'$libraryName\' in target "$targetName" in $specUri.';
-
-String messageLibraryUriIsNotAString(
-        Object? uriValue, String libraryName, String targetName, Uri specUri) =>
-    'Uri value `$uriValue` is not a string '
-    '(from library \'$libraryName\' in target "$targetName" in $specUri).';
-
-String messageUnsupportedUriScheme(String uriValue, Uri specUri) =>
-    "Uri scheme in '$uriValue' is not supported in $specUri.";
-
-String messagePatchesMustBeListOrString(String libraryName) =>
-    '"patches" entry for "$libraryName" is not a list or a string.';
-
-String messageSupportedIsNotABool(Object supportedValue) =>
-    '"supported" entry: expected a `bool` but '
-    'got a `${supportedValue.runtimeType}` ("$supportedValue").';

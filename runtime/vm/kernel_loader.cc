@@ -706,7 +706,6 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
 
   // Load the "evaluate:source" expression evaluation library.
   ASSERT(expression_evaluation_library_.IsNull());
-  ASSERT(H.GetExpressionEvaluationClass().IsNull());
   ASSERT(H.GetExpressionEvaluationFunction().IsNull());
   H.SetExpressionEvaluationRealClass(real_class);
   const Object& result = Object::Handle(Z, LoadProgram(true));
@@ -1450,9 +1449,6 @@ void KernelLoader::LoadClass(const Library& library,
   // they are not reachable anymore and we never look them up by name.
   const bool register_class =
       library.ptr() != expression_evaluation_library_.ptr();
-  if (!register_class) {
-    H.SetExpressionEvaluationClass(*out_class);
-  }
 
   if (loading_native_wrappers_library_ || !register_class) {
     FinishClassLoading(*out_class, library, toplevel_class, class_offset,
@@ -1590,25 +1586,6 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                  .StartsWith(Symbols::_typedDataBase()));
       fields_[0]->set_guarded_cid(kDynamicCid);
       fields_[0]->set_is_nullable(true);
-    }
-
-    // Check that subclasses of AbiSpecificInteger have a mapping for the
-    // current ABI.
-    //
-    // TODO(https://github.com/dart-lang/language/issues/1889): If we make
-    // kernel know about the target platform, we can move this check to the
-    // frontend.
-    const auto& super_class = Class::Handle(Z, klass.SuperClass());
-    if (!super_class.IsNull() &&
-        super_class.UserVisibleName() == Symbols::AbiSpecificInteger().ptr() &&
-        Library::Handle(Z, super_class.library()).url() ==
-            Symbols::DartFfi().ptr()) {
-      const char* error = nullptr;
-      compiler::ffi::NativeType::FromAbstractType(
-          Z, AbstractType::Handle(Z, klass.DeclarationType()), &error);
-      if (error != nullptr) {
-        H.ReportError("%s", error);
-      }
     }
 
     // Due to ReadVMAnnotations(), the klass may have been loaded at this point
@@ -1975,7 +1952,6 @@ void KernelLoader::LoadProcedure(const Library& library,
   }
   function.set_kernel_offset(procedure_offset);
   function.set_is_extension_member(is_extension_member);
-  function.set_is_redirecting_factory(procedure_helper.IsRedirectingFactory());
   if ((library.is_dart_scheme() &&
        H.IsPrivate(procedure_helper.canonical_name_)) ||
       (function.is_static() && (library.ptr() == Library::InternalLibrary()))) {

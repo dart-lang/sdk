@@ -34,11 +34,6 @@ class SimpleTTestStat {
     }
   }
 
-  static double average<E extends num>(List<E> data) {
-    E sum = data.reduce((value, element) => (value + element) as E);
-    return sum / data.length;
-  }
-
   static double variance<E extends num>(List<E> data) {
     E sum = data.reduce((value, element) => (value + element) as E);
     int count = data.length;

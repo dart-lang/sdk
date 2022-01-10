@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -42,7 +43,6 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
-import 'package:collection/collection.dart';
 
 /// A concrete implementation of a [ClassElement].
 abstract class AbstractClassElementImpl extends _ExistingElementImpl
@@ -925,9 +925,6 @@ class ClassElementImpl extends AbstractClassElementImpl
         implicitConstructor.parameters = implicitParameters;
       }
       implicitConstructor.enclosingElement = this;
-      // TODO(scheglov) Why do we manually map parameters types above?
-      implicitConstructor.superConstructor =
-          ConstructorMember.from(superclassConstructor, supertype!);
 
       var isNamed = superclassConstructor.name.isNotEmpty;
       implicitConstructor.constantInitializers = [
@@ -1254,6 +1251,153 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   }
 }
 
+/// A field element representing an enum constant.
+class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
+  final int _index;
+
+  ConstFieldElementImpl_EnumValue(
+      EnumElementImpl enumElement, String name, this._index)
+      : super(enumElement, name);
+
+  @override
+  Expression? get constantInitializer => null;
+
+  @override
+  EvaluationResultImpl? get evaluationResult {
+    if (_evaluationResult == null) {
+      Map<String, DartObjectImpl> fieldMap = <String, DartObjectImpl>{
+        'index': DartObjectImpl(
+          library.typeSystem,
+          library.typeProvider.intType,
+          IntState(_index),
+        ),
+        // TODO(brianwilkerson) There shouldn't be a field with the same name as
+        //  the constant, but we can't remove it until a version of dartdoc that
+        //  doesn't depend on it has been published and pulled into the SDK. The
+        //  map entry below should be removed when
+        //  https://github.com/dart-lang/dartdoc/issues/2318 has been resolved.
+        name: DartObjectImpl(
+          library.typeSystem,
+          library.typeProvider.intType,
+          IntState(_index),
+        ),
+      };
+      DartObjectImpl value = DartObjectImpl(
+        library.typeSystem,
+        type,
+        GenericState(fieldMap),
+      );
+      _evaluationResult = EvaluationResultImpl(value);
+    }
+    return _evaluationResult;
+  }
+
+  @override
+  bool get hasInitializer => false;
+
+  @override
+  bool get isEnumConstant => true;
+
+  @override
+  Element get nonSynthetic => this;
+
+  @override
+  InterfaceType get type =>
+      ElementTypeProvider.current.getFieldType(this) as InterfaceType;
+
+  @override
+  InterfaceType get typeInternal => _enum.thisType;
+}
+
+/// The synthetic `values` field of an enum.
+class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
+  ConstFieldElementImpl_EnumValues(EnumElementImpl enumElement)
+      : super(enumElement, 'values') {
+    isSynthetic = true;
+  }
+
+  @override
+  EvaluationResultImpl get evaluationResult {
+    if (_evaluationResult == null) {
+      var constantValues = <DartObjectImpl>[];
+      for (FieldElement field in _enum.fields) {
+        if (field is ConstFieldElementImpl_EnumValue) {
+          constantValues.add(field.evaluationResult!.value!);
+        }
+      }
+      _evaluationResult = EvaluationResultImpl(
+        DartObjectImpl(
+          library.typeSystem,
+          type,
+          ListState(constantValues),
+        ),
+      );
+    }
+    return _evaluationResult!;
+  }
+
+  @override
+  String get name => 'values';
+
+  @override
+  InterfaceType get type =>
+      ElementTypeProvider.current.getFieldType(this) as InterfaceType;
+
+  @override
+  InterfaceType get typeInternal {
+    if (_type == null) {
+      return _type = library.typeProvider.listType(_enum.thisType);
+    }
+    return _type as InterfaceType;
+  }
+}
+
+/// An abstract constant field of an enum.
+abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
+  final EnumElementImpl _enum;
+
+  ConstFieldElementImpl_ofEnum(this._enum, String name) : super(name, -1) {
+    enclosingElement = _enum;
+  }
+
+  @override
+  set evaluationResult(_) {
+    assert(false);
+  }
+
+  @override
+  bool get isConst => true;
+
+  @override
+  set isConst(bool isConst) {
+    assert(false);
+  }
+
+  @override
+  bool get isConstantEvaluated => true;
+
+  @override
+  set isFinal(bool isFinal) {
+    assert(false);
+  }
+
+  @override
+  bool get isStatic => true;
+
+  @override
+  set isStatic(bool isStatic) {
+    assert(false);
+  }
+
+  @override
+  Element get nonSynthetic => _enum;
+
+  @override
+  set type(DartType type) {
+    assert(false);
+  }
+}
+
 /// A [LocalVariableElement] for a local 'const' variable that has an
 /// initializer.
 class ConstLocalVariableElementImpl extends LocalVariableElementImpl
@@ -1267,14 +1411,6 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 class ConstructorElementImpl extends ExecutableElementImpl
     with ConstructorElementMixin
     implements ConstructorElement {
-  /// The super-constructor which this constructor is invoking, or `null` if
-  /// this constructor is not generative, or is redirecting, or the
-  /// super-constructor is not resolved, or the enclosing class is `Object`.
-  ///
-  /// TODO(scheglov) We cannot have both super and redirecting constructors.
-  /// So, ideally we should have some kind of "either" or "variant" here.
-  ConstructorElement? _superConstructor;
-
   /// The constructor to which this constructor is redirecting.
   ConstructorElement? _redirectedConstructor;
 
@@ -1326,8 +1462,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  AbstractClassElementImpl get enclosingElement =>
-      super.enclosingElement as AbstractClassElementImpl;
+  ClassElementImpl get enclosingElement =>
+      super.enclosingElement as ClassElementImpl;
 
   @override
   bool get isConst {
@@ -1405,15 +1541,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
     return (_returnType ??= enclosingElement.thisType) as InterfaceType;
   }
 
-  ConstructorElement? get superConstructor {
-    linkedData?.read(this);
-    return _superConstructor;
-  }
-
-  set superConstructor(ConstructorElement? superConstructor) {
-    _superConstructor = superConstructor;
-  }
-
   @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
 
@@ -1446,7 +1573,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// of formal parameters, are evaluated.
   void computeConstantDependencies() {
     if (!isConstantEvaluated) {
-      computeConstants(context.declaredVariables, [this], library.featureSet);
+      computeConstants(library.typeProvider, library.typeSystem,
+          context.declaredVariables, [this], library.featureSet);
     }
   }
 }
@@ -1522,16 +1650,8 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// of this variable could not be computed because of errors.
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      final library = this.library;
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/47915
-      if (library == null) {
-        throw StateError(
-          '[library: null][this: ($runtimeType) $this]'
-          '[enclosingElement: $enclosingElement]'
-          '[reference: $reference]',
-        );
-      }
-      computeConstants(context.declaredVariables, [this], library.featureSet);
+      computeConstants(library!.typeProvider, library!.typeSystem,
+          context.declaredVariables, [this], library!.featureSet);
     }
     return evaluationResult?.value;
   }
@@ -1576,52 +1696,6 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   @override
   String? get defaultValueCode {
     return constantInitializer?.toSource();
-  }
-}
-
-class DefaultSuperFormalParameterElementImpl
-    extends SuperFormalParameterElementImpl with ConstVariableElement {
-  /// Initialize a newly created parameter element to have the given [name] and
-  /// [nameOffset].
-  DefaultSuperFormalParameterElementImpl({
-    required String name,
-    required int nameOffset,
-    required ParameterKind parameterKind,
-  }) : super(
-          name: name,
-          nameOffset: nameOffset,
-          parameterKind: parameterKind,
-        );
-
-  @override
-  String? get defaultValueCode {
-    return constantInitializer?.toSource();
-  }
-
-  @override
-  bool get hasDefaultValue {
-    if (super.hasDefaultValue) {
-      return true;
-    }
-    return computeConstantValue() != null;
-  }
-
-  @override
-  DartObject? computeConstantValue() {
-    if (constantInitializer != null) {
-      return super.computeConstantValue();
-    }
-
-    var superDefault = superConstructorParameter?.computeConstantValue();
-    var superDefaultType = superDefault?.type;
-    var libraryElement = library;
-    if (superDefaultType != null &&
-        libraryElement != null &&
-        libraryElement.typeSystem.isSubtypeOf(superDefaultType, type)) {
-      return superDefault;
-    }
-
-    return null;
   }
 }
 
@@ -1907,8 +1981,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      computeConstants(context.declaredVariables, [this],
-          compilationUnit.library.featureSet);
+      var library = compilationUnit.library;
+      computeConstants(library.typeProvider, library.typeSystem,
+          context.declaredVariables, [this], library.featureSet);
     }
     return evaluationResult?.value;
   }
@@ -2670,7 +2745,6 @@ class ElementLocationImpl implements ElementLocation {
 /// An [AbstractClassElementImpl] which is an enum.
 class EnumElementImpl extends AbstractClassElementImpl {
   ElementLinkedData? linkedData;
-  List<ConstructorElement> _constructors = _Sentinel.constructorElement;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -2696,14 +2770,11 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<ConstructorElement> get constructors {
-    return _constructors;
-  }
-
-  set constructors(List<ConstructorElement> constructors) {
-    for (var constructor in constructors) {
-      (constructor as ConstructorElementImpl).enclosingElement = this;
-    }
-    _constructors = constructors;
+    // The equivalent code for enums in the spec shows a single constructor,
+    // but that constructor is not callable (since it is a compile-time error
+    // to subclass, mix-in, implement, or explicitly instantiate an enum).
+    // So we represent this as having no constructors.
+    return const <ConstructorElement>[];
   }
 
   @override
@@ -3216,13 +3287,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   @override
-  bool get isEnumConstant {
-    return hasModifier(Modifier.ENUM_CONSTANT);
-  }
-
-  set isEnumConstant(bool isEnumConstant) {
-    setModifier(Modifier.ENUM_CONSTANT, isEnumConstant);
-  }
+  bool get isEnumConstant => false;
 
   @override
   bool get isExternal {
@@ -4285,61 +4350,58 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that a class element was defined by an enum declaration.
   static const Modifier ENUM = Modifier('ENUM', 6);
 
-  /// Indicates that the element is an enum constant field.
-  static const Modifier ENUM_CONSTANT = Modifier('ENUM_CONSTANT', 7);
-
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier EXTERNAL = Modifier('EXTERNAL', 8);
+  static const Modifier EXTERNAL = Modifier('EXTERNAL', 7);
 
   /// Indicates that the modifier 'factory' was applied to the element.
-  static const Modifier FACTORY = Modifier('FACTORY', 9);
+  static const Modifier FACTORY = Modifier('FACTORY', 8);
 
   /// Indicates that the modifier 'final' was applied to the element.
-  static const Modifier FINAL = Modifier('FINAL', 10);
+  static const Modifier FINAL = Modifier('FINAL', 9);
 
   /// Indicates that an executable element has a body marked as being a
   /// generator.
-  static const Modifier GENERATOR = Modifier('GENERATOR', 11);
+  static const Modifier GENERATOR = Modifier('GENERATOR', 10);
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
-  static const Modifier GETTER = Modifier('GETTER', 12);
+  static const Modifier GETTER = Modifier('GETTER', 11);
 
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.
-  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 13);
+  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 12);
 
   /// A flag used for fields and top-level variables that have implicit type,
   /// and specify when the type has been inferred.
-  static const Modifier HAS_TYPE_INFERRED = Modifier('HAS_TYPE_INFERRED', 14);
+  static const Modifier HAS_TYPE_INFERRED = Modifier('HAS_TYPE_INFERRED', 13);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// has a `part of` directive, meaning that this unit should be a part,
   /// but is used as a library.
   static const Modifier HAS_PART_OF_DIRECTIVE =
-      Modifier('HAS_PART_OF_DIRECTIVE', 15);
+      Modifier('HAS_PART_OF_DIRECTIVE', 14);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 15);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 17);
+  static const Modifier LATE = Modifier('LATE', 16);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 18);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 17);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 19);
+  static const Modifier SETTER = Modifier('SETTER', 18);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 20);
+  static const Modifier STATIC = Modifier('STATIC', 19);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 21);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 20);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -4349,7 +4411,6 @@ class Modifier implements Comparable<Modifier> {
     DART_CORE_OBJECT,
     DEFERRED,
     ENUM,
-    ENUM_CONSTANT,
     EXTERNAL,
     FACTORY,
     FINAL,
@@ -4726,9 +4787,6 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   bool get isLate => false;
-
-  @override
-  bool get isSuperFormal => false;
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
@@ -5290,11 +5348,6 @@ abstract class PropertyInducingElementImpl
     return !isFinal;
   }
 
-  void bindReference(Reference reference) {
-    this.reference = reference;
-    reference.element = this;
-  }
-
   void createImplicitAccessors(Reference enclosingRef, String name) {
     getter = PropertyAccessorElementImpl_ImplicitGetter(
       this,
@@ -5346,64 +5399,6 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
       buffer.write(shownNames[i]);
     }
     return buffer.toString();
-  }
-}
-
-class SuperFormalParameterElementImpl extends ParameterElementImpl
-    implements SuperFormalParameterElement {
-  /// Initialize a newly created parameter element to have the given [name] and
-  /// [nameOffset].
-  SuperFormalParameterElementImpl({
-    required String name,
-    required int nameOffset,
-    required ParameterKind parameterKind,
-  }) : super(
-          name: name,
-          nameOffset: nameOffset,
-          parameterKind: parameterKind,
-        );
-
-  /// Super parameters are visible only in the initializer list scope,
-  /// and introduce final variables.
-  @override
-  bool get isFinal => true;
-
-  @override
-  bool get isSuperFormal => true;
-
-  @override
-  ParameterElement? get superConstructorParameter {
-    final enclosingElement = this.enclosingElement;
-    if (enclosingElement is ConstructorElementImpl) {
-      var superConstructor = enclosingElement.superConstructor;
-      if (superConstructor != null) {
-        var superParameters = superConstructor.parameters;
-        if (isNamed) {
-          return superParameters
-              .firstWhereOrNull((e) => e.isNamed && e.name == name);
-        } else {
-          var index = indexIn(enclosingElement);
-          var positionalSuperParameters =
-              superParameters.where((e) => e.isPositional).toList();
-          if (index >= 0 && index < positionalSuperParameters.length) {
-            return positionalSuperParameters[index];
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitSuperFormalParameterElement(this);
-
-  /// Return the index of this super-formal parameter among other super-formals.
-  int indexIn(ConstructorElementImpl enclosingElement) {
-    return enclosingElement.parameters
-        .whereType<SuperFormalParameterElementImpl>()
-        .toList()
-        .indexOf(this);
   }
 }
 

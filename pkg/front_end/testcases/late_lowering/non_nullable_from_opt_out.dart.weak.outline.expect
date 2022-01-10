@@ -26,26 +26,26 @@ class Class<T extends core::Object> extends core::Object {
   synthetic constructor •() → self2::Class<self2::Class::T>
     ;
   get instanceField() → core::int;
-  set instanceField(core::int instanceField#param) → void;
+  set instanceField(core::int #t1) → void;
   get finalInstanceField() → dynamic;
-  set finalInstanceField(dynamic finalInstanceField#param) → void;
+  set finalInstanceField(dynamic #t2) → void;
   get instanceTypeVariable() → self2::Class::T;
-  set instanceTypeVariable(covariant-by-class self2::Class::T instanceTypeVariable#param) → void;
+  set instanceTypeVariable(covariant-by-class self2::Class::T #t3) → void;
   get finalInstanceTypeVariable() → self2::Class::T;
-  set finalInstanceTypeVariable(self2::Class::T finalInstanceTypeVariable#param) → void;
+  set finalInstanceTypeVariable(self2::Class::T #t4) → void;
   static get staticField() → core::int;
-  static set staticField(core::int staticField#param) → void;
+  static set staticField(core::int #t5) → void;
   static get staticFinalField() → dynamic;
-  static set staticFinalField(dynamic staticFinalField#param) → void;
+  static set staticFinalField(dynamic #t6) → void;
 }
 static field core::int? _#topLevelField;
 static field core::bool _#topLevelField#isSet;
 static field dynamic _#finalTopLevelField;
 static field core::bool _#finalTopLevelField#isSet;
 static get topLevelField() → core::int;
-static set topLevelField(core::int topLevelField#param) → void;
+static set topLevelField(core::int #t7) → void;
 static get finalTopLevelField() → dynamic;
-static set finalTopLevelField(dynamic finalTopLevelField#param) → void;
+static set finalTopLevelField(dynamic #t8) → void;
 static method method<T extends core::Object>(core::bool b, core::int i, self2::method::T t) → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic

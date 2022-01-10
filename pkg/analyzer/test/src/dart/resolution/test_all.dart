@@ -58,7 +58,6 @@ import 'prefix_expression_test.dart' as prefix_expression;
 import 'prefixed_identifier_test.dart' as prefixed_identifier;
 import 'property_access_test.dart' as property_access;
 import 'simple_identifier_test.dart' as simple_identifier;
-import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'top_level_variable_test.dart' as top_level_variable;
 import 'top_type_inference_test.dart' as top_type_inference;
 import 'try_statement_test.dart' as try_statement;
@@ -120,7 +119,6 @@ main() {
     prefixed_identifier.main();
     property_access.main();
     simple_identifier.main();
-    super_formal_parameter.main();
     top_level_variable.main();
     top_type_inference.main();
     try_statement.main();

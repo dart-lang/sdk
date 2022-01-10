@@ -68,9 +68,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildInitializers(const Class& parent_class);
   FlowGraph* BuildGraphOfFunction(bool constructor);
 
-  Fragment BuildExpression(TokenPosition* position = nullptr);
-  Fragment BuildStatement(TokenPosition* position = nullptr);
-  Fragment BuildStatementWithBranchCoverage(TokenPosition* position = nullptr);
+  Fragment BuildExpression(TokenPosition* position = NULL);
+  Fragment BuildStatement();
 
   // Kernel offset:
   //   start of function expression -> end of function body statement
@@ -179,7 +178,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                       intptr_t argument_count,
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
-                      const InferredTypeMetadata* result_type = nullptr,
+                      const InferredTypeMetadata* result_type = NULL,
                       intptr_t type_args_len = 0,
                       bool use_unchecked_entry = false);
   Fragment InstanceCall(TokenPosition position,
@@ -334,26 +333,26 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildLibraryPrefixAction(TokenPosition* position,
                                     const String& selector);
 
-  Fragment BuildExpressionStatement(TokenPosition* position);
-  Fragment BuildBlock(TokenPosition* position);
+  Fragment BuildExpressionStatement();
+  Fragment BuildBlock();
   Fragment BuildEmptyStatement();
-  Fragment BuildAssertBlock(TokenPosition* position);
-  Fragment BuildAssertStatement(TokenPosition* position);
-  Fragment BuildLabeledStatement(TokenPosition* position);
-  Fragment BuildBreakStatement(TokenPosition* position);
-  Fragment BuildWhileStatement(TokenPosition* position);
-  Fragment BuildDoStatement(TokenPosition* position);
-  Fragment BuildForStatement(TokenPosition* position);
-  Fragment BuildForInStatement(bool async, TokenPosition* position);
-  Fragment BuildSwitchStatement(TokenPosition* position);
-  Fragment BuildContinueSwitchStatement(TokenPosition* position);
-  Fragment BuildIfStatement(TokenPosition* position);
-  Fragment BuildReturnStatement(TokenPosition* position);
-  Fragment BuildTryCatch(TokenPosition* position);
-  Fragment BuildTryFinally(TokenPosition* position);
-  Fragment BuildYieldStatement(TokenPosition* position);
-  Fragment BuildVariableDeclaration(TokenPosition* position);
-  Fragment BuildFunctionDeclaration(intptr_t offset, TokenPosition* position);
+  Fragment BuildAssertBlock();
+  Fragment BuildAssertStatement();
+  Fragment BuildLabeledStatement();
+  Fragment BuildBreakStatement();
+  Fragment BuildWhileStatement();
+  Fragment BuildDoStatement();
+  Fragment BuildForStatement();
+  Fragment BuildForInStatement(bool async);
+  Fragment BuildSwitchStatement();
+  Fragment BuildContinueSwitchStatement();
+  Fragment BuildIfStatement();
+  Fragment BuildReturnStatement();
+  Fragment BuildTryCatch();
+  Fragment BuildTryFinally();
+  Fragment BuildYieldStatement();
+  Fragment BuildVariableDeclaration();
+  Fragment BuildFunctionDeclaration(intptr_t offset);
   Fragment BuildFunctionNode(TokenPosition parent_position,
                              StringIndex name_index,
                              bool has_valid_annotation,
@@ -362,15 +361,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   // Build flow graph for '_nativeEffect'.
   Fragment BuildNativeEffect();
-
-  // Build flow graph for '_loadAbiSpecificInt' and
-  // '_loadAbiSpecificIntAtIndex', '_storeAbiSpecificInt', and
-  // '_storeAbiSpecificIntAtIndex' call sites.
-  //
-  // The second argument is either offsetInBytes (at_index==false), or
-  // index (at_index==true).
-  Fragment BuildLoadAbiSpecificInt(bool at_index);
-  Fragment BuildStoreAbiSpecificInt(bool at_index);
 
   // Build FG for '_asFunctionInternal'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting closure.

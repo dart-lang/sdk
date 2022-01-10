@@ -19,32 +19,18 @@ void Syslog::VPrint(const char* format, va_list args) {
   // If we launch the DartVM inside "adb shell" we will only get messages
   // (critical ones or not) if we print them to stdout/stderr.
   // We also log using android's logging system.
-  va_list stdio_args;
-  va_copy(stdio_args, args);
-  vprintf(format, stdio_args);
+  vprintf(format, args);
   fflush(stdout);
-  va_end(stdio_args);
-
-  va_list log_args;
-  va_copy(log_args, args);
-  __android_log_vprint(ANDROID_LOG_INFO, "Dart", format, log_args);
-  va_end(log_args);
+  __android_log_vprint(ANDROID_LOG_INFO, "Dart", format, args);
 }
 
 void Syslog::VPrintErr(const char* format, va_list args) {
   // If we launch the DartVM inside "adb shell" we will only get messages
   // (critical ones or not) if we print them to stdout/stderr.
   // We also log using android's logging system.
-  va_list stdio_args;
-  va_copy(stdio_args, args);
-  vfprintf(stderr, format, stdio_args);
+  vfprintf(stderr, format, args);
   fflush(stderr);
-  va_end(stdio_args);
-
-  va_list log_args;
-  va_copy(log_args, args);
-  __android_log_vprint(ANDROID_LOG_ERROR, "Dart", format, log_args);
-  va_end(log_args);
+  __android_log_vprint(ANDROID_LOG_ERROR, "Dart", format, args);
 }
 
 }  // namespace dart

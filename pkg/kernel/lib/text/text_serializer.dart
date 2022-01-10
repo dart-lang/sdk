@@ -2601,7 +2601,6 @@ const Map<int, String> classFlagToName = const {
   Class.FlagEliminatedMixin: "eliminated-mixin",
   Class.FlagMixinDeclaration: "mixin-declaration",
   Class.FlagHasConstConstructor: "has-const-constructor",
-  Class.FlagMacro: "macro",
 };
 
 class ClassFlagTagger implements Tagger<int> {

@@ -68,53 +68,58 @@ class TestConfig {
       this.targetFlags: const TestTargetFlags(),
       this.nnbdMode: NnbdMode.Weak});
 
-  /// Called before running test on [testData].
-  ///
-  /// This allows tests to customize the [options] based on the [testData].
-  ///
-  /// A custom object can be returned. This is passed to data computer.
-  dynamic customizeCompilerOptions(
-          CompilerOptions options, TestData testData) =>
-      null;
+  void customizeCompilerOptions(CompilerOptions options, TestData testData) {}
 }
 
+// TODO(johnniwinther): Support annotations for compile-time errors.
 abstract class DataComputer<T> {
   const DataComputer();
 
   /// Called before testing to setup flags needed for data collection.
   void setup() {}
 
-  /// Called to allow for (awaited) inspection of the [testResultData] from
-  /// running the test.
-  Future<void> inspectTestResultData(TestResultData testResultData) {
+  // Called to allow for (awaited) inspection of the compilation result.
+  Future<void> inspectComponent(Component component) {
     return new Future.value(null);
   }
 
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<T>> actualMap,
       {bool? verbose}) {}
 
   /// Function that computes a data mapping for [cls].
   ///
   /// Fills [actualMap] with the data.
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<T>> actualMap,
       {bool? verbose}) {}
 
   /// Function that computes a data mapping for [extension].
   ///
   /// Fills [actualMap] with the data.
-  void computeExtensionData(TestResultData testResultData, Extension extension,
+  void computeExtensionData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Extension extension,
       Map<Id, ActualData<T>> actualMap,
       {bool? verbose}) {}
 
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
       Map<Id, ActualData<T>> actualMap,
       {bool? verbose}) {}
 
@@ -126,7 +131,7 @@ abstract class DataComputer<T> {
   bool get supportsErrors => false;
 
   /// Returns data corresponding to [error].
-  T? computeErrorData(TestResultData testResultData, Id id,
+  T? computeErrorData(TestConfig config, InternalCompilerResult compiler, Id id,
           List<FormattedMessage> errors) =>
       null;
 
@@ -136,21 +141,6 @@ abstract class DataComputer<T> {
 
   /// Returns `true` if data should be collected for member signatures.
   bool get includeMemberSignatures => false;
-}
-
-/// Auxiliary data from running a test.
-class TestResultData {
-  /// The test config used to run the test.
-  final TestConfig config;
-
-  /// CustomData is passed from [TestConfig.customizeCompilerOptions].
-  final dynamic customData;
-
-  /// The compiler result from running the test, include access to the used
-  /// compiler.
-  final InternalCompilerResult compilerResult;
-
-  TestResultData(this.config, this.customData, this.compilerResult);
 }
 
 class CfeCompiledData<T> extends CompiledData<T> {
@@ -335,15 +325,12 @@ Future<TestResult<T>> runTestForConfig<T>(
     }
   }
   options.packagesFileUri = config.packageConfigUri;
-  dynamic customData = config.customizeCompilerOptions(options, testData);
+  config.customizeCompilerOptions(options, testData);
   InternalCompilerResult compilerResult = await compileScript(
       testData.memorySourceFiles,
       options: options,
       retainDataForTesting: true,
       requireMain: false) as InternalCompilerResult;
-
-  TestResultData testResultData =
-      new TestResultData(config, customData, compilerResult);
 
   Component component = compilerResult.component!;
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
@@ -375,7 +362,8 @@ Future<TestResult<T>> runTestForConfig<T>(
           offset = 0;
         }
         NodeId id = new NodeId(offset, IdKind.error);
-        T? data = dataComputer.computeErrorData(testResultData, id, list);
+        T? data =
+            dataComputer.computeErrorData(config, compilerResult, id, list);
         if (data != null) {
           Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
           actualMap[id] = new ActualData<T>(id, data, uri, offset, list);
@@ -410,17 +398,18 @@ Future<TestResult<T>> runTestForConfig<T>(
         return;
       }
     }
-    dataComputer.computeMemberData(testResultData, member, actualMap,
+    dataComputer.computeMemberData(config, compilerResult, member, actualMap,
         verbose: verbose);
   }
 
   void processClass(Class cls, Map<Id, ActualData<T>> actualMap) {
-    dataComputer.computeClassData(testResultData, cls, actualMap,
+    dataComputer.computeClassData(config, compilerResult, cls, actualMap,
         verbose: verbose);
   }
 
   void processExtension(Extension extension, Map<Id, ActualData<T>> actualMap) {
-    dataComputer.computeExtensionData(testResultData, extension, actualMap,
+    dataComputer.computeExtensionData(
+        config, compilerResult, extension, actualMap,
         verbose: verbose);
   }
 
@@ -430,7 +419,7 @@ Future<TestResult<T>> runTestForConfig<T>(
             library.importUri.scheme == 'package');
   }
 
-  await dataComputer.inspectTestResultData(testResultData);
+  await dataComputer.inspectComponent(component);
 
   for (Library library in component.libraries) {
     if (excludeLibrary(library) &&
@@ -438,7 +427,7 @@ Future<TestResult<T>> runTestForConfig<T>(
       continue;
     }
     dataComputer.computeLibraryData(
-        testResultData, library, actualMapFor(library));
+        config, compilerResult, library, actualMapFor(library));
     for (Class cls in library.classes) {
       processClass(cls, actualMapFor(cls));
       for (Member member in cls.members) {

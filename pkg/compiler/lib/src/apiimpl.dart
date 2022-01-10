@@ -64,9 +64,7 @@ class CompilerImpl extends Compiler {
     if (env.supportedLibraries == null) {
       future = future.then((_) {
         Uri specificationUri = options.librariesSpecificationUri;
-
-        Future<String> readJson(Uri uri) async {
-          api.Input spec = await provider.readFromUri(specificationUri);
+        return provider.readFromUri(specificationUri).then((api.Input spec) {
           String json = null;
           // TODO(sigmund): simplify this, we have some API inconsistencies when
           // our internal input adds a terminating zero.
@@ -75,16 +73,12 @@ class CompilerImpl extends Compiler {
           } else if (spec is Binary) {
             json = utf8.decode(spec.data);
           }
-          return json;
-        }
 
-        // TODO(sigmund): would be nice to front-load some of the CFE option
-        // processing and parse this .json file only once.
-        return getSupportedLibraryNames(specificationUri,
-                options.compileForServer ? "dart2js_server" : "dart2js",
-                readJson: readJson)
-            .then((libraries) {
-          env.supportedLibraries = libraries.toSet();
+          // TODO(sigmund): would be nice to front-load some of the CFE option
+          // processing and parse this .json file only once.
+          env.supportedLibraries = getSupportedLibraryNames(specificationUri,
+                  json, options.compileForServer ? "dart2js_server" : "dart2js")
+              .toSet();
         });
       });
     }

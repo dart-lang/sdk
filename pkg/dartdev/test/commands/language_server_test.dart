@@ -24,7 +24,10 @@ void defineLanguageServerTests() {
   utils.TestProject project;
   Process process;
 
-  tearDown(() async => await project?.dispose());
+  tearDown(() {
+    project?.dispose();
+    process?.kill();
+  });
 
   Future runWithLsp(List<String> args) async {
     project = utils.project();

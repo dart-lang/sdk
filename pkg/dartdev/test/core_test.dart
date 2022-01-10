@@ -105,7 +105,7 @@ void _packageConfig() {
 void _project() {
   TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() => p?.dispose());
 
   test('hasPubspecFile positive', () {
     p = project();

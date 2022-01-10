@@ -4,14 +4,20 @@
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary/link.dart' as graph
     show DependencyWalker, Node;
 
 /// Compute values of the given [constants] with correct ordering.
-void computeConstants(DeclaredVariables declaredVariables,
-    List<ConstantEvaluationTarget> constants, FeatureSet featureSet) {
+void computeConstants(
+    TypeProvider typeProvider,
+    TypeSystemImpl typeSystem,
+    DeclaredVariables declaredVariables,
+    List<ConstantEvaluationTarget> constants,
+    FeatureSet featureSet) {
   var walker = _ConstantWalker(declaredVariables, featureSet);
 
   for (var constant in constants) {

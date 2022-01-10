@@ -54,7 +54,7 @@ foo() {
     var bLocalVar = suggestionWith(
         completion: 'b',
         element: ElementKind.LOCAL_VARIABLE,
-        kind: CompletionSuggestionKind.IDENTIFIER);
+        kind: CompletionSuggestionKind.INVOCATION);
 
     assertOrder([bLocalVar, trueSuggestion, falseSuggestion]);
   }

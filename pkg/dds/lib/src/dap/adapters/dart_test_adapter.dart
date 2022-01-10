@@ -93,8 +93,11 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         '-DSILENT_OBSERVATORY=true',
         '--write-service-info=${Uri.file(vmServiceInfoFile.path)}'
       ],
+      // Default to asserts on, this seems like the most useful behaviour for
+      // editor-spawned debug sessions.
+      if (args.enableAsserts ?? true) '--enable-asserts',
       // TODO(dantup): This should be changed from "dart run test:test" to
-      // "dart test" once the start-paused flags are working correctly.
+      // "dart test" once the started-paused flags are working correctly.
       // Currently they start paused but do not write the vm-service-info file
       // to give us the VM-service URI.
       // https://github.com/dart-lang/sdk/issues/44200#issuecomment-726869539

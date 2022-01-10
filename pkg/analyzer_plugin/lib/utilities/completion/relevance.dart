@@ -54,10 +54,6 @@ abstract class Relevance {
   /// The relevance used when suggesting a named argument corresponding to a
   /// named parameter that is required.
   static const int requiredNamedArgument = 950;
-
-  /// The relevance used when suggesting a super-constructor parameter as
-  /// a super formal parameter.
-  static const int superFormalParameter = 1000;
 }
 
 /// A name scope for constants that are related to the relevance of completion

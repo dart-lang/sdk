@@ -517,11 +517,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  bool get isDartAsyncStream {
-    return element.name == "Stream" && element.library.isDartAsync;
-  }
-
-  @override
   bool get isDartCoreBool {
     return element.name == "bool" && element.library.isDartCore;
   }
@@ -977,9 +972,6 @@ abstract class TypeImpl implements DartType {
 
   @override
   bool get isDartAsyncFutureOr => false;
-
-  @override
-  bool get isDartAsyncStream => false;
 
   @override
   bool get isDartCoreBool => false;

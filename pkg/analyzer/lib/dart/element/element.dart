@@ -1050,8 +1050,6 @@ abstract class ElementVisitor<R> {
 
   R? visitPropertyAccessorElement(PropertyAccessorElement element);
 
-  R? visitSuperFormalParameterElement(SuperFormalParameterElement element);
-
   R? visitTopLevelVariableElement(TopLevelVariableElement element);
 
   R? visitTypeAliasElement(TypeAliasElement element);
@@ -1577,9 +1575,6 @@ abstract class ParameterElement
   /// parameter.
   bool get isRequiredPositional;
 
-  /// Return `true` if this parameter is a super formal parameter.
-  bool get isSuperFormal;
-
   @override
   String get name;
 
@@ -1734,19 +1729,6 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
   /// Return a list containing the names that are to be made visible in the
   /// importing library if they are defined in the imported library.
   List<String> get shownNames;
-}
-
-/// A super formal parameter defined within a constructor element.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class SuperFormalParameterElement implements ParameterElement {
-  /// The associated super-constructor parameter, from the super-constructor
-  /// that is referenced by the implicit or explicit super-constructor
-  /// invocation.
-  ///
-  /// Can be `null` for erroneous code - not existing super-constructor,
-  /// no corresponding parameter in the super-constructor.
-  ParameterElement? get superConstructorParameter;
 }
 
 /// A top-level variable.

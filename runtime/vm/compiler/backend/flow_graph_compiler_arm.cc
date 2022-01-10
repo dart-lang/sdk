@@ -66,11 +66,15 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 }
 
 bool FlowGraphCompiler::SupportsUnboxedDoubles() {
-  return FLAG_unbox_doubles;
+  return TargetCPUFeatures::vfp_supported() && FLAG_unbox_doubles;
 }
 
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return TargetCPUFeatures::neon_supported() && FLAG_enable_simd_inline;
+}
+
+bool FlowGraphCompiler::SupportsHardwareDivision() {
+  return TargetCPUFeatures::can_divide();
 }
 
 bool FlowGraphCompiler::CanConvertInt64ToDouble() {

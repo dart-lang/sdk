@@ -1013,7 +1013,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   static const int FlagEliminatedMixin = 1 << 3;
   static const int FlagMixinDeclaration = 1 << 4;
   static const int FlagHasConstConstructor = 1 << 5;
-  static const int FlagMacro = 1 << 6;
 
   int flags = 0;
 
@@ -1028,13 +1027,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   void set isEnum(bool value) {
     flags = value ? (flags | FlagEnum) : (flags & ~FlagEnum);
-  }
-
-  /// Whether this class is a macro class.
-  bool get isMacro => flags & FlagMacro != 0;
-
-  void set isMacro(bool value) {
-    flags = value ? (flags | FlagMacro) : (flags & ~FlagMacro);
   }
 
   /// Whether this class is a synthetic implementation created for each

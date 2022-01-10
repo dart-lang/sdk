@@ -62,12 +62,6 @@ void main() {
       });
     });
     group('Iterable', () {
-      test('containsMatch', () {
-        check(<int>[0]).containsMatch((e) => e.isZero);
-        check(<int>[1, 0, 2]).containsMatch((e) => e.isZero);
-        _fails(() => check(<int>[]).containsMatch((e) => e.isZero));
-        _fails(() => check(<int>[1]).containsMatch((e) => e.isZero));
-      });
       test('hasLength', () {
         check(<int>[]).hasLength().isZero;
         check(<int>[0]).hasLength().isEqualTo(1);
@@ -101,58 +95,6 @@ void main() {
         check({0, 1}).isNotEmpty;
         _fails(() => check(<int>[]).isNotEmpty);
         _fails(() => check(<int>{}).isNotEmpty);
-      });
-      test('matchesInAnyOrder', () {
-        // Order does not matter.
-        check([0, 1]).matchesInAnyOrder([
-          (e) => e.isEqualTo(0),
-          (e) => e.isEqualTo(1),
-        ]);
-        check([0, 1]).matchesInAnyOrder([
-          (e) => e.isEqualTo(1),
-          (e) => e.isEqualTo(0),
-        ]);
-        // Matchers can be different.
-        check([0, 1]).matchesInAnyOrder([
-          (e) => e.isZero,
-          (e) => e.isEqualTo(1),
-        ]);
-        check([0, 10]).matchesInAnyOrder([
-          (e) => e.isZero,
-          (e) => e.isGreaterThan(5),
-        ]);
-        // Wrong number of matchers.
-        _fails(
-          () => check([0, 1]).matchesInAnyOrder([
-            (e) => e.isZero,
-          ]),
-        );
-        // The first matcher accepts more than one element.
-        _fails(
-          () => check([1, 2]).matchesInAnyOrder([
-            (e) => e.isGreaterThan(0),
-            (e) => e.isEqualTo(2),
-          ]),
-        );
-        // The second matcher accepts more than one element.
-        _fails(
-          () => check([1, 2]).matchesInAnyOrder([
-            (e) => e.isEqualTo(2),
-            (e) => e.isGreaterThan(0),
-          ]),
-        );
-      });
-    });
-    group('nullability', () {
-      const int? notNullable = 0;
-      const int? nullable = null;
-      test('isNotNull', () {
-        check(notNullable).isNotNull;
-        _fails(() => check(nullable).isNotNull.isZero);
-      });
-      test('isNull', () {
-        check(nullable).isNull;
-        _fails(() => check(notNullable).isNull);
       });
     });
     group('String', () {
@@ -210,10 +152,6 @@ void main() {
         check(0).isA<int>();
         _fails(() => check('abc' as dynamic).isA<int>());
       });
-    });
-    test('which', () {
-      check(0).which((e) => e.isZero);
-      _fails(() => check(1).which((e) => e.isZero));
     });
   });
 }

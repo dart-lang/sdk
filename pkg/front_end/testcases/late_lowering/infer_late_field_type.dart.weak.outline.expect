@@ -13,7 +13,7 @@ class B extends core::Object implements self::A {
   synthetic constructor •() → self::B
     ;
   get field() → core::int?;
-  set field(core::int? field#param) → void;
+  set field(core::int? #t1) → void;
 }
 static method main() → dynamic
   ;

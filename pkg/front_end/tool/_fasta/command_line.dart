@@ -277,7 +277,7 @@ ProcessedOptions analyzeCommandLine(String programName,
           ..sdkSummary = Options.platform.read(parsedOptions)
           ..librariesSpecificationUri = resolveInputUri(arguments[1])
           ..setExitCodeOnProblem = true,
-        inputs: arguments[0].split(',').map(Uri.parse).toList(),
+        inputs: <Uri>[Uri.parse(arguments[0])],
         output: resolveInputUri(arguments[3]));
   } else if (arguments.isEmpty) {
     return throw new CommandLineProblem.deprecated("No Dart file specified.");

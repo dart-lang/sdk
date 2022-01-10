@@ -9,6 +9,14 @@
 @pragma("vm:external-name", "Object_getHash")
 external int _getHash(obj);
 
+/// Set hash code associated with the object if it is not set yet
+/// and return the current hash code. See [Object._objectHashCode]
+/// for why this function needs to check for already set hash code.
+@pragma("vm:recognized", "asm-intrinsic")
+@pragma("vm:exact-result-type", "dart:core#_Smi")
+@pragma("vm:external-name", "Object_setHashIfNotSetYet")
+external int _setHashIfNotSetYet(obj, int hash);
+
 @patch
 @pragma("vm:entry-point")
 class Object {
@@ -20,9 +28,31 @@ class Object {
   @pragma("vm:external-name", "Object_equals")
   external bool operator ==(Object other);
 
+  // Helpers used to implement hashCode. If a hashCode is used, we remember it
+  // in a weak table in the VM (32 bit) or in the header of the object (64
+  // bit). A new hashCode value is calculated using a random number generator.
+  static final _hashCodeRnd = new Random();
+
+  static int _objectHashCode(obj) {
+    var result = _getHash(obj);
+    if (result == 0) {
+      // We want the hash to be a Smi value greater than 0.
+      do {
+        result = _hashCodeRnd.nextInt(0x40000000);
+      } while (result == 0);
+
+      // Caveat: we might be interrupted by vm-service which then
+      // can initialize [this] object's hash code, that is why we need to
+      // return the return value of [_setHashIfNotSetYet] rather than
+      // returning [result] itself.
+      return _setHashIfNotSetYet(obj, result);
+    }
+    return result;
+  }
+
   @patch
-  int get hashCode => _getHash(this);
-  int get _identityHashCode => _getHash(this);
+  int get hashCode => _objectHashCode(this);
+  int get _identityHashCode => _objectHashCode(this);
 
   @patch
   @pragma("vm:external-name", "Object_toString")

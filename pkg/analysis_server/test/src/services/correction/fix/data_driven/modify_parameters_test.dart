@@ -1006,15 +1006,13 @@ abstract class _ModifyParameters extends DataDrivenFixProcessorTest {
   String get _kind;
 
   Transform _modify(List<String> originalComponents,
-          List<ParameterModification> modifications,
-          {String? newName, bool isStatic = false}) =>
+          List<ParameterModification> modifications, {String? newName}) =>
       Transform(
           title: 'title',
           date: DateTime.now(),
           element: ElementDescriptor(
               libraryUris: [Uri.parse(importUri)],
               kind: ElementKindUtilities.fromName(_kind)!,
-              isStatic: isStatic,
               components: originalComponents),
           bulkApply: false,
           changesSelector: UnconditionalChangesSelector([

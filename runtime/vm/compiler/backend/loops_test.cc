@@ -387,7 +387,15 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionUpWrap) {
   const char* expected =
       "  [0\n"
       "  LIN(9223372036854775806 + 1 * i)\n"  // phi
+#if !defined(TARGET_ARCH_IS_64_BIT)
+      "  LIN(9223372036854775806 + 1 * i)\n"  // (un)boxing
+      "  LIN(9223372036854775806 + 1 * i)\n"
+      "  LIN(9223372036854775806 + 1 * i)\n"
+#endif                                        // !defined(TARGET_ARCH_IS_64_BIT)
       "  LIN(9223372036854775807 + 1 * i)\n"  // add
+#if !defined(TARGET_ARCH_IS_64_BIT)
+      "  LIN(9223372036854775807 + 1 * i)\n"  // unbox
+#endif                                        // !defined(TARGET_ARCH_IS_64_BIT)
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
@@ -426,7 +434,15 @@ ISOLATE_UNIT_TEST_CASE(NonStrictConditionDownWrap) {
   const char* expected =
       "  [0\n"
       "  LIN(-9223372036854775807 + -1 * i)\n"  // phi
+#if !defined(TARGET_ARCH_IS_64_BIT)
+      "  LIN(-9223372036854775807 + -1 * i)\n"  // (un)boxing
+      "  LIN(-9223372036854775807 + -1 * i)\n"
+      "  LIN(-9223372036854775807 + -1 * i)\n"
+#endif  // !defined(TARGET_ARCH_IS_64_BIT)
       "  LIN(-9223372036854775808 + -1 * i)\n"  // sub
+#if !defined(TARGET_ARCH_IS_64_BIT)
+      "  LIN(-9223372036854775808 + -1 * i)\n"  // unbox
+#endif  // !defined(TARGET_ARCH_IS_64_BIT)
       "  ]\n";
   EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }

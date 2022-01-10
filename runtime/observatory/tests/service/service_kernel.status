@@ -212,7 +212,6 @@ get_vm_timeline_rpc_test: Pass, Slow
 rewind_optimized_out_test: SkipSlow # Timeout
 
 [ $arch == ia32 && $compiler == dartk ]
-*: Slow # Issue 47920, service tests are slow on IA32
 valid_source_locations_test: Skip # Issue 34736, too slow.
 
 [ $compiler == app_jitk && $system == linux ]

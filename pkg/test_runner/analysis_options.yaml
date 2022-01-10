@@ -1,6 +1,6 @@
 analyzer:
-  language:
-    strict-casts: true
+  strong-mode:
+    implicit-casts: false
 linter:
   rules:
     # TODO: Enable these once the existing violations have been fixed.

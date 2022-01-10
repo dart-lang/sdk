@@ -17,15 +17,19 @@ Future<void> testFormatException() async {
     request.response.close();
   });
 
+  final completer = Completer<void>();
   // The ’ character is U+2019 RIGHT SINGLE QUOTATION MARK.
   final client = HttpClient()..userAgent = 'Bob’s browser';
-  try {
-    await asyncExpectThrows<FormatException>(
-        client.open("CONNECT", "127.0.0.1", server.port, "/"));
-  } finally {
-    client.close(force: true);
-    server.close();
-  }
+  asyncExpectThrows<FormatException>(() async {
+    try {
+      await client.open("CONNECT", "127.0.0.1", server.port, "/");
+    } finally {
+      client.close(force: true);
+      server.close();
+      completer.complete();
+    }
+  });
+  await completer.future;
 }
 
 main() {

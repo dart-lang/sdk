@@ -128,13 +128,10 @@ DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 0, 1) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(VMService_ListenStream, 0, 2) {
+DEFINE_NATIVE_ENTRY(VMService_ListenStream, 0, 1) {
 #ifndef PRODUCT
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, include_privates,
-                               arguments->NativeArgAt(1));
-  bool result =
-      Service::ListenStream(stream_id.ToCString(), include_privates.value());
+  bool result = Service::ListenStream(stream_id.ToCString());
   return Bool::Get(result).ptr();
 #else
   return Object::null();
@@ -385,74 +382,6 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 0, 1) {
 #else
   return Object::null();
 #endif
-}
-
-#ifndef PRODUCT
-class UserTagIsolatesVisitor : public IsolateVisitor {
- public:
-  UserTagIsolatesVisitor(Thread* thread,
-                         const GrowableObjectArray* user_tags,
-                         bool set_streamable)
-      : IsolateVisitor(),
-        thread_(thread),
-        user_tags_(user_tags),
-        set_streamable_(set_streamable) {}
-
-  virtual void VisitIsolate(Isolate* isolate) {
-    if (Isolate::IsVMInternalIsolate(isolate)) {
-      return;
-    }
-    Zone* zone = thread_->zone();
-    UserTag& tag = UserTag::Handle(zone);
-    String& label = String::Handle(zone);
-    for (intptr_t i = 0; i < user_tags_->Length(); ++i) {
-      label ^= user_tags_->At(i);
-      tag ^= UserTag::FindTagInIsolate(isolate, thread_, label);
-      if (!tag.IsNull()) {
-        tag.set_streamable(set_streamable_);
-      }
-    }
-  }
-
- private:
-  Thread* thread_;
-  const GrowableObjectArray* user_tags_;
-  bool set_streamable_;
-
-  DISALLOW_COPY_AND_ASSIGN(UserTagIsolatesVisitor);
-};
-#endif  // !PRODUCT
-
-DEFINE_NATIVE_ENTRY(VMService_AddUserTagsToStreamableSampleList, 0, 1) {
-#ifndef PRODUCT
-  GET_NON_NULL_NATIVE_ARGUMENT(GrowableObjectArray, user_tags,
-                               arguments->NativeArgAt(0));
-
-  Object& obj = Object::Handle();
-  for (intptr_t i = 0; i < user_tags.Length(); ++i) {
-    obj = user_tags.At(i);
-    UserTags::AddStreamableTagName(obj.ToCString());
-  }
-  UserTagIsolatesVisitor visitor(thread, &user_tags, true);
-  Isolate::VisitIsolates(&visitor);
-#endif
-  return Object::null();
-}
-
-DEFINE_NATIVE_ENTRY(VMService_RemoveUserTagsFromStreamableSampleList, 0, 1) {
-#ifndef PRODUCT
-  GET_NON_NULL_NATIVE_ARGUMENT(GrowableObjectArray, user_tags,
-                               arguments->NativeArgAt(0));
-
-  Object& obj = Object::Handle();
-  for (intptr_t i = 0; i < user_tags.Length(); ++i) {
-    obj = user_tags.At(i);
-    UserTags::RemoveStreamableTagName(obj.ToCString());
-  }
-  UserTagIsolatesVisitor visitor(thread, &user_tags, false);
-  Isolate::VisitIsolates(&visitor);
-#endif
-  return Object::null();
 }
 
 }  // namespace dart

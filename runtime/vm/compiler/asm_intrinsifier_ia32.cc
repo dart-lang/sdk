@@ -1555,6 +1555,11 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
   UNREACHABLE();
 }
 
+void AsmIntrinsifier::Object_setHashIfNotSetYet(Assembler* assembler,
+                                                Label* normal_ir_body) {
+  UNREACHABLE();
+}
+
 void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
                                        Label* normal_ir_body) {
   Label try_two_byte_string;

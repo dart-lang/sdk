@@ -206,8 +206,6 @@ class TypesBuilder {
     } else if (node is SimpleFormalParameter) {
       var element = node.declaredElement as ParameterElementImpl;
       element.type = node.type?.type ?? _dynamicType;
-    } else if (node is SuperFormalParameter) {
-      _superFormalParameter(node);
     } else if (node is VariableDeclarationList) {
       var type = node.type?.type;
       if (type != null) {
@@ -309,22 +307,6 @@ class TypesBuilder {
       }
     } else {
       return NullabilitySuffix.star;
-    }
-  }
-
-  void _superFormalParameter(SuperFormalParameter node) {
-    var element = node.declaredElement as SuperFormalParameterElementImpl;
-    var parameterList = node.parameters;
-    if (parameterList != null) {
-      var type = _buildFunctionType(
-        node.typeParameters,
-        node.type,
-        parameterList,
-        _nullability(node, node.question != null),
-      );
-      element.type = type;
-    } else {
-      element.type = node.type?.type ?? _dynamicType;
     }
   }
 

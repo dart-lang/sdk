@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/generated/java_core.dart';
+
 /// Returns `true` if a and b contain equal elements in the same order.
 bool listsEqual(List a, List b) {
   // TODO(rnystrom): package:collection also implements this, and analyzer
@@ -32,6 +34,11 @@ class BooleanArray {
     return (array & (1 << index)) > 0;
   }
 
+  /// Return the value of the element at the given index.
+  @deprecated
+  static bool getEnum<E extends Enum<E>>(int array, Enum<E> index) =>
+      get(array, index.ordinal);
+
   /// Set the value of the element of the given [array] at the given [index] to
   /// the given [value].
   static int set(int array, int index, bool value) {
@@ -42,6 +49,11 @@ class BooleanArray {
       return array & ~(1 << index);
     }
   }
+
+  /// Set the value of the element at the given index to the given value.
+  @deprecated
+  static int setEnum<E extends Enum<E>>(int array, Enum<E> index, bool value) =>
+      set(array, index.ordinal, value);
 
   /// Throw an exception if the index is not within the bounds allowed for an
   /// integer-encoded array of boolean values.

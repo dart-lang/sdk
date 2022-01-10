@@ -72,19 +72,6 @@ class DFE {
                                              const char* package_config,
                                              bool snapshot);
 
-  // Compiles specified script.
-  // Returns result from compiling the script.
-  //
-  // `snapshot` is used by the frontend to determine if compilation
-  // related information should be printed to console (e.g., null safety mode).
-  // `null_safety` specifies compilation mode, which is normally
-  // retrieved either from vm flags or from vm isolate group.
-  Dart_KernelCompilationResult CompileScriptWithGivenNullsafety(
-      const char* script_uri,
-      const char* package_config,
-      bool snapshot,
-      bool null_safety);
-
   // Compiles specified script and reads the resulting kernel file.
   // If the compilation is successful, returns a valid in memory kernel
   // representation of the script, NULL otherwise

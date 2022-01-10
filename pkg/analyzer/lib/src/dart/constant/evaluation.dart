@@ -612,20 +612,22 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
 
     var conditionResultBool = conditionResult.toBoolValue();
-    if (conditionResultBool == true) {
+    if (conditionResultBool == null) {
+      node.thenExpression.accept(this);
+      node.elseExpression.accept(this);
+    } else if (conditionResultBool == true) {
       _reportNotPotentialConstants(node.elseExpression);
       return node.thenExpression.accept(this);
     } else if (conditionResultBool == false) {
       _reportNotPotentialConstants(node.thenExpression);
       return node.elseExpression.accept(this);
-    } else {
-      node.thenExpression.accept(this);
-      node.elseExpression.accept(this);
-      return DartObjectImpl.validWithUnknownValue(
-        typeSystem,
-        node.typeOrThrow,
-      );
     }
+
+    // We used to return an object with a known type and an unknown value, but
+    // we can't do that without evaluating both the 'then' and 'else'
+    // expressions, and we're not suppose to do that under lazy semantics. I'm
+    // not sure which failure mode is worse.
+    return null;
   }
 
   @override

@@ -6,7 +6,7 @@ import '../js/js.dart' as js;
 import '../universe/side_effects.dart' show SideEffects;
 import 'behavior.dart';
 
-class HasCapturedPlaceholders extends js.BaseVisitorVoid {
+class HasCapturedPlaceholders extends js.BaseVisitor {
   HasCapturedPlaceholders._();
 
   static bool check(js.Node node) {
@@ -19,21 +19,21 @@ class HasCapturedPlaceholders extends js.BaseVisitorVoid {
   bool found = false;
 
   @override
-  void visitFunctionExpression(js.FunctionExpression node) {
+  visitFunctionExpression(js.FunctionExpression node) {
     ++enclosingFunctions;
     node.visitChildren(this);
     --enclosingFunctions;
   }
 
   @override
-  void visitInterpolatedNode(js.InterpolatedNode node) {
+  visitInterpolatedNode(js.InterpolatedNode node) {
     if (enclosingFunctions > 0) {
       found = true;
     }
   }
 }
 
-class SideEffectsVisitor extends js.BaseVisitorVoid {
+class SideEffectsVisitor extends js.BaseVisitor {
   final SideEffects sideEffects;
   SideEffectsVisitor(this.sideEffects);
 
@@ -167,11 +167,6 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
   }
 
   @override
-  NativeThrowBehavior visitComment(js.Comment node) {
-    return NativeThrowBehavior.NEVER;
-  }
-
-  @override
   NativeThrowBehavior visitLiteral(js.Literal node) {
     return NativeThrowBehavior.NEVER;
   }
@@ -210,14 +205,6 @@ class ThrowBehaviorVisitor extends js.BaseVisitor<NativeThrowBehavior> {
   NativeThrowBehavior visitAssignment(js.Assignment node) {
     // TODO(sra): Can we make "#.p = #" be null(1)?
     return NativeThrowBehavior.MAY;
-  }
-
-  @override
-  NativeThrowBehavior visitVariableInitialization(
-      js.VariableInitialization node) {
-    final value = node.value;
-    if (value == null) return NativeThrowBehavior.NEVER;
-    return visit(value);
   }
 
   @override

@@ -115,6 +115,13 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
       instance_size = InstructionsSection::InstanceSize(section_size);
       break;
     }
+    case kInstructionsTableCid: {
+      const InstructionsTablePtr raw_instructions_table =
+          static_cast<const InstructionsTablePtr>(this);
+      intptr_t length = raw_instructions_table->untag()->length_;
+      instance_size = InstructionsTable::InstanceSize(length);
+      break;
+    }
     case kContextCid: {
       const ContextPtr raw_context = static_cast<const ContextPtr>(this);
       intptr_t num_variables = raw_context->untag()->num_variables_;
@@ -568,7 +575,7 @@ VARIABLE_COMPRESSED_VISITOR(
         Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
 NULL_VISITOR(Sentinel)
-REGULAR_VISITOR(InstructionsTable)
+VARIABLE_VISITOR(InstructionsTable, raw_obj->untag()->length_)
 NULL_VISITOR(Mint)
 NULL_VISITOR(Double)
 NULL_VISITOR(Float32x4)

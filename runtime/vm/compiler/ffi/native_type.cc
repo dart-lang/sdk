@@ -474,33 +474,7 @@ static const NativeType* CompoundFromPragma(Zone* zone,
   }
 }
 
-static const NativeType* AbiSpecificFromPragma(Zone* zone,
-                                               const Instance& pragma,
-                                               const Class& abi_specific_int,
-                                               const char** error) {
-  const auto& clazz = Class::Handle(zone, pragma.clazz());
-  const auto& fields = Array::Handle(zone, clazz.fields());
-  ASSERT(fields.Length() == 1);
-  const auto& native_types_field =
-      Field::Handle(zone, Field::RawCast(fields.At(0)));
-  ASSERT(String::Handle(zone, native_types_field.name())
-             .Equals(Symbols::FfiNativeTypes()));
-  const auto& native_types =
-      Array::Handle(zone, Array::RawCast(pragma.GetField(native_types_field)));
-
-  ASSERT(native_types.Length() == num_abis);
-  const int64_t abi_index = static_cast<int64_t>(TargetAbi());
-  const auto& abi_abstract_type = AbstractType::Handle(
-      zone, AbstractType::RawCast(native_types.At(abi_index)));
-  if (abi_abstract_type.IsNull()) {
-    *error = zone->PrintToString(
-        "AbiSpecificInteger '%s' is missing mapping for '%s'.",
-        abi_specific_int.UserVisibleNameCString(), target_abi_name);
-    return nullptr;
-  }
-  return NativeType::FromAbstractType(zone, abi_abstract_type, error);
-}
-
+// TODO(http://dartbug.com/42563): Implement AbiSpecificInt.
 const NativeType* NativeType::FromAbstractType(Zone* zone,
                                                const AbstractType& type,
                                                const char** error) {
@@ -509,26 +483,18 @@ const NativeType* NativeType::FromAbstractType(Zone* zone,
     return &NativeType::FromTypedDataClassId(zone, class_id);
   }
 
-  // User-defined structs, unions, or Abi-specific integers.
+  // User-defined structs or unions.
   const auto& cls = Class::Handle(zone, type.type_class());
   const auto& superClass = Class::Handle(zone, cls.SuperClass());
   const bool is_struct = String::Handle(zone, superClass.UserVisibleName())
                              .Equals(Symbols::Struct());
   const bool is_union = String::Handle(zone, superClass.UserVisibleName())
                             .Equals(Symbols::Union());
-  const bool is_abi_specific_int =
-      String::Handle(zone, superClass.UserVisibleName())
-          .Equals(Symbols::AbiSpecificInteger());
-  RELEASE_ASSERT(is_struct || is_union || is_abi_specific_int);
+  RELEASE_ASSERT(is_struct || is_union);
 
   auto& pragmas = Object::Handle(zone);
   String& pragma_name = String::Handle(zone);
-  if (is_struct || is_union) {
-    pragma_name = Symbols::vm_ffi_struct_fields().ptr();
-  } else {
-    ASSERT(is_abi_specific_int);
-    pragma_name = Symbols::vm_ffi_abi_specific_mapping().ptr();
-  }
+  pragma_name = Symbols::vm_ffi_struct_fields().ptr();
   Library::FindPragma(dart::Thread::Current(), /*only_core=*/false, cls,
                       pragma_name, /*multiple=*/true, &pragmas);
   ASSERT(!pragmas.IsNull());
@@ -537,13 +503,7 @@ const NativeType* NativeType::FromAbstractType(Zone* zone,
   auto& pragma = Instance::Handle(zone);
   auto& clazz = Class::Handle(zone);
   auto& library = Library::Handle(zone);
-  String& class_symbol = String::Handle(zone);
-  if (is_struct || is_union) {
-    class_symbol = Symbols::FfiStructLayout().ptr();
-  } else {
-    ASSERT(is_abi_specific_int);
-    class_symbol = Symbols::FfiAbiSpecificMapping().ptr();
-  }
+  const String& class_symbol = Symbols::FfiStructLayout();
   for (intptr_t i = 0; i < pragmas_array.Length(); i++) {
     pragma ^= pragmas_array.At(i);
     clazz ^= pragma.clazz();
@@ -554,11 +514,7 @@ const NativeType* NativeType::FromAbstractType(Zone* zone,
     }
   }
 
-  if (is_struct || is_union) {
-    return CompoundFromPragma(zone, pragma, is_struct, error);
-  }
-  ASSERT(is_abi_specific_int);
-  return AbiSpecificFromPragma(zone, pragma, cls, error);
+  return CompoundFromPragma(zone, pragma, is_struct, error);
 }
 #endif
 

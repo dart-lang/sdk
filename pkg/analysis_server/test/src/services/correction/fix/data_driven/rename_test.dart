@@ -1533,18 +1533,15 @@ abstract class _AbstractRenameTest extends DataDrivenFixProcessorTest {
   /// Return the kind of element being renamed.
   String get _kind;
 
-  Transform _rename(List<String> components, String newName,
-          {bool isStatic = false}) =>
-      Transform(
-          title: 'title',
-          date: DateTime.now(),
-          element: ElementDescriptor(
-              libraryUris: [Uri.parse(importUri)],
-              kind: ElementKindUtilities.fromName(_kind)!,
-              isStatic: isStatic,
-              components: components),
-          bulkApply: false,
-          changesSelector: UnconditionalChangesSelector([
-            Rename(newName: newName),
-          ]));
+  Transform _rename(List<String> components, String newName) => Transform(
+      title: 'title',
+      date: DateTime.now(),
+      element: ElementDescriptor(
+          libraryUris: [Uri.parse(importUri)],
+          kind: ElementKindUtilities.fromName(_kind)!,
+          components: components),
+      bulkApply: false,
+      changesSelector: UnconditionalChangesSelector([
+        Rename(newName: newName),
+      ]));
 }

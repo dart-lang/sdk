@@ -53,48 +53,48 @@ class Class<T extends core::Object> extends core::Object {
     ;
   get instanceField() → core::int
     return this.{non::Class::_#Class#instanceField#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{non::Class::_#Class#instanceField}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("instanceField");
-  set instanceField(core::int instanceField#param) → void {
+  set instanceField(core::int #t2) → void {
     this.{non::Class::_#Class#instanceField#isSet} = true;
-    this.{non::Class::_#Class#instanceField} = instanceField#param;
+    this.{non::Class::_#Class#instanceField} = #t2;
   }
   get finalInstanceField() → dynamic
     return this.{non::Class::_#Class#finalInstanceField#isSet}{core::bool} ?{dynamic} this.{non::Class::_#Class#finalInstanceField}{dynamic} : throw new _in::LateError::fieldNI("finalInstanceField");
-  set finalInstanceField(dynamic finalInstanceField#param) → void
+  set finalInstanceField(dynamic #t3) → void
     if(this.{non::Class::_#Class#finalInstanceField#isSet}{core::bool})
       throw new _in::LateError::fieldAI("finalInstanceField");
     else {
       this.{non::Class::_#Class#finalInstanceField#isSet} = true;
-      this.{non::Class::_#Class#finalInstanceField} = finalInstanceField#param;
+      this.{non::Class::_#Class#finalInstanceField} = #t3;
     }
   get instanceTypeVariable() → non::Class::T
-    return this.{non::Class::_#Class#instanceTypeVariable#isSet}{core::bool} ?{non::Class::T} let final non::Class::T? #t2 = this.{non::Class::_#Class#instanceTypeVariable}{non::Class::T?} in #t2{non::Class::T} : throw new _in::LateError::fieldNI("instanceTypeVariable");
-  set instanceTypeVariable(covariant-by-class non::Class::T instanceTypeVariable#param) → void {
+    return this.{non::Class::_#Class#instanceTypeVariable#isSet}{core::bool} ?{non::Class::T} let final non::Class::T? #t4 = this.{non::Class::_#Class#instanceTypeVariable}{non::Class::T?} in #t4{non::Class::T} : throw new _in::LateError::fieldNI("instanceTypeVariable");
+  set instanceTypeVariable(covariant-by-class non::Class::T #t5) → void {
     this.{non::Class::_#Class#instanceTypeVariable#isSet} = true;
-    this.{non::Class::_#Class#instanceTypeVariable} = instanceTypeVariable#param;
+    this.{non::Class::_#Class#instanceTypeVariable} = #t5;
   }
   get finalInstanceTypeVariable() → non::Class::T
-    return this.{non::Class::_#Class#finalInstanceTypeVariable#isSet}{core::bool} ?{non::Class::T} let final non::Class::T? #t3 = this.{non::Class::_#Class#finalInstanceTypeVariable}{non::Class::T?} in #t3{non::Class::T} : throw new _in::LateError::fieldNI("finalInstanceTypeVariable");
-  set finalInstanceTypeVariable(non::Class::T finalInstanceTypeVariable#param) → void
+    return this.{non::Class::_#Class#finalInstanceTypeVariable#isSet}{core::bool} ?{non::Class::T} let final non::Class::T? #t6 = this.{non::Class::_#Class#finalInstanceTypeVariable}{non::Class::T?} in #t6{non::Class::T} : throw new _in::LateError::fieldNI("finalInstanceTypeVariable");
+  set finalInstanceTypeVariable(non::Class::T #t7) → void
     if(this.{non::Class::_#Class#finalInstanceTypeVariable#isSet}{core::bool})
       throw new _in::LateError::fieldAI("finalInstanceTypeVariable");
     else {
       this.{non::Class::_#Class#finalInstanceTypeVariable#isSet} = true;
-      this.{non::Class::_#Class#finalInstanceTypeVariable} = finalInstanceTypeVariable#param;
+      this.{non::Class::_#Class#finalInstanceTypeVariable} = #t7;
     }
   static get staticField() → core::int
-    return non::Class::_#staticField#isSet ?{core::int} let final core::int? #t4 = non::Class::_#staticField in #t4{core::int} : throw new _in::LateError::fieldNI("staticField");
-  static set staticField(core::int staticField#param) → void {
+    return non::Class::_#staticField#isSet ?{core::int} let final core::int? #t8 = non::Class::_#staticField in #t8{core::int} : throw new _in::LateError::fieldNI("staticField");
+  static set staticField(core::int #t9) → void {
     non::Class::_#staticField#isSet = true;
-    non::Class::_#staticField = staticField#param;
+    non::Class::_#staticField = #t9;
   }
   static get staticFinalField() → dynamic
     return non::Class::_#staticFinalField#isSet ?{dynamic} non::Class::_#staticFinalField : throw new _in::LateError::fieldNI("staticFinalField");
-  static set staticFinalField(dynamic staticFinalField#param) → void
+  static set staticFinalField(dynamic #t10) → void
     if(non::Class::_#staticFinalField#isSet)
       throw new _in::LateError::fieldAI("staticFinalField");
     else {
       non::Class::_#staticFinalField#isSet = true;
-      non::Class::_#staticFinalField = staticFinalField#param;
+      non::Class::_#staticFinalField = #t10;
     }
 }
 static field core::int? _#topLevelField = null;
@@ -102,58 +102,58 @@ static field core::bool _#topLevelField#isSet = false;
 static field dynamic _#finalTopLevelField = null;
 static field core::bool _#finalTopLevelField#isSet = false;
 static get topLevelField() → core::int
-  return non::_#topLevelField#isSet ?{core::int} let final core::int? #t5 = non::_#topLevelField in #t5{core::int} : throw new _in::LateError::fieldNI("topLevelField");
-static set topLevelField(core::int topLevelField#param) → void {
+  return non::_#topLevelField#isSet ?{core::int} let final core::int? #t11 = non::_#topLevelField in #t11{core::int} : throw new _in::LateError::fieldNI("topLevelField");
+static set topLevelField(core::int #t12) → void {
   non::_#topLevelField#isSet = true;
-  non::_#topLevelField = topLevelField#param;
+  non::_#topLevelField = #t12;
 }
 static get finalTopLevelField() → dynamic
   return non::_#finalTopLevelField#isSet ?{dynamic} non::_#finalTopLevelField : throw new _in::LateError::fieldNI("finalTopLevelField");
-static set finalTopLevelField(dynamic finalTopLevelField#param) → void
+static set finalTopLevelField(dynamic #t13) → void
   if(non::_#finalTopLevelField#isSet)
     throw new _in::LateError::fieldAI("finalTopLevelField");
   else {
     non::_#finalTopLevelField#isSet = true;
-    non::_#finalTopLevelField = finalTopLevelField#param;
+    non::_#finalTopLevelField = #t13;
   }
 static method method<T extends core::Object>(core::bool b, core::int i, non::method::T t) → dynamic {
   lowered core::int? #local;
   lowered core::bool #local#isSet = false;
   function #local#get() → core::int
     return #local#isSet ?{core::int} #local{core::int} : throw new _in::LateError::localNI("local");
-  function #local#set(core::int local#param) → dynamic {
+  function #local#set(core::int #t14) → dynamic {
     #local#isSet = true;
-    return #local = local#param;
+    return #local = #t14;
   }
   lowered final dynamic #finalLocal;
   lowered core::bool #finalLocal#isSet = false;
   function #finalLocal#get() → dynamic
     return #finalLocal#isSet ?{dynamic} #finalLocal : throw new _in::LateError::localNI("finalLocal");
-  function #finalLocal#set(dynamic finalLocal#param) → dynamic
+  function #finalLocal#set(dynamic #t15) → dynamic
     if(#finalLocal#isSet)
       throw new _in::LateError::localAI("finalLocal");
     else {
       #finalLocal#isSet = true;
-      return #finalLocal = finalLocal#param;
+      return #finalLocal = #t15;
     }
   lowered non::method::T? #localTypeVariable;
   lowered core::bool #localTypeVariable#isSet = false;
   function #localTypeVariable#get() → non::method::T
     return #localTypeVariable#isSet ?{non::method::T} #localTypeVariable{non::method::T} : throw new _in::LateError::localNI("localTypeVariable");
-  function #localTypeVariable#set(non::method::T localTypeVariable#param) → dynamic {
+  function #localTypeVariable#set(non::method::T #t16) → dynamic {
     #localTypeVariable#isSet = true;
-    return #localTypeVariable = localTypeVariable#param;
+    return #localTypeVariable = #t16;
   }
   lowered final non::method::T? #finalLocalTypeVariable;
   lowered core::bool #finalLocalTypeVariable#isSet = false;
   function #finalLocalTypeVariable#get() → non::method::T
     return #finalLocalTypeVariable#isSet ?{non::method::T} #finalLocalTypeVariable{non::method::T} : throw new _in::LateError::localNI("finalLocalTypeVariable");
-  function #finalLocalTypeVariable#set(non::method::T finalLocalTypeVariable#param) → dynamic
+  function #finalLocalTypeVariable#set(non::method::T #t17) → dynamic
     if(#finalLocalTypeVariable#isSet)
       throw new _in::LateError::localAI("finalLocalTypeVariable");
     else {
       #finalLocalTypeVariable#isSet = true;
-      return #finalLocalTypeVariable = finalLocalTypeVariable#param;
+      return #finalLocalTypeVariable = #t17;
     }
   if(b) {
     #local#set(i){(core::int) → dynamic};

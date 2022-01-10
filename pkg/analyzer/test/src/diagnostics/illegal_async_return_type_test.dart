@@ -17,9 +17,7 @@ main() {
 class IllegalAsyncReturnTypeTest extends PubPackageResolutionTest {
   test_function_nonFuture() async {
     await assertErrorsInCode('''
-int f() async {
-  return 1;
-}
+int f() async {}
 ''', [
       error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
     ]);
@@ -55,9 +53,7 @@ SubFuture<int> f() async {
   test_method_nonFuture() async {
     await assertErrorsInCode('''
 class C {
-  int m() async {
-    return 1;
-  }
+  int m() async {}
 }
 ''', [
       error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3),

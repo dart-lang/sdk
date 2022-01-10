@@ -375,7 +375,6 @@ class IsolateManager {
         'Debugger failed to evaluate breakpoint $type "$expression": $e\n',
       );
     }
-    return null;
   }
 
   void _handleExit(vm.Event event) {

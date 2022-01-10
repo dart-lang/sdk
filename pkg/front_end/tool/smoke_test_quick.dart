@@ -29,9 +29,6 @@ Future<void> main(List<String> args) async {
   futures.add(run(
       "pkg/front_end/test/generated_files_up_to_date_git_test.dart", [],
       filter: false));
-  futures.add(run("tools/yaml2json.dart",
-      ["sdk/lib/libraries.yaml", "sdk/lib/libraries.json", '--check'],
-      filter: false));
   await Future.wait(futures);
   print("\n-----------------------\n");
   print("Done with exitcode $exitCode in ${stopwatch.elapsedMilliseconds} ms");

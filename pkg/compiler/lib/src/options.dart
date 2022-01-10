@@ -76,24 +76,18 @@ class FeatureOptions {
   /// Whether to generate code compliant with Content Security Policy.
   FeatureOption useContentSecurityPolicy = FeatureOption('csp');
 
-  /// Whether to emit JavaScript encoded as UTF-8.
-  FeatureOption writeUtf8 = FeatureOption('utf8');
-
   /// [FeatureOption]s which are shipped and cannot be toggled.
-  late final List<FeatureOption> shipped = [
-    newHolders,
-  ];
+  late final List<FeatureOption> shipped = [];
 
   /// [FeatureOption]s which default to enabled.
   late final List<FeatureOption> shipping = [
     legacyJavaScript,
-    useContentSecurityPolicy,
+    newHolders,
+    useContentSecurityPolicy
   ];
 
   /// [FeatureOption]s which default to disabled.
-  late final List<FeatureOption> canary = [
-    writeUtf8,
-  ];
+  late final List<FeatureOption> canary = [];
 
   /// Forces canary feature on. This must run after [Option].parse.
   void forceCanary() {

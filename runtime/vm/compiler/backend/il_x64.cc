@@ -560,9 +560,22 @@ void ConstantInstr::EmitMoveToLocation(FlowGraphCompiler* compiler,
       __ LoadObject(destination.reg(), value_);
     }
   } else if (destination.IsFpuRegister()) {
-    __ LoadDImmediate(destination.fpu_reg(), Double::Cast(value_).value());
+    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
+      __ xorps(destination.fpu_reg(), destination.fpu_reg());
+    } else {
+      ASSERT(tmp != kNoRegister);
+      __ LoadObject(tmp, value_);
+      __ movsd(destination.fpu_reg(),
+               compiler::FieldAddress(tmp, Double::value_offset()));
+    }
   } else if (destination.IsDoubleStackSlot()) {
-    __ LoadDImmediate(FpuTMP, Double::Cast(value_).value());
+    if (Utils::DoublesBitEqual(Double::Cast(value_).value(), 0.0)) {
+      __ xorps(FpuTMP, FpuTMP);
+    } else {
+      ASSERT(tmp != kNoRegister);
+      __ LoadObject(tmp, value_);
+      __ movsd(FpuTMP, compiler::FieldAddress(tmp, Double::value_offset()));
+    }
     __ movsd(LocationToStackSlotAddress(destination), FpuTMP);
   } else {
     ASSERT(destination.IsStackSlot());
@@ -5228,12 +5241,11 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddSlowPathCode(slow_path);
 
   if (recognized_kind() != MethodRecognizer::kDoubleToInteger) {
-    // In JIT mode without --target-unknown-cpu VM knows target CPU features
-    // at compile time and can pick more optimal representation
-    // for DoubleToDouble conversion. In AOT mode and with
-    // --target-unknown-cpu we test if roundsd instruction is available
-    // at run time and fall back to stub if it isn't.
-    ASSERT(CompilerState::Current().is_aot() || FLAG_target_unknown_cpu);
+    // In JIT mode VM knows target CPU features at compile time
+    // and can pick more optimal representation for DoubleToDouble
+    // conversion. In AOT mode we test if roundsd instruction is
+    // available at run time and fall back to stub if it isn't.
+    ASSERT(CompilerState::Current().is_aot());
     if (FLAG_use_slow_path) {
       __ jmp(slow_path->entry_label());
       __ Bind(slow_path->exit_label());
@@ -5425,11 +5437,13 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   XmmRegister base = locs->in(0).fpu_reg();
   XmmRegister exp = locs->in(1).fpu_reg();
   XmmRegister result = locs->out(0).fpu_reg();
+  Register temp = locs->temp(InvokeMathCFunctionInstr::kObjectTempIndex).reg();
   XmmRegister zero_temp =
       locs->temp(InvokeMathCFunctionInstr::kDoubleTempIndex).fpu_reg();
 
   __ xorps(zero_temp, zero_temp);
-  __ LoadDImmediate(result, 1.0);
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(1)));
+  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
 
   compiler::Label check_base, skip_call;
   // exponent == 0.0 -> return 1.0;
@@ -5443,13 +5457,15 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ j(EQUAL, &return_base, compiler::Assembler::kNearJump);
 
   // exponent == 2.0 ?
-  __ LoadDImmediate(XMM0, 2.0);
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(2.0)));
+  __ movsd(XMM0, compiler::FieldAddress(temp, Double::value_offset()));
   __ comisd(exp, XMM0);
   compiler::Label return_base_times_2;
   __ j(EQUAL, &return_base_times_2, compiler::Assembler::kNearJump);
 
   // exponent == 3.0 ?
-  __ LoadDImmediate(XMM0, 3.0);
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(3.0)));
+  __ movsd(XMM0, compiler::FieldAddress(temp, Double::value_offset()));
   __ comisd(exp, XMM0);
   __ j(NOT_EQUAL, &check_base);
 
@@ -5483,19 +5499,22 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ j(PARITY_ODD, &try_sqrt, compiler::Assembler::kNearJump);
   // Return NaN.
   __ Bind(&return_nan);
-  __ LoadDImmediate(result, NAN);
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(NAN)));
+  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
   __ jmp(&skip_call);
 
   compiler::Label do_pow, return_zero;
   __ Bind(&try_sqrt);
   // Before calling pow, check if we could use sqrt instead of pow.
-  __ LoadDImmediate(result, kNegInfinity);
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(kNegInfinity)));
+  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
   // base == -Infinity -> call pow;
   __ comisd(base, result);
   __ j(EQUAL, &do_pow, compiler::Assembler::kNearJump);
 
   // exponent == 0.5 ?
-  __ LoadDImmediate(result, 0.5);
+  __ LoadObject(temp, Double::ZoneHandle(Double::NewCanonical(0.5)));
+  __ movsd(result, compiler::FieldAddress(temp, Double::value_offset()));
   __ comisd(exp, result);
   __ j(NOT_EQUAL, &do_pow, compiler::Assembler::kNearJump);
 

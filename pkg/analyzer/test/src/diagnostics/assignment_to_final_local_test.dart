@@ -163,18 +163,4 @@ void f() {
 }
 ''');
   }
-
-  test_parameter_superFormal() async {
-    await assertErrorsInCode('''
-class A {
-  A(int a);
-}
-class B extends A {
-  var x;
-  B(super.a) : x = (() { a = 0; });
-}
-''', [
-      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 78, 1),
-    ]);
-  }
 }

@@ -254,6 +254,7 @@ abstract class _BroadcastStreamController<T>
     } else {
       stackTrace ??= AsyncError.defaultStackTrace(error);
     }
+    if (stackTrace == null) throw "unreachable"; // TODO(40088)
     _sendError(error, stackTrace);
   }
 

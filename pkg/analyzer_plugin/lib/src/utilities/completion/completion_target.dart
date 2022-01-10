@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -412,21 +413,15 @@ class CompletionTarget {
         }
       }
       if (token is StringToken) {
-        final containingNode = this.containingNode;
-        StringLiteral? uri;
-        Directive? directive;
-        if (containingNode is NamespaceDirective) {
-          directive = containingNode;
-          uri = containingNode.uri;
-        } else if (containingNode is SimpleStringLiteral) {
-          uri = containingNode;
-          directive = containingNode.parent.ifTypeOrNull();
-        }
-        // Replacement range for a URI.
-        if (directive != null && uri is SimpleStringLiteral) {
+        var uri = astFactory.simpleStringLiteral(token, token.lexeme);
+        var keyword = containingNode.findPrevious(token)?.keyword;
+        if (keyword == Keyword.IMPORT ||
+            keyword == Keyword.EXPORT ||
+            keyword == Keyword.PART) {
           var start = uri.contentsOffset;
           var end = uri.contentsEnd;
           if (start <= requestOffset && requestOffset <= end) {
+            // Replacement range for import URI
             return SourceRange(start, end - start);
           }
         }
@@ -663,13 +658,5 @@ class CompletionTarget {
     } else {
       return false;
     }
-  }
-}
-
-extension on Object? {
-  /// If the target is [T], return it, otherwise `null`.
-  T? ifTypeOrNull<T>() {
-    final self = this;
-    return self is T ? self : null;
   }
 }

@@ -157,8 +157,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ ret();
 }
 
-static void GenerateExitSafepointStubCommon(Assembler* assembler,
-                                            uword runtime_entry_offset) {
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ pushal();
   __ subl(SPREG, Immediate(8));
   __ movsd(Address(SPREG, 0), XMM0);
@@ -172,7 +171,7 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   __ movl(Address(THR, target::Thread::execution_state_offset()),
           Immediate(target::Thread::vm_execution_state()));
 
-  __ movl(EAX, Address(THR, runtime_entry_offset));
+  __ movl(EAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ call(EAX);
   __ LeaveFrame();
 
@@ -180,18 +179,6 @@ static void GenerateExitSafepointStubCommon(Assembler* assembler,
   __ addl(SPREG, Immediate(8));
   __ popal();
   __ ret();
-}
-
-void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
-  GenerateExitSafepointStubCommon(
-      assembler, kExitSafepointRuntimeEntry.OffsetFromThread());
-}
-
-void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub(
-    Assembler* assembler) {
-  GenerateExitSafepointStubCommon(
-      assembler,
-      kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
 }
 
 // Calls a native function inside a safepoint.
@@ -2540,18 +2527,12 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #endif
 
   Label exit_through_non_ffi;
-  // Check if we exited generated from FFI. If so do transition - this is needed
-  // because normally runtime calls transition back to generated via destructor
-  // of TransititionGeneratedToVM/Native that is part of runtime boilerplate
-  // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
-  // have this boilerplate, don't have this stack resource, have to transition
-  // explicitly.
+  // Check if we exited generated from FFI. If so do transition.
   __ cmpl(compiler::Address(
               THR, compiler::target::Thread::exit_through_ffi_offset()),
           compiler::Immediate(target::Thread::exit_through_ffi()));
   __ j(NOT_EQUAL, &exit_through_non_ffi, compiler::Assembler::kNearJump);
-  __ TransitionNativeToGenerated(ECX, /*leave_safepoint=*/true,
-                                 /*ignore_unwind_in_progress=*/true);
+  __ TransitionNativeToGenerated(ECX, /*leave_safepoint=*/true);
   __ Bind(&exit_through_non_ffi);
 
   // Set tag.

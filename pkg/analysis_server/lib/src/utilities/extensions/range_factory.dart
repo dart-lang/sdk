@@ -89,26 +89,6 @@ extension RangeFactoryExtensions on RangeFactory {
     return startEnd(thisLeadingComment, thisTrailingComment);
   }
 
-  /// Return the left-most comment immediately before the [token] that is not on
-  /// the same line as the first non-comment token before the [token]. Return
-  /// the [token] if there is no such comment.
-  Token _leadingComment(LineInfo lineInfo, Token token) {
-    var previous = token.previous;
-    if (previous == null || previous.type == TokenType.EOF) {
-      return token.precedingComments ?? token;
-    }
-    var previousLine = lineInfo.getLocation(previous.offset).lineNumber;
-    Token? comment = token.precedingComments;
-    while (comment != null) {
-      var commentLine = lineInfo.getLocation(comment.offset).lineNumber;
-      if (commentLine != previousLine) {
-        break;
-      }
-      comment = comment.next;
-    }
-    return comment ?? token;
-  }
-
   /// Return the comment token immediately following the [token] if it is on the
   /// same line as the [token], or the [token] if there is no comment after the
   /// [token] or if the comment is on a different line than the [token]. If
@@ -130,5 +110,25 @@ extension RangeFactoryExtensions on RangeFactory {
       return comment;
     }
     return returnComma ? lastToken : token;
+  }
+
+  /// Return the left-most comment immediately before the [token] that is not on
+  /// the same line as the first non-comment token before the [token]. Return
+  /// the [token] if there is no such comment.
+  Token _leadingComment(LineInfo lineInfo, Token token) {
+    var previous = token.previous;
+    if (previous == null || previous.type == TokenType.EOF) {
+      return token.precedingComments ?? token;
+    }
+    var previousLine = lineInfo.getLocation(previous.offset).lineNumber;
+    Token? comment = token.precedingComments;
+    while (comment != null) {
+      var commentLine = lineInfo.getLocation(comment.offset).lineNumber;
+      if (commentLine != previousLine) {
+        break;
+      }
+      comment = comment.next;
+    }
+    return comment ?? token;
   }
 }

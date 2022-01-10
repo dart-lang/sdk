@@ -1837,12 +1837,6 @@ class LoadOptimizer : public ValueObject {
     }
   }
 
-  bool CanForwardLoadTo(Definition* load, Definition* replacement) {
-    // Loads which check initialization status can only be replaced if
-    // we can guarantee that forwarded value is not a sentinel.
-    return !(CallsInitializer(load) && replacement->Type()->can_be_sentinel());
-  }
-
   // Returns true if given instruction stores the sentinel value.
   // Such a store doesn't initialize corresponding field.
   bool IsSentinelStore(Instruction* instr) {
@@ -2265,18 +2259,16 @@ class LoadOptimizer : public ValueObject {
           ASSERT((out_values != NULL) && ((*out_values)[place_id] != NULL));
 
           Definition* replacement = (*out_values)[place_id];
-          if (CanForwardLoadTo(defn, replacement)) {
-            graph_->EnsureSSATempIndex(defn, replacement);
-            if (FLAG_trace_optimization) {
-              THR_Print("Replacing load v%" Pd " with v%" Pd "\n",
-                        defn->ssa_temp_index(), replacement->ssa_temp_index());
-            }
-
-            ReplaceLoad(defn, replacement);
-            instr_it.RemoveCurrentFromGraph();
-            forwarded_ = true;
-            continue;
+          graph_->EnsureSSATempIndex(defn, replacement);
+          if (FLAG_trace_optimization) {
+            THR_Print("Replacing load v%" Pd " with v%" Pd "\n",
+                      defn->ssa_temp_index(), replacement->ssa_temp_index());
           }
+
+          ReplaceLoad(defn, replacement);
+          instr_it.RemoveCurrentFromGraph();
+          forwarded_ = true;
+          continue;
         } else if (!kill->Contains(place_id)) {
           // This is an exposed load: it is the first representative of a
           // given expression id and it is not killed on the path from
@@ -2638,7 +2630,7 @@ class LoadOptimizer : public ValueObject {
         // as replaced and store a pointer to the replacement.
         replacement = replacement->Replacement();
 
-        if ((load != replacement) && CanForwardLoadTo(load, replacement)) {
+        if (load != replacement) {
           graph_->EnsureSSATempIndex(load, replacement);
 
           if (FLAG_trace_optimization) {

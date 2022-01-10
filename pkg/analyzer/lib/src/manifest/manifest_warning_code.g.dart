@@ -21,14 +21,9 @@ class ManifestWarningCode extends ErrorCode {
   static const ManifestWarningCode CAMERA_PERMISSIONS_INCOMPATIBLE =
       ManifestWarningCode(
     'CAMERA_PERMISSIONS_INCOMPATIBLE',
-    "Camera permissions make app incompatible for Chrome OS, consider adding "
-        "optional features \"android.hardware.camera\" and "
-        "\"android.hardware.camera.autofocus\".",
+    "Camera permissions make app incompatible for Chrome OS, consider adding optional features \"android.hardware.camera\" and \"android.hardware.camera.autofocus\".",
     correctionMessage:
-        "Try adding `<uses-feature android:name=\"android.hardware.camera\"  "
-        "android:required=\"false\">` `<uses-feature "
-        "android:name=\"android.hardware.camera.autofocus\"  "
-        "android:required=\"false\">`.",
+        "Try adding `<uses-feature android:name=\"android.hardware.camera\"  android:required=\"false\">` `<uses-feature android:name=\"android.hardware.camera.autofocus\"  android:required=\"false\">`.",
   );
 
   /**
@@ -36,11 +31,9 @@ class ManifestWarningCode extends ErrorCode {
    */
   static const ManifestWarningCode NON_RESIZABLE_ACTIVITY = ManifestWarningCode(
     'NON_RESIZABLE_ACTIVITY',
-    "The `<activity>` element should be allowed to be resized to allow users "
-        "to take advantage of the multi-window environment on Chrome OS",
+    "The `<activity>` element should be allowed to be resized to allow users to take advantage of the multi-window environment on Chrome OS",
     correctionMessage:
-        "Consider declaring the corresponding activity element with "
-        "`resizableActivity=\"true\"` attribute.",
+        "Consider declaring the corresponding activity element with `resizableActivity=\"true\"` attribute.",
   );
 
   /**
@@ -49,11 +42,9 @@ class ManifestWarningCode extends ErrorCode {
    */
   static const ManifestWarningCode NO_TOUCHSCREEN_FEATURE = ManifestWarningCode(
     'NO_TOUCHSCREEN_FEATURE',
-    "The default \"android.hardware.touchscreen\" needs to be optional for "
-        "Chrome OS. ",
-    correctionMessage: "Consider adding <uses-feature "
-        "android:name=\"android.hardware.touchscreen\" android:required=\"false\" "
-        "/> to the manifest.",
+    "The default \"android.hardware.touchscreen\" needs to be optional for Chrome OS. ",
+    correctionMessage:
+        "Consider adding <uses-feature android:name=\"android.hardware.touchscreen\" android:required=\"false\" /> to the manifest.",
   );
 
   /**
@@ -63,10 +54,9 @@ class ManifestWarningCode extends ErrorCode {
   static const ManifestWarningCode PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE =
       ManifestWarningCode(
     'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
-    "Permission makes app incompatible for Chrome OS, consider adding optional "
-        "{0} feature tag, ",
-    correctionMessage: " Try adding `<uses-feature android:name=\"{0}\"  "
-        "android:required=\"false\">`.",
+    "Permission makes app incompatible for Chrome OS, consider adding optional {0} feature tag, ",
+    correctionMessage:
+        " Try adding `<uses-feature android:name=\"{0}\"  android:required=\"false\">`.",
   );
 
   /**
@@ -75,12 +65,9 @@ class ManifestWarningCode extends ErrorCode {
   static const ManifestWarningCode SETTING_ORIENTATION_ON_ACTIVITY =
       ManifestWarningCode(
     'SETTING_ORIENTATION_ON_ACTIVITY',
-    "The `<activity>` element should not be locked to any orientation so that "
-        "users can take advantage of the multi-window environments and larger "
-        "screens on Chrome OS",
+    "The `<activity>` element should not be locked to any orientation so that users can take advantage of the multi-window environments and larger screens on Chrome OS",
     correctionMessage:
-        "Consider declaring the corresponding activity element with "
-        "`screenOrientation=\"unspecified\"` or `\"fullSensor\"` attribute.",
+        "Consider declaring the corresponding activity element with `screenOrientation=\"unspecified\"` or `\"fullSensor\"` attribute.",
   );
 
   /**
@@ -89,8 +76,7 @@ class ManifestWarningCode extends ErrorCode {
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_FEATURE =
       ManifestWarningCode(
     'UNSUPPORTED_CHROME_OS_FEATURE',
-    "The feature {0} isn't supported on Chrome OS, consider making it "
-        "optional.",
+    "The feature {0} isn't supported on Chrome OS, consider making it optional.",
     correctionMessage:
         "Try changing to `android:required=\"false\"` for this feature.",
   );
@@ -102,8 +88,7 @@ class ManifestWarningCode extends ErrorCode {
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_HARDWARE =
       ManifestWarningCode(
     'UNSUPPORTED_CHROME_OS_HARDWARE',
-    "The feature {0} isn't supported on Chrome OS, consider making it "
-        "optional.",
+    "The feature {0} isn't supported on Chrome OS, consider making it optional.",
     correctionMessage:
         "Try adding `android:required=\"false\"` for this feature.",
   );

@@ -682,9 +682,7 @@ class Search {
       },
       searchedFiles,
     ));
-    if (parameter.isNamed ||
-        parameter.isOptionalPositional ||
-        parameter.enclosingElement is ConstructorElement) {
+    if (parameter.isNamed || parameter.isOptionalPositional) {
       results.addAll(await _searchReferences(parameter, searchedFiles));
     }
     return results;

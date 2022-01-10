@@ -1065,60 +1065,6 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_IssueCov341_LateFinalVars) {
       buffer);
 }
 
-ISOLATE_UNIT_TEST_CASE(SourceReport_Regress95008_RedirectingFactory) {
-  // WARNING: This MUST be big enough for the serialised JSON string.
-  const int kBufferSize = 1024;
-  char buffer[kBufferSize];
-  const char* kScript = R"(
-class A {
-  A();
-  factory A.foo(int i) = B; // LINE_A
-}
-
-class B extends A {
-  int i;
-  B(this.i); // LINE_B
-}
-
-main() {
-  A.foo(42);
-}
-)";
-
-  Library& lib = Library::Handle();
-  lib ^= ExecuteScript(kScript);
-  ASSERT(!lib.IsNull());
-  const Script& script =
-      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
-
-  SourceReport report(SourceReport::kCoverage);
-  JSONStream js;
-  report.PrintJSON(&js, script);
-  const char* json_str = js.ToCString();
-  ASSERT(strlen(json_str) < kBufferSize);
-  ElideJSONSubstring("classes", json_str, buffer);
-  ElideJSONSubstring("libraries", buffer, buffer);
-  EXPECT_STREQ(
-      "{\"type\":\"SourceReport\",\"ranges\":["
-
-      // A()
-      "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":16,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[13],\"misses\":[]}},"
-
-      // B()
-      "{\"scriptIndex\":0,\"startPos\":90,\"endPos\":99,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[90],\"misses\":[]}},"
-
-      // main
-      "{\"scriptIndex\":0,\"startPos\":114,\"endPos\":136,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[114,127],\"misses\":[]}}],"
-
-      // Only one script in the script table.
-      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
-      buffer);
-}
-
 #endif  // !PRODUCT
 
 }  // namespace dart

@@ -293,23 +293,8 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         'CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties',
         'ApplicationCache':
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
-        'DirectoryEntry':
-        #Chrome         Edge/Opera
-        'DirectoryEntry,webkitFileSystemDirectoryEntry,FileSystemDirectoryEntry',
-        'DirectoryReader':
-        #Chrome          Edge                  Opera
-        'DirectoryReader,WebKitDirectoryReader,webkitFileSystemDirectoryReader,FileSystemDirectoryReader',
-        'DOMFileSystem':
-        #Chrome        Edge             Opera
-        'DOMFileSystem,WebKitFileSystem,webkitFileSystem,FileSystem',
-        'Entry':
-        #Chrome Edge
-        'Entry,webkitFileSystemEntry,FileSystemEntry',
         'Event':
         'Event,InputEvent,SubmitEvent',  # Workaround for issue 40901.
-        'FileEntry':
-        #Chrome    Edge
-        'FileEntry,webkitFileSystemFileEntry,FileSystemFileEntry',
         'HTMLTableCellElement':
         'HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement',
         'GainNode':

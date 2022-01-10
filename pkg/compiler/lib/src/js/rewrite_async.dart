@@ -2465,11 +2465,6 @@ class PreTranslationAnalysis extends js.BaseVisitor<bool> {
   }
 
   @override
-  bool visitNode(js.Node node) {
-    throw StateError('Node type ${node.runtimeType} not handled: $node');
-  }
-
-  @override
   bool visitAccess(js.PropertyAccess node) {
     bool receiver = visit(node.receiver);
     bool selector = visit(node.selector);
@@ -2493,7 +2488,7 @@ class PreTranslationAnalysis extends js.BaseVisitor<bool> {
   @override
   bool visitAssignment(js.Assignment node) {
     bool leftHandSide = visit(node.leftHandSide);
-    bool value = visit(node.value);
+    bool value = (node.value == null) ? false : visit(node.value);
     return leftHandSide || value;
   }
 
@@ -2877,9 +2872,7 @@ class PreTranslationAnalysis extends js.BaseVisitor<bool> {
 
   @override
   bool visitVariableInitialization(js.VariableInitialization node) {
-    bool leftHandSide = visit(node.declaration);
-    bool value = (node.value == null) ? false : visit(node.value);
-    return leftHandSide || value;
+    return visitAssignment(node);
   }
 
   @override

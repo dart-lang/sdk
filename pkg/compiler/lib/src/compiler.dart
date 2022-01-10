@@ -354,7 +354,7 @@ abstract class Compiler {
             dumpUnusedLibraries(result);
           }
           if (options.entryUri != null) {
-            result.trimComponent();
+            result.trimComponent(options.entryUri);
           }
         }
         if (options.cfeOnly) {

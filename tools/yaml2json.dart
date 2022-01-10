@@ -12,13 +12,8 @@ import 'package:yaml/yaml.dart' show loadYaml;
 
 main(List<String> arguments) {
   var port = new RawReceivePort();
-  bool check = false;
-  if (arguments.contains('--check')) {
-    arguments = arguments.toList()..remove('--check');
-    check = true;
-  }
   if (arguments.length != 2) {
-    stderr.writeln("Usage: yaml2json.dart input.yaml output.json [--check]");
+    stderr.writeln("Usage: yaml2json.dart input.yaml output.json");
     exit(1);
   }
   Uri input = Uri.base.resolve(arguments[0]);
@@ -32,23 +27,6 @@ main(List<String> arguments) {
     result[key] = yaml[key];
   }
   File file = new File.fromUri(output);
-  String text = const JsonEncoder.withIndent("  ").convert(result);
-  if (check) {
-    bool needsUpdate = true;
-    if (file.existsSync()) {
-      String existingText = file.readAsStringSync();
-      needsUpdate = text != existingText;
-    }
-    if (needsUpdate) {
-      stderr.write('''
-The file ${arguments[1]} is not up to date. Regenerate using
-
-  dart tools/yaml2json.dart ${arguments[0]} ${arguments[1]}
-''');
-      exit(1);
-    }
-  } else {
-    file.writeAsStringSync(text);
-  }
+  file.writeAsStringSync(const JsonEncoder.withIndent("  ").convert(result));
   port.close();
 }

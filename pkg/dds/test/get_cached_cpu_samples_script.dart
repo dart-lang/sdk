@@ -12,14 +12,10 @@ fib(int n) {
 }
 
 void main() {
-  final tag = UserTag('Testing')..makeCurrent();
-  final tag2 = UserTag('Baz');
+  UserTag('Testing').makeCurrent();
   int i = 5;
   while (true) {
-    tag.makeCurrent();
     ++i;
-    fib(i);
-    tag2.makeCurrent();
     fib(i);
   }
 }

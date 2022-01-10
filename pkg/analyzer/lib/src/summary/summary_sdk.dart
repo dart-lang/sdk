@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -13,15 +14,29 @@ import 'package:pub_semver/pub_semver.dart';
 /// suitable only for command-line tools, but not for IDEs - it does not
 /// implement [sdkLibraries], [uris] and [fromFileUri].
 class SummaryBasedDartSdk implements DartSdk {
-  final PackageBundleReader _bundle;
+  late final PackageBundleReader _bundle;
+  late final SummaryDataStore _dataStore;
   late final InSummaryUriResolver _uriResolver;
 
-  SummaryBasedDartSdk.forBundle(this._bundle) {
-    var dataStore = SummaryDataStore([]);
-    // TODO(scheglov) We need a solution to avoid these paths at all.
-    dataStore.addBundle('', bundle);
+  /// TODO(scheglov) Remove it when the default constructor.
+  ResourceProvider? resourceProvider;
 
-    _uriResolver = InSummaryUriResolver(dataStore);
+  @Deprecated('Use SummaryBasedDartSdk.forBundle() instead')
+  SummaryBasedDartSdk(String summaryPath, bool _, {this.resourceProvider}) {
+    _dataStore = SummaryDataStore(<String>[summaryPath],
+        resourceProvider: resourceProvider);
+    _uriResolver = InSummaryUriResolver(resourceProvider, _dataStore);
+    _bundle = _dataStore.bundles.single;
+  }
+
+  SummaryBasedDartSdk.forBundle(PackageBundleReader bundle) {
+    _bundle = bundle;
+
+    _dataStore = SummaryDataStore([]);
+    // TODO(scheglov) We need a solution to avoid these paths at all.
+    _dataStore.addBundle('', bundle);
+
+    _uriResolver = InSummaryUriResolver(resourceProvider, _dataStore);
   }
 
   @override

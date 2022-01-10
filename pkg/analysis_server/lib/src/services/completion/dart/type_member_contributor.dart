@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -254,10 +253,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
         // Exclude static methods when completion on an instance.
         if (!method.isStatic) {
           addSuggestionForMethod(
-            method: method,
-            kind: protocol.CompletionSuggestionKind.INVOCATION,
-            inheritanceDistance: inheritanceDistance,
-          );
+              method: method, inheritanceDistance: inheritanceDistance);
         }
       }
       for (var accessor in targetType.accessors) {

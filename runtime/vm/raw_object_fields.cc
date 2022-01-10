@@ -104,7 +104,7 @@ namespace dart {
   F(ICData, args_descriptor_)                                                  \
   F(ICData, entries_)                                                          \
   F(ICData, owner_)                                                            \
-  F(InstructionsTable, code_objects_)                                          \
+  F(InstructionsTable, descriptors_)                                           \
   F(MegamorphicCache, target_name_)                                            \
   F(MegamorphicCache, args_descriptor_)                                        \
   F(MegamorphicCache, buckets_)                                                \

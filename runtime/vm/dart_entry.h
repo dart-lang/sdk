@@ -285,6 +285,9 @@ class DartLibraryCalls : public AllStatic {
   // On success, returns an InstancePtr. On failure, an ErrorPtr.
   static ObjectPtr Equals(const Instance& left, const Instance& right);
 
+  // On success, returns an InstancePtr. On failure, an ErrorPtr.
+  static ObjectPtr IdentityHashCode(const Instance& object);
+
   // Returns the handler if one has been registered for this port id.
   static ObjectPtr LookupHandler(Dart_Port port_id);
 

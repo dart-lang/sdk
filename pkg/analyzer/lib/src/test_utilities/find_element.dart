@@ -636,23 +636,3 @@ abstract class _FindElementBase {
     return class_(name).unnamedConstructor!;
   }
 }
-
-extension ExecutableElementExtensions on ExecutableElement {
-  ParameterElement parameter(String name) {
-    for (var parameter in parameters) {
-      if (parameter.name == name) {
-        return parameter;
-      }
-    }
-    throw StateError('Not found: $name');
-  }
-
-  SuperFormalParameterElement superFormalParameter(String name) {
-    for (var parameter in parameters) {
-      if (parameter is SuperFormalParameterElement && parameter.name == name) {
-        return parameter;
-      }
-    }
-    throw StateError('Not found: $name');
-  }
-}

@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/kernel.dart';
+// @dart = 2.9
 
+import 'package:kernel/kernel.dart';
 import 'kernel_helpers.dart';
 
 /// Returns true if [library] is one of the [candidates].
 /// The latter should be a list, e.g.,: ['dart:js', 'package:js'].
 bool _isLibrary(Library library, List<String> candidates) {
+  if (library == null) return false;
   var uri = library.importUri;
   var scheme = uri.scheme;
   var path = uri.pathSegments[0];
@@ -61,7 +63,7 @@ bool isJsRestAnnotation(Expression value) =>
     _annotationIsFromJSLibrary('_Rest', value);
 
 // TODO(jmesserly): Move JsPeerInterface to package:js (see issue #135).
-// TODO(jacobr): The 'JS' annotation is the new, publicly accessible one.
+// TODO(jacobr): The 'JS' annotation is the new, publically accessible one.
 // The 'JsName' annotation is the old one using internally by dart2js and
 // html libraries.  These two concepts will probably merge eventually.
 bool isJSAnnotation(Expression value) =>
@@ -127,7 +129,7 @@ bool usesJSInterop(NamedNode n) {
   if (n is Member && n.isExternal) {
     return n.enclosingLibrary.annotations.any(isPublicJSAnnotation) ||
         n.annotations.any(isPublicJSAnnotation) ||
-        (n.enclosingClass?.annotations.any(isPublicJSAnnotation) ?? false);
+        (n.enclosingClass?.annotations?.any(isPublicJSAnnotation) ?? false);
   } else if (n is Class) {
     return n.annotations.any(isPublicJSAnnotation);
   }

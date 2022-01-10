@@ -71,7 +71,6 @@ class TransformSetParser {
   static const String _oneOfKey = 'oneOf';
   static const String _requiredIfKey = 'requiredIf';
   static const String _setterKey = 'setter';
-  static const String _staticKey = 'static';
   static const String _styleKey = 'style';
   static const String _titleKey = 'title';
   static const String _transformsKey = 'transforms';
@@ -663,8 +662,6 @@ class TransformSetParser {
         return null;
       }
       var components = [elementName];
-      var isStatic = false;
-      var staticNode = node.valueAt(_staticKey);
       if (_containerKeyMap.containsKey(elementKey)) {
         var validContainerKeys = _containerKeyMap[elementKey]!;
         var containerKey =
@@ -687,20 +684,6 @@ class TransformSetParser {
         } else {
           components.add(containerName);
         }
-        if (staticNode != null) {
-          var staticValue = _translateBool(
-              staticNode, ErrorContext(key: _staticKey, parentNode: node));
-          if (staticValue != null) {
-            if (components.length == 1) {
-              _reportError(TransformSetErrorCode.unsupportedStatic,
-                  node.getKey(_staticKey)!);
-            }
-            isStatic = staticValue;
-          }
-        }
-      } else if (staticNode != null) {
-        _reportError(
-            TransformSetErrorCode.unsupportedStatic, node.getKey(_staticKey)!);
       }
       if (uris == null) {
         // The error has already been reported.
@@ -715,7 +698,6 @@ class TransformSetParser {
       return ElementDescriptor(
           libraryUris: uris,
           kind: ElementKindUtilities.fromName(elementKey)!,
-          isStatic: isStatic,
           components: components);
     } else if (node == null) {
       return _reportMissingKey(context);

@@ -819,11 +819,9 @@ class Assembler : public AssemblerBase {
                                    Register new_exit_frame,
                                    Register new_exit_through_ffi,
                                    bool enter_safepoint);
-  void TransitionNativeToGenerated(Register scratch,
-                                   bool exit_safepoint,
-                                   bool ignore_unwind_in_progress = false);
+  void TransitionNativeToGenerated(Register scratch, bool exit_safepoint);
   void EnterFullSafepoint(Register scratch);
-  void ExitFullSafepoint(Register scratch, bool ignore_unwind_in_progress);
+  void ExitFullSafepoint(Register scratch);
 
   // Create a frame for calling into runtime that preserves all volatile
   // registers.  Frame's RSP is guaranteed to be correctly aligned and
