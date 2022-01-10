@@ -271,7 +271,7 @@ abstract class Stream<T> {
   /// Example:
   /// ```dart
   /// Future<int> waitTask() async {
-  ///   await Future.delayed(const Duration(seconds: 5));
+  ///   await Future.delayed(const Duration(seconds: 2));
   ///   return 10;
   /// }
   ///
@@ -280,7 +280,7 @@ abstract class Stream<T> {
   ///   return 'Future complete';
   /// }
   ///
-  /// final stream = Stream<Object>.fromFutures([waitTask(), doneTask()]);
+  /// final stream = Stream<Object>.fromFutures([doneTask(), waitTask()]);
   /// stream.listen(print, onDone: () => print('Done'), onError: print);
   ///
   /// // Outputs:
@@ -570,14 +570,15 @@ abstract class Stream<T> {
   ///
   /// final broadcastStream = stream.asBroadcastStream(
   ///   onCancel: (controller) {
-  ///     print('Stream cancelled');
-  ///     controller.cancel();
+  ///     print('Stream paused');
+  ///     controller.pause();
   ///   },
   ///   onListen: (controller) async {
-  ///     await Future.delayed(const Duration(seconds: 3));
-  ///     controller.pause();
-  ///     print('Stream paused: ${controller.isPaused}');
-  ///    },
+  ///     if (controller.isPaused) {
+  ///       print('Stream resumed');
+  ///       controller.resume();
+  ///     }
+  ///   },
   /// );
   ///
   /// final oddNumberStream = broadcastStream.where((event) => event.isOdd);
@@ -593,17 +594,17 @@ abstract class Stream<T> {
   ///   print('Even: $event');
   /// }, onDone: () => print('Done'));
   ///
-  /// await Future.delayed(const Duration(seconds: 5));
-  /// // Cancel listeners.
-  /// oddNumberListener.cancel();
-  /// evenNumberListener.cancel();
-  ///
+  /// await Future.delayed(const Duration(milliseconds: 3500)); // 3.5 second
   /// // Outputs:
   /// // Even: 0
   /// // Odd: 1
   /// // Even: 2
-  /// // Stream paused: true
-  /// // Stream cancelled
+  /// oddNumberListener.cancel(); // Nothing printed.
+  /// evenNumberListener.cancel(); // "Stream paused"
+  /// await Future.delayed(const Duration(seconds: 2));
+  /// print(await broadcastStream.first); // "Stream resumed"
+  /// // Outputs:
+  /// // 3
   /// ```
   Stream<T> asBroadcastStream(
       {void onListen(StreamSubscription<T> subscription)?,
@@ -706,13 +707,13 @@ abstract class Stream<T> {
   ///         .take(5);
   ///
   /// final calculationStream =
-  ///     stream.map<String>((event) => 'Sum: ${event * event}');
+  ///     stream.map<String>((event) => 'Square: ${event * event}');
   /// calculationStream.forEach(print);
-  /// // Sum: 0
-  /// // Sum: 1
-  /// // Sum: 4
-  /// // Sum: 9
-  /// // Sum: 16
+  /// // Square: 0
+  /// // Square: 1
+  /// // Square: 4
+  /// // Square: 9
+  /// // Square: 16
   /// ```
   Stream<S> map<S>(S convert(T event)) {
     return new _MapStream<T, S>(this, convert);
@@ -1412,7 +1413,7 @@ abstract class Stream<T> {
   /// ```dart
   /// final stream = Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
   ///     .takeWhile((event) => event < 6);
-  /// stream.forEach(print); // Outputs events: 0, ..., 6.
+  /// stream.forEach(print); // Outputs events: 0, ..., 5.
   /// ```
   Stream<T> takeWhile(bool test(T element)) {
     return new _TakeWhileStream<T>(this, test);
@@ -1464,7 +1465,7 @@ abstract class Stream<T> {
   /// final stream = Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
   ///     .take(10)
   ///     .skipWhile((x) => x < 5);
-  /// stream.listen(print); // Outputs events: 5, ..., 9.
+  /// stream.forEach(print); // Outputs events: 5, ..., 9.
   /// ```
   Stream<T> skipWhile(bool test(T element)) {
     return new _SkipWhileStream<T>(this, test);
@@ -1493,7 +1494,7 @@ abstract class Stream<T> {
   /// Example:
   /// ```dart
   /// final stream = Stream.fromIterable([2, 6, 6, 8, 12, 8, 8, 2]).distinct();
-  /// stream.listen((event) => print(event)); // Outputs events: 2,6,8,12,8,2.
+  /// stream.forEach(print); // Outputs events: 2,6,8,12,8,2.
   /// ```
   Stream<T> distinct([bool equals(T previous, T next)?]) {
     return new _DistinctStream<T>(this, equals);
