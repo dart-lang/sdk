@@ -1720,7 +1720,6 @@ dart_infra_builder(
     dimensions = mac(cpu = "arm64"),
     properties = PINNED_XCODE,
 )
-dart_infra_builder("docker", recipe = "dart/docker")
 dart_infra_builder(
     "linearize-flutter",
     recipe = "dart/linearize",
