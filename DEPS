@@ -59,6 +59,8 @@ vars = {
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
+  "d8_tag": "version:9.9.3",
+  "jsshell_tag": "version:95.0",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -109,7 +111,6 @@ vars = {
 
   "dartdoc_rev" : "11c4b3c9723bfa7155efcf0fef02329233a6381d",
   "devtools_rev" : "85932bb66aa782c4b2c528be7718960bf256ffb7",
-  "jsshell_tag": "version:88.0",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
   "file_rev": "0e09370f581ab6388d46fda4cdab66638c0171a1",
@@ -213,7 +214,7 @@ deps = {
   Var("dart_root") + "/third_party/d8": {
       "packages": [{
           "package": "dart/d8",
-          "version": "version:9.1.269",
+          "version": Var("d8_tag"),
       }],
       "dep_type": "cipd",
   },
