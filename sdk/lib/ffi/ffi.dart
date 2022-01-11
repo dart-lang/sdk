@@ -448,50 +448,6 @@ extension Uint64Pointer on Pointer<Uint64> {
   external Uint64List asTypedList(int length);
 }
 
-/// Extension on [Pointer] specialized for the type argument [IntPtr].
-extension IntPtrPointer on Pointer<IntPtr> {
-  /// The 32 or 64-bit two's complement integer at [address].
-  ///
-  /// On 32-bit platforms this is a 32-bit integer, and on 64-bit platforms
-  /// this is a 64-bit integer.
-  ///
-  /// On 32-bit platforms a Dart integer is truncated to 32 bits (as if by
-  /// `.toSigned(32)`) before being stored, and the 32-bit value is
-  /// sign-extended when it is loaded.
-  ///
-  /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
-  /// platforms the [address] must be 8-byte aligned.
-  external int get value;
-
-  external void set value(int value);
-
-  /// The 32 or 64-bit two's complement integer at `address + (4 or 8) * index`.
-  ///
-  /// On 32-bit platforms this is a 32-bit integer, and on 64-bit platforms
-  /// this is a 64-bit integer.
-  ///
-  /// On 32-bit platforms a Dart integer is truncated to 32 bits (as if by
-  /// `.toSigned(32)`) before being stored, and the 32-bit value is
-  /// sign-extended when it is loaded.
-  ///
-  /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
-  /// platforms the [address] must be 8-byte aligned.
-  external int operator [](int index);
-
-  /// The 32 or 64-bit two's complement integer at `address + (4 or 8) * index`.
-  ///
-  /// On 32-bit platforms this is a 32-bit integer, and on 64-bit platforms
-  /// this is a 64-bit integer.
-  ///
-  /// On 32-bit platforms a Dart integer is truncated to 32 bits (as if by
-  /// `.toSigned(32)`) before being stored, and the 32-bit value is
-  /// sign-extended when it is loaded.
-  ///
-  /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
-  /// platforms the [address] must be 8-byte aligned.
-  external void operator []=(int index, int value);
-}
-
 /// Extension on [Pointer] specialized for the type argument [Float].
 extension FloatPointer on Pointer<Float> {
   /// The float at [address].
@@ -628,13 +584,6 @@ extension Uint32Array on Array<Uint32> {
 
 /// Bounds checking indexing methods on [Array]s of [Uint64].
 extension Uint64Array on Array<Uint64> {
-  external int operator [](int index);
-
-  external void operator []=(int index, int value);
-}
-
-/// Bounds checking indexing methods on [Array]s of [IntPtr].
-extension IntPtrArray on Array<IntPtr> {
   external int operator [](int index);
 
   external void operator []=(int index, int value);

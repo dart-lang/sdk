@@ -12,11 +12,11 @@ library from "org-dartlang-test:///lib.dart" as lib {
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
       ;
     get lpVtbl() → dart.ffi::Pointer<dart.ffi::IntPtr>
-      return dart.ffi::_fromAddress<dart.ffi::IntPtr>(dart.ffi::_loadIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
+      return dart.ffi::_fromAddress<dart.ffi::IntPtr>(dart.ffi::_loadAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
     set lpVtbl(dart.ffi::Pointer<dart.ffi::IntPtr> #externalFieldValue) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
+      return dart.ffi::_storeAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
     get vtable() → dart.ffi::Pointer<dart.ffi::IntPtr>
-      return dart.ffi::Pointer::fromAddress<dart.ffi::IntPtr>(dart.ffi::IntPtrPointer|get#value(this.{lib::COMObject::lpVtbl}{dart.ffi::Pointer<dart.ffi::IntPtr>}));
+      return dart.ffi::Pointer::fromAddress<dart.ffi::IntPtr>(dart.ffi::_loadAbiSpecificInt<dart.ffi::IntPtr>(this.{lib::COMObject::lpVtbl}{dart.ffi::Pointer<dart.ffi::IntPtr>}, #C7));
     @#C10
     static get #sizeOf() → dart.core::int*
       return #C13.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
