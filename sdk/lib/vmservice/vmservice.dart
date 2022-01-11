@@ -549,9 +549,7 @@ class VMService extends MessageRouter {
       return encodeRpcError(message, kStreamAlreadySubscribed);
     }
     if (!_isAnyClientSubscribed(streamId)) {
-      final includePrivates = message.params['_includePrivateMembers'] == true;
-      if (!serviceStreams.contains(streamId) &&
-          !_vmListenStream(streamId, includePrivates)) {
+      if (!serviceStreams.contains(streamId) && !_vmListenStream(streamId)) {
         return encodeRpcError(message, kInvalidParams,
             details: "streamListen: invalid 'streamId' parameter: ${streamId}");
       }
@@ -833,7 +831,7 @@ external void _onServerAddressChange(String? address);
 
 /// Subscribe to a service stream.
 @pragma("vm:external-name", "VMService_ListenStream")
-external bool _vmListenStream(String streamId, bool include_privates);
+external bool _vmListenStream(String streamId);
 
 /// Cancel a subscription to a service stream.
 @pragma("vm:external-name", "VMService_CancelStream")

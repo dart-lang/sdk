@@ -478,6 +478,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         convertedLibraries[builder] = [dillBuilder];
       }
     }
+    nextGoodKernelTarget.loader.clearSourceLibraryBuilders();
     if (changed) {
       // We suppress finalization errors because they have already been
       // reported.
@@ -521,6 +522,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
     nextGoodKernelTarget.loader.buildersCreatedWithReferences.clear();
     nextGoodKernelTarget.loader.hierarchyBuilder.clear();
+    nextGoodKernelTarget.loader.membersBuilder.clear();
     nextGoodKernelTarget.loader.referenceFromIndex = null;
     convertedLibraries = null;
     experimentalInvalidation = null;
@@ -2289,9 +2291,10 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
 }
 
 class _InitializationFromComponent extends _InitializationStrategy {
-  Component componentToInitializeFrom;
+  Component? _componentToInitializeFrom;
 
-  _InitializationFromComponent(this.componentToInitializeFrom);
+  _InitializationFromComponent(Component componentToInitializeFrom)
+      : _componentToInitializeFrom = componentToInitializeFrom;
 
   @override
   Future<int> initialize(
@@ -2302,6 +2305,11 @@ class _InitializationFromComponent extends _InitializationStrategy {
       _ComponentProblems componentProblems,
       IncrementalSerializer? incrementalSerializer,
       RecorderForTesting? recorderForTesting) {
+    Component? componentToInitializeFrom = _componentToInitializeFrom;
+    _componentToInitializeFrom = null;
+    if (componentToInitializeFrom == null) {
+      throw const InitializeFromComponentError("Initialized twice.");
+    }
     dillLoadedData.ticker.logMs("About to initializeFromComponent");
 
     Component component = data.component = new Component(
