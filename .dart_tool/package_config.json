@@ -1,6 +1,6 @@
 {
   "copyright": [
-    "Copyright (c) 2021, the Dart project authors. Please see the AUTHORS ",
+    "Copyright (c) 2022, the Dart project authors. Please see the AUTHORS ",
     "file for details. All rights reserved. Use of this source code is ",
     "governed by a BSD-style license that can be found in the LICENSE file."
   ],
@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-12-22T16:24:00.538300",
+  "generated": "2022-01-11T09:53:34.372475",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -316,7 +316,7 @@
       "name": "fixnum",
       "rootUri": "../third_party/pkg/fixnum",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "front_end",
