@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer_utilities/check/check.dart';
-import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 class CompletionResponseForTesting {
@@ -67,18 +66,6 @@ extension CompletionResponseExtension
     );
   }
 
-  CheckTarget<List<String>> get librariesToImport {
-    return nest(
-      value.suggestions
-          .where((e) => e.isNotImported == true)
-          .map((e) => e.element?.libraryUri)
-          .whereNotNull()
-          .toSet()
-          .toList(),
-      (selected) => 'has librariesToImport ${valueStr(selected)}',
-    );
-  }
-
   CheckTarget<int> get replacementLength {
     return nest(
       value.replacementLength,
@@ -112,24 +99,6 @@ extension CompletionResponseExtension
 
   void assertIncomplete() {
     isIncomplete.isTrue;
-  }
-
-  void assertLibrariesToImport({
-    required List<String> includes,
-    List<String>? excludes,
-  }) {
-    librariesToImport.includesAll(
-      includes.map(
-        (e) => (v) => v.isEqualTo(e),
-      ),
-    );
-    if (excludes != null) {
-      librariesToImport.excludesAll(
-        excludes.map(
-          (e) => (v) => v.isEqualTo(e),
-        ),
-      );
-    }
   }
 
   /// Check that the replacement offset is the completion request offset,
