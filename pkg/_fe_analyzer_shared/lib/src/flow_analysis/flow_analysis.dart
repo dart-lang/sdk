@@ -71,6 +71,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   void declare(Variable variable) {
     assert(!_isFinished);
     _stack.last._declared.add(variable);
+    _anywhere._declared.add(variable);
   }
 
   /// This method may be called during pre-traversal, to mark the end of a
@@ -1737,7 +1738,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
     Map<Variable?, VariableModel<Variable, Type>>? newVariableInfo;
 
     for (Variable variable in writtenVariables) {
-      VariableModel<Variable, Type> info = infoFor(variable);
+      VariableModel<Variable, Type>? info = variableInfo[variable];
+      if (info == null) continue;
       VariableModel<Variable, Type> newInfo =
           info.discardPromotionsAndMarkNotUnassigned();
       if (!identical(info, newInfo)) {
@@ -1749,16 +1751,8 @@ class FlowModel<Variable extends Object, Type extends Object> {
 
     for (Variable variable in capturedVariables) {
       VariableModel<Variable, Type>? info = variableInfo[variable];
-      if (info == null) {
-        (newVariableInfo ??=
-            new Map<Variable?, VariableModel<Variable, Type>>.of(
-                variableInfo))[variable] = new VariableModel<Variable, Type>(
-            promotedTypes: null,
-            tested: const [],
-            assigned: false,
-            unassigned: false,
-            ssaNode: null);
-      } else if (!info.writeCaptured) {
+      if (info == null) continue;
+      if (!info.writeCaptured) {
         (newVariableInfo ??=
             new Map<Variable?, VariableModel<Variable, Type>>.of(
                 variableInfo))[variable] = info.writeCapture();
@@ -3486,6 +3480,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       {required this.respectImplicitlyTypedVarInitializers}) {
     if (!_assignedVariables._isFinished) {
       _assignedVariables.finish();
+    }
+    AssignedVariablesNodeInfo<Variable> anywhere = _assignedVariables._anywhere;
+    Set<Variable> implicitlyDeclaredVars = {
+      ...anywhere._read,
+      ...anywhere._written
+    };
+    implicitlyDeclaredVars.removeAll(anywhere._declared);
+    for (Variable variable in implicitlyDeclaredVars) {
+      declare(variable, true);
     }
   }
 

@@ -3197,6 +3197,25 @@ main() {
         x.expr.as_('int').stmt, checkNotPromoted(x),
       ]);
     });
+
+    test('issue 47991', () {
+      var h = Harness();
+      var b = Var('b', 'bool');
+      var i = Var('i', 'int', isFinal: true);
+      h.run([
+        localFunction([
+          declareInitialized(b, expr('bool').or(expr('bool'))),
+          declare(i, initialized: false),
+          if_(b.expr, [
+            checkUnassigned(i, true),
+            i.write(expr('int')).stmt,
+          ], [
+            checkUnassigned(i, true),
+            i.write(expr('int')).stmt,
+          ]),
+        ]),
+      ]);
+    });
   });
 
   group('Reachability', () {
