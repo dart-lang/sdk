@@ -21,7 +21,6 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
-import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
@@ -1255,153 +1254,6 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   }
 }
 
-/// A field element representing an enum constant.
-class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
-  final int _index;
-
-  ConstFieldElementImpl_EnumValue(
-      EnumElementImpl enumElement, String name, this._index)
-      : super(enumElement, name);
-
-  @override
-  Expression? get constantInitializer => null;
-
-  @override
-  EvaluationResultImpl? get evaluationResult {
-    if (_evaluationResult == null) {
-      Map<String, DartObjectImpl> fieldMap = <String, DartObjectImpl>{
-        'index': DartObjectImpl(
-          library.typeSystem,
-          library.typeProvider.intType,
-          IntState(_index),
-        ),
-        // TODO(brianwilkerson) There shouldn't be a field with the same name as
-        //  the constant, but we can't remove it until a version of dartdoc that
-        //  doesn't depend on it has been published and pulled into the SDK. The
-        //  map entry below should be removed when
-        //  https://github.com/dart-lang/dartdoc/issues/2318 has been resolved.
-        name: DartObjectImpl(
-          library.typeSystem,
-          library.typeProvider.intType,
-          IntState(_index),
-        ),
-      };
-      DartObjectImpl value = DartObjectImpl(
-        library.typeSystem,
-        type,
-        GenericState(fieldMap),
-      );
-      _evaluationResult = EvaluationResultImpl(value);
-    }
-    return _evaluationResult;
-  }
-
-  @override
-  bool get hasInitializer => false;
-
-  @override
-  bool get isEnumConstant => true;
-
-  @override
-  Element get nonSynthetic => this;
-
-  @override
-  InterfaceType get type =>
-      ElementTypeProvider.current.getFieldType(this) as InterfaceType;
-
-  @override
-  InterfaceType get typeInternal => _enum.thisType;
-}
-
-/// The synthetic `values` field of an enum.
-class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
-  ConstFieldElementImpl_EnumValues(EnumElementImpl enumElement)
-      : super(enumElement, 'values') {
-    isSynthetic = true;
-  }
-
-  @override
-  EvaluationResultImpl get evaluationResult {
-    if (_evaluationResult == null) {
-      var constantValues = <DartObjectImpl>[];
-      for (FieldElement field in _enum.fields) {
-        if (field is ConstFieldElementImpl_EnumValue) {
-          constantValues.add(field.evaluationResult!.value!);
-        }
-      }
-      _evaluationResult = EvaluationResultImpl(
-        DartObjectImpl(
-          library.typeSystem,
-          type,
-          ListState(constantValues),
-        ),
-      );
-    }
-    return _evaluationResult!;
-  }
-
-  @override
-  String get name => 'values';
-
-  @override
-  InterfaceType get type =>
-      ElementTypeProvider.current.getFieldType(this) as InterfaceType;
-
-  @override
-  InterfaceType get typeInternal {
-    if (_type == null) {
-      return _type = library.typeProvider.listType(_enum.thisType);
-    }
-    return _type as InterfaceType;
-  }
-}
-
-/// An abstract constant field of an enum.
-abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
-  final EnumElementImpl _enum;
-
-  ConstFieldElementImpl_ofEnum(this._enum, String name) : super(name, -1) {
-    enclosingElement = _enum;
-  }
-
-  @override
-  set evaluationResult(_) {
-    assert(false);
-  }
-
-  @override
-  bool get isConst => true;
-
-  @override
-  set isConst(bool isConst) {
-    assert(false);
-  }
-
-  @override
-  bool get isConstantEvaluated => true;
-
-  @override
-  set isFinal(bool isFinal) {
-    assert(false);
-  }
-
-  @override
-  bool get isStatic => true;
-
-  @override
-  set isStatic(bool isStatic) {
-    assert(false);
-  }
-
-  @override
-  Element get nonSynthetic => _enum;
-
-  @override
-  set type(DartType type) {
-    assert(false);
-  }
-}
-
 /// A [LocalVariableElement] for a local 'const' variable that has an
 /// initializer.
 class ConstLocalVariableElementImpl extends LocalVariableElementImpl
@@ -1474,8 +1326,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  ClassElementImpl get enclosingElement =>
-      super.enclosingElement as ClassElementImpl;
+  AbstractClassElementImpl get enclosingElement =>
+      super.enclosingElement as AbstractClassElementImpl;
 
   @override
   bool get isConst {
@@ -2818,6 +2670,7 @@ class ElementLocationImpl implements ElementLocation {
 /// An [AbstractClassElementImpl] which is an enum.
 class EnumElementImpl extends AbstractClassElementImpl {
   ElementLinkedData? linkedData;
+  List<ConstructorElement> _constructors = _Sentinel.constructorElement;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -2843,11 +2696,14 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<ConstructorElement> get constructors {
-    // The equivalent code for enums in the spec shows a single constructor,
-    // but that constructor is not callable (since it is a compile-time error
-    // to subclass, mix-in, implement, or explicitly instantiate an enum).
-    // So we represent this as having no constructors.
-    return const <ConstructorElement>[];
+    return _constructors;
+  }
+
+  set constructors(List<ConstructorElement> constructors) {
+    for (var constructor in constructors) {
+      (constructor as ConstructorElementImpl).enclosingElement = this;
+    }
+    _constructors = constructors;
   }
 
   @override
@@ -3360,7 +3216,13 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   @override
-  bool get isEnumConstant => false;
+  bool get isEnumConstant {
+    return hasModifier(Modifier.ENUM_CONSTANT);
+  }
+
+  set isEnumConstant(bool isEnumConstant) {
+    setModifier(Modifier.ENUM_CONSTANT, isEnumConstant);
+  }
 
   @override
   bool get isExternal {
@@ -4423,58 +4285,61 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that a class element was defined by an enum declaration.
   static const Modifier ENUM = Modifier('ENUM', 6);
 
+  /// Indicates that the element is an enum constant field.
+  static const Modifier ENUM_CONSTANT = Modifier('ENUM_CONSTANT', 7);
+
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier EXTERNAL = Modifier('EXTERNAL', 7);
+  static const Modifier EXTERNAL = Modifier('EXTERNAL', 8);
 
   /// Indicates that the modifier 'factory' was applied to the element.
-  static const Modifier FACTORY = Modifier('FACTORY', 8);
+  static const Modifier FACTORY = Modifier('FACTORY', 9);
 
   /// Indicates that the modifier 'final' was applied to the element.
-  static const Modifier FINAL = Modifier('FINAL', 9);
+  static const Modifier FINAL = Modifier('FINAL', 10);
 
   /// Indicates that an executable element has a body marked as being a
   /// generator.
-  static const Modifier GENERATOR = Modifier('GENERATOR', 10);
+  static const Modifier GENERATOR = Modifier('GENERATOR', 11);
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
-  static const Modifier GETTER = Modifier('GETTER', 11);
+  static const Modifier GETTER = Modifier('GETTER', 12);
 
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.
-  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 12);
+  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 13);
 
   /// A flag used for fields and top-level variables that have implicit type,
   /// and specify when the type has been inferred.
-  static const Modifier HAS_TYPE_INFERRED = Modifier('HAS_TYPE_INFERRED', 13);
+  static const Modifier HAS_TYPE_INFERRED = Modifier('HAS_TYPE_INFERRED', 14);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// has a `part of` directive, meaning that this unit should be a part,
   /// but is used as a library.
   static const Modifier HAS_PART_OF_DIRECTIVE =
-      Modifier('HAS_PART_OF_DIRECTIVE', 14);
+      Modifier('HAS_PART_OF_DIRECTIVE', 15);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 15);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 16);
+  static const Modifier LATE = Modifier('LATE', 17);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 17);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 18);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 18);
+  static const Modifier SETTER = Modifier('SETTER', 19);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 19);
+  static const Modifier STATIC = Modifier('STATIC', 20);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 20);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 21);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -4484,6 +4349,7 @@ class Modifier implements Comparable<Modifier> {
     DART_CORE_OBJECT,
     DEFERRED,
     ENUM,
+    ENUM_CONSTANT,
     EXTERNAL,
     FACTORY,
     FINAL,
@@ -5422,6 +5288,11 @@ abstract class PropertyInducingElementImpl
     }
 
     return !isFinal;
+  }
+
+  void bindReference(Reference reference) {
+    this.reference = reference;
+    reference.element = this;
   }
 
   void createImplicitAccessors(Reference enclosingRef, String name) {
