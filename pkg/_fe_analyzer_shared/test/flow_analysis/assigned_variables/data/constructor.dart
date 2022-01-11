@@ -8,3 +8,7 @@ class C {
     a = 0;
   }
 }
+
+class D {
+  const D(bool b) : assert(b);
+}

@@ -754,9 +754,11 @@ severity: $severity
       DeclarationBuilder? declarationBuilder,
       ModifierBuilder member,
       Scope scope,
-      Uri fileUri) {
+      Uri fileUri,
+      {Scope? formalParameterScope}) {
     return new BodyBuilder.forOutlineExpression(
-        library, declarationBuilder, member, scope, fileUri);
+        library, declarationBuilder, member, scope, fileUri,
+        formalParameterScope: formalParameterScope);
   }
 
   NnbdMode get nnbdMode => target.context.options.nnbdMode;
@@ -1162,6 +1164,9 @@ severity: $severity
         builder, dietListener.memberScope,
         isDeclarationInstanceMember: isClassInstanceMember,
         extensionThis: extensionThis);
+    for (VariableDeclaration variable in parameters.positionalParameters) {
+      listener.typeInferrer.assignedVariables.declare(variable);
+    }
 
     return listener.parseSingleExpression(
         new Parser(listener,

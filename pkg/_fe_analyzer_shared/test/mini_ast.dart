@@ -963,6 +963,7 @@ class _Declare extends Statement {
 
   @override
   void _preVisit(AssignedVariables<Node, Var> assignedVariables) {
+    assignedVariables.declare(variable);
     initializer?._preVisit(assignedVariables);
   }
 

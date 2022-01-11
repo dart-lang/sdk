@@ -170,8 +170,17 @@ class TypeInferrerImpl implements TypeInferrer {
   final TypeInferenceEngine engine;
 
   @override
-  final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
-      DartType> flowAnalysis;
+  late final FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration,
+          DartType> flowAnalysis =
+      library.isNonNullableByDefault
+          ? new FlowAnalysis(
+              new TypeOperationsCfe(engine.typeSchemaEnvironment),
+              assignedVariables,
+              respectImplicitlyTypedVarInitializers:
+                  library.enableConstructorTearOffsInLibrary)
+          : new FlowAnalysis.legacy(
+              new TypeOperationsCfe(engine.typeSchemaEnvironment),
+              assignedVariables);
 
   @override
   final AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
@@ -213,16 +222,7 @@ class TypeInferrerImpl implements TypeInferrer {
         classHierarchy = engine.classHierarchy,
         instrumentation = topLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
-        isTopLevel = topLevel,
-        flowAnalysis = library.isNonNullableByDefault
-            ? new FlowAnalysis(
-                new TypeOperationsCfe(engine.typeSchemaEnvironment),
-                assignedVariables,
-                respectImplicitlyTypedVarInitializers:
-                    library.enableConstructorTearOffsInLibrary)
-            : new FlowAnalysis.legacy(
-                new TypeOperationsCfe(engine.typeSchemaEnvironment),
-                assignedVariables) {}
+        isTopLevel = topLevel {}
 
   CoreTypes get coreTypes => engine.coreTypes;
 

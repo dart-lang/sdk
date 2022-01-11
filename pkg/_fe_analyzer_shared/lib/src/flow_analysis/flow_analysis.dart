@@ -44,6 +44,9 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   final Set<AssignedVariablesNodeInfo<Variable>> _deferredInfos =
       new Set<AssignedVariablesNodeInfo<Variable>>.identity();
 
+  /// Keeps track of whether [finish] has been called.
+  bool _isFinished = false;
+
   /// This method should be called during pre-traversal, to mark the start of a
   /// loop statement, switch statement, try statement, loop collection element,
   /// local function, closure, or late variable initializer which might need to
@@ -56,6 +59,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// statement, the body of the switch statement should be covered, but the
   /// switch expression should not.
   void beginNode() {
+    assert(!_isFinished);
     _stack.add(new AssignedVariablesNodeInfo<Variable>());
   }
 
@@ -65,6 +69,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// It is not required for the declaration to be seen prior to its use (this
   /// is to allow for error recovery in the analyzer).
   void declare(Variable variable) {
+    assert(!_isFinished);
     _stack.last._declared.add(variable);
   }
 
@@ -83,6 +88,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// See [beginNode] for more details.
   AssignedVariablesNodeInfo<Variable> deferNode(
       {bool isClosureOrLateVariableInitializer: false}) {
+    assert(!_isFinished);
     AssignedVariablesNodeInfo<Variable> info = _stack.removeLast();
     info._read.removeAll(info._declared);
     info._written.removeAll(info._declared);
@@ -116,6 +122,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// needed, use [discardNode] to discard the effects of one of the [beginNode]
   /// calls.
   void discardNode() {
+    assert(!_isFinished);
     AssignedVariablesNodeInfo<Variable> discarded = _stack.removeLast();
     AssignedVariablesNodeInfo<Variable> last = _stack.last;
     last._declared.addAll(discarded._declared);
@@ -138,6 +145,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   ///
   /// See [beginNode] for more details.
   void endNode(Node node, {bool isClosureOrLateVariableInitializer: false}) {
+    assert(!_isFinished);
     storeInfo(
         node,
         deferNode(
@@ -148,6 +156,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// Call this after visiting the code to be analyzed, to check invariants.
   void finish() {
     assert(() {
+      assert(!_isFinished);
       assert(
           _deferredInfos.isEmpty, "Deferred infos not stored: $_deferredInfos");
       assert(_stack.length == 1, "Unexpected stack: $_stack");
@@ -164,6 +173,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
           'Variables captured but not declared: $undeclaredCaptures');
       return true;
     }());
+    _isFinished = true;
   }
 
   /// Call this method between calls to [beginNode] and [endNode]/[deferNode],
@@ -174,15 +184,18 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// and sets; their initializers are partially built after building their
   /// loop conditions but before completely building their bodies.
   AssignedVariablesNodeInfo<Variable> popNode() {
+    assert(!_isFinished);
     return _stack.removeLast();
   }
 
   /// Call this method to un-do the effect of [popNode].
   void pushNode(AssignedVariablesNodeInfo<Variable> node) {
+    assert(!_isFinished);
     _stack.add(node);
   }
 
   void read(Variable variable) {
+    assert(!_isFinished);
     _stack.last._read.add(variable);
     _anywhere._read.add(variable);
   }
@@ -205,6 +218,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// This method may be called at any time between a call to [deferNode] and
   /// the call to [finish], to store assigned variable info for the node.
   void storeInfo(Node node, AssignedVariablesNodeInfo<Variable> info) {
+    assert(!_isFinished);
     // Caller should not try to store the same piece of info more than once.
     assert(_deferredInfos.remove(info));
     _info[node] = info;
@@ -221,6 +235,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// This method should be called during pre-traversal, to mark a write to a
   /// variable.
   void write(Variable variable) {
+    assert(!_isFinished);
     _stack.last._written.add(variable);
     _anywhere._written.add(variable);
   }
@@ -3468,7 +3483,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   final bool respectImplicitlyTypedVarInitializers;
 
   _FlowAnalysisImpl(this.typeOperations, this._assignedVariables,
-      {required this.respectImplicitlyTypedVarInitializers});
+      {required this.respectImplicitlyTypedVarInitializers}) {
+    if (!_assignedVariables._isFinished) {
+      _assignedVariables.finish();
+    }
+  }
 
   @override
   bool get isReachable => _current.reachable.overallReachable;

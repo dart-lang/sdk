@@ -137,9 +137,11 @@ class SourceLoaderTest extends SourceLoader {
       DeclarationBuilder? declarationBuilder,
       ModifierBuilder member,
       Scope scope,
-      Uri fileUri) {
+      Uri fileUri,
+      {Scope? formalParameterScope}) {
     return new BodyBuilderTest.forOutlineExpression(
-        library, declarationBuilder, member, scope, fileUri);
+        library, declarationBuilder, member, scope, fileUri,
+        formalParameterScope: formalParameterScope);
   }
 
   @override
@@ -220,9 +222,11 @@ class BodyBuilderTest extends BodyBuilder {
       DeclarationBuilder? declarationBuilder,
       ModifierBuilder member,
       Scope scope,
-      Uri fileUri)
+      Uri fileUri,
+      {Scope? formalParameterScope})
       : super.forOutlineExpression(
-            library, declarationBuilder, member, scope, fileUri);
+            library, declarationBuilder, member, scope, fileUri,
+            formalParameterScope: formalParameterScope);
 
   @override
   Expression buildConstructorInvocation(
