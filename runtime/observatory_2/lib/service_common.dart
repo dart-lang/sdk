@@ -149,7 +149,11 @@ abstract class CommonWebSocketVM extends VM {
       return new Future.error(exception);
     }
     String serial = (_requestSerial++).toString();
-    var request = new _WebSocketRequest(method, params);
+    var request = new _WebSocketRequest(method, <String, dynamic>{
+      ...params,
+      // Include internal response data.
+      '_includePrivateMembers': true,
+    });
     if ((_webSocket != null) && _webSocket.isOpen) {
       // Already connected, send request immediately.
       _sendRequest(serial, request);
