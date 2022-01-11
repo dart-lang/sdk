@@ -68,23 +68,16 @@ class RingServiceIdZone : public ServiceIdZone {
 
 class StreamInfo {
  public:
-  explicit StreamInfo(const char* id)
-      : id_(id), enabled_(false), include_private_members_(false) {}
+  explicit StreamInfo(const char* id) : id_(id), enabled_(false) {}
 
   const char* id() const { return id_; }
 
   void set_enabled(bool value) { enabled_ = value; }
   bool enabled() const { return enabled_; }
 
-  void set_include_private_members(bool value) {
-    include_private_members_ = value;
-  }
-  bool include_private_members() const { return include_private_members_; }
-
  private:
   const char* id_;
   bool enabled_;
-  bool include_private_members_;
 };
 
 class Service : public AllStatic {
@@ -181,7 +174,7 @@ class Service : public AllStatic {
   static StreamInfo timeline_stream;
   static StreamInfo profiler_stream;
 
-  static bool ListenStream(const char* stream_id, bool include_privates);
+  static bool ListenStream(const char* stream_id);
   static void CancelStream(const char* stream_id);
 
   static ObjectPtr RequestAssets();

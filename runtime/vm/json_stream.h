@@ -9,7 +9,6 @@
 #include "platform/allocation.h"
 #include "platform/text_buffer.h"
 #include "vm/json_writer.h"
-#include "vm/os.h"
 #include "vm/service.h"
 #include "vm/token_position.h"
 
@@ -103,18 +102,6 @@ class JSONStream : ValueObject {
 
   void set_reply_port(Dart_Port port);
 
-  bool include_private_members() const { return include_private_members_; }
-  void set_include_private_members(bool include_private_members) {
-    include_private_members_ = include_private_members;
-  }
-
-  bool IsAllowableKey(const char* key) {
-    if (include_private_members_) {
-      return true;
-    }
-    return *key != '_';
-  }
-
   void SetParams(const char** param_keys,
                  const char** param_values,
                  intptr_t num_params);
@@ -180,41 +167,15 @@ class JSONStream : ValueObject {
   void PostNullReply(Dart_Port port);
 
   void OpenObject(const char* property_name = NULL) {
-    if (ignore_object_depth_ > 0 ||
-        (property_name != nullptr && !IsAllowableKey(property_name))) {
-      ignore_object_depth_++;
-      return;
-    }
     writer_.OpenObject(property_name);
   }
-  void CloseObject() {
-    if (ignore_object_depth_ > 0) {
-      ignore_object_depth_--;
-      return;
-    }
-    writer_.CloseObject();
-  }
-  void UncloseObject() {
-    // This should be updated to handle unclosing a private object if we need
-    // to handle that case, which we don't currently.
-    writer_.UncloseObject();
-  }
+  void CloseObject() { writer_.CloseObject(); }
+  void UncloseObject() { writer_.UncloseObject(); }
 
   void OpenArray(const char* property_name = NULL) {
-    if (ignore_object_depth_ > 0 ||
-        (property_name != nullptr && !IsAllowableKey(property_name))) {
-      ignore_object_depth_++;
-      return;
-    }
     writer_.OpenArray(property_name);
   }
-  void CloseArray() {
-    if (ignore_object_depth_ > 0) {
-      ignore_object_depth_--;
-      return;
-    }
-    writer_.CloseArray();
-  }
+  void CloseArray() { writer_.CloseArray(); }
 
   void PrintValueNull() { writer_.PrintValueNull(); }
   void PrintValueBool(bool b) { writer_.PrintValueBool(b); }
@@ -250,67 +211,46 @@ class JSONStream : ValueObject {
 
   void PrintServiceId(const Object& o);
 
-#define PRIVATE_NAME_CHECK()                                                   \
-  if (!IsAllowableKey(name) || ignore_object_depth_ > 0) {                     \
-    return;                                                                    \
-  }
-
   void PrintPropertyBool(const char* name, bool b) {
-    PRIVATE_NAME_CHECK();
     writer_.PrintPropertyBool(name, b);
   }
   void PrintProperty(const char* name, intptr_t i) {
-    PRIVATE_NAME_CHECK();
     writer_.PrintProperty(name, i);
   }
   void PrintProperty64(const char* name, int64_t i) {
-    PRIVATE_NAME_CHECK();
     writer_.PrintProperty64(name, i);
   }
   void PrintPropertyTimeMillis(const char* name, int64_t millis) {
-    PRIVATE_NAME_CHECK();
     writer_.PrintProperty64(name, millis);
   }
   void PrintPropertyTimeMicros(const char* name, int64_t micros) {
-    PRIVATE_NAME_CHECK();
     writer_.PrintProperty64(name, micros);
   }
   void PrintProperty(const char* name, double d) {
-    PRIVATE_NAME_CHECK();
     writer_.PrintProperty(name, d);
   }
   void PrintPropertyBase64(const char* name,
                            const uint8_t* bytes,
                            intptr_t length) {
-    PRIVATE_NAME_CHECK();
     writer_.PrintPropertyBase64(name, bytes, length);
   }
   void PrintProperty(const char* name, const char* s) {
-    PRIVATE_NAME_CHECK();
     writer_.PrintProperty(name, s);
   }
   bool PrintPropertyStr(const char* name,
                         const String& s,
                         intptr_t offset,
                         intptr_t count) {
-    if (!IsAllowableKey(name)) {
-      return false;
-    }
     return writer_.PrintPropertyStr(name, s, offset, count);
   }
   void PrintPropertyNoEscape(const char* name, const char* s) {
-    PRIVATE_NAME_CHECK();
     writer_.PrintPropertyNoEscape(name, s);
   }
   void PrintfProperty(const char* name, const char* format, ...)
       PRINTF_ATTRIBUTE(3, 4);
   void VPrintfProperty(const char* name, const char* format, va_list args) {
-    PRIVATE_NAME_CHECK();
     writer_.VPrintfProperty(name, format, args);
   }
-
-#undef PRIVATE_NAME_CHECK
-
   void PrintProperty(const char* name, const Object& o, bool ref = true);
 
   void PrintProperty(const char* name, const ServiceEvent* event);
@@ -345,8 +285,7 @@ class JSONStream : ValueObject {
   intptr_t offset_;
   intptr_t count_;
   int64_t setup_time_micros_;
-  bool include_private_members_;
-  intptr_t ignore_object_depth_;
+
   friend class JSONObject;
   friend class JSONArray;
   friend class TimelineEvent;
