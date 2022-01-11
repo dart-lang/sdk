@@ -4,7 +4,8 @@ import "dart:core" as core;
 import "dart:_http" as _ht;
 
 import "dart:io" as a;
-import "org-dartlang-testcase:///conditional_import.dart" as b;
+import "dart:io" as b;
+import "org-dartlang-testcase:///conditional_import.dart" as c;
 
 class HttpRequest extends core::Object {
   synthetic constructor •() → self::HttpRequest
@@ -12,7 +13,9 @@ class HttpRequest extends core::Object {
 }
 static method testA(_ht::HttpRequest request) → dynamic
   ;
-static method testB(self::HttpRequest request) → dynamic
+static method testB(_ht::HttpRequest request) → dynamic
+  ;
+static method testC(self::HttpRequest request) → dynamic
   ;
 static method main() → void
   ;

@@ -9,12 +9,16 @@ class CompletionResponseForTesting {
   final int requestOffset;
   final int replacementOffset;
   final int replacementLength;
+  final bool isIncomplete;
+  final List<String> librariesToImport;
   final List<CompletionSuggestion> suggestions;
 
   CompletionResponseForTesting({
     required this.requestOffset,
     required this.replacementOffset,
     required this.replacementLength,
+    required this.isIncomplete,
+    required this.librariesToImport,
     required this.suggestions,
   });
 
@@ -26,6 +30,8 @@ class CompletionResponseForTesting {
       requestOffset: requestOffset,
       replacementOffset: parameters.replacementOffset,
       replacementLength: parameters.replacementLength,
+      isIncomplete: false,
+      librariesToImport: const [],
       suggestions: parameters.results,
     );
   }
@@ -55,6 +61,20 @@ class CompletionSuggestionForTesting {
 
 extension CompletionResponseExtension
     on CheckTarget<CompletionResponseForTesting> {
+  CheckTarget<bool> get isIncomplete {
+    return nest(
+      value.isIncomplete,
+      (selected) => 'has isIncomplete ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<List<String>> get librariesToImport {
+    return nest(
+      value.librariesToImport,
+      (selected) => 'has librariesToImport ${valueStr(selected)}',
+    );
+  }
+
   CheckTarget<int> get replacementLength {
     return nest(
       value.replacementLength,
@@ -80,6 +100,32 @@ extension CompletionResponseExtension
       suggestions,
       (selected) => 'suggestions ${valueStr(selected)}',
     );
+  }
+
+  void assertComplete() {
+    isIncomplete.isFalse;
+  }
+
+  void assertIncomplete() {
+    isIncomplete.isTrue;
+  }
+
+  void assertLibrariesToImport({
+    required List<String> includes,
+    List<String>? excludes,
+  }) {
+    librariesToImport.includesAll(
+      includes.map(
+        (e) => (v) => v.isEqualTo(e),
+      ),
+    );
+    if (excludes != null) {
+      librariesToImport.excludesAll(
+        excludes.map(
+          (e) => (v) => v.isEqualTo(e),
+        ),
+      );
+    }
   }
 
   /// Check that the replacement offset is the completion request offset,
@@ -140,9 +186,29 @@ extension CompletionSuggestionExtension
     );
   }
 
+  void get isClass {
+    kind.isIdentifier;
+    element.isNotNull.kind.isClass;
+  }
+
+  void get isConstructorInvocation {
+    kind.isInvocation;
+    element.isNotNull.kind.isConstructor;
+  }
+
   void get isField {
     kind.isIdentifier;
     element.isNotNull.kind.isField;
+  }
+
+  void get isGetter {
+    kind.isIdentifier;
+    element.isNotNull.kind.isGetter;
+  }
+
+  void get isMethodInvocation {
+    kind.isInvocation;
+    element.isNotNull.kind.isMethod;
   }
 
   void get isParameter {
@@ -150,10 +216,28 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isParameter;
   }
 
+  void get isSetter {
+    kind.isIdentifier;
+    element.isNotNull.kind.isSetter;
+  }
+
+  void get isTopLevelVariable {
+    kind.isIdentifier;
+    element.isNotNull.kind.isTopLevelVariable;
+  }
+
   CheckTarget<CompletionSuggestionKind> get kind {
     return nest(
       value.suggestion.kind,
       (selected) => 'has kind ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<String?> get libraryUriToImport {
+    var index = value.suggestion.libraryUriToImportIndex;
+    return nest(
+      index != null ? value.response.librariesToImport[index] : null,
+      (selected) => 'has libraryUriToImport ${valueStr(selected)}',
     );
   }
 
@@ -225,6 +309,29 @@ extension CompletionSuggestionKindExtension
   void get isIdentifier {
     isEqualTo(CompletionSuggestionKind.IDENTIFIER);
   }
+
+  void get isInvocation {
+    isEqualTo(CompletionSuggestionKind.INVOCATION);
+  }
+}
+
+extension CompletionSuggestionListExtension
+    on CheckTarget<List<CompletionSuggestionForTesting>> {
+  CheckTarget<Iterable<String>> get completions {
+    return nest(
+      value.map((e) => e.suggestion.completion).toList(),
+      (selected) => 'has completions ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<Iterable<CompletionSuggestionForTesting>> get withElementClass {
+    return nest(
+      value.where((e) {
+        return e.suggestion.element?.kind == ElementKind.CLASS;
+      }).toList(),
+      (selected) => 'withElementClass ${valueStr(selected)}',
+    );
+  }
 }
 
 extension CompletionSuggestionsExtension
@@ -266,11 +373,35 @@ extension ElementExtension on CheckTarget<Element> {
 }
 
 extension ElementKindExtension on CheckTarget<ElementKind> {
+  void get isClass {
+    isEqualTo(ElementKind.CLASS);
+  }
+
+  void get isConstructor {
+    isEqualTo(ElementKind.CONSTRUCTOR);
+  }
+
   void get isField {
     isEqualTo(ElementKind.FIELD);
   }
 
+  void get isGetter {
+    isEqualTo(ElementKind.GETTER);
+  }
+
+  void get isMethod {
+    isEqualTo(ElementKind.METHOD);
+  }
+
   void get isParameter {
     isEqualTo(ElementKind.PARAMETER);
+  }
+
+  void get isSetter {
+    isEqualTo(ElementKind.SETTER);
+  }
+
+  void get isTopLevelVariable {
+    isEqualTo(ElementKind.TOP_LEVEL_VARIABLE);
   }
 }

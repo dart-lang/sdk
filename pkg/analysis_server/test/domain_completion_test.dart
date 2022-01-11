@@ -27,6 +27,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'domain_completion_util.dart';
 import 'mocks.dart';
+import 'services/completion/dart/completion_check.dart';
 import 'src/plugin/plugin_manager_test.dart';
 import 'utils/change_check.dart';
 
@@ -239,30 +240,30 @@ class CompletionDomainHandlerGetSuggestions2Test
     await _configureWithWorkspaceRoot();
 
     // Send three requests, the first two should be aborted.
-    var response0 = _sendTestCompletionRequest('0', 0);
-    var response1 = _sendTestCompletionRequest('1', 0);
-    var response2 = _sendTestCompletionRequest('2', 0);
+    var request0 = _sendTestCompletionRequest('0', 0);
+    var request1 = _sendTestCompletionRequest('1', 0);
+    var request2 = _sendTestCompletionRequest('2', 0);
 
     // Wait for all three.
-    var validator0 = await response0.toResult();
-    var validator1 = await response1.toResult();
-    var validator2 = await response2.toResult();
+    var response0 = await request0.toResponse();
+    var response1 = await request1.toResponse();
+    var response2 = await request2.toResponse();
 
     // The first two should be aborted.
     expect(abortedIdSet, {'0', '1'});
 
-    validator0
+    check(response0)
       ..assertIncomplete()
-      ..suggestions.assertEmpty();
+      ..suggestions.isEmpty;
 
-    validator1
+    check(response1)
       ..assertIncomplete()
-      ..suggestions.assertEmpty();
+      ..suggestions.isEmpty;
 
-    validator2
+    check(response2)
       ..assertComplete()
-      ..suggestions.assertCompletionsContainsAll(
-        ['int', 'double', 'Future', 'Directory'],
+      ..suggestions.containsMatch(
+        (suggestion) => suggestion.completion.isEqualTo('int'),
       );
   }
 
@@ -277,7 +278,7 @@ class CompletionDomainHandlerGetSuggestions2Test
     await _configureWithWorkspaceRoot();
 
     // Schedule a completion request.
-    var response = _sendTestCompletionRequest('0', 0);
+    var request = _sendTestCompletionRequest('0', 0);
 
     // Simulate typing in the IDE.
     await _handleSuccessfulRequest(
@@ -287,26 +288,26 @@ class CompletionDomainHandlerGetSuggestions2Test
     );
 
     // The request should be aborted.
-    var validator = await response.toResult();
+    var response = await request.toResponse();
     expect(abortedIdSet, {'0'});
 
-    validator
+    check(response)
       ..assertIncomplete()
-      ..suggestions.assertEmpty();
+      ..suggestions.isEmpty;
   }
 
   Future<void> test_notImported_dart() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 void f() {
   Rand^
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4)
+      ..hasReplacement(left: 4)
       ..assertLibrariesToImport(includes: [
         'dart:math',
       ], excludes: [
@@ -315,11 +316,11 @@ void f() {
         'package:test/test.dart',
       ]);
 
-    var classes = responseValidator.suggestions.withElementClass();
-    classes.assertCompletions(['Random']);
-    classes.withCompletion('Random').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('dart:math');
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('Random')
+        ..libraryUriToImport.isEqualTo('dart:math'),
+    ]);
   }
 
   Future<void> test_notImported_emptyBudget() async {
@@ -328,21 +329,20 @@ void f() {
     // Empty budget, so no not yet imported libraries.
     completionDomain.budgetDuration = const Duration(milliseconds: 0);
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 void f() {
   Rand^
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertIncomplete()
-      ..assertReplacementBack(4)
+      ..hasReplacement(left: 4)
       ..assertLibrariesToImport(includes: [], excludes: [
         'dart:core',
         'dart:math',
-      ]);
-
-    responseValidator.suggestions.withElementClass().assertEmpty();
+      ])
+      ..suggestions.withElementClass.isEmpty;
   }
 
   Future<void> test_notImported_pub_dependencies_inLib() async {
@@ -378,15 +378,15 @@ class A04 {}
 
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 void f() {
   A0^
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(2)
+      ..hasReplacement(left: 2)
       ..assertLibrariesToImport(includes: [
         'package:aaa/f.dart',
       ], excludes: [
@@ -395,11 +395,11 @@ void f() {
         'package:test/test.dart',
       ]);
 
-    var classes = responseValidator.suggestions.withElementClass();
-    classes.assertCompletions(['A01']);
-    classes.withCompletion('A01').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:aaa/f.dart');
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A01')
+        ..libraryUriToImport.isEqualTo('package:aaa/f.dart'),
+    ]);
   }
 
   Future<void> test_notImported_pub_dependencies_inTest() async {
@@ -436,7 +436,7 @@ class A04 {}
     await _configureWithWorkspaceRoot();
 
     var test_path = convertPath('$testPackageTestPath/test.dart');
-    var responseValidator = await _getCodeSuggestions(
+    var response = await _getCodeSuggestions(
       path: test_path,
       content: '''
 void f() {
@@ -445,9 +445,9 @@ void f() {
 ''',
     );
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(2)
+      ..hasReplacement(left: 2)
       ..assertLibrariesToImport(includes: [
         'package:aaa/f.dart',
         'package:bbb/f.dart',
@@ -456,14 +456,14 @@ void f() {
         'package:test/test.dart',
       ]);
 
-    var classes = responseValidator.suggestions.withElementClass();
-    classes.assertCompletions(['A01', 'A03']);
-    classes.withCompletion('A01').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:aaa/f.dart');
-    classes.withCompletion('A03').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:bbb/f.dart');
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A01')
+        ..libraryUriToImport.isEqualTo('package:aaa/f.dart'),
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A03')
+        ..libraryUriToImport.isEqualTo('package:bbb/f.dart'),
+    ]);
   }
 
   Future<void> test_notImported_pub_this() async {
@@ -477,15 +477,15 @@ class A02 {}
 
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 void f() {
   A0^
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(2)
+      ..hasReplacement(left: 2)
       ..assertLibrariesToImport(includes: [
         'package:test/a.dart',
         'package:test/b.dart',
@@ -496,14 +496,14 @@ void f() {
         'package:test/test.dart',
       ]);
 
-    var classes = responseValidator.suggestions.withElementClass();
-    classes.assertCompletions(['A01', 'A02']);
-    classes.withCompletion('A01').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:test/a.dart');
-    classes.withCompletion('A02').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:test/b.dart');
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A01')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A02')
+        ..libraryUriToImport.isEqualTo('package:test/b.dart'),
+    ]);
   }
 
   Future<void> test_notImported_pub_this_hasImport() async {
@@ -518,7 +518,7 @@ class A03 {}
 
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 import 'a.dart';
 
 void f() {
@@ -526,9 +526,9 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(2)
+      ..hasReplacement(left: 2)
       ..assertLibrariesToImport(includes: [
         'package:test/b.dart',
       ], excludes: [
@@ -539,17 +539,17 @@ void f() {
         'package:test/test.dart',
       ]);
 
-    var classes = responseValidator.suggestions.withElementClass();
-    classes.assertCompletions(['A01', 'A02', 'A03']);
-    classes.withCompletion('A01').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport(isNull);
-    classes.withCompletion('A02').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport(isNull);
-    classes.withCompletion('A03').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:test/b.dart');
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A01')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A02')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A03')
+        ..libraryUriToImport.isEqualTo('package:test/b.dart'),
+    ]);
   }
 
   Future<void> test_notImported_pub_this_hasImport_hasShow() async {
@@ -564,7 +564,7 @@ class A03 {}
 
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 import 'a.dart' show A01;
 
 void f() {
@@ -572,9 +572,9 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(2)
+      ..hasReplacement(left: 2)
       ..assertLibrariesToImport(includes: [
         'package:test/a.dart',
         'package:test/b.dart',
@@ -585,17 +585,17 @@ void f() {
         'package:test/test.dart',
       ]);
 
-    var classes = responseValidator.suggestions.withElementClass();
-    classes.assertCompletions(['A01', 'A02', 'A03']);
-    classes.withCompletion('A01').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport(isNull);
-    classes.withCompletion('A02').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:test/a.dart');
-    classes.withCompletion('A03').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:test/b.dart');
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A01')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A02')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A03')
+        ..libraryUriToImport.isEqualTo('package:test/b.dart'),
+    ]);
   }
 
   Future<void> test_notImported_pub_this_inLib_excludesTest() async {
@@ -613,15 +613,15 @@ class A02 {}
 
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 void f() {
   A0^
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(2)
+      ..hasReplacement(left: 2)
       ..assertLibrariesToImport(includes: [
         'package:test/a.dart',
       ], excludes: [
@@ -630,11 +630,11 @@ void f() {
         toUriStr(b.path),
       ]);
 
-    var classes = responseValidator.suggestions.withElementClass();
-    classes.assertCompletions(['A01']);
-    classes.withCompletion('A01').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:test/a.dart');
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A01')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
   }
 
   Future<void> test_notImported_pub_this_inLib_includesThisSrc() async {
@@ -652,15 +652,15 @@ class A02 {}
 
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 void f() {
   A0^
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(2)
+      ..hasReplacement(left: 2)
       ..assertLibrariesToImport(includes: [
         'package:test/f.dart',
         'package:test/src/f.dart',
@@ -669,14 +669,14 @@ void f() {
         'package:test/test.dart',
       ]);
 
-    var classes = responseValidator.suggestions.withElementClass();
-    classes.assertCompletions(['A01', 'A02']);
-    classes.withCompletion('A01').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:test/f.dart');
-    classes.withCompletion('A02').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:test/src/f.dart');
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A01')
+        ..libraryUriToImport.isEqualTo('package:test/f.dart'),
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A02')
+        ..libraryUriToImport.isEqualTo('package:test/src/f.dart'),
+    ]);
   }
 
   Future<void> test_notImported_pub_this_inTest_includesTest() async {
@@ -696,7 +696,7 @@ class A02 {}
     await _configureWithWorkspaceRoot();
 
     var test_path = convertPath('$testPackageTestPath/test.dart');
-    var responseValidator = await _getCodeSuggestions(
+    var response = await _getCodeSuggestions(
       path: test_path,
       content: '''
 void f() {
@@ -705,9 +705,9 @@ void f() {
 ''',
     );
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(2)
+      ..hasReplacement(left: 2)
       ..assertLibrariesToImport(includes: [
         'package:test/a.dart',
         b_uriStr,
@@ -716,14 +716,14 @@ void f() {
         toUriStr(test_path),
       ]);
 
-    var classes = responseValidator.suggestions.withElementClass();
-    classes.assertCompletions(['A01', 'A02']);
-    classes.withCompletion('A01').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:test/a.dart');
-    classes.withCompletion('A02').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport(b_uriStr);
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A01')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A02')
+        ..libraryUriToImport.isEqualTo(b_uriStr),
+    ]);
   }
 
   Future<void> test_notImported_pub_this_inTest_includesThisSrc() async {
@@ -742,7 +742,7 @@ class A02 {}
     await _configureWithWorkspaceRoot();
 
     var test_path = convertPath('$testPackageTestPath/test.dart');
-    var responseValidator = await _getCodeSuggestions(
+    var response = await _getCodeSuggestions(
       path: test_path,
       content: '''
 void f() {
@@ -751,9 +751,9 @@ void f() {
 ''',
     );
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(2)
+      ..hasReplacement(left: 2)
       ..assertLibrariesToImport(includes: [
         'package:test/f.dart',
         'package:test/src/f.dart',
@@ -762,20 +762,20 @@ void f() {
         'package:test/test.dart',
       ]);
 
-    var classes = responseValidator.suggestions.withElementClass();
-    classes.assertCompletions(['A01', 'A02']);
-    classes.withCompletion('A01').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:test/f.dart');
-    classes.withCompletion('A02').assertSingle()
-      ..assertClass()
-      ..assertLibraryToImport('package:test/src/f.dart');
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A01')
+        ..libraryUriToImport.isEqualTo('package:test/f.dart'),
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A02')
+        ..libraryUriToImport.isEqualTo('package:test/src/f.dart'),
+    ]);
   }
 
   Future<void> test_numResults_class_methods() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 class A {
   void foo01() {}
   void foo02() {}
@@ -787,18 +787,24 @@ void f(A a) {
 }
 ''', maxResults: 2);
 
-    responseValidator
+    check(response)
       ..assertIncomplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isMethodInvocation,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isMethodInvocation,
+    ]);
   }
 
   Future<void> test_numResults_topLevelVariables() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 var foo01 = 0;
 var foo02 = 0;
 var foo03 = 0;
@@ -808,20 +814,18 @@ void f() {
 }
 ''', maxResults: 2);
 
-    responseValidator
+    check(response)
       ..assertIncomplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
-    suggestionsValidator
-        .withCompletion('foo01')
-        .assertSingle()
-        .assertTopLevelVariable();
-    suggestionsValidator
-        .withCompletion('foo02')
-        .assertSingle()
-        .assertTopLevelVariable();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isTopLevelVariable,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isTopLevelVariable,
+    ]);
   }
 
   Future<void> test_numResults_topLevelVariables_imported_withPrefix() async {
@@ -833,7 +837,7 @@ var foo02 = 0;
 var foo03 = 0;
 ''');
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 import 'a.dart' as prefix;
 
 void f() {
@@ -841,18 +845,24 @@ void f() {
 }
 ''', maxResults: 2);
 
-    responseValidator
+    check(response)
       ..assertIncomplete()
-      ..assertEmptyReplacement();
+      ..hasEmptyReplacement();
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isTopLevelVariable,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isTopLevelVariable,
+    ]);
   }
 
   Future<void> test_prefixed_class_constructors() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 class A {
   A.foo01();
   A.foo02();
@@ -863,20 +873,24 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestions = responseValidator.suggestions;
-    suggestions.assertCompletions(['foo01', 'foo02']);
-    suggestions.withCompletion('foo01').assertSingle().assertConstructor();
-    suggestions.withCompletion('foo02').assertSingle().assertConstructor();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isConstructorInvocation,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isConstructorInvocation,
+    ]);
   }
 
   Future<void> test_prefixed_class_getters() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 class A {
   int get foo01 => 0;
   int get foo02 => 0;
@@ -887,20 +901,24 @@ void f(A a) {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestions = responseValidator.suggestions;
-    suggestions.assertCompletions(['foo01', 'foo02']);
-    suggestions.withCompletion('foo01').assertSingle().assertGetter();
-    suggestions.withCompletion('foo02').assertSingle().assertGetter();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isGetter,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isGetter,
+    ]);
   }
 
   Future<void> test_prefixed_class_methods_instance() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 class A {
   void foo01() {}
   void foo02() {}
@@ -911,20 +929,24 @@ void f(A a) {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestions = responseValidator.suggestions;
-    suggestions.assertCompletions(['foo01', 'foo02']);
-    suggestions.withCompletion('foo01').assertSingle().assertMethod();
-    suggestions.withCompletion('foo02').assertSingle().assertMethod();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isMethodInvocation,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isMethodInvocation,
+    ]);
   }
 
   Future<void> test_prefixed_class_methods_static() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 class A {
   static void foo01() {}
   static void foo02() {}
@@ -935,20 +957,24 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestions = responseValidator.suggestions;
-    suggestions.assertCompletions(['foo01', 'foo02']);
-    suggestions.withCompletion('foo01').assertSingle().assertMethod();
-    suggestions.withCompletion('foo02').assertSingle().assertMethod();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isMethodInvocation,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isMethodInvocation,
+    ]);
   }
 
   Future<void> test_prefixed_expression_extensionGetters() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 extension E1 on int {
   int get foo01 => 0;
   int get foo02 => 0;
@@ -964,15 +990,18 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
-
-    suggestionsValidator.withCompletion('foo01').assertSingle().assertGetter();
-    suggestionsValidator.withCompletion('foo02').assertSingle().assertGetter();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isGetter,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isGetter,
+    ]);
   }
 
   Future<void> test_prefixed_expression_extensionGetters_notImported() async {
@@ -993,25 +1022,26 @@ extension E3 on double {
 }
 ''');
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 void f() {
   0.foo0^
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
-
-    suggestionsValidator.withCompletion('foo01').assertSingle()
-      ..assertGetter()
-      ..assertLibraryToImport('package:test/a.dart');
-    suggestionsValidator.withCompletion('foo02').assertSingle()
-      ..assertGetter()
-      ..assertLibraryToImport('package:test/a.dart');
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isGetter
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isGetter
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
   }
 
   Future<void>
@@ -1032,28 +1062,28 @@ extension on int {
 }
 ''');
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 void f() {
   0.foo0^
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01']);
-
-    suggestionsValidator.withCompletion('foo01').assertSingle()
-      ..assertGetter()
-      ..assertLibraryToImport('package:test/a.dart');
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isGetter
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
   }
 
   Future<void> test_prefixed_expression_extensionMethods() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 extension E1 on int {
   void foo01() {}
   void foo02() {}
@@ -1069,15 +1099,18 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
-
-    suggestionsValidator.withCompletion('foo01').assertSingle().assertMethod();
-    suggestionsValidator.withCompletion('foo02').assertSingle().assertMethod();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isMethodInvocation,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isMethodInvocation,
+    ]);
   }
 
   Future<void> test_prefixed_expression_extensionMethods_notImported() async {
@@ -1098,31 +1131,32 @@ extension E3 on double {
 }
 ''');
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 void f() {
   0.foo0^
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
-
-    suggestionsValidator.withCompletion('foo01').assertSingle()
-      ..assertMethod()
-      ..assertLibraryToImport('package:test/a.dart');
-    suggestionsValidator.withCompletion('foo02').assertSingle()
-      ..assertMethod()
-      ..assertLibraryToImport('package:test/a.dart');
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isMethodInvocation
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isMethodInvocation
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
   }
 
   Future<void> test_prefixed_expression_extensionSetters() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 extension E1 on int {
   set foo01(int _) {}
   set foo02(int _) {}
@@ -1138,15 +1172,18 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
-
-    suggestionsValidator.withCompletion('foo01').assertSingle().assertSetter();
-    suggestionsValidator.withCompletion('foo02').assertSingle().assertSetter();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isSetter,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isSetter,
+    ]);
   }
 
   Future<void> test_prefixed_expression_extensionSetters_notImported() async {
@@ -1167,25 +1204,26 @@ extension E3 on double {
 }
 ''');
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 void f() {
   0.foo0^
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
-
-    suggestionsValidator.withCompletion('foo01').assertSingle()
-      ..assertSetter()
-      ..assertLibraryToImport('package:test/a.dart');
-    suggestionsValidator.withCompletion('foo02').assertSingle()
-      ..assertSetter()
-      ..assertLibraryToImport('package:test/a.dart');
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isSetter
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isSetter
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
   }
 
   Future<void>
@@ -1206,22 +1244,22 @@ extension on int {
 }
 ''');
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 void f() {
   0.foo0^
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01']);
-
-    suggestionsValidator.withCompletion('foo01').assertSingle()
-      ..assertSetter()
-      ..assertLibraryToImport('package:test/a.dart');
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isSetter
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
   }
 
   Future<void> test_prefixed_extensionGetters_imported() async {
@@ -1239,7 +1277,7 @@ extension E2 on double {
 }
 ''');
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 import 'a.dart';
 
 void f() {
@@ -1247,21 +1285,24 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
-
-    suggestionsValidator.withCompletion('foo01').assertSingle().assertGetter();
-    suggestionsValidator.withCompletion('foo02').assertSingle().assertGetter();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isGetter,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isGetter,
+    ]);
   }
 
   Future<void> test_prefixed_extensionOverride_extensionGetters() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 extension E1 on int {
   int get foo01 => 0;
 }
@@ -1275,19 +1316,21 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01']);
-    suggestionsValidator.withCompletion('foo01').assertSingle().assertGetter();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isGetter,
+    ]);
   }
 
   Future<void> test_prefixed_extensionOverride_extensionMethods() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 extension E1 on int {
   void foo01() {}
 }
@@ -1301,19 +1344,21 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01']);
-    suggestionsValidator.withCompletion('foo01').assertSingle().assertMethod();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isMethodInvocation,
+    ]);
   }
 
   Future<void> test_unprefixed_filters() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 var foo01 = 0;
 var foo02 = 0;
 var bar01 = 0;
@@ -1324,23 +1369,18 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
-
-    suggestionsValidator
-        .withCompletion('foo01')
-        .assertSingle()
-        .assertTopLevelVariable();
-    suggestionsValidator
-        .withCompletion('foo02')
-        .assertSingle()
-        .assertTopLevelVariable();
-    suggestionsValidator.withCompletion('bar01').assertEmpty();
-    suggestionsValidator.withCompletion('bar02').assertEmpty();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isTopLevelVariable,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isTopLevelVariable,
+    ]);
   }
 
   Future<void> test_unprefixed_imported_class() async {
@@ -1354,7 +1394,7 @@ class A01 {}
 class A02 {}
 ''');
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 import 'a.dart';
 import 'b.dart';
 
@@ -1363,14 +1403,18 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(2);
+      ..hasReplacement(left: 2);
 
-    var classes = responseValidator.suggestions.withElementClass();
-    classes.assertCompletions(['A01', 'A02']);
-    classes.withCompletion('A01').assertSingle().assertClass();
-    classes.withCompletion('A02').assertSingle().assertClass();
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A01')
+        ..isClass,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A02')
+        ..isClass,
+    ]);
   }
 
   Future<void> test_unprefixed_imported_topLevelVariable() async {
@@ -1384,7 +1428,7 @@ var foo01 = 0;
 var foo02 = 0;
 ''');
 
-    var responseValidator = await _getTestCodeSuggestions('''
+    var response = await _getTestCodeSuggestions('''
 import 'a.dart';
 import 'b.dart';
 
@@ -1393,26 +1437,24 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
-    suggestionsValidator.assertCompletions(['foo01', 'foo02']);
-    suggestionsValidator
-        .withCompletion('foo01')
-        .assertSingle()
-        .assertTopLevelVariable();
-    suggestionsValidator
-        .withCompletion('foo02')
-        .assertSingle()
-        .assertTopLevelVariable();
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isTopLevelVariable,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isTopLevelVariable,
+    ]);
   }
 
   Future<void> test_unprefixed_sorts_byScore() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 var fooAB = 0;
 var fooBB = 0;
 
@@ -1421,19 +1463,25 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
     // `fooBB` has better score than `fooAB` - prefix match
-    suggestionsValidator.assertCompletions(['fooBB', 'fooAB']);
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('fooBB')
+        ..isTopLevelVariable,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('fooAB')
+        ..isTopLevelVariable,
+    ]);
   }
 
   Future<void> test_unprefixed_sorts_byType() async {
     await _configureWithWorkspaceRoot();
 
-    var responseValidator = await _getTestCodeSuggestions(r'''
+    var response = await _getTestCodeSuggestions(r'''
 var foo01 = 0.0;
 var foo02 = 0;
 
@@ -1442,34 +1490,44 @@ void f() {
 }
 ''');
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertReplacementBack(4);
+      ..hasReplacement(left: 4);
 
-    var suggestionsValidator = responseValidator.suggestions;
     // `foo02` has better relevance, its type matches the context type
-    suggestionsValidator.assertCompletions(['foo02', 'foo01']);
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..isTopLevelVariable,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..isTopLevelVariable,
+    ]);
   }
 
   Future<void> test_yaml_analysisOptions_root() async {
     await _configureWithWorkspaceRoot();
 
     var path = convertPath('$testPackageRootPath/analysis_options.yaml');
-    var responseValidator = await _getCodeSuggestions(
+    var response = await _getCodeSuggestions(
       path: path,
       content: '^',
     );
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertEmptyReplacement();
+      ..hasEmptyReplacement();
 
-    responseValidator.suggestions
-        .withKindIdentifier()
-        .assertCompletionsContainsAll([
-      'analyzer: ',
-      'include: ',
-      'linter: ',
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('analyzer: ')
+        ..kind.isIdentifier,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('include: ')
+        ..kind.isIdentifier,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('linter: ')
+        ..kind.isIdentifier,
     ]);
   }
 
@@ -1477,20 +1535,22 @@ void f() {
     await _configureWithWorkspaceRoot();
 
     var path = convertPath('$testPackageRootPath/fix_data.yaml');
-    var responseValidator = await _getCodeSuggestions(
+    var response = await _getCodeSuggestions(
       path: path,
       content: '^',
     );
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertEmptyReplacement();
+      ..hasEmptyReplacement();
 
-    responseValidator.suggestions
-        .withKindIdentifier()
-        .assertCompletionsContainsAll([
-      'version: ',
-      'transforms:',
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('version: ')
+        ..kind.isIdentifier,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('transforms:')
+        ..kind.isIdentifier,
     ]);
   }
 
@@ -1498,25 +1558,29 @@ void f() {
     await _configureWithWorkspaceRoot();
 
     var path = convertPath('$testPackageRootPath/pubspec.yaml');
-    var responseValidator = await _getCodeSuggestions(
+    var response = await _getCodeSuggestions(
       path: path,
       content: '^',
     );
 
-    responseValidator
+    check(response)
       ..assertComplete()
-      ..assertEmptyReplacement();
+      ..hasEmptyReplacement();
 
-    responseValidator.suggestions
-        .withKindIdentifier()
-        .assertCompletionsContainsAll([
-      'name: ',
-      'dependencies: ',
-      'dev_dependencies: ',
+    check(response).suggestions.includesAll([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('name: ')
+        ..kind.isIdentifier,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('dependencies: ')
+        ..kind.isIdentifier,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('dev_dependencies: ')
+        ..kind.isIdentifier,
     ]);
   }
 
-  Future<CompletionGetSuggestions2ResponseValidator> _getCodeSuggestions({
+  Future<CompletionResponseForTesting> _getCodeSuggestions({
     required String path,
     required String content,
     int maxResults = 1 << 10,
@@ -1538,7 +1602,7 @@ void f() {
     );
   }
 
-  Future<CompletionGetSuggestions2ResponseValidator> _getSuggestions({
+  Future<CompletionResponseForTesting> _getSuggestions({
     required String path,
     required int completionOffset,
     required int maxResults,
@@ -1551,13 +1615,20 @@ void f() {
 
     var response = await _handleSuccessfulRequest(request);
     var result = CompletionGetSuggestions2Result.fromResponse(response);
-    return CompletionGetSuggestions2ResponseValidator(completionOffset, result);
+    return CompletionResponseForTesting(
+      requestOffset: completionOffset,
+      replacementOffset: result.replacementOffset,
+      replacementLength: result.replacementLength,
+      isIncomplete: result.isIncomplete,
+      librariesToImport: result.libraryUrisToImport,
+      suggestions: result.suggestions,
+    );
   }
 
-  Future<CompletionGetSuggestions2ResponseValidator> _getTestCodeSuggestions(
+  Future<CompletionResponseForTesting> _getTestCodeSuggestions(
     String content, {
     int maxResults = 1 << 10,
-  }) async {
+  }) {
     return _getCodeSuggestions(
       path: convertPath(testFilePath),
       content: content,
@@ -2474,44 +2545,15 @@ class CompletionGetSuggestions2ResponseValidator {
     this.result,
   );
 
-  SuggestionsValidator get suggestions {
-    return SuggestionsValidator(
-      result.suggestions,
-      libraryUrisToImport: result.libraryUrisToImport,
+  CompletionResponseForTesting get asResponse {
+    return CompletionResponseForTesting(
+      requestOffset: completionOffset,
+      replacementOffset: result.replacementOffset,
+      replacementLength: result.replacementLength,
+      isIncomplete: result.isIncomplete,
+      librariesToImport: result.libraryUrisToImport,
+      suggestions: result.suggestions,
     );
-  }
-
-  void assertComplete() {
-    expect(result.isIncomplete, isFalse);
-  }
-
-  void assertEmptyReplacement() {
-    assertReplacement(completionOffset, 0);
-  }
-
-  void assertIncomplete() {
-    expect(result.isIncomplete, isTrue);
-  }
-
-  void assertLibrariesToImport({
-    required List<String> includes,
-    List<String>? excludes,
-  }) {
-    expect(result.libraryUrisToImport, containsAll(includes));
-    if (excludes != null) {
-      for (var exclude in excludes) {
-        expect(result.libraryUrisToImport, isNot(contains(exclude)));
-      }
-    }
-  }
-
-  void assertReplacement(int offset, int length) {
-    expect(result.replacementOffset, offset);
-    expect(result.replacementLength, length);
-  }
-
-  void assertReplacementBack(int length) {
-    assertReplacement(completionOffset - length, length);
   }
 }
 
@@ -2635,149 +2677,18 @@ class RequestWithFutureResponse {
 
   RequestWithFutureResponse(this.offset, this.request, this.futureResponse);
 
-  Future<CompletionGetSuggestions2ResponseValidator> toResult() async {
+  Future<CompletionResponseForTesting> toResponse() async {
     var response = await futureResponse;
     expect(response, isResponseSuccess(request.id));
     var result = CompletionGetSuggestions2Result.fromResponse(response);
-    return CompletionGetSuggestions2ResponseValidator(offset, result);
-  }
-}
-
-class SingleSuggestionValidator {
-  final CompletionSuggestion suggestion;
-  final List<String>? libraryUrisToImport;
-
-  SingleSuggestionValidator(
-    this.suggestion, {
-    this.libraryUrisToImport,
-  });
-
-  void assertClass() {
-    expect(suggestion.kind, CompletionSuggestionKind.IDENTIFIER);
-    expect(suggestion.element?.kind, ElementKind.CLASS);
-  }
-
-  void assertConstructor() {
-    expect(suggestion.kind, CompletionSuggestionKind.INVOCATION);
-    expect(suggestion.element?.kind, ElementKind.CONSTRUCTOR);
-  }
-
-  void assertGetter() {
-    expect(suggestion.kind, CompletionSuggestionKind.IDENTIFIER);
-    expect(suggestion.element?.kind, ElementKind.GETTER);
-  }
-
-  void assertLibraryToImport(Object matcher) {
-    final libraryUrisToImport = this.libraryUrisToImport;
-    final index = suggestion.libraryUriToImportIndex;
-    var libraryUri = libraryUrisToImport != null && index != null
-        ? libraryUrisToImport[index]
-        : null;
-    expect(libraryUri, matcher);
-  }
-
-  void assertMethod() {
-    expect(suggestion.kind, CompletionSuggestionKind.INVOCATION);
-    expect(suggestion.element?.kind, ElementKind.METHOD);
-  }
-
-  void assertSetter() {
-    expect(suggestion.kind, CompletionSuggestionKind.IDENTIFIER);
-    expect(suggestion.element?.kind, ElementKind.SETTER);
-  }
-
-  void assertTopLevelVariable() {
-    expect(suggestion.kind, CompletionSuggestionKind.IDENTIFIER);
-    expect(suggestion.element?.kind, ElementKind.TOP_LEVEL_VARIABLE);
-  }
-}
-
-class SuggestionsValidator {
-  final List<CompletionSuggestion> suggestions;
-  final List<String>? libraryUrisToImport;
-
-  SuggestionsValidator(
-    this.suggestions, {
-    this.libraryUrisToImport,
-  });
-
-  int get length => suggestions.length;
-
-  /// Assert that this has suggestions with exactly the given completions,
-  /// with the exact order.
-  ///
-  /// Does not check suggestion kinds, elements, etc.
-  void assertCompletions(Iterable<String> completions) {
-    var actual = suggestions.map((e) => e.completion).toList();
-    expect(actual, completions);
-  }
-
-  /// Assert that this has suggestions with all [expected] completions.
-  /// There might be more suggestions, with other completions.
-  ///
-  /// Does not check the order, kinds, elements, etc.
-  void assertCompletionsContainsAll(Iterable<String> expected) {
-    var actual = suggestions.map((e) => e.completion).toSet();
-    expect(actual, containsAll(expected));
-  }
-
-  void assertEmpty() {
-    check(suggestions).isEmpty;
-  }
-
-  void assertLength(Object matcher) {
-    expect(suggestions, hasLength(matcher));
-  }
-
-  SingleSuggestionValidator assertSingle() {
-    assertLength(1);
-    return SingleSuggestionValidator(
-      suggestions.single,
-      libraryUrisToImport: libraryUrisToImport,
+    return CompletionResponseForTesting(
+      requestOffset: offset,
+      replacementOffset: result.replacementOffset,
+      replacementLength: result.replacementLength,
+      isIncomplete: result.isIncomplete,
+      librariesToImport: result.libraryUrisToImport,
+      suggestions: result.suggestions,
     );
-  }
-
-  SuggestionsValidator withCompletion(String completion) {
-    return SuggestionsValidator(
-      suggestions.where((suggestion) {
-        return suggestion.completion == completion;
-      }).toList(),
-      libraryUrisToImport: libraryUrisToImport,
-    );
-  }
-
-  SuggestionsValidator withElementClass() {
-    return withElementKind(ElementKind.CLASS);
-  }
-
-  SuggestionsValidator withElementConstructor() {
-    return withElementKind(ElementKind.CONSTRUCTOR);
-  }
-
-  SuggestionsValidator withElementGetter() {
-    return withElementKind(ElementKind.GETTER);
-  }
-
-  SuggestionsValidator withElementKind(ElementKind kind) {
-    return SuggestionsValidator(
-      suggestions.where((suggestion) {
-        return suggestion.element?.kind == kind;
-      }).toList(),
-      libraryUrisToImport: libraryUrisToImport,
-    );
-  }
-
-  SuggestionsValidator withKind(CompletionSuggestionKind kind) {
-    return SuggestionsValidator(
-      suggestions.where((suggestion) {
-        return suggestion.kind == kind;
-      }).toList(),
-      libraryUrisToImport: libraryUrisToImport,
-    );
-  }
-
-  SuggestionsValidator withKindIdentifier() {
-    return withKind(CompletionSuggestionKind.IDENTIFIER);
   }
 }
 

@@ -1,0 +1,23 @@
+{
+  "none": {
+    "libraries": {
+      "supported.by.spec": {
+        "uri": "supported.by.spec_lib.dart"
+      },
+      "_supported.by.target": {
+        "uri": "supported.by.target_lib.dart"
+      },
+      "unsupported.by.spec": {
+        "uri": "unsupported.by.spec_lib.dart",
+        "supported": false
+      },
+      "unsupported.by.target": {
+        "uri": "unsupported.by.target_lib.dart",
+        "supported": true
+      },
+      "_unsupported.by.spec_internal": {
+        "uri": "unsupported.by.spec_internal_lib.dart"
+      }
+    }
+  }
+}

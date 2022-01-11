@@ -393,12 +393,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       DeclarationBuilder? declarationBuilder,
       ModifierBuilder member,
       Scope scope,
-      Uri fileUri)
+      Uri fileUri,
+      {Scope? formalParameterScope})
       : this(
             libraryBuilder: library,
             member: member,
             enclosingScope: scope,
-            formalParameterScope: null,
+            formalParameterScope: formalParameterScope,
             hierarchy: library.loader.hierarchy,
             coreTypes: library.loader.coreTypes,
             declarationBuilder: declarationBuilder,

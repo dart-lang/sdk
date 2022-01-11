@@ -688,6 +688,7 @@ jakemac
 java
 jenkins
 jensj
+jit
 job
 johnniwinther
 js

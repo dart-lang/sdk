@@ -63,7 +63,16 @@ in 2018, as it doesn't work with any Dart 2.x release.
 
 #### Linter
 
-Updated the Linter to `1.17.1`, which includes changes that
+Updated the Linter to `1.18.0`, which includes changes that
+
+- extends `camel_case_types` to cover enums.
+- fixes `no_leading_underscores_for_local_identifiers` to not 
+  mis-flag field formal parameters with default values.
+- fixes `prefer_function_declarations_over_variables` to not
+  mis-flag non-final fields.
+- improves performance for `prefer_contains`.
+- updates `exhaustive_cases` to skip deprecated values that
+  redirect to other values.
 - adds new lint: `unnecessary_late`.
 - improves docs for `prefer_initializing_formals`.
 - updates `secure_pubspec_urls` to check `issue_tracker` and

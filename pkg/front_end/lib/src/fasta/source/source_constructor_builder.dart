@@ -38,6 +38,7 @@ import '../messages.dart'
         messageRedirectingConstructorWithSuperInitializer,
         messageSuperInitializerNotLast,
         noLength;
+import '../scope.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
@@ -435,9 +436,19 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     // initializers to infer types of the super-initializing parameters.
     if ((isConst || _hasSuperInitializingFormals) &&
         beginInitializers != null) {
+      final Scope? formalParameterScope;
+      if (isConst) {
+        // We're going to fully build the constructor so we need scopes.
+        formalParameterScope = computeFormalParameterInitializerScope(
+            computeFormalParameterScope(
+                computeTypeParameterScope(declarationBuilder!.scope)));
+      } else {
+        formalParameterScope = null;
+      }
       BodyBuilder bodyBuilder = library.loader
           .createBodyBuilderForOutlineExpression(
-              library, classBuilder, this, classBuilder.scope, fileUri);
+              library, classBuilder, this, classBuilder.scope, fileUri,
+              formalParameterScope: formalParameterScope);
       bodyBuilder.constantContext = ConstantContext.required;
       bodyBuilder.parseInitializers(beginInitializers!,
           doFinishConstructor: isConst);

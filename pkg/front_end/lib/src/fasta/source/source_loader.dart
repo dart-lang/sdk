@@ -26,6 +26,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, HandleAmbiguousSupertypes;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/util/graph.dart';
 import 'package:package_config/package_config.dart' as package_config;
@@ -318,7 +319,32 @@ class SourceLoader extends Loader {
         loader: this,
         origin: origin,
         referencesFrom: referencesFrom,
-        referenceIsPartOwner: referenceIsPartOwner);
+        referenceIsPartOwner: referenceIsPartOwner,
+        isUnsupported: origin?.library.isUnsupported ??
+            importUri.scheme == 'dart' &&
+                !target.uriTranslator.isLibrarySupported(importUri.path));
+  }
+
+  /// Return `"true"` if the [dottedName] is a 'dart.library.*' qualifier for a
+  /// supported dart:* library, and `""` otherwise.
+  ///
+  /// This is used to determine conditional imports and `bool.fromEnvironment`
+  /// constant values for "dart.library.[libraryName]" values.
+  String getLibrarySupportValue(String dottedName) {
+    if (!DartLibrarySupport.isDartLibraryQualifier(dottedName)) {
+      return "";
+    }
+    String libraryName = DartLibrarySupport.getDartLibraryName(dottedName);
+    Uri uri = new Uri(scheme: "dart", path: libraryName);
+    LibraryBuilder? library = lookupLibraryBuilder(uri);
+    // TODO(johnniwinther): Why is the dill target sometimes not loaded at this
+    // point? And does it matter?
+    library ??= target.dillTarget.loader.lookupLibraryBuilder(uri);
+    return DartLibrarySupport.getDartLibrarySupportValue(libraryName,
+        libraryExists: library != null,
+        isSynthetic: library?.isSynthetic ?? true,
+        isUnsupported: library?.isUnsupported ?? true,
+        dartLibrarySupport: target.backendTarget.dartLibrarySupport);
   }
 
   SourceLibraryBuilder _createSourceLibraryBuilder(
@@ -728,9 +754,11 @@ severity: $severity
       DeclarationBuilder? declarationBuilder,
       ModifierBuilder member,
       Scope scope,
-      Uri fileUri) {
+      Uri fileUri,
+      {Scope? formalParameterScope}) {
     return new BodyBuilder.forOutlineExpression(
-        library, declarationBuilder, member, scope, fileUri);
+        library, declarationBuilder, member, scope, fileUri,
+        formalParameterScope: formalParameterScope);
   }
 
   NnbdMode get nnbdMode => target.context.options.nnbdMode;
@@ -1136,6 +1164,9 @@ severity: $severity
         builder, dietListener.memberScope,
         isDeclarationInstanceMember: isClassInstanceMember,
         extensionThis: extensionThis);
+    for (VariableDeclaration variable in parameters.positionalParameters) {
+      listener.typeInferrer.assignedVariables.declare(variable);
+    }
 
     return listener.parseSingleExpression(
         new Parser(listener,

@@ -1,0 +1,27 @@
+import 'dart:supported.by.spec';
+import 'dart:unsupported.by.spec';
+import 'dart:unsupported.by.target';
+import 'import_default_lib.dart'
+    if (dart.library.supported.by.spec) 'import_supported.by.spec_lib.dart'
+    if (dart.library._supported.by.target) 'import_supported.by.target_lib.dart'
+    if (dart.library.unsupported.by.target) 'import_unsupported.by.target_lib.dart'
+    if (dart.library.unsupported.by.spec) 'import_unsupported.by.spec_lib.dart'
+    if (dart.library._unsupported.by.spec_internal) 'import_unsupported.by.spec_internal_lib.dart'
+    as from_supported_by_spec_first;
+import 'import_default_lib.dart'
+    if (dart.library.unsupported.by.target) 'import_unsupported.by.target_lib.dart'
+    if (dart.library.unsupported.by.spec) 'import_unsupported.by.spec_lib.dart'
+    if (dart.library._unsupported.by.spec_internal) 'import_unsupported.by.spec_internal_lib.dart'
+    if (dart.library._supported.by.target) 'import_supported.by.target_lib.dart'
+    if (dart.library.supported.by.spec) 'import_supported.by.spec_lib.dart'
+    as from_supported_by_target;
+import 'import_default_lib.dart'
+    if (dart.library.unsupported.by.spec) 'import_unsupported.by.spec_lib.dart'
+    if (dart.library.unsupported.by.target) 'import_unsupported.by.target_lib.dart'
+    if (dart.library._unsupported.by.spec_internal) 'import_unsupported.by.spec_internal_lib.dart'
+    if (dart.library.supported.by.spec) 'import_supported.by.spec_lib.dart'
+    if (dart.library._supported.by.target) 'import_supported.by.target_lib.dart'
+    as from_supported_by_spec_last;
+
+expect(expected, actual) {}
+main() {}

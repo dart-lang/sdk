@@ -8,7 +8,11 @@ import "conditional_import.dart"
     if (dart.library.html) "dart:html" as a;
 
 // All three libraries have an HttpRequest class.
-import "conditional_import.dart" if (dart.library.foo) "dart:foo" as b;
+import "conditional_import.dart"
+    if (dart.library.html) "dart:html"
+    if (dart.library.io) "dart:io" as b;
+
+import "conditional_import.dart" if (dart.library.foo) "dart:foo" as c;
 
 class HttpRequest {}
 
@@ -20,6 +24,13 @@ testA(a.HttpRequest request) {
 }
 
 testB(b.HttpRequest request) {
+  request.certificate; // error (from dart:io)
+  request.response; // ok (from dart:io and dart:html)
+  request.readyState; // ok (from dart:html)
+  request.hashCode; // ok
+}
+
+testC(c.HttpRequest request) {
   request.certificate; // error
   request.response; // error
   request.readyState; // error

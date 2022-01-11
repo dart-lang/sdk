@@ -832,6 +832,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       loader: loader,
       scope: libraryBuilder.scope.createNestedScope("dartdoctest"),
       nameOrigin: libraryBuilder,
+      isUnsupported: false,
     );
 
     if (libraryBuilder is DillLibraryBuilder) {

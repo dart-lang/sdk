@@ -139,6 +139,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   Uri? get packageUriForTesting => _packageUri;
 
+  @override
+  final bool isUnsupported;
+
   final List<Object> accessors = <Object>[];
 
   @override
@@ -250,7 +253,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Library library,
       LibraryBuilder? nameOrigin,
       Library? referencesFrom,
-      bool? referenceIsPartOwner)
+      bool? referenceIsPartOwner,
+      bool isUnsupported)
       : this.fromScopes(
             loader,
             fileUri,
@@ -261,7 +265,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             origin,
             library,
             nameOrigin,
-            referencesFrom);
+            referencesFrom,
+            isUnsupported);
 
   SourceLibraryBuilder.fromScopes(
       this.loader,
@@ -273,7 +278,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceLibraryBuilder? origin,
       this.library,
       this._nameOrigin,
-      this.referencesFrom)
+      this.referencesFrom,
+      this.isUnsupported)
       : _languageVersion = packageLanguageVersion,
         currentTypeParameterScopeBuilder = _libraryTypeParameterScopeBuilder,
         referencesFromIndexed =
@@ -462,7 +468,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Library? target,
       LibraryBuilder? nameOrigin,
       Library? referencesFrom,
-      bool? referenceIsPartOwner})
+      bool? referenceIsPartOwner,
+      required bool isUnsupported})
       : this.internal(
             loader,
             fileUri,
@@ -480,7 +487,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   ..setLanguageVersion(packageLanguageVersion.version)),
             nameOrigin,
             referencesFrom,
-            referenceIsPartOwner);
+            referenceIsPartOwner,
+            isUnsupported);
 
   @override
   bool get isPart => partOfName != null || partOfUri != null;
@@ -703,7 +711,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int uriOffset) {
     if (configurations != null) {
       for (Configuration config in configurations) {
-        if (lookupImportCondition(config.dottedName) == config.condition) {
+        if (loader.getLibrarySupportValue(config.dottedName) ==
+            config.condition) {
           uri = config.importUri;
           break;
         }
@@ -715,26 +724,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         accessor: this);
     exportedLibrary.addExporter(this, combinators, charOffset);
     exports.add(new Export(this, exportedLibrary, combinators, charOffset));
-  }
-
-  String lookupImportCondition(String dottedName) {
-    const String prefix = "dart.library.";
-    if (!dottedName.startsWith(prefix)) return "";
-    dottedName = dottedName.substring(prefix.length);
-    if (!loader.target.uriTranslator.isLibrarySupported(dottedName)) return "";
-
-    LibraryBuilder? imported =
-        loader.lookupLibraryBuilder(new Uri(scheme: "dart", path: dottedName));
-
-    if (imported == null) {
-      LibraryBuilder coreLibrary = loader.readAsEntryPoint(resolve(
-          this.importUri,
-          new Uri(scheme: "dart", path: "core").toString(),
-          -1));
-      imported = coreLibrary.loader
-          .lookupLibraryBuilder(new Uri(scheme: 'dart', path: dottedName));
-    }
-    return imported != null && !imported.isSynthetic ? "true" : "";
   }
 
   void addImport(
@@ -750,7 +739,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int importIndex) {
     if (configurations != null) {
       for (Configuration config in configurations) {
-        if (lookupImportCondition(config.dottedName) == config.condition) {
+        if (loader.getLibrarySupportValue(config.dottedName) ==
+            config.condition) {
           uri = config.importUri;
           break;
         }
@@ -1076,6 +1066,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (!modifyTarget) return library;
 
     library.isSynthetic = isSynthetic;
+    library.isUnsupported = isUnsupported;
     addDependencies(library, new Set<SourceLibraryBuilder>());
 
     library.name = name;

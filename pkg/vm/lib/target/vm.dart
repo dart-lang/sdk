@@ -500,18 +500,11 @@ class VmTarget extends Target {
     // TODO(alexmarkov): Call this from the front-end in order to have
     //  the same defines when compiling platform.
     map['dart.isVM'] = 'true';
-    // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
-    for (String library in extraRequiredLibraries) {
-      Uri libraryUri = Uri.parse(library);
-      if (libraryUri.scheme == 'dart') {
-        final path = libraryUri.path;
-        if (!path.startsWith('_')) {
-          map['dart.library.${path}'] = 'true';
-        }
-      }
-    }
-    // dart:core is not mentioned in Target.extraRequiredLibraries.
-    map['dart.library.core'] = 'true';
     return map;
   }
+
+  @override
+  DartLibrarySupport get dartLibrarySupport => flags.supportMirrors
+      ? const DefaultDartLibrarySupport()
+      : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
 }

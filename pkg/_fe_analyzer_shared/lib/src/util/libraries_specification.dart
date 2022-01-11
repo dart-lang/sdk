@@ -76,6 +76,9 @@
 ///     report that such library is still not supported in conditional imports
 ///     and const `fromEnvironment` expressions.
 ///
+///     Internal libraries are never supported through conditional imports and
+///     const `fromEnvironment` expressions.
+///
 ///
 /// Note: we currently have several different files that need to be updated
 /// when changing libraries, sources, and patch files:
@@ -270,8 +273,10 @@ class LibrariesSpecification {
         if (supported is! bool) {
           _reportError(messageSupportedIsNotABool(supported));
         }
-        libraries[libraryName] =
-            new LibraryInfo(libraryName, uri, patches, isSupported: supported);
+        libraries[libraryName] = new LibraryInfo(libraryName, uri, patches,
+            // Internal libraries are never supported through conditional
+            // imports and const `fromEnvironment` expressions.
+            isSupported: supported && !libraryName.startsWith('_'));
       });
       currentTargets.remove(targetName);
       return targets[targetName] =

@@ -44,7 +44,6 @@ main() {
         memorySourceFiles: {'a.dill': aDill, 'b.dill': bDill, 'c.dill': cDill},
         diagnosticHandler: diagnostics,
         outputProvider: output);
-    await compiler.setupSdk();
     KernelResult result = await compiler.kernelLoader.load();
     compiler.frontendStrategy.registerLoadedLibraries(result);
 

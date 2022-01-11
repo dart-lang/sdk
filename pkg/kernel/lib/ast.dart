@@ -273,6 +273,7 @@ class Library extends NamedNode
   static const int NonNullableByDefaultFlag = 1 << 1;
   static const int NonNullableByDefaultModeBit1 = 1 << 2;
   static const int NonNullableByDefaultModeBit2 = 1 << 3;
+  static const int IsUnsupportedFlag = 1 << 4;
 
   int flags = 0;
 
@@ -320,6 +321,13 @@ class Library extends NamedNode
             NonNullableByDefaultModeBit2;
         break;
     }
+  }
+
+  /// If true, the library is not supported through the 'dart.library.*' value
+  /// used in conditional imports and `bool.fromEnvironment` constants.
+  bool get isUnsupported => flags & IsUnsupportedFlag != 0;
+  void set isUnsupported(bool value) {
+    flags = value ? (flags | IsUnsupportedFlag) : (flags & ~IsUnsupportedFlag);
   }
 
   String? name;

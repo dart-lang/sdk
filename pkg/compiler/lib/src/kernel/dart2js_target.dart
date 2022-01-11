@@ -221,6 +221,10 @@ class Dart2jsTarget extends Target {
   @override
   ConstantsBackend get constantsBackend =>
       const Dart2jsConstantsBackend(supportsUnevaluatedConstants: true);
+
+  @override
+  DartLibrarySupport get dartLibrarySupport =>
+      const Dart2jsDartLibrarySupport();
 }
 
 // TODO(sigmund): this "extraRequiredLibraries" needs to be removed...
@@ -313,4 +317,9 @@ class Dart2jsConstantsBackend extends ConstantsBackend {
 
   @override
   NumberSemantics get numberSemantics => NumberSemantics.js;
+}
+
+class Dart2jsDartLibrarySupport extends CustomizedDartLibrarySupport {
+  const Dart2jsDartLibrarySupport()
+      : super(supported: const {'_dart2js_runtime_metrics'});
 }
