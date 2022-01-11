@@ -247,6 +247,14 @@ class SourceLoader extends Loader {
     return _sourceLibraryBuilders!;
   }
 
+  void clearSourceLibraryBuilders() {
+    assert(
+        _sourceLibraryBuilders != null,
+        "Source library builder hasn't been computed yet. "
+        "The source libraries are in SourceLoader.resolveParts.");
+    _sourceLibraryBuilders!.clear();
+  }
+
   Iterable<Uri> get libraryImportUris => _builders.keys;
 
   void registerLibraryBuilder(LibraryBuilder libraryBuilder) {
