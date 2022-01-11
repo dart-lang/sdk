@@ -3443,6 +3443,15 @@
           ]
         },
         {
+          "name": "analyze pkg/dds_service_extensions",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "arguments": [
+            "analyze",
+            "--fatal-infos",
+            "pkg/dds_service_extensions"
+          ]
+        },
+        {
           "name": "analyze runtime/observatory",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [

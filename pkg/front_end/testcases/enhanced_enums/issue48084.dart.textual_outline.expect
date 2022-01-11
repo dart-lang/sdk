@@ -1,0 +1,3 @@
+enum E { one("foo"), two("bar"); final String field; const E(this.field); @override String toString() => field; }
+expectEquals(a, b) {}
+main() {}

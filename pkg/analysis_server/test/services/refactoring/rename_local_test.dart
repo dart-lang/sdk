@@ -565,6 +565,31 @@ void f(A<int> a) {
 ''');
   }
 
+  Future<void> test_createChange_parameter_named_super() async {
+    await indexTestUnit('''
+class A {
+  A({required int test}); // 0
+}
+class B extends A {
+  B({required super.test});
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test}); // 0');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class A {
+  A({required int newName}); // 0
+}
+class B extends A {
+  B({required super.newName});
+}
+''');
+  }
+
   Future<void> test_createChange_parameter_named_updateHierarchy() async {
     await indexUnit('$testPackageLibPath/test2.dart', '''
 library test2;
@@ -650,6 +675,33 @@ myFunction([int? newName]) {
 }
 void f() {
   myFunction(2);
+}
+''');
+  }
+
+  Future<void> test_createChange_parameter_positional_super() async {
+    await indexTestUnit('''
+class A {
+  A(int test); // 0
+}
+class B extends A {
+  B(super.test);
+}
+''');
+
+    createRenameRefactoringAtString('test); // 0');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+
+    // The name of the super-formal parameter does not have to be the same.
+    // So, we don't rename it.
+    return assertSuccessfulRefactoring('''
+class A {
+  A(int newName); // 0
+}
+class B extends A {
+  B(super.test);
 }
 ''');
   }

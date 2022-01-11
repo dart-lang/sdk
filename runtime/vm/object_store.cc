@@ -87,6 +87,10 @@ ErrorPtr IsolateObjectStore::PreallocateObjects(const Object& out_of_memory) {
   set_preallocated_unhandled_exception(UnhandledException::Handle(
       zone, UnhandledException::New(Instance::Cast(out_of_memory),
                                     preallocated_stack_trace)));
+  const UnwindError& preallocated_unwind_error =
+      UnwindError::Handle(zone, UnwindError::New(String::Handle(
+                                    zone, String::New("isolate is exiting"))));
+  set_preallocated_unwind_error(preallocated_unwind_error);
 
   return Error::null();
 }

@@ -48,9 +48,7 @@ class ClassHierarchyNodeBuilder {
     }
 
     List<Supertype> superclasses;
-
-    List<Supertype> interfaces;
-
+    List<Supertype> interfacesList;
     int maxInheritancePath;
 
     List<TypeBuilder>? directInterfaceBuilders;
@@ -62,7 +60,7 @@ class ClassHierarchyNodeBuilder {
     if (supernode == null) {
       // This should be Object.
       superclasses = new List<Supertype>.filled(0, dummySupertype);
-      interfaces = new List<Supertype>.filled(0, dummySupertype);
+      interfacesList = new List<Supertype>.filled(0, dummySupertype);
       maxInheritancePath = 0;
     } else {
       maxInheritancePath = supernode.maxInheritancePath + 1;
@@ -107,7 +105,7 @@ class ClassHierarchyNodeBuilder {
       }
 
       if (directInterfaceBuilders != null) {
-        interfaces = <Supertype>[];
+        Map<Class, Supertype> interfaces = {};
         // ignore: unnecessary_null_comparison
         if (superclassInterfaces != null) {
           for (int i = 0; i < superclassInterfaces.length; i++) {
@@ -145,16 +143,18 @@ class ClassHierarchyNodeBuilder {
             }
           }
         }
+        interfacesList = interfaces.values.toList();
         // ignore: unnecessary_null_comparison
       } else if (superclassInterfaces != null &&
           !classBuilder.library.isNonNullableByDefault &&
           supernode.classBuilder.library.isNonNullableByDefault) {
-        interfaces = <Supertype>[];
+        Map<Class, Supertype> interfaces = {};
         for (int i = 0; i < superclassInterfaces.length; i++) {
           addInterface(interfaces, superclasses, superclassInterfaces[i]);
         }
+        interfacesList = interfaces.values.toList();
       } else {
-        interfaces = superclassInterfaces;
+        interfacesList = superclassInterfaces;
       }
     }
 
@@ -162,30 +162,19 @@ class ClassHierarchyNodeBuilder {
       recordSupertype(superclass);
     }
     // ignore: unnecessary_null_comparison
-    if (interfaces != null) {
-      for (Supertype superinterface in interfaces) {
+    if (interfacesList != null) {
+      for (Supertype superinterface in interfacesList) {
         recordSupertype(superinterface);
       }
     }
 
-    /*ClassHierarchyMemberNode memberNode =
-    buildMemberNode(supernode, directInterfaceBuilders);*/
-
     return new ClassHierarchyNode(
-      classBuilder,
-      supernode,
-      directInterfaceBuilders,
-      /*classMemberMap,
-        classSetterMap,
-        interfaceMemberMap,
-        interfaceSetterMap,*/
-      superclasses,
-      interfaces,
-      maxInheritancePath,
-      /*hasNoSuchMethod,
-        dataForTesting,*/
-      /*memberNode*/
-    );
+        classBuilder,
+        supernode,
+        directInterfaceBuilders,
+        superclasses,
+        interfacesList,
+        maxInheritancePath);
   }
 
   Supertype recordSupertype(Supertype supertype) {
@@ -242,8 +231,8 @@ class ClassHierarchyNodeBuilder {
     return result ?? supertypes;
   }
 
-  void addInterface(List<Supertype> interfaces, List<Supertype> superclasses,
-      Supertype type) {
+  void addInterface(Map<Class, Supertype> interfaces,
+      List<Supertype> superclasses, Supertype type) {
     // ignore: unnecessary_null_comparison
     if (type == null) return null;
     if (!classBuilder.library.isNonNullableByDefault) {
@@ -273,31 +262,26 @@ class ClassHierarchyNodeBuilder {
       }
       return;
     } else {
-      for (int i = 0; i < interfaces.length; i++) {
-        // This is a quadratic algorithm, but normally, the number of
-        // interfaces is really small.
-        Supertype? interface = interfaces[i];
-        if (interface.classNode == type.classNode) {
-          // This is a potential conflict.
-          if (classBuilder.library.isNonNullableByDefault) {
-            interface = nnbdTopMergeSupertype(
-                hierarchy.coreTypes,
-                normSupertype(hierarchy.coreTypes, interface),
-                normSupertype(hierarchy.coreTypes, type));
-            if (interface == null) {
-              // This is a conflict.
-              // TODO(johnniwinther): Report errors here instead of through
-              // the computation of the [ClassHierarchy].
-              interface = interfaces[i];
-            } else {
-              interfaces[i] = interface;
-            }
+      Supertype? interface = interfaces[type.classNode];
+      if (interface != null) {
+        // This is a potential conflict.
+        if (classBuilder.library.isNonNullableByDefault) {
+          interface = nnbdTopMergeSupertype(
+              hierarchy.coreTypes,
+              normSupertype(hierarchy.coreTypes, interface),
+              normSupertype(hierarchy.coreTypes, type));
+          if (interface == null) {
+            // This is a conflict.
+            // TODO(johnniwinther): Report errors here instead of through
+            // the computation of the [ClassHierarchy].
+          } else {
+            interfaces[type.classNode] = interface;
           }
-          return;
         }
+        return;
       }
     }
-    interfaces.add(type);
+    interfaces[type.classNode] = type;
   }
 
   void inferMixinApplication() {
@@ -349,27 +333,6 @@ class ClassHierarchyNode {
 
   final List<TypeBuilder>? directInterfaceBuilders;
 
-  /*/// All the members of this class including [classMembers] of its
-  /// superclasses. The members are sorted by [compareDeclarations].
-  final Map<Name, ClassMember> classMemberMap;
-
-  /// Similar to [classMembers] but for setters.
-  final Map<Name, ClassMember> classSetterMap;
-
-  /// All the interface members of this class including [interfaceMembers] of
-  /// its supertypes. The members are sorted by [compareDeclarations].
-  ///
-  /// In addition to the members of [classMembers] this also contains members
-  /// from interfaces.
-  ///
-  /// This may be null, in which case [classMembers] is the interface members.
-  final Map<Name, ClassMember>? interfaceMemberMap;
-
-  /// Similar to [interfaceMembers] but for setters.
-  ///
-  /// This may be null, in which case [classSetters] is the interface setters.
-  final Map<Name, ClassMember>? interfaceSetterMap;*/
-
   /// All superclasses of [classBuilder] excluding itself. The classes are
   /// sorted by depth from the root (Object) in ascending order.
   final List<Supertype> superclasses;
@@ -383,27 +346,13 @@ class ClassHierarchyNode {
 
   int get depth => superclasses.length;
 
-  /*final bool hasNoSuchMethod;
-
-  final ClassHierarchyNodeDataForTesting? dataForTesting;*/
-
-  //final ClassHierarchyMemberNode memberNode;
-
   ClassHierarchyNode(
-    this.classBuilder,
-    this.supernode,
-    this.directInterfaceBuilders,
-    /*this.classMemberMap,
-      this.classSetterMap,
-      this.interfaceMemberMap,
-      this.interfaceSetterMap,*/
-    this.superclasses,
-    this.interfaces,
-    this.maxInheritancePath,
-    /*this.hasNoSuchMethod,
-      this.dataForTesting,*/
-    /*this.memberNode*/
-  );
+      this.classBuilder,
+      this.supernode,
+      this.directInterfaceBuilders,
+      this.superclasses,
+      this.interfaces,
+      this.maxInheritancePath);
 
   /// Returns a list of all supertypes of [classBuilder], including this node.
   List<ClassHierarchyNode> computeAllSuperNodes(

@@ -5,6 +5,7 @@
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
@@ -292,7 +293,12 @@ class TestMacroExecutor implements MacroExecutor {
   }
 
   @override
-  Future<MacroClassIdentifier> loadMacro(Uri library, String name) async {
+  Future<MacroClassIdentifier> loadMacro(Uri library, String name,
+      {Uri? precompiledKernelUri}) async {
+    if (precompiledKernelUri != null) {
+      throw new UnsupportedError(
+          'Precompiled kernel not supported for this implementation.');
+    }
     _MacroClassIdentifier id = new _MacroClassIdentifier(library, name);
     macroClasses.add(id);
     return id;
@@ -320,6 +326,9 @@ class _MacroClassIdentifier implements MacroClassIdentifier {
 
   @override
   String toString() => 'MacroClassIdentifier($uri,$className)';
+
+  @override
+  void serialize(Serializer serializer) => throw UnimplementedError();
 }
 
 class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
@@ -330,4 +339,7 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
   _MacroInstanceIdentifier(this.macroClass, this.constructor, this.arguments);
 
   String toText() => '${macroClass.toText()}/${constructor}()';
+
+  @override
+  void serialize(Serializer serializer) => throw UnimplementedError();
 }

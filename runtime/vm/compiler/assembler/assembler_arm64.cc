@@ -1735,7 +1735,8 @@ void Assembler::TransitionGeneratedToNative(Register destination,
   }
 }
 
-void Assembler::ExitFullSafepoint(Register state) {
+void Assembler::ExitFullSafepoint(Register state,
+                                  bool ignore_unwind_in_progress) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
   Register addr = TMP2;
@@ -1762,7 +1763,14 @@ void Assembler::ExitFullSafepoint(Register state) {
   }
 
   Bind(&slow_path);
-  ldr(addr, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  if (ignore_unwind_in_progress) {
+    ldr(addr,
+        Address(THR,
+                target::Thread::
+                    exit_safepoint_ignore_unwind_in_progress_stub_offset()));
+  } else {
+    ldr(addr, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  }
   ldr(addr, FieldAddress(addr, target::Code::entry_point_offset()));
   blr(addr);
 
@@ -1770,10 +1778,13 @@ void Assembler::ExitFullSafepoint(Register state) {
 }
 
 void Assembler::TransitionNativeToGenerated(Register state,
-                                            bool exit_safepoint) {
+                                            bool exit_safepoint,
+                                            bool ignore_unwind_in_progress) {
   if (exit_safepoint) {
-    ExitFullSafepoint(state);
+    ExitFullSafepoint(state, ignore_unwind_in_progress);
   } else {
+    // flag only makes sense if we are leaving safepoint
+    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     ASSERT(target::Thread::full_safepoint_state_acquired() != 0);

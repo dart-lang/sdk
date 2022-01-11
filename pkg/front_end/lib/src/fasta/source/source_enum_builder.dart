@@ -409,7 +409,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         new Scope(
             local: members,
             setters: setters,
-            parent: parent.scope,
+            parent: scope.parent,
             debugName: "enum $name",
             isModifiable: false),
         constructorScope..local.addAll(constructors),
@@ -555,11 +555,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
           String constructorName =
               enumConstantInfo.constructorReferenceBuilder?.suffix ?? "";
-          SourceConstructorBuilder? constructorBuilder =
-              constructorScopeBuilder[constructorName]
-                  as SourceConstructorBuilder?;
+          MemberBuilder? constructorBuilder =
+              constructorScopeBuilder[constructorName];
 
-          if (constructorBuilder == null) {
+          if (constructorBuilder == null ||
+              constructorBuilder is! SourceConstructorBuilder) {
             // TODO(cstefantsova): Report an error.
           } else {
             Arguments arguments;
@@ -629,16 +629,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
             interfaceTargetReference: nameField.getterReference,
             resultType: nameField.getterType),
       ]));
-    } else {}
+    }
 
     super.buildOutlineExpressions(library, classHierarchy,
         delayedActionPerformers, synthesizedFunctionNodes);
-  }
-
-  @override
-  MemberBuilder? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder library) {
-    return null;
   }
 }
 

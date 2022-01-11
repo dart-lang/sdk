@@ -1,6 +1,7 @@
 ## 3.1.0-dev
 * New internal API for `package:dart_style`.
 * Removed deprecated non-API `MockSdk` class.
+* Removed deprecated `AnalysisDriver` constructor.
 
 ## 3.0.0
 * Removed deprecated `DartType.aliasElement/aliasArguments`.

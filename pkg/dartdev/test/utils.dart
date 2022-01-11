@@ -97,8 +97,17 @@ dev_dependencies:
     _process?.kill();
     await _process?.exitCode;
     _process = null;
-    if (dir.existsSync()) {
-      dir.deleteSync(recursive: true);
+    int deleteAttempts = 5;
+    while (dir.existsSync()) {
+      try {
+        dir.deleteSync(recursive: true);
+      } catch (e) {
+        if ((--deleteAttempts) <= 0) {
+          rethrow;
+        }
+        await Future.delayed(Duration(milliseconds: 500));
+        print('Got $e while deleting $dir. Trying again...');
+      }
     }
   }
 

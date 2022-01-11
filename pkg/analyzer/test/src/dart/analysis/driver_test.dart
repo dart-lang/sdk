@@ -116,7 +116,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
 
   AnalysisDriver newDriver() {
     var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
-    AnalysisDriver driver = AnalysisDriver.tmp1(
+    AnalysisDriver driver = AnalysisDriver(
       scheduler: scheduler,
       logger: logger,
       resourceProvider: resourceProvider,

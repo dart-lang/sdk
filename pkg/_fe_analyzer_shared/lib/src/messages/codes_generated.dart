@@ -2779,12 +2779,12 @@ const MessageCode messageEnumDeclarationEmpty = const MessageCode(
     problemMessage: r"""An enum declaration can't be empty.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeEnumDeclaresFactory = messageEnumDeclaresFactory;
+const Code<Null> codeEnumDeclaresConstFactory = messageEnumDeclaresConstFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumDeclaresFactory = const MessageCode(
-    "EnumDeclaresFactory",
-    problemMessage: r"""Enums can't declare factory constructors.""",
+const MessageCode messageEnumDeclaresConstFactory = const MessageCode(
+    "EnumDeclaresConstFactory",
+    problemMessage: r"""Enums can't declare const factory constructors.""",
     correctionMessage:
         r"""Try removing the factory constructor declaration.""");
 

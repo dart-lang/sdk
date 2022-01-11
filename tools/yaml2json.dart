@@ -10,12 +10,19 @@ import 'dart:convert' show JsonEncoder;
 
 import 'package:yaml/yaml.dart' show loadYaml;
 
-main(List<String> arguments) {
+main(List<String> rawArguments) {
   var port = new RawReceivePort();
   bool check = false;
-  if (arguments.contains('--check')) {
-    arguments = arguments.toList()..remove('--check');
-    check = true;
+  String? relative;
+  List<String> arguments = [];
+  for (String argument in rawArguments) {
+    if (argument == '--check') {
+      check = true;
+    } else if (argument.startsWith('--relative=')) {
+      relative = argument.substring('--relative='.length);
+    } else {
+      arguments.add(argument);
+    }
   }
   if (arguments.length != 2) {
     stderr.writeln("Usage: yaml2json.dart input.yaml output.json [--check]");
@@ -23,11 +30,22 @@ main(List<String> arguments) {
   }
   Uri input = Uri.base.resolve(arguments[0]);
   Uri output = Uri.base.resolve(arguments[1]);
+  String inputString = arguments[0];
+  String outputString = arguments[1];
+  if (relative != null) {
+    String relativeTo = Uri.base.resolve(relative).toString();
+    if (input.toString().startsWith(relativeTo)) {
+      inputString = input.toString().substring(relativeTo.length);
+    }
+    if (output.toString().startsWith(relativeTo)) {
+      outputString = output.toString().substring(relativeTo.length);
+    }
+  }
   Map yaml = loadYaml(new File.fromUri(input).readAsStringSync());
   Map<String, dynamic> result = new Map<String, dynamic>();
   result["comment:0"] = "NOTE: THIS FILE IS GENERATED. DO NOT EDIT.";
   result["comment:1"] =
-      "Instead modify '${arguments[0]}' and follow the instructions therein.";
+      "Instead modify '$inputString' and follow the instructions therein.";
   for (String key in yaml.keys) {
     result[key] = yaml[key];
   }
@@ -41,9 +59,9 @@ main(List<String> arguments) {
     }
     if (needsUpdate) {
       stderr.write('''
-The file ${arguments[1]} is not up to date. Regenerate using
+The file $outputString is not up to date. Regenerate using
 
-  dart tools/yaml2json.dart ${arguments[0]} ${arguments[1]}
+  dart tools/yaml2json.dart $inputString $outputString
 ''');
       exit(1);
     }

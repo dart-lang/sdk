@@ -223,6 +223,7 @@
   FIELD(Thread, enter_safepoint_stub_offset)                                   \
   FIELD(Thread, execution_state_offset)                                        \
   FIELD(Thread, exit_safepoint_stub_offset)                                    \
+  FIELD(Thread, exit_safepoint_ignore_unwind_in_progress_stub_offset)          \
   FIELD(Thread, call_native_through_safepoint_stub_offset)                     \
   FIELD(Thread, call_native_through_safepoint_entry_point_offset)              \
   FIELD(Thread, fix_allocation_stub_code_offset)                               \

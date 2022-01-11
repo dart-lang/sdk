@@ -213,6 +213,8 @@ DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 Encoding/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/example: Fail
+EnumDeclaresConstFactory/analyzerCode: Fail
+EnumDeclaresConstFactory/example: Fail
 EnumDeclaresFactory/analyzerCode: Fail
 EnumDeclaresFactory/example: Fail
 EnumInstantiation/example: Fail

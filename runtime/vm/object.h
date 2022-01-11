@@ -68,6 +68,7 @@ class CallSiteResetter;
 class CodeStatistics;
 class IsolateGroupReloadContext;
 class ObjectGraphCopier;
+class NativeArguments;
 
 #define REUSABLE_FORWARD_DECLARATION(name) class Reusable##name##HandleScope;
 REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
@@ -236,6 +237,8 @@ class BaseTextBuffer;
   OBJECT_SERVICE_SUPPORT(object)                                               \
   friend class Object;
 
+extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_);
+
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
   OBJECT_IMPLEMENTATION(object, super);                                        \
   Untagged##object* untag() const {                                            \
@@ -244,7 +247,8 @@ class BaseTextBuffer;
   }                                                                            \
   SNAPSHOT_SUPPORT(object)                                                     \
   friend class StackFrame;                                                     \
-  friend class Thread;
+  friend class Thread;                                                         \
+  friend void DFLRT_ExitSafepoint(NativeArguments __unusable_);
 
 // This macro is used to denote types that do not have a sub-type.
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, rettype, super)        \
@@ -270,7 +274,8 @@ class BaseTextBuffer;
   SNAPSHOT_SUPPORT(rettype)                                                    \
   friend class Object;                                                         \
   friend class StackFrame;                                                     \
-  friend class Thread;
+  friend class Thread;                                                         \
+  friend void DFLRT_ExitSafepoint(NativeArguments __unusable_);
 
 #define FINAL_HEAP_OBJECT_IMPLEMENTATION(object, super)                        \
   FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, object, super)

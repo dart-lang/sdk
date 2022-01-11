@@ -7,7 +7,6 @@
 
 #include "vm/dart.h"
 
-#include "platform/thread_sanitizer.h"
 #include "vm/app_snapshot.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/runtime_offsets_extracted.h"
@@ -50,13 +49,6 @@
 #include "vm/timeline.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
-
-#if defined(USING_THREAD_SANITIZER)
-// TODO(https://github.com/dart-lang/sdk/issues/46699): Remove.
-// TODO(https://bugs.fuchsia.dev/p/fuchsia/issues/detail?id=83298): Remove.
-#include "unicode/uchar.h"
-#include "unicode/uniset.h"
-#endif
 
 namespace dart {
 
@@ -273,13 +265,6 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
                      Dart_CodeObserver* observer,
                      Dart_PostTaskCallback post_task,
                      void* post_task_data) {
-#if defined(USING_THREAD_SANITIZER)
-  // Trigger lazy initialization in ICU to avoid spurious TSAN warning.
-  // TODO(https://github.com/dart-lang/sdk/issues/46699): Remove.
-  // TODO(https://bugs.fuchsia.dev/p/fuchsia/issues/detail?id=83298): Remove.
-  u_getPropertyValueEnum(UCHAR_SCRIPT, "foo");
-#endif
-
   CheckOffsets();
 
   if (!Flags::Initialized()) {
@@ -343,6 +328,7 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
   Isolate::InitVM();
   UserTags::Init();
   PortMap::Init();
+  Service::Init();
   FreeListElement::Init();
   ForwardingCorpse::Init();
   Api::Init();
@@ -802,6 +788,7 @@ char* Dart::Cleanup() {
   ShutdownIsolate();
   vm_isolate_ = NULL;
   ASSERT(Isolate::IsolateListLength() == 0);
+  Service::Cleanup();
   PortMap::Cleanup();
   UserTags::Cleanup();
   IsolateGroup::Cleanup();

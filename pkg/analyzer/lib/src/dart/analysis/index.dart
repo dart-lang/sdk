@@ -836,6 +836,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitSuperFormalParameter(SuperFormalParameter node) {
+    var element = node.declaredElement;
+    if (element is SuperFormalParameterElementImpl) {
+      var superParameter = element.superConstructorParameter;
+      if (superParameter != null) {
+        recordRelation(superParameter, IndexRelationKind.IS_REFERENCED_BY,
+            node.identifier, true);
+      }
+    }
+
+    return super.visitSuperFormalParameter(node);
+  }
+
+  @override
   void visitWithClause(WithClause node) {
     for (NamedType namedType in node.mixinTypes2) {
       recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);

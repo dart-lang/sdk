@@ -259,6 +259,12 @@
       "languageVersion": "2.13"
     },
     {
+      "name": "dds_service_extensions",
+      "rootUri": "../pkg/dds_service_extensions",
+      "packageUri": "lib/",
+      "languageVersion": "2.13"
+    },
+    {
       "name": "dev_compiler",
       "rootUri": "../pkg/dev_compiler",
       "packageUri": "lib/",

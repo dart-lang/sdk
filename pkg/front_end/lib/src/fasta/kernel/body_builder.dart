@@ -5347,10 +5347,6 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     if (type is ClassBuilder) {
-      if (type is SourceEnumBuilder) {
-        return buildProblem(fasta.messageEnumInstantiation,
-            nameToken.charOffset, nameToken.length);
-      }
       MemberBuilder? b =
           type.findConstructorOrFactory(name, charOffset, uri, libraryBuilder);
       Member? target;
@@ -5371,6 +5367,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         target = b.member;
       } else {
         target = b.member;
+      }
+      if (type is SourceEnumBuilder &&
+          !(libraryBuilder.enableEnhancedEnumsInLibrary &&
+              target is Procedure &&
+              target.kind == ProcedureKind.Factory)) {
+        return buildProblem(fasta.messageEnumInstantiation,
+            nameToken.charOffset, nameToken.length);
       }
       if (target is Constructor ||
           (target is Procedure && target.kind == ProcedureKind.Factory)) {

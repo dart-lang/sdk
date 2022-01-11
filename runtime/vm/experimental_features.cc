@@ -6,7 +6,7 @@
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart tools/generate_experimental_flags.dart' to update.
 //
-// Current version: 2.16.0
+// Current version: 2.17.0
 
 #include "vm/experimental_features.h"
 

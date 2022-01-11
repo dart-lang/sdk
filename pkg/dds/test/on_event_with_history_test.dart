@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dds/dds.dart';
-import 'package:dds/vm_service_extensions.dart';
+import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service_io.dart';
 import 'common/test_helper.dart';

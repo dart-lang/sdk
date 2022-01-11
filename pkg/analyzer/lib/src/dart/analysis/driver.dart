@@ -14,7 +14,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
@@ -243,42 +242,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// The given [SourceFactory] is cloned to ensure that it does not contain a
   /// reference to a [AnalysisContext] in which it could have been used.
-  @Deprecated('Use AnalysisDriver.tmp1() instead')
-  factory AnalysisDriver(
-    AnalysisDriverScheduler scheduler,
-    PerformanceLog logger,
-    ResourceProvider resourceProvider,
-    ByteStore byteStore,
-    // ignore: avoid_unused_constructor_parameters
-    FileContentOverlay? contentOverlay,
-    // ignore: avoid_unused_constructor_parameters
-    ContextRoot? contextRoot,
-    SourceFactory sourceFactory,
-    AnalysisOptionsImpl analysisOptions, {
-    Packages? packages,
-    bool enableIndex = false,
-    SummaryDataStore? externalSummaries,
-    bool retainDataForTesting = false,
-  }) {
-    return AnalysisDriver.tmp1(
-      scheduler: scheduler,
-      logger: logger,
-      resourceProvider: resourceProvider,
-      byteStore: byteStore,
-      sourceFactory: sourceFactory,
-      analysisOptions: analysisOptions,
-      packages: packages ?? Packages.empty,
-      enableIndex: enableIndex,
-      externalSummaries: externalSummaries,
-      retainDataForTesting: retainDataForTesting,
-    );
-  }
-
-  /// Create a new instance of [AnalysisDriver].
-  ///
-  /// The given [SourceFactory] is cloned to ensure that it does not contain a
-  /// reference to a [AnalysisContext] in which it could have been used.
-  AnalysisDriver.tmp1({
+  AnalysisDriver({
     required AnalysisDriverScheduler scheduler,
     required PerformanceLog logger,
     required ResourceProvider resourceProvider,
@@ -308,6 +272,37 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _scheduler.add(this);
     _search = Search(this);
   }
+
+  /// Create a new instance of [AnalysisDriver].
+  ///
+  /// The given [SourceFactory] is cloned to ensure that it does not contain a
+  /// reference to a [AnalysisContext] in which it could have been used.
+  @Deprecated('Use the unnamed constructor instead')
+  AnalysisDriver.tmp1({
+    required AnalysisDriverScheduler scheduler,
+    required PerformanceLog logger,
+    required ResourceProvider resourceProvider,
+    required ByteStore byteStore,
+    required SourceFactory sourceFactory,
+    required AnalysisOptionsImpl analysisOptions,
+    required Packages packages,
+    FileContentCache? fileContentCache,
+    bool enableIndex = false,
+    SummaryDataStore? externalSummaries,
+    bool retainDataForTesting = false,
+  }) : this(
+          scheduler: scheduler,
+          logger: logger,
+          resourceProvider: resourceProvider,
+          byteStore: byteStore,
+          sourceFactory: sourceFactory,
+          analysisOptions: analysisOptions,
+          packages: packages,
+          fileContentCache: fileContentCache,
+          enableIndex: enableIndex,
+          externalSummaries: externalSummaries,
+          retainDataForTesting: retainDataForTesting,
+        );
 
   /// Return the set of files explicitly added to analysis using [addFile].
   Set<String> get addedFiles => _fileTracker.addedFiles;
