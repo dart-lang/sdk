@@ -305,7 +305,7 @@ final Matcher isCompletionSuggestion =
           'hasNamedParameters': isBool,
           'parameterName': isString,
           'parameterType': isString,
-          'libraryUriToImportIndex': isInt
+          'isNotImported': isBool
         }));
 
 /// CompletionSuggestionKind
@@ -384,7 +384,8 @@ final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
       'parameters': isString,
       'returnType': isString,
       'typeParameters': isString,
-      'aliasedType': isString
+      'aliasedType': isString,
+      'libraryUri': isString
     }));
 
 /// ElementDeclaration
@@ -2163,7 +2164,6 @@ final Matcher isCompletionGetSuggestions2Params = LazyMatcher(() =>
 ///   "replacementOffset": int
 ///   "replacementLength": int
 ///   "suggestions": List<CompletionSuggestion>
-///   "libraryUrisToImport": List<String>
 ///   "isIncomplete": bool
 /// }
 final Matcher isCompletionGetSuggestions2Result =
@@ -2171,7 +2171,6 @@ final Matcher isCompletionGetSuggestions2Result =
           'replacementOffset': isInt,
           'replacementLength': isInt,
           'suggestions': isListOf(isCompletionSuggestion),
-          'libraryUrisToImport': isListOf(isString),
           'isIncomplete': isBool
         }));
 

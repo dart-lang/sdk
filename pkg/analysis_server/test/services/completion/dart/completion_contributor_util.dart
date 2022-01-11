@@ -583,7 +583,6 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
       replacementOffset: replacementOffset,
       replacementLength: replacementLength,
       isIncomplete: false,
-      librariesToImport: const [],
       suggestions: suggestions,
     );
   }

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -505,7 +503,7 @@ class DartCompletionRequest {
 
 /// Information provided by [NotImportedContributor] in addition to suggestions.
 class NotImportedSuggestions {
-  final Map<protocol.CompletionSuggestion, Uri> map = HashMap.identity();
+  final Set<protocol.CompletionSuggestion> set = Set.identity();
 
   /// This flag is set to `true` if the contributor decided to stop before it
   /// processed all available libraries, e.g. we ran out of budget.

@@ -4,13 +4,14 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer_utilities/check/check.dart';
+import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 
 class CompletionResponseForTesting {
   final int requestOffset;
   final int replacementOffset;
   final int replacementLength;
   final bool isIncomplete;
-  final List<String> librariesToImport;
   final List<CompletionSuggestion> suggestions;
 
   CompletionResponseForTesting({
@@ -18,7 +19,6 @@ class CompletionResponseForTesting {
     required this.replacementOffset,
     required this.replacementLength,
     required this.isIncomplete,
-    required this.librariesToImport,
     required this.suggestions,
   });
 
@@ -31,7 +31,6 @@ class CompletionResponseForTesting {
       replacementOffset: parameters.replacementOffset,
       replacementLength: parameters.replacementLength,
       isIncomplete: false,
-      librariesToImport: const [],
       suggestions: parameters.results,
     );
   }
@@ -70,7 +69,12 @@ extension CompletionResponseExtension
 
   CheckTarget<List<String>> get librariesToImport {
     return nest(
-      value.librariesToImport,
+      value.suggestions
+          .where((e) => e.isNotImported == true)
+          .map((e) => e.element?.libraryUri)
+          .whereNotNull()
+          .toSet()
+          .toList(),
       (selected) => 'has librariesToImport ${valueStr(selected)}',
     );
   }
@@ -211,6 +215,14 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isMethod;
   }
 
+  @useResult
+  CheckTarget<bool?> get isNotImported {
+    return nest(
+      value.suggestion.isNotImported,
+      (selected) => 'has isNotImported ${valueStr(selected)}',
+    );
+  }
+
   void get isParameter {
     kind.isIdentifier;
     element.isNotNull.kind.isParameter;
@@ -234,9 +246,10 @@ extension CompletionSuggestionExtension
   }
 
   CheckTarget<String?> get libraryUriToImport {
-    var index = value.suggestion.libraryUriToImportIndex;
     return nest(
-      index != null ? value.response.librariesToImport[index] : null,
+      value.suggestion.isNotImported == true
+          ? value.suggestion.element?.libraryUri
+          : null,
       (selected) => 'has libraryUriToImport ${valueStr(selected)}',
     );
   }

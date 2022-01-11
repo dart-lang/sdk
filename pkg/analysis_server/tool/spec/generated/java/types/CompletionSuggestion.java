@@ -176,18 +176,16 @@ public class CompletionSuggestion {
   private final String parameterType;
 
   /**
-   * The index in the list of libraries that could be imported to make this suggestion accessible in
-   * the file where completion was requested. The server provides this list of libraries together
-   * with suggestions, so that information about the library can be shared for multiple suggestions.
-   * This field is omitted if the library is already imported, so that the suggestion can be inserted
-   * as is, or if getSuggestions was used rather than getSuggestions2.
+   * True if the suggestion is for an element from a not yet imported library. This field is omitted
+   * if the element is declared locally, or is from library is already imported, so that the
+   * suggestion can be inserted as is, or if getSuggestions was used rather than getSuggestions2.
    */
-  private final Integer libraryUriToImportIndex;
+  private final Boolean isNotImported;
 
   /**
    * Constructor for {@link CompletionSuggestion}.
    */
-  public CompletionSuggestion(String kind, int relevance, String completion, String displayText, Integer replacementOffset, Integer replacementLength, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, int[] defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType, Integer libraryUriToImportIndex) {
+  public CompletionSuggestion(String kind, int relevance, String completion, String displayText, Integer replacementOffset, Integer replacementLength, int selectionOffset, int selectionLength, boolean isDeprecated, boolean isPotential, String docSummary, String docComplete, String declaringType, String defaultArgumentListString, int[] defaultArgumentListTextRanges, Element element, String returnType, List<String> parameterNames, List<String> parameterTypes, Integer requiredParameterCount, Boolean hasNamedParameters, String parameterName, String parameterType, Boolean isNotImported) {
     this.kind = kind;
     this.relevance = relevance;
     this.completion = completion;
@@ -211,7 +209,7 @@ public class CompletionSuggestion {
     this.hasNamedParameters = hasNamedParameters;
     this.parameterName = parameterName;
     this.parameterType = parameterType;
-    this.libraryUriToImportIndex = libraryUriToImportIndex;
+    this.isNotImported = isNotImported;
   }
 
   @Override
@@ -242,7 +240,7 @@ public class CompletionSuggestion {
         ObjectUtilities.equals(other.hasNamedParameters, hasNamedParameters) &&
         ObjectUtilities.equals(other.parameterName, parameterName) &&
         ObjectUtilities.equals(other.parameterType, parameterType) &&
-        ObjectUtilities.equals(other.libraryUriToImportIndex, libraryUriToImportIndex);
+        ObjectUtilities.equals(other.isNotImported, isNotImported);
     }
     return false;
   }
@@ -271,8 +269,8 @@ public class CompletionSuggestion {
     Boolean hasNamedParameters = jsonObject.get("hasNamedParameters") == null ? null : jsonObject.get("hasNamedParameters").getAsBoolean();
     String parameterName = jsonObject.get("parameterName") == null ? null : jsonObject.get("parameterName").getAsString();
     String parameterType = jsonObject.get("parameterType") == null ? null : jsonObject.get("parameterType").getAsString();
-    Integer libraryUriToImportIndex = jsonObject.get("libraryUriToImportIndex") == null ? null : jsonObject.get("libraryUriToImportIndex").getAsInt();
-    return new CompletionSuggestion(kind, relevance, completion, displayText, replacementOffset, replacementLength, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, defaultArgumentListTextRanges, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType, libraryUriToImportIndex);
+    Boolean isNotImported = jsonObject.get("isNotImported") == null ? null : jsonObject.get("isNotImported").getAsBoolean();
+    return new CompletionSuggestion(kind, relevance, completion, displayText, replacementOffset, replacementLength, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary, docComplete, declaringType, defaultArgumentListString, defaultArgumentListTextRanges, element, returnType, parameterNames, parameterTypes, requiredParameterCount, hasNamedParameters, parameterName, parameterType, isNotImported);
   }
 
   public static List<CompletionSuggestion> fromJsonArray(JsonArray jsonArray) {
@@ -369,6 +367,15 @@ public class CompletionSuggestion {
   }
 
   /**
+   * True if the suggestion is for an element from a not yet imported library. This field is omitted
+   * if the element is declared locally, or is from library is already imported, so that the
+   * suggestion can be inserted as is, or if getSuggestions was used rather than getSuggestions2.
+   */
+  public Boolean getIsNotImported() {
+    return isNotImported;
+  }
+
+  /**
    * True if the element is not known to be valid for the target. This happens if the type of the
    * target is dynamic.
    */
@@ -381,17 +388,6 @@ public class CompletionSuggestion {
    */
   public String getKind() {
     return kind;
-  }
-
-  /**
-   * The index in the list of libraries that could be imported to make this suggestion accessible in
-   * the file where completion was requested. The server provides this list of libraries together
-   * with suggestions, so that information about the library can be shared for multiple suggestions.
-   * This field is omitted if the library is already imported, so that the suggestion can be inserted
-   * as is, or if getSuggestions was used rather than getSuggestions2.
-   */
-  public Integer getLibraryUriToImportIndex() {
-    return libraryUriToImportIndex;
   }
 
   /**
@@ -509,7 +505,7 @@ public class CompletionSuggestion {
     builder.append(hasNamedParameters);
     builder.append(parameterName);
     builder.append(parameterType);
-    builder.append(libraryUriToImportIndex);
+    builder.append(isNotImported);
     return builder.toHashCode();
   }
 
@@ -582,8 +578,8 @@ public class CompletionSuggestion {
     if (parameterType != null) {
       jsonObject.addProperty("parameterType", parameterType);
     }
-    if (libraryUriToImportIndex != null) {
-      jsonObject.addProperty("libraryUriToImportIndex", libraryUriToImportIndex);
+    if (isNotImported != null) {
+      jsonObject.addProperty("isNotImported", isNotImported);
     }
     return jsonObject;
   }
@@ -638,8 +634,8 @@ public class CompletionSuggestion {
     builder.append(parameterName + ", ");
     builder.append("parameterType=");
     builder.append(parameterType + ", ");
-    builder.append("libraryUriToImportIndex=");
-    builder.append(libraryUriToImportIndex);
+    builder.append("isNotImported=");
+    builder.append(isNotImported);
     builder.append("]");
     return builder.toString();
   }

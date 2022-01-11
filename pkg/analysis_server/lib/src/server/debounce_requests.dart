@@ -68,7 +68,7 @@ class _DebounceRequests {
           var params = CompletionGetSuggestions2Params.fromRequest(request);
           var offset = params.offset;
           channel.sendResponse(
-            CompletionGetSuggestions2Result(offset, 0, [], [], true)
+            CompletionGetSuggestions2Result(offset, 0, [], true)
                 .toResponse(request.id),
           );
           continue;

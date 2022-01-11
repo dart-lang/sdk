@@ -101,9 +101,15 @@ public class Element {
   private final String aliasedType;
 
   /**
+   * If the element belongs to a library, the URI of the library. Otherwise, this field will not be
+   * defined.
+   */
+  private final String libraryUri;
+
+  /**
    * Constructor for {@link Element}.
    */
-  public Element(String kind, String name, Location location, int flags, String parameters, String returnType, String typeParameters, String aliasedType) {
+  public Element(String kind, String name, Location location, int flags, String parameters, String returnType, String typeParameters, String aliasedType, String libraryUri) {
     this.kind = kind;
     this.name = name;
     this.location = location;
@@ -112,6 +118,7 @@ public class Element {
     this.returnType = returnType;
     this.typeParameters = typeParameters;
     this.aliasedType = aliasedType;
+    this.libraryUri = libraryUri;
   }
 
   @Override
@@ -126,7 +133,8 @@ public class Element {
         ObjectUtilities.equals(other.parameters, parameters) &&
         ObjectUtilities.equals(other.returnType, returnType) &&
         ObjectUtilities.equals(other.typeParameters, typeParameters) &&
-        ObjectUtilities.equals(other.aliasedType, aliasedType);
+        ObjectUtilities.equals(other.aliasedType, aliasedType) &&
+        ObjectUtilities.equals(other.libraryUri, libraryUri);
     }
     return false;
   }
@@ -140,7 +148,8 @@ public class Element {
     String returnType = jsonObject.get("returnType") == null ? null : jsonObject.get("returnType").getAsString();
     String typeParameters = jsonObject.get("typeParameters") == null ? null : jsonObject.get("typeParameters").getAsString();
     String aliasedType = jsonObject.get("aliasedType") == null ? null : jsonObject.get("aliasedType").getAsString();
-    return new Element(kind, name, location, flags, parameters, returnType, typeParameters, aliasedType);
+    String libraryUri = jsonObject.get("libraryUri") == null ? null : jsonObject.get("libraryUri").getAsString();
+    return new Element(kind, name, location, flags, parameters, returnType, typeParameters, aliasedType, libraryUri);
   }
 
   public static List<Element> fromJsonArray(JsonArray jsonArray) {
@@ -182,6 +191,14 @@ public class Element {
    */
   public String getKind() {
     return kind;
+  }
+
+  /**
+   * If the element belongs to a library, the URI of the library. Otherwise, this field will not be
+   * defined.
+   */
+  public String getLibraryUri() {
+    return libraryUri;
   }
 
   /**
@@ -235,6 +252,7 @@ public class Element {
     builder.append(returnType);
     builder.append(typeParameters);
     builder.append(aliasedType);
+    builder.append(libraryUri);
     return builder.toHashCode();
   }
 
@@ -282,6 +300,9 @@ public class Element {
     if (aliasedType != null) {
       jsonObject.addProperty("aliasedType", aliasedType);
     }
+    if (libraryUri != null) {
+      jsonObject.addProperty("libraryUri", libraryUri);
+    }
     return jsonObject;
   }
 
@@ -304,7 +325,9 @@ public class Element {
     builder.append("typeParameters=");
     builder.append(typeParameters + ", ");
     builder.append("aliasedType=");
-    builder.append(aliasedType);
+    builder.append(aliasedType + ", ");
+    builder.append("libraryUri=");
+    builder.append(libraryUri);
     builder.append("]");
     return builder.toString();
   }

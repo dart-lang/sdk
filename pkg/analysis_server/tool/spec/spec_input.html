@@ -1570,25 +1570,7 @@
         <p>
           This list contains suggestions from both imported, and not yet
           imported libraries. Items from not yet imported libraries will
-          have <tt>libraryUriToImportIndex</tt> set, which is an index into
-          the <tt>libraryUrisToImport</tt> in this response.
-        </p>
-      </field>
-      <field name="libraryUrisToImport">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          The list of libraries with declarations that are not yet available
-          in the file where completion was requested, most often because
-          the library is not yet imported. The declarations still might be
-          included into the <tt>suggestions</tt>, and the client should use
-          <tt>getSuggestionDetails2</tt> on selection to make the library
-          available in the file.
-        </p>
-        <p>
-          Each item is the URI of a library, such as <tt>package:foo/bar.dart</tt>
-          or <tt>file:///home/me/workspace/foo/test/bar_test.dart</tt>.
+          have <tt>isNotImported</tt> set to <tt>true</tt>.
         </p>
       </field>
       <field name="isIncomplete">
@@ -1699,7 +1681,7 @@
   <request method="getSuggestionDetails2" experimental="true">
     <p>
       Clients must make this request when the user has selected a completion
-      suggestion with the <tt>libraryUriToImportIndex</tt> field set.
+      suggestion with the <tt>isNotImported</tt> field set to <tt>true</tt>.
       The server will respond with the text to insert, as well as any
       <tt>SourceChange</tt> that needs to be applied in case the completion
       requires an additional import to be  added. The text to insert might be
