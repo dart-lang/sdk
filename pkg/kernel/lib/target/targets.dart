@@ -15,16 +15,20 @@ final List<String> targetNames = targets.keys.toList();
 class TargetFlags {
   final bool trackWidgetCreation;
   final bool enableNullSafety;
+  final bool supportMirrors;
 
   const TargetFlags(
-      {this.trackWidgetCreation = false, this.enableNullSafety = false});
+      {this.trackWidgetCreation = false,
+      this.enableNullSafety = false,
+      this.supportMirrors = true});
 
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
-        enableNullSafety == other.enableNullSafety;
+        enableNullSafety == other.enableNullSafety &&
+        supportMirrors == other.supportMirrors;
   }
 
   @override
@@ -32,6 +36,7 @@ class TargetFlags {
     int hash = 485786;
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ enableNullSafety.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
     return hash;
   }
 }
@@ -149,6 +154,95 @@ class ConstantsBackend {
   ///
   /// All use-sites will be rewritten based on [shouldInlineConstant].
   bool get keepLocals => false;
+}
+
+/// Interface used for determining whether a `dart:*` is considered supported
+/// for the current target.
+abstract class DartLibrarySupport {
+  /// Returns `true` if the 'dart:[libraryName]' library is supported.
+  ///
+  /// [isSupportedBySpec] is `true` if the dart library was supported by the
+  /// libraries specification.
+  ///
+  /// This is used to allow AOT to consider `dart:mirrors` as unsupported
+  /// despite it being supported in the platform dill, and dart2js to consider
+  /// `dart:_dart2js_runtime_metrics` to be supported despite it being an
+  /// internal library.
+  bool computeDartLibrarySupport(String libraryName,
+      {required bool isSupportedBySpec});
+
+  static const String dartLibraryPrefix = "dart.library.";
+
+  static bool isDartLibraryQualifier(String dottedName) {
+    return dottedName.startsWith(dartLibraryPrefix);
+  }
+
+  static String getDartLibraryName(String dottedName) {
+    assert(isDartLibraryQualifier(dottedName));
+    return dottedName.substring(dartLibraryPrefix.length);
+  }
+
+  /// Returns `"true"` if the "dart:[libraryName]" is supported and `""`
+  /// otherwise.
+  ///
+  /// This is used to determine conditional imports and `bool.fromEnvironment`
+  /// constant values for "dart.library.[libraryName]" values.
+  static String getDartLibrarySupportValue(String libraryName,
+      {required bool libraryExists,
+      required bool isSynthetic,
+      required bool isUnsupported,
+      required DartLibrarySupport dartLibrarySupport}) {
+    // A `dart:` library can be unsupported for several reasons:
+    // * If the library doesn't exist from source or from dill, it is not
+    //   supported.
+    // * If the library has been synthesized, then it doesn't exist, but has
+    //   been synthetically created due to an explicit import or export of it,
+    //   in which case it is also not supported.
+    // * If the library is marked as not supported in the libraries
+    //   specification, it does exist, but is not supported.
+    // * If the library is marked as supported in the libraries specification,
+    //   it does exist and is potentially supported. Still the [Target] can
+    //   consider it unsupported. This is for instance used to consider
+    //   `dart:mirrors` as unsupported in AOT. The platform dill is shared with
+    //   JIT, so the library exists and is marked as supported, but for AOT
+    //   compilation it is still unsupported.
+    bool isSupported = libraryExists && !isSynthetic && !isUnsupported;
+    isSupported = dartLibrarySupport.computeDartLibrarySupport(libraryName,
+        isSupportedBySpec: isSupported);
+    return isSupported ? "true" : "";
+  }
+}
+
+/// [DartLibrarySupport] that only relies on the "supported" property of
+/// the libraries specification.
+class DefaultDartLibrarySupport implements DartLibrarySupport {
+  const DefaultDartLibrarySupport();
+
+  @override
+  bool computeDartLibrarySupport(String libraryName,
+          {required bool isSupportedBySpec}) =>
+      isSupportedBySpec;
+}
+
+/// [DartLibrarySupport] that supports overriding `dart:*` library support
+/// otherwise defined by the libraries specification.
+class CustomizedDartLibrarySupport implements DartLibrarySupport {
+  final Set<String> supported;
+  final Set<String> unsupported;
+
+  const CustomizedDartLibrarySupport(
+      {this.supported: const {}, this.unsupported: const {}});
+
+  @override
+  bool computeDartLibrarySupport(String libraryName,
+      {required bool isSupportedBySpec}) {
+    if (supported.contains(libraryName)) {
+      return true;
+    } else if (unsupported.contains(libraryName)) {
+      return false;
+    }
+    return isSupportedBySpec;
+  }
 }
 
 /// A target provides backend-specific options for generating kernel IR.
@@ -434,7 +528,7 @@ abstract class Target {
   /// Returns the configured component.
   Component configureComponent(Component component) => component;
 
-  // Configure environment defines in a target-specific way.
+  /// Configure environment defines in a target-specific way.
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) => map;
 
   @override
@@ -453,6 +547,16 @@ abstract class Target {
   Class? concreteStringLiteralClass(CoreTypes coreTypes, String value) => null;
 
   ConstantsBackend get constantsBackend;
+
+  /// Returns an [DartLibrarySupport] the defines which, if any, of the
+  /// `dart:` libraries supported in the platform, that should not be
+  /// considered supported when queried in conditional imports and
+  /// `bool.fromEnvironment` constants.
+  ///
+  /// This is used treat `dart:mirrors` as unsupported in AOT but supported
+  /// in JIT.
+  DartLibrarySupport get dartLibrarySupport =>
+      const DefaultDartLibrarySupport();
 }
 
 class NoneConstantsBackend extends ConstantsBackend {
@@ -657,6 +761,8 @@ class TestTargetFlags extends TargetFlags {
   final bool? forceStaticFieldLoweringForTesting;
   final bool? forceNoExplicitGetterCallsForTesting;
   final int? forceConstructorTearOffLoweringForTesting;
+  final Set<String> supportedDartLibraries;
+  final Set<String> unsupportedDartLibraries;
 
   const TestTargetFlags(
       {bool trackWidgetCreation = false,
@@ -665,7 +771,9 @@ class TestTargetFlags extends TargetFlags {
       this.forceStaticFieldLoweringForTesting,
       this.forceNoExplicitGetterCallsForTesting,
       this.forceConstructorTearOffLoweringForTesting,
-      bool enableNullSafety = false})
+      bool enableNullSafety = false,
+      this.supportedDartLibraries: const {},
+      this.unsupportedDartLibraries: const {}})
       : super(
             trackWidgetCreation: trackWidgetCreation,
             enableNullSafety: enableNullSafety);
@@ -698,6 +806,29 @@ mixin TestTargetMixin on Target {
   int get enabledConstructorTearOffLowerings =>
       flags.forceConstructorTearOffLoweringForTesting ??
       super.enabledConstructorTearOffLowerings;
+
+  @override
+  late final DartLibrarySupport dartLibrarySupport =
+      new TestDartLibrarySupport(super.dartLibrarySupport, flags);
+}
+
+class TestDartLibrarySupport implements DartLibrarySupport {
+  final DartLibrarySupport delegate;
+  final TestTargetFlags flags;
+
+  TestDartLibrarySupport(this.delegate, this.flags);
+
+  @override
+  bool computeDartLibrarySupport(String libraryName,
+      {required bool isSupportedBySpec}) {
+    if (flags.supportedDartLibraries.contains(libraryName)) {
+      return true;
+    } else if (flags.unsupportedDartLibraries.contains(libraryName)) {
+      return false;
+    }
+    return delegate.computeDartLibrarySupport(libraryName,
+        isSupportedBySpec: isSupportedBySpec);
+  }
 }
 
 class TargetWrapper extends Target {

@@ -5,10 +5,6 @@
 library leg_apiimpl;
 
 import 'dart:async';
-import 'dart:convert' show utf8;
-
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show getSupportedLibraryNames;
 
 import '../compiler_new.dart' as api;
 import 'common/metrics.dart' show Metrics, Metric;
@@ -17,7 +13,6 @@ import 'common.dart';
 import 'compiler.dart';
 import 'diagnostics/messages.dart' show Message;
 import 'environment.dart';
-import 'io/source_file.dart';
 import 'options.dart' show CompilerOptions;
 
 /// Implements the [Compiler] using a [api.CompilerInput] for supplying the
@@ -58,61 +53,22 @@ class CompilerImpl extends Compiler {
         null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
-  Future setupSdk() {
-    var future = Future.value(null);
-    _Environment env = environment;
-    if (env.supportedLibraries == null) {
-      future = future.then((_) {
-        Uri specificationUri = options.librariesSpecificationUri;
-
-        Future<String> readJson(Uri uri) async {
-          api.Input spec = await provider.readFromUri(specificationUri);
-          String json = null;
-          // TODO(sigmund): simplify this, we have some API inconsistencies when
-          // our internal input adds a terminating zero.
-          if (spec is SourceFile) {
-            json = spec.slowText();
-          } else if (spec is Binary) {
-            json = utf8.decode(spec.data);
-          }
-          return json;
-        }
-
-        // TODO(sigmund): would be nice to front-load some of the CFE option
-        // processing and parse this .json file only once.
-        return getSupportedLibraryNames(specificationUri,
-                options.compileForServer ? "dart2js_server" : "dart2js",
-                readJson: readJson)
-            .then((libraries) {
-          env.supportedLibraries = libraries.toSet();
-        });
-      });
-    }
-    // TODO(johnniwinther): This does not apply anymore.
-    // The incremental compiler sets up the sdk before run.
-    // Therefore this will be called a second time.
-    return future;
-  }
-
   @override
   Future<bool> run() {
     Duration setupDuration = measurer.elapsedWallClock;
-    return selfTask.measureSubtask("impl.run", () {
-      return setupSdk().then((_) {
-        return super.run();
-      }).then((bool success) {
-        if (options.verbose) {
-          StringBuffer timings = StringBuffer();
-          computeTimings(setupDuration, timings);
-          logVerbose('$timings');
-        }
-        if (options.reportPrimaryMetrics || options.reportSecondaryMetrics) {
-          StringBuffer metrics = StringBuffer();
-          collectMetrics(metrics);
-          logInfo('$metrics');
-        }
-        return success;
-      });
+    return selfTask.measureSubtask("impl.run", () async {
+      bool success = await super.run();
+      if (options.verbose) {
+        StringBuffer timings = StringBuffer();
+        computeTimings(setupDuration, timings);
+        logVerbose('$timings');
+      }
+      if (options.reportPrimaryMetrics || options.reportSecondaryMetrics) {
+        StringBuffer metrics = StringBuffer();
+        collectMetrics(metrics);
+        logInfo('$metrics');
+      }
+      return success;
     });
   }
 
@@ -239,49 +195,17 @@ class CompilerImpl extends Compiler {
 class _Environment implements Environment {
   final Map<String, String> definitions;
   Map<String, String> _completeMap;
-  Set<String> supportedLibraries;
 
   _Environment(this.definitions);
-
-  @override
-  String valueOf(String name) {
-    if (_completeMap != null) return _completeMap[name];
-    var result = definitions[name];
-    if (result != null || definitions.containsKey(name)) return result;
-    if (!name.startsWith(_dartLibraryEnvironmentPrefix)) return null;
-
-    String libraryName = name.substring(_dartLibraryEnvironmentPrefix.length);
-
-    // Private libraries are not exposed to the users.
-    if (libraryName.startsWith("_")) return null;
-    if (supportedLibraries.contains(libraryName)) return "true";
-    return null;
-  }
 
   @override
   Map<String, String> toMap() {
     if (_completeMap == null) {
       _completeMap = Map<String, String>.from(definitions);
-      for (String libraryName in supportedLibraries) {
-        if (!libraryName.startsWith("_")) {
-          String key = '${_dartLibraryEnvironmentPrefix}${libraryName}';
-          if (!definitions.containsKey(key)) {
-            _completeMap[key] = "true";
-          }
-        }
-      }
     }
     return _completeMap;
   }
 }
-
-/// For every 'dart:' library, a corresponding environment variable is set
-/// to "true". The environment variable's name is the concatenation of
-/// this prefix and the name (without the 'dart:'.
-///
-/// For example 'dart:html' has the environment variable 'dart.library.html' set
-/// to "true".
-const String _dartLibraryEnvironmentPrefix = 'dart.library.';
 
 class _TimingData {
   final String description;

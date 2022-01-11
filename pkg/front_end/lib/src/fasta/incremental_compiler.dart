@@ -1735,6 +1735,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         loader: lastGoodKernelTarget.loader,
         scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder,
+        isUnsupported: libraryBuilder.isUnsupported,
       );
       _ticker.logMs("Created debug library");
 

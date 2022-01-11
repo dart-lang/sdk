@@ -817,6 +817,7 @@ class LibraryHelper {
     kIsNonNullableByDefault = 1 << 1,
     kNonNullableByDefaultCompiledModeBit1 = 1 << 2,
     kNonNullableByDefaultCompiledModeBit2 = 1 << 3,
+    kUnsupported = 1 << 4,
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)

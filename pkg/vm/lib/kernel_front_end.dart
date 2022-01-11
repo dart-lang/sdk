@@ -77,6 +77,10 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false);
+  args.addFlag('support-mirrors',
+      help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
+          'supported when --aot and --minimal-kernel are not used.',
+      defaultsTo: null);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
   args.addOption('from-dill',
       help: 'Read existing dill file instead of compiling from sources',
@@ -193,6 +197,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
+  final bool? supportMirrors = options['support-mirrors'];
 
   final bool minimalKernel = options['minimal-kernel'];
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
@@ -211,6 +216,18 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     if (splitOutputByPackages) {
       print(
           'Error: --split-output-by-packages option cannot be used with --aot');
+      return badUsageExitCode;
+    }
+  }
+
+  if (supportMirrors == true) {
+    if (aot) {
+      print('Error: --support-mirrors option cannot be used with --aot');
+      return badUsageExitCode;
+    }
+    if (minimalKernel) {
+      print('Error: --support-mirrors option cannot be used with '
+          '--minimal-kernel');
       return badUsageExitCode;
     }
   }
@@ -258,11 +275,10 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     await autoDetectNullSafetyMode(mainUri, compilerOptions);
   }
 
-  compilerOptions.target = createFrontEndTarget(
-    targetName,
-    trackWidgetCreation: options['track-widget-creation'],
-    nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
-  );
+  compilerOptions.target = createFrontEndTarget(targetName,
+      trackWidgetCreation: options['track-widget-creation'],
+      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+      supportMirrors: supportMirrors ?? !(aot || minimalKernel));
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
@@ -442,6 +458,7 @@ Future runGlobalTransformations(
     {bool minimalKernel: false,
     bool treeShakeWriteOnlyFields: false,
     bool useRapidTypeAnalysis: true}) async {
+  assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
 
   final coreTypes = new CoreTypes(component);
@@ -585,12 +602,16 @@ Future<void> autoDetectNullSafetyMode(
 
 /// Create front-end target with given name.
 Target? createFrontEndTarget(String targetName,
-    {bool trackWidgetCreation = false, bool nullSafety = false}) {
+    {bool trackWidgetCreation = false,
+    bool nullSafety = false,
+    bool supportMirrors = true}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
-      trackWidgetCreation: trackWidgetCreation, enableNullSafety: nullSafety);
+      trackWidgetCreation: trackWidgetCreation,
+      enableNullSafety: nullSafety,
+      supportMirrors: supportMirrors);
   return getTarget(targetName, targetFlags);
 }
 

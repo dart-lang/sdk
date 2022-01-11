@@ -69,6 +69,10 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// This is the canonical uri for the library, for instance 'dart:core'.
   Uri get importUri;
 
+  /// If true, the library is not supported through the 'dart.library.*' value
+  /// used in conditional imports and `bool.fromEnvironment` constants.
+  bool get isUnsupported;
+
   Iterator<Builder> get iterator;
 
   NameIterator get nameIterator;

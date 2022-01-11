@@ -1087,9 +1087,6 @@ class _EmptyEnvironment implements Environment {
   const _EmptyEnvironment();
 
   @override
-  String valueOf(String key) => null;
-
-  @override
   Map<String, String> toMap() => const {};
 }
 

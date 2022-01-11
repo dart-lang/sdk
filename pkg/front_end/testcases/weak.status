@@ -47,7 +47,6 @@ general/bug30695: TypeCheckError
 general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 general/call: RuntimeError
 general/cascade: RuntimeError
-general/conditional_import: RuntimeError # Issue 47814
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
 general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError

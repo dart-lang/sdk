@@ -812,14 +812,15 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   Dart2jsConstantEvaluator get constantEvaluator {
-    return _constantEvaluator ??= Dart2jsConstantEvaluator(typeEnvironment,
-        (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+    return _constantEvaluator ??=
+        Dart2jsConstantEvaluator(env.mainComponent, typeEnvironment,
+            (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
       reportLocatedMessage(reporter, message, context);
     },
-        environment: _environment.toMap(),
-        evaluationMode: options.useLegacySubtyping
-            ? ir.EvaluationMode.weak
-            : ir.EvaluationMode.strong);
+            environment: _environment.toMap(),
+            evaluationMode: options.useLegacySubtyping
+                ? ir.EvaluationMode.weak
+                : ir.EvaluationMode.strong);
   }
 
   @override

@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 75;
+  UInt32 formatVersion = 76;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -237,7 +237,7 @@ type Name {
 }
 
 type Library {
-  Byte flags (isSynthetic, isNonNullableByDefault, nnbdModeBit1, nnbdModeBit2);
+  Byte flags (isSynthetic, isNonNullableByDefault, nnbdModeBit1, nnbdModeBit2, isUnsupported);
   UInt languageVersionMajor;
   UInt languageVersionMinor;
   CanonicalNameReference canonicalName;

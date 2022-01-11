@@ -596,9 +596,9 @@ Future testData(TestData data) async {
         expectedResults
             .forEach((Map<String, String> environment, String expectedText) {
           List<String> errors = [];
-          Dart2jsConstantEvaluator evaluator =
-              new Dart2jsConstantEvaluator(elementMap.typeEnvironment,
-                  (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+          Dart2jsConstantEvaluator evaluator = new Dart2jsConstantEvaluator(
+              elementMap.env.mainComponent, elementMap.typeEnvironment,
+              (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
             // TODO(johnniwinther): Assert that `message.uri != null`. Currently
             // all unevaluated constants have no uri.
             // The actual message is a "constant errors starts here" message,
@@ -606,11 +606,11 @@ Future testData(TestData data) async {
             errors.add(context.first.code.name);
             reportLocatedMessage(elementMap.reporter, message, context);
           },
-                  environment: environment,
-                  supportReevaluationForTesting: true,
-                  evaluationMode: compiler.options.useLegacySubtyping
-                      ? ir.EvaluationMode.weak
-                      : ir.EvaluationMode.strong);
+              environment: environment,
+              supportReevaluationForTesting: true,
+              evaluationMode: compiler.options.useLegacySubtyping
+                  ? ir.EvaluationMode.weak
+                  : ir.EvaluationMode.strong);
           ir.Constant evaluatedConstant = evaluator.evaluate(
               new ir.StaticTypeContext(node, typeEnvironment), initializer);
 

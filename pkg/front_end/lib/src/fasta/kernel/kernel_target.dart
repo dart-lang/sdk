@@ -1343,8 +1343,9 @@ class KernelTarget extends TargetImplementation {
 
     constants.ConstantEvaluationData constantEvaluationData =
         constants.transformLibraries(
+            component!,
             loader.libraries,
-            backendTarget.constantsBackend,
+            backendTarget,
             environmentDefines,
             environment,
             new KernelConstantErrorReporter(loader),
@@ -1400,7 +1401,8 @@ class KernelTarget extends TargetImplementation {
 
     constants.transformProcedure(
       procedure,
-      backendTarget.constantsBackend,
+      backendTarget,
+      component!,
       environmentDefines,
       environment,
       new KernelConstantErrorReporter(loader),
