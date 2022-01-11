@@ -141,6 +141,7 @@ body's
 bof
 bom
 bones
+bootstrap
 bother
 boundness
 boxed
@@ -326,6 +327,7 @@ definitions
 degrades
 degree
 del
+delegated
 delimit
 delimiting
 demands
@@ -420,6 +422,7 @@ enforcing
 engineered
 enhanced
 enters
+entrypoint
 entrypointish
 enumerates
 env
@@ -436,6 +439,7 @@ estimate
 eval
 execute
 executor
+executors
 exhausted
 existence
 existentially
@@ -603,6 +607,7 @@ immutability
 impl
 impl+
 implementers
+impls
 imply
 implying
 importantly
@@ -614,6 +619,7 @@ incomparable
 inconsistency
 increased
 incremented
+incrementing
 independently
 indexer
 indexing
@@ -668,6 +674,7 @@ io
 is64
 isolate
 isolated
+isolates
 issuecomment
 issuing
 iterables
@@ -840,6 +847,7 @@ neighboring
 newest
 nextnext
 ni
+nil
 nine
 nj
 nk
@@ -969,6 +977,7 @@ pragma
 pre
 prebuild
 prebuilt
+precompiled
 preexisted
 preexisting
 premark
@@ -1226,6 +1235,7 @@ sourcemap
 spaced
 sparse
 spawn
+spawned
 spawns
 spec
 spec'ed
@@ -1483,6 +1493,7 @@ vector
 vegorov
 verbosity
 versa
+versus
 viable
 vice
 video

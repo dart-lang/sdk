@@ -3,34 +3,56 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
-import 'package:_fe_analyzer_shared/src/macros/isolate_mirrors_executor/isolate_mirrors_executor.dart'
-    as mirrorExecutor;
+import 'package:_fe_analyzer_shared/src/macros/isolated_executor/isolated_executor.dart'
+    as isolatedExecutor;
 
 import 'package:test/fake.dart';
 import 'package:test/test.dart';
 
 void main() {
   late MacroExecutor executor;
+  late Directory tmpDir;
 
   setUp(() async {
-    executor = await mirrorExecutor.start();
+    executor = await isolatedExecutor.start();
+    tmpDir = Directory.systemTemp.createTempSync('isolated_executor_test');
   });
 
   tearDown(() {
+    if (tmpDir.existsSync()) tmpDir.deleteSync(recursive: true);
     executor.close();
   });
 
   test('can load macros and create instances', () async {
-    var clazzId = await executor.loadMacro(
-        // Tests run from the root of the repo.
-        File('pkg/_fe_analyzer_shared/test/macros/simple_macro.dart')
-            .absolute
-            .uri,
-        'SimpleMacro');
+    // Tests run from the root of the repo.
+    var macroUri = File('pkg/_fe_analyzer_shared/test/macros/simple_macro.dart')
+        .absolute
+        .uri;
+    var macroName = 'SimpleMacro';
+
+    var bootstrapContent =
+        bootstrapMacroIsolate(macroUri.toString(), macroName, ['', 'named']);
+    var bootstrapFile = File(tmpDir.uri.resolve('main.dart').toFilePath())
+      ..writeAsStringSync(bootstrapContent);
+    var kernelOutputFile =
+        File(tmpDir.uri.resolve('main.dart.dill').toFilePath());
+    var result = await Process.run(Platform.resolvedExecutable, [
+      '--snapshot=${kernelOutputFile.uri.toFilePath()}',
+      '--snapshot-kind=kernel',
+      '--packages=${(await Isolate.packageConfig)!}',
+      bootstrapFile.uri.toFilePath(),
+    ]);
+    expect(result.exitCode, 0,
+        reason: 'stdout: ${result.stdout}\nstderr: ${result.stderr}');
+
+    var clazzId = await executor.loadMacro(macroUri, macroName,
+        precompiledKernelUri: kernelOutputFile.uri);
     expect(clazzId, isNotNull, reason: 'Can load a macro.');
 
     var instanceId =

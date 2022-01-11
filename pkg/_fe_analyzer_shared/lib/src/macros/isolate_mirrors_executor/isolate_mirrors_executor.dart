@@ -7,7 +7,7 @@ import 'dart:isolate';
 import 'dart:mirrors';
 
 import 'isolate_mirrors_impl.dart';
-import 'protocol.dart';
+import '../executor_shared/protocol.dart';
 import '../executor.dart';
 import '../api.dart';
 
@@ -29,10 +29,10 @@ class _IsolateMirrorMacroExecutor implements MacroExecutor {
   final SendPort _sendPort;
 
   /// The stream of responses from the [_macroIsolate].
-  final Stream<GenericResponse> _responseStream;
+  final Stream<Response> _responseStream;
 
   /// A map of response completers by request id.
-  final _responseCompleters = <int, Completer<GenericResponse>>{};
+  final _responseCompleters = <int, Completer<Response>>{};
 
   /// A function that should be invoked when shutting down this executor
   /// to perform any necessary cleanup.
@@ -41,7 +41,7 @@ class _IsolateMirrorMacroExecutor implements MacroExecutor {
   _IsolateMirrorMacroExecutor._(
       this._macroIsolate, this._sendPort, this._responseStream, this._onClose) {
     _responseStream.listen((event) {
-      Completer<GenericResponse>? completer =
+      Completer<Response>? completer =
           _responseCompleters.remove(event.requestId);
       if (completer == null) {
         throw new StateError(
@@ -57,13 +57,13 @@ class _IsolateMirrorMacroExecutor implements MacroExecutor {
   static Future<MacroExecutor> start() async {
     ReceivePort receivePort = new ReceivePort();
     Completer<SendPort> sendPortCompleter = new Completer<SendPort>();
-    StreamController<GenericResponse> responseStreamController =
-        new StreamController<GenericResponse>(sync: true);
+    StreamController<Response> responseStreamController =
+        new StreamController<Response>(sync: true);
     receivePort.listen((message) {
       if (!sendPortCompleter.isCompleted) {
         sendPortCompleter.complete(message as SendPort);
       } else {
-        responseStreamController.add(message as GenericResponse);
+        responseStreamController.add(message as Response);
       }
     }).onDone(responseStreamController.close);
     Isolate macroIsolate = await Isolate.spawn(spawn, receivePort.sendPort);
@@ -124,18 +124,24 @@ class _IsolateMirrorMacroExecutor implements MacroExecutor {
           new InstantiateMacroRequest(macroClass, constructor, arguments));
 
   @override
-  Future<MacroClassIdentifier> loadMacro(Uri library, String name) =>
-      _sendRequest(new LoadMacroRequest(library, name));
+  Future<MacroClassIdentifier> loadMacro(Uri library, String name,
+      {Uri? precompiledKernelUri}) {
+    if (precompiledKernelUri != null) {
+      // TODO: Implement support?
+      throw new UnsupportedError(
+          'The IsolateMirrorsExecutor does not support precompiled dill files');
+    }
+    return _sendRequest(new LoadMacroRequest(library, name));
+  }
 
   /// Sends a request and returns the response, casting it to the expected
   /// type.
   Future<T> _sendRequest<T>(Request request) async {
     _sendPort.send(request);
-    Completer<GenericResponse<T>> completer =
-        new Completer<GenericResponse<T>>();
+    Completer<Response> completer = new Completer<Response>();
     _responseCompleters[request.id] = completer;
-    GenericResponse<T> response = await completer.future;
-    T? result = response.response;
+    Response response = await completer.future;
+    T? result = response.response as T?;
     if (result != null) return result;
     throw response.error!;
   }
