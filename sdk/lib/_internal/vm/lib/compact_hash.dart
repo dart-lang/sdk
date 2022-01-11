@@ -532,11 +532,18 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
   }
 
   void forEach(void f(K key, V value)) {
-    var ki = keys.iterator;
-    var vi = values.iterator;
-    while (ki.moveNext()) {
-      vi.moveNext();
-      f(ki.current, vi.current);
+    final data = _data;
+    final checkSum = _checkSum;
+    final len = _usedData;
+    for (int offset = 0; offset < len; offset += 2) {
+      final current = data[offset];
+      if (_HashBase._isDeleted(data, current)) continue;
+      final key = internal.unsafeCast<K>(current);
+      final value = internal.unsafeCast<V>(data[offset + 1]);
+      f(key, value);
+      if (_isModifiedSince(data, checkSum)) {
+        throw ConcurrentModificationError(this);
+      }
     }
   }
 
