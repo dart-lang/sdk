@@ -213,6 +213,31 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var reference = _enclosingContext.addEnum(name, element);
     _libraryBuilder.localScope.declare(name, reference);
+
+    var holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      var typeParameters = node.typeParameters;
+      if (typeParameters != null) {
+        typeParameters.accept(this);
+        element.typeParameters = holder.typeParameters;
+      }
+    });
+
+    // TODO(scheglov) implement
+    // node.extendsClause?.accept(this);
+    // node.withClause?.accept(this);
+    // node.implementsClause?.accept(this);
+
+    // TODO(scheglov) don't create a duplicate
+    {
+      var holder2 = _buildClassMembers(element, node.members);
+      element.accessors = holder2.propertyAccessors;
+      element.fields = holder2.properties.whereType<FieldElement>().toList();
+      // TODO(scheglov) implement
+      // element.methods = holder2.methods;
+    }
+
+    // TODO(scheglov) resolve field formals
   }
 
   @override
@@ -942,7 +967,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   _EnclosingContext _buildClassMembers(
-      ElementImpl element, NodeList<ClassMember> members) {
+      ElementImpl element, List<ClassMember> members) {
     var hasConstConstructor = members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
@@ -956,6 +981,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
   void _buildClassOrMixin(ClassOrMixinDeclaration node) {
     var element = node.declaredElement as ClassElementImpl;
+    // TODO(scheglov) don't create a duplicate
     var holder = _buildClassMembers(element, node.members);
     element.accessors = holder.propertyAccessors;
     element.fields = holder.properties.whereType<FieldElement>().toList();

@@ -100,6 +100,7 @@ class FeatureSets {
     sdkLanguageVersion: Version.parse('2.16.0'),
     flags: [
       EnableString.constructor_tearoffs,
+      EnableString.enhanced_enums,
       EnableString.super_parameters,
     ],
   );
@@ -17495,6 +17496,463 @@ library
             returnType: E
           synthetic static get values @-1
             returnType: List<E>
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters() async {
+    var library = await checkLibrary('''
+enum E<T> {
+  v
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic final index @-1
+            type: int
+          static const enumConstant v @14
+            type: E<T>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 0 @0
+                      staticType: int
+                    SimpleStringLiteral
+                      literal: 'v' @0
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  staticElement: self::@enum::E::@constructor::_
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<T>
+                staticType: E<T>
+          synthetic static const values @-1
+            type: List<E<T>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<T>
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<T>>
+        constructors
+          synthetic const _ @-1
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional name @-1
+                type: String
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get v @-1
+            returnType: E<T>
+          synthetic static get values @-1
+            returnType: List<E<T>>
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_bound() async {
+    var library = await checkLibrary('''
+enum E<T extends num, U extends T> {
+  v
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            bound: num
+            defaultType: num
+          covariant U @22
+            bound: T
+            defaultType: num
+        supertype: Enum
+        fields
+          synthetic final index @-1
+            type: int
+          static const enumConstant v @39
+            type: E<T, U>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 0 @0
+                      staticType: int
+                    SimpleStringLiteral
+                      literal: 'v' @0
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  staticElement: self::@enum::E::@constructor::_
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<T, U>
+                staticType: E<T, U>
+          synthetic static const values @-1
+            type: List<E<T, U>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<T, U>
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<T, U>>
+        constructors
+          synthetic const _ @-1
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional name @-1
+                type: String
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get v @-1
+            returnType: E<T, U>
+          synthetic static get values @-1
+            returnType: List<E<T, U>>
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_cycle_1of1() async {
+    var library = await checkLibrary('''
+enum E<T extends T> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            bound: dynamic
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E<T>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<T>>
+        constructors
+          synthetic const _ @-1
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional name @-1
+                type: String
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E<T>>
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_cycle_2of3() async {
+    var library = await checkLibrary(r'''
+enum E<T extends V, U extends num, V extends T> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            bound: dynamic
+            defaultType: dynamic
+          covariant U @20
+            bound: num
+            defaultType: num
+          covariant V @35
+            bound: dynamic
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E<T, U, V>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<T, U, V>>
+        constructors
+          synthetic const _ @-1
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional name @-1
+                type: String
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E<T, U, V>>
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_defaultType_cycle_genericFunctionType() async {
+    var library = await checkLibrary(r'''
+enum E<T extends void Function(E)> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            bound: void Function(E<dynamic>)
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E<T>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<T>>
+        constructors
+          synthetic const _ @-1
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional name @-1
+                type: String
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E<T>>
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_variance_contravariant() async {
+    var library = await checkLibrary('''
+enum E<in T> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          contravariant T @10
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E<T>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<T>>
+        constructors
+          synthetic const _ @-1
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional name @-1
+                type: String
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E<T>>
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_variance_covariant() async {
+    var library = await checkLibrary('''
+enum E<out T> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @11
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E<T>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<T>>
+        constructors
+          synthetic const _ @-1
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional name @-1
+                type: String
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E<T>>
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_variance_invariant() async {
+    var library = await checkLibrary('''
+enum E<inout T> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          invariant T @13
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E<T>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<T>>
+        constructors
+          synthetic const _ @-1
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional name @-1
+                type: String
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E<T>>
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_typeParameters_variance_multiple() async {
+    var library = await checkLibrary('''
+enum E<inout T, in U, out V> {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          invariant T @13
+            defaultType: dynamic
+          contravariant U @19
+            defaultType: dynamic
+          covariant V @26
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic final index @-1
+            type: int
+          synthetic static const values @-1
+            type: List<E<T, U, V>>
+            constantInitializer
+              ListLiteral
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<T, U, V>>
+        constructors
+          synthetic const _ @-1
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional name @-1
+                type: String
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get values @-1
+            returnType: List<E<T, U, V>>
         methods
           synthetic toString @-1
             returnType: String

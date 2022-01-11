@@ -174,19 +174,21 @@ class BundleWriter {
     _sink._writeStringReference(element.name);
     _resolutionSink._writeAnnotationList(element.metadata);
 
-    var valuesField = element.getField('values') as ConstFieldElementImpl;
-    _resolutionSink._writeNode(valuesField.constantInitializer!);
+    _writeTypeParameters(element.typeParameters, () {
+      var valuesField = element.getField('values') as ConstFieldElementImpl;
+      _resolutionSink._writeNode(valuesField.constantInitializer!);
 
-    _writeList(
-      element.fields.where((e) => !e.isSynthetic).toList(),
-      _writeFieldElement,
-    );
-    _writeList(
-      element.accessors.where((e) => !e.isSynthetic).toList(),
-      _writePropertyAccessorElement,
-    );
-    _writeList(element.constructors, _writeConstructorElement);
-    // _writeList(element.methods, _writeMethodElement);
+      _writeList(
+        element.fields.where((e) => !e.isSynthetic).toList(),
+        _writeFieldElement,
+      );
+      _writeList(
+        element.accessors.where((e) => !e.isSynthetic).toList(),
+        _writePropertyAccessorElement,
+      );
+      _writeList(element.constructors, _writeConstructorElement);
+      // _writeList(element.methods, _writeMethodElement);
+    });
   }
 
   void _writeExportElement(ExportElement element) {
