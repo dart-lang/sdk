@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-///
 /// Encoders and decoders for converting between different data representations,
 /// including JSON and UTF-8.
 ///
@@ -22,23 +21,25 @@
 /// collections.
 ///
 /// A [JsonCodec] encodes JSON objects to strings and decodes strings to
-/// JSON objects.
-///
-/// The [json] encoder/decoder transforms between strings and
+/// JSON objects. The [json] encoder/decoder transforms between strings and
 /// object structures, such as lists and maps, using the JSON format.
+///
+/// The [json] is the top-level instance of the [JsonCodec], the default
+/// implementation.
 ///
 /// Examples
 /// ```dart
 /// var encoded = json.encode([1, 2, { "a": null }]);
 /// var decoded = json.decode('["foo", { "bar": 499 }]');
 /// ```
-/// For more information see also [JsonEncoder] and [JsonDecoder].
+/// For more information, see also [JsonEncoder] and [JsonDecoder].
 ///
 /// ## UTF-8
 /// A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes
 /// UTF-8 code units to strings.
 ///
-/// The [utf8] encoder/decoder transforms between strings and bytes.
+/// The [utf8] is the top-level instance of the [Utf8Codec], the default
+/// implementation.
 ///
 /// Example:
 /// ```dart
@@ -54,6 +55,9 @@
 /// An [AsciiCodec] encodes strings as ASCII bytes and decodes ASCII bytes to
 /// strings.
 ///
+/// The [ascii] is the top-level instance of the [AsciiCodec], the default
+/// implementation.
+///
 /// Example:
 /// ```dart
 /// var encoded = ascii.encode('This is ASCII!');
@@ -67,7 +71,8 @@
 /// decodes using both the base64 and base64url alphabets,
 /// does not allow invalid characters and requires padding.
 ///
-/// The [base64] encoder/decoder transforms between strings and Base64 bytes.
+/// The [base64] is the top-level instance of the [Base64Codec], the default
+/// implementation.
 ///
 /// Example:
 /// ```dart
@@ -81,7 +86,8 @@
 /// A [Latin1Codec] encodes strings to ISO Latin-1 (aka ISO-8859-1) bytes
 /// and decodes Latin-1 bytes to strings.
 ///
-/// The [latin1] encoder/decoder transforms between strings and Latin-1 bytes.
+/// The [latin1] is the top-level instance of the [Latin1Codec], the default
+/// implementation.
 ///
 /// Example:
 /// ```dart
@@ -89,7 +95,7 @@
 /// var decoded = latin1.decode([0x62, 0x6c, 0xe5, 0x62, 0xe6,
 ///                              0x72, 0x67, 0x72, 0xf8, 0x64]);
 /// ```
-/// For more information see also [Latin1Encoder] and [Latin1Decoder].
+/// For more information, see also [Latin1Encoder] and [Latin1Decoder].
 ///
 /// ## Converters
 /// Converters are often used with streams
@@ -97,7 +103,7 @@
 /// as it becomes available.
 /// The following code uses two converters.
 /// The first is a UTF-8 decoder, which converts the data from bytes to UTF-8
-/// as it's read from a file,
+/// as it is read from a file,
 /// The second is an instance of [LineSplitter],
 /// which splits the data on newline boundaries.
 /// ```dart import:io
