@@ -1347,6 +1347,13 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     UpdateIsolateFlagsBit<IsKernelIsolateBit>(value);
   }
 
+  bool is_service_registered() const {
+    return LoadIsolateFlagsBit<IsServiceRegisteredBit>();
+  }
+  void set_is_service_registered(bool value) {
+    UpdateIsolateFlagsBit<IsServiceRegisteredBit>(value);
+  }
+
   const DispatchTable* dispatch_table() const {
     return group()->dispatch_table();
   }
@@ -1540,7 +1547,8 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
   V(CopyParentCode)                                                            \
-  V(IsSystemIsolate)
+  V(IsSystemIsolate)                                                           \
+  V(IsServiceRegistered)
 
   // Isolate specific flags.
   enum FlagBits {

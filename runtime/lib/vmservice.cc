@@ -35,6 +35,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
   virtual void VisitIsolate(Isolate* isolate) {
     isolate_ports_.Add(isolate->main_port());
     isolate_names_.Add(&String::Handle(zone_, String::New(isolate->name())));
+    isolate->set_is_service_registered(true);
   }
 
   void RegisterIsolates() {
