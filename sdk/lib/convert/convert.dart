@@ -38,7 +38,7 @@
 /// A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes
 /// UTF-8 code units to strings.
 ///
-/// The [utf8] encoder/decoder transforms between Strings and bytes.
+/// The [utf8] encoder/decoder transforms between strings and bytes.
 ///
 /// Example:
 /// ```dart
@@ -51,8 +51,8 @@
 /// For more information see also [Utf8Encoder] and [Utf8Decoder].
 ///
 /// ## ASCII
-/// An [AsciiCodec] allows encoding strings as ASCII bytes
-/// and decoding ASCII bytes to strings.
+/// An [AsciiCodec] encodes strings as ASCII bytes and decodes ASCII bytes to
+/// strings.
 ///
 /// Example:
 /// ```dart
