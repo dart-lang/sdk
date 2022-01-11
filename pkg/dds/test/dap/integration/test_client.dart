@@ -104,7 +104,7 @@ class DapTestClient {
 
     // When attaching, the paused VM will not be automatically unpaused, but
     // instead send a Stopped(reason: 'entry') event. Respond to this by
-    // resuming.
+    // resuming (if requested).
     final resumeFuture = autoResume
         ? expectStop('entry').then((event) => continue_(event.threadId!))
         : null;
@@ -499,16 +499,21 @@ extension DapTestClientExtension on DapTestClient {
 
     await Future.wait([
       initialize(),
-      sendRequest(
-        SetBreakpointsArguments(
-          source: Source(path: file.path),
-          breakpoints: [SourceBreakpoint(line: line, condition: condition)],
-        ),
-      ),
+      setBreakpoint(file, line, condition: condition),
       launch?.call() ?? this.launch(entryFile.path, cwd: cwd, args: args),
     ], eagerError: true);
 
     return stop;
+  }
+
+  /// Sets a breakpoint at [line] in [file].
+  Future<void> setBreakpoint(File file, int line, {String? condition}) async {
+    await sendRequest(
+      SetBreakpointsArguments(
+        source: Source(path: file.path),
+        breakpoints: [SourceBreakpoint(line: line, condition: condition)],
+      ),
+    );
   }
 
   /// Sets the exception pause mode to [pauseMode] and expects to pause after
