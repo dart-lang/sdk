@@ -85,6 +85,12 @@ int get exitCode => _ProcessUtils._getExitCode();
 ///
 /// Use this with care, as no asynchronous operations can be processed
 /// in a isolate while it is blocked in a [sleep] call.
+/// ```dart
+/// var duration = const Duration(seconds: 5);
+/// print('Start sleeping');
+/// sleep(duration);
+/// print('5 seconds has passed');
+/// ```
 void sleep(Duration duration) {
   int milliseconds = duration.inMilliseconds;
   if (milliseconds < 0) {
