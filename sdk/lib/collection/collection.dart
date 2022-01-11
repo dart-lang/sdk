@@ -19,7 +19,7 @@
 /// A collection of key/value pairs, from which to retrieve a value
 /// using the associated key. [Map] is the general interface of key/value pair
 /// collections; custom functionalities are, for example:
-/// * [HashMap] is unordered (the order of iteration is not guaranteed).
+/// * [HashMap] is unordered, the order of iteration is not guaranteed.
 /// * [LinkedHashMap] iterates in key insertion order.
 /// * [SplayTreeMap] iterates the keys in sorted order.
 /// * [UnmodifiableMapView] is a wrapper, an unmodifiable [Map] view of another
@@ -30,7 +30,7 @@
 /// [Set] is the general interface of collection where each object can occur
 /// only once, customized functionalities are, for example:
 /// * [HashSet] the order of the objects in the iterations is not guaranteed.
-/// * [LinkedHashSet] objects stored based on insertion order.
+/// * [LinkedHashSet] iterates the objects in insertion order.
 /// * [SplayTreeSet] iterates the objects in sorted order.
 /// * [UnmodifiableSetView] is a wrapper, an unmodifiable [Set] view of another
 /// Set.
