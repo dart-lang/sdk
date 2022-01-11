@@ -68,6 +68,33 @@ void main() {
         _fails(() => check(<int>[]).containsMatch((e) => e.isZero));
         _fails(() => check(<int>[1]).containsMatch((e) => e.isZero));
       });
+      test('excludesAll', () {
+        check(<int>[]).excludesAll([
+          (e) => e.isEqualTo(0),
+        ]);
+        check([1]).excludesAll([
+          (e) => e.isEqualTo(0),
+          (e) => e.isEqualTo(2),
+        ]);
+        // Fails if any match.
+        _fails(() {
+          check(<int>[0]).excludesAll([
+            (e) => e.isEqualTo(0),
+          ]);
+        });
+        _fails(() {
+          check(<int>[0]).excludesAll([
+            (e) => e.isZero,
+          ]);
+        });
+        _fails(() {
+          check(<int>[0]).excludesAll([
+            (e) => e.isEqualTo(2),
+            (e) => e.isEqualTo(1),
+            (e) => e.isEqualTo(0),
+          ]);
+        });
+      });
       test('hasLength', () {
         check(<int>[]).hasLength().isZero;
         check(<int>[0]).hasLength().isEqualTo(1);
@@ -86,6 +113,36 @@ void main() {
         _fails(() => check(<int>[]).hasLength().isEqualTo(1));
         _fails(() => check(<int>[0]).hasLength().isEqualTo(0));
       });
+      test('includesAll', () {
+        // Extra elements are OK.
+        check([0, 1, 2]).includesAll([
+          (e) => e.isEqualTo(0),
+          (e) => e.isEqualTo(1),
+        ]);
+        // Order does not matter.
+        check([0, 1, 2]).includesAll([
+          (e) => e.isEqualTo(1),
+          (e) => e.isEqualTo(0),
+        ]);
+        // Must have all elements.
+        _fails(() {
+          check(<int>[]).includesAll([
+            (e) => e.isEqualTo(0),
+          ]);
+        });
+        _fails(() {
+          check([0]).includesAll([
+            (e) => e.isEqualTo(0),
+            (e) => e.isEqualTo(1),
+          ]);
+        });
+        _fails(() {
+          check([1]).includesAll([
+            (e) => e.isEqualTo(0),
+            (e) => e.isEqualTo(1),
+          ]);
+        });
+      });
       test('isEmpty', () {
         check(<int>[]).isEmpty;
         check(<int>{}).isEmpty;
@@ -101,6 +158,36 @@ void main() {
         check({0, 1}).isNotEmpty;
         _fails(() => check(<int>[]).isNotEmpty);
         _fails(() => check(<int>{}).isNotEmpty);
+      });
+      test('matches', () {
+        check(<int>[]).matches([]);
+        check(<int>[0]).matches([
+          (e) => e.isEqualTo(0),
+        ]);
+        check(<int>[0, 1]).matches([
+          (e) => e.isEqualTo(0),
+          (e) => e.isEqualTo(1),
+        ]);
+        // Order is important.
+        _fails(
+          () => check([0, 1]).matches([
+            (e) => e.isEqualTo(1),
+            (e) => e.isEqualTo(0),
+          ]),
+        );
+        // Too few matchers.
+        _fails(
+          () => check([0, 1]).matches([
+            (e) => e.isEqualTo(0),
+          ]),
+        );
+        // Too many matchers.
+        _fails(
+          () => check([0]).matches([
+            (e) => e.isEqualTo(0),
+            (e) => e.isEqualTo(1),
+          ]),
+        );
       });
       test('matchesInAnyOrder', () {
         // Order does not matter.

@@ -41,6 +41,34 @@ extension IterableExtension<T> on CheckTarget<Iterable<T>> {
     fail('Does not contain at least one element that matches');
   }
 
+  /// Fails if for any matcher there is an element that matches.
+  void excludesAll(
+    Iterable<void Function(CheckTarget<T> element)> matchers,
+  ) {
+    var elementList = value.toList();
+    var matcherList = matchers.toList();
+    var included = <int>[];
+    for (var i = 0; i < matcherList.length; i++) {
+      var matcher = matcherList[i];
+      for (var element in elementList) {
+        var elementTarget = nest(
+          element,
+          (element) => 'element ${valueStr(element)}',
+        );
+        try {
+          matcher(elementTarget);
+          included.add(i);
+          break;
+        } on test_package.TestFailure {
+          // ignore
+        }
+      }
+    }
+    if (included.isNotEmpty) {
+      fail('Unexpectedly includes matchers at ${valueStr(included)}');
+    }
+  }
+
   @UseResult.unless(parameterDefined: 'expected')
   CheckTarget<int> hasLength([int? expected]) {
     var actual = value.length;
@@ -50,6 +78,61 @@ extension IterableExtension<T> on CheckTarget<Iterable<T>> {
     }
 
     return nest(actual, (length) => 'has length $length');
+  }
+
+  /// Succeeds if for each matcher in [matchers] there is at least one
+  /// matching element.
+  void includesAll(
+    Iterable<void Function(CheckTarget<T> element)> matchers,
+  ) {
+    var elementList = value.toList();
+    var matcherList = matchers.toList();
+    var notIncluded = <int>[];
+    for (var i = 0; i < matcherList.length; i++) {
+      var matcher = matcherList[i];
+      notIncluded.add(i);
+      for (var element in elementList) {
+        var elementTarget = nest(
+          element,
+          (element) => 'element ${valueStr(element)}',
+        );
+        try {
+          matcher(elementTarget);
+          notIncluded.removeLast();
+          break;
+        } on test_package.TestFailure {
+          // ignore
+        }
+      }
+    }
+    if (notIncluded.isNotEmpty) {
+      fail('Does not include matchers at ${valueStr(notIncluded)}');
+    }
+  }
+
+  /// Succeeds if the number of [matchers] is exactly the same as the number
+  /// of elements in [value], and each matcher matches the element at the
+  /// corresponding index.
+  void matches(
+    Iterable<void Function(CheckTarget<T> element)> matchers,
+  ) {
+    var elementList = value.toList();
+    var matcherList = matchers.toList();
+    if (elementList.length != matcherList.length) {
+      fail('Expected ${valueStr(matcherList.length)} elements, '
+          'actually ${valueStr(elementList.length)}');
+    }
+
+    for (var index = 0; index < matcherList.length; index++) {
+      var element = elementList[index];
+      var matcher = matcherList[index];
+      matcher(
+        nest(
+          element,
+          (element) => 'element ${valueStr(element)} at ${valueStr(index)}',
+        ),
+      );
+    }
   }
 
   /// Succeeds if the number of [matchers] is exactly the same as the number
