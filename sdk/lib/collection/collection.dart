@@ -12,7 +12,7 @@
 /// ## Map
 /// A collection of key/value pairs, from which to retrieve a value
 /// using the associated key. [Map] is the general interface of key/value pair
-/// collections;
+/// collections.
 /// * [HashMap] is unordered, the order of iteration is not guaranteed.
 /// * [LinkedHashMap] iterates in key insertion order.
 /// * [SplayTreeMap] iterates the keys in sorted order.
@@ -22,7 +22,7 @@
 /// ## Set
 /// A collection of objects in which each object can occur only once.
 /// [Set] is the general interface of collection where each object can occur
-/// only once;
+/// only once.
 /// * [HashSet] the order of the objects in the iterations is not guaranteed.
 /// * [LinkedHashSet] iterates the objects in insertion order.
 /// * [SplayTreeSet] iterates the objects in sorted order.
