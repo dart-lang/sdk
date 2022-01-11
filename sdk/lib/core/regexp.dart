@@ -61,8 +61,8 @@ abstract class RegExp implements Pattern {
   /// Example:
   ///
   /// ```dart
-  /// var wordPattern = RegExp(r'(\w+)');
-  /// var digitPattern = RegExp(r'(\d+)');
+  /// final wordPattern = RegExp(r'(\w+)');
+  /// final digitPattern = RegExp(r'(\d+)');
   /// ```
   ///
   /// Notice the use of a _raw string_ in the first example, and a regular
@@ -137,8 +137,8 @@ abstract class RegExp implements Pattern {
 
   /// The source regular expression string used to create this `RegExp`.
   /// ```dart
-  /// RegExp exp = RegExp(r'\p{L}');
-  /// print(exp.pattern); // \p{L}
+  /// final regExp = RegExp(r'\p{L}');
+  /// print(regExp.pattern); // \p{L}
   /// ```
   String get pattern;
 
@@ -155,15 +155,14 @@ abstract class RegExp implements Pattern {
   /// letter with a pattern letter even if the two letters are different case
   /// versions of the same letter.
   /// ```dart
-  /// RegExp exp = RegExp(r'STRING', caseSensitive: false);
-  /// RegExp expWithCaseSensitive = RegExp(r'STRING', caseSensitive: true);
-  /// String str = 'Parse my string';
+  /// final str = 'Parse my string';
+  /// var regExp = RegExp(r'STRING', caseSensitive: false);
+  /// Iterable<RegExpMatch> matches = regExp.allMatches(str); // Has matches.
+  /// print(regExp.isCaseSensitive); // false
   ///
-  /// Iterable<RegExpMatch> matches = exp.allMatches(str); // Has matches.
-  /// print(exp.isCaseSensitive); // false
-  ///
-  /// Iterable<RegExpMatch> matches = expWithCaseSensitive.allMatches(str); // No matches.
-  /// print(exp.isCaseSensitive); // true
+  /// regExp = RegExp(r'STRING', caseSensitive: true);
+  /// Iterable<RegExpMatch> caseSensitiveMatches = regExp.allMatches(str); // No matches.
+  /// print(regExp.isCaseSensitive); // true
   /// ```
   bool get isCaseSensitive;
 
@@ -178,15 +177,15 @@ abstract class RegExp implements Pattern {
   /// some pattern features, like Unicode property escapes, are only available in
   /// this mode.
   /// ```dart
-  /// RegExp expWithUnicode = RegExp(r'\p{L}', unicode: true);
-  /// print(expWithUnicode.hasMatch('a')); // true
-  /// print(expWithUnicode.hasMatch('b')); // true
-  /// print(expWithUnicode.hasMatch('?')); // false
+  /// var regExp = RegExp(r'\p{L}', unicode: true);
+  /// print(regExp.hasMatch('a')); // true
+  /// print(regExp.hasMatch('b')); // true
+  /// print(regExp.hasMatch('?')); // false
   ///
-  /// RegExp expWithoutUnicode = RegExp(r'\p{L}', unicode: false);
-  /// print(expWithoutUnicode.hasMatch('a')); // false
-  /// print(expWithoutUnicode.hasMatch('b')); // false
-  /// print(expWithoutUnicode.hasMatch('?')); // false
+  /// regExp = RegExp(r'\p{L}', unicode: false);
+  /// print(regExp.hasMatch('a')); // false
+  /// print(regExp.hasMatch('b')); // false
+  /// print(regExp.hasMatch('?')); // false
   /// ```
   @Since("2.4")
   bool get isUnicode;
