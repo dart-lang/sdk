@@ -648,14 +648,20 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
 
 /// Extension on [Pointer] specialized for the type argument [Struct].
 extension StructPointer<T extends Struct> on Pointer<T> {
-  /// Creates a reference to access the fields of this struct backed by native
-  /// memory at [address].
+  /// A Dart view of the struct referenced by this pointer.
   ///
+  /// Reading [ref] creates a reference accessing the fields of this struct
+  /// backed by native memory at [address].
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
   ///
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// Assigning to [ref] copies contents of the struct into the native memory
+  /// starting at [address].
+  ///
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T get ref;
+  external set ref(T value);
 
   /// Creates a reference to access the fields of this struct backed by native
   /// memory at `address + sizeOf<T>() * index`.
@@ -663,20 +669,34 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
   ///
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T operator [](int index);
+
+  /// Copies the [value] struct into native memory, starting at
+  /// `address * sizeOf<T>() * index`.
+  ///
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
+  external void operator []=(int index, T value);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Union].
 extension UnionPointer<T extends Union> on Pointer<T> {
-  /// Creates a reference to access the fields of this union backed by native
-  /// memory at [address].
+  /// A Dart view of the union referenced by this pointer.
   ///
+  /// Reading [ref] creates a reference accessing the fields of this union
+  /// backed by native memory at [address].
   /// The [address] must be aligned according to the union alignment rules of
   /// the platform.
   ///
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// Assigning to [ref] copies contents of the union into the native memory
+  /// starting at [address].
+  ///
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T get ref;
+  external set ref(T value);
 
   /// Creates a reference to access the fields of this union backed by native
   /// memory at `address + sizeOf<T>() * index`.
@@ -684,8 +704,16 @@ extension UnionPointer<T extends Union> on Pointer<T> {
   /// The [address] must be aligned according to the union alignment rules of
   /// the platform.
   ///
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T operator [](int index);
+
+  /// Copies the [value] union into native memory, starting at
+  /// `address * sizeOf<T>() * index`.
+  ///
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
+  external void operator []=(int index, T value);
 }
 
 /// Extension on [Pointer] specialized for the type argument
@@ -713,13 +741,15 @@ extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
 
 /// Bounds checking indexing methods on [Array]s of [Struct].
 extension StructArray<T extends Struct> on Array<T> {
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T operator [](int index);
 }
 
 /// Bounds checking indexing methods on [Array]s of [Union].
 extension UnionArray<T extends Union> on Array<T> {
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T operator [](int index);
 }
 
