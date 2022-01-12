@@ -12,20 +12,20 @@ import 'package:path/path.dart' as path;
 import '../core.dart';
 import '../sdk.dart';
 
-/// A command to create a new project from a set of templates.
+/// A command to generate documentation for a project.
 class DocCommand extends DartdevCommand {
   static const String cmdName = 'doc';
 
-  DocCommand({bool verbose = false})
-      : super(
-          cmdName,
-          'Generate HTML API documentation from Dart documentation comments.',
-          verbose,
-        ) {
+  static const String cmdDescription = '''
+Generate API documentation for Dart projects.
+
+For additional documentation generation options, see the 'dartdoc_options.yaml' file documentation at https://dart.dev/go/dartdoc-options-file.''';
+
+  DocCommand({bool verbose = false}) : super(cmdName, cmdDescription, verbose) {
     argParser.addOption(
       'output-dir',
       abbr: 'o',
-      defaultsTo: path.join('.', 'doc', 'api'),
+      defaultsTo: path.join('doc', 'api'),
       help: 'Output directory',
     );
     argParser.addFlag(
@@ -75,8 +75,9 @@ class DocCommand extends DartdevCommand {
 
     // Call dartdoc.
     if (verbose) {
-      log.stdout('Calling dartdoc with the following options: $options');
+      log.stdout('Using the following options: $options');
     }
+
     final packageConfigProvider = PhysicalPackageConfigProvider();
     final packageBuilder = PubPackageBuilder(
         config, pubPackageMetaProvider, packageConfigProvider);
