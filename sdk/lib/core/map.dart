@@ -473,7 +473,8 @@ class MapEntry<K, V> {
 
   /// The value associated to [key] in the map.
   /// ```dart
-  /// final entry = MapEntry('theKey', 'theValue');
+  /// final map = {'theKey': 'theValue'};
+  /// var entry = map.entries.first;
   /// print(entry.value); // theValue
   /// ```
   final V value;
