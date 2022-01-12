@@ -405,11 +405,10 @@ public interface AnalysisServer {
    * {@code completion.getSuggestionDetails2}
    *
    * Clients must make this request when the user has selected a completion suggestion with the
-   * libraryUriToImportIndex field set. The server will respond with the text to insert, as well as
-   * any SourceChange that needs to be applied in case the completion requires an additional import
-   * to be added. The text to insert might be different from the original suggestion to include an
-   * import prefix if the library will be imported with a prefix to avoid shadowing conflicts in the
-   * file.
+   * isNotImported field set to true. The server will respond with the text to insert, as well as any
+   * SourceChange that needs to be applied in case the completion requires an additional import to be
+   * added. The text to insert might be different from the original suggestion to include an import
+   * prefix if the library will be imported with a prefix to avoid shadowing conflicts in the file.
    *
    * @param file The path of the file into which this completion is being inserted.
    * @param offset The offset in the file where the completion will be inserted.

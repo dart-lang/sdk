@@ -62,7 +62,8 @@ class B extends A {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [],
@@ -74,7 +75,8 @@ class B extends A {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 0,
         'interfaces': [],
@@ -114,7 +116,8 @@ class CCC extends BBB implements AAA {}
           'kind': 'CLASS',
           'name': 'AAA',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [],
@@ -126,7 +129,8 @@ class CCC extends BBB implements AAA {}
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'interfaces': [],
         'mixins': [],
@@ -137,7 +141,8 @@ class CCC extends BBB implements AAA {}
           'kind': 'CLASS',
           'name': 'BBB',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 0,
         'interfaces': [],
@@ -149,7 +154,8 @@ class CCC extends BBB implements AAA {}
           'kind': 'CLASS',
           'name': 'CCC',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 0,
         'interfaces': [],
@@ -203,7 +209,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [],
@@ -215,7 +222,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'interfaces': [],
         'mixins': [],
@@ -226,7 +234,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 0,
         'interfaces': [],
@@ -238,7 +247,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 2,
         'interfaces': [],
@@ -264,7 +274,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [],
@@ -276,7 +287,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 2,
         'interfaces': [],
@@ -288,7 +300,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'interfaces': [],
         'mixins': [],
@@ -299,7 +312,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 0,
         'interfaces': [],
@@ -325,7 +339,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [],
@@ -337,7 +352,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 2,
         'interfaces': [],
@@ -349,7 +365,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 3,
         'interfaces': [],
@@ -361,7 +378,8 @@ class C extends B {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'interfaces': [],
         'mixins': [],
@@ -386,7 +404,8 @@ class T implements MA, MB {
           'kind': 'CLASS',
           'name': 'T',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [2, 3],
@@ -398,7 +417,8 @@ class T implements MA, MB {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'interfaces': [],
         'mixins': [],
@@ -409,7 +429,8 @@ class T implements MA, MB {
           'kind': 'CLASS',
           'name': 'MA',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [],
@@ -421,7 +442,8 @@ class T implements MA, MB {
           'kind': 'CLASS',
           'name': 'MB',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [],
@@ -448,7 +470,8 @@ class E extends A {}
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [],
@@ -460,7 +483,8 @@ class E extends A {}
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'interfaces': [],
         'mixins': [],
@@ -471,7 +495,8 @@ class E extends A {}
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 0,
         'interfaces': [],
@@ -483,7 +508,8 @@ class E extends A {}
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 0,
         'interfaces': [],
@@ -495,7 +521,8 @@ class E extends A {}
           'kind': 'CLASS',
           'name': 'D',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 0,
         'interfaces': [],
@@ -507,7 +534,8 @@ class E extends A {}
           'kind': 'CLASS',
           'name': 'E',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 0,
         'interfaces': [],
@@ -519,7 +547,8 @@ class E extends A {}
           'kind': 'CLASS',
           'name': 'F',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 4,
         'interfaces': [],
@@ -531,7 +560,8 @@ class E extends A {}
           'kind': 'CLASS',
           'name': 'G',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 4,
         'interfaces': [],
@@ -557,7 +587,8 @@ class T extends Object with MA, MB {
           'kind': 'CLASS',
           'name': 'T',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [],
@@ -569,7 +600,8 @@ class T extends Object with MA, MB {
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'interfaces': [],
         'mixins': [],
@@ -580,7 +612,8 @@ class T extends Object with MA, MB {
           'kind': 'CLASS',
           'name': 'MA',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [],
@@ -592,7 +625,8 @@ class T extends Object with MA, MB {
           'kind': 'CLASS',
           'name': 'MB',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [],
@@ -1132,7 +1166,8 @@ class D extends C {}
           'kind': 'CLASS',
           'name': 'C',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 1,
         'interfaces': [3],
@@ -1144,7 +1179,8 @@ class D extends C {}
           'kind': 'CLASS',
           'name': 'A',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 2,
         'interfaces': [],
@@ -1156,7 +1192,8 @@ class D extends C {}
           'kind': 'CLASS',
           'name': 'Object',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'interfaces': [],
         'mixins': [],
@@ -1167,7 +1204,8 @@ class D extends C {}
           'kind': 'CLASS',
           'name': 'B',
           'location': anything,
-          'flags': 0
+          'flags': 0,
+          'libraryUri': anything
         },
         'superclass': 2,
         'interfaces': [],

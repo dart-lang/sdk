@@ -4895,7 +4895,7 @@ class ServiceIsolateVisitor : public IsolateVisitor {
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (!IsSystemIsolate(isolate)) {
+    if (!IsSystemIsolate(isolate) && isolate->is_service_registered()) {
       jsarr_->AddValue(isolate);
     }
   }

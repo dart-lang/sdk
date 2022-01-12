@@ -109,6 +109,16 @@ const simpleBreakpointProgram = '''
   }
 ''';
 
+/// A simple Dart script that has a breakpoint and an exception used for
+/// testing whether breakpoints and exceptions are being paused on (for example
+/// during detach where they should not).
+const simpleBreakpointAndThrowProgram = '''
+  void main(List<String> args) async {
+    print('Hello!'); $breakpointMarker
+    throw 'error';
+  }
+''';
+
 /// A simple Dart script that throws an error and catches it in user code.
 const simpleCaughtErrorProgram = r'''
   void main(List<String> args) async {

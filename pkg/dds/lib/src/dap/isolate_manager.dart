@@ -283,6 +283,18 @@ class IsolateManager {
         .map((thread) => _sendBreakpoints(thread, uri: uri)));
   }
 
+  /// Clears all breakpoints.
+  Future<void> clearAllBreakpoints() async {
+    // Clear all breakpoints for each URI. Do not remove the items from the map
+    // as that will stop them being tracked/sent by the call below.
+    _clientBreakpointsByUri.updateAll((key, value) => []);
+
+    // Send the breakpoints to all existing threads.
+    await Future.wait(
+      _threadsByThreadId.values.map((thread) => _sendBreakpoints(thread)),
+    );
+  }
+
   /// Records exception pause mode as one of 'None', 'Unhandled' or 'All'. All
   /// existing isolates will be updated to reflect the new setting.
   Future<void> setExceptionPauseMode(String mode) async {
@@ -558,6 +570,14 @@ class IsolateManager {
       // TODO(dantup): Format this using other existing code in protocol converter?
       _adapter.sendOutput('console', '${messageResult?.valueAsString}\n');
     }
+  }
+
+  /// Resumes any paused isolates.
+  Future<void> resumeAll() async {
+    final pausedThreads = threads.where((thread) => thread.paused).toList();
+    await Future.wait(
+      pausedThreads.map((thread) => resumeThread(thread.threadId)),
+    );
   }
 
   /// Calls reloadSources for the given isolate.

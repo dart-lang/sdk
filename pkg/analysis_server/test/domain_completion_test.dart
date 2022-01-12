@@ -1620,7 +1620,6 @@ void f() {
       replacementOffset: result.replacementOffset,
       replacementLength: result.replacementLength,
       isIncomplete: result.isIncomplete,
-      librariesToImport: result.libraryUrisToImport,
       suggestions: result.suggestions,
     );
   }
@@ -2536,27 +2535,6 @@ class B extends A {m() {^}}
   }
 }
 
-class CompletionGetSuggestions2ResponseValidator {
-  final int completionOffset;
-  final CompletionGetSuggestions2Result result;
-
-  CompletionGetSuggestions2ResponseValidator(
-    this.completionOffset,
-    this.result,
-  );
-
-  CompletionResponseForTesting get asResponse {
-    return CompletionResponseForTesting(
-      requestOffset: completionOffset,
-      replacementOffset: result.replacementOffset,
-      replacementLength: result.replacementLength,
-      isIncomplete: result.isIncomplete,
-      librariesToImport: result.libraryUrisToImport,
-      suggestions: result.suggestions,
-    );
-  }
-}
-
 class PubPackageAnalysisServerTest with ResourceProviderMixin {
   late final MockServerChannel serverChannel;
   late final AnalysisServer server;
@@ -2686,7 +2664,6 @@ class RequestWithFutureResponse {
       replacementOffset: result.replacementOffset,
       replacementLength: result.replacementLength,
       isIncomplete: result.isIncomplete,
-      librariesToImport: result.libraryUrisToImport,
       suggestions: result.suggestions,
     );
   }

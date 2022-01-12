@@ -1353,7 +1353,7 @@ class _CompletionSuggestionInputs {
 
 extension CompletionSuggestionExtension on CompletionSuggestion {
   CompletionSuggestion copyWith({
-    CopyWithValue<int?>? libraryUriToImportIndex,
+    CopyWithValue<bool?>? isNotImported,
   }) {
     return protocol.CompletionSuggestion(
       kind,
@@ -1379,9 +1379,7 @@ extension CompletionSuggestionExtension on CompletionSuggestion {
       hasNamedParameters: hasNamedParameters,
       parameterName: parameterName,
       parameterType: parameterType,
-      libraryUriToImportIndex: libraryUriToImportIndex.orElse(
-        this.libraryUriToImportIndex,
-      ),
+      isNotImported: isNotImported.orElse(this.isNotImported),
     );
   }
 }

@@ -64,7 +64,7 @@ class NotImportedContributor extends DartCompletionContributor {
 
       builder.laterReplacesEarlier = false;
       builder.suggestionAdded = (suggestion) {
-        additionalData.map[suggestion] = file.uri;
+        additionalData.set.add(suggestion);
       };
 
       if (request.includeIdentifiers) {

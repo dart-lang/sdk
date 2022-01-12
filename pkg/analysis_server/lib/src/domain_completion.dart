@@ -288,7 +288,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
           suggestions.replacementOffset,
           suggestions.replacementLength,
           suggestions.suggestions,
-          [],
           false,
         ).toResponse(request.id),
       );
@@ -297,7 +296,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
     if (!file_paths.isDart(pathContext, file)) {
       server.sendResponse(
-        CompletionGetSuggestions2Result(offset, 0, [], [], false)
+        CompletionGetSuggestions2Result(offset, 0, [], false)
             .toResponse(request.id),
       );
       return;
@@ -372,7 +371,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
               completionRequest.replacementOffset,
               completionRequest.replacementLength,
               [],
-              [],
               true,
             ).toResponse(request.id),
           );
@@ -390,19 +388,12 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         var lengthRestricted = suggestions.take(params.maxResults).toList();
         completionPerformance.suggestionCount = lengthRestricted.length;
 
-        // Update `libraryUriToImportIndex` for not yet imported.
-        // Gather referenced unique libraries to import.
-        var librariesToImport = <Uri, int>{};
+        // Update `isNotImported` for not yet imported.
         for (var i = 0; i < lengthRestricted.length; i++) {
           var suggestion = lengthRestricted[i];
-          var libraryToImport = notImportedSuggestions.map[suggestion];
-          if (libraryToImport != null) {
-            var index = librariesToImport.putIfAbsent(
-              libraryToImport,
-              () => librariesToImport.length,
-            );
+          if (notImportedSuggestions.set.contains(suggestion)) {
             lengthRestricted[i] = suggestion.copyWith(
-              libraryUriToImportIndex: CopyWithValue(index),
+              isNotImported: CopyWithValue(true),
             );
           }
         }
@@ -416,7 +407,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
               completionRequest.replacementOffset,
               completionRequest.replacementLength,
               lengthRestricted,
-              librariesToImport.keys.map((e) => '$e').toList(),
               isIncomplete,
             ).toResponse(request.id),
           );

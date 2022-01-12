@@ -55,14 +55,26 @@ class RemoteVm {
 
   /// Retrieves the ID of the main isolate using the service protocol.
   Future<String> _computeMainId() async {
-    var vm = await rpc.sendRequest('getVM');
+    var completer = new Completer<String>();
+    rpc.registerMethod('streamNotify', (response) {
+      if (response['streamId'] == 'Isolate') return;
+      var event = response['event'];
+      if (event['kind'] != 'IsolateStart') return;
+      var isolate = event['isolate'];
+      completer.complete(isolate['id']);
+    });
+    await rpc.sendRequest('streamListen', {'streamId': 'Isolate'});
+    var vm = await rpc.sendRequest('getVM', {});
     var isolates = vm['isolates'];
     for (var isolate in isolates) {
       if (isolate['name'].contains(r'$main')) {
         return isolate['id'];
       }
     }
-    return isolates.first['id'];
+    for (var isolate in isolates) {
+      return isolate['id'];
+    }
+    return completer.future;
   }
 
   /// Send a request to the VM to reload sources from [entryUri].

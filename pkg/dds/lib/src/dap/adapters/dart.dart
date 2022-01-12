@@ -382,6 +382,22 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// VM Service disconnects.
   bool isTerminating = false;
 
+  /// Removes any breakpoints or pause behaviour and resumes any paused
+  /// isolates.
+  ///
+  /// This is useful when detaching from a process that was attached to, where
+  /// the user would not expect the script to continue to pause on breakpoints
+  /// the had set while attached.
+  Future<void> preventBreakingAndResume() async {
+    // Remove anything that may cause us to pause again.
+    await Future.wait([
+      _isolateManager.clearAllBreakpoints(),
+      _isolateManager.setExceptionPauseMode('None'),
+    ]);
+    // Once those have completed, it's safe to resume anything paused.
+    await _isolateManager.resumeAll();
+  }
+
   DartDebugAdapter(
     ByteStreamServerChannel channel, {
     this.ipv6 = false,

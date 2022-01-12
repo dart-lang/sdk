@@ -4827,7 +4827,6 @@ class CompletionGetSuggestions2Params implements RequestParams {
 ///   "replacementOffset": int
 ///   "replacementLength": int
 ///   "suggestions": List<CompletionSuggestion>
-///   "libraryUrisToImport": List<String>
 ///   "isIncomplete": bool
 /// }
 ///
@@ -4853,31 +4852,16 @@ class CompletionGetSuggestions2Result implements ResponseResult {
   /// (if isIncomplete was true).
   ///
   /// This list contains suggestions from both imported, and not yet imported
-  /// libraries. Items from not yet imported libraries will have
-  /// libraryUriToImportIndex set, which is an index into the
-  /// libraryUrisToImport in this response.
+  /// libraries. Items from not yet imported libraries will have isNotImported
+  /// set to true.
   List<CompletionSuggestion> suggestions;
-
-  /// The list of libraries with declarations that are not yet available in the
-  /// file where completion was requested, most often because the library is
-  /// not yet imported. The declarations still might be included into the
-  /// suggestions, and the client should use getSuggestionDetails2 on selection
-  /// to make the library available in the file.
-  ///
-  /// Each item is the URI of a library, such as package:foo/bar.dart or
-  /// file:///home/me/workspace/foo/test/bar_test.dart.
-  List<String> libraryUrisToImport;
 
   /// True if the number of suggestions after filtering was greater than the
   /// requested maxResults.
   bool isIncomplete;
 
-  CompletionGetSuggestions2Result(
-      this.replacementOffset,
-      this.replacementLength,
-      this.suggestions,
-      this.libraryUrisToImport,
-      this.isIncomplete);
+  CompletionGetSuggestions2Result(this.replacementOffset,
+      this.replacementLength, this.suggestions, this.isIncomplete);
 
   factory CompletionGetSuggestions2Result.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4907,15 +4891,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'suggestions');
       }
-      List<String> libraryUrisToImport;
-      if (json.containsKey('libraryUrisToImport')) {
-        libraryUrisToImport = jsonDecoder.decodeList(
-            jsonPath + '.libraryUrisToImport',
-            json['libraryUrisToImport'],
-            jsonDecoder.decodeString);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'libraryUrisToImport');
-      }
       bool isIncomplete;
       if (json.containsKey('isIncomplete')) {
         isIncomplete = jsonDecoder.decodeBool(
@@ -4923,8 +4898,8 @@ class CompletionGetSuggestions2Result implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'isIncomplete');
       }
-      return CompletionGetSuggestions2Result(replacementOffset,
-          replacementLength, suggestions, libraryUrisToImport, isIncomplete);
+      return CompletionGetSuggestions2Result(
+          replacementOffset, replacementLength, suggestions, isIncomplete);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, 'completion.getSuggestions2 result', json);
@@ -4946,7 +4921,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
     result['suggestions'] = suggestions
         .map((CompletionSuggestion value) => value.toJson())
         .toList();
-    result['libraryUrisToImport'] = libraryUrisToImport;
     result['isIncomplete'] = isIncomplete;
     return result;
   }
@@ -4966,8 +4940,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
           replacementLength == other.replacementLength &&
           listEqual(suggestions, other.suggestions,
               (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
-          listEqual(libraryUrisToImport, other.libraryUrisToImport,
-              (String a, String b) => a == b) &&
           isIncomplete == other.isIncomplete;
     }
     return false;
@@ -4978,7 +4950,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
         replacementOffset,
         replacementLength,
         suggestions,
-        libraryUrisToImport,
         isIncomplete,
       );
 }
