@@ -2963,7 +2963,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
-      if (declaration is ClassBuilder) {
+      if (declaration is SourceClassBuilder) {
         declaration.buildOutlineExpressions(this, classHierarchy,
             delayedActionPerformers, synthesizedFunctionNodes);
       } else if (declaration is ExtensionBuilder) {
