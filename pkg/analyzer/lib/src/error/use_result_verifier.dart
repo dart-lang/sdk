@@ -149,6 +149,14 @@ class UseResultVerifier {
       return parent.target == node;
     }
 
+    if (parent is PrefixedIdentifier) {
+      if (parent.prefix == node) {
+        return true;
+      } else {
+        return _isUsed(parent);
+      }
+    }
+
     if (parent is ParenthesizedExpression ||
         parent is ConditionalExpression ||
         parent is AwaitExpression) {
