@@ -24,8 +24,7 @@
 /// JSON objects. The [json] encoder/decoder transforms between strings and
 /// object structures, such as lists and maps, using the JSON format.
 ///
-/// The [json] is the top-level instance of the [JsonCodec], the default
-/// implementation.
+/// The [json] is an instance of the default implementation of the [JsonCodec].
 ///
 /// Examples
 /// ```dart
@@ -38,8 +37,7 @@
 /// A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes
 /// UTF-8 code units to strings.
 ///
-/// The [utf8] is the top-level instance of the [Utf8Codec], the default
-/// implementation.
+/// The [utf8] is an instance of the default implementation of the [Utf8Codec].
 ///
 /// Example:
 /// ```dart
@@ -49,14 +47,13 @@
 ///   163, 195, 174, 195, 182, 195, 177, 195, 165, 196, 188, 195, 174, 197,
 ///   190, 195, 165, 197, 163, 195, 174, 225, 187, 157, 195, 177]);
 /// ```
-/// For more information see also [Utf8Encoder] and [Utf8Decoder].
+/// For more information, see also [Utf8Encoder] and [Utf8Decoder].
 ///
 /// ## ASCII
 /// An [AsciiCodec] encodes strings as ASCII bytes and decodes ASCII bytes to
 /// strings.
 ///
-/// The [ascii] is the top-level instance of the [AsciiCodec], the default
-/// implementation.
+/// The [ascii] is an instance of the default implementation of the [AsciiCodec].
 ///
 /// Example:
 /// ```dart
@@ -64,15 +61,15 @@
 /// var decoded = ascii.decode([0x54, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73,
 ///                             0x20, 0x41, 0x53, 0x43, 0x49, 0x49, 0x21]);
 /// ```
-/// For more information see also [AsciiEncoder] and [AsciiDecoder].
+/// For more information, see also [AsciiEncoder] and [AsciiDecoder].
 ///
 /// ## Base64
 /// A [Base64Codec] encodes using the default base64 alphabet,
 /// decodes using both the base64 and base64url alphabets,
 /// does not allow invalid characters and requires padding.
 ///
-/// The [base64] is the top-level instance of the [Base64Codec], the default
-/// implementation.
+/// The [base64] is an instance of the default implementation of the
+/// [Base64Codec].
 ///
 /// Example:
 /// ```dart
@@ -80,14 +77,14 @@
 ///                              0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
 /// var decoded = base64.decode('YmzDpWLDpnJncsO4ZAo=');
 /// ```
-/// For more information see also [Base64Encoder] and [Base64Decoder].
+/// For more information, see also [Base64Encoder] and [Base64Decoder].
 ///
 /// ## Latin-1
 /// A [Latin1Codec] encodes strings to ISO Latin-1 (aka ISO-8859-1) bytes
 /// and decodes Latin-1 bytes to strings.
 ///
-/// The [latin1] is the top-level instance of the [Latin1Codec], the default
-/// implementation.
+/// The [latin1] is an instance of the default implementation of the
+/// [Latin1Codec].
 ///
 /// Example:
 /// ```dart
