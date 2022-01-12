@@ -9,13 +9,15 @@ part of dart.core;
 /// Big integers are signed and can have an arbitrary number of
 /// significant digits, only limited by memory.
 ///
-/// To allocate a big integer from the provided number, use [BigInt.from].
+/// To create a big integer from the provided number, use [BigInt.from].
 /// ```dart
 /// var bigInteger = BigInt.from(-1); // -1
 /// bigInteger = BigInt.from(0.9999); // 0
 /// bigInteger = BigInt.from(-10.99); // -10
+/// bigInteger = BigInt.from(0x7FFFFFFFFFFFFFFF); // 9223372036854775807
+/// bigInteger = BigInt.from(1e+30); // 1000000000000000019884624838656
 /// ```
-/// To parse a large integer value from string, use [parse] or [tryParse].
+/// To parse a large integer value from a string, use [parse] or [tryParse].
 /// ```dart
 /// var value = BigInt.parse('0x1ffffffffffffffff'); // 36893488147419103231
 /// value = BigInt.parse('12345678901234567890'); // 12345678901234567890
@@ -25,8 +27,8 @@ part of dart.core;
 /// ```dart continued
 /// print(bigNumber.isValidInt); // false
 /// ```
-/// To return big integer as [int], use [toInt].
-/// To return big integer as [double], use [toDouble].
+/// To convert a big integer into an [int], use [toInt].
+/// To convert a big integer into an [double], use [toDouble].
 /// ```dart
 /// var bigValue = BigInt.from(10).pow(3);
 /// print(bigValue.isValidInt); // true
@@ -72,7 +74,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// optionally prefixed by a sign.
   /// Examples:
   /// ```dart
-  /// print(BigInt.parse('12345678901234567890')); // 12345678901234567890
+  /// print(BigInt.parse('-12345678901234567890')); // -12345678901234567890
   /// print(BigInt.parse('0xFF')); // 255
   /// print(BigInt.parse('0xffffffffffffffff')); // 18446744073709551615
   ///
@@ -105,7 +107,7 @@ abstract class BigInt implements Comparable<BigInt> {
   ///
   /// Examples:
   /// ```dart
-  /// print(BigInt.tryParse('12345678901234567890')); // 12345678901234567890
+  /// print(BigInt.tryParse('-12345678901234567890')); // -12345678901234567890
   /// print(BigInt.tryParse('0xFF')); // 255
   /// print(BigInt.tryParse('0xffffffffffffffff')); // 18446744073709551615
   ///
@@ -130,7 +132,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// ```
   external static BigInt? tryParse(String source, {int? radix});
 
-  /// Allocates a big integer from the provided [value] number.
+  /// Creates a big integer from the provided [value] number.
   ///
   /// Examples:
   /// ```dart
