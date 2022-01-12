@@ -10,8 +10,8 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/builder/builder.dart';
-import 'package:front_end/src/fasta/builder/class_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
+import 'package:front_end/src/fasta/source/source_class_builder.dart';
 import 'package:front_end/src/fasta/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -128,7 +128,8 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
 
   @override
   Features computeClassValue(Id id, Class cls) {
-    ClassBuilder clsBuilder = lookupClassBuilder(compilerResult, cls)!;
+    SourceClassBuilder clsBuilder =
+        lookupClassBuilder(compilerResult, cls) as SourceClassBuilder;
 
     Features features = new Features();
     if (cls.isAbstract) {

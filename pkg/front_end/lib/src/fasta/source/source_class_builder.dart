@@ -7,6 +7,7 @@ library fasta.source_class_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyMembers;
+import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/src/legacy_erasure.dart';
@@ -16,6 +17,7 @@ import 'package:kernel/type_algebra.dart'
         FreshTypeParameters,
         Substitution,
         getFreshTypeParameters,
+        substitute,
         updateBoundNullabilities;
 import 'package:kernel/type_environment.dart';
 
@@ -28,17 +30,20 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
+import '../builder/void_type_declaration_builder.dart';
 import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
 import '../kernel/combined_member_signature.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/kernel_target.dart' show KernelTarget;
-import '../kernel/redirecting_factory_body.dart' show redirectingName;
+import '../kernel/redirecting_factory_body.dart'
+    show RedirectingFactoryBody, redirectingName;
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
 import '../names.dart' show equalsName, noSuchMethodName;
@@ -188,7 +193,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     scope.forEach(buildBuilders);
     constructors.forEach(buildBuilders);
     if (supertypeBuilder != null) {
-      supertypeBuilder = checkSupertype(supertypeBuilder!);
+      supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
     Supertype? supertype =
         supertypeBuilder?.buildSupertype(library, charOffset, fileUri);
@@ -222,7 +227,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     actualCls.supertype = supertype;
 
     if (mixedInTypeBuilder != null) {
-      mixedInTypeBuilder = checkSupertype(mixedInTypeBuilder!);
+      mixedInTypeBuilder = _checkSupertype(mixedInTypeBuilder!);
     }
     Supertype? mixedInType =
         mixedInTypeBuilder?.buildMixedInType(library, charOffset, fileUri);
@@ -245,7 +250,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     cls.isMacro = isMacro;
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
-        interfaceBuilders![i] = checkSupertype(interfaceBuilders![i]);
+        interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);
         Supertype? supertype =
             interfaceBuilders![i].buildSupertype(library, charOffset, fileUri);
         if (supertype != null) {
@@ -312,6 +317,30 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     return false;
+  }
+
+  void buildOutlineExpressions(
+      SourceLibraryBuilder library,
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
+    void build(String ignore, Builder declaration) {
+      SourceMemberBuilder member = declaration as SourceMemberBuilder;
+      member.buildOutlineExpressions(library, classHierarchy,
+          delayedActionPerformers, synthesizedFunctionNodes);
+    }
+
+    MetadataBuilder.buildAnnotations(isPatch ? origin.cls : cls, metadata,
+        library, this, null, fileUri, library.scope);
+    if (typeVariables != null) {
+      for (int i = 0; i < typeVariables!.length; i++) {
+        typeVariables![i].buildOutlineExpressions(library, this, null,
+            classHierarchy, delayedActionPerformers, scope.parent!);
+      }
+    }
+
+    constructors.forEach(build);
+    scope.forEach(build);
   }
 
   @override
@@ -383,6 +412,95 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
+  int get typeVariablesCount => typeVariables?.length ?? 0;
+
+  @override
+  List<DartType> buildTypeArguments(
+      LibraryBuilder library, List<TypeBuilder>? arguments) {
+    if (arguments == null && typeVariables == null) {
+      return <DartType>[];
+    }
+
+    if (arguments == null && typeVariables != null) {
+      List<DartType> result = new List<DartType>.generate(typeVariables!.length,
+          (int i) => typeVariables![i].defaultType!.build(library),
+          growable: true);
+      if (library is SourceLibraryBuilder) {
+        library.inferredTypes.addAll(result);
+      }
+      return result;
+    }
+
+    if (arguments != null && arguments.length != typeVariablesCount) {
+      // That should be caught and reported as a compile-time error earlier.
+      return unhandled(
+          templateTypeArgumentMismatch
+              .withArguments(typeVariablesCount)
+              .problemMessage,
+          "buildTypeArguments",
+          -1,
+          null);
+    }
+
+    assert(arguments!.length == typeVariablesCount);
+    List<DartType> result = new List<DartType>.generate(
+        arguments!.length, (int i) => arguments[i].build(library),
+        growable: true);
+    return result;
+  }
+
+  /// Returns a map which maps the type variables of [superclass] to their
+  /// respective values as defined by the superclass clause of this class (and
+  /// its superclasses).
+  ///
+  /// It's assumed that [superclass] is a superclass of this class.
+  ///
+  /// For example, given:
+  ///
+  ///     class Box<T> {}
+  ///     class BeatBox extends Box<Beat> {}
+  ///     class Beat {}
+  ///
+  /// We have:
+  ///
+  ///     [[BeatBox]].getSubstitutionMap([[Box]]) -> {[[Box::T]]: Beat]]}.
+  ///
+  /// It's an error if [superclass] isn't a superclass.
+  Map<TypeParameter, DartType> getSubstitutionMap(Class superclass) {
+    Supertype? supertype = cls.supertype;
+    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
+    List<DartType> arguments;
+    List<TypeParameter> variables;
+    Class? classNode;
+
+    while (classNode != superclass) {
+      classNode = supertype!.classNode;
+      arguments = supertype.typeArguments;
+      variables = classNode.typeParameters;
+      supertype = classNode.supertype;
+      if (variables.isNotEmpty) {
+        Map<TypeParameter, DartType> directSubstitutionMap =
+            <TypeParameter, DartType>{};
+        for (int i = 0; i < variables.length; i++) {
+          DartType argument =
+              i < arguments.length ? arguments[i] : const DynamicType();
+          // ignore: unnecessary_null_comparison
+          if (substitutionMap != null) {
+            // TODO(ahe): Investigate if requiring the caller to use
+            // `substituteDeep` from `package:kernel/type_algebra.dart` instead
+            // of `substitute` is faster. If so, we can simply this code.
+            argument = substitute(argument, substitutionMap);
+          }
+          directSubstitutionMap[variables[i]] = argument;
+        }
+        substitutionMap = directSubstitutionMap;
+      }
+    }
+
+    return substitutionMap;
+  }
+
+  @override
   void applyPatch(Builder patch) {
     if (patch is SourceClassBuilder) {
       patch.actualOrigin = this;
@@ -431,7 +549,357 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  TypeBuilder checkSupertype(TypeBuilder supertype) {
+  void checkSupertypes(CoreTypes coreTypes) {
+    // This method determines whether the class (that's being built) its super
+    // class appears both in 'extends' and 'implements' clauses and whether any
+    // interface appears multiple times in the 'implements' clause.
+    // Moreover, it checks that `FutureOr` and `void` are not among the
+    // supertypes.
+
+    void fail(NamedTypeBuilder target, Message message,
+        TypeAliasBuilder? aliasBuilder) {
+      int nameOffset = target.nameOffset;
+      int nameLength = target.nameLength;
+      // TODO(eernst): nameOffset not fully implemented; use backup.
+      if (nameOffset == -1) {
+        nameOffset = this.charOffset;
+        nameLength = noLength;
+      }
+      if (aliasBuilder != null) {
+        addProblem(message, nameOffset, nameLength, context: [
+          messageTypedefCause.withLocation(
+              aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+        ]);
+      } else {
+        addProblem(message, nameOffset, nameLength);
+      }
+    }
+
+    // Extract and check superclass (if it exists).
+    ClassBuilder? superClass;
+    TypeBuilder? superClassType = supertypeBuilder;
+    if (superClassType is NamedTypeBuilder) {
+      TypeDeclarationBuilder? decl = superClassType.declaration;
+      TypeAliasBuilder? aliasBuilder; // Non-null if a type alias is use.
+      if (decl is TypeAliasBuilder) {
+        aliasBuilder = decl;
+        decl = aliasBuilder.unaliasDeclaration(superClassType.arguments,
+            isUsedAsClass: true,
+            usedAsClassCharOffset: superClassType.charOffset,
+            usedAsClassFileUri: superClassType.fileUri);
+      }
+      // TODO(eernst): Should gather 'restricted supertype' checks in one place,
+      // e.g., dynamic/int/String/Null and more are checked elsewhere.
+      if (decl is VoidTypeDeclarationBuilder) {
+        fail(superClassType, messageExtendsVoid, aliasBuilder);
+      } else if (decl is NeverTypeDeclarationBuilder) {
+        fail(superClassType, messageExtendsNever, aliasBuilder);
+      } else if (decl is ClassBuilder) {
+        superClass = decl;
+      }
+    }
+    if (interfaceBuilders == null) return;
+
+    // Validate interfaces.
+    Map<ClassBuilder, int>? problems;
+    Map<ClassBuilder, int>? problemsOffsets;
+    Set<ClassBuilder> implemented = new Set<ClassBuilder>();
+    for (TypeBuilder type in interfaceBuilders!) {
+      if (type is NamedTypeBuilder) {
+        int? charOffset = type.charOffset;
+        TypeDeclarationBuilder? typeDeclaration = type.declaration;
+        TypeDeclarationBuilder? decl;
+        TypeAliasBuilder? aliasBuilder; // Non-null if a type alias is used.
+        if (typeDeclaration is TypeAliasBuilder) {
+          aliasBuilder = typeDeclaration;
+          decl = aliasBuilder.unaliasDeclaration(type.arguments,
+              isUsedAsClass: true,
+              usedAsClassCharOffset: type.charOffset,
+              usedAsClassFileUri: type.fileUri);
+        } else {
+          decl = typeDeclaration;
+        }
+        if (decl is ClassBuilder) {
+          ClassBuilder interface = decl;
+          if (superClass == interface) {
+            addProblem(
+                templateImplementsSuperClass.withArguments(interface.name),
+                this.charOffset,
+                noLength);
+          } else if (interface.cls.name == "FutureOr" &&
+              interface.cls.enclosingLibrary.importUri.scheme == "dart" &&
+              interface.cls.enclosingLibrary.importUri.path == "async") {
+            addProblem(messageImplementsFutureOr, this.charOffset, noLength);
+          } else if (implemented.contains(interface)) {
+            // Aggregate repetitions.
+            problems ??= <ClassBuilder, int>{};
+            problems[interface] ??= 0;
+            problems[interface] = problems[interface]! + 1;
+            problemsOffsets ??= <ClassBuilder, int>{};
+            problemsOffsets[interface] ??= charOffset ?? TreeNode.noOffset;
+          } else {
+            implemented.add(interface);
+          }
+        }
+        if (decl != superClass) {
+          // TODO(eernst): Have all 'restricted supertype' checks in one place.
+          if (decl is VoidTypeDeclarationBuilder) {
+            fail(type, messageImplementsVoid, aliasBuilder);
+          } else if (decl is NeverTypeDeclarationBuilder) {
+            fail(type, messageImplementsNever, aliasBuilder);
+          }
+        }
+      }
+    }
+    if (problems != null) {
+      problems.forEach((ClassBuilder interface, int repetitions) {
+        addProblem(
+            templateImplementsRepeated.withArguments(
+                interface.name, repetitions),
+            problemsOffsets![interface]!,
+            noLength);
+      });
+    }
+  }
+
+  void checkMixinApplication(ClassHierarchy hierarchy, CoreTypes coreTypes) {
+    TypeEnvironment typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
+    // A mixin declaration can only be applied to a class that implements all
+    // the declaration's superclass constraints.
+    InterfaceType supertype = cls.supertype!.asInterfaceType;
+    Substitution substitution = Substitution.fromSupertype(cls.mixedInType!);
+    for (Supertype constraint in cls.mixedInClass!.superclassConstraints()) {
+      InterfaceType requiredInterface =
+          substitution.substituteSupertype(constraint).asInterfaceType;
+      InterfaceType? implementedInterface = hierarchy.getTypeAsInstanceOf(
+          supertype, requiredInterface.classNode, library.library);
+      if (implementedInterface == null ||
+          !typeEnvironment.areMutualSubtypes(
+              implementedInterface,
+              requiredInterface,
+              library.isNonNullableByDefault
+                  ? SubtypeCheckMode.withNullabilities
+                  : SubtypeCheckMode.ignoringNullabilities)) {
+        library.addProblem(
+            templateMixinApplicationIncompatibleSupertype.withArguments(
+                supertype,
+                requiredInterface,
+                cls.mixedInType!.asInterfaceType,
+                library.isNonNullableByDefault),
+            cls.fileOffset,
+            noLength,
+            cls.fileUri);
+      }
+    }
+  }
+
+  // Computes the function type of a given redirection target. Returns [null] if
+  // the type of the target could not be computed.
+  FunctionType? _computeRedirecteeType(
+      RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
+    ConstructorReferenceBuilder redirectionTarget = factory.redirectionTarget;
+    Builder? targetBuilder = redirectionTarget.target;
+    FunctionNode targetNode;
+    if (targetBuilder == null) return null;
+    if (targetBuilder is FunctionBuilder) {
+      targetNode = targetBuilder.function;
+    } else if (targetBuilder is AmbiguousBuilder) {
+      // Multiple definitions with the same name: An error has already been
+      // issued.
+      // TODO(http://dartbug.com/35294): Unfortunate error; see also
+      // https://dart-review.googlesource.com/c/sdk/+/85390/.
+      return null;
+    } else {
+      unhandled("${redirectionTarget.target}", "computeRedirecteeType",
+          charOffset, fileUri);
+    }
+
+    List<DartType>? typeArguments = factory.getTypeArguments();
+    FunctionType targetFunctionType =
+        targetNode.computeFunctionType(library.nonNullable);
+    if (typeArguments != null &&
+        targetFunctionType.typeParameters.length != typeArguments.length) {
+      _addProblemForRedirectingFactory(
+          factory,
+          templateTypeArgumentMismatch
+              .withArguments(targetFunctionType.typeParameters.length),
+          redirectionTarget.charOffset,
+          noLength);
+      return null;
+    }
+
+    // Compute the substitution of the target class type parameters if
+    // [redirectionTarget] has any type arguments.
+    Substitution? substitution;
+    bool hasProblem = false;
+    if (typeArguments != null && typeArguments.length > 0) {
+      substitution = Substitution.fromPairs(
+          targetFunctionType.typeParameters, typeArguments);
+      for (int i = 0; i < targetFunctionType.typeParameters.length; i++) {
+        TypeParameter typeParameter = targetFunctionType.typeParameters[i];
+        DartType typeParameterBound =
+            substitution.substituteType(typeParameter.bound);
+        DartType typeArgument = typeArguments[i];
+        // Check whether the [typeArgument] respects the bounds of
+        // [typeParameter].
+        if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
+            SubtypeCheckMode.ignoringNullabilities)) {
+          _addProblemForRedirectingFactory(
+              factory,
+              templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
+                  typeArgument,
+                  typeParameterBound,
+                  library.isNonNullableByDefault),
+              redirectionTarget.charOffset,
+              noLength);
+          hasProblem = true;
+        } else if (library.isNonNullableByDefault) {
+          if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
+              SubtypeCheckMode.withNullabilities)) {
+            _addProblemForRedirectingFactory(
+                factory,
+                templateRedirectingFactoryIncompatibleTypeArgument
+                    .withArguments(typeArgument, typeParameterBound,
+                        library.isNonNullableByDefault),
+                redirectionTarget.charOffset,
+                noLength);
+            hasProblem = true;
+          }
+        }
+      }
+    } else if (typeArguments == null &&
+        targetFunctionType.typeParameters.length > 0) {
+      // TODO(hillerstrom): In this case, we need to perform type inference on
+      // the redirectee to obtain actual type arguments which would allow the
+      // following program to type check:
+      //
+      //    class A<T> {
+      //       factory A() = B;
+      //    }
+      //    class B<T> implements A<T> {
+      //       B();
+      //    }
+      //
+      return null;
+    }
+
+    // Substitute if necessary.
+    targetFunctionType = substitution == null
+        ? targetFunctionType
+        : (substitution.substituteType(targetFunctionType.withoutTypeParameters)
+            as FunctionType);
+
+    return hasProblem ? null : targetFunctionType;
+  }
+
+  bool _isCyclicRedirectingFactory(RedirectingFactoryBuilder factory) {
+    // We use the [tortoise and hare algorithm]
+    // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
+    // handle cycles.
+    Builder? tortoise = factory;
+    Builder? hare = factory.redirectionTarget.target;
+    if (hare == factory) {
+      return true;
+    }
+    while (tortoise != hare) {
+      // Hare moves 2 steps forward.
+      if (hare is! RedirectingFactoryBuilder) {
+        return false;
+      }
+      hare = hare.redirectionTarget.target;
+      if (hare == factory) {
+        return true;
+      }
+      if (hare is! RedirectingFactoryBuilder) {
+        return false;
+      }
+      hare = hare.redirectionTarget.target;
+      if (hare == factory) {
+        return true;
+      }
+      // Tortoise moves one step forward. No need to test type of tortoise
+      // as it follows hare which already checked types.
+      tortoise =
+          (tortoise as RedirectingFactoryBuilder).redirectionTarget.target;
+    }
+    // Cycle found, but original factory doesn't belong to a cycle.
+    return false;
+  }
+
+  void _addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
+      Message message, int charOffset, int length) {
+    addProblem(message, charOffset, length);
+    String text = library.loader.target.context
+        .format(
+            message.withLocation(fileUri, charOffset, length), Severity.error)
+        .plain;
+    factory.body = new RedirectingFactoryBody.error(text);
+  }
+
+  void _checkRedirectingFactory(
+      RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
+    // Check that factory declaration is not cyclic.
+    if (_isCyclicRedirectingFactory(factory)) {
+      _addProblemForRedirectingFactory(
+          factory,
+          templateCyclicRedirectingFactoryConstructors
+              .withArguments("${factory.member.enclosingClass!.name}"
+                  "${factory.name == '' ? '' : '.${factory.name}'}"),
+          factory.charOffset,
+          noLength);
+      return;
+    }
+
+    // The factory type cannot contain any type parameters other than those of
+    // its enclosing class, because constructors cannot specify type parameters
+    // of their own.
+    FunctionType factoryType = factory.function
+        .computeThisFunctionType(library.nonNullable)
+        .withoutTypeParameters;
+    FunctionType? redirecteeType =
+        _computeRedirecteeType(factory, typeEnvironment);
+
+    // TODO(hillerstrom): It would be preferable to know whether a failure
+    // happened during [_computeRedirecteeType].
+    if (redirecteeType == null) {
+      return;
+    }
+
+    // Check whether [redirecteeType] <: [factoryType].
+    if (!typeEnvironment.isSubtypeOf(
+        redirecteeType, factoryType, SubtypeCheckMode.ignoringNullabilities)) {
+      _addProblemForRedirectingFactory(
+          factory,
+          templateIncompatibleRedirecteeFunctionType.withArguments(
+              redirecteeType, factoryType, library.isNonNullableByDefault),
+          factory.redirectionTarget.charOffset,
+          noLength);
+    } else if (library.isNonNullableByDefault) {
+      if (!typeEnvironment.isSubtypeOf(
+          redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
+        _addProblemForRedirectingFactory(
+            factory,
+            templateIncompatibleRedirecteeFunctionType.withArguments(
+                redirecteeType, factoryType, library.isNonNullableByDefault),
+            factory.redirectionTarget.charOffset,
+            noLength);
+      }
+    }
+  }
+
+  void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
+    Map<String, MemberBuilder> constructors = this.constructors.local;
+    for (Builder? constructor in constructors.values) {
+      do {
+        if (constructor is RedirectingFactoryBuilder) {
+          _checkRedirectingFactory(constructor, typeEnvironment);
+        }
+        constructor = constructor!.next;
+      } while (constructor != null);
+    }
+  }
+
+  TypeBuilder _checkSupertype(TypeBuilder supertype) {
     if (typeVariables == null) return supertype;
     Message? message;
     for (int i = 0; i < typeVariables!.length; ++i) {
@@ -802,6 +1270,12 @@ class SourceClassBuilder extends ClassBuilderImpl
     return charOffset.compareTo(other.charOffset);
   }
 
+  bool _hasUserDefinedNoSuchMethod(
+      Class klass, ClassHierarchy hierarchy, Class objectClass) {
+    Member? noSuchMethod = hierarchy.getDispatchTarget(klass, noSuchMethodName);
+    return noSuchMethod != null && noSuchMethod.enclosingClass != objectClass;
+  }
+
   bool _addMissingNoSuchMethodForwarders(
       KernelTarget target, Set<Member> existingForwarders,
       {required bool forSetters}) {
@@ -820,7 +1294,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     Procedure noSuchMethod = ClassHierarchy.findMemberByName(
         hierarchy.getInterfaceMembers(cls), noSuchMethodName) as Procedure;
     bool clsHasUserDefinedNoSuchMethod =
-        hasUserDefinedNoSuchMethod(cls, hierarchy, target.objectClass);
+        _hasUserDefinedNoSuchMethod(cls, hierarchy, target.objectClass);
 
     bool changed = false;
 
@@ -890,7 +1364,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         nearestConcreteSuperclass = nearestConcreteSuperclass.superclass;
       }
       if (nearestConcreteSuperclass != null) {
-        bool superHasUserDefinedNoSuchMethod = hasUserDefinedNoSuchMethod(
+        bool superHasUserDefinedNoSuchMethod = _hasUserDefinedNoSuchMethod(
             nearestConcreteSuperclass, hierarchy, target.objectClass);
         {
           List<Member> concrete =
@@ -1085,14 +1559,14 @@ class SourceClassBuilder extends ClassBuilderImpl
               } else if (targetBuilder is DillMemberBuilder) {
                 targetNode = targetBuilder.member;
               } else if (targetBuilder is AmbiguousBuilder) {
-                addProblemForRedirectingFactory(
+                _addProblemForRedirectingFactory(
                     declaration,
                     templateDuplicatedDeclarationUse
                         .withArguments(redirectionTarget.fullNameForErrors),
                     redirectionTarget.charOffset,
                     noLength);
               } else {
-                addProblemForRedirectingFactory(
+                _addProblemForRedirectingFactory(
                     declaration,
                     templateRedirectionTargetNotFound
                         .withArguments(redirectionTarget.fullNameForErrors),
@@ -1102,7 +1576,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               if (targetNode != null &&
                   targetNode is Constructor &&
                   targetNode.enclosingClass.isAbstract) {
-                addProblemForRedirectingFactory(
+                _addProblemForRedirectingFactory(
                     declaration,
                     templateAbstractRedirectedClassInstantiation
                         .withArguments(redirectionTarget.fullNameForErrors),
@@ -1125,6 +1599,23 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     return count;
+  }
+
+  void _handleSeenCovariant(
+      ClassHierarchyMembers memberHierarchy,
+      Member interfaceMember,
+      bool isSetter,
+      callback(Member interfaceMember, bool isSetter)) {
+    // When a parameter is covariant we have to check that we also
+    // override the same member in all parents.
+    for (Supertype supertype in interfaceMember.enclosingClass!.supers) {
+      Member? member = memberHierarchy.getInterfaceMember(
+          supertype.classNode, interfaceMember.name,
+          setter: isSetter);
+      if (member != null) {
+        callback(member, isSetter);
+      }
+    }
   }
 
   void checkOverride(
@@ -1161,7 +1652,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               isInterfaceCheck,
               declaredNeedsLegacyErasure);
           if (seenCovariant) {
-            handleSeenCovariant(
+            _handleSeenCovariant(
                 memberHierarchy, interfaceMember, isSetter, callback);
           }
         } else if (declaredMember.kind == ProcedureKind.Getter) {
@@ -1181,7 +1672,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               isInterfaceCheck,
               declaredNeedsLegacyErasure);
           if (seenCovariant) {
-            handleSeenCovariant(
+            _handleSeenCovariant(
                 memberHierarchy, interfaceMember, isSetter, callback);
           }
         } else {
@@ -1222,7 +1713,7 @@ class SourceClassBuilder extends ClassBuilderImpl
             isInterfaceCheck,
             declaredNeedsLegacyErasure);
         if (seenCovariant) {
-          handleSeenCovariant(
+          _handleSeenCovariant(
               memberHierarchy, interfaceMember, isSetter, callback);
         }
       }
