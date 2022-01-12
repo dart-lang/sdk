@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.55.0';
+const String vmServiceVersion = '3.56.0';
 
 /// @optional
 const String optional = 'optional';
@@ -7417,10 +7417,22 @@ class SourceLocation extends Response {
   @optional
   int? endTokenPos;
 
+  /// The line associated with this location. Only provided for non-synthetic
+  /// token positions.
+  @optional
+  int? line;
+
+  /// The column associated with this location. Only provided for non-synthetic
+  /// token positions.
+  @optional
+  int? column;
+
   SourceLocation({
     required this.script,
     required this.tokenPos,
     this.endTokenPos,
+    this.line,
+    this.column,
   });
 
   SourceLocation._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7428,6 +7440,8 @@ class SourceLocation extends Response {
         createServiceObject(json['script'], const ['ScriptRef']) as ScriptRef?;
     tokenPos = json['tokenPos'] ?? -1;
     endTokenPos = json['endTokenPos'];
+    line = json['line'];
+    column = json['column'];
   }
 
   @override
@@ -7442,6 +7456,8 @@ class SourceLocation extends Response {
       'tokenPos': tokenPos,
     });
     _setIfNotNull(json, 'endTokenPos', endTokenPos);
+    _setIfNotNull(json, 'line', line);
+    _setIfNotNull(json, 'column', column);
     return json;
   }
 

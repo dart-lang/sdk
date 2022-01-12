@@ -1,5 +1,9 @@
 # Changelog
 
+## 8.2.0-dev
+- Update to version `3.56` of the spec.
+- Added optional `line` and `column` properties to `SourceLocation`.
+
 ## 8.1.0
 - Update to version `3.55` of the spec.
 - Added `streamCpuSamplesWithUserTag` RPC.

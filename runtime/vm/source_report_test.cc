@@ -541,7 +541,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
       "\"_intrinsic\":false,\"_native\":false,\"location\":{\"type\":"
       "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
       "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"
-      "\"tokenPos\":0,\"endTokenPos\":11}},\"count\":1}]}]}],"
+      "\"tokenPos\":0,\"endTokenPos\":11,\"line\":1,\"column\":1}},\"count\":1}"
+      "]}]}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
@@ -602,7 +603,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27,\"line\":1,"
+      "\"column\":1},"
       "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}},"
 
@@ -614,7 +616,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27,\"line\":1,"
+      "\"column\":1},"
       "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
       "},\"_kind\":\"RegularFunction\","
@@ -624,7 +627,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"location\":{\"type\":\"SourceLocation\","
       "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
       "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":17,\"endTokenPos\":25}},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":17,\"endTokenPos\":25,\"line\":2,"
+      "\"column\":3}},"
 
       "\"count\":2},"
 
@@ -635,7 +639,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58,\"line\":4,"
+      "\"column\":1},"
       "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}},"
 
@@ -647,7 +652,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"\","
       "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58,\"line\":4,"
+      "\"column\":1},"
       "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
       "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
       "},\"_kind\":\"RegularFunction\","
@@ -657,7 +663,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       "\"location\":{\"type\":\"SourceLocation\","
       "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
       "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":48,\"endTokenPos\":56}},"
+      "\"_kind\":\"kernel\"},\"tokenPos\":48,\"endTokenPos\":56,\"line\":5,"
+      "\"column\":3}},"
 
       "\"count\":1}]}]}],"
 
@@ -713,7 +720,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
       "intrinsic\":false,\"_native\":false,\"location\":{\"type\":"
       "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
       "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"
-      "\"tokenPos\":0,\"endTokenPos\":11}},\"count\":1}]}],\"coverage\":{"
+      "\"tokenPos\":0,\"endTokenPos\":11,\"line\":1,\"column\":1}},\"count\":1}"
+      "]}],\"coverage\":{"
       "\"hits\":[26,37],\"misses\":[]}}],"
 
       // One script in the script table.

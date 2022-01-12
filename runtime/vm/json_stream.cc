@@ -523,6 +523,13 @@ void JSONObject::AddLocation(const Script& script,
   if (end_token_pos.IsReal()) {
     location.AddProperty("endTokenPos", end_token_pos);
   }
+  intptr_t line = -1;
+  intptr_t column = -1;
+  // Add line and column information if token_pos is real.
+  if (script.GetTokenLocation(token_pos, &line, &column)) {
+    location.AddProperty("line", line);
+    location.AddProperty("column", column);
+  }
 }
 
 void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
