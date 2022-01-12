@@ -8173,9 +8173,11 @@ bool Function::CanBeInlined() const {
   // being inlined (for now).
   if (ForceOptimize()) {
     if (IsFfiTrampoline()) {
-      // The CallSiteInliner::InlineCall asserts in PrepareGraphs that
-      // GraphEntryInstr::SuccessorCount() == 1, but FFI trampoline has two
-      // entries (a normal and a catch entry).
+      // We currently don't support inlining FFI trampolines. Some of them
+      // are naturally non-inlinable because they contain a try/catch block,
+      // but this condition is broader than strictly necessary.
+      // The work necessary for inlining FFI trampolines is tracked by
+      // http://dartbug.com/45055.
       return false;
     }
     return CompilerState::Current().is_aot();
