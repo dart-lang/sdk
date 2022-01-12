@@ -35,7 +35,6 @@ enum NativeType {
   kUint16,
   kUint32,
   kUint64,
-  kIntptr,
   kFloat,
   kDouble,
   kVoid,
@@ -56,11 +55,6 @@ const Set<NativeType> nativeIntTypesFixedSize = <NativeType>{
   NativeType.kUint64,
 };
 
-const Set<NativeType> nativeIntTypes = <NativeType>{
-  ...nativeIntTypesFixedSize,
-  NativeType.kIntptr,
-};
-
 /// The [NativeType] class names.
 const Map<NativeType, String> nativeTypeClassNames = <NativeType, String>{
   NativeType.kNativeType: 'NativeType',
@@ -76,7 +70,6 @@ const Map<NativeType, String> nativeTypeClassNames = <NativeType, String>{
   NativeType.kUint16: 'Uint16',
   NativeType.kUint32: 'Uint32',
   NativeType.kUint64: 'Uint64',
-  NativeType.kIntptr: 'IntPtr',
   NativeType.kFloat: 'Float',
   NativeType.kDouble: 'Double',
   NativeType.kVoid: 'Void',
@@ -104,7 +97,6 @@ const Map<NativeType, int> nativeTypeSizes = <NativeType, int>{
   NativeType.kUint16: 2,
   NativeType.kUint32: 4,
   NativeType.kUint64: 8,
-  NativeType.kIntptr: WORD_SIZE,
   NativeType.kFloat: 4,
   NativeType.kDouble: 8,
   NativeType.kVoid: UNKNOWN,
@@ -125,7 +117,6 @@ const List<NativeType> optimizedTypes = [
   NativeType.kUint16,
   NativeType.kUint32,
   NativeType.kUint64,
-  NativeType.kIntptr,
   NativeType.kFloat,
   NativeType.kDouble,
   NativeType.kPointer,
@@ -249,6 +240,8 @@ class FfiTransformer extends Transformer {
   final Procedure storeAbiSpecificIntAtIndexMethod;
   final Procedure abiCurrentMethod;
   final Map<Constant, Abi> constantAbis;
+  final Class intptrClass;
+  late AbiSpecificNativeTypeCfe intptrNativeTypeCfe;
   final Procedure memCopy;
   final Procedure allocationTearoff;
   final Procedure asFunctionTearoff;
@@ -461,6 +454,7 @@ class FfiTransformer extends Transformer {
                     as ConstantExpression)
                 .constant,
             abi)),
+        intptrClass = index.getClass('dart:ffi', 'IntPtr'),
         memCopy = index.getTopLevelProcedure('dart:ffi', '_memCopy'),
         allocationTearoff = index.getProcedure(
             'dart:ffi', 'AllocatorAlloc', LibraryIndex.tearoffPrefix + 'call'),
@@ -482,6 +476,9 @@ class FfiTransformer extends Transformer {
         .getThisType(coreTypes, Nullability.nonNullable);
     pointerVoidType =
         InterfaceType(pointerClass, Nullability.nonNullable, [voidType]);
+    intptrNativeTypeCfe =
+        NativeTypeCfe(this, InterfaceType(intptrClass, Nullability.nonNullable))
+            as AbiSpecificNativeTypeCfe;
   }
 
   @override
@@ -548,7 +545,7 @@ class FfiTransformer extends Transformer {
     if (nativeType_ == NativeType.kPointer) {
       return nativeType;
     }
-    if (nativeIntTypes.contains(nativeType_)) {
+    if (nativeIntTypesFixedSize.contains(nativeType_)) {
       return InterfaceType(intClass, Nullability.legacy);
     }
     if (nativeType_ == NativeType.kFloat || nativeType_ == NativeType.kDouble) {

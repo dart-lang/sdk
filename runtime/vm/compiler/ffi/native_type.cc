@@ -368,8 +368,6 @@ static PrimitiveType TypeRepresentation(classid_t class_id) {
     case kFfiInt64Cid:
     case kFfiUint64Cid:
       return kInt64;
-    case kFfiIntPtrCid:
-      return compiler::target::kWordSize == 4 ? kInt32 : kInt64;
     case kFfiFloatCid:
       return kFloat;
     case kFfiDoubleCid:

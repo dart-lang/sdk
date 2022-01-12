@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.55
+# Dart VM Service Protocol 3.56
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.55_ of the Dart VM Service Protocol. This
+This document describes of _version 3.56_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -3878,6 +3878,14 @@ class SourceLocation extends Response {
 
   // The last token of the location if this is a range.
   int endTokenPos [optional];
+
+  // The line associated with this location. Only provided for non-synthetic
+  // token positions.
+  int line [optional];
+
+  // The column associated with this location. Only provided for non-synthetic
+  // token positions.
+  int column [optional];
 }
 ```
 
@@ -4319,5 +4327,6 @@ version | comments
 3.53 | Added `setIsolatePauseMode` RPC.
 3.54 | Added `CpuSamplesEvent`, updated `cpuSamples` property on `Event` to have type `CpuSamplesEvent`.
 3.55 | Added `streamCpuSamplesWithUserTag` RPC.
+3.56 | Added optional `line` and `column` properties to `SourceLocation`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

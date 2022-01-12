@@ -833,7 +833,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadUint16:
     case MethodRecognizer::kFfiLoadUint32:
     case MethodRecognizer::kFfiLoadUint64:
-    case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
     case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
@@ -847,7 +846,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStoreUint16:
     case MethodRecognizer::kFfiStoreUint32:
     case MethodRecognizer::kFfiStoreUint64:
-    case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
     case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:
@@ -1352,7 +1350,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiLoadUint16:
     case MethodRecognizer::kFfiLoadUint32:
     case MethodRecognizer::kFfiLoadUint64:
-    case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
     case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
@@ -1431,7 +1428,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiStoreUint16:
     case MethodRecognizer::kFfiStoreUint32:
     case MethodRecognizer::kFfiStoreUint64:
-    case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
     case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:

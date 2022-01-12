@@ -46,6 +46,7 @@ import 'package:collection/collection.dart';
 
 /// A concrete implementation of a [ClassElement].
 abstract class AbstractClassElementImpl extends _ExistingElementImpl
+    with TypeParameterizedElementMixin
     implements ClassElement {
   /// The type defined by the class.
   InterfaceType? _thisType;
@@ -119,6 +120,13 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       );
     }
     return _thisType!;
+  }
+
+  set typeParameters(List<TypeParameterElement> typeParameters) {
+    for (TypeParameterElement typeParameter in typeParameters) {
+      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -411,8 +419,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 }
 
 /// An [AbstractClassElementImpl] which is a class.
-class ClassElementImpl extends AbstractClassElementImpl
-    with TypeParameterizedElementMixin {
+class ClassElementImpl extends AbstractClassElementImpl {
   /// The superclass of the class, or `null` for [Object].
   InterfaceType? _supertype;
 
@@ -759,15 +766,6 @@ class ClassElementImpl extends AbstractClassElementImpl
   List<TypeParameterElement> get typeParameters {
     linkedData?.read(this);
     return super.typeParameters;
-  }
-
-  /// Set the type parameters defined for this class to the given
-  /// [typeParameters].
-  set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -2766,8 +2764,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  List<TypeParameterElement> get typeParameters =>
-      const <TypeParameterElement>[];
+  List<TypeParameterElement> get typeParameters {
+    linkedData?.read(this);
+    return super.typeParameters;
+  }
 
   @override
   ConstructorElement? get unnamedConstructor => null;

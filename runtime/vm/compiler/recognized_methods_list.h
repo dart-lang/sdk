@@ -201,7 +201,6 @@ namespace dart {
   V(::, _loadUint16, FfiLoadUint16, 0x0cd660ab)                                \
   V(::, _loadUint32, FfiLoadUint32, 0xf66e9416)                                \
   V(::, _loadUint64, FfiLoadUint64, 0x0506018d)                                \
-  V(::, _loadIntPtr, FfiLoadIntPtr, 0xebd9b43e)                                \
   V(::, _loadFloat, FfiLoadFloat, 0xf8d9845d)                                  \
   V(::, _loadFloatUnaligned, FfiLoadFloatUnaligned, 0xc8c8dfff)                \
   V(::, _loadDouble, FfiLoadDouble, 0xf70cc619)                                \
@@ -217,7 +216,6 @@ namespace dart {
   V(::, _storeUint16, FfiStoreUint16, 0xe2fdae9f)                              \
   V(::, _storeUint32, FfiStoreUint32, 0xe5d7ec86)                              \
   V(::, _storeUint64, FfiStoreUint64, 0xe2d935fa)                              \
-  V(::, _storeIntPtr, FfiStoreIntPtr, 0x080266a8)                              \
   V(::, _storeFloat, FfiStoreFloat, 0x6484f07e)                                \
   V(::, _storeFloatUnaligned, FfiStoreFloatUnaligned, 0x600a9203)              \
   V(::, _storeDouble, FfiStoreDouble, 0x42998c64)                              \

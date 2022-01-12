@@ -40,9 +40,9 @@ class Coordinate extends ffi::Struct {
   set y(core::double* #v) → void
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v);
   get next() → ffi::Pointer<self::Coordinate*>*
-    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}));
+    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadAbiSpecificInt<ffi::IntPtr>(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}));
   set next(ffi::Pointer<self::Coordinate*>* #v) → void
-    return ffi::_storeIntPtr(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v.{ffi::Pointer::address}{core::int});
+    return ffi::_storeAbiSpecificInt<ffi::IntPtr>(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v.{ffi::Pointer::address}{core::int});
   @#C16
   static get /*isNonNullableByDefault*/ #sizeOf() → core::int*
     return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
@@ -74,7 +74,7 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///ffi_sample.dart:
-- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:122:9)
+- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:142:9)
 - _NativeDouble. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:34:9)
 - NativeType. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:12:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

@@ -706,13 +706,6 @@ typedef bool (*Dart_InitializeIsolateCallback)(void** child_isolate_data,
                                                char** error);
 
 /**
- * An isolate unhandled exception callback function.
- *
- * This callback has been DEPRECATED.
- */
-typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
-
-/**
  * An isolate shutdown callback function.
  *
  * This callback, provided by the embedder, is called before the vm

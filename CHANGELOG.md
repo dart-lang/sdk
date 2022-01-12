@@ -7,6 +7,11 @@
 - Add `Finalizer` and `WeakReference` which can potentially detect when
   objects are "garbage collected".
 
+#### `dart:indexed_db`
+
+- `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
+  `false`.
+
 ## 2.16.0
 
 ### Core libraries
@@ -16,11 +21,6 @@
 - Add `Error.throwWithStackTrace` which can `throw` an
   error with an existing stack trace, instead of creating
   a new stack trace.
-
-#### `dart:indexed_db`
-
-- `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
-  `false`.
 
 #### `dart:io`
 

@@ -307,14 +307,7 @@ void f() {
 
     check(response)
       ..assertComplete()
-      ..hasReplacement(left: 4)
-      ..assertLibrariesToImport(includes: [
-        'dart:math',
-      ], excludes: [
-        'dart:async',
-        'dart:core',
-        'package:test/test.dart',
-      ]);
+      ..hasReplacement(left: 4);
 
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
@@ -338,10 +331,6 @@ void f() {
     check(response)
       ..assertIncomplete()
       ..hasReplacement(left: 4)
-      ..assertLibrariesToImport(includes: [], excludes: [
-        'dart:core',
-        'dart:math',
-      ])
       ..suggestions.withElementClass.isEmpty;
   }
 
@@ -386,14 +375,7 @@ void f() {
 
     check(response)
       ..assertComplete()
-      ..hasReplacement(left: 2)
-      ..assertLibrariesToImport(includes: [
-        'package:aaa/f.dart',
-      ], excludes: [
-        'dart:core',
-        'package:bbb/f.dart',
-        'package:test/test.dart',
-      ]);
+      ..hasReplacement(left: 2);
 
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
@@ -447,14 +429,7 @@ void f() {
 
     check(response)
       ..assertComplete()
-      ..hasReplacement(left: 2)
-      ..assertLibrariesToImport(includes: [
-        'package:aaa/f.dart',
-        'package:bbb/f.dart',
-      ], excludes: [
-        'dart:core',
-        'package:test/test.dart',
-      ]);
+      ..hasReplacement(left: 2);
 
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
@@ -485,16 +460,7 @@ void f() {
 
     check(response)
       ..assertComplete()
-      ..hasReplacement(left: 2)
-      ..assertLibrariesToImport(includes: [
-        'package:test/a.dart',
-        'package:test/b.dart',
-      ], excludes: [
-        'dart:async',
-        'dart:core',
-        'dart:math',
-        'package:test/test.dart',
-      ]);
+      ..hasReplacement(left: 2);
 
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
@@ -528,16 +494,7 @@ void f() {
 
     check(response)
       ..assertComplete()
-      ..hasReplacement(left: 2)
-      ..assertLibrariesToImport(includes: [
-        'package:test/b.dart',
-      ], excludes: [
-        'dart:async',
-        'dart:core',
-        'dart:math',
-        'package:test/a.dart',
-        'package:test/test.dart',
-      ]);
+      ..hasReplacement(left: 2);
 
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
@@ -574,16 +531,7 @@ void f() {
 
     check(response)
       ..assertComplete()
-      ..hasReplacement(left: 2)
-      ..assertLibrariesToImport(includes: [
-        'package:test/a.dart',
-        'package:test/b.dart',
-      ], excludes: [
-        'dart:async',
-        'dart:core',
-        'dart:math',
-        'package:test/test.dart',
-      ]);
+      ..hasReplacement(left: 2);
 
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
@@ -607,7 +555,7 @@ name: test
 class A01 {}
 ''');
 
-    var b = newFile('$testPackageTestPath/b.dart', content: '''
+    newFile('$testPackageTestPath/b.dart', content: '''
 class A02 {}
 ''');
 
@@ -621,14 +569,7 @@ void f() {
 
     check(response)
       ..assertComplete()
-      ..hasReplacement(left: 2)
-      ..assertLibrariesToImport(includes: [
-        'package:test/a.dart',
-      ], excludes: [
-        'dart:core',
-        'package:test/test.dart',
-        toUriStr(b.path),
-      ]);
+      ..hasReplacement(left: 2);
 
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
@@ -660,14 +601,7 @@ void f() {
 
     check(response)
       ..assertComplete()
-      ..hasReplacement(left: 2)
-      ..assertLibrariesToImport(includes: [
-        'package:test/f.dart',
-        'package:test/src/f.dart',
-      ], excludes: [
-        'dart:core',
-        'package:test/test.dart',
-      ]);
+      ..hasReplacement(left: 2);
 
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
@@ -707,14 +641,7 @@ void f() {
 
     check(response)
       ..assertComplete()
-      ..hasReplacement(left: 2)
-      ..assertLibrariesToImport(includes: [
-        'package:test/a.dart',
-        b_uriStr,
-      ], excludes: [
-        'dart:core',
-        toUriStr(test_path),
-      ]);
+      ..hasReplacement(left: 2);
 
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
@@ -753,14 +680,7 @@ void f() {
 
     check(response)
       ..assertComplete()
-      ..hasReplacement(left: 2)
-      ..assertLibrariesToImport(includes: [
-        'package:test/f.dart',
-        'package:test/src/f.dart',
-      ], excludes: [
-        'dart:core',
-        'package:test/test.dart',
-      ]);
+      ..hasReplacement(left: 2);
 
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion

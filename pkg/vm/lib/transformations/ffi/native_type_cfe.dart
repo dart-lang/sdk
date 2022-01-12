@@ -285,7 +285,7 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
   /// Sample output for `Pointer<Int8> get x =>`:
   ///
   /// ```
-  /// _fromAddress<Int8>(_loadIntPtr(_typedDataBase, offset));
+  /// _fromAddress<Int8>(_loadAbiSpecificInt<IntPtr>(_typedDataBase, offset));
   /// ```
   @override
   ReturnStatement generateGetterStatement(
@@ -297,14 +297,13 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
       ReturnStatement(StaticInvocation(
           transformer.fromAddressInternal,
           Arguments([
-            StaticInvocation(
-                transformer.loadMethods[NativeType.kIntptr]!,
-                Arguments([
-                  transformer.getCompoundTypedDataBaseField(
-                      ThisExpression(), fileOffset),
-                  transformer.runtimeBranchOnLayout(offsets)
-                ]))
-              ..fileOffset = fileOffset
+            transformer.abiSpecificLoadOrStoreExpression(
+              transformer.intptrNativeTypeCfe,
+              typedDataBase: transformer.getCompoundTypedDataBaseField(
+                  ThisExpression(), fileOffset),
+              offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
+              fileOffset: fileOffset,
+            ),
           ], types: [
             (dartType as InterfaceType).typeArguments.single
           ]))
@@ -313,7 +312,11 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
   /// Sample output for `set x(Pointer<Int8> #v) =>`:
   ///
   /// ```
-  /// _storeIntPtr(_typedDataBase, offset, (#v as Pointer<Int8>).address);
+  /// _storeAbiSpecificInt<IntPtr>(
+  ///   _typedDataBase,
+  ///   offset,
+  ///   (#v as Pointer<Int8>).address,
+  /// );
   /// ```
   @override
   ReturnStatement generateSetterStatement(
@@ -323,19 +326,22 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
           bool unalignedAccess,
           VariableDeclaration argument,
           FfiTransformer transformer) =>
-      ReturnStatement(StaticInvocation(
-          transformer.storeMethods[NativeType.kIntptr]!,
-          Arguments([
-            transformer.getCompoundTypedDataBaseField(
-                ThisExpression(), fileOffset),
-            transformer.runtimeBranchOnLayout(offsets),
-            InstanceGet(InstanceAccessKind.Instance, VariableGet(argument),
-                transformer.addressGetter.name,
-                interfaceTarget: transformer.addressGetter,
-                resultType: transformer.addressGetter.getterType)
-              ..fileOffset = fileOffset
-          ]))
-        ..fileOffset = fileOffset);
+      ReturnStatement(
+        transformer.abiSpecificLoadOrStoreExpression(
+          transformer.intptrNativeTypeCfe,
+          typedDataBase: transformer.getCompoundTypedDataBaseField(
+              ThisExpression(), fileOffset),
+          offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
+          value: InstanceGet(
+            InstanceAccessKind.Instance,
+            VariableGet(argument),
+            transformer.addressGetter.name,
+            interfaceTarget: transformer.addressGetter,
+            resultType: transformer.addressGetter.getterType,
+          )..fileOffset = fileOffset,
+          fileOffset: fileOffset,
+        ),
+      );
 }
 
 /// The layout of a `Struct` or `Union` in one [Abi].

@@ -33,9 +33,9 @@ library from "org-dartlang-test:///lib.dart" as lib {
     set y(dart.core::double* #v) → void
       return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #v);
     get next() → dart.ffi::Pointer<lib::Coordinate*>*
-      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
+      return dart.ffi::_fromAddress<lib::Coordinate*>(dart.ffi::_loadAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
     set next(dart.ffi::Pointer<lib::Coordinate*>* #v) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #v.{dart.ffi::Pointer::address}{dart.core::int});
+      return dart.ffi::_storeAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #v.{dart.ffi::Pointer::address}{dart.core::int});
     @#C16
     static get /*isNonNullableByDefault*/ #sizeOf() → dart.core::int*
       return #C19.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};

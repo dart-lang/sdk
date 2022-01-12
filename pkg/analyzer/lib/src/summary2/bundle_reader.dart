@@ -277,6 +277,7 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: element.enclosingElement,
     );
+    _readTypeParameters(reader, element.typeParameters);
 
     var indexField = element.getField('index') as FieldElementImpl;
     indexField.type = typeProvider.intType;
@@ -605,6 +606,8 @@ class LibraryReader {
       offset: resolutionOffset,
     );
     element.setLinkedData(reference, linkedData);
+
+    element.typeParameters = _readTypeParameters();
 
     var accessors = <PropertyAccessorElement>[];
     var fields = <FieldElement>[];

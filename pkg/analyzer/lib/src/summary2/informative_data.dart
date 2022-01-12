@@ -280,6 +280,10 @@ class InformativeDataApplier {
     element.setCodeRange(info.codeOffset, info.codeLength);
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
+    _applyToTypeParameters(
+      element.typeParameters_unresolved,
+      info.typeParameters,
+    );
 
     forCorrespondingPairs<FieldElement, _InfoEnumConstantDeclaration>(
       element.constants_unresolved,
@@ -794,6 +798,7 @@ class _InfoEnumDeclaration {
   final int codeLength;
   final int nameOffset;
   final String? documentationComment;
+  final List<_InfoTypeParameter> typeParameters;
   final List<_InfoEnumConstantDeclaration> constants;
   final Uint32List constantOffsets;
 
@@ -803,6 +808,9 @@ class _InfoEnumDeclaration {
       codeLength: reader.readUInt30(),
       nameOffset: reader.readUInt30(),
       documentationComment: reader.readStringUtf8().nullIfEmpty,
+      typeParameters: reader.readTypedList(
+        () => _InfoTypeParameter(reader),
+      ),
       constants: reader.readTypedList(
         () => _InfoEnumConstantDeclaration(reader),
       ),
@@ -815,6 +823,7 @@ class _InfoEnumDeclaration {
     required this.codeLength,
     required this.nameOffset,
     required this.documentationComment,
+    required this.typeParameters,
     required this.constants,
     required this.constantOffsets,
   });
@@ -1163,6 +1172,7 @@ class _InformativeDataWriter {
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
       _writeDocumentationComment(node);
+      _writeTypeParameters(node.typeParameters);
       sink.writeList2<EnumConstantDeclaration>(node.constants, (node) {
         sink.writeUInt30(node.offset);
         sink.writeUInt30(node.length);

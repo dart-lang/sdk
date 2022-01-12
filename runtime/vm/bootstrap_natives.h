@@ -361,7 +361,7 @@ namespace dart {
   V(VMService_OnStart, 0)                                                      \
   V(VMService_OnExit, 0)                                                       \
   V(VMService_OnServerAddressChange, 1)                                        \
-  V(VMService_ListenStream, 1)                                                 \
+  V(VMService_ListenStream, 2)                                                 \
   V(VMService_CancelStream, 1)                                                 \
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
@@ -375,7 +375,6 @@ namespace dart {
   V(Ffi_loadUint16, 2)                                                         \
   V(Ffi_loadUint32, 2)                                                         \
   V(Ffi_loadUint64, 2)                                                         \
-  V(Ffi_loadIntPtr, 2)                                                         \
   V(Ffi_loadFloat, 2)                                                          \
   V(Ffi_loadDouble, 2)                                                         \
   V(Ffi_loadPointer, 2)                                                        \
@@ -388,7 +387,6 @@ namespace dart {
   V(Ffi_storeUint16, 3)                                                        \
   V(Ffi_storeUint32, 3)                                                        \
   V(Ffi_storeUint64, 3)                                                        \
-  V(Ffi_storeIntPtr, 3)                                                        \
   V(Ffi_storeFloat, 3)                                                         \
   V(Ffi_storeDouble, 3)                                                        \
   V(Ffi_storePointer, 3)                                                       \

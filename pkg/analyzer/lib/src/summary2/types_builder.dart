@@ -167,6 +167,8 @@ class TypesBuilder {
       _classDeclaration(node);
     } else if (node is ClassTypeAlias) {
       _classTypeAlias(node);
+    } else if (node is EnumDeclaration) {
+      _enumDeclaration(node);
     } else if (node is ExtensionDeclaration) {
       _extensionDeclaration(node);
     } else if (node is FieldFormalParameter) {
@@ -218,6 +220,10 @@ class TypesBuilder {
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
+  }
+
+  void _enumDeclaration(EnumDeclaration node) {
+    // TODO(scheglov) implement
   }
 
   void _extensionDeclaration(ExtensionDeclaration node) {
