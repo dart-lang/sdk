@@ -26,29 +26,14 @@ external bool identical(Object? a, Object? b);
 ///
 /// This hash code is compatible with [identical],
 /// which just means that it's guaranteed to be stable over time.
-/// ```dart import dart:collection
-///   var identitySet = HashSet(equals: identical, hashCode: identityHashCode);
-///   var dt1 = DateTime.now();
-///   var dt2 = DateTime.fromMicrosecondsSinceEpoch(dt1.microsecondsSinceEpoch);
-///   assert(dt1 == dt2);
-///   identitySet.add(dt1);
-///   print(identitySet.contains(dt1)); // true
-///   print(identitySet.contains(dt2)); // false
-/// ```
-/// Another example:
-/// ```dart
-/// void main() {
-///   Planet mars = Planet(name: 'Mars', color: 'Red');
-///   int identityHash = identityHashCode(mars);
-///   print(identityHash); // Hash code of the object
-/// }
-///
-/// class Planet {
-///   late final name;
-///   late final color;
-///
-///   Planet({this.name, this.color});
-/// }
+/// ```dart import:dart:collection
+/// var identitySet = HashSet(equals: identical, hashCode: identityHashCode);
+/// var dt1 = DateTime.now();
+/// var dt2 = DateTime.fromMicrosecondsSinceEpoch(dt1.microsecondsSinceEpoch);
+/// assert(dt1 == dt2);
+/// identitySet.add(dt1);
+/// print(identitySet.contains(dt1)); // true
+/// print(identitySet.contains(dt2)); // false
 /// ```
 @pragma("vm:entry-point")
 external int identityHashCode(Object? object);
