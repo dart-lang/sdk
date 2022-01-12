@@ -59,6 +59,7 @@ class CompletionSuggestionForTesting {
 
 extension CompletionResponseExtension
     on CheckTarget<CompletionResponseForTesting> {
+  @useResult
   CheckTarget<bool> get isIncomplete {
     return nest(
       value.isIncomplete,
@@ -66,6 +67,7 @@ extension CompletionResponseExtension
     );
   }
 
+  @useResult
   CheckTarget<int> get replacementLength {
     return nest(
       value.replacementLength,
@@ -73,6 +75,7 @@ extension CompletionResponseExtension
     );
   }
 
+  @useResult
   CheckTarget<int> get replacementOffset {
     return nest(
       value.replacementOffset,
@@ -80,6 +83,7 @@ extension CompletionResponseExtension
     );
   }
 
+  @useResult
   CheckTarget<List<CompletionSuggestionForTesting>> get suggestions {
     var suggestions = value.suggestions.map((e) {
       return CompletionSuggestionForTesting(
@@ -117,6 +121,7 @@ extension CompletionResponseExtension
 
 extension CompletionSuggestionExtension
     on CheckTarget<CompletionSuggestionForTesting> {
+  @useResult
   CheckTarget<String> get completion {
     return nest(
       value.suggestion.completion,
@@ -124,6 +129,7 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
   CheckTarget<String?> get defaultArgumentListString {
     return nest(
       value.suggestion.defaultArgumentListString,
@@ -131,6 +137,7 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
   CheckTarget<List<int>?> get defaultArgumentListTextRanges {
     return nest(
       value.suggestion.defaultArgumentListTextRanges,
@@ -138,6 +145,7 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
   CheckTarget<String?> get docComplete {
     return nest(
       value.suggestion.docComplete,
@@ -145,6 +153,7 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
   CheckTarget<String?> get docSummary {
     return nest(
       value.suggestion.docSummary,
@@ -152,6 +161,7 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
   CheckTarget<Element?> get element {
     return nest(
       value.suggestion.element,
@@ -207,6 +217,7 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isTopLevelVariable;
   }
 
+  @useResult
   CheckTarget<CompletionSuggestionKind> get kind {
     return nest(
       value.suggestion.kind,
@@ -214,6 +225,7 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
   CheckTarget<String?> get libraryUriToImport {
     return nest(
       value.suggestion.isNotImported == true
@@ -223,6 +235,7 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
   CheckTarget<String?> get parameterType {
     return nest(
       value.suggestion.parameterType,
@@ -231,6 +244,7 @@ extension CompletionSuggestionExtension
   }
 
   /// Return the effective replacement length.
+  @useResult
   CheckTarget<int> get replacementLength {
     return nest(
       value.replacementLength,
@@ -239,6 +253,7 @@ extension CompletionSuggestionExtension
   }
 
   /// Return the effective replacement offset.
+  @useResult
   CheckTarget<int> get replacementOffset {
     return nest(
       value.replacementOffset,
@@ -246,6 +261,7 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
   CheckTarget<String?> get returnType {
     return nest(
       value.suggestion.returnType,
@@ -253,6 +269,7 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
   CheckTarget<int> get selectionLength {
     return nest(
       value.suggestion.selectionLength,
@@ -260,6 +277,7 @@ extension CompletionSuggestionExtension
     );
   }
 
+  @useResult
   CheckTarget<int> get selectionOffset {
     return nest(
       value.suggestion.selectionOffset,
@@ -297,27 +315,9 @@ extension CompletionSuggestionKindExtension
   }
 }
 
-extension CompletionSuggestionListExtension
-    on CheckTarget<List<CompletionSuggestionForTesting>> {
-  CheckTarget<Iterable<String>> get completions {
-    return nest(
-      value.map((e) => e.suggestion.completion).toList(),
-      (selected) => 'has completions ${valueStr(selected)}',
-    );
-  }
-
-  CheckTarget<Iterable<CompletionSuggestionForTesting>> get withElementClass {
-    return nest(
-      value.where((e) {
-        return e.suggestion.element?.kind == ElementKind.CLASS;
-      }).toList(),
-      (selected) => 'withElementClass ${valueStr(selected)}',
-    );
-  }
-}
-
 extension CompletionSuggestionsExtension
     on CheckTarget<Iterable<CompletionSuggestionForTesting>> {
+  @useResult
   CheckTarget<List<String>> get completions {
     return nest(
       value.map((e) => e.suggestion.completion).toList(),
@@ -325,6 +325,7 @@ extension CompletionSuggestionsExtension
     );
   }
 
+  @useResult
   CheckTarget<Iterable<CompletionSuggestionForTesting>> get namedArguments {
     var result = value
         .where((suggestion) =>
@@ -336,9 +337,20 @@ extension CompletionSuggestionsExtension
       (selected) => 'named arguments ${valueStr(selected)}',
     );
   }
+
+  @useResult
+  CheckTarget<Iterable<CompletionSuggestionForTesting>> get withElementClass {
+    return nest(
+      value.where((e) {
+        return e.suggestion.element?.kind == ElementKind.CLASS;
+      }).toList(),
+      (selected) => 'withElementClass ${valueStr(selected)}',
+    );
+  }
 }
 
 extension ElementExtension on CheckTarget<Element> {
+  @useResult
   CheckTarget<ElementKind> get kind {
     return nest(
       value.kind,
@@ -346,6 +358,7 @@ extension ElementExtension on CheckTarget<Element> {
     );
   }
 
+  @useResult
   CheckTarget<String> get name {
     return nest(
       value.name,
