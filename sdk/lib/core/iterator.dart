@@ -75,10 +75,10 @@ abstract class Iterator<E> {
   /// the current value, but can keep reading it from the iterator.
   /// ```dart
   /// final colors = ['blue', 'yellow', 'red'];
-  ///   var colorsIterator = colors.iterator;
-  ///   while (colorsIterator.moveNext()) {
-  ///     print(colorsIterator.current);
-  ///   }
+  ///  var colorsIterator = colors.iterator;
+  ///  while (colorsIterator.moveNext()) {
+  ///   print(colorsIterator.current);
+  ///  }
   /// ```
   /// The output of the example is:
   /// ```
