@@ -3,8 +3,8 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 # When the entry is not given as a package-url, but is intepreted as one
-# (Interpreting this as package URI, 'package:untitled/main.dart'.) the library
-# should still be included in the output - even if there's errors in main.
+# the library should still be included in the output -
+# even if there's errors in main.
 
 type: newworld
 worlds:
@@ -18,4 +18,4 @@ worlds:
       .packages: untitled:/
     expectedLibraryCount: 1
     errors: true
-    warnings: true
+    warnings: false

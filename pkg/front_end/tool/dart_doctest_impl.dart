@@ -321,7 +321,6 @@ class DartDocTest {
     options.target = target;
     options.omitPlatform = true;
     options.onDiagnostic = (DiagnosticMessage message) {
-      if (message.codeName == "InferredPackageUri") return;
       _print(message.plainTextFormatted.first);
       if (message.severity == Severity.error) {
         errors = true;

@@ -349,7 +349,6 @@ Future<Map<String, List<int>>> createModules(
     options.sdkSummary = sdkSummaryUri;
     options.omitPlatform = true;
     options.onDiagnostic = (DiagnosticMessage message) {
-      if (getMessageCodeObject(message)?.name == "InferredPackageUri") return;
       throw message.ansiFormatted;
     };
     if (packagesUri != null) {
