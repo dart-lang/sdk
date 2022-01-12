@@ -922,7 +922,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       if (ccFlags != null) ccFlags,
       if (ldFlags != null) ldFlags,
       shared,
-      '-nostdlib',
       '-o',
       '$tempDir/out.aotsnapshot',
       '$tempDir/out.S'
