@@ -363,6 +363,62 @@ void main() {
     ]);
   }
 
+  test_getter_expressionStatement_id_dotResult_dotId() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void f(A a) {
+  a.foo.isEven;
+}
+''');
+  }
+
+  test_getter_expressionStatement_result() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get foo => 0;
+
+void f() {
+  foo;
+}
+''', [
+      error(HintCode.UNUSED_RESULT, 77, 3),
+    ]);
+  }
+
+  test_getter_expressionStatement_result_dotId() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get foo => 0;
+
+void f() {
+  foo.isEven;
+}
+''');
+  }
+
+  test_getter_expressionStatement_result_dotId_dotId() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int get foo => 0;
+
+void f() {
+  foo.isEven.hashCode;
+}
+''');
+  }
+
   test_getter_result_passed() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';

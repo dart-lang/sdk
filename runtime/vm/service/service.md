@@ -3942,7 +3942,10 @@ enum SourceReportKind {
   Coverage,
 
   // Used to request a list of token positions of possible breakpoints.
-  PossibleBreakpoints
+  PossibleBreakpoints,
+
+  // Used to request branch coverage information.
+  BranchCoverage
 }
 ```
 
@@ -3977,6 +3980,11 @@ class SourceReportRange {
   // enabled).  Provided only when the when the PossibleBreakpoint report has
   // been requested and the range has been compiled.
   int[] possibleBreakpoints [optional];
+
+  // Branch coverage information for this range.  Provided only when the
+  // BranchCoverage report has been requested and the range has been
+  // compiled.
+  SourceReportCoverage branchCoverage [optional];
 }
 ```
 
@@ -4327,6 +4335,6 @@ version | comments
 3.53 | Added `setIsolatePauseMode` RPC.
 3.54 | Added `CpuSamplesEvent`, updated `cpuSamples` property on `Event` to have type `CpuSamplesEvent`.
 3.55 | Added `streamCpuSamplesWithUserTag` RPC.
-3.56 | Added optional `line` and `column` properties to `SourceLocation`.
+3.56 | Added optional `line` and `column` properties to `SourceLocation`. Added a new `SourceReportKind`, `BranchCoverage`, which reports branch level coverage information.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -8,7 +8,7 @@
 type: newworld
 worlds:
   - entry: main.dart
-    warnings: true # Warning: Interpreting this as package URI
+    warnings: false
     experiments: alternative-invalidation-strategy
     sources:
       main.dart: |
@@ -26,7 +26,7 @@ worlds:
         foo:.
     expectedLibraryCount: 2
   - entry: main.dart
-    warnings: true # Warning: Interpreting this as package URI
+    warnings: false
     experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false
@@ -43,7 +43,7 @@ worlds:
     expectedLibraryCount: 2
     expectsRebuildBodiesOnly: true
   - entry: main.dart
-    warnings: true # Warning: Interpreting this as package URI
+    warnings: false
     experiments: alternative-invalidation-strategy
     worldType: updated
     expectInitializeFromDill: false

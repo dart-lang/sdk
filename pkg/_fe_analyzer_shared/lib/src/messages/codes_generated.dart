@@ -5142,26 +5142,6 @@ Message _withArgumentsIncrementalCompilerIllegalTypeParameter(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Uri uri_)> templateInferredPackageUri =
-    const Template<Message Function(Uri uri_)>(
-        problemMessageTemplate:
-            r"""Interpreting this as package URI, '#uri'.""",
-        withArguments: _withArgumentsInferredPackageUri);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Uri uri_)> codeInferredPackageUri =
-    const Code<Message Function(Uri uri_)>("InferredPackageUri",
-        severity: Severity.warning);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInferredPackageUri(Uri uri_) {
-  String? uri = relativizeUri(uri_);
-  return new Message(codeInferredPackageUri,
-      problemMessage: """Interpreting this as package URI, '${uri}'.""",
-      arguments: {'uri': uri_});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInheritedMembersConflict = messageInheritedMembersConflict;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

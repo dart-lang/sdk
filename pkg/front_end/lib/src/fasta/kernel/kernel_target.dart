@@ -58,7 +58,6 @@ import '../messages.dart'
         templateFieldNonNullableWithoutInitializerError,
         templateFinalFieldNotInitialized,
         templateFinalFieldNotInitializedByConstructor,
-        templateInferredPackageUri,
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 import '../problems.dart' show unhandled;
@@ -345,13 +344,6 @@ class KernelTarget extends TargetImplementation {
             Uri reversed = Uri.parse(
                 "package:$packageName/${asString.substring(prefix.length)}");
             if (entryPoint == uriTranslator.translate(reversed)) {
-              if (issueProblem) {
-                loader.addProblem(
-                    templateInferredPackageUri.withArguments(reversed),
-                    -1,
-                    1,
-                    entryPoint);
-              }
               entryPoint = reversed;
               break;
             }
