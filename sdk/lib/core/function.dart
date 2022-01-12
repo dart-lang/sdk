@@ -45,7 +45,7 @@ abstract class Function {
   ///   Function.apply(helloWorld, null);
   /// }
   /// // Output of the example is:
-  /// Hello world!
+  /// // Hello world!
   /// ```
   external static apply(Function function, List<dynamic>? positionalArguments,
       [Map<Symbol, dynamic>? namedArguments]);
