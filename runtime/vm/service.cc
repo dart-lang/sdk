@@ -3464,11 +3464,9 @@ static void GetPorts(Thread* thread, JSONStream* js) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static const char* const report_enum_names[] = {
-    SourceReport::kCallSitesStr,
-    SourceReport::kCoverageStr,
-    SourceReport::kPossibleBreakpointsStr,
-    SourceReport::kProfileStr,
-    NULL,
+    SourceReport::kCallSitesStr,           SourceReport::kCoverageStr,
+    SourceReport::kPossibleBreakpointsStr, SourceReport::kProfileStr,
+    SourceReport::kBranchCoverageStr,      NULL,
 };
 #endif
 
@@ -3507,6 +3505,8 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
       report_set |= SourceReport::kPossibleBreakpoints;
     } else if (strcmp(*riter, SourceReport::kProfileStr) == 0) {
       report_set |= SourceReport::kProfile;
+    } else if (strcmp(*riter, SourceReport::kBranchCoverageStr) == 0) {
+      report_set |= SourceReport::kBranchCoverage;
     }
     riter++;
   }

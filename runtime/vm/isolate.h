@@ -489,6 +489,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
         EnableAssertsBit::update(value, isolate_group_flags_);
   }
 
+  void set_branch_coverage(bool value) {
+    isolate_group_flags_ =
+        BranchCoverageBit::update(value, isolate_group_flags_);
+  }
+
 #if !defined(PRODUCT)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool HasAttemptedReload() const {

@@ -2776,6 +2776,9 @@ class SourceReportKind {
 
   /// Used to request a list of token positions of possible breakpoints.
   static const String kPossibleBreakpoints = 'PossibleBreakpoints';
+
+  /// Used to request branch coverage information.
+  static const String kBranchCoverage = 'BranchCoverage';
 }
 
 /// An `ExceptionPauseMode` indicates how the isolate pauses when an exception
@@ -7594,6 +7597,11 @@ class SourceReportRange {
   @optional
   List<int>? possibleBreakpoints;
 
+  /// Branch coverage information for this range.  Provided only when the
+  /// BranchCoverage report has been requested and the range has been compiled.
+  @optional
+  SourceReportCoverage? branchCoverage;
+
   SourceReportRange({
     required this.scriptIndex,
     required this.startPos,
@@ -7602,6 +7610,7 @@ class SourceReportRange {
     this.error,
     this.coverage,
     this.possibleBreakpoints,
+    this.branchCoverage,
   });
 
   SourceReportRange._fromJson(Map<String, dynamic> json) {
@@ -7615,6 +7624,9 @@ class SourceReportRange {
     possibleBreakpoints = json['possibleBreakpoints'] == null
         ? null
         : List<int>.from(json['possibleBreakpoints']);
+    branchCoverage = createServiceObject(
+            json['branchCoverage'], const ['SourceReportCoverage'])
+        as SourceReportCoverage?;
   }
 
   Map<String, dynamic> toJson() {
@@ -7629,6 +7641,7 @@ class SourceReportRange {
     _setIfNotNull(json, 'coverage', coverage?.toJson());
     _setIfNotNull(json, 'possibleBreakpoints',
         possibleBreakpoints?.map((f) => f).toList());
+    _setIfNotNull(json, 'branchCoverage', branchCoverage?.toJson());
     return json;
   }
 

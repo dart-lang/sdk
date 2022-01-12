@@ -27,12 +27,14 @@ class SourceReport {
     kCoverage = 0x2,
     kPossibleBreakpoints = 0x4,
     kProfile = 0x8,
+    kBranchCoverage = 0x10,
   };
 
   static const char* kCallSitesStr;
   static const char* kCoverageStr;
   static const char* kPossibleBreakpointsStr;
   static const char* kProfileStr;
+  static const char* kBranchCoverageStr;
 
   enum CompileMode { kNoCompile, kForceCompile };
 
@@ -77,7 +79,8 @@ class SourceReport {
                           const Code& code);
   void PrintCoverageData(JSONObject* jsobj,
                          const Function& func,
-                         const Code& code);
+                         const Code& code,
+                         bool report_branch_coverage);
   void PrintPossibleBreakpointsData(JSONObject* jsobj,
                                     const Function& func,
                                     const Code& code);
