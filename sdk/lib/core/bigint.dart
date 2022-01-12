@@ -8,6 +8,39 @@ part of dart.core;
 ///
 /// Big integers are signed and can have an arbitrary number of
 /// significant digits, only limited by memory.
+///
+/// To create a big integer from the provided number, use [BigInt.from].
+/// ```dart
+/// var bigInteger = BigInt.from(-1); // -1
+/// bigInteger = BigInt.from(0.9999); // 0
+/// bigInteger = BigInt.from(-10.99); // -10
+/// bigInteger = BigInt.from(0x7FFFFFFFFFFFFFFF); // 9223372036854775807
+/// bigInteger = BigInt.from(1e+30); // 1000000000000000019884624838656
+/// ```
+/// To parse a large integer value from a string, use [parse] or [tryParse].
+/// ```dart
+/// var value = BigInt.parse('0x1ffffffffffffffff'); // 36893488147419103231
+/// value = BigInt.parse('12345678901234567890'); // 12345678901234567890
+/// ```
+/// To check whether a big integer can be represented as an [int] without losing
+/// precision, use [isValidInt].
+/// ```dart continued
+/// print(bigNumber.isValidInt); // false
+/// ```
+/// To convert a big integer into an [int], use [toInt].
+/// To convert a big integer into an [double], use [toDouble].
+/// ```dart
+/// var bigValue = BigInt.from(10).pow(3);
+/// print(bigValue.isValidInt); // true
+/// print(bigValue.toInt()); // 1000
+/// print(bigValue.toDouble()); // 1000.0
+/// ```
+/// **See also:**
+/// * [int]: An integer number.
+/// * [double]: A double-precision floating point number.
+/// * [num]: The super class for [int] and [double].
+/// * [Numbers](https://dart.dev/guides/language/numbers) in
+/// [A tour of the Dart language](https://dart.dev/guides/language/language-tour).
 abstract class BigInt implements Comparable<BigInt> {
   /// A big integer with the numerical value 0.
   external static BigInt get zero;
@@ -39,6 +72,31 @@ abstract class BigInt implements Comparable<BigInt> {
   ///
   /// Throws a [FormatException] if the [source] is not a valid integer literal,
   /// optionally prefixed by a sign.
+  /// Examples:
+  /// ```dart
+  /// print(BigInt.parse('-12345678901234567890')); // -12345678901234567890
+  /// print(BigInt.parse('0xFF')); // 255
+  /// print(BigInt.parse('0xffffffffffffffff')); // 18446744073709551615
+  ///
+  /// // From binary (base 2) value.
+  /// print(BigInt.parse('1100', radix: 2)); // 12
+  /// print(BigInt.parse('00011111', radix: 2)); // 31
+  /// print(BigInt.parse('011111100101', radix: 2)); // 2021
+  /// // From octal (base 8) value.
+  /// print(BigInt.parse('14', radix: 8)); // 12
+  /// print(BigInt.parse('37', radix: 8)); // 31
+  /// print(BigInt.parse('3745', radix: 8)); // 2021
+  /// // From hexadecimal (base 16) value.
+  /// print(BigInt.parse('c', radix: 16)); // 12
+  /// print(BigInt.parse('1f', radix: 16)); // 31
+  /// print(BigInt.parse('7e5', radix: 16)); // 2021
+  /// // From base 35 value.
+  /// print(BigInt.parse('y1', radix: 35)); // 1191 == 34 * 35 + 1
+  /// print(BigInt.parse('z1', radix: 35)); // Throws.
+  /// // From base 36 value.
+  /// print(BigInt.parse('y1', radix: 36)); // 1225 == 34 * 36 + 1
+  /// print(BigInt.parse('z1', radix: 36)); // 1261 == 35 * 36 + 1
+  /// ```
   external static BigInt parse(String source, {int? radix});
 
   /// Parses [source] as a, possibly signed, integer literal and returns its
@@ -46,9 +104,42 @@ abstract class BigInt implements Comparable<BigInt> {
   ///
   /// As [parse] except that this method returns `null` if the input is not
   /// valid
+  ///
+  /// Examples:
+  /// ```dart
+  /// print(BigInt.tryParse('-12345678901234567890')); // -12345678901234567890
+  /// print(BigInt.tryParse('0xFF')); // 255
+  /// print(BigInt.tryParse('0xffffffffffffffff')); // 18446744073709551615
+  ///
+  /// // From binary (base 2) value.
+  /// print(BigInt.tryParse('1100', radix: 2)); // 12
+  /// print(BigInt.tryParse('00011111', radix: 2)); // 31
+  /// print(BigInt.tryParse('011111100101', radix: 2)); // 2021
+  /// // From octal (base 8) value.
+  /// print(BigInt.tryParse('14', radix: 8)); // 12
+  /// print(BigInt.tryParse('37', radix: 8)); // 31
+  /// print(BigInt.tryParse('3745', radix: 8)); // 2021
+  /// // From hexadecimal (base 16) value.
+  /// print(BigInt.tryParse('c', radix: 16)); // 12
+  /// print(BigInt.tryParse('1f', radix: 16)); // 31
+  /// print(BigInt.tryParse('7e5', radix: 16)); // 2021
+  /// // From base 35 value.
+  /// print(BigInt.tryParse('y1', radix: 35)); // 1191 == 34 * 35 + 1
+  /// print(BigInt.tryParse('z1', radix: 35)); // null
+  /// // From base 36 value.
+  /// print(BigInt.tryParse('y1', radix: 36)); // 1225 == 34 * 36 + 1
+  /// print(BigInt.tryParse('z1', radix: 36)); // 1261 == 35 * 36 + 1
+  /// ```
   external static BigInt? tryParse(String source, {int? radix});
 
-  /// Allocates a big integer from the provided [value] number.
+  /// Creates a big integer from the provided [value] number.
+  ///
+  /// Examples:
+  /// ```dart
+  /// var bigInteger = BigInt.from(1); // 1
+  /// bigInteger = BigInt.from(0.9999); // 0
+  /// bigInteger = BigInt.from(-10.99); // -10
+  /// ```
   external factory BigInt.from(num value);
 
   /// Returns the absolute value of this integer.
@@ -83,7 +174,14 @@ abstract class BigInt implements Comparable<BigInt> {
   /// this operation first performs [toDouble] on both this big integer
   /// and [other], then does [double.operator/] on those values and
   /// returns the result.
-  /// The initial [toDouble] conversion may lose precision.
+  ///
+  /// **Note:** The initial [toDouble] conversion may lose precision.
+  ///
+  /// Example:
+  /// ```dart
+  /// print(BigInt.from(1) / BigInt.from(2)); // 0.5
+  /// print(BigInt.from(1.99999) / BigInt.from(2)); // 0.5
+  /// ```
   double operator /(BigInt other);
 
   /// Truncating integer division operator.
@@ -114,6 +212,14 @@ abstract class BigInt implements Comparable<BigInt> {
   /// The sign of the returned value `r` is always positive.
   ///
   /// See [remainder] for the remainder of the truncating division.
+  ///
+  /// Example:
+  /// ```dart
+  /// print(BigInt.from(5) % BigInt.from(3)); // 2
+  /// print(BigInt.from(-5) % BigInt.from(3)); // 1
+  /// print(BigInt.from(5) % BigInt.from(-3)); // 2
+  /// print(BigInt.from(-5) % BigInt.from(-3)); // 1
+  /// ```
   BigInt operator %(BigInt other);
 
   /// Returns the remainder of the truncating division of `this` by [other].
@@ -121,6 +227,14 @@ abstract class BigInt implements Comparable<BigInt> {
   /// The result `r` of this operation satisfies:
   /// `this == (this ~/ other) * other + r`.
   /// As a consequence the remainder `r` has the same sign as the divider `this`.
+  ///
+  /// Example:
+  /// ```dart
+  /// print(BigInt.from(5).remainder(BigInt.from(3))); // 2
+  /// print(BigInt.from(-5).remainder(BigInt.from(3))); // -2
+  /// print(BigInt.from(5).remainder(BigInt.from(-3))); // 2
+  /// print(BigInt.from(-5).remainder(BigInt.from(-3))); // -2
+  /// ```
   BigInt remainder(BigInt other);
 
   /// Shift the bits of this integer to the left by [shiftAmount].
@@ -198,12 +312,19 @@ abstract class BigInt implements Comparable<BigInt> {
   ///
   /// Returns a negative number if `this` is less than `other`, zero if they are
   /// equal, and a positive number if `this` is greater than `other`.
+  ///
+  /// Example:
+  /// ```dart
+  /// print(BigInt.from(1).compareTo(BigInt.from(2))); // => -1
+  /// print(BigInt.from(2).compareTo(BigInt.from(1))); // => 1
+  /// print(BigInt.from(1).compareTo(BigInt.from(1))); // => 0
+  /// ```
   int compareTo(BigInt other);
 
   /// Returns the minimum number of bits required to store this big integer.
   ///
   /// The number of bits excludes the sign bit, which gives the natural length
-  /// for non-negative (unsigned) values.  Negative values are complemented to
+  /// for non-negative (unsigned) values. Negative values are complemented to
   /// return the bit position of the first bit that differs from the sign bit.
   ///
   /// To find the number of bits needed to store the value as a signed value,
@@ -246,6 +367,20 @@ abstract class BigInt implements Comparable<BigInt> {
   ///
   /// The result is always equal to the mathematical result of this to the power
   /// [exponent], only limited by the available memory.
+  ///
+  /// Example:
+  /// ```dart
+  /// var value = BigInt.from(1000);
+  /// print(value.pow(0)); // 1
+  /// print(value.pow(1)); // 1000
+  /// print(value.pow(2)); // 1000000
+  /// print(value.pow(3)); // 1000000000
+  /// print(value.pow(4)); // 1000000000000
+  /// print(value.pow(5)); // 1000000000000000
+  /// print(value.pow(6)); // 1000000000000000000
+  /// print(value.pow(7)); // 1000000000000000000000
+  /// print(value.pow(8)); // 1000000000000000000000000
+  /// ```
   BigInt pow(int exponent);
 
   /// Returns this integer to the power of [exponent] modulo [modulus].
@@ -269,15 +404,24 @@ abstract class BigInt implements Comparable<BigInt> {
   /// integer dividing both `this` and `other`.
   ///
   /// The greatest common divisor is independent of the order,
-  /// so `x.gcd(y)` is  always the same as `y.gcd(x)`.
+  /// so `x.gcd(y)` is always the same as `y.gcd(x)`.
   ///
   /// For any integer `x`, `x.gcd(x)` is `x.abs()`.
   ///
   /// If both `this` and `other` is zero, the result is also zero.
+  ///
+  /// Example:
+  /// ```dart
+  /// print(BigInt.from(4).gcd(BigInt.from(2))); // 2
+  /// print(BigInt.from(8).gcd(BigInt.from(4))); // 4
+  /// print(BigInt.from(10).gcd(BigInt.from(12))); // 2
+  /// print(BigInt.from(10).gcd(BigInt.from(10))); // 10
+  /// print(BigInt.from(-2).gcd(BigInt.from(-3))); // 1
+  /// ```
   BigInt gcd(BigInt other);
 
   /// Returns the least significant [width] bits of this big integer as a
-  /// non-negative number (i.e. unsigned representation).  The returned value has
+  /// non-negative number (i.e. unsigned representation). The returned value has
   /// zeros in all bit positions higher than [width].
   ///
   /// ```dart
@@ -294,7 +438,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// `q` will count from `0` up to `255` and then wrap around to `0`.
   ///
   /// If the input fits in [width] bits without truncation, the result is the
-  /// same as the input.  The minimum width needed to avoid truncation of `x` is
+  /// same as the input. The minimum width needed to avoid truncation of `x` is
   /// given by `x.bitLength`, i.e.
   ///
   /// ```dart
@@ -303,8 +447,8 @@ abstract class BigInt implements Comparable<BigInt> {
   BigInt toUnsigned(int width);
 
   /// Returns the least significant [width] bits of this integer, extending the
-  /// highest retained bit to the sign.  This is the same as truncating the value
-  /// to fit in [width] bits using an signed 2-s complement representation.  The
+  /// highest retained bit to the sign. This is the same as truncating the value
+  /// to fit in [width] bits using an signed 2-s complement representation. The
   /// returned value has the same bit value in all positions higher than [width].
   ///
   /// ```dart
@@ -328,7 +472,7 @@ abstract class BigInt implements Comparable<BigInt> {
   /// `127`.
   ///
   /// If the input value fits in [width] bits without truncation, the result is
-  /// the same as the input.  The minimum width needed to avoid truncation of `x`
+  /// the same as the input. The minimum width needed to avoid truncation of `x`
   /// is `x.bitLength + 1`, i.e.
   ///
   /// ```dart
@@ -339,9 +483,18 @@ abstract class BigInt implements Comparable<BigInt> {
   /// Whether this big integer can be represented as an `int` without losing
   /// precision.
   ///
-  /// Warning: this function may give a different result on
+  /// **Warning:** this function may give a different result on
   /// dart2js, dev compiler, and the VM, due to the differences in
   /// integer precision.
+  ///
+  /// Example:
+  /// ```dart
+  /// var bigNumber = BigInt.parse('100000000000000000000000');
+  /// print(bigNumber.isValidInt); // false
+  ///
+  /// var value = BigInt.parse('0xFF'); // 255
+  /// print(value.isValidInt); // true
+  /// ```
   bool get isValidInt;
 
   /// Returns this [BigInt] as an [int].
@@ -349,9 +502,15 @@ abstract class BigInt implements Comparable<BigInt> {
   /// If the number does not fit, clamps to the max (or min)
   /// integer.
   ///
-  /// Warning: the clamping behaves differently on dart2js, dev
-  /// compiler, and the VM, due to the differences in integer
-  /// precision.
+  /// **Warning:** the clamping behaves differently between the web and
+  /// native platforms due to the differences in integer precision.
+  ///
+  /// Example:
+  /// ```dart
+  /// var bigNumber = BigInt.parse('100000000000000000000000');
+  /// print(bigNumber.isValidInt); // false
+  /// print(bigNumber.toInt()); // 9223372036854775807
+  /// ```
   int toInt();
 
   /// Returns this [BigInt] as a [double].
@@ -359,6 +518,12 @@ abstract class BigInt implements Comparable<BigInt> {
   /// If the number is not representable as a [double], an
   /// approximation is returned. For numerically large integers, the
   /// approximation may be infinite.
+  ///
+  /// Example:
+  /// ```dart
+  /// var bigNumber = BigInt.parse('100000000000000000000000');
+  /// print(bigNumber.toDouble()); // 1e+23
+  /// ```
   double toDouble();
 
   /// Returns a String-representation of this integer.
@@ -366,6 +531,12 @@ abstract class BigInt implements Comparable<BigInt> {
   /// The returned string is parsable by [parse].
   /// For any `BigInt` `i`, it is guaranteed that
   /// `i == BigInt.parse(i.toString())`.
+  ///
+  /// Example:
+  /// ```dart
+  /// var bigNumber = BigInt.parse('100000000000000000000000');
+  /// print(bigNumber.toString()); // "100000000000000000000000"
+  /// ```
   String toString();
 
   /// Converts [this] to a string representation in the given [radix].
@@ -374,5 +545,24 @@ abstract class BigInt implements Comparable<BigInt> {
   /// '9', with 'a' being 10 an 'z' being 35.
   ///
   /// The [radix] argument must be an integer in the range 2 to 36.
+  ///
+  /// Example:
+  /// ```dart
+  /// // Binary (base 2).
+  /// print(BigInt.from(12).toRadixString(2)); // 1100
+  /// print(BigInt.from(31).toRadixString(2)); // 11111
+  /// print(BigInt.from(2021).toRadixString(2)); // 11111100101
+  /// print(BigInt.from(-12).toRadixString(2)); // -1100
+  /// // Octal (base 8).
+  /// print(BigInt.from(12).toRadixString(8)); // 14
+  /// print(BigInt.from(31).toRadixString(8)); // 37
+  /// print(BigInt.from(2021).toRadixString(8)); // 3745
+  /// // Hexadecimal (base 16).
+  /// print(BigInt.from(12).toRadixString(16)); // c
+  /// print(BigInt.from(31).toRadixString(16)); // 1f
+  /// print(BigInt.from(2021).toRadixString(16)); // 7e5
+  /// // Base 36.
+  /// print(BigInt.from(35 * 36 + 1).toRadixString(36)); // z1
+  /// ```
   String toRadixString(int radix);
 }
