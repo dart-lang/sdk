@@ -30,7 +30,7 @@ abstract class Function {
   /// }
   ///
   /// // Output of the example is:
-  /// Name: Dominus Estate, Country: USA, Vintage: 2018
+  /// // Name: Dominus Estate, Country: USA, Vintage: 2018
   /// ```
   ///
   /// If [positionalArguments] is null, it's considered an empty list.
@@ -42,7 +42,7 @@ abstract class Function {
   /// }
   ///
   /// void main() {
-  ///   Function.apply(helloWorld, [], {});
+  ///   Function.apply(helloWorld, null);
   /// }
   /// // Output of the example is:
   /// Hello world!
