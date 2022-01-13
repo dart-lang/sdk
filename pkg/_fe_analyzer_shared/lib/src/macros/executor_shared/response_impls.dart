@@ -4,8 +4,11 @@
 
 import 'dart:async';
 
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
+
 import '../executor.dart';
 import '../api.dart';
+import 'introspection_impls.dart';
 import 'serialization.dart';
 import 'serialization_extensions.dart';
 
@@ -102,7 +105,7 @@ class FunctionDefinitionBuilderImpl implements FunctionDefinitionBuilder {
   final ClassIntrospector classIntrospector;
 
   /// The declaration this is a builder for.
-  final FunctionDeclaration declaration;
+  final FunctionDeclarationImpl declaration;
 
   /// The final result, will be built up over `augment` calls.
   final MacroExecutionResultImpl result;
@@ -113,8 +116,7 @@ class FunctionDefinitionBuilderImpl implements FunctionDefinitionBuilder {
 
   FunctionDefinitionBuilderImpl.deserialize(Deserializer deserializer,
       this.typeResolver, this.typeDeclarationResolver, this.classIntrospector)
-      : declaration =
-            (deserializer..moveNext()).expectDeclaration<FunctionDeclaration>(),
+      : declaration = RemoteInstance.deserialize(deserializer),
         result = new MacroExecutionResultImpl.deserialize(deserializer);
 
   void serialize(Serializer serializer) {

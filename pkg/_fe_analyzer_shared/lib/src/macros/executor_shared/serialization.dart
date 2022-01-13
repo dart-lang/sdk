@@ -4,10 +4,19 @@
 
 import 'dart:async';
 
+import 'remote_instance.dart';
+
 /// All serialization must be done in a serialization Zone, which tells it
 /// whether we are the client or server.
+///
+/// In [SerializationMode.server], sets up a remote instance cache to use when
+/// deserializing remote instances back to their original instance.
 T withSerializationMode<T>(SerializationMode mode, T Function() fn) =>
-    runZoned(fn, zoneValues: {#serializationMode: mode});
+    runZoned(fn, zoneValues: {
+      #serializationMode: mode,
+      if (mode == SerializationMode.server)
+        remoteInstanceZoneKey: <int, RemoteInstance>{}
+    });
 
 /// Serializable interface
 abstract class Serializable {

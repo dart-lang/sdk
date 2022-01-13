@@ -6,9 +6,10 @@ import 'dart:async';
 import 'dart:isolate';
 
 import '../api.dart';
+import '../executor_shared/introspection_impls.dart';
 import '../executor_shared/protocol.dart';
-import '../executor_shared/serialization.dart';
 import '../executor_shared/response_impls.dart';
+import '../executor_shared/serialization.dart';
 import '../executor.dart';
 
 /// Returns an instance of [_IsolatedMacroExecutor].
@@ -47,7 +48,7 @@ class _IsolatedMacroExecutor implements MacroExecutor {
   @override
   Future<MacroExecutionResult> executeDeclarationsPhase(
           MacroInstanceIdentifier macro,
-          Declaration declaration,
+          DeclarationImpl declaration,
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector) =>
       _executors[macro]!.executeDeclarationsPhase(
@@ -56,7 +57,7 @@ class _IsolatedMacroExecutor implements MacroExecutor {
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
           MacroInstanceIdentifier macro,
-          Declaration declaration,
+          DeclarationImpl declaration,
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector,
           TypeDeclarationResolver typeDeclarationResolver) =>
@@ -65,7 +66,7 @@ class _IsolatedMacroExecutor implements MacroExecutor {
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(
-          MacroInstanceIdentifier macro, Declaration declaration) =>
+          MacroInstanceIdentifier macro, DeclarationImpl declaration) =>
       _executors[macro]!.executeTypesPhase(macro, declaration);
 
   @override
@@ -114,6 +115,15 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
   /// A map of response completers by request id.
   final responseCompleters = <int, Completer<Response>>{};
 
+  /// We need to know which serialization zone to deserialize objects in, so
+  /// that we read them from the correct cache. Each request creates its own
+  /// zone which it stores here by ID and then responses are deserialized in
+  /// the same zone.
+  static final serializationZones = <int, Zone>{};
+
+  /// Incrementing identifier for the serialization zone ids.
+  static int _nextSerializationZoneId = 0;
+
   _SingleIsolatedMacroExecutor(
       {required this.onClose,
       required this.responseStream,
@@ -141,13 +151,16 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
       if (!sendPortCompleter.isCompleted) {
         sendPortCompleter.complete(message as SendPort);
       } else {
-        withSerializationMode(SerializationMode.server, () {
-          JsonDeserializer deserializer =
-              new JsonDeserializer(message as List<Object?>);
-          SerializableResponse response =
-              new SerializableResponse.deserialize(deserializer);
-          responseStreamController.add(response);
-        });
+        JsonDeserializer deserializer =
+            new JsonDeserializer(message as List<Object?>);
+        // Ever object starts with a zone ID which dictates the zone in which we
+        // should deserialize the message.
+        deserializer.moveNext();
+        int zoneId = deserializer.expectNum();
+        Zone zone = serializationZones[zoneId]!;
+        SerializableResponse response = zone.run(
+            () => new SerializableResponse.deserialize(deserializer, zoneId));
+        responseStreamController.add(response);
       }
     }).onDone(responseStreamController.close);
 
@@ -172,7 +185,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
   @override
   Future<MacroExecutionResult> executeDeclarationsPhase(
       MacroInstanceIdentifier macro,
-      Declaration declaration,
+      DeclarationImpl declaration,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector) {
     // TODO: implement executeDeclarationsPhase
@@ -182,12 +195,13 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
           MacroInstanceIdentifier macro,
-          Declaration declaration,
+          DeclarationImpl declaration,
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector,
           TypeDeclarationResolver typeDeclarationResolver) =>
-      _sendRequest(new ExecuteDefinitionsPhaseRequest(macro, declaration,
-          typeResolver, classIntrospector, typeDeclarationResolver));
+      _sendRequest((zoneId) => new ExecuteDefinitionsPhaseRequest(macro,
+          declaration, typeResolver, classIntrospector, typeDeclarationResolver,
+          serializationZoneId: zoneId));
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(
@@ -201,8 +215,9 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
           MacroClassIdentifier macroClass,
           String constructor,
           Arguments arguments) =>
-      _sendRequest(
-          new InstantiateMacroRequest(macroClass, constructor, arguments));
+      _sendRequest((zoneId) => new InstantiateMacroRequest(
+          macroClass, constructor, arguments,
+          serializationZoneId: zoneId));
 
   /// These calls are handled by the higher level executor.
   @override
@@ -212,16 +227,24 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
 
   /// Sends a [request] and handles the response, casting it to the expected
   /// type or throwing the error provided.
-  Future<T> _sendRequest<T>(Request request) =>
+  Future<T> _sendRequest<T>(Request Function(int) requestFactory) =>
       withSerializationMode(SerializationMode.server, () async {
+        int zoneId = _nextSerializationZoneId++;
+        serializationZones[zoneId] = Zone.current;
+        Request request = requestFactory(zoneId);
         JsonSerializer serializer = new JsonSerializer();
         request.serialize(serializer);
         sendPort.send(serializer.result);
         Completer<Response> completer = new Completer<Response>();
         responseCompleters[request.id] = completer;
-        Response response = await completer.future;
-        T? result = response.response as T?;
-        if (result != null) return result;
-        throw response.error!;
+        try {
+          Response response = await completer.future;
+          T? result = response.response as T?;
+          if (result != null) return result;
+          throw response.error!;
+        } finally {
+          // Clean up the zone after the request is done.
+          serializationZones.remove(zoneId);
+        }
       });
 }

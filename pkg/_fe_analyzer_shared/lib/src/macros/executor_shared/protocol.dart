@@ -9,19 +9,26 @@ library _fe_analyzer_shared.src.macros.executor_shared.protocol;
 import '../executor.dart';
 import '../api.dart';
 import '../executor_shared/response_impls.dart';
+import 'introspection_impls.dart';
+import 'remote_instance.dart';
 import 'serialization.dart';
-import 'serialization_extensions.dart';
 
 /// Base class all requests extend, provides a unique id for each request.
 abstract class Request implements Serializable {
   final int id;
 
-  Request({int? id}) : this.id = id ?? _next++;
+  final int serializationZoneId;
+
+  Request({int? id, required this.serializationZoneId})
+      : this.id = id ?? _next++;
 
   Request.deserialize(Deserializer deserializer)
-      : id = (deserializer..moveNext()).expectNum();
+      : serializationZoneId = (deserializer..moveNext()).expectNum(),
+        id = (deserializer..moveNext()).expectNum();
 
-  void serialize(Serializer serializer) => serializer.addNum(id);
+  void serialize(Serializer serializer) => serializer
+    ..addNum(serializationZoneId)
+    ..addNum(id);
 
   static int _next = 0;
 }
@@ -44,16 +51,21 @@ class SerializableResponse implements Response, Serializable {
   final MessageType responseType;
   final String? error;
   final int requestId;
+  final int serializationZoneId;
 
   SerializableResponse({
     this.error,
     required this.requestId,
     this.response,
     required this.responseType,
+    required this.serializationZoneId,
   })  : assert(response != null || error != null),
         assert(response == null || error == null);
 
-  factory SerializableResponse.deserialize(Deserializer deserializer) {
+  /// You must first parse the [serializationZoneId] yourself, and then
+  /// call this function in that zone, and pass the ID.
+  factory SerializableResponse.deserialize(
+      Deserializer deserializer, int serializationZoneId) {
     deserializer.moveNext();
     MessageType responseType = MessageType.values[deserializer.expectNum()];
     Serializable? response;
@@ -80,11 +92,14 @@ class SerializableResponse implements Response, Serializable {
         responseType: responseType,
         response: response,
         error: error,
-        requestId: (deserializer..moveNext()).expectNum());
+        requestId: (deserializer..moveNext()).expectNum(),
+        serializationZoneId: serializationZoneId);
   }
 
   void serialize(Serializer serializer) {
-    serializer.addNum(responseType.index);
+    serializer
+      ..addNum(serializationZoneId)
+      ..addNum(responseType.index);
     if (response != null) {
       response!.serialize(serializer);
     } else if (error != null) {
@@ -99,7 +114,8 @@ class LoadMacroRequest extends Request {
   final Uri library;
   final String name;
 
-  LoadMacroRequest(this.library, this.name);
+  LoadMacroRequest(this.library, this.name, {required int serializationZoneId})
+      : super(serializationZoneId: serializationZoneId);
 
   LoadMacroRequest.deserialize(Deserializer deserializer)
       : library = Uri.parse((deserializer..moveNext()).expectString()),
@@ -122,8 +138,9 @@ class InstantiateMacroRequest extends Request {
   final String constructorName;
   final Arguments arguments;
 
-  InstantiateMacroRequest(
-      this.macroClass, this.constructorName, this.arguments);
+  InstantiateMacroRequest(this.macroClass, this.constructorName, this.arguments,
+      {required int serializationZoneId})
+      : super(serializationZoneId: serializationZoneId);
 
   InstantiateMacroRequest.deserialize(Deserializer deserializer)
       : macroClass = new MacroClassIdentifierImpl.deserialize(deserializer),
@@ -145,7 +162,7 @@ class InstantiateMacroRequest extends Request {
 /// phase.
 class ExecuteDefinitionsPhaseRequest extends Request {
   final MacroInstanceIdentifier macro;
-  final Declaration declaration;
+  final DeclarationImpl declaration;
 
   /// Client/Server specific implementation, not serialized.
   final TypeResolver typeResolver;
@@ -157,14 +174,16 @@ class ExecuteDefinitionsPhaseRequest extends Request {
   final TypeDeclarationResolver typeDeclarationResolver;
 
   ExecuteDefinitionsPhaseRequest(this.macro, this.declaration,
-      this.typeResolver, this.classIntrospector, this.typeDeclarationResolver);
+      this.typeResolver, this.classIntrospector, this.typeDeclarationResolver,
+      {required int serializationZoneId})
+      : super(serializationZoneId: serializationZoneId);
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
   ExecuteDefinitionsPhaseRequest.deserialize(Deserializer deserializer,
       this.typeResolver, this.classIntrospector, this.typeDeclarationResolver)
       : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
-        declaration = (deserializer..moveNext()).expectDeclaration(),
+        declaration = RemoteInstance.deserialize(deserializer),
         super.deserialize(deserializer);
 
   void serialize(Serializer serializer) {
@@ -177,14 +196,15 @@ class ExecuteDefinitionsPhaseRequest extends Request {
 
 /// A request to reflect on a type annotation
 class ReflectTypeRequest extends Request {
-  final TypeAnnotation typeAnnotation;
+  final TypeAnnotationImpl typeAnnotation;
 
-  ReflectTypeRequest(this.typeAnnotation);
+  ReflectTypeRequest(this.typeAnnotation, {required int serializationZoneId})
+      : super(serializationZoneId: serializationZoneId);
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
   ReflectTypeRequest.deserialize(Deserializer deserializer)
-      : typeAnnotation = (deserializer..moveNext()).expectTypeAnnotation(),
+      : typeAnnotation = RemoteInstance.deserialize(deserializer),
         super.deserialize(deserializer);
 
   void serialize(Serializer serializer) {

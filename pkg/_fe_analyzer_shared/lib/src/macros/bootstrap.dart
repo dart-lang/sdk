@@ -26,6 +26,7 @@ const String template = '''
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/response_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/protocol.dart';
@@ -99,12 +100,14 @@ Future<SerializableResponse> _instantiateMacro(
     return new SerializableResponse(
         responseType: MessageType.macroInstanceIdentifier,
         response: identifier,
-        requestId: request.id);
+        requestId: request.id,
+        serializationZoneId: request.serializationZoneId);
   } catch (e) {
     return new SerializableResponse(
       responseType: MessageType.error,
       error: e.toString(),
-      requestId: request.id);
+      requestId: request.id,
+      serializationZoneId: request.serializationZoneId);
   }
 }
 
@@ -118,7 +121,7 @@ Future<SerializableResponse> _executeDefinitionsPhase(
     }
     Declaration declaration = request.declaration;
     if (instance is FunctionDefinitionMacro &&
-        declaration is FunctionDeclaration) {
+        declaration is FunctionDeclarationImpl) {
       FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
           declaration,
           request.typeResolver,
@@ -128,7 +131,8 @@ Future<SerializableResponse> _executeDefinitionsPhase(
       return new SerializableResponse(
           responseType: MessageType.macroExecutionResult,
           response: builder.result,
-          requestId: request.id);
+          requestId: request.id,
+          serializationZoneId: request.serializationZoneId);
     } else {
       throw new UnsupportedError(
           ('Only FunctionDefinitionMacros are supported currently'));
@@ -137,7 +141,8 @@ Future<SerializableResponse> _executeDefinitionsPhase(
     return new SerializableResponse(
       responseType: MessageType.error,
       error: e.toString(),
-      requestId: request.id);
+      requestId: request.id,
+      serializationZoneId: request.serializationZoneId);
   }
 }
 ''';

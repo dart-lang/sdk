@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
 import 'package:_fe_analyzer_shared/src/macros/isolated_executor/isolated_executor.dart'
     as isolatedExecutor;
 
@@ -18,6 +19,16 @@ import 'package:test/test.dart';
 void main() {
   late MacroExecutor executor;
   late Directory tmpDir;
+  late File simpleMacroFile;
+
+  setUpAll(() {
+    // We support running from either the root of the SDK or the package root.
+    simpleMacroFile =
+        File('pkg/_fe_analyzer_shared/test/macros/simple_macro.dart');
+    if (!simpleMacroFile.existsSync()) {
+      simpleMacroFile = File('test/macros/simple_macro.dart');
+    }
+  });
 
   setUp(() async {
     executor = await isolatedExecutor.start();
@@ -30,10 +41,7 @@ void main() {
   });
 
   test('can load macros and create instances', () async {
-    // Tests run from the root of the repo.
-    var macroUri = File('pkg/_fe_analyzer_shared/test/macros/simple_macro.dart')
-        .absolute
-        .uri;
+    var macroUri = simpleMacroFile.absolute.uri;
     var macroName = 'SimpleMacro';
 
     var bootstrapContent =
@@ -73,6 +81,7 @@ void main() {
     var definitionResult = await executor.executeDefinitionsPhase(
         instanceId,
         FunctionDeclarationImpl(
+          id: RemoteInstance.uniqueId,
           isAbstract: false,
           isExternal: false,
           isGetter: false,
@@ -81,7 +90,10 @@ void main() {
           namedParameters: [],
           positionalParameters: [],
           returnType: NamedTypeAnnotationImpl(
-              name: 'String', isNullable: false, typeArguments: const []),
+              id: RemoteInstance.uniqueId,
+              name: 'String',
+              isNullable: false,
+              typeArguments: const []),
           typeParameters: [],
         ),
         _FakeTypeResolver(),

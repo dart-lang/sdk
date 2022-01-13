@@ -353,6 +353,7 @@ destructive
 deterministic
 dev
 device
+dictates
 diff
 differs
 diffs
@@ -735,6 +736,7 @@ lf
 lhs
 lib
 libs
+lifetime
 lifted
 lifter
 limiting
@@ -1074,6 +1076,7 @@ recompiled
 recompiling
 recompute
 recomputed
+reconstruct
 recorder
 recoveries
 recreate
@@ -1375,6 +1378,7 @@ toplevel
 topological
 tops
 tput
+traced
 tracker
 traditional
 transformers
@@ -1602,6 +1606,7 @@ yielding
 yields
 yn
 ynon
+yourself
 ypotentially
 ys
 yss
@@ -1613,3 +1618,4 @@ zipped
 zn
 zone
 zoned
+zones

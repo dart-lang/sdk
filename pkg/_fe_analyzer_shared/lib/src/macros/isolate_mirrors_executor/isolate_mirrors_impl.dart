@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';
 
+import '../executor_shared/introspection_impls.dart';
 import '../executor_shared/response_impls.dart';
 import '../executor_shared/protocol.dart';
 import '../api.dart';
@@ -83,9 +84,9 @@ Future<Response> _executeDefinitionsPhase(
       throw new StateError('Unrecognized macro instance ${request.macro}\n'
           'Known instances: $_macroInstances)');
     }
-    Declaration declaration = request.declaration;
+    DeclarationImpl declaration = request.declaration;
     if (instance is FunctionDefinitionMacro &&
-        declaration is FunctionDeclaration) {
+        declaration is FunctionDeclarationImpl) {
       FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
           declaration,
           request.typeResolver,
