@@ -28,12 +28,12 @@ main(List<String> rawArguments) {
     stderr.writeln("Usage: yaml2json.dart input.yaml output.json [--check]");
     exit(1);
   }
-  Uri input = Uri.base.resolve(arguments[0]);
-  Uri output = Uri.base.resolve(arguments[1]);
+  Uri input = new File(arguments[0]).absolute.uri;
+  Uri output = new File(arguments[1]).absolute.uri;
   String inputString = arguments[0];
   String outputString = arguments[1];
   if (relative != null) {
-    String relativeTo = Uri.base.resolve(relative).toString();
+    String relativeTo = new File(relative).absolute.uri.toString();
     if (input.toString().startsWith(relativeTo)) {
       inputString = input.toString().substring(relativeTo.length);
     }
