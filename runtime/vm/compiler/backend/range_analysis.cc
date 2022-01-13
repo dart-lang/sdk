@@ -2082,6 +2082,10 @@ bool Range::IsPositive() const {
   return OnlyGreaterThanOrEqualTo(0);
 }
 
+bool Range::IsNegative() const {
+  return OnlyLessThanOrEqualTo(-1);
+}
+
 bool Range::OnlyLessThanOrEqualTo(int64_t val) const {
   const RangeBoundary upper_bound = max().UpperBound();
   return !upper_bound.IsPositiveInfinity() &&
