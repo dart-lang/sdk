@@ -470,6 +470,7 @@ luci.notifier(
 luci.cq(
     submit_max_burst = 2,
     submit_burst_delay = 8 * time.minute,
+    status_host = "chromium-cq-status.appspot.com",
 )
 
 def default_verifiers():
