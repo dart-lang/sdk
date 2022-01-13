@@ -635,6 +635,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Extend the class '{0}'",
   );
+  static const EXTRACT_LOCAL_VARIABLE = FixKind(
+    'dart.fix.extractLocalVariable',
+    DartFixKindPriority.DEFAULT,
+    'Extract local variable',
+  );
   static const IGNORE_ERROR_LINE = FixKind(
     'dart.fix.ignore.line',
     DartFixKindPriority.IGNORE,

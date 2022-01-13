@@ -96,6 +96,7 @@ import 'create_no_such_method_test.dart' as create_no_such_method;
 import 'create_setter_test.dart' as create_setter;
 import 'data_driven/test_all.dart' as data_driven;
 import 'extend_class_for_mixin_test.dart' as extend_class_for_mixin;
+import 'extract_local_variable_test.dart' as extract_local_variable;
 import 'fix_in_file_test.dart' as fix_in_file;
 import 'fix_processor_map_test.dart' as fix_processor_map;
 import 'fix_test.dart' as fix;
@@ -296,6 +297,7 @@ void main() {
     data_driven.main();
     extend_class_for_mixin.main();
     fix.main();
+    extract_local_variable.main();
     fix_in_file.main();
     fix_processor_map.main();
     ignore_error.main();

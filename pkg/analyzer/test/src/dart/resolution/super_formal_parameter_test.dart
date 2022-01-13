@@ -130,4 +130,42 @@ class B extends A {
       findElement.unnamedConstructor('B').superFormalParameter('a'),
     );
   }
+
+  test_scoping_inBody() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int a;
+  A(this.a);
+}
+
+class B extends A {
+  B(super.a) {
+    a; // ref
+  }
+}
+''');
+
+    assertElement(
+      findNode.simple('a; // ref'),
+      findElement.getter('a', of: 'A'),
+    );
+  }
+
+  test_scoping_inInitializer() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int a);
+}
+
+class B extends A {
+  var f;
+  B(super.a) : f = ((){ a; });
+}
+''');
+
+    assertElement(
+      findNode.simple('a; }'),
+      findElement.unnamedConstructor('B').superFormalParameter('a'),
+    );
+  }
 }

@@ -80,6 +80,7 @@ import 'package:analysis_server/src/services/correction/dart/create_no_such_meth
 import 'package:analysis_server/src/services/correction/dart/create_setter.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/extend_class_for_mixin.dart';
+import 'package:analysis_server/src/services/correction/dart/extract_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_remove_widget.dart';
 import 'package:analysis_server/src/services/correction/dart/ignore_diagnostic.dart';
 import 'package:analysis_server/src/services/correction/dart/import_library.dart';
@@ -990,6 +991,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
       AddNullCheck.newInstance,
+      ExtractLocalVariable.newInstance,
       ReplaceWithNullAware.single,
     ],
     CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
@@ -997,6 +999,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
       AddNullCheck.newInstance,
+      ExtractLocalVariable.newInstance,
       ReplaceWithNullAware.single,
     ],
     CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION: [
