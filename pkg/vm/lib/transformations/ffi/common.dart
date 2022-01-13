@@ -194,10 +194,14 @@ class FfiTransformer extends Transformer {
   final Procedure offsetByMethod;
   final Procedure elementAtMethod;
   final Procedure addressGetter;
-  final Procedure structPointerRef;
-  final Procedure structPointerElemAt;
-  final Procedure unionPointerRef;
-  final Procedure unionPointerElemAt;
+  final Procedure structPointerGetRef;
+  final Procedure structPointerSetRef;
+  final Procedure structPointerGetElemAt;
+  final Procedure structPointerSetElemAt;
+  final Procedure unionPointerGetRef;
+  final Procedure unionPointerSetRef;
+  final Procedure unionPointerGetElemAt;
+  final Procedure unionPointerSetElemAt;
   final Procedure structArrayElemAt;
   final Procedure unionArrayElemAt;
   final Procedure arrayArrayElemAt;
@@ -371,14 +375,22 @@ class FfiTransformer extends Transformer {
         arrayConstructor = index.getConstructor('dart:ffi', 'Array', '_'),
         fromAddressInternal =
             index.getTopLevelProcedure('dart:ffi', '_fromAddress'),
-        structPointerRef =
+        structPointerGetRef =
             index.getProcedure('dart:ffi', 'StructPointer', 'get:ref'),
-        structPointerElemAt =
+        structPointerSetRef =
+            index.getProcedure('dart:ffi', 'StructPointer', 'set:ref'),
+        structPointerGetElemAt =
             index.getProcedure('dart:ffi', 'StructPointer', '[]'),
-        unionPointerRef =
+        structPointerSetElemAt =
+            index.getProcedure('dart:ffi', 'StructPointer', '[]='),
+        unionPointerGetRef =
             index.getProcedure('dart:ffi', 'UnionPointer', 'get:ref'),
-        unionPointerElemAt =
+        unionPointerSetRef =
+            index.getProcedure('dart:ffi', 'UnionPointer', 'set:ref'),
+        unionPointerGetElemAt =
             index.getProcedure('dart:ffi', 'UnionPointer', '[]'),
+        unionPointerSetElemAt =
+            index.getProcedure('dart:ffi', 'UnionPointer', '[]='),
         structArrayElemAt = index.getProcedure('dart:ffi', 'StructArray', '[]'),
         unionArrayElemAt = index.getProcedure('dart:ffi', 'UnionArray', '[]'),
         arrayArrayElemAt = index.getProcedure('dart:ffi', 'ArrayArray', '[]'),

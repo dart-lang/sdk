@@ -7,6 +7,11 @@
 - Add `Finalizer` and `WeakReference` which can potentially detect when
   objects are "garbage collected".
 
+#### `dart:ffi`
+
+- Add `ref=` and `[]=` methods to the `StructPointer` and `UnionPointer`
+  extensions. They copy a compound instance into a native memory region.
+
 #### `dart:indexed_db`
 
 - `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
