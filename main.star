@@ -1520,17 +1520,6 @@ dart_ci_sandbox_builder(
     category = "analyzer|fa",
     channels = ["try"],
     execution_timeout = 45 * time.minute,
-    location_regexp = [
-        ".+/[+]/DEPS",
-        ".+/[+]/pkg/analysis_server/.+",
-        ".+/[+]/pkg/analysis_server_client/.+",
-        ".+/[+]/pkg/analyzer/.+",
-        ".+/[+]/pkg/analyzer_plugin/.+",
-        ".+/[+]/pkg/front_end/.+",
-        ".+/[+]/pkg/_fe_analyzer_shared/.+",
-        ".+/[+]/pkg/meta/.+",
-        ".+/[+]/pkg/telemetry/.+",
-    ],
     notifies = None,
 )
 dart_ci_sandbox_builder(
