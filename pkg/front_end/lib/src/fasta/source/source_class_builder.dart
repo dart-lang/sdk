@@ -105,6 +105,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   SourceClassBuilder? _patchBuilder;
 
+  final bool isEnumMixin;
+
   SourceClassBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
@@ -124,7 +126,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       {Class? cls,
       this.mixedInTypeBuilder,
       this.isMixinDeclaration = false,
-      this.isMacro: false})
+      this.isMacro: false,
+      this.isEnumMixin: false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
@@ -194,6 +197,11 @@ class SourceClassBuilder extends ClassBuilderImpl
     constructors.forEach(buildBuilders);
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
+    }
+    if (isEnumMixin) {
+      assert(supertypeBuilder?.name == "_Enum");
+      supertypeBuilder?.resolveIn(coreLibrary.scope,
+          supertypeBuilder?.charOffset ?? charOffset, fileUri, library);
     }
     Supertype? supertype =
         supertypeBuilder?.buildSupertype(library, charOffset, fileUri);

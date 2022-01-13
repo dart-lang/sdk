@@ -46,6 +46,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show
@@ -86,7 +87,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   final NamedTypeBuilder listType;
 
-  DeclaredSourceConstructorBuilder? _synthesizedDefaultConstructorBuilder;
+  DeclaredSourceConstructorBuilder? synthesizedDefaultConstructorBuilder;
 
   SourceEnumBuilder.internal(
       List<MetadataBuilder>? metadata,
@@ -99,7 +100,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       this.intType,
       this.listType,
       this.objectType,
-      TypeBuilder enumType,
+      TypeBuilder supertypeBuilder,
       this.stringType,
       SourceLibraryBuilder parent,
       int startCharOffset,
@@ -111,7 +112,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             0,
             name,
             typeVariables,
-            enumType,
+            supertypeBuilder,
             /* interfaces = */ null,
             /* onTypes = */ null,
             scope,
@@ -128,6 +129,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       List<MetadataBuilder>? metadata,
       String name,
       List<TypeVariableBuilder>? typeVariables,
+      TypeBuilder? supertypeBuilder,
       List<EnumConstantInfo?>? enumConstantInfos,
       SourceLibraryBuilder parent,
       int startCharOffset,
@@ -173,7 +175,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         /* fileUri = */ null,
         /* charOffset = */ null,
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
-    NamedTypeBuilder enumType = new NamedTypeBuilder(
+    supertypeBuilder ??= new NamedTypeBuilder(
         "_Enum",
         const NullabilityBuilder.omitted(),
         /* arguments = */ null,
@@ -418,14 +420,14 @@ class SourceEnumBuilder extends SourceClassBuilder {
         intType,
         listType,
         objectType,
-        enumType,
+        supertypeBuilder,
         stringType,
         parent,
         startCharOffsetComputed,
         charOffset,
         charEndOffset,
         referencesFromIndexed)
-      .._synthesizedDefaultConstructorBuilder =
+      ..synthesizedDefaultConstructorBuilder =
           synthesizedDefaultConstructorBuilder;
 
     void setParent(String name, MemberBuilder? builder) {
@@ -458,9 +460,21 @@ class SourceEnumBuilder extends SourceClassBuilder {
         coreLibrary.scope, charOffset, fileUri, libraryBuilder);
     objectType.resolveIn(
         coreLibrary.scope, charOffset, fileUri, libraryBuilder);
-    TypeBuilder supertypeBuilder = this.supertypeBuilder!;
-    supertypeBuilder.resolveIn(
-        coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+    TypeBuilder? supertypeBuilder = this.supertypeBuilder;
+    NamedTypeBuilder? enumType;
+
+    while (enumType == null && supertypeBuilder is NamedTypeBuilder) {
+      TypeDeclarationBuilder? superclassBuilder = supertypeBuilder.declaration;
+      if (superclassBuilder is ClassBuilder &&
+          superclassBuilder.isMixinApplication) {
+        supertypeBuilder = superclassBuilder.supertypeBuilder;
+      } else {
+        enumType = supertypeBuilder;
+      }
+    }
+    assert(enumType is NamedTypeBuilder && enumType.name == "_Enum");
+    enumType!.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
+
     listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
 
     List<Expression> values = <Expression>[];
@@ -481,34 +495,39 @@ class SourceEnumBuilder extends SourceClassBuilder {
     valuesBuilder.build(libraryBuilder);
 
     // The super initializer for the synthesized default constructor is
-    // inserted here. Other constructors are handled in
-    // [BodyBuilder.finishConstructor], as they are processed via the pipeline
-    // for constructor parsing and building.
-    if (_synthesizedDefaultConstructorBuilder != null) {
-      Constructor constructor =
-          _synthesizedDefaultConstructorBuilder!.build(libraryBuilder);
-      ClassBuilder objectClass = objectType.declaration as ClassBuilder;
-      ClassBuilder enumClass = supertypeBuilder.declaration as ClassBuilder;
-      MemberBuilder? superConstructor = enumClass.findConstructorOrFactory(
-          "", charOffset, fileUri, libraryBuilder);
-      if (superConstructor == null || !superConstructor.isConstructor) {
-        // TODO(ahe): Ideally, we would also want to check that [Object]'s
-        // unnamed constructor requires no arguments. But that information
-        // isn't always available at this point, and it's not really a
-        // situation that can happen unless you start modifying the SDK
-        // sources. (We should add a correct message. We no longer depend on
-        // Object here.)
-        library.addProblem(
-            messageNoUnnamedConstructorInObject,
-            objectClass.charOffset,
-            objectClass.name.length,
-            objectClass.fileUri);
-      } else {
-        constructor.initializers.add(new SuperInitializer(
-            superConstructor.member as Constructor,
-            new Arguments.forwarded(
-                constructor.function, libraryBuilder.library))
-          ..parent = constructor);
+    // inserted here if the enum's supertype is _Enum to preserve the legacy
+    // behavior or having the old-style enum constants built in the outlines.
+    // Other constructors are handled in [BodyBuilder.finishConstructor] as
+    // they are processed via the pipeline for constructor parsing and
+    // building.
+    if (identical(this.supertypeBuilder, enumType)) {
+      if (synthesizedDefaultConstructorBuilder != null) {
+        Constructor constructor =
+            synthesizedDefaultConstructorBuilder!.build(libraryBuilder);
+        ClassBuilder objectClass = objectType.declaration as ClassBuilder;
+        ClassBuilder enumClass = enumType.declaration as ClassBuilder;
+        MemberBuilder? superConstructor = enumClass.findConstructorOrFactory(
+            "", charOffset, fileUri, libraryBuilder);
+        if (superConstructor == null || !superConstructor.isConstructor) {
+          // TODO(ahe): Ideally, we would also want to check that [Object]'s
+          // unnamed constructor requires no arguments. But that information
+          // isn't always available at this point, and it's not really a
+          // situation that can happen unless you start modifying the SDK
+          // sources. (We should add a correct message. We no longer depend on
+          // Object here.)
+          library.addProblem(
+              messageNoUnnamedConstructorInObject,
+              objectClass.charOffset,
+              objectClass.name.length,
+              objectClass.fileUri);
+        } else {
+          constructor.initializers.add(new SuperInitializer(
+              superConstructor.member as Constructor,
+              new Arguments.forwarded(
+                  constructor.function, libraryBuilder.library))
+            ..parent = constructor);
+        }
+        synthesizedDefaultConstructorBuilder = null;
       }
     }
 
