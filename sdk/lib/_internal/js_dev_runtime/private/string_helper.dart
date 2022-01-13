@@ -169,8 +169,15 @@ String stringReplaceAllUnchecked(@notNull String receiver,
     var re = regExpGetGlobalNative(pattern);
     return stringReplaceJS(receiver, re, replacement);
   } else {
-    // TODO(floitsch): implement generic String.replace (with patterns).
-    throw "String.replaceAll(Pattern) UNIMPLEMENTED";
+    int startIndex = 0;
+    StringBuffer result = StringBuffer();
+    for (Match match in pattern.allMatches(receiver)) {
+      result.write(substring2Unchecked(receiver, startIndex, match.start));
+      result.write(replacement);
+      startIndex = match.end;
+    }
+    result.write(substring1Unchecked(receiver, startIndex));
+    return result.toString();
   }
 }
 
