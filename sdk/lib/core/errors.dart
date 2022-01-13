@@ -64,6 +64,7 @@ part of dart.core;
 /// For example, the [String.contains] method will use a [RangeError]
 /// if its `startIndex` isn't in the range `0..length`,
 /// which is easily created by `RangeError.range(startIndex, 0, length)`.
+@pragma('flutter:keep-to-string-in-subtypes')
 class Error {
   Error(); // Prevent use as mixin.
 
