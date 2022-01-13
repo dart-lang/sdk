@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2022-01-12T18:31:13.380991",
+  "generated": "2022-01-12T18:16:46.198227",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -250,7 +250,7 @@
       "name": "dartdoc",
       "rootUri": "../third_party/pkg/dartdoc",
       "packageUri": "lib/",
-      "languageVersion": "2.11"
+      "languageVersion": "2.14"
     },
     {
       "name": "dds",

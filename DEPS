@@ -109,7 +109,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
   "dart_style_rev": "08b0294d0a500d5c02168ef57dcb8868d0c3cb48",
 
-  "dartdoc_rev" : "66ee9a81b3bab35adcda18274b7d69567c98c3c6",
+  "dartdoc_rev" : "f9cfab1b84176873c80b89e7c8b54c669344f9ed",
   "devtools_rev" : "85932bb66aa782c4b2c528be7718960bf256ffb7",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
   "fixnum_rev": "848341f061359ef7ddc0cad472c2ecbb036b28ac",
