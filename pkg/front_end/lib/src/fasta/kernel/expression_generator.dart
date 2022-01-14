@@ -4492,9 +4492,8 @@ class ThisAccessGenerator extends Generator {
       }
     } else {
       if (isSuper) {
-        Member? getter = _helper.lookupInstanceMember(name, isSuper: isSuper);
-        Member? setter = _helper.lookupInstanceMember(name,
-            isSuper: isSuper, isSetter: true);
+        Member? getter = _helper.lookupSuperMember(name);
+        Member? setter = _helper.lookupSuperMember(name, isSetter: true);
         return new SuperPropertyAccessGenerator(
             _helper,
             // TODO(ahe): This is not the 'super' token.
@@ -4659,10 +4658,8 @@ class ThisAccessGenerator extends Generator {
           _helper,
           token,
           index,
-          _helper.lookupInstanceMember(indexGetName, isSuper: true)
-              as Procedure?,
-          _helper.lookupInstanceMember(indexSetName, isSuper: true)
-              as Procedure?);
+          _helper.lookupSuperMember(indexGetName) as Procedure?,
+          _helper.lookupSuperMember(indexSetName) as Procedure?);
     } else {
       return new ThisIndexedAccessGenerator(_helper, token, index,
           thisOffset: fileOffset, isNullAware: isNullAware);

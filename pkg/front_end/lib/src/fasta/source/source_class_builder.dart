@@ -88,7 +88,6 @@ Class initializeClass(
 
 class SourceClassBuilder extends ClassBuilderImpl
     implements Comparable<SourceClassBuilder> {
-  @override
   final Class actualCls;
 
   final List<ConstructorReferenceBuilder>? constructorReferences;
@@ -136,6 +135,11 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   SourceClassBuilder? get patchForTesting => _patchBuilder;
+
+  SourceClassBuilder? actualOrigin;
+
+  @override
+  SourceClassBuilder get origin => actualOrigin ?? this;
 
   @override
   Class get cls => origin.actualCls;
@@ -417,6 +421,66 @@ class SourceClassBuilder extends ClassBuilderImpl
     // those with the names that are in the patch.
     _patchBuilder?.constructors.forEach(callbackFilteringFieldBuilders);
     constructors.forEach(callbackFilteringFieldBuilders);
+  }
+
+  /// Looks up the constructor by [name] on the class built by this class
+  /// builder.
+  ///
+  /// If [isSuper] is `true`, constructors in the superclass are searched.
+  Constructor? lookupConstructor(Name name, {bool isSuper: false}) {
+    if (name.text == "new") {
+      name = new Name("", name.library);
+    }
+
+    Class? instanceClass = cls;
+    if (isSuper) {
+      instanceClass = instanceClass.superclass;
+    }
+    if (instanceClass != null) {
+      for (Constructor constructor in instanceClass.constructors) {
+        if (constructor.name == name) {
+          return constructor;
+        }
+      }
+    }
+
+    /// Performs a similar lookup to [lookupConstructor], but using a slower
+    /// implementation.
+    Constructor? lookupConstructorWithPatches(Name name, bool isSuper) {
+      ClassBuilder? builder = this.origin;
+
+      ClassBuilder? getSuperclass(ClassBuilder builder) {
+        // This way of computing the superclass is slower than using the kernel
+        // objects directly.
+        TypeBuilder? supertype = builder.supertypeBuilder;
+        if (supertype is NamedTypeBuilder) {
+          TypeDeclarationBuilder? builder = supertype.declaration;
+          if (builder is ClassBuilder) return builder;
+          if (builder is TypeAliasBuilder) {
+            TypeDeclarationBuilder? declarationBuilder =
+                builder.unaliasDeclaration(supertype.arguments,
+                    isUsedAsClass: true,
+                    usedAsClassCharOffset: supertype.charOffset,
+                    usedAsClassFileUri: supertype.fileUri);
+            if (declarationBuilder is ClassBuilder) return declarationBuilder;
+          }
+        }
+        return null;
+      }
+
+      if (isSuper) {
+        builder = getSuperclass(builder)?.origin;
+      }
+      if (builder != null) {
+        Class cls = builder.cls;
+        for (Constructor constructor in cls.constructors) {
+          if (constructor.name == name) return constructor;
+        }
+      }
+      return null;
+    }
+
+    return lookupConstructorWithPatches(name, isSuper);
   }
 
   @override
@@ -905,6 +969,25 @@ class SourceClassBuilder extends ClassBuilderImpl
         constructor = constructor!.next;
       } while (constructor != null);
     }
+  }
+
+  Map<String, ConstructorRedirection>? _redirectingConstructors;
+
+  /// Registers a constructor redirection for this class and returns true if
+  /// this redirection gives rise to a cycle that has not been reported before.
+  bool checkConstructorCyclic(String source, String target) {
+    ConstructorRedirection? redirect = new ConstructorRedirection(target);
+    _redirectingConstructors ??= <String, ConstructorRedirection>{};
+    _redirectingConstructors![source] = redirect;
+    while (redirect != null) {
+      if (redirect.cycleReported) return false;
+      if (redirect.target == source) {
+        redirect.cycleReported = true;
+        return true;
+      }
+      redirect = _redirectingConstructors![redirect.target];
+    }
+    return false;
   }
 
   TypeBuilder _checkSupertype(TypeBuilder supertype) {

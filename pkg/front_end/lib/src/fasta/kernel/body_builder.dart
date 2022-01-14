@@ -85,6 +85,7 @@ import '../problems.dart'
 import '../scope.dart';
 import '../source/diet_parser.dart';
 import '../source/scope_listener.dart' show JumpTargetKind, ScopeListener;
+import '../source/source_class_builder.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_factory_builder.dart';
@@ -139,8 +140,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// if any.
   final DeclarationBuilder? declarationBuilder;
 
-  /// The class or mixin declaration in which [member] is declared, if any.
-  final ClassBuilder? classBuilder;
+  /// The source class or mixin declaration in which [member] is declared, if
+  /// any.
+  ///
+  /// If [member] is a synthesized member for expression evaluation the
+  /// enclosing declaration might be a [DillClassBuilder]. This can be accessed
+  /// through [declarationBuilder].
+  final SourceClassBuilder? sourceClassBuilder;
 
   final ClassHierarchy hierarchy;
 
@@ -342,8 +348,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       required this.uri,
       required this.typeInferrer})
       : forest = const Forest(),
-        classBuilder =
-            declarationBuilder is ClassBuilder ? declarationBuilder : null,
+        sourceClassBuilder = declarationBuilder is SourceClassBuilder
+            ? declarationBuilder
+            : null,
         enableNative = libraryBuilder.loader.target.backendTarget
             .enableNative(libraryBuilder.importUri),
         stringExpectedAfterNative = libraryBuilder
@@ -352,8 +359,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             libraryBuilder.importUri.scheme == 'dart' &&
                 (libraryBuilder.importUri.path == "_builtin" ||
                     libraryBuilder.importUri.path == "ui"),
-        needsImplicitSuperInitializer = declarationBuilder is ClassBuilder &&
-            coreTypes.objectClass != declarationBuilder.cls,
+        needsImplicitSuperInitializer =
+            declarationBuilder is SourceClassBuilder &&
+                coreTypes.objectClass != declarationBuilder.cls,
         super(enclosingScope) {
     formalParameterScope?.forEach((String name, Builder builder) {
       if (builder is VariableBuilder) {
@@ -1763,7 +1771,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           fasta.messageConstructorNotSync, body!.fileOffset, noLength)));
     }
     if (libraryBuilder.enableEnhancedEnumsInLibrary &&
-        classBuilder is SourceEnumBuilder &&
+        sourceClassBuilder is SourceEnumBuilder &&
         constructor.initializers.isNotEmpty &&
         constructor.initializers.last is RedirectingInitializer) {
       RedirectingInitializer redirectingInitializer =
@@ -1806,7 +1814,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         positionalArguments = positionalSuperParametersAsArguments;
         namedArguments = namedSuperParametersAsArguments;
       }
-      if (classBuilder is SourceEnumBuilder) {
+      if (sourceClassBuilder is SourceEnumBuilder) {
         assert(constructor.function.positionalParameters.length >= 2 &&
             constructor.function.positionalParameters[0].name == "index" &&
             constructor.function.positionalParameters[1].name == "name");
@@ -1826,7 +1834,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           checkArgumentsForFunction(superTarget.function, arguments,
                   builder.charOffset, const <TypeParameter>[]) !=
               null) {
-        String superclass = classBuilder!.supertypeBuilder!.fullNameForErrors;
+        String superclass =
+            sourceClassBuilder!.supertypeBuilder!.fullNameForErrors;
         int length = constructor.name.text.length;
         if (length == 0) {
           length = (constructor.parent as Class).name.length;
@@ -2563,15 +2572,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  Member? lookupInstanceMember(Name name,
-      {bool isSetter: false, bool isSuper: false}) {
-    return classBuilder!.lookupInstanceMember(hierarchy, name,
-        isSetter: isSetter, isSuper: isSuper);
+  Member? lookupSuperMember(Name name, {bool isSetter: false}) {
+    return (declarationBuilder as ClassBuilder).lookupInstanceMember(
+        hierarchy, name,
+        isSetter: isSetter, isSuper: true);
   }
 
   @override
   Constructor? lookupConstructor(Name name, {bool isSuper: false}) {
-    return classBuilder!.lookupConstructor(name, isSuper: isSuper);
+    return sourceClassBuilder!.lookupConstructor(name, isSuper: isSuper);
   }
 
   @override
@@ -2650,9 +2659,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Builder? declaration = scope.lookup(name, charOffset, uri);
     if (declaration == null &&
         prefix == null &&
-        (classBuilder?.isPatch ?? false)) {
+        (sourceClassBuilder?.isPatch ?? false)) {
       // The scope of a patched method includes the origin class.
-      declaration = classBuilder!.origin
+      declaration = sourceClassBuilder!.origin
           .findStaticBuilder(name, charOffset, uri, libraryBuilder);
     }
     if (declaration != null &&
@@ -3120,8 +3129,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     constantContext = member.isConst
         ? ConstantContext.inferred
         : !member.isStatic &&
-                classBuilder != null &&
-                classBuilder!.declaresConstConstructor
+                sourceClassBuilder != null &&
+                sourceClassBuilder!.declaresConstConstructor
             ? ConstantContext.required
             : ConstantContext.none;
     if (member is SourceFieldBuilder) {
@@ -3155,8 +3164,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     constantContext = member.isConst
         ? ConstantContext.inferred
         : !member.isStatic &&
-                classBuilder != null &&
-                classBuilder!.declaresConstConstructor
+                sourceClassBuilder != null &&
+                sourceClassBuilder!.declaresConstConstructor
             ? ConstantContext.required
             : ConstantContext.none;
     if (constantContext == ConstantContext.inferred) {
@@ -6968,7 +6977,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   Initializer buildRedirectingInitializer(
       Constructor constructor, Arguments arguments,
       [int charOffset = -1]) {
-    if (classBuilder!
+    if (sourceClassBuilder!
         .checkConstructorCyclic(member.name!, constructor.name.text)) {
       int length = constructor.name.text.length;
       if (length == 0) length = "this".length;
@@ -7188,7 +7197,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           offset,
           name.text.length);
     }
-    Member? target = lookupInstanceMember(name, isSuper: true);
+    Member? target = lookupSuperMember(name);
 
     if (target == null || (target is Procedure && !target.isAccessor)) {
       if (target == null) {
@@ -7317,7 +7326,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   String constructorNameForDiagnostics(String name,
       {String? className, bool isSuper: false}) {
     if (className == null) {
-      Class cls = classBuilder!.cls;
+      Class cls = sourceClassBuilder!.cls;
       if (isSuper) {
         cls = cls.superclass!;
         while (cls.isMixinApplication) {
