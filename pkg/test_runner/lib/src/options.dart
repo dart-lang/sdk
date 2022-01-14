@@ -778,7 +778,10 @@ has been specified on the command line.''',
               data['test_server_cross_origin_port'] as int,
           testDriverErrorPort: data["test_driver_error_port"] as int,
           localIP: data["local_ip"] as String,
-          sharedOptions: sharedOptions,
+          sharedOptions: <String>[
+            ...sharedOptions,
+            "-Dtest_runner.configuration=${innerConfiguration.name}"
+          ],
           packages: data["packages"] as String,
           serviceResponseSizesDirectory:
               data['service_response_sizes_directory'] as String,
