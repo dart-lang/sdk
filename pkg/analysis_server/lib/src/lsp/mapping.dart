@@ -683,6 +683,36 @@ List<lsp.DiagnosticTag>? getDiagnosticTags(
 bool isDartDocument(lsp.TextDocumentIdentifier? doc) =>
     doc?.uri.endsWith('.dart') ?? false;
 
+/// Converts a [server.Location] to an [lsp.Range] by translating the
+/// offset/length using a `LineInfo`.
+///
+/// This function ignores any line/column info on the
+/// [server.Location] assuming it is either not available not unreliable.
+lsp.Range locationOffsetLenToRange(
+        server.LineInfo lineInfo, server.Location location) =>
+    toRange(lineInfo, location.offset, location.length);
+
+/// Converts a [server.Location] to an [lsp.Range] if all line and column
+/// values are available.
+///
+/// Returns null if any values are -1 or null.
+lsp.Range? locationToRange(server.Location location) {
+  final startLine = location.startLine;
+  final startColumn = location.startColumn;
+  final endLine = location.endLine ?? -1;
+  final endColumn = location.endColumn ?? -1;
+  if (startLine == -1 ||
+      startColumn == -1 ||
+      endLine == -1 ||
+      endColumn == -1) {
+    return null;
+  }
+  // LSP positions are 0-based but Location is 1-based.
+  return Range(
+      start: Position(line: startLine - 1, character: startColumn - 1),
+      end: Position(line: endLine - 1, character: endColumn - 1));
+}
+
 /// Merges two [WorkspaceEdit]s into a single one.
 ///
 /// Will throw if given [WorkspaceEdit]s that do not use documentChanges.
@@ -800,10 +830,12 @@ lsp.Diagnostic pluginToDiagnostic(
     message = '$message\n${error.correction}';
   }
 
-  var lineInfo = getLineInfo(error.location.file);
+  final range = locationToRange(error.location) ??
+      locationOffsetLenToRange(
+          getLineInfo(error.location.file), error.location);
   var documentationUrl = error.url;
   return lsp.Diagnostic(
-    range: toRange(lineInfo, error.location.offset, error.location.length),
+    range: range,
     severity: pluginToDiagnosticSeverity(error.severity),
     code: error.code,
     source: languageSourceName,
@@ -831,6 +863,9 @@ lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
   return lsp.DiagnosticRelatedInformation(
       location: lsp.Location(
         uri: Uri.file(file).toString(),
+        // TODO(dantup): Switch to using line/col information from the context
+        // message once confirmed that AnalyzerConverter is not using the wrong
+        // LineInfo.
         range: toRange(
           lineInfo,
           message.location.offset,
