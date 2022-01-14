@@ -30,7 +30,7 @@ abstract class TypeResolver {
   /// may be asked to run in this state during the development cycle. It is
   /// helpful for users if macros provide a best effort implementation in that
   /// case or handle the error in a useful way.
-  Future<StaticType> resolve(TypeAnnotation typeAnnotation);
+  Future<StaticType> resolve(covariant TypeAnnotation typeAnnotation);
 }
 
 /// The api used to introspect on a [ClassDeclaration].

@@ -89,9 +89,9 @@ Future<Response> _executeDefinitionsPhase(
         declaration is FunctionDeclarationImpl) {
       FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
           declaration,
-          request.typeResolver,
-          request.typeDeclarationResolver,
-          request.classIntrospector);
+          request.typeResolver.instance as TypeResolver,
+          request.typeDeclarationResolver.instance as TypeDeclarationResolver,
+          request.classIntrospector.instance as ClassIntrospector);
       await instance.buildDefinitionForFunction(declaration, builder);
       return new Response(response: builder.result, requestId: request.id);
     } else {
