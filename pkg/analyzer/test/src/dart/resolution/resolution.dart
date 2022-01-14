@@ -704,6 +704,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(node.staticType, type);
   }
 
+  void assertSimpleFormalParameter(
+    SimpleFormalParameter node, {
+    required ParameterElement element,
+  }) {
+    assertElement(node.declaredElement, element);
+  }
+
   void assertSimpleIdentifier(
     Expression node, {
     required Object? element,

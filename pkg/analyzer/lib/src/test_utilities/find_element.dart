@@ -172,31 +172,31 @@ class FindElement extends _FindElementBase {
       }
     }
 
+    void findInClasses(List<ClassElement> classes) {
+      for (var class_ in classes) {
+        findInExecutables(class_.accessors);
+        findInExecutables(class_.constructors);
+        findInExecutables(class_.methods);
+      }
+    }
+
     findInExecutables(unitElement.accessors);
     findInExecutables(unitElement.functions);
 
-    for (var alias in unitElement.typeAliases) {
-      var aliasedElement = alias.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        findIn(aliasedElement.parameters);
-      }
-    }
+    findInClasses(unitElement.classes);
+    findInClasses(unitElement.enums);
+    findInClasses(unitElement.mixins);
 
     for (var extension_ in unitElement.extensions) {
       findInExecutables(extension_.accessors);
       findInExecutables(extension_.methods);
     }
 
-    for (var mixin in unitElement.mixins) {
-      findInExecutables(mixin.accessors);
-      findInExecutables(mixin.constructors);
-      findInExecutables(mixin.methods);
-    }
-
-    for (var class_ in unitElement.classes) {
-      findInExecutables(class_.accessors);
-      findInExecutables(class_.constructors);
-      findInExecutables(class_.methods);
+    for (var alias in unitElement.typeAliases) {
+      var aliasedElement = alias.aliasedElement;
+      if (aliasedElement is GenericFunctionTypeElement) {
+        findIn(aliasedElement.parameters);
+      }
     }
 
     unit.accept(
@@ -283,6 +283,10 @@ class FindElement extends _FindElementBase {
 
     for (var class_ in unitElement.classes) {
       findInClass(class_);
+    }
+
+    for (var enum_ in unitElement.enums) {
+      findInClass(enum_);
     }
 
     for (var extension_ in unitElement.extensions) {
