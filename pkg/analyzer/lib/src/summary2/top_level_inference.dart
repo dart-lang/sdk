@@ -290,7 +290,7 @@ class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.staticElement?.declaration;
     if (element is PropertyAccessorElement && element.isGetter) {
       _set.add(element.variable);
     }
