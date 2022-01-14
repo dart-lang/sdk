@@ -2714,7 +2714,13 @@ class EnumElementImpl extends AbstractClassElementImpl {
   bool get isMixinApplication => false;
 
   @override
-  bool get isSimplyBounded => true;
+  bool get isSimplyBounded {
+    return hasModifier(Modifier.SIMPLY_BOUNDED);
+  }
+
+  set isSimplyBounded(bool isSimplyBounded) {
+    setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
+  }
 
   @override
   bool get isValidMixin => false;

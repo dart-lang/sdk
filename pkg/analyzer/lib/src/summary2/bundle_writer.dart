@@ -172,6 +172,7 @@ class BundleWriter {
     element as EnumElementImpl;
     _sink.writeUInt30(_resolutionSink.offset);
     _sink._writeStringReference(element.name);
+    EnumElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {

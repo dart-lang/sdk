@@ -17766,7 +17766,7 @@ enum E<T extends num, U extends T> {
 library
   definingUnit
     enums
-      enum E @5
+      notSimplyBounded enum E @5
         typeParameters
           covariant T @7
             bound: num
@@ -17850,7 +17850,7 @@ enum E<T extends T> {}
 library
   definingUnit
     enums
-      enum E @5
+      notSimplyBounded enum E @5
         typeParameters
           covariant T @7
             bound: dynamic
@@ -17893,7 +17893,7 @@ enum E<T extends V, U extends num, V extends T> {}
 library
   definingUnit
     enums
-      enum E @5
+      notSimplyBounded enum E @5
         typeParameters
           covariant T @7
             bound: dynamic
@@ -17942,7 +17942,7 @@ enum E<T extends void Function(E)> {}
 library
   definingUnit
     enums
-      enum E @5
+      notSimplyBounded enum E @5
         typeParameters
           covariant T @7
             bound: void Function(E<dynamic>)
