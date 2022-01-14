@@ -167,8 +167,18 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   @override
-  ConstructorElement? getNamedConstructor(String name) =>
-      getNamedConstructorFromList(name, constructors);
+  ConstructorElement? getNamedConstructor(String name) {
+    if (name == 'new') {
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
+      name = '';
+    }
+    for (ConstructorElement element in constructors) {
+      if (element.name == name) {
+        return element;
+      }
+    }
+    return null;
+  }
 
   @override
   PropertyAccessorElement? getSetter(String setterName) {
@@ -394,20 +404,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       }
       classElement = classElement.supertype?.element;
     }
-  }
-
-  static ConstructorElement? getNamedConstructorFromList(
-      String name, List<ConstructorElement> constructors) {
-    if (name == 'new') {
-      // A constructor declared as `C.new` is unnamed, and is modeled as such.
-      name = '';
-    }
-    for (ConstructorElement element in constructors) {
-      if (element.name == name) {
-        return element;
-      }
-    }
-    return null;
   }
 
   static PropertyAccessorElement? getSetterFromAccessors(
