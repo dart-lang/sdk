@@ -192,6 +192,21 @@ class MethodElementFlags {
   }
 }
 
+class MixinElementFlags {
+  static const int _isSimplyBounded = 1 << 0;
+
+  static void read(SummaryDataReader reader, MixinElementImpl element) {
+    var byte = reader.readByte();
+    element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
+  }
+
+  static void write(BufferedSink sink, MixinElementImpl element) {
+    var result = 0;
+    result |= element.isSimplyBounded ? _isSimplyBounded : 0;
+    sink.writeByte(result);
+  }
+}
+
 class ParameterElementFlags {
   static const int _hasImplicitType = 1 << 0;
   static const int _inheritsCovariant = 1 << 1;

@@ -841,6 +841,7 @@ class LibraryReader {
       offset: resolutionOffset,
     );
     element.setLinkedData(reference, linkedData);
+    MixinElementFlags.read(_reader, element);
 
     element.typeParameters = _readTypeParameters();
 
