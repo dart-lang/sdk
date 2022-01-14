@@ -31540,6 +31540,32 @@ library
 ''');
   }
 
+  test_type_inference_classField_fromNullSafe_toLegacy() async {
+    testFile = convertPath('/home/test/lib/test.dart');
+    addLibrarySource('/home/test/lib/a.dart', '''
+class E {
+  static final a = 0;
+}
+''');
+    var library = await checkLibrary('''
+// @dart = 2.9
+import 'a.dart';
+final v = E.a;
+''');
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    topLevelVariables
+      static final v @38
+        type: int*
+    accessors
+      synthetic static get v @-1
+        returnType: int*
+''');
+  }
+
   test_type_inference_closure_with_function_typed_parameter() async {
     var library = await checkLibrary('''
 var x = (int f(String x)) => 0;
