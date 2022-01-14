@@ -167,6 +167,20 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   @override
+  ConstructorElement? getNamedConstructor(String name) {
+    if (name == 'new') {
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
+      name = '';
+    }
+    for (ConstructorElement element in constructors) {
+      if (element.name == name) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  @override
   PropertyAccessorElement? getSetter(String setterName) {
     return getSetterFromAccessors(setterName, accessors);
   }
@@ -447,9 +461,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
   /// This callback is set during mixins inference to handle reentrant calls.
   List<InterfaceType>? Function(ClassElementImpl)? mixinInferenceCallback;
 
-  /// TODO(scheglov) implement as modifier
-  bool _isSimplyBounded = true;
-
   ElementLinkedData? linkedData;
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -661,15 +672,13 @@ class ClassElementImpl extends AbstractClassElementImpl {
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
 
-  /// TODO(scheglov) implement as modifier
   @override
   bool get isSimplyBounded {
-    return _isSimplyBounded;
+    return hasModifier(Modifier.SIMPLY_BOUNDED);
   }
 
-  /// TODO(scheglov) implement as modifier
   set isSimplyBounded(bool isSimplyBounded) {
-    _isSimplyBounded = isSimplyBounded;
+    setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
   }
 
   @override
@@ -782,10 +791,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeClassElement(this);
   }
-
-  @override
-  ConstructorElement? getNamedConstructor(String name) =>
-      getNamedConstructorFromList(name, constructors);
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
@@ -947,20 +952,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
 
       return implicitConstructor;
     }).toList(growable: false);
-  }
-
-  static ConstructorElement? getNamedConstructorFromList(
-      String name, List<ConstructorElement> constructors) {
-    if (name == 'new') {
-      // A constructor declared as `C.new` is unnamed, and is modeled as such.
-      name = '';
-    }
-    for (ConstructorElement element in constructors) {
-      if (element.name == name) {
-        return element;
-      }
-    }
-    return null;
   }
 }
 
@@ -2749,6 +2740,14 @@ class EnumElementImpl extends AbstractClassElementImpl {
     return _methods;
   }
 
+  /// Set the methods contained in this class to the given [methods].
+  set methods(List<MethodElement> methods) {
+    for (MethodElement method in methods) {
+      (method as MethodElementImpl).enclosingElement = this;
+    }
+    _methods = methods;
+  }
+
   @override
   List<InterfaceType> get mixins => const <InterfaceType>[];
 
@@ -2776,18 +2775,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeEnumElement(this);
   }
-
-  /// Create the only method enums have - `toString()`.
-  void createToStringMethodElement() {
-    var method = MethodElementImpl('toString', -1);
-    method.isSynthetic = true;
-    method.enclosingElement = this;
-    method.reference = reference?.getChild('@method').getChild('toString');
-    _methods = <MethodElement>[method];
-  }
-
-  @override
-  ConstructorElement? getNamedConstructor(String name) => null;
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
@@ -4332,14 +4319,17 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
   static const Modifier SETTER = Modifier('SETTER', 19);
 
+  /// See [TypeParameterizedElement.isSimplyBounded].
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 20);
+
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 20);
+  static const Modifier STATIC = Modifier('STATIC', 21);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 21);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 22);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -4362,6 +4352,7 @@ class Modifier implements Comparable<Modifier> {
     MIXIN_APPLICATION,
     SETTER,
     STATIC,
+    SIMPLY_BOUNDED,
     SYNTHETIC
   ];
 
@@ -5445,10 +5436,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 class TypeAliasElementImpl extends _ExistingElementImpl
     with TypeParameterizedElementMixin
     implements TypeAliasElement {
-  /// TODO(scheglov) implement as modifier
-  @override
-  bool isSimplyBounded = true;
-
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
   bool hasSelfReference = false;
@@ -5516,6 +5503,15 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       }
     }
     return true;
+  }
+
+  @override
+  bool get isSimplyBounded {
+    return hasModifier(Modifier.SIMPLY_BOUNDED);
+  }
+
+  set isSimplyBounded(bool isSimplyBounded) {
+    setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
   }
 
   @override

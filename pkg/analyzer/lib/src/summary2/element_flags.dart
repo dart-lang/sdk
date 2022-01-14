@@ -63,6 +63,7 @@ class FieldElementFlags {
   static const int _isFinal = 1 << 8;
   static const int _isLate = 1 << 9;
   static const int _isStatic = 1 << 10;
+  static const int _isSynthetic = 1 << 11;
 
   static void read(SummaryDataReader reader, FieldElementImpl element) {
     var byte = reader.readUInt30();
@@ -77,6 +78,7 @@ class FieldElementFlags {
     element.isFinal = (byte & _isFinal) != 0;
     element.isLate = (byte & _isLate) != 0;
     element.isStatic = (byte & _isStatic) != 0;
+    element.isSynthetic = (byte & _isSynthetic) != 0;
   }
 
   static void write(BufferedSink sink, FieldElementImpl element) {
@@ -92,6 +94,7 @@ class FieldElementFlags {
     result |= element.isFinal ? _isFinal : 0;
     result |= element.isLate ? _isLate : 0;
     result |= element.isStatic ? _isStatic : 0;
+    result |= element.isSynthetic ? _isSynthetic : 0;
     sink.writeUInt30(result);
   }
 }
@@ -163,6 +166,7 @@ class MethodElementFlags {
   static const int _isExternal = 1 << 3;
   static const int _isGenerator = 1 << 4;
   static const int _isStatic = 1 << 5;
+  static const int _isSynthetic = 1 << 6;
 
   static void read(SummaryDataReader reader, MethodElementImpl element) {
     var byte = reader.readByte();
@@ -172,6 +176,7 @@ class MethodElementFlags {
     element.isExternal = (byte & _isExternal) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
     element.isStatic = (byte & _isStatic) != 0;
+    element.isSynthetic = (byte & _isSynthetic) != 0;
   }
 
   static void write(BufferedSink sink, MethodElementImpl element) {
@@ -182,6 +187,22 @@ class MethodElementFlags {
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;
+    result |= element.isSynthetic ? _isSynthetic : 0;
+    sink.writeByte(result);
+  }
+}
+
+class MixinElementFlags {
+  static const int _isSimplyBounded = 1 << 0;
+
+  static void read(SummaryDataReader reader, MixinElementImpl element) {
+    var byte = reader.readByte();
+    element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
+  }
+
+  static void write(BufferedSink sink, MixinElementImpl element) {
+    var result = 0;
+    result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);
   }
 }

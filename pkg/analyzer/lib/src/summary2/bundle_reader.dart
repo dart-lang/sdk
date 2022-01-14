@@ -272,23 +272,10 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
 
   @override
   void _read(element, reader) {
-    var typeProvider = element.library.typeProvider;
-
     element.metadata = reader._readAnnotationList(
       unitElement: element.enclosingElement,
     );
     _readTypeParameters(reader, element.typeParameters);
-
-    var indexField = element.getField('index') as FieldElementImpl;
-    indexField.type = typeProvider.intType;
-
-    var valuesField = element.getField('values') as ConstFieldElementImpl;
-    valuesField.constantInitializer = reader._readRequiredNode() as Expression;
-    valuesField.type = typeProvider.listType(element.thisType);
-
-    var toStringMethod = element.getMethod('toString') as MethodElementImpl;
-    toStringMethod.returnType = typeProvider.stringType;
-
     applyConstantOffsets?.perform();
   }
 }
@@ -612,44 +599,14 @@ class LibraryReader {
     var accessors = <PropertyAccessorElement>[];
     var fields = <FieldElement>[];
 
-    // Build the 'index' field.
-    {
-      var indexField = ConstFieldElementImpl('index', -1)
-        ..isFinal = true
-        ..isSynthetic = true;
-      indexField.bindReference(
-        reference.getChild('@field').getChild('index'),
-      );
-      indexField.createImplicitAccessors(reference, 'index');
-      fields.add(indexField);
-      accessors.add(indexField.getter!);
-    }
-
     _readFields(unitElement, element, reference, accessors, fields);
     _readPropertyAccessors(
         unitElement, element, reference, accessors, fields, '@field');
-
-    // Build the 'values' field.
-    {
-      var field = ConstFieldElementImpl('values', -1)
-        ..isConst = true
-        ..isStatic = true
-        ..isSynthetic = true;
-      fields.add(field);
-      accessors.add(
-        PropertyAccessorElementImpl_ImplicitGetter(field,
-            reference: reference.getChild('@getter').getChild('values'))
-          ..enclosingElement = element,
-      );
-    }
-
     element.fields = fields;
     element.accessors = accessors;
 
     element.constructors = _readConstructors(unitElement, element, reference);
-    // element.methods = _readMethods(unitElement, element, reference);
-
-    element.createToStringMethodElement();
+    element.methods = _readMethods(unitElement, element, reference);
 
     return element;
   }
@@ -884,6 +841,7 @@ class LibraryReader {
       offset: resolutionOffset,
     );
     element.setLinkedData(reference, linkedData);
+    MixinElementFlags.read(_reader, element);
 
     element.typeParameters = _readTypeParameters();
 
