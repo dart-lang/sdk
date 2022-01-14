@@ -1,0 +1,98 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:21:20: Error: Can't implement 'I' because it's marked with '?'.
+// enum E3 implements I? { // Error.
+//                    ^^
+//
+// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:16:6: Error: The non-abstract class 'E2' is missing implementations for these members:
+//  - I.foo
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// enum E2 implements I { // Error.
+//      ^^
+// pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:6:8: Context: 'I.foo' is defined here.
+//   void foo();
+//        ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class I extends core::Object {
+  synthetic constructor •() → self::I
+    ;
+  abstract method foo() → void;
+}
+class E1 extends core::_Enum implements self::I /*isEnum*/  {
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::one, self::E1::two];
+  static const field self::E1 one = const self::E1::•(0, "one");
+  static const field self::E1 two = const self::E1::•(1, "two");
+  const constructor •(core::int index, core::String name) → self::E1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+  method foo() → void
+    ;
+}
+class E2 extends core::_Enum implements self::I /*isEnum*/  {
+  static const field core::List<self::E2> values = const <self::E2>[self::E2::one, self::E2::two];
+  static const field self::E2 one = const self::E2::•(0, "one");
+  static const field self::E2 two = const self::E2::•(1, "two");
+  const constructor •(core::int index, core::String name) → self::E2
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends core::_Enum implements self::I /*isEnum*/  {
+  static const field core::List<self::E3> values = const <self::E3>[self::E3::one, self::E3::two];
+  static const field self::E3 one = const self::E3::•(0, "one");
+  static const field self::E3 two = const self::E3::•(1, "two");
+  const constructor •(core::int index, core::String name) → self::E3
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+  method foo() → void
+    ;
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E4> values = const <self::E4>[self::E4::one, self::E4::two];
+  static const field self::E4 one = const self::E4::•(0, "one");
+  static const field self::E4 two = const self::E4::•(1, "two");
+  const constructor •(core::int index, core::String name) → self::E4
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+  method foo() → void
+    ;
+}
+static method bar(self::I i) → dynamic
+  ;
+static method test(self::E1 e1, self::E2 e2, self::E3 e3, self::E4 e4) → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:9:6 -> ListConstant(const <E1*>[const E1{_Enum.index: 0, _Enum._name: "one"}, const E1{_Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:10:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:11:3 -> InstanceConstant(const E1{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:16:6 -> ListConstant(const <E2*>[const E2{_Enum.index: 0, _Enum._name: "one"}, const E2{_Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:17:3 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:18:3 -> InstanceConstant(const E2{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:21:6 -> ListConstant(const <E3*>[const E3{_Enum.index: 0, _Enum._name: "one"}, const E3{_Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:22:3 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:23:3 -> InstanceConstant(const E3{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///simple_interfaces.dart:28:6 -> ListConstant(const <E4*>[const E4{_Enum.index: 0, _Enum._name: "one"}, const E4{_Enum.index: 1, _Enum._name: "two"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:29:3 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_interfaces.dart:30:3 -> InstanceConstant(const E4{_Enum.index: 1, _Enum._name: "two"})
+Extra constant evaluation: evaluated: 32, effectively constant: 12
