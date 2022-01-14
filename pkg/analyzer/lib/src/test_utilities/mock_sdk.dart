@@ -833,6 +833,9 @@ class AbiSpecificIntegerMapping {
   const AbiSpecificIntegerMapping(this.mapping);
 }
 
+abstract class Finalizable {
+  factory Finalizable._() => throw UnsupportedError("");
+}
 ''',
   )
 ]);

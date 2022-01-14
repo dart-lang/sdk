@@ -24,6 +24,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _allocatorExtensionName = 'AllocatorAlloc';
   static const _arrayClassName = 'Array';
   static const _dartFfiLibraryName = 'dart.ffi';
+  static const _finalizableClassName = 'Finalizable';
   static const _isLeafParamName = 'isLeaf';
   static const _opaqueClassName = 'Opaque';
   static const _ffiNativeName = 'FfiNative';
@@ -116,7 +117,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     void checkSupertype(NamedType typename, FfiCode subtypeOfFfiCode,
         FfiCode subtypeOfStructCode) {
       final superName = typename.name.staticElement?.name;
-      if (superName == _allocatorClassName) {
+      if (superName == _allocatorClassName ||
+          superName == _finalizableClassName) {
         return;
       }
       if (typename.ffiClass != null) {

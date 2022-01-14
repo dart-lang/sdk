@@ -440,7 +440,7 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS = FfiCode(
     'SUBTYPE_OF_FFI_CLASS',
     "The class '{0}' can't implement '{1}'.",
-    correctionMessage: "Try extending 'Struct' or 'Union'.",
+    correctionMessage: "Try implementing 'Allocator' or 'Finalizable'.",
     uniqueName: 'SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS',
   );
 
