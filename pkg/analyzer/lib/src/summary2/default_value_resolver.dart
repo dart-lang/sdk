@@ -74,7 +74,6 @@ class DefaultValueResolver {
       _linker,
       context.unitElement,
       context.scope,
-      node.defaultValue!,
       enclosingClassElement: context.classElement,
       enclosingExecutableElement: context.executableElement,
     );

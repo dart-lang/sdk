@@ -40,4 +40,20 @@ enum E {
     expect(findElement.field('index').isEnumConstant, isFalse);
     expect(findElement.field('values').isEnumConstant, isFalse);
   }
+
+  test_value_underscore() async {
+    await assertNoErrorsInCode(r'''
+enum E { _ }
+
+void f() {
+  E._.index;
+}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('index'),
+      element: findElement.getter('index', of: 'E'),
+      type: 'int',
+    );
+  }
 }

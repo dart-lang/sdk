@@ -50,9 +50,13 @@ class AstResolver {
     flowAnalysisHelper: _flowAnalysis,
   );
 
-  AstResolver(this._linker, this._unitElement, this._nameScope, AstNode node,
-      {this.enclosingClassElement, this.enclosingExecutableElement})
-      : _featureSet = node.thisOrAncestorOfType<CompilationUnit>()!.featureSet;
+  AstResolver(
+    this._linker,
+    this._unitElement,
+    this._nameScope, {
+    this.enclosingClassElement,
+    this.enclosingExecutableElement,
+  }) : _featureSet = _unitElement.library.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
     node.accept(_resolutionVisitor);

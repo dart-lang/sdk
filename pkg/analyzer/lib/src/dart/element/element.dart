@@ -167,6 +167,10 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   @override
+  ConstructorElement? getNamedConstructor(String name) =>
+      getNamedConstructorFromList(name, constructors);
+
+  @override
   PropertyAccessorElement? getSetter(String setterName) {
     return getSetterFromAccessors(setterName, accessors);
   }
@@ -390,6 +394,20 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       }
       classElement = classElement.supertype?.element;
     }
+  }
+
+  static ConstructorElement? getNamedConstructorFromList(
+      String name, List<ConstructorElement> constructors) {
+    if (name == 'new') {
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
+      name = '';
+    }
+    for (ConstructorElement element in constructors) {
+      if (element.name == name) {
+        return element;
+      }
+    }
+    return null;
   }
 
   static PropertyAccessorElement? getSetterFromAccessors(
@@ -783,10 +801,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
     builder.writeClassElement(this);
   }
 
-  @override
-  ConstructorElement? getNamedConstructor(String name) =>
-      getNamedConstructorFromList(name, constructors);
-
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
     reference.element = this;
@@ -947,20 +961,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
 
       return implicitConstructor;
     }).toList(growable: false);
-  }
-
-  static ConstructorElement? getNamedConstructorFromList(
-      String name, List<ConstructorElement> constructors) {
-    if (name == 'new') {
-      // A constructor declared as `C.new` is unnamed, and is modeled as such.
-      name = '';
-    }
-    for (ConstructorElement element in constructors) {
-      if (element.name == name) {
-        return element;
-      }
-    }
-    return null;
   }
 }
 
@@ -2749,6 +2749,14 @@ class EnumElementImpl extends AbstractClassElementImpl {
     return _methods;
   }
 
+  /// Set the methods contained in this class to the given [methods].
+  set methods(List<MethodElement> methods) {
+    for (MethodElement method in methods) {
+      (method as MethodElementImpl).enclosingElement = this;
+    }
+    _methods = methods;
+  }
+
   @override
   List<InterfaceType> get mixins => const <InterfaceType>[];
 
@@ -2776,18 +2784,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeEnumElement(this);
   }
-
-  /// Create the only method enums have - `toString()`.
-  void createToStringMethodElement() {
-    var method = MethodElementImpl('toString', -1);
-    method.isSynthetic = true;
-    method.enclosingElement = this;
-    method.reference = reference?.getChild('@method').getChild('toString');
-    _methods = <MethodElement>[method];
-  }
-
-  @override
-  ConstructorElement? getNamedConstructor(String name) => null;
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;

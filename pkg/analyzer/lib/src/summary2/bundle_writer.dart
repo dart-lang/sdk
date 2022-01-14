@@ -175,11 +175,10 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      var valuesField = element.getField('values') as ConstFieldElementImpl;
-      _resolutionSink._writeNode(valuesField.constantInitializer!);
-
       _writeList(
-        element.fields.where((e) => !e.isSynthetic).toList(),
+        element.fields.where((e) {
+          return !e.isSynthetic || const {'index', 'values'}.contains(e.name);
+        }).toList(),
         _writeFieldElement,
       );
       _writeList(
@@ -187,7 +186,7 @@ class BundleWriter {
         _writePropertyAccessorElement,
       );
       _writeList(element.constructors, _writeConstructorElement);
-      // _writeList(element.methods, _writeMethodElement);
+      _writeList(element.methods, _writeMethodElement);
     });
   }
 

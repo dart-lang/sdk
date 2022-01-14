@@ -88,8 +88,8 @@ class Linker {
   void _buildOutlines() {
     _computeLibraryScopes();
     _createTypeSystem();
-    _buildEnumChildren();
     _resolveTypes();
+    _buildEnumChildren();
     SuperConstructorResolver(this).perform();
     _performTopLevelInference();
     _resolveConstructors();
