@@ -5,7 +5,6 @@
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
@@ -13,8 +12,9 @@ import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.d
 import 'package:_fe_analyzer_shared/src/macros/isolated_executor/isolated_executor.dart'
     as isolatedExecutor;
 
-import 'package:test/fake.dart';
 import 'package:test/test.dart';
+
+import '../util.dart';
 
 void main() {
   late MacroExecutor executor;
@@ -40,7 +40,7 @@ void main() {
     executor.close();
   });
 
-  test('can load macros and create instances', () async {
+  test('can load and run macros', () async {
     var macroUri = simpleMacroFile.absolute.uri;
     var macroName = 'SimpleMacro';
 
@@ -78,6 +78,11 @@ void main() {
     expect(instanceId, isNotNull,
         reason: 'Can create an instance with named arguments.');
 
+    var returnType = NamedTypeAnnotationImpl(
+        id: RemoteInstance.uniqueId,
+        name: 'String',
+        isNullable: false,
+        typeArguments: const []);
     var definitionResult = await executor.executeDefinitionsPhase(
         instanceId,
         FunctionDeclarationImpl(
@@ -89,16 +94,13 @@ void main() {
           name: 'foo',
           namedParameters: [],
           positionalParameters: [],
-          returnType: NamedTypeAnnotationImpl(
-              id: RemoteInstance.uniqueId,
-              name: 'String',
-              isNullable: false,
-              typeArguments: const []),
+          returnType: returnType,
           typeParameters: [],
         ),
-        _FakeTypeResolver(),
-        _FakeClassIntrospector(),
-        _FakeTypeDeclarationResolver());
+        TestTypeResolver(
+            {returnType: TestStaticType('dart:core', 'String', [])}),
+        FakeClassIntrospector(),
+        FakeTypeDeclarationResolver());
     expect(definitionResult.augmentations, hasLength(1));
     expect(definitionResult.augmentations.first.debugString().toString(),
         equalsIgnoringWhitespace('''
@@ -107,28 +109,4 @@ void main() {
               return augment super();
             }'''));
   });
-}
-
-class _FakeClassIntrospector with Fake implements ClassIntrospector {}
-
-class _FakeTypeResolver with Fake implements TypeResolver {}
-
-class _FakeTypeDeclarationResolver
-    with Fake
-    implements TypeDeclarationResolver {}
-
-extension _ on Code {
-  StringBuffer debugString([StringBuffer? buffer]) {
-    buffer ??= StringBuffer();
-    for (var part in parts) {
-      if (part is Code) {
-        part.debugString(buffer);
-      } else if (part is TypeAnnotation) {
-        part.code.debugString(buffer);
-      } else {
-        buffer.write(part.toString());
-      }
-    }
-    return buffer;
-  }
 }

@@ -11,23 +11,29 @@ extension DeserializerExtensions on Deserializer {
       case SerializationMode.client:
         moveNext();
         RemoteInstanceKind kind = RemoteInstanceKind.values[expectNum()];
-        moveNext();
         switch (kind) {
           case RemoteInstanceKind.namedTypeAnnotation:
+            moveNext();
             return _expectNamedTypeAnnotation(id) as T;
           case RemoteInstanceKind.functionTypeAnnotation:
+            moveNext();
             return _expectFunctionTypeAnnotation(id) as T;
           case RemoteInstanceKind.functionDeclaration:
+            moveNext();
             return _expectFunctionDeclaration(id) as T;
           case RemoteInstanceKind.parameterDeclaration:
+            moveNext();
             return _expectParameterDeclaration(id) as T;
           case RemoteInstanceKind.typeParameterDeclaration:
+            moveNext();
             return _expectTypeParameterDeclaration(id) as T;
+          case RemoteInstanceKind.instance:
+            return new RemoteInstanceImpl(id: id) as T;
           default:
             throw new UnsupportedError('Unsupported remote object kind: $kind');
         }
       case SerializationMode.server:
-        return RemoteInstance.cached(id);
+        return RemoteInstance.cached(id) as T;
     }
   }
 

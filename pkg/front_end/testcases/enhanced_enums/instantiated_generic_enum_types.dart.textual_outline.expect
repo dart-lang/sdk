@@ -1,0 +1,9 @@
+enum E<X> { one(1), two("2"); final X field; const E(this.field); }
+test() {}
+foo(E<int> ei, E<String> es) {}
+bar(E<int> ei, E<String> es) {}
+baz(E<Object> ei, E<Object> es) {}
+boz(E<Never> ei, E<Never> es) {}
+checkIsType<T>(x) {}
+checkIsNotType<T>(x) {}
+main() {}

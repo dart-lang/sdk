@@ -9,6 +9,7 @@ import 'dart:mirrors';
 import 'isolate_mirrors_impl.dart';
 import '../executor_shared/introspection_impls.dart';
 import '../executor_shared/protocol.dart';
+import '../executor_shared/remote_instance.dart';
 import '../executor.dart';
 import '../api.dart';
 
@@ -106,8 +107,15 @@ class _IsolateMirrorMacroExecutor implements MacroExecutor {
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector,
           TypeDeclarationResolver typeDeclarationResolver) =>
-      _sendRequest(new ExecuteDefinitionsPhaseRequest(macro, declaration,
-          typeResolver, classIntrospector, typeDeclarationResolver,
+      _sendRequest(new ExecuteDefinitionsPhaseRequest(
+          macro,
+          declaration,
+          new RemoteInstanceImpl(
+              instance: typeResolver, id: RemoteInstance.uniqueId),
+          new RemoteInstanceImpl(
+              instance: classIntrospector, id: RemoteInstance.uniqueId),
+          new RemoteInstanceImpl(
+              instance: typeDeclarationResolver, id: RemoteInstance.uniqueId),
           // Serialization zones are not necessary in this executor.
           serializationZoneId: -1));
 

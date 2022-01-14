@@ -49,10 +49,10 @@ abstract class NamedTypeAnnotation implements TypeAnnotation {
 /// compared to other static types.
 abstract class StaticType {
   /// Returns true if this is a subtype of [other].
-  Future<bool> isSubtypeOf(StaticType other);
+  Future<bool> isSubtypeOf(covariant StaticType other);
 
   /// Returns true if this is an identical type to [other].
-  Future<bool> isExactly(StaticType other);
+  Future<bool> isExactly(covariant StaticType other);
 }
 
 /// A subtype of [StaticType] representing types that can be resolved by name

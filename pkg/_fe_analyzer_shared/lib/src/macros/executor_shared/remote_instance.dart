@@ -70,6 +70,20 @@ abstract class RemoteInstance implements Serializable {
   }
 }
 
+/// A remote instance which is just a pointer to some server side instance of
+/// a generic object.
+///
+/// The wrapped object is not serialized.
+class RemoteInstanceImpl extends RemoteInstance {
+  /// Always null on the client side, has an actual instance on the server side.
+  final Object? instance;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.instance;
+
+  RemoteInstanceImpl({required int id, this.instance}) : super(id);
+}
+
 // The kinds of instances.
 enum RemoteInstanceKind {
   classDeclaration,
@@ -83,4 +97,6 @@ enum RemoteInstanceKind {
   typeAliasDeclaration,
   typeParameterDeclaration,
   variableDeclaration,
+  // A generic instance that is just a pointer to some server side instance.
+  instance,
 }

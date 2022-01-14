@@ -7,7 +7,6 @@ library fasta.class_builder;
 import 'package:kernel/ast.dart'
     show
         Class,
-        Constructor,
         DartType,
         DynamicType,
         FutureOrType,
@@ -32,11 +31,8 @@ import 'declaration_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'metadata_builder.dart';
-import 'named_type_builder.dart';
 import 'nullability_builder.dart';
-import 'type_alias_builder.dart';
 import 'type_builder.dart';
-import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
 
 abstract class ClassBuilder implements DeclarationBuilder {
@@ -59,8 +55,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   ConstructorScopeBuilder get constructorScopeBuilder;
 
-  abstract ClassBuilder? actualOrigin;
-
   @override
   Uri get fileUri;
 
@@ -78,10 +72,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   abstract TypeBuilder? mixedInTypeBuilder;
 
-  /// Registers a constructor redirection for this class and returns true if
-  /// this redirection gives rise to a cycle that has not been reported before.
-  bool checkConstructorCyclic(String source, String target);
-
   MemberBuilder? findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 
@@ -94,8 +84,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
 
   @override
   ClassBuilder get origin;
-
-  Class get actualCls;
 
   abstract bool isNullClass;
 
@@ -135,12 +123,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter: false, bool isSuper: false});
 
-  /// Looks up the constructor by [name] on the class built by this class
-  /// builder.
-  ///
-  /// If [isSuper] is `true`, constructors in the superclass are searched.
-  Constructor? lookupConstructor(Name name, {bool isSuper: false});
-
   /// Calls [f] for each constructor declared in this class.
   ///
   /// If [includeInjectedConstructors] is `true`, constructors only declared in
@@ -168,11 +150,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   @override
   final ConstructorScopeBuilder constructorScopeBuilder;
-
-  Map<String, ConstructorRedirection>? _redirectingConstructors;
-
-  @override
-  ClassBuilder? actualOrigin;
 
   @override
   bool isNullClass = false;
@@ -222,35 +199,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   @override
   bool get declaresConstConstructor =>
       (modifiers & declaresConstConstructorMask) != 0;
-
-  @override
-  void forEachConstructor(void Function(String, MemberBuilder) f,
-      {bool includeInjectedConstructors: false}) {
-    if (isPatch) {
-      actualOrigin!.forEachConstructor(f,
-          includeInjectedConstructors: includeInjectedConstructors);
-    } else {
-      constructors.forEach(f);
-    }
-  }
-
-  /// Registers a constructor redirection for this class and returns true if
-  /// this redirection gives rise to a cycle that has not been reported before.
-  @override
-  bool checkConstructorCyclic(String source, String target) {
-    ConstructorRedirection? redirect = new ConstructorRedirection(target);
-    _redirectingConstructors ??= <String, ConstructorRedirection>{};
-    _redirectingConstructors![source] = redirect;
-    while (redirect != null) {
-      if (redirect.cycleReported) return false;
-      if (redirect.target == source) {
-        redirect.cycleReported = true;
-        return true;
-      }
-      redirect = _redirectingConstructors![redirect.target];
-    }
-    return false;
-  }
 
   @override
   Builder? findStaticBuilder(
@@ -327,9 +275,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
     return declaration;
   }
-
-  @override
-  ClassBuilder get origin => actualOrigin ?? this;
 
   @override
   InterfaceType get thisType {
@@ -476,63 +421,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       }
     }
     return target;
-  }
-
-  @override
-  Constructor? lookupConstructor(Name name, {bool isSuper: false}) {
-    if (name.text == "new") {
-      name = new Name("", name.library);
-    }
-
-    Class? instanceClass = cls;
-    if (isSuper) {
-      instanceClass = instanceClass.superclass;
-    }
-    if (instanceClass != null) {
-      for (Constructor constructor in instanceClass.constructors) {
-        if (constructor.name == name) {
-          return constructor;
-        }
-      }
-    }
-
-    /// Performs a similar lookup to [lookupConstructor], but using a slower
-    /// implementation.
-    Constructor? lookupConstructorWithPatches(Name name, bool isSuper) {
-      ClassBuilder? builder = this.origin;
-
-      ClassBuilder? getSuperclass(ClassBuilder builder) {
-        // This way of computing the superclass is slower than using the kernel
-        // objects directly.
-        TypeBuilder? supertype = builder.supertypeBuilder;
-        if (supertype is NamedTypeBuilder) {
-          TypeDeclarationBuilder? builder = supertype.declaration;
-          if (builder is ClassBuilder) return builder;
-          if (builder is TypeAliasBuilder) {
-            TypeDeclarationBuilder? declarationBuilder =
-                builder.unaliasDeclaration(supertype.arguments,
-                    isUsedAsClass: true,
-                    usedAsClassCharOffset: supertype.charOffset,
-                    usedAsClassFileUri: supertype.fileUri);
-            if (declarationBuilder is ClassBuilder) return declarationBuilder;
-          }
-        }
-        return null;
-      }
-
-      if (isSuper) {
-        builder = getSuperclass(builder)?.origin;
-      }
-      if (builder != null) {
-        Class cls = builder.cls;
-        for (Constructor constructor in cls.constructors) {
-          if (constructor.name == name) return constructor;
-        }
-      }
-      return null;
-    }
-
-    return lookupConstructorWithPatches(name, isSuper);
   }
 }
 

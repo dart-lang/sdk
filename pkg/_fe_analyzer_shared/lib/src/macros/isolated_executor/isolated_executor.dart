@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
+
 import '../api.dart';
 import '../executor_shared/introspection_impls.dart';
 import '../executor_shared/protocol.dart';
@@ -103,7 +105,7 @@ class _IsolatedMacroExecutor implements MacroExecutor {
 
 class _SingleIsolatedMacroExecutor extends MacroExecutor {
   /// The stream on which we receive responses.
-  final Stream<Response> responseStream;
+  final Stream<Object> messageStream;
 
   /// The send port where we should send requests.
   final SendPort sendPort;
@@ -126,16 +128,85 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
 
   _SingleIsolatedMacroExecutor(
       {required this.onClose,
-      required this.responseStream,
+      required this.messageStream,
       required this.sendPort}) {
-    responseStream.listen((event) {
-      Completer<Response>? completer =
-          responseCompleters.remove(event.requestId);
-      if (completer == null) {
-        throw new StateError(
-            'Got a response for an unrecognized request id ${event.requestId}');
-      }
-      completer.complete(event);
+    messageStream.listen((message) {
+      withSerializationMode(SerializationMode.server, () {
+        JsonDeserializer deserializer =
+            new JsonDeserializer(message as List<Object?>);
+        // Every object starts with a zone ID which dictates the zone in which
+        // we should deserialize the message.
+        deserializer.moveNext();
+        int zoneId = deserializer.expectNum();
+        Zone zone = serializationZones[zoneId]!;
+        zone.run(() async {
+          deserializer.moveNext();
+          MessageType messageType =
+              MessageType.values[deserializer.expectNum()];
+          switch (messageType) {
+            case MessageType.response:
+              SerializableResponse response =
+                  new SerializableResponse.deserialize(deserializer, zoneId);
+              Completer<Response>? completer =
+                  responseCompleters.remove(response.requestId);
+              if (completer == null) {
+                throw new StateError(
+                    'Got a response for an unrecognized request id '
+                    '${response.requestId}');
+              }
+              completer.complete(response);
+              break;
+            case MessageType.resolveTypeRequest:
+              ResolveTypeRequest request =
+                  new ResolveTypeRequest.deserialize(deserializer, zoneId);
+              SerializableResponse response = new SerializableResponse(
+                  response: new RemoteInstanceImpl(
+                      id: RemoteInstance.uniqueId,
+                      instance:
+                          await (request.typeResolver.instance as TypeResolver)
+                              .resolve(request.typeAnnotation)),
+                  requestId: request.id,
+                  responseType: MessageType.staticType,
+                  serializationZoneId: zoneId);
+              JsonSerializer serializer = new JsonSerializer();
+              response.serialize(serializer);
+              sendPort.send(serializer.result);
+              break;
+            case MessageType.isExactlyTypeRequest:
+              IsExactlyTypeRequest request =
+                  new IsExactlyTypeRequest.deserialize(deserializer, zoneId);
+              StaticType leftType = request.leftType.instance as StaticType;
+              StaticType rightType = request.leftType.instance as StaticType;
+              SerializableResponse response = new SerializableResponse(
+                  response:
+                      new BooleanValue(await leftType.isExactly(rightType)),
+                  requestId: request.id,
+                  responseType: MessageType.boolean,
+                  serializationZoneId: zoneId);
+              JsonSerializer serializer = new JsonSerializer();
+              response.serialize(serializer);
+              sendPort.send(serializer.result);
+              break;
+            case MessageType.isSubtypeOfRequest:
+              IsExactlyTypeRequest request =
+                  new IsExactlyTypeRequest.deserialize(deserializer, zoneId);
+              StaticType leftType = request.leftType.instance as StaticType;
+              StaticType rightType = request.leftType.instance as StaticType;
+              SerializableResponse response = new SerializableResponse(
+                  response:
+                      new BooleanValue(await leftType.isSubtypeOf(rightType)),
+                  requestId: request.id,
+                  responseType: MessageType.boolean,
+                  serializationZoneId: zoneId);
+              JsonSerializer serializer = new JsonSerializer();
+              response.serialize(serializer);
+              sendPort.send(serializer.result);
+              break;
+            default:
+              throw new StateError('Unexpected message type $messageType');
+          }
+        });
+      });
     });
   }
 
@@ -145,31 +216,22 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
     Isolate isolate =
         await Isolate.spawnUri(precompiledKernelUri, [], receivePort.sendPort);
     Completer<SendPort> sendPortCompleter = new Completer();
-    StreamController<Response> responseStreamController =
+    StreamController<Object> messageStreamController =
         new StreamController(sync: true);
     receivePort.listen((message) {
       if (!sendPortCompleter.isCompleted) {
         sendPortCompleter.complete(message as SendPort);
       } else {
-        JsonDeserializer deserializer =
-            new JsonDeserializer(message as List<Object?>);
-        // Ever object starts with a zone ID which dictates the zone in which we
-        // should deserialize the message.
-        deserializer.moveNext();
-        int zoneId = deserializer.expectNum();
-        Zone zone = serializationZones[zoneId]!;
-        SerializableResponse response = zone.run(
-            () => new SerializableResponse.deserialize(deserializer, zoneId));
-        responseStreamController.add(response);
+        messageStreamController.add(message);
       }
-    }).onDone(responseStreamController.close);
+    }).onDone(messageStreamController.close);
 
     return new _SingleIsolatedMacroExecutor(
         onClose: () {
           receivePort.close();
           isolate.kill();
         },
-        responseStream: responseStreamController.stream,
+        messageStream: messageStreamController.stream,
         sendPort: await sendPortCompleter.future);
   }
 
@@ -199,8 +261,15 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector,
           TypeDeclarationResolver typeDeclarationResolver) =>
-      _sendRequest((zoneId) => new ExecuteDefinitionsPhaseRequest(macro,
-          declaration, typeResolver, classIntrospector, typeDeclarationResolver,
+      _sendRequest((zoneId) => new ExecuteDefinitionsPhaseRequest(
+          macro,
+          declaration,
+          new RemoteInstanceImpl(
+              instance: typeResolver, id: RemoteInstance.uniqueId),
+          new RemoteInstanceImpl(
+              instance: classIntrospector, id: RemoteInstance.uniqueId),
+          new RemoteInstanceImpl(
+              instance: typeDeclarationResolver, id: RemoteInstance.uniqueId),
           serializationZoneId: zoneId));
 
   @override
@@ -225,14 +294,16 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
           {Uri? precompiledKernelUri}) =>
       throw new StateError('Unreachable');
 
-  /// Sends a [request] and handles the response, casting it to the expected
-  /// type or throwing the error provided.
+  /// Creates a [Request] with a given serialization zone ID, and handles the
+  /// response, casting it to the expected type or throwing the error provided.
   Future<T> _sendRequest<T>(Request Function(int) requestFactory) =>
       withSerializationMode(SerializationMode.server, () async {
         int zoneId = _nextSerializationZoneId++;
         serializationZones[zoneId] = Zone.current;
         Request request = requestFactory(zoneId);
         JsonSerializer serializer = new JsonSerializer();
+        // It is our responsibility to add the zone ID header.
+        serializer.addNum(zoneId);
         request.serialize(serializer);
         sendPort.send(serializer.result);
         Completer<Response> completer = new Completer<Response>();
@@ -241,7 +312,8 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
           Response response = await completer.future;
           T? result = response.response as T?;
           if (result != null) return result;
-          throw response.error!;
+          throw new RemoteException(
+              response.error!.toString(), response.stackTrace);
         } finally {
           // Clean up the zone after the request is done.
           serializationZones.remove(zoneId);

@@ -6,6 +6,8 @@
 /// the isolate or process doing the work of macro loading and execution.
 library _fe_analyzer_shared.src.macros.executor_shared.protocol;
 
+import 'package:meta/meta.dart';
+
 import '../executor.dart';
 import '../api.dart';
 import '../executor_shared/response_impls.dart';
@@ -22,13 +24,16 @@ abstract class Request implements Serializable {
   Request({int? id, required this.serializationZoneId})
       : this.id = id ?? _next++;
 
-  Request.deserialize(Deserializer deserializer)
-      : serializationZoneId = (deserializer..moveNext()).expectNum(),
-        id = (deserializer..moveNext()).expectNum();
+  /// The [serializationZoneId] is a part of the header and needs to be parsed
+  /// before deserializing objects, and then passed in here.
+  Request.deserialize(Deserializer deserializer, this.serializationZoneId)
+      : id = (deserializer..moveNext()).expectNum();
 
-  void serialize(Serializer serializer) => serializer
-    ..addNum(serializationZoneId)
-    ..addNum(id);
+  /// The [serializationZoneId] needs to be separately serialized before the
+  /// rest of the object. This is not done by the instances themselves but by
+  /// the macro implementations.
+  @mustCallSuper
+  void serialize(Serializer serializer) => serializer.addNum(id);
 
   static int _next = 0;
 }
@@ -38,10 +43,15 @@ abstract class Request implements Serializable {
 class Response {
   final Object? response;
   final Object? error;
+  final String? stackTrace;
   final int requestId;
 
-  Response({this.response, this.error, required this.requestId})
-      : assert(response != null || error != null),
+  Response({
+    this.response,
+    this.error,
+    this.stackTrace,
+    required this.requestId,
+  })  : assert(response != null || error != null),
         assert(response == null || error == null);
 }
 
@@ -50,11 +60,13 @@ class SerializableResponse implements Response, Serializable {
   final Serializable? response;
   final MessageType responseType;
   final String? error;
+  final String? stackTrace;
   final int requestId;
   final int serializationZoneId;
 
   SerializableResponse({
     this.error,
+    this.stackTrace,
     required this.requestId,
     this.response,
     required this.responseType,
@@ -70,10 +82,13 @@ class SerializableResponse implements Response, Serializable {
     MessageType responseType = MessageType.values[deserializer.expectNum()];
     Serializable? response;
     String? error;
+    String? stackTrace;
     switch (responseType) {
       case MessageType.error:
         deserializer.moveNext();
         error = deserializer.expectString();
+        deserializer.moveNext();
+        stackTrace = deserializer.expectNullableString();
         break;
       case MessageType.macroClassIdentifier:
         response = new MacroClassIdentifierImpl.deserialize(deserializer);
@@ -84,6 +99,12 @@ class SerializableResponse implements Response, Serializable {
       case MessageType.macroExecutionResult:
         response = new MacroExecutionResultImpl.deserialize(deserializer);
         break;
+      case MessageType.staticType:
+        response = RemoteInstance.deserialize(deserializer);
+        break;
+      case MessageType.boolean:
+        response = new BooleanValue.deserialize(deserializer);
+        break;
       default:
         throw new StateError('Unexpected response type $responseType');
     }
@@ -92,6 +113,7 @@ class SerializableResponse implements Response, Serializable {
         responseType: responseType,
         response: response,
         error: error,
+        stackTrace: stackTrace,
         requestId: (deserializer..moveNext()).expectNum(),
         serializationZoneId: serializationZoneId);
   }
@@ -99,14 +121,28 @@ class SerializableResponse implements Response, Serializable {
   void serialize(Serializer serializer) {
     serializer
       ..addNum(serializationZoneId)
+      ..addNum(MessageType.response.index)
       ..addNum(responseType.index);
     if (response != null) {
       response!.serialize(serializer);
     } else if (error != null) {
       serializer.addString(error!.toString());
+      serializer.addNullableString(stackTrace);
     }
     serializer.addNum(requestId);
   }
+}
+
+class BooleanValue implements Serializable {
+  final bool value;
+
+  BooleanValue(this.value);
+
+  BooleanValue.deserialize(Deserializer deserializer)
+      : value = (deserializer..moveNext()).expectBool();
+
+  @override
+  void serialize(Serializer serializer) => serializer..addBool(value);
 }
 
 /// A request to load a macro in this isolate.
@@ -117,10 +153,11 @@ class LoadMacroRequest extends Request {
   LoadMacroRequest(this.library, this.name, {required int serializationZoneId})
       : super(serializationZoneId: serializationZoneId);
 
-  LoadMacroRequest.deserialize(Deserializer deserializer)
+  LoadMacroRequest.deserialize(
+      Deserializer deserializer, int serializationZoneId)
       : library = Uri.parse((deserializer..moveNext()).expectString()),
         name = (deserializer..moveNext()).expectString(),
-        super.deserialize(deserializer);
+        super.deserialize(deserializer, serializationZoneId);
 
   @override
   void serialize(Serializer serializer) {
@@ -142,11 +179,12 @@ class InstantiateMacroRequest extends Request {
       {required int serializationZoneId})
       : super(serializationZoneId: serializationZoneId);
 
-  InstantiateMacroRequest.deserialize(Deserializer deserializer)
+  InstantiateMacroRequest.deserialize(
+      Deserializer deserializer, int serializationZoneId)
       : macroClass = new MacroClassIdentifierImpl.deserialize(deserializer),
         constructorName = (deserializer..moveNext()).expectString(),
         arguments = new Arguments.deserialize(deserializer),
-        super.deserialize(deserializer);
+        super.deserialize(deserializer, serializationZoneId);
 
   @override
   void serialize(Serializer serializer) {
@@ -164,14 +202,9 @@ class ExecuteDefinitionsPhaseRequest extends Request {
   final MacroInstanceIdentifier macro;
   final DeclarationImpl declaration;
 
-  /// Client/Server specific implementation, not serialized.
-  final TypeResolver typeResolver;
-
-  /// Client/Server specific implementation, not serialized.
-  final ClassIntrospector classIntrospector;
-
-  /// Client/Server specific implementation, not serialized.
-  final TypeDeclarationResolver typeDeclarationResolver;
+  final RemoteInstanceImpl typeResolver;
+  final RemoteInstanceImpl classIntrospector;
+  final RemoteInstanceImpl typeDeclarationResolver;
 
   ExecuteDefinitionsPhaseRequest(this.macro, this.declaration,
       this.typeResolver, this.classIntrospector, this.typeDeclarationResolver,
@@ -180,51 +213,175 @@ class ExecuteDefinitionsPhaseRequest extends Request {
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
-  ExecuteDefinitionsPhaseRequest.deserialize(Deserializer deserializer,
-      this.typeResolver, this.classIntrospector, this.typeDeclarationResolver)
+  ExecuteDefinitionsPhaseRequest.deserialize(
+      Deserializer deserializer, int serializationZoneId)
       : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
         declaration = RemoteInstance.deserialize(deserializer),
-        super.deserialize(deserializer);
+        typeResolver = RemoteInstance.deserialize(deserializer),
+        classIntrospector = RemoteInstance.deserialize(deserializer),
+        typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
+        super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
     serializer.addNum(MessageType.executeDefinitionsPhaseRequest.index);
     macro.serialize(serializer);
     declaration.serialize(serializer);
+    typeResolver.serialize(serializer);
+    classIntrospector.serialize(serializer);
+    typeDeclarationResolver.serialize(serializer);
+
     super.serialize(serializer);
   }
 }
 
 /// A request to reflect on a type annotation
-class ReflectTypeRequest extends Request {
+class ResolveTypeRequest extends Request {
   final TypeAnnotationImpl typeAnnotation;
+  final RemoteInstanceImpl typeResolver;
 
-  ReflectTypeRequest(this.typeAnnotation, {required int serializationZoneId})
+  ResolveTypeRequest(this.typeAnnotation, this.typeResolver,
+      {required int serializationZoneId})
       : super(serializationZoneId: serializationZoneId);
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
-  ReflectTypeRequest.deserialize(Deserializer deserializer)
+  ResolveTypeRequest.deserialize(
+      Deserializer deserializer, int serializationZoneId)
       : typeAnnotation = RemoteInstance.deserialize(deserializer),
-        super.deserialize(deserializer);
+        typeResolver = RemoteInstance.deserialize(deserializer),
+        super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
-    serializer.addNum(MessageType.reflectTypeRequest.index);
+    serializer.addNum(MessageType.resolveTypeRequest.index);
     typeAnnotation.serialize(serializer);
+    typeResolver.serialize(serializer);
     super.serialize(serializer);
   }
 }
 
-/// TODO: Implement this
+/// A request to check if a type is exactly another type.
+class IsExactlyTypeRequest extends Request {
+  final RemoteInstanceImpl leftType;
+  final RemoteInstanceImpl rightType;
+
+  IsExactlyTypeRequest(this.leftType, this.rightType,
+      {required int serializationZoneId})
+      : super(serializationZoneId: serializationZoneId);
+
+  /// When deserializing we have already consumed the message type, so we don't
+  /// consume it again.
+  IsExactlyTypeRequest.deserialize(
+      Deserializer deserializer, int serializationZoneId)
+      : leftType = RemoteInstance.deserialize(deserializer),
+        rightType = RemoteInstance.deserialize(deserializer),
+        super.deserialize(deserializer, serializationZoneId);
+
+  void serialize(Serializer serializer) {
+    serializer.addNum(MessageType.isExactlyTypeRequest.index);
+    leftType.serialize(serializer);
+    rightType.serialize(serializer);
+    super.serialize(serializer);
+  }
+}
+
+/// A request to check if a type is exactly another type.
+class IsSubtypeOfRequest extends Request {
+  final ClientStaticTypeImpl leftType;
+  final ClientStaticTypeImpl rightType;
+
+  IsSubtypeOfRequest(this.leftType, this.rightType,
+      {required int serializationZoneId})
+      : super(serializationZoneId: serializationZoneId);
+
+  /// When deserializing we have already consumed the message type, so we don't
+  /// consume it again.
+  IsSubtypeOfRequest.deserialize(
+      Deserializer deserializer, int serializationZoneId)
+      : leftType = RemoteInstance.deserialize(deserializer),
+        rightType = RemoteInstance.deserialize(deserializer),
+        super.deserialize(deserializer, serializationZoneId);
+
+  void serialize(Serializer serializer) {
+    serializer.addNum(MessageType.isSubtypeOfRequest.index);
+    leftType.remoteInstance.serialize(serializer);
+    rightType.remoteInstance.serialize(serializer);
+    super.serialize(serializer);
+  }
+}
+
+/// Client side implementation of a [TypeResolver], which creates a
+/// [ResolveTypeRequest] and passes it to a given [sendRequest] function which
+/// can return the [Response].
 class ClientTypeResolver implements TypeResolver {
+  /// The actual remote instance of this type resolver.
+  final RemoteInstanceImpl remoteInstance;
+
+  /// The ID of the zone in which to find the original type resolver.
+  final int serializationZoneId;
+
+  /// A function that can send a request and return a response using an
+  /// arbitrary communication channel.
+  final Future<Response> Function(Request request) _sendRequest;
+
+  ClientTypeResolver(this._sendRequest,
+      {required this.remoteInstance, required this.serializationZoneId});
+
   @override
-  Future<StaticType> resolve(TypeAnnotation typeAnnotation) {
-    // TODO: implement resolve
-    throw new UnimplementedError();
+  Future<StaticType> resolve(TypeAnnotationImpl typeAnnotation) async {
+    ResolveTypeRequest request = new ResolveTypeRequest(
+        typeAnnotation, remoteInstance,
+        serializationZoneId: serializationZoneId);
+    RemoteInstanceImpl remoteType =
+        _handleResponse(await _sendRequest(request));
+    return new ClientStaticTypeImpl(_sendRequest,
+        remoteInstance: remoteType, serializationZoneId: serializationZoneId);
+  }
+}
+
+class ClientStaticTypeImpl implements StaticType {
+  /// The actual remote instance of this static type.
+  final RemoteInstanceImpl remoteInstance;
+
+  final int serializationZoneId;
+
+  /// A function that can send a request and return a response using an
+  /// arbitrary communication channel.
+  final Future<Response> Function(Request request) sendRequest;
+
+  ClientStaticTypeImpl(this.sendRequest,
+      {required this.remoteInstance, required this.serializationZoneId});
+
+  @override
+  Future<bool> isExactly(ClientStaticTypeImpl other) async {
+    IsExactlyTypeRequest request = new IsExactlyTypeRequest(
+        this.remoteInstance, other.remoteInstance,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<BooleanValue>(await sendRequest(request)).value;
+  }
+
+  @override
+  Future<bool> isSubtypeOf(ClientStaticTypeImpl other) async {
+    IsSubtypeOfRequest request = new IsSubtypeOfRequest(this, other,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<BooleanValue>(await sendRequest(request)).value;
   }
 }
 
 /// TODO: Implement this
 class ClientClassIntrospector implements ClassIntrospector {
+  /// The actual remote instance of this type resolver.
+  final RemoteInstanceImpl remoteInstance;
+
+  /// The ID of the zone in which to find the original type resolver.
+  final int serializationZoneId;
+
+  /// A function that can send a request and return a response using an
+  /// arbitrary communication channel.
+  final Future<Response> Function(Request request) sendRequest;
+
+  ClientClassIntrospector(this.sendRequest,
+      {required this.remoteInstance, required this.serializationZoneId});
+
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(ClassDeclaration clazz) {
     // TODO: implement constructorsOf
@@ -263,7 +420,20 @@ class ClientClassIntrospector implements ClassIntrospector {
 }
 
 /// TODO: Implement this
-class ClientTypeDeclarationsResolver implements TypeDeclarationResolver {
+class ClientTypeDeclarationResolver implements TypeDeclarationResolver {
+  /// The actual remote instance of this type resolver.
+  final RemoteInstanceImpl remoteInstance;
+
+  /// The ID of the zone in which to find the original type resolver.
+  final int serializationZoneId;
+
+  /// A function that can send a request and return a response using an
+  /// arbitrary communication channel.
+  final Future<Response> Function(Request request) sendRequest;
+
+  ClientTypeDeclarationResolver(this.sendRequest,
+      {required this.remoteInstance, required this.serializationZoneId});
+
   @override
   Future<TypeDeclaration> declarationOf(NamedStaticType annotation) {
     // TODO: implement declarationOf
@@ -271,13 +441,39 @@ class ClientTypeDeclarationsResolver implements TypeDeclarationResolver {
   }
 }
 
+/// An exception that occurred remotely, the exception object and stack trace
+/// are serialized as [String]s and both included in the [toString] output.
+class RemoteException implements Exception {
+  final String error;
+  final String? stackTrace;
+
+  RemoteException(this.error, [this.stackTrace]);
+
+  String toString() =>
+      'RemoteException: $error${stackTrace == null ? '' : '\n\n$stackTrace'}';
+}
+
+/// Either returns the actual response from [response], casted to [T], or throws
+/// a [RemoteException] with the given error and stack trace.
+T _handleResponse<T>(Response response) {
+  if (response.response != null) {
+    return response.response as T;
+  }
+  throw new RemoteException(response.error!.toString(), response.stackTrace);
+}
+
 enum MessageType {
+  boolean,
   error,
   executeDefinitionsPhaseRequest,
   instantiateMacroRequest,
+  isExactlyTypeRequest,
+  isSubtypeOfRequest,
   loadMacroRequest,
-  reflectTypeRequest,
+  resolveTypeRequest,
   macroClassIdentifier,
   macroInstanceIdentifier,
   macroExecutionResult,
+  response,
+  staticType,
 }

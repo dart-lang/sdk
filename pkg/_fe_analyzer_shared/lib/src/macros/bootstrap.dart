@@ -27,6 +27,7 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/response_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/protocol.dart';
@@ -39,27 +40,33 @@ $_importMarker
 ///
 /// Supports the client side of the macro expansion protocol.
 void main(_, SendPort sendPort) {
+  /// Local function that sends requests and returns responses using [sendPort].
+  Future<Response> sendRequest(Request request) => _sendRequest(request, sendPort);
+
   withSerializationMode(SerializationMode.client, () {
     ReceivePort receivePort = new ReceivePort();
     sendPort.send(receivePort.sendPort);
+
     receivePort.listen((message) async {
       var deserializer = JsonDeserializer(message as Iterable<Object?>)
           ..moveNext();
+      int zoneId = deserializer.expectNum();
+      deserializer..moveNext();
       var type = MessageType.values[deserializer.expectNum()];
       var serializer = JsonSerializer();
       switch (type) {
         case MessageType.instantiateMacroRequest:
-          var request = InstantiateMacroRequest.deserialize(deserializer);
+          var request = new InstantiateMacroRequest.deserialize(deserializer, zoneId);
           (await _instantiateMacro(request)).serialize(serializer);
           break;
         case MessageType.executeDefinitionsPhaseRequest:
-          var request = ExecuteDefinitionsPhaseRequest.deserialize(
-              deserializer,
-              ClientTypeResolver(),
-              ClientClassIntrospector(),
-              ClientTypeDeclarationsResolver());
-          (await _executeDefinitionsPhase(request)).serialize(serializer);
+          var request = new ExecuteDefinitionsPhaseRequest.deserialize(deserializer, zoneId);
+          (await _executeDefinitionsPhase(request, sendRequest)).serialize(serializer);
           break;
+        case MessageType.response:
+          var response = new SerializableResponse.deserialize(deserializer, zoneId);
+          _responseCompleters.remove(response.requestId)!.complete(response);
+          return;
         default:
           throw new StateError('Unhandled event type \$type');
       }
@@ -102,31 +109,46 @@ Future<SerializableResponse> _instantiateMacro(
         response: identifier,
         requestId: request.id,
         serializationZoneId: request.serializationZoneId);
-  } catch (e) {
+  } catch (e, s) {
     return new SerializableResponse(
       responseType: MessageType.error,
       error: e.toString(),
+      stackTrace: s.toString(),
       requestId: request.id,
       serializationZoneId: request.serializationZoneId);
   }
 }
 
 Future<SerializableResponse> _executeDefinitionsPhase(
-    ExecuteDefinitionsPhaseRequest request) async {
+    ExecuteDefinitionsPhaseRequest request,
+    Future<Response> Function(Request request) sendRequest) async {
   try {
     Macro? instance = _macroInstances[request.macro];
     if (instance == null) {
       throw new StateError('Unrecognized macro instance \${request.macro}\\n'
           'Known instances: \$_macroInstances)');
     }
+    var typeResolver = ClientTypeResolver(
+        sendRequest,
+        remoteInstance: request.typeResolver,
+        serializationZoneId: request.serializationZoneId);
+    var typeDeclarationResolver = ClientTypeDeclarationResolver(
+        sendRequest,
+        remoteInstance: request.typeDeclarationResolver,
+        serializationZoneId: request.serializationZoneId);
+    var classIntrospector = ClientClassIntrospector(
+        sendRequest,
+        remoteInstance: request.classIntrospector,
+        serializationZoneId: request.serializationZoneId);
+
     Declaration declaration = request.declaration;
     if (instance is FunctionDefinitionMacro &&
         declaration is FunctionDeclarationImpl) {
       FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
           declaration,
-          request.typeResolver,
-          request.typeDeclarationResolver,
-          request.classIntrospector);
+          typeResolver,
+          typeDeclarationResolver,
+          classIntrospector);
       await instance.buildDefinitionForFunction(declaration, builder);
       return new SerializableResponse(
           responseType: MessageType.macroExecutionResult,
@@ -137,12 +159,28 @@ Future<SerializableResponse> _executeDefinitionsPhase(
       throw new UnsupportedError(
           ('Only FunctionDefinitionMacros are supported currently'));
     }
-  } catch (e) {
+  } catch (e, s) {
     return new SerializableResponse(
       responseType: MessageType.error,
       error: e.toString(),
+      stackTrace: s.toString(),
       requestId: request.id,
       serializationZoneId: request.serializationZoneId);
   }
+}
+
+/// Holds on to response completers by request id.
+final _responseCompleters = <int, Completer<Response>>{};
+
+/// Serializes [request], sends it to [sendPort], and sets up a [Completer] in
+/// [_responseCompleters] to handle the response.
+Future<Response> _sendRequest(Request request, SendPort sendPort) {
+  Completer<Response> completer = Completer();
+  _responseCompleters[request.id] = completer;
+  JsonSerializer serializer = JsonSerializer();
+  serializer.addNum(request.serializationZoneId);
+  request.serialize(serializer);
+  sendPort.send(serializer.result);
+  return completer.future;
 }
 ''';
