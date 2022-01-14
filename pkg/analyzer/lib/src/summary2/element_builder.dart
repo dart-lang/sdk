@@ -407,11 +407,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       fields.addAll(
         holder2.properties.whereType<FieldElementImpl>(),
       );
-      accessors.addAll(
-        holder2.propertyAccessors,
-      );
-      // TODO(scheglov) implement
-      // element.methods = holder2.methods;
+      accessors.addAll(holder2.propertyAccessors);
+      methods.addAll(holder2.methods);
     }
 
     // TODO(scheglov) only if no explicit
