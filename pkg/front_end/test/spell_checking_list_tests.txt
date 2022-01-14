@@ -325,6 +325,7 @@ ease
 ec
 echo
 edits
+ei
 einst
 elapse
 elegantly

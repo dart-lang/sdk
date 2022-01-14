@@ -33,7 +33,7 @@ class E2<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
     ;
   method toString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
-  static factory f<X extends core::Object? = dynamic>() → self::E2<dynamic>
+  static factory f<X extends core::Object? = dynamic>() → self::E2<self::E2::f::X%>
     return throw 42;
   method method(core::int value) → core::int
     return value.{core::num::+}(10){(core::num) → core::int};

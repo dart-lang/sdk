@@ -19,7 +19,6 @@ import 'package:kernel/ast.dart'
         InstanceAccessKind,
         InstanceGet,
         IntLiteral,
-        InterfaceType,
         ListLiteral,
         Name,
         ProcedureKind,
@@ -448,12 +447,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
   @override
   TypeBuilder? get mixedInTypeBuilder => null;
-
-  @override
-  InterfaceType buildType(LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder, List<TypeBuilder>? arguments) {
-    return rawType(nullabilityBuilder.build(library));
-  }
 
   @override
   Class build(SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
