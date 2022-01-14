@@ -185,6 +185,27 @@ abstract class _HashBase implements _HashVMBase {
       !identical(_data, oldData) || (_checkSum != oldCheckSum);
 
   int get length;
+
+  // If this collection has never had an insertion, and [other] is the same
+  // representation and has had no deletions, then adding the entries of [other]
+  // will end up building the same [_data] and [_index]. We can do this more
+  // efficiently by copying the Lists directly.
+  //
+  // Precondition: [this] and [other] must use the same hashcode and equality.
+  bool _quickCopy(_HashBase other) {
+    if (!identical(_index, _uninitializedIndex)) return false;
+    if (other._usedData == 0) return true; // [other] is empty, nothing to copy.
+    if (other._deletedKeys != 0) return false;
+
+    assert(!identical(other._index, _uninitializedIndex));
+    assert(!identical(other._data, _uninitializedData));
+    _index = Uint32List.fromList(other._index);
+    _hashMask = other._hashMask;
+    _data = List.of(other._data, growable: false);
+    _usedData = other._usedData;
+    _deletedKeys = other._deletedKeys;
+    return true;
+  }
 }
 
 class _OperatorEqualsAndHashCode {
@@ -232,6 +253,16 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
     _data = _uninitializedData;
     _usedData = 0;
     _deletedKeys = 0;
+  }
+
+  void addAll(Map<K, V> other) {
+    if (other is _InternalLinkedHashMap) {
+      final otherBase = other as _InternalLinkedHashMap; // manual promotion.
+      // If this map is empty we might be able to block-copy from [other].
+      if (isEmpty && _quickCopy(otherBase)) return;
+      // TODO(48143): Pre-grow capacity if it will reduce rehashing.
+    }
+    super.addAll(other);
   }
 }
 
@@ -531,7 +562,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
     return false;
   }
 
-  void forEach(void f(K key, V value)) {
+  void forEach(void action(K key, V value)) {
     final data = _data;
     final checkSum = _checkSum;
     final len = _usedData;
@@ -540,7 +571,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
       if (_HashBase._isDeleted(data, current)) continue;
       final key = internal.unsafeCast<K>(current);
       final value = internal.unsafeCast<V>(data[offset + 1]);
-      f(key, value);
+      action(key, value);
       if (_isModifiedSince(data, checkSum)) {
         throw ConcurrentModificationError(this);
       }
@@ -561,6 +592,16 @@ class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
         _IdenticalAndIdentityHashCode
     implements LinkedHashMap<K, V> {
   _CompactLinkedIdentityHashMap() : super(_HashBase._INITIAL_INDEX_SIZE);
+
+  void addAll(Map<K, V> other) {
+    if (other is _CompactLinkedIdentityHashMap) {
+      final otherBase = other as _CompactLinkedIdentityHashMap;
+      // If this map is empty we might be able to block-copy from [other].
+      if (isEmpty && _quickCopy(otherBase)) return;
+      // TODO(48143): Pre-grow capacity if it will reduce rehashing.
+    }
+    super.addAll(other);
+  }
 }
 
 class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
@@ -832,6 +873,16 @@ class _CompactLinkedHashSet<E> extends _HashVMBase
   // is not required by the spec. (For instance, always using an identity set
   // would be technically correct, albeit surprising.)
   Set<E> toSet() => new _CompactLinkedHashSet<E>()..addAll(this);
+
+  void addAll(Iterable<E> other) {
+    if (other is _CompactLinkedHashSet) {
+      final otherBase = other as _CompactLinkedHashSet;
+      // If this set is empty we might be able to block-copy from [other].
+      if (isEmpty && _quickCopy(otherBase)) return;
+      // TODO(48143): Pre-grow capacity if it will reduce rehashing.
+    }
+    super.addAll(other);
+  }
 }
 
 @pragma("vm:entry-point")
@@ -924,6 +975,16 @@ class _CompactLinkedIdentityHashSet<E> extends _HashFieldBase
   static Set<R> _newEmpty<R>() => new _CompactLinkedIdentityHashSet<R>();
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
+
+  void addAll(Iterable<E> other) {
+    if (other is _CompactLinkedIdentityHashSet) {
+      final otherBase = other as _CompactLinkedIdentityHashSet;
+      // If this set is empty we might be able to block-copy from [other].
+      if (isEmpty && _quickCopy(otherBase)) return;
+      // TODO(48143): Pre-grow capacity if it will reduce rehashing.
+    }
+    super.addAll(other);
+  }
 }
 
 class _CompactLinkedCustomHashSet<E> extends _HashFieldBase
