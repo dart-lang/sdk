@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
 import 'package:_fe_analyzer_shared/src/macros/isolate_mirrors_executor/isolate_mirrors_executor.dart'
     as mirrorExecutor;
 
@@ -15,6 +16,16 @@ import 'package:test/test.dart';
 
 void main() {
   late MacroExecutor executor;
+  late File simpleMacroFile;
+
+  setUpAll(() {
+    // We support running from either the root of the SDK or the package root.
+    simpleMacroFile =
+        File('pkg/_fe_analyzer_shared/test/macros/simple_macro.dart');
+    if (!simpleMacroFile.existsSync()) {
+      simpleMacroFile = File('test/macros/simple_macro.dart');
+    }
+  });
 
   setUp(() async {
     executor = await mirrorExecutor.start();
@@ -25,12 +36,8 @@ void main() {
   });
 
   test('can load macros and create instances', () async {
-    var clazzId = await executor.loadMacro(
-        // Tests run from the root of the repo.
-        File('pkg/_fe_analyzer_shared/test/macros/simple_macro.dart')
-            .absolute
-            .uri,
-        'SimpleMacro');
+    var clazzId =
+        await executor.loadMacro(simpleMacroFile.absolute.uri, 'SimpleMacro');
     expect(clazzId, isNotNull, reason: 'Can load a macro.');
 
     var instanceId =
@@ -51,6 +58,7 @@ void main() {
     var definitionResult = await executor.executeDefinitionsPhase(
         instanceId,
         FunctionDeclarationImpl(
+          id: RemoteInstance.uniqueId,
           isAbstract: false,
           isExternal: false,
           isGetter: false,
@@ -59,7 +67,10 @@ void main() {
           namedParameters: [],
           positionalParameters: [],
           returnType: NamedTypeAnnotationImpl(
-              name: 'String', isNullable: false, typeArguments: const []),
+              id: RemoteInstance.uniqueId,
+              name: 'String',
+              isNullable: false,
+              typeArguments: const []),
           typeParameters: [],
         ),
         _FakeTypeResolver(),

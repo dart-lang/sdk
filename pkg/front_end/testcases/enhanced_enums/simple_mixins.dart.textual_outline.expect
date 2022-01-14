@@ -1,0 +1,16 @@
+class A {
+  String get foo => "foo";
+}
+class B {
+  int bar() => 42;
+}
+mixin M {
+  void set callOnAssignment(void Function() f) {}
+}
+enum E1 with A { one, two }
+enum E2 with A, B { one, two }
+enum E3 with M { one, two }
+expectEquals(x, y) {}
+expectThrows(void Function() f) {}
+void throwOnCall() {}
+main() {}

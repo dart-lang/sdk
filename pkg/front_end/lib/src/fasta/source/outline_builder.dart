@@ -2329,7 +2329,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     // We pop more values than needed to reach typeVariables, offset and name.
     List<TypeBuilder>? interfaces = pop() as List<TypeBuilder>?;
-    List<TypeBuilder>? mixins = pop() as List<TypeBuilder>?;
+    Object? mixins = pop();
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     int charOffset = popCharOffset(); // identifier char offset.
@@ -2341,7 +2341,7 @@ class OutlineBuilder extends StackListenerImpl {
     push(name ?? NullValue.Name);
     push(charOffset);
     push(typeVariables ?? NullValue.TypeVariables);
-    push(mixins ?? NullValue.TypeBuilderList);
+    push(mixins ?? NullValue.TypeBuilder);
     push(interfaces ?? NullValue.TypeBuilderList);
 
     push(enumKeyword.charOffset); // start char offset.
@@ -2364,7 +2364,7 @@ class OutlineBuilder extends StackListenerImpl {
     int endCharOffset = popCharOffset();
     int startCharOffset = popCharOffset();
     pop() as List<TypeBuilder>?; // interfaces.
-    pop() as List<TypeBuilder>?; // mixins.
+    MixinApplicationBuilder? mixinBuilder = pop() as MixinApplicationBuilder?;
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     int charOffset = popCharOffset(); // identifier char offset.
@@ -2373,8 +2373,15 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(startCharOffset);
 
     if (name is! ParserRecovery) {
-      libraryBuilder.addEnum(metadata, name as String, typeVariables,
-          enumConstantInfos, startCharOffset, charOffset, endCharOffset);
+      libraryBuilder.addEnum(
+          metadata,
+          name as String,
+          typeVariables,
+          mixinBuilder,
+          enumConstantInfos,
+          startCharOffset,
+          charOffset,
+          endCharOffset);
     } else {
       libraryBuilder
           .endNestedDeclaration(
@@ -3199,15 +3206,23 @@ class OutlineBuilder extends StackListenerImpl {
     if (mixins is ParserRecovery) {
       push(new ParserRecovery(withKeyword.charOffset));
     } else {
-      // TODO(cstefantsova): Handle enum mixins here.
-      push(mixins);
+      NamedTypeBuilder enumType = new NamedTypeBuilder(
+          "_Enum",
+          const NullabilityBuilder.omitted(),
+          /* arguments = */ null,
+          /* fileUri = */ null,
+          /* charOffset = */ null,
+          instanceTypeVariableAccess:
+              InstanceTypeVariableAccessState.Unexpected);
+      push(libraryBuilder.addMixinApplication(
+          enumType, mixins as List<TypeBuilder>, withKeyword.charOffset));
     }
   }
 
   @override
   void handleEnumNoWithClause() {
     debugEvent("EnumNoWithClause");
-    push(NullValue.TypeBuilderList);
+    push(NullValue.TypeBuilder);
   }
 
   @override

@@ -2103,7 +2103,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<TypeVariableBuilder>? typeVariables,
       int modifiers: 0,
       List<TypeBuilder>? interfaces,
-      required bool isMacro}) {
+      required bool isMacro,
+      bool isEnumMixin: false}) {
     if (name == null) {
       // The following parameters should only be used when building a named
       // mixin application.
@@ -2322,7 +2323,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             charEndOffset,
             referencesFromIndexedClass,
             mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
-            isMacro: isNamedMixinApplication && isMacro);
+            isMacro: isNamedMixinApplication && isMacro,
+            isEnumMixin: isEnumMixin && i == 0);
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
@@ -2791,6 +2793,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<MetadataBuilder>? metadata,
       String name,
       List<TypeVariableBuilder>? typeVariables,
+      TypeBuilder? supertypeBuilder,
       List<EnumConstantInfo?>? enumConstantInfos,
       int startCharOffset,
       int charOffset,
@@ -2812,6 +2815,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         metadata,
         name,
         typeVariables,
+        applyMixins(supertypeBuilder, startCharOffset, charOffset,
+            charEndOffset, name, /* isMixinDeclaration = */ false,
+            typeVariables: typeVariables, isMacro: false, isEnumMixin: true),
         enumConstantInfos,
         this,
         startCharOffset,

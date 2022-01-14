@@ -62,14 +62,14 @@ abstract class MacroExecutor {
   ///
   /// Throws an exception if there is an error executing the macro.
   Future<MacroExecutionResult> executeTypesPhase(
-      MacroInstanceIdentifier macro, Declaration declaration);
+      MacroInstanceIdentifier macro, covariant Declaration declaration);
 
   /// Runs the declarations phase for [macro] on a given [declaration].
   ///
   /// Throws an exception if there is an error executing the macro.
   Future<MacroExecutionResult> executeDeclarationsPhase(
       MacroInstanceIdentifier macro,
-      Declaration declaration,
+      covariant Declaration declaration,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector);
 
@@ -78,7 +78,7 @@ abstract class MacroExecutor {
   /// Throws an exception if there is an error executing the macro.
   Future<MacroExecutionResult> executeDefinitionsPhase(
       MacroInstanceIdentifier macro,
-      Declaration declaration,
+      covariant Declaration declaration,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector,
       TypeDeclarationResolver typeDeclarationResolver);

@@ -50,6 +50,8 @@ import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting, TypeInferenceEngine;
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import 'diet_parser.dart';
+import 'source_constructor_builder.dart';
+import 'source_enum_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -962,6 +964,19 @@ class DietListener extends StackListenerImpl {
   void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
     debugEvent("Enum");
     checkEmpty(enumKeyword.charOffset);
+
+    SourceEnumBuilder? enumBuilder = currentClass as SourceEnumBuilder?;
+    if (enumBuilder != null) {
+      DeclaredSourceConstructorBuilder? defaultConstructorBuilder =
+          enumBuilder.synthesizedDefaultConstructorBuilder;
+      if (defaultConstructorBuilder != null) {
+        BodyBuilder bodyBuilder =
+            createFunctionListener(defaultConstructorBuilder);
+        bodyBuilder.finishConstructor(
+            defaultConstructorBuilder, AsyncMarker.Sync, new EmptyStatement());
+      }
+    }
+
     currentDeclaration = null;
     memberScope = libraryBuilder.scope;
   }

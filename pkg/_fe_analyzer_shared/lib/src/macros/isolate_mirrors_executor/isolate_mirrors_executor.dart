@@ -7,6 +7,7 @@ import 'dart:isolate';
 import 'dart:mirrors';
 
 import 'isolate_mirrors_impl.dart';
+import '../executor_shared/introspection_impls.dart';
 import '../executor_shared/protocol.dart';
 import '../executor.dart';
 import '../api.dart';
@@ -101,12 +102,14 @@ class _IsolateMirrorMacroExecutor implements MacroExecutor {
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
           MacroInstanceIdentifier macro,
-          Declaration declaration,
+          DeclarationImpl declaration,
           TypeResolver typeResolver,
           ClassIntrospector classIntrospector,
           TypeDeclarationResolver typeDeclarationResolver) =>
       _sendRequest(new ExecuteDefinitionsPhaseRequest(macro, declaration,
-          typeResolver, classIntrospector, typeDeclarationResolver));
+          typeResolver, classIntrospector, typeDeclarationResolver,
+          // Serialization zones are not necessary in this executor.
+          serializationZoneId: -1));
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(
@@ -121,7 +124,9 @@ class _IsolateMirrorMacroExecutor implements MacroExecutor {
           String constructor,
           Arguments arguments) =>
       _sendRequest(
-          new InstantiateMacroRequest(macroClass, constructor, arguments));
+          new InstantiateMacroRequest(macroClass, constructor, arguments,
+              // Serialization zones are not necessary in this executor.
+              serializationZoneId: -1));
 
   @override
   Future<MacroClassIdentifier> loadMacro(Uri library, String name,
@@ -131,7 +136,9 @@ class _IsolateMirrorMacroExecutor implements MacroExecutor {
       throw new UnsupportedError(
           'The IsolateMirrorsExecutor does not support precompiled dill files');
     }
-    return _sendRequest(new LoadMacroRequest(library, name));
+    return _sendRequest(new LoadMacroRequest(library, name,
+        // Serialization zones are not necessary in this executor.
+        serializationZoneId: -1));
   }
 
   /// Sends a request and returns the response, casting it to the expected

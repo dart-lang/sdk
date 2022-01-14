@@ -1961,15 +1961,15 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       Label not_parameterized_case;
 
       const Register kClsIdReg = R4;
-      const Register kTypeOffestReg = R5;
+      const Register kTypeOffsetReg = R5;
 
       __ ExtractClassIdFromTags(kClsIdReg, kTagsReg);
 
       // Load class' type_arguments_field offset in words.
-      __ LoadClassById(kTypeOffestReg, kClsIdReg);
+      __ LoadClassById(kTypeOffsetReg, kClsIdReg);
       __ ldr(
-          kTypeOffestReg,
-          FieldAddress(kTypeOffestReg,
+          kTypeOffsetReg,
+          FieldAddress(kTypeOffsetReg,
                        target::Class::
                            host_type_arguments_field_offset_in_words_offset()),
           kFourBytes);
@@ -1977,7 +1977,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       // Set the type arguments in the new object.
       __ StoreCompressedIntoObjectNoBarrier(
           AllocateObjectABI::kResultReg,
-          Address(AllocateObjectABI::kResultReg, kTypeOffestReg, UXTX,
+          Address(AllocateObjectABI::kResultReg, kTypeOffsetReg, UXTX,
                   Address::Scaled),
           AllocateObjectABI::kTypeArgumentsReg);
 
@@ -3723,9 +3723,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* R0: new object start as a tagged pointer. */
     /* R1: new object end address. */
     /* R2: iterator which initially points to the start of the variable */
-    /* R3: scratch register. */
     /* data area to be initialized. */
-    __ mov(R3, ZR);
     __ AddImmediate(R2, R0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
         R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R2);
@@ -3733,7 +3731,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ Bind(&init_loop);
     __ cmp(R2, Operand(R1));
     __ b(&done, CS);
-    __ str(R3, Address(R2, 0));
+    __ str(ZR, Address(R2, 0));
     __ add(R2, R2, Operand(target::kWordSize));
     __ b(&init_loop);
     __ Bind(&done);

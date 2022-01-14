@@ -1,97 +1,90 @@
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
 
+import 'remote_instance.dart';
 import 'serialization.dart';
 import '../api.dart';
 
 extension DeserializerExtensions on Deserializer {
-  TypeAnnotation expectTypeAnnotation() {
+  T expectRemoteInstance<T>() {
     int id = expectNum();
     switch (serializationMode) {
-      case SerializationMode.server:
-        return _typeAnnotationsById[id]!;
       case SerializationMode.client:
-        TypeAnnotation typeAnnotation;
         moveNext();
-        TypeAnnotationKind type = TypeAnnotationKind.values[expectNum()];
+        RemoteInstanceKind kind = RemoteInstanceKind.values[expectNum()];
         moveNext();
-        switch (type) {
-          case TypeAnnotationKind.namedType:
-            typeAnnotation = _expectNamedTypeAnnotation();
-            break;
-          case TypeAnnotationKind.functionType:
-            typeAnnotation = _expectFunctionTypeAnnotation();
-            break;
+        switch (kind) {
+          case RemoteInstanceKind.namedTypeAnnotation:
+            return _expectNamedTypeAnnotation(id) as T;
+          case RemoteInstanceKind.functionTypeAnnotation:
+            return _expectFunctionTypeAnnotation(id) as T;
+          case RemoteInstanceKind.functionDeclaration:
+            return _expectFunctionDeclaration(id) as T;
+          case RemoteInstanceKind.parameterDeclaration:
+            return _expectParameterDeclaration(id) as T;
+          case RemoteInstanceKind.typeParameterDeclaration:
+            return _expectTypeParameterDeclaration(id) as T;
+          default:
+            throw new UnsupportedError('Unsupported remote object kind: $kind');
         }
-        _typeAnnotationIds[typeAnnotation] = id;
-        return typeAnnotation;
+      case SerializationMode.server:
+        return RemoteInstance.cached(id);
     }
   }
 
-  NamedTypeAnnotation _expectNamedTypeAnnotation() {
+  NamedTypeAnnotation _expectNamedTypeAnnotation(int id) {
     bool isNullable = expectBool();
     moveNext();
     String name = expectString();
     moveNext();
     expectList();
-    List<TypeAnnotation> typeArguments = [
+    List<TypeAnnotationImpl> typeArguments = [
       for (bool hasNext = moveNext(); hasNext; hasNext = moveNext())
-        expectTypeAnnotation(),
+        expectRemoteInstance(),
     ];
     return new NamedTypeAnnotationImpl(
-        isNullable: isNullable, name: name, typeArguments: typeArguments);
+        id: id,
+        isNullable: isNullable,
+        name: name,
+        typeArguments: typeArguments);
   }
 
-  FunctionTypeAnnotation _expectFunctionTypeAnnotation() {
+  FunctionTypeAnnotation _expectFunctionTypeAnnotation(int id) {
     bool isNullable = expectBool();
 
-    moveNext();
-    TypeAnnotation returnType = expectTypeAnnotation();
+    TypeAnnotationImpl returnType = RemoteInstance.deserialize(this);
 
     moveNext();
     expectList();
-    List<ParameterDeclaration> positionalParameters = [
+    List<ParameterDeclarationImpl> positionalParameters = [
       for (bool hasNext = moveNext(); hasNext; hasNext = moveNext())
-        expectDeclaration(),
+        expectRemoteInstance(),
     ];
 
     moveNext();
     expectList();
-    List<ParameterDeclaration> namedParameters = [
+    List<ParameterDeclarationImpl> namedParameters = [
       for (bool hasNext = moveNext(); hasNext; hasNext = moveNext())
-        expectDeclaration(),
+        expectRemoteInstance(),
     ];
 
     moveNext();
     expectList();
-    List<TypeParameterDeclaration> typeParameters = [
+    List<TypeParameterDeclarationImpl> typeParameters = [
       for (bool hasNext = moveNext(); hasNext; hasNext = moveNext())
-        expectDeclaration(),
+        expectRemoteInstance(),
     ];
 
     return new FunctionTypeAnnotationImpl(
-        isNullable: isNullable,
-        returnType: returnType,
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        typeParameters: typeParameters);
+      id: id,
+      isNullable: isNullable,
+      returnType: returnType,
+      positionalParameters: positionalParameters,
+      namedParameters: namedParameters,
+      typeParameters: typeParameters,
+    );
   }
 
-  T expectDeclaration<T extends Declaration>() {
-    DeclarationKind kind = DeclarationKind.values[expectNum()];
-    moveNext();
-    switch (kind) {
-      case DeclarationKind.parameter:
-        return _expectParameterDeclaration() as T;
-      case DeclarationKind.typeParameter:
-        return _expectTypeParameterDeclaration() as T;
-      case DeclarationKind.function:
-        return _expectFunctionDeclaration() as T;
-      default:
-        throw new UnimplementedError('Cant deserialize $kind yet');
-    }
-  }
-
-  ParameterDeclaration _expectParameterDeclaration() {
+  ParameterDeclaration _expectParameterDeclaration(int id) {
     String name = expectString();
     moveNext();
     Code? defaultValue;
@@ -101,10 +94,11 @@ extension DeserializerExtensions on Deserializer {
     bool isNamed = expectBool();
     moveNext();
     bool isRequired = expectBool();
-    moveNext();
-    TypeAnnotation type = expectTypeAnnotation();
+
+    TypeAnnotationImpl type = RemoteInstance.deserialize(this);
 
     return new ParameterDeclarationImpl(
+        id: id,
         defaultValue: defaultValue,
         isNamed: isNamed,
         isRequired: isRequired,
@@ -112,17 +106,17 @@ extension DeserializerExtensions on Deserializer {
         type: type);
   }
 
-  TypeParameterDeclaration _expectTypeParameterDeclaration() {
+  TypeParameterDeclaration _expectTypeParameterDeclaration(int id) {
     String name = expectString();
     moveNext();
-    TypeAnnotation? bounds;
+    TypeAnnotationImpl? bounds;
     if (!checkNull()) {
-      bounds = expectTypeAnnotation();
+      bounds = expectRemoteInstance();
     }
-    return new TypeParameterDeclarationImpl(name: name, bounds: bounds);
+    return new TypeParameterDeclarationImpl(id: id, name: name, bounds: bounds);
   }
 
-  FunctionDeclaration _expectFunctionDeclaration() {
+  FunctionDeclaration _expectFunctionDeclaration(int id) {
     String name = expectString();
     moveNext();
     bool isAbstract = expectBool();
@@ -135,28 +129,28 @@ extension DeserializerExtensions on Deserializer {
 
     moveNext();
     expectList();
-    List<ParameterDeclaration> namedParameters = [
+    List<ParameterDeclarationImpl> namedParameters = [
       for (bool hasNext = moveNext(); hasNext; hasNext = moveNext())
-        expectDeclaration()
+        expectRemoteInstance(),
     ];
 
     moveNext();
     expectList();
-    List<ParameterDeclaration> positionalParameters = [
+    List<ParameterDeclarationImpl> positionalParameters = [
       for (bool hasNext = moveNext(); hasNext; hasNext = moveNext())
-        expectDeclaration()
+        expectRemoteInstance(),
     ];
 
-    moveNext();
-    TypeAnnotation returnType = expectTypeAnnotation();
+    TypeAnnotationImpl returnType = RemoteInstance.deserialize(this);
 
     moveNext();
     expectList();
-    List<TypeParameterDeclaration> typeParameters = [
+    List<TypeParameterDeclarationImpl> typeParameters = [
       for (bool hasNext = moveNext(); hasNext; hasNext = moveNext())
-        expectDeclaration()
+        expectRemoteInstance(),
     ];
     return new FunctionDeclarationImpl(
+        id: id,
         name: name,
         isAbstract: isAbstract,
         isExternal: isExternal,
@@ -184,7 +178,7 @@ extension DeserializerExtensions on Deserializer {
           parts.add(expectString());
           break;
         case CodePartKind.typeAnnotation:
-          parts.add(expectTypeAnnotation());
+          parts.add(expectRemoteInstance());
           break;
       }
     }
@@ -212,179 +206,6 @@ extension DeserializerExtensions on Deserializer {
   }
 }
 
-/// On the server side we keep track of type annotations by their ID.
-final _typeAnnotationsById = <int, TypeAnnotation>{};
-
-/// On the client side we keep an expando of ids on [TypeAnnotation]s.
-final _typeAnnotationIds = new Expando<int>();
-
-/// Incrementing ids for [TypeAnnotationImpl]s
-int _nextTypeAnnotationId = 0;
-
-extension SerializeTypeAnnotation on TypeAnnotation {
-  void serialize(Serializer serializer) {
-    TypeAnnotation self = this;
-    if (self is NamedTypeAnnotationImpl) {
-      self.serialize(serializer);
-    } else if (self is FunctionTypeAnnotationImpl) {
-      self.serialize(serializer);
-    } else {
-      throw new UnsupportedError(
-          'Type ${this.runtimeType} is not supported for serialization.');
-    }
-  }
-}
-
-/// Does the parts of serialization for type annotations that is shared between
-/// implementations.
-///
-/// Returns `false` if we should continue serializing the rest of the object, or
-/// `true` if the object is fully serialized (just an ID).
-bool _doSharedTypeAnnotationSerialization(Serializer serializer,
-    TypeAnnotation typeAnnotation, TypeAnnotationKind kind) {
-  switch (serializationMode) {
-    case SerializationMode.client:
-      // Only send the ID from the client side, and assume we have one.
-      int id = _typeAnnotationIds[typeAnnotation]!;
-      serializer.addNum(id);
-      return true;
-    case SerializationMode.server:
-      // Server side we may create new ids for unseen annotations,
-      // and continue to serialize the rest of the annotation.
-      int id = _typeAnnotationIds[typeAnnotation] ?? _nextTypeAnnotationId++;
-      // TODO: We should clean these up at some point.
-      _typeAnnotationsById[id] = typeAnnotation;
-      serializer.addNum(id);
-      break;
-  }
-  serializer.addNum(kind.index);
-  serializer.addBool(typeAnnotation.isNullable);
-  return false;
-}
-
-extension SerializeNamedTypeAnnotation on NamedTypeAnnotation {
-  void serialize(Serializer serializer) {
-    if (_doSharedTypeAnnotationSerialization(
-        serializer, this, TypeAnnotationKind.namedType)) {
-      return;
-    }
-    serializer.addString(name);
-    serializer.startList();
-    for (TypeAnnotation typeArg in typeArguments) {
-      typeArg.serialize(serializer);
-    }
-    serializer.endList();
-  }
-}
-
-extension SerializeFunctionTypeAnnotation on FunctionTypeAnnotation {
-  void serialize(Serializer serializer) {
-    if (_doSharedTypeAnnotationSerialization(
-        serializer, this, TypeAnnotationKind.functionType)) {
-      return;
-    }
-
-    returnType.serialize(serializer);
-
-    serializer.startList();
-    for (ParameterDeclaration param in positionalParameters) {
-      param.serialize(serializer);
-    }
-    serializer.endList();
-
-    serializer.startList();
-    for (ParameterDeclaration param in namedParameters) {
-      param.serialize(serializer);
-    }
-    serializer.endList();
-
-    serializer.startList();
-    for (TypeParameterDeclaration typeParam in typeParameters) {
-      typeParam.serialize(serializer);
-    }
-    serializer.endList();
-  }
-}
-
-/// Does the shared parts of [Declaration] serialization.
-void _serializeDeclaration(Serializer serializer, Declaration declaration) {
-  serializer.addNum(declaration.kind.index);
-  serializer.addString(declaration.name);
-}
-
-/// Checks the type and deserializes it appropriately.
-extension SerializeDeclaration on Declaration {
-  void serialize(Serializer serializer) {
-    switch (kind) {
-      case DeclarationKind.parameter:
-        (this as ParameterDeclaration).serialize(serializer);
-        break;
-      case DeclarationKind.typeParameter:
-        (this as TypeParameterDeclaration).serialize(serializer);
-        break;
-      case DeclarationKind.function:
-        (this as FunctionDeclaration).serialize(serializer);
-        break;
-      default:
-        throw new UnimplementedError('Cant serialize $kind yet');
-    }
-  }
-}
-
-extension SerializeParameterDeclaration on ParameterDeclaration {
-  void serialize(Serializer serializer) {
-    _serializeDeclaration(serializer, this);
-    if (defaultValue == null) {
-      serializer.addNull();
-    } else {
-      defaultValue!.serialize(serializer);
-    }
-    serializer.addBool(isNamed);
-    serializer.addBool(isRequired);
-    type.serialize(serializer);
-  }
-}
-
-extension SerializeTypeParameterDeclaration on TypeParameterDeclaration {
-  void serialize(Serializer serializer) {
-    _serializeDeclaration(serializer, this);
-    TypeAnnotation? bounds = this.bounds;
-    if (bounds == null) {
-      serializer.addNull();
-    } else {
-      bounds.serialize(serializer);
-    }
-  }
-}
-
-extension SerializeFunctionDeclaration on FunctionDeclaration {
-  void serialize(Serializer serializer) {
-    _serializeDeclaration(serializer, this);
-    serializer
-      ..addBool(isAbstract)
-      ..addBool(isExternal)
-      ..addBool(isGetter)
-      ..addBool(isSetter)
-      ..startList();
-    for (ParameterDeclaration named in namedParameters) {
-      named.serialize(serializer);
-    }
-    serializer
-      ..endList()
-      ..startList();
-    for (ParameterDeclaration positional in positionalParameters) {
-      positional.serialize(serializer);
-    }
-    serializer.endList();
-    returnType.serialize(serializer);
-    serializer.startList();
-    for (TypeParameterDeclaration param in typeParameters) {
-      param.serialize(serializer);
-    }
-    serializer.endList();
-  }
-}
-
 extension SerializeCode on Code {
   void serialize(Serializer serializer) {
     serializer
@@ -398,7 +219,7 @@ extension SerializeCode on Code {
       } else if (part is Code) {
         serializer.addNum(CodePartKind.code.index);
         part.serialize(serializer);
-      } else if (part is TypeAnnotation) {
+      } else if (part is TypeAnnotationImpl) {
         serializer.addNum(CodePartKind.typeAnnotation.index);
         part.serialize(serializer);
       } else {

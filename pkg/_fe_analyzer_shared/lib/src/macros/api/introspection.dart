@@ -14,10 +14,6 @@ abstract class TypeAnnotation {
 
   /// A [Code] object representation of this type annotation.
   Code get code;
-
-  /// Allows you to check the kind of a [TypeAnnotation] in a switch statement,
-  /// and without `is` checks.
-  TypeAnnotationKind get kind;
 }
 
 /// The base class for function type declarations.
@@ -33,9 +29,6 @@ abstract class FunctionTypeAnnotation implements TypeAnnotation {
 
   /// The type parameters for this function.
   Iterable<TypeParameterDeclaration> get typeParameters;
-
-  @override
-  TypeAnnotationKind get kind => TypeAnnotationKind.functionType;
 }
 
 /// An unresolved reference to a type.
@@ -48,9 +41,6 @@ abstract class NamedTypeAnnotation implements TypeAnnotation {
 
   /// The type arguments, if applicable.
   Iterable<TypeAnnotation> get typeArguments;
-
-  @override
-  TypeAnnotationKind get kind => TypeAnnotationKind.namedType;
 }
 
 /// The interface representing a resolved type.
@@ -75,10 +65,6 @@ abstract class NamedStaticType implements StaticType {
 abstract class Declaration {
   /// The name of this declaration.
   String get name;
-
-  /// Allows you to check the kind of a [Declaration] in a switch statement,
-  /// and without `is` checks.
-  DeclarationKind get kind;
 }
 
 /// A declaration that defines a new type in the program.
@@ -105,9 +91,6 @@ abstract class TypeDeclaration implements Declaration {
 /// Information about fields, methods, and constructors must be retrieved from
 /// the `builder` objects.
 abstract class ClassDeclaration implements TypeDeclaration {
-  @override
-  DeclarationKind get kind => DeclarationKind.clazz;
-
   /// Whether this class has an `abstract` modifier.
   bool get isAbstract;
 
@@ -129,18 +112,12 @@ abstract class ClassDeclaration implements TypeDeclaration {
 
 /// Type alias introspection information.
 abstract class TypeAliasDeclaration extends TypeDeclaration {
-  @override
-  DeclarationKind get kind => DeclarationKind.typeAlias;
-
   /// The type annotation this is an alias for.
   TypeAnnotation get type;
 }
 
 /// Function introspection information.
 abstract class FunctionDeclaration implements Declaration {
-  @override
-  DeclarationKind get kind => DeclarationKind.function;
-
   /// Whether this function has an `abstract` modifier.
   bool get isAbstract;
 
@@ -168,9 +145,6 @@ abstract class FunctionDeclaration implements Declaration {
 
 /// Method introspection information.
 abstract class MethodDeclaration implements FunctionDeclaration {
-  @override
-  DeclarationKind get kind => DeclarationKind.method;
-
   /// The class that defines this method.
   TypeAnnotation get definingClass;
 }
@@ -183,9 +157,6 @@ abstract class ConstructorDeclaration implements MethodDeclaration {
 
 /// Variable introspection information.
 abstract class VariableDeclaration implements Declaration {
-  @override
-  DeclarationKind get kind => DeclarationKind.variable;
-
   /// Whether this function has an `abstract` modifier.
   bool get isAbstract;
 
@@ -201,18 +172,12 @@ abstract class VariableDeclaration implements Declaration {
 
 /// Field introspection information ..
 abstract class FieldDeclaration implements VariableDeclaration {
-  @override
-  DeclarationKind get kind => DeclarationKind.field;
-
   /// The class that defines this method.
   TypeAnnotation get definingClass;
 }
 
 /// Parameter introspection information.
 abstract class ParameterDeclaration implements Declaration {
-  @override
-  DeclarationKind get kind => DeclarationKind.parameter;
-
   /// The type of this parameter.
   TypeAnnotation get type;
 
@@ -230,28 +195,6 @@ abstract class ParameterDeclaration implements Declaration {
 
 /// Type parameter introspection information.
 abstract class TypeParameterDeclaration implements Declaration {
-  @override
-  DeclarationKind get kind => DeclarationKind.typeParameter;
-
   /// The bounds for this type parameter, if it has any.
   TypeAnnotation? get bounds;
-}
-
-// The kinds of type declarations.
-enum DeclarationKind {
-  clazz,
-  constructor,
-  field,
-  function,
-  method,
-  parameter,
-  typeAlias,
-  typeParameter,
-  variable,
-}
-
-// The kinds of type annotations.
-enum TypeAnnotationKind {
-  namedType,
-  functionType,
 }

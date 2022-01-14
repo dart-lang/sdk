@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('json serializer', () {
-    test('can serialize and deserialize data', () {
+    test('can serialize and deserialize basic data', () {
       var serializer = JsonSerializer();
       serializer
         ..addNum(1)
@@ -74,5 +76,41 @@ void main() {
 
       expect(deserializer.moveNext(), false);
     });
+
+    test('remote instances', () async {
+      var string = NamedTypeAnnotationImpl(
+          id: RemoteInstance.uniqueId,
+          isNullable: false,
+          name: 'String',
+          typeArguments: const []);
+      var foo = NamedTypeAnnotationImpl(
+          id: RemoteInstance.uniqueId,
+          isNullable: false,
+          name: 'Foo',
+          typeArguments: [string]);
+      Object? serializedFoo;
+      var serializer = JsonSerializer();
+
+      withSerializationMode(SerializationMode.server, () {
+        foo.serialize(serializer);
+        serializedFoo = serializer.result;
+        var response = roundTrip(serializedFoo);
+        var deserializer = JsonDeserializer(response as List<Object?>);
+        var instance = RemoteInstance.deserialize(deserializer);
+        expect(instance, foo);
+      });
+    });
+  });
+}
+
+/// Deserializes [serialized] in client mode and sends it back.
+Object? roundTrip(Object? serialized) {
+  return withSerializationMode(SerializationMode.client, () {
+    var deserializer = JsonDeserializer(serialized as List<Object?>);
+    var instance =
+        RemoteInstance.deserialize<NamedTypeAnnotationImpl>(deserializer);
+    var serializer = JsonSerializer();
+    instance.serialize(serializer);
+    return serializer.result;
   });
 }

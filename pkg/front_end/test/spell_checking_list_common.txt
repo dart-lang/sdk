@@ -1029,6 +1029,7 @@ entity's
 entries
 entry
 enum
+enum's
 enumerated
 enumeration
 enumerations
