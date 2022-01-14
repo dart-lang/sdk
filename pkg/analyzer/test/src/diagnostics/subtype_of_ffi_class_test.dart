@@ -27,6 +27,17 @@ class C extends Double {}
     ]);
   }
 
+  test_Finalizable() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+class C extends Finalizable {}
+''', [
+      error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS, 35, 11),
+      error(CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS, 35,
+          11),
+    ]);
+  }
+
   test_Float() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -167,6 +178,13 @@ class C implements ffi.Double {}
       error(FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS, 45, 10,
           messageContains: ["class 'C'", "implement 'ffi.Double'"]),
     ]);
+  }
+
+  test_Finalizable() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+class C implements Finalizable {}
+''');
   }
 
   test_Float() async {

@@ -13993,7 +13993,7 @@ FfiCode:
   SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't implement '{1}'."
-    correctionMessage: "Try extending 'Struct' or 'Union'."
+    correctionMessage: "Try implementing 'Allocator' or 'Finalizable'."
     comment: |-
       Parameters:
       0: the name of the subclass
