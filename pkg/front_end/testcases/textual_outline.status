@@ -35,6 +35,7 @@ enhanced_enums/members: FormatterCrash
 enhanced_enums/qualified_names_with_no_type_arguments: FormatterCrash
 enhanced_enums/redirecting_initializers: FormatterCrash
 enhanced_enums/simple_fields: FormatterCrash
+enhanced_enums/simple_interfaces: FormatterCrash
 enhanced_enums/simple_mixins: FormatterCrash
 extension_types/basic_show: FormatterCrash
 extension_types/call_not_get: FormatterCrash

@@ -2363,7 +2363,7 @@ class OutlineBuilder extends StackListenerImpl {
         const FixedNullableList<EnumConstantInfo>().pop(stack, elementsCount);
     int endCharOffset = popCharOffset();
     int startCharOffset = popCharOffset();
-    pop() as List<TypeBuilder>?; // interfaces.
+    List<TypeBuilder>? interfaces = pop() as List<TypeBuilder>?;
     MixinApplicationBuilder? mixinBuilder = pop() as MixinApplicationBuilder?;
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
@@ -2373,11 +2373,26 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(startCharOffset);
 
     if (name is! ParserRecovery) {
+      if (interfaces != null) {
+        for (TypeBuilder interface in interfaces) {
+          if (interface.nullabilityBuilder.build(libraryBuilder) ==
+              Nullability.nullable) {
+            libraryBuilder.addProblem(
+                templateNullableInterfaceError
+                    .withArguments(interface.fullNameForErrors),
+                interface.charOffset ?? startCharOffset,
+                (name as String).length,
+                uri);
+          }
+        }
+      }
+
       libraryBuilder.addEnum(
           metadata,
           name as String,
           typeVariables,
           mixinBuilder,
+          interfaces,
           enumConstantInfos,
           startCharOffset,
           charOffset,
