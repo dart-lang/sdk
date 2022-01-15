@@ -1858,6 +1858,98 @@ void foo() {
     expect(result.errors, isNotEmpty);
   }
 
+  test_parameter_optionalNamed_fieldFormal_isUsed_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A(f: 0);
+''');
+  }
+
+  test_parameter_optionalNamed_fieldFormal_isUsed_factoryRedirect() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named({int? f}) = _A;
+}
+f() => _A.named(f: 0);
+''');
+  }
+
+  test_parameter_optionalNamed_fieldFormal_notUsed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
+  }
+
+  test_parameter_optionalNamed_fieldFormal_notUsed_factoryRedirect() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
+  }
+
+  test_parameter_optionalPositional_fieldFormal_isUsed_constructorInvocation() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A(0);
+''');
+  }
+
+  test_parameter_optionalPositional_fieldFormal_isUsed_factoryRedirect() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named([int a]) = _A;
+}
+f() => _A.named(0);
+''');
+  }
+
+  test_parameter_optionalPositional_fieldFormal_notUsed() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
+  }
+
+  test_parameter_optionalPositional_fieldFormal_notUsed_factoryRedirect() async {
+    await assertErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''', [
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+    ]);
+  }
+
   test_typeAlias_interfaceType_isUsed_typeName_isExpression() async {
     await assertNoErrorsInCode(r'''
 typedef _A = List<int>;

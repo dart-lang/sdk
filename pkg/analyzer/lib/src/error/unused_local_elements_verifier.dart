@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -76,6 +77,27 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     } finally {
       _enclosingClass = enclosingClassOld;
     }
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    var element = node.declaredElement!;
+    var redirectedConstructor = node.redirectedConstructor;
+    if (redirectedConstructor != null) {
+      var redirectedElement = redirectedConstructor.staticElement;
+      if (redirectedElement != null) {
+        // TODO(scheglov) Only if not _isPubliclyAccessible
+        _matchParameters(
+          element.parameters,
+          redirectedElement.parameters,
+          (first, second) {
+            usedElements.addElement(second);
+          },
+        );
+      }
+    }
+
+    super.visitConstructorDeclaration(node);
   }
 
   @override
@@ -170,6 +192,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
+    // TODO(scheglov) Remove after https://dart-review.googlesource.com/c/sdk/+/226960
+    if (node.parent is FieldFormalParameter) {
+      return;
+    }
     if (node.inDeclarationContext()) {
       return;
     }
@@ -340,6 +366,51 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     }
     // OK
     return true;
+  }
+
+  /// Invokes [f] for corresponding positional and named parameters.
+  /// Ignores parameters that don't have a corresponding pair.
+  /// TODO(scheglov) There might be a better place for this function.
+  static void _matchParameters(
+    List<ParameterElement> firstList,
+    List<ParameterElement> secondList,
+    void Function(ParameterElement first, ParameterElement second) f,
+  ) {
+    Map<String, ParameterElement>? firstNamed;
+    Map<String, ParameterElement>? secondNamed;
+    var firstPositional = <ParameterElement>[];
+    var secondPositional = <ParameterElement>[];
+    for (var element in firstList) {
+      if (element.isNamed) {
+        (firstNamed ??= {})[element.name] = element;
+      } else {
+        firstPositional.add(element);
+      }
+    }
+    for (var element in secondList) {
+      if (element.isNamed) {
+        (secondNamed ??= {})[element.name] = element;
+      } else {
+        secondPositional.add(element);
+      }
+    }
+
+    var positionalLength = math.min(
+      firstPositional.length,
+      secondPositional.length,
+    );
+    for (var i = 0; i < positionalLength; i++) {
+      f(firstPositional[i], secondPositional[i]);
+    }
+
+    if (firstNamed != null && secondNamed != null) {
+      for (var firstEntry in firstNamed.entries) {
+        var second = secondNamed[firstEntry.key];
+        if (second != null) {
+          f(firstEntry.value, second);
+        }
+      }
+    }
   }
 }
 
