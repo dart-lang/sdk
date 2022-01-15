@@ -39,9 +39,9 @@ class AssistsTest extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     handler = EditDomainHandler(server);
   }
 

@@ -163,9 +163,9 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
   late String contextId;
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     handler = ExecutionDomainHandler(server);
     _createExecutionContext(testFile);
   }

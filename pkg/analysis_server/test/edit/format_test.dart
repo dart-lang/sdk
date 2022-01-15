@@ -20,9 +20,9 @@ void main() {
 @reflectiveTest
 class FormatTest extends AbstractAnalysisTest {
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     handler = EditDomainHandler(server);
   }
 

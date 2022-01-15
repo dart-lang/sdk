@@ -19,6 +19,7 @@ class MapUriTest extends AbstractAnalysisServerIntegrationTest {
     var pathname = sourcePath('lib/main.dart');
     writeFile(pathname, '// dummy');
     standardAnalysisSetup();
+    await analysisFinished;
 
     var contextId = (await sendExecutionCreateContext(sourceDirectory.path)).id;
 

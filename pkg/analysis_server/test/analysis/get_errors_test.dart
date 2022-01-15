@@ -23,12 +23,12 @@ class GetErrorsTest extends AbstractAnalysisTest {
   static const String requestId = 'test-getError';
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
     server.handlers = [
       AnalysisDomainHandler(server),
     ];
-    createProject();
+    await createProject();
   }
 
   Future<void> test_afterAnalysisComplete() async {

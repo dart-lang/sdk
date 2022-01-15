@@ -51,10 +51,8 @@ main() {
     }
   }
 
-  void setAnalysisRoot() {
-    var request =
-        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(request);
+  Future<void> setAnalysisRoot() async {
+    await setRoots(included: [projectPath], excluded: []);
   }
 
   @override
@@ -84,7 +82,7 @@ main() {
 }
 ''');
 
-    setAnalysisRoot();
+    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
@@ -111,7 +109,7 @@ main() {
 }
 ''');
 
-    setAnalysisRoot();
+    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
@@ -150,7 +148,7 @@ linter:
 ''');
 
     addTestFile(testSource);
-    setAnalysisRoot();
+    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
@@ -176,7 +174,7 @@ linter:
 ''');
 
     addTestFile(testSource);
-    setAnalysisRoot();
+    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
@@ -188,7 +186,7 @@ linter:
 
   Future<void> test_options_file_added() async {
     addTestFile(testSource);
-    setAnalysisRoot();
+    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
@@ -215,7 +213,7 @@ linter:
     addOptionsFile('''
 ; #bang
 ''');
-    setAnalysisRoot();
+    await setAnalysisRoot();
 
     await waitForTasksFinished();
 
@@ -233,7 +231,7 @@ linter:
 ''');
 
     addTestFile(testSource);
-    setAnalysisRoot();
+    await setAnalysisRoot();
 
     await waitForTasksFinished();
 

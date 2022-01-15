@@ -70,8 +70,8 @@ class TextDocumentCloseHandler
   FutureOr<ErrorOr<Null>> handle(
       DidCloseTextDocumentParams params, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
-    return path.mapResult((path) {
-      server.removePriorityFile(path);
+    return path.mapResult((path) async {
+      await server.removePriorityFile(path);
       server.documentVersions.remove(path);
       server.onOverlayDestroyed(path);
 
@@ -96,7 +96,7 @@ class TextDocumentOpenHandler
       DidOpenTextDocumentParams params, CancellationToken token) {
     final doc = params.textDocument;
     final path = pathOfDocItem(doc);
-    return path.mapResult((path) {
+    return path.mapResult((path) async {
       // We don't get a OptionalVersionedTextDocumentIdentifier with a didOpen but we
       // do get the necessary info to create one.
       server.documentVersions[path] = VersionedTextDocumentIdentifier(
@@ -109,7 +109,7 @@ class TextDocumentOpenHandler
       // analyzed. Add it to driver to which it should have been added.
       server.contextManager.getDriverFor(path)?.addFile(path);
 
-      server.addPriorityFile(path);
+      await server.addPriorityFile(path);
 
       return success(null);
     });

@@ -899,9 +899,9 @@ flutter:${libFolder.toUri()}
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     handler = EditDomainHandler(server);
     server.handlers = [handler];
   }
@@ -2289,9 +2289,9 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     handler = EditDomainHandler(server);
     server.handlers = [handler];
   }

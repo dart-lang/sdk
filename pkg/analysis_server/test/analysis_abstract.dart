@@ -114,9 +114,9 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   /// Creates a project [projectPath].
-  void createProject({Map<String, String>? packageRoots}) {
+  Future<void> createProject({Map<String, String>? packageRoots}) async {
     newFolder(projectPath);
-    setRoots(included: [projectPath], excluded: []);
+    await setRoots(included: [projectPath], excluded: []);
   }
 
   void doAllDeclarationsTrackerWork() {
@@ -175,20 +175,23 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     handleSuccessfulRequest(request);
   }
 
-  void setRoots({
+  Future<Response> setRoots({
     required List<String> included,
     required List<String> excluded,
-  }) {
-    var includedConverted = included.map(convertPath).toList();
-    var excludedConverted = excluded.map(convertPath).toList();
-    var request = AnalysisSetAnalysisRootsParams(
-        includedConverted, excludedConverted,
-        packageRoots: {}).toRequest('0');
-    handleSuccessfulRequest(request, handler: analysisHandler);
+    bool validateSuccessResponse = true,
+  }) async {
+    var request =
+        AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: {})
+            .toRequest('0');
+    var response = await waitResponse(request);
+    if (validateSuccessResponse) {
+      expect(response, isResponseSuccess(request.id));
+    }
+    return response;
   }
 
   @mustCallSuper
-  void setUp() {
+  void setUp() async {
     serverChannel = MockServerChannel();
     projectPath = convertPath('/project');
     testFolder = convertPath('/project/bin');

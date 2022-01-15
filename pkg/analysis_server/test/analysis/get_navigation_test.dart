@@ -23,12 +23,12 @@ class GetNavigationTest extends AbstractNavigationTest {
   static const String requestId = 'test-getNavigation';
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
     server.handlers = [
       AnalysisDomainHandler(server),
     ];
-    createProject();
+    await createProject();
   }
 
   Future<void> test_beforeAnalysisComplete() async {

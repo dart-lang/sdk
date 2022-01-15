@@ -27,6 +27,7 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> computeHighlights(String pathname, String text) async {
     writeFile(pathname, text);
     standardAnalysisSetup();
+    await analysisFinished;
     sendAnalysisSetSubscriptions({
       AnalysisService.HIGHLIGHTS: [pathname]
     });

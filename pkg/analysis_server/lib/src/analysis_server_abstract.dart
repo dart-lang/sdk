@@ -459,8 +459,8 @@ abstract class AbstractAnalysisServer {
 
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
-  void reanalyze() {
-    contextManager.refresh();
+  Future<void> reanalyze() async {
+    await contextManager.refresh();
   }
 
   ResolvedForCompletionResultImpl? resolveForCompletion({
