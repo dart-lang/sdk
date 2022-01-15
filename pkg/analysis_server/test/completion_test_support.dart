@@ -79,8 +79,8 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
         .toList();
   }
 
-  Future runTest(LocationSpec spec, [Map<String, String>? extraFiles]) {
-    super.setUp();
+  Future runTest(LocationSpec spec, [Map<String, String>? extraFiles]) async {
+    await super.setUp();
     return Future(() {
       var content = spec.source;
       newFile(testFile, content: content);

@@ -122,7 +122,7 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   }
 
   @mustCallSuper
-  void setUp() {
+  Future<void> setUp() async {
     driver = CompletionDriver(
       supportsAvailableSuggestions: supportsAvailableSuggestions,
       projectPath: projectPath,
@@ -130,7 +130,7 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
       resourceProvider: resourceProvider,
       serverOptions: serverOptions,
     );
-    driver.createProject(packageRoots: packageRoots);
+    await driver.createProject(packageRoots: packageRoots);
 
     newPubspecYamlFile(projectPath, '');
     newDotPackagesFile(projectPath, content: '''

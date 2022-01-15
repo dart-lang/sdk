@@ -22,9 +22,9 @@ class OrganizeDirectivesTest extends AbstractAnalysisTest {
   late SourceFileEdit fileEdit;
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     handler = EditDomainHandler(server);
   }
 

@@ -138,7 +138,7 @@ class AnalysisServer {
       }
     });
 
-    _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
+    await _sendCommand('analysis.setAnalysisRoots', params: <String, dynamic>{
       'included': analysisRootPaths,
       'excluded': <String>[]
     });

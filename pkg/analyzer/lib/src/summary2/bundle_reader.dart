@@ -593,6 +593,7 @@ class LibraryReader {
       offset: resolutionOffset,
     );
     element.setLinkedData(reference, linkedData);
+    EnumElementFlags.read(_reader, element);
 
     element.typeParameters = _readTypeParameters();
 

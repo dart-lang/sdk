@@ -13,7 +13,10 @@ environment:
 
 dependencies:
   meta: any
+  smith: any
 
 dependency_overrides:
  meta:
   path: ../meta
+ smith:
+  path: ../smith

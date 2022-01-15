@@ -37,7 +37,7 @@ import '../../other/b.dart';
 
 var b = B();
 ''');
-    createProject();
+    await createProject();
 
     // b.dart does not exist, and `B` is unresolved.
     await waitForTasksFinished();
@@ -50,7 +50,7 @@ var b = B();
     newFile(b, content: 'class B {}');
 
     // Reanalyze.
-    server.reanalyze();
+    await server.reanalyze();
     await waitForTasksFinished();
 
     // No errors.

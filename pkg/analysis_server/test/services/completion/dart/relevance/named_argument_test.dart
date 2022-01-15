@@ -17,8 +17,8 @@ void main() {
 @reflectiveTest
 class NamedArgumentTest extends CompletionRelevanceTest {
   @override
-  void setUp() {
-    super.setUp();
+  Future<void> setUp() async {
+    await super.setUp();
 
     var metaLibFolder = MockPackages.instance.addMeta(resourceProvider);
 

@@ -38,7 +38,7 @@ class FlutterBase extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
     projectPath = convertPath('/home');
     testFile = convertPath('/home/test/lib/test.dart');
@@ -50,7 +50,7 @@ test:${toUri('/home/test/lib')}
 
     _addFlutterPackage();
 
-    createProject();
+    await createProject();
     handler = server.handlers.whereType<FlutterDomainHandler>().single;
   }
 

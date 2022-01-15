@@ -120,12 +120,11 @@ abstract class AbstractClient {
 
   /// Create a project at [projectPath].
   @mustCallSuper
-  void createProject({Map<String, String>? packageRoots}) {
+  Future<void> createProject({Map<String, String>? packageRoots}) async {
     newFolder(projectPath);
-    var request = AnalysisSetAnalysisRootsParams([projectPath], [],
-            packageRoots: packageRoots)
-        .toRequest('0');
-    handleSuccessfulRequest(request, handler: analysisHandler);
+
+    await setRoots(
+        included: [projectPath], excluded: [], packageRoots: packageRoots);
   }
 
   void expect(actual, matcher, {String reason});
@@ -143,6 +142,19 @@ abstract class AbstractClient {
   Folder newFolder(String path);
 
   void processNotification(Notification notification);
+
+  Future<Response> setRoots({
+    required List<String> included,
+    required List<String> excluded,
+    Map<String, String>? packageRoots,
+  }) async {
+    var request = AnalysisSetAnalysisRootsParams(included, excluded,
+            packageRoots: packageRoots)
+        .toRequest('0');
+    var response = await waitResponse(request);
+    expect(response, isResponseSuccess(request.id));
+    return response;
+  }
 
   /// Returns a [Future] that completes when the server's analysis is complete.
   Future waitForTasksFinished() => server.onAnalysisComplete;

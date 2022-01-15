@@ -72,7 +72,7 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
     projectPath = convertPath('/home');
     testFile = convertPath('/home/test/lib/test.dart');
@@ -82,7 +82,7 @@ class AvailableSuggestionsBase extends AbstractAnalysisTest {
 test:${toUri('/home/test/lib')}
 ''');
 
-    createProject();
+    await createProject();
     handler = server.handlers.whereType<CompletionDomainHandler>().single;
     _setCompletionSubscriptions([CompletionService.AVAILABLE_SUGGESTION_SETS]);
   }

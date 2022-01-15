@@ -51,9 +51,9 @@ main async() {}
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
   }
 
   void subscribeForFolding() {

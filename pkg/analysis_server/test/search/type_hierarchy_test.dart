@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,10 +22,11 @@ class GetTypeHierarchyTest extends AbstractAnalysisTest {
   static const String requestId = 'test-getTypeHierarchy';
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     server.handlers = [
+      AnalysisDomainHandler(server),
       SearchDomainHandler(server),
     ];
   }
@@ -183,9 +185,8 @@ class C extends A {}
 ''');
     await waitForTasksFinished();
     // configure roots
-    var request = AnalysisSetAnalysisRootsParams(
-        [projectPath, convertPath('/packages/pkgA')], []).toRequest('0');
-    handleSuccessfulRequest(request);
+    await setRoots(
+        included: [projectPath, convertPath('/packages/pkgA')], excluded: []);
     // test A type hierarchy
     var items = await _getTypeHierarchy('A {}');
     var names = _toClassNames(items);

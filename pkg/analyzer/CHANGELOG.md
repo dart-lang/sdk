@@ -1,3 +1,6 @@
+## 3.2.0-dev
+* Deprecated `changes` getter in `File` and `Folder`, use `watch()` instead.
+
 ## 3.1.0
 * New internal API for `package:dart_style`.
 * Removed deprecated non-API `MockSdk` class.

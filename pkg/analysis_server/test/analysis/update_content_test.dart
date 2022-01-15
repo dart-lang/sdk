@@ -41,10 +41,10 @@ class UpdateContentTest extends AbstractAnalysisTest {
     }
   }
 
-  void test_illegal_ChangeContentOverlay() {
+  void test_illegal_ChangeContentOverlay() async {
     // It should be illegal to send a ChangeContentOverlay for a file that
     // doesn't have an overlay yet.
-    createProject();
+    await createProject();
     addTestFile('library foo;');
     var id = 'myId';
     try {
@@ -95,10 +95,7 @@ main() { f(); }''').path;
 library baz;
 f(int i) {}
 ''').path;
-    var request =
-        AnalysisSetAnalysisRootsParams([project1path, project2path], [])
-            .toRequest('0');
-    handleSuccessfulRequest(request);
+    await setRoots(included: [project1path, project2path], excluded: []);
     {
       await server.onAnalysisComplete;
       // Files foo.dart and bar.dart should both have errors, since they both
@@ -126,8 +123,7 @@ f() {}
   Future<void> test_overlay_addPreviouslyImported() async {
     // The list of errors doesn't include errors for '/project/target.dart'.
     var project = newFolder('/project');
-    handleSuccessfulRequest(
-        AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
+    await setRoots(included: [project.path], excluded: []);
 
     server.updateContent('1',
         {'/project/main.dart': AddContentOverlay('import "target.dart";')});
@@ -153,10 +149,7 @@ f() {}
     var folderPath1 = newFolder('/User/project1').path;
     var folderPath2 = newFolder('/User/project2').path;
 
-    handleSuccessfulRequest(AnalysisSetAnalysisRootsParams(
-      [folderPath1, folderPath2],
-      [],
-    ).toRequest('0'));
+    await setRoots(included: [folderPath1, folderPath2], excluded: []);
 
     // exactly 2 contexts
     expect(server.driverMap, hasLength(2));
@@ -184,7 +177,7 @@ f() {}
   Future<void> test_sendNoticesAfterNopChange() async {
     // The errors are empty on the last line.
     addTestFile('');
-    createProject();
+    await createProject();
     await server.onAnalysisComplete;
     // add an overlay
     server.updateContent(
@@ -204,7 +197,7 @@ f() {}
   Future<void> test_sendNoticesAfterNopChange_flushedUnit() async {
     // The list of errors is empty on the last line.
     addTestFile('');
-    createProject();
+    await createProject();
     await server.onAnalysisComplete;
     // add an overlay
     server.updateContent(

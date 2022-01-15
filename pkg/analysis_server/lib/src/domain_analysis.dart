@@ -279,9 +279,11 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
         getSignature(request);
         return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_REANALYZE) {
-        return reanalyze(request);
+        reanalyze(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS) {
-        return setAnalysisRoots(request);
+        setAnalysisRoots(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_REQUEST_SET_GENERAL_SUBSCRIPTIONS) {
         return setGeneralSubscriptions(request);
       } else if (requestName == ANALYSIS_REQUEST_SET_PRIORITY_FILES) {
@@ -300,10 +302,10 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
   }
 
   /// Implement the 'analysis.reanalyze' request.
-  Response reanalyze(Request request) {
+  void reanalyze(Request request) async {
     server.options.analytics?.sendEvent('analysis', 'reanalyze');
 
-    server.reanalyze();
+    await server.reanalyze();
 
     //
     // Restart all of the plugins. This is an async operation that will happen
@@ -313,11 +315,11 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     //
     // Send the response.
     //
-    return AnalysisReanalyzeResult().toResponse(request.id);
+    server.sendResponse(AnalysisReanalyzeResult().toResponse(request.id));
   }
 
   /// Implement the 'analysis.setAnalysisRoots' request.
-  Response setAnalysisRoots(Request request) {
+  void setAnalysisRoots(Request request) async {
     var params = AnalysisSetAnalysisRootsParams.fromRequest(request);
     var includedPathList = params.included;
     var excludedPathList = params.excluded;
@@ -328,12 +330,14 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     // validate
     for (var path in includedPathList) {
       if (!server.isValidFilePath(path)) {
-        return Response.invalidFilePathFormat(request, path);
+        server.sendResponse(Response.invalidFilePathFormat(request, path));
+        return;
       }
     }
     for (var path in excludedPathList) {
       if (!server.isValidFilePath(path)) {
-        return Response.invalidFilePathFormat(request, path);
+        server.sendResponse(Response.invalidFilePathFormat(request, path));
+        return;
       }
     }
 
@@ -343,9 +347,11 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
       detachableFileSystemManager
           .setAnalysisRoots(request.id, includedPathList, excludedPathList, {});
     } else {
-      server.setAnalysisRoots(request.id, includedPathList, excludedPathList);
+      await server.setAnalysisRoots(
+          request.id, includedPathList, excludedPathList);
     }
-    return AnalysisSetAnalysisRootsResult().toResponse(request.id);
+    return server
+        .sendResponse(AnalysisSetAnalysisRootsResult().toResponse(request.id));
   }
 
   /// Implement the 'analysis.setGeneralSubscriptions' request.

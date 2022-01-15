@@ -12,7 +12,13 @@ export 'package:analyzer/src/file_system/file_system.dart';
 
 /// [File]s are leaf [Resource]s which contain data.
 abstract class File implements Resource {
-  /// Watch for changes to this file
+  /// Watch for changes to this file.
+  ///
+  /// File watchers are initialized asynchronously so modifications made for a
+  /// short period after calling this getter may be lost. Use [watch()] to
+  /// obtain the stream in a [Future] that completes once initialization is
+  /// complete.
+  @Deprecated('Use watch() instead')
   Stream<WatchEvent> get changes;
 
   /// Synchronously get the length of the file.
@@ -47,6 +53,11 @@ abstract class File implements Resource {
   /// an exception is thrown.
   File renameSync(String newPath);
 
+  /// Watch for changes to the files inside this folder (and in any nested
+  /// folders, including folders reachable via links).
+  @override
+  ResourceWatcher watch();
+
   /// Synchronously write the given [bytes] to the file. The new content will
   /// replace any existing content.
   ///
@@ -75,6 +86,12 @@ class FileSystemException implements Exception {
 abstract class Folder implements Resource {
   /// Watch for changes to the files inside this folder (and in any nested
   /// folders, including folders reachable via links).
+  ///
+  /// File watchers are initialized asynchronously so modifications made for a
+  /// short period after calling this getter may be lost. Use [watch()] to
+  /// obtain the stream in a [Future] that completes once initialization is
+  /// complete.
+  @Deprecated('Use watch() instead')
   Stream<WatchEvent> get changes;
 
   /// Return `true` if this folder is a file system root.
@@ -120,6 +137,11 @@ abstract class Folder implements Resource {
   ///
   /// On I/O errors, this will throw [FileSystemException].
   List<Resource> getChildren();
+
+  /// Watch for changes to the files inside this folder (and in any nested
+  /// folders, including folders reachable via links).
+  @override
+  ResourceWatcher watch();
 }
 
 /// The abstract class [Resource] is an abstraction of file or folder.
@@ -169,6 +191,9 @@ abstract class Resource {
 
   /// Return a Uri representing this resource.
   Uri toUri();
+
+  /// Watch for changes to this resource.
+  ResourceWatcher watch();
 }
 
 /// Instances of the class [ResourceProvider] convert [String] paths into
@@ -203,6 +228,24 @@ abstract class ResourceProvider {
   /// assuming that the plugin ids are unique. The plugin ids must be valid
   /// folder names.
   Folder? getStateLocation(String pluginId);
+}
+
+/// Abstraction over a [Watcher] that has a [Future] to indicate when the
+/// watcher is ready.
+///
+/// The [ready] event will not fire until a listener has been set up on
+/// [changes] and the watcher initialization is complete.
+class ResourceWatcher {
+  final Stream<WatchEvent> changes;
+
+  /// An event that fires when the watcher is fully initialized and ready to
+  /// produce events.
+  ///
+  /// This event will not fire until a listener has been set up on [changes] and
+  /// the watcher initialization is complete.
+  final Future<void> ready;
+
+  ResourceWatcher(this.changes, this.ready);
 }
 
 extension FolderExtension on Folder {

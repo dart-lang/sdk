@@ -29,7 +29,7 @@ class AnalysisHoverBazelTest extends AbstractAnalysisTest {
       content: '// generated',
     );
 
-    createProject();
+    await createProject();
 
     addTestFile('''
 class A {}
@@ -62,9 +62,9 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
   }
 
   Future<void> test_class_declaration() async {

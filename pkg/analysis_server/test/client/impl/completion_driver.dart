@@ -108,8 +108,8 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   }
 
   @override
-  void createProject({Map<String, String>? packageRoots}) {
-    super.createProject(packageRoots: packageRoots);
+  Future<void> createProject({Map<String, String>? packageRoots}) async {
+    await super.createProject(packageRoots: packageRoots);
     if (supportsAvailableSuggestions) {
       var request = CompletionSetSubscriptionsParams(
           [CompletionService.AVAILABLE_SUGGESTION_SETS]).toRequest('0');
