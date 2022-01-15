@@ -666,6 +666,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitFieldFormalParameter(FieldFormalParameter node) {
+    var element = node.declaredElement;
+    if (element is FieldFormalParameterElement) {
+      var field = element.field;
+      if (field != null) {
+        recordRelation(
+            field, IndexRelationKind.IS_WRITTEN_BY, node.identifier, true);
+      }
+    }
+
+    return super.visitFieldFormalParameter(node);
+  }
+
+  @override
   void visitImplementsClause(ImplementsClause node) {
     for (NamedType namedType in node.interfaces2) {
       recordSuperType(namedType, IndexRelationKind.IS_IMPLEMENTED_BY);

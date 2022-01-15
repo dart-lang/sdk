@@ -1840,15 +1840,7 @@ class A {
     expect(p.declaredElement, same(pElement));
 
     expect(p.identifier.staticElement, same(pElement));
-    assertType(p.identifier.staticType, 'String Function(int)');
-
-    {
-      var type = p.identifier.staticType as FunctionType;
-      expect(type.returnType, typeProvider.stringType);
-
-      expect(type.parameters, hasLength(1));
-      expect(type.parameters[0].type, typeProvider.intType);
-    }
+    assertTypeNull(p.identifier);
 
     _assertNamedTypeSimple(p.type!, typeProvider.stringType);
 
@@ -1886,7 +1878,7 @@ class A {
     expect(parameterNode.declaredElement, same(parameterElement));
 
     expect(parameterNode.identifier.staticElement, same(parameterElement));
-    expect(parameterNode.identifier.staticType, typeProvider.intType);
+    assertTypeNull(parameterNode.identifier);
   }
 
   test_formalParameter_simple_fieldFormal_typed() async {
@@ -1916,7 +1908,7 @@ class A {
     expect(parameterNode.declaredElement, same(parameterElement));
 
     expect(parameterNode.identifier.staticElement, same(parameterElement));
-    expect(parameterNode.identifier.staticType, typeProvider.intType);
+    assertTypeNull(parameterNode.identifier);
   }
 
   test_forwardingStub_class() async {
