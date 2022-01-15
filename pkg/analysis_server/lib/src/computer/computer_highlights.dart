@@ -261,11 +261,6 @@ class DartUnitHighlightsComputer {
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
-    if (element is FieldFormalParameterElement) {
-      if (node.parent is FieldFormalParameter) {
-        element = element.field;
-      }
-    }
     // prepare type
     HighlightRegionType? type;
     if (element is FieldElement) {
@@ -790,6 +785,18 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     computer._addRegion_token(
         node.requiredKeyword, HighlightRegionType.KEYWORD);
+
+    var element = node.declaredElement;
+    if (element is FieldFormalParameterElement) {
+      var field = element.field;
+      if (field != null) {
+        computer._addRegion_node(
+          node.identifier,
+          HighlightRegionType.INSTANCE_FIELD_REFERENCE,
+        );
+      }
+    }
+
     super.visitFieldFormalParameter(node);
   }
 

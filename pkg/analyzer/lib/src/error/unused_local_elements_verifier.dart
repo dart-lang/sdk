@@ -192,10 +192,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    // TODO(scheglov) Remove after https://dart-review.googlesource.com/c/sdk/+/226960
-    if (node.parent is FieldFormalParameter) {
-      return;
-    }
     if (node.inDeclarationContext()) {
       return;
     }

@@ -31,6 +31,22 @@ extension SimpleFormalParameterExtension on CheckTarget<SimpleFormalParameter> {
   }
 }
 
+extension SimpleIdentifierExtension on CheckTarget<SimpleIdentifier> {
+  CheckTarget<bool> get inDeclarationContext {
+    return nest(
+      value.inDeclarationContext(),
+      (selected) => 'has inDeclarationContext() ${valueStr(selected)}',
+    );
+  }
+
+  CheckTarget<String> get name {
+    return nest(
+      value.name,
+      (selected) => 'has name ${valueStr(selected)}',
+    );
+  }
+}
+
 extension SuperFormalParameterExtension on CheckTarget<SuperFormalParameter> {
   CheckTarget<SimpleIdentifier> get identifier {
     return nest(

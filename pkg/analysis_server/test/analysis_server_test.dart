@@ -111,9 +111,10 @@ class AnalysisServerTest with ResourceProviderMixin {
   Future test_concurrentContextRebuilds() async {
     // Subscribe to STATUS so we'll know when analysis is done.
     server.serverServices = {ServerService.STATUS};
-    final projectRoot = '/foo';
-    final projectTestFile = '/foo/test.dart';
-    final projectPackageConfigFile = '/foo/.dart_tool/package_config.json';
+    final projectRoot = convertPath('/foo');
+    final projectTestFile = convertPath('/foo/test.dart');
+    final projectPackageConfigFile =
+        convertPath('/foo/.dart_tool/package_config.json');
 
     // Create a file that references two packages, which will we write to
     // package_config.json individually.
