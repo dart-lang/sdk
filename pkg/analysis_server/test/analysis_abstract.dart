@@ -180,9 +180,11 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     required List<String> excluded,
     bool validateSuccessResponse = true,
   }) async {
-    var request =
-        AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: {})
-            .toRequest('0');
+    var request = AnalysisSetAnalysisRootsParams(
+      included.map(convertPath).toList(),
+      excluded.map(convertPath).toList(),
+      packageRoots: {},
+    ).toRequest('0');
     var response = await waitResponse(request);
     if (validateSuccessResponse) {
       expect(response, isResponseSuccess(request.id));
