@@ -17582,6 +17582,98 @@ library
 ''');
   }
 
+  test_enum_method() async {
+    var library = await checkLibrary(r'''
+enum E<T> {
+  v;
+  int foo<U>(T t, U u) => 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          synthetic final index @-1
+            type: int
+          static const enumConstant v @14
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 0 @0
+                      staticType: int
+                    SimpleStringLiteral
+                      literal: 'v' @0
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: ConstructorMember
+                      base: self::@enum::E::@constructor::_
+                      substitution: {T: dynamic}
+                    staticType: null
+                    token: _ @-1
+                  period: . @0
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::_
+                    substitution: {T: dynamic}
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<dynamic>
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+        constructors
+          synthetic const _ @-1
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional name @-1
+                type: String
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+        methods
+          foo @23
+            typeParameters
+              covariant U @27
+            parameters
+              requiredPositional t @32
+                type: T
+              requiredPositional u @37
+                type: U
+            returnType: int
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
   test_enum_typeParameters() async {
     var library = await checkLibrary('''
 enum E<T> {
@@ -28637,6 +28729,107 @@ library
     accessors
       synthetic static get a @-1
         returnType: dynamic
+''');
+  }
+
+  test_metadata_typeParameter_ofEnum() async {
+    var library = await checkLibrary('''
+const a = 42;
+enum E<@a T> {
+  v
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @19
+        typeParameters
+          covariant T @24
+            defaultType: dynamic
+            metadata
+              Annotation
+                atSign: @ @21
+                element: <null>
+                name: SimpleIdentifier
+                  staticElement: <null>
+                  staticType: null
+                  token: a @22
+        supertype: Enum
+        fields
+          synthetic final index @-1
+            type: int
+          static const enumConstant v @31
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 0 @0
+                      staticType: int
+                    SimpleStringLiteral
+                      literal: 'v' @0
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: ConstructorMember
+                      base: self::@enum::E::@constructor::_
+                      substitution: {T: dynamic}
+                    staticType: null
+                    token: _ @-1
+                  period: . @0
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::_
+                    substitution: {T: dynamic}
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<dynamic>
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+        constructors
+          synthetic const _ @-1
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional name @-1
+                type: String
+        accessors
+          synthetic get index @-1
+            returnType: int
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+        methods
+          synthetic toString @-1
+            returnType: String
+    topLevelVariables
+      static const a @6
+        type: int
+        constantInitializer
+          IntegerLiteral
+            literal: 42 @10
+            staticType: int
+    accessors
+      synthetic static get a @-1
+        returnType: int
 ''');
   }
 

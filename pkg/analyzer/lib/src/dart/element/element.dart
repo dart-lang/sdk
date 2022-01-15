@@ -2667,7 +2667,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<PropertyAccessorElement> get accessors {
-    linkedData?.read(this);
     return _accessors;
   }
 
@@ -2677,10 +2676,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   List<FieldElement> get constants {
     return fields.where((field) => !field.isSynthetic).toList();
-  }
-
-  List<FieldElement> get constants_unresolved {
-    return _fields.where((field) => !field.isSynthetic).toList();
   }
 
   @override
@@ -2697,7 +2692,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<FieldElement> get fields {
-    linkedData?.read(this);
     return _fields;
   }
 
@@ -2736,7 +2730,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   List<MethodElement> get methods {
-    linkedData?.read(this);
     return _methods;
   }
 
