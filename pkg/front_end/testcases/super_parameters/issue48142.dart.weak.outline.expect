@@ -1,0 +1,41 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class S1 extends core::Object {
+  field core::int s1;
+  field core::int s2;
+  constructor •(core::int s1, [core::int s2 = 42]) → self::S1
+    ;
+}
+class C1 extends self::S1 {
+  field core::int i1;
+  field core::int i2;
+  constructor •(core::int i1, core::int s1, core::int x, [core::int s2 = 42]) → self::C1
+    : self::C1::i1 = i1
+    ;
+}
+class S2 extends core::Object {
+  constructor •({core::String one = "1", core::bool two = false, core::int three = 3, core::double four = 4.0, core::num five = 3.14, core::List<core::String> six = const <core::String>["six"]}) → self::S2
+    ;
+}
+class C21 extends self::S2 {
+  constructor •({dynamic foo, core::String one = "1", dynamic bar, dynamic baz, core::int three = 3, core::num five = 3.14}) → self::C21
+    ;
+}
+class C22 extends self::S2 {
+  constructor •({dynamic foo, core::List<core::String> six = const <core::String>["six"], dynamic bar, dynamic baz, core::double four = 4.0, core::bool two = false}) → self::C22
+    ;
+}
+class C23 extends self::S2 {
+  constructor •({core::int three = 3, dynamic foo, core::String one = "1", core::double four = 4.0, dynamic bar, core::bool two = false, dynamic baz}) → self::C23
+    ;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48142.dart:19:43 -> ListConstant(const <String*>["six"])
+Evaluated: ListLiteral @ org-dartlang-testcase:///issue48142.dart:28:27 -> ListConstant(const <String*>["six"])
+Extra constant evaluation: evaluated: 3, effectively constant: 2

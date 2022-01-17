@@ -110,16 +110,13 @@ class SynthesizedFunctionNode {
           _synthesized.positionalParameters.length ==
               _original.positionalParameters.length);
       List<int>? positionalSuperParameters = _positionalSuperParameters;
-      int superParameterIndex = 0;
       for (int i = 0; i < _original.positionalParameters.length; i++) {
         if (positionalSuperParameters == null) {
           cloneInitializer(_original.positionalParameters[i],
               _synthesized.positionalParameters[i]);
-        } else if (superParameterIndex < positionalSuperParameters.length &&
-            positionalSuperParameters[superParameterIndex] == i) {
+        } else if (i < positionalSuperParameters.length) {
           cloneInitializer(_original.positionalParameters[i],
-              _synthesized.positionalParameters[superParameterIndex]);
-          superParameterIndex++;
+              _synthesized.positionalParameters[positionalSuperParameters[i]]);
         }
       }
 
@@ -127,18 +124,30 @@ class SynthesizedFunctionNode {
           _synthesized.namedParameters.length ==
               _original.namedParameters.length);
       List<String>? namedSuperParameters = _namedSuperParameters;
-      superParameterIndex = 0;
+      int superParameterNameIndex = 0;
+      Map<String, int> originalNamedParameterIndices = {};
       for (int i = 0; i < _original.namedParameters.length; i++) {
+        originalNamedParameterIndices[_original.namedParameters[i].name!] = i;
+      }
+      for (int i = 0; i < _synthesized.namedParameters.length; i++) {
         if (namedSuperParameters == null) {
           cloneInitializer(
               _original.namedParameters[i], _synthesized.namedParameters[i]);
-        } else if (superParameterIndex < namedSuperParameters.length &&
-            namedSuperParameters[superParameterIndex] ==
-                _original.namedParameters[i].name) {
-          // TODO(cstefantsova): Handle the erroneous case of missing names.
-          cloneInitializer(_original.namedParameters[i],
-              _synthesized.namedParameters[superParameterIndex]);
-          superParameterIndex++;
+        } else if (superParameterNameIndex < namedSuperParameters.length &&
+            namedSuperParameters[superParameterNameIndex] ==
+                _synthesized.namedParameters[i].name) {
+          String superParameterName =
+              namedSuperParameters[superParameterNameIndex];
+          int? originalNamedParameterIndex =
+              originalNamedParameterIndices[superParameterName];
+          if (originalNamedParameterIndex != null) {
+            cloneInitializer(
+                _original.namedParameters[originalNamedParameterIndex],
+                _synthesized.namedParameters[i]);
+          } else {
+            // TODO(cstefantsova): Handle the erroneous case of missing names.
+          }
+          superParameterNameIndex++;
         }
       }
     } else {
