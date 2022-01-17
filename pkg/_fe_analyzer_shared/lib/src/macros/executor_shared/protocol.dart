@@ -369,7 +369,7 @@ class ClientStaticTypeImpl implements StaticType {
 
 /// TODO: Implement this
 class ClientClassIntrospector implements ClassIntrospector {
-  /// The actual remote instance of this type resolver.
+  /// The actual remote instance of this class introspector.
   final RemoteInstanceImpl remoteInstance;
 
   /// The ID of the zone in which to find the original type resolver.
