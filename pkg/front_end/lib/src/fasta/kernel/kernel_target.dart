@@ -81,6 +81,7 @@ import 'constant_evaluator.dart' as constants
         ConstantEvaluationData;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
+import 'macro.dart';
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget extends TargetImplementation {
@@ -102,7 +103,7 @@ class KernelTarget extends TargetImplementation {
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final TypeBuilder dynamicType = new NamedTypeBuilder(
       "dynamic",
-      const NullabilityBuilder.nullable(),
+      const NullabilityBuilder.inherent(),
       /* arguments = */ null,
       /* fileUri = */ null,
       /* charOffset = */ null,
@@ -121,7 +122,7 @@ class KernelTarget extends TargetImplementation {
   //  have NullType?
   final TypeBuilder nullType = new NamedTypeBuilder(
       "Null",
-      const NullabilityBuilder.nullable(),
+      const NullabilityBuilder.inherent(),
       /* arguments = */ null,
       /* fileUri = */ null,
       /* charOffset = */ null,
@@ -373,20 +374,26 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInTypeBuilder = null;
   }
 
-  Future<Component?> buildOutlines({CanonicalName? nameRoot}) async {
-    if (loader.first == null) return null;
-    return withCrashReporting<Component?>(() async {
+  Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
+    if (loader.first == null) return new BuildResult();
+    return withCrashReporting<BuildResult>(() async {
       await loader.buildOutlines();
       loader.coreLibrary.becomeCoreLibrary();
       loader.resolveParts();
       loader.computeMacroDeclarations();
       loader.computeLibraryScopes();
-      await loader.computeMacroApplications();
+      MacroApplications? macroApplications =
+          await loader.computeMacroApplications();
       setupTopAndBottomTypes();
       loader.resolveTypes();
       loader.computeVariances();
       loader.computeDefaultTypes(
           dynamicType, nullType, bottomType, objectClassBuilder);
+      // TODO(johnniwinther): Enable this when supported in the isolate-based
+      //  macro executor.
+      /*if (macroApplications != null) {
+        await macroApplications.applyTypeMacros();
+      }*/
       List<SourceClassBuilder> sourceClassBuilders =
           loader.checkSemantics(objectClassBuilder);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
@@ -399,6 +406,12 @@ class KernelTarget extends TargetImplementation {
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();
       loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
+      // TODO(johnniwinther): Enable this when supported in the isolate-based
+      //  macro executor.
+      /*if (macroApplications != null) {
+        await macroApplications.applyDeclarationMacros();
+      }*/
+      loader.buildClassHierarchyMembers(sourceClassBuilders);
       loader.computeHierarchy();
       loader.computeShowHideElements();
       loader.installTypedefTearOffs();
@@ -416,7 +429,8 @@ class KernelTarget extends TargetImplementation {
       loader.checkMainMethods();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
-      return component;
+      return new BuildResult(
+          component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
   }
 
@@ -428,15 +442,22 @@ class KernelTarget extends TargetImplementation {
   ///
   /// If [verify], run the default kernel verification on the resulting
   /// component.
-  Future<Component?> buildComponent({bool verify: false}) async {
-    if (loader.first == null) return null;
-    return withCrashReporting<Component?>(() async {
+  Future<BuildResult> buildComponent(
+      {required MacroApplications? macroApplications,
+      bool verify: false}) async {
+    if (loader.first == null) {
+      return new BuildResult(macroApplications: macroApplications);
+    }
+    return withCrashReporting<BuildResult>(() async {
       ticker.logMs("Building component");
       await loader.buildBodies();
       finishSynthesizedParameters();
       loader.finishDeferredLoadTearoffs();
       loader.finishNoSuchMethodForwarders();
       List<SourceClassBuilder> sourceClasses = loader.collectSourceClasses();
+      if (macroApplications != null) {
+        await macroApplications.applyDefinitionMacros();
+      }
       loader.finishNativeMethods();
       loader.finishPatchMethods();
       finishAllConstructors(sourceClasses);
@@ -444,7 +465,8 @@ class KernelTarget extends TargetImplementation {
 
       if (verify) this.verify();
       installAllComponentProblems(loader.allComponentProblems);
-      return component;
+      return new BuildResult(
+          component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
   }
 
@@ -1528,4 +1550,11 @@ class KernelDiagnosticReporter
       {List<LocatedMessage>? context}) {
     loader.addProblem(message, charOffset, noLength, fileUri, context: context);
   }
+}
+
+class BuildResult {
+  final Component? component;
+  final MacroApplications? macroApplications;
+
+  BuildResult({this.component, this.macroApplications});
 }

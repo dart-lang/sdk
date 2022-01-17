@@ -8,6 +8,8 @@ import 'dart:collection' show Queue;
 import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/macros/executor.dart'
+    show MacroExecutor;
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -44,7 +46,6 @@ import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/procedure_builder.dart';
@@ -1426,23 +1427,10 @@ severity: $severity
     }
   }
 
-  Future<void> computeMacroApplications() async {
-    if (!enableMacros || _macroClassBuilder == null) return;
+  Future<MacroApplications?> computeMacroApplications() async {
+    if (!enableMacros || _macroClassBuilder == null) return null;
 
-    MacroApplications? computeApplications(
-        SourceLibraryBuilder enclosingLibrary,
-        Scope scope,
-        Uri fileUri,
-        List<MetadataBuilder>? annotations) {
-      List<MacroApplication>? result = prebuildAnnotations(
-          enclosingLibrary: enclosingLibrary,
-          metadataBuilders: annotations,
-          fileUri: fileUri,
-          scope: scope);
-      return result != null ? new MacroApplications(result) : null;
-    }
-
-    MacroApplicationData macroApplicationData = new MacroApplicationData();
+    Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
     for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
       // TODO(johnniwinther): Handle patch libraries.
       LibraryMacroApplicationData libraryMacroApplicationData =
@@ -1454,28 +1442,28 @@ severity: $severity
           SourceClassBuilder classBuilder = builder;
           ClassMacroApplicationData classMacroApplicationData =
               new ClassMacroApplicationData();
-          classMacroApplicationData.classApplications = computeApplications(
-              libraryBuilder,
-              classBuilder.scope,
-              classBuilder.fileUri,
-              classBuilder.metadata);
+          classMacroApplicationData.classApplications = prebuildAnnotations(
+              enclosingLibrary: libraryBuilder,
+              scope: classBuilder.scope,
+              fileUri: classBuilder.fileUri,
+              metadataBuilders: classBuilder.metadata);
           builder.forEach((String name, Builder memberBuilder) {
             if (memberBuilder is SourceProcedureBuilder) {
-              MacroApplications? macroApplications = computeApplications(
-                  libraryBuilder,
-                  classBuilder.scope,
-                  memberBuilder.fileUri,
-                  memberBuilder.metadata);
+              List<MacroApplication>? macroApplications = prebuildAnnotations(
+                  enclosingLibrary: libraryBuilder,
+                  scope: classBuilder.scope,
+                  fileUri: memberBuilder.fileUri,
+                  metadataBuilders: memberBuilder.metadata);
               if (macroApplications != null) {
                 classMacroApplicationData.memberApplications[memberBuilder] =
                     macroApplications;
               }
             } else if (memberBuilder is SourceFieldBuilder) {
-              MacroApplications? macroApplications = computeApplications(
-                  libraryBuilder,
-                  classBuilder.scope,
-                  memberBuilder.fileUri,
-                  memberBuilder.metadata);
+              List<MacroApplication>? macroApplications = prebuildAnnotations(
+                  enclosingLibrary: libraryBuilder,
+                  scope: classBuilder.scope,
+                  fileUri: memberBuilder.fileUri,
+                  metadataBuilders: memberBuilder.metadata);
               if (macroApplications != null) {
                 classMacroApplicationData.memberApplications[memberBuilder] =
                     macroApplications;
@@ -1484,11 +1472,11 @@ severity: $severity
           });
           classBuilder.forEachConstructor((String name, Builder memberBuilder) {
             if (memberBuilder is DeclaredSourceConstructorBuilder) {
-              MacroApplications? macroApplications = computeApplications(
-                  libraryBuilder,
-                  classBuilder.scope,
-                  memberBuilder.fileUri,
-                  memberBuilder.metadata);
+              List<MacroApplication>? macroApplications = prebuildAnnotations(
+                  enclosingLibrary: libraryBuilder,
+                  scope: classBuilder.scope,
+                  fileUri: memberBuilder.fileUri,
+                  metadataBuilders: memberBuilder.metadata);
               if (macroApplications != null) {
                 classMacroApplicationData.memberApplications[memberBuilder] =
                     macroApplications;
@@ -1502,21 +1490,21 @@ severity: $severity
                 classMacroApplicationData;
           }
         } else if (builder is SourceProcedureBuilder) {
-          MacroApplications? macroApplications = computeApplications(
-              libraryBuilder,
-              libraryBuilder.scope,
-              builder.fileUri,
-              builder.metadata);
+          List<MacroApplication>? macroApplications = prebuildAnnotations(
+              enclosingLibrary: libraryBuilder,
+              scope: libraryBuilder.scope,
+              fileUri: builder.fileUri,
+              metadataBuilders: builder.metadata);
           if (macroApplications != null) {
             libraryMacroApplicationData.memberApplications[builder] =
                 macroApplications;
           }
         } else if (builder is SourceFieldBuilder) {
-          MacroApplications? macroApplications = computeApplications(
-              libraryBuilder,
-              libraryBuilder.scope,
-              builder.fileUri,
-              builder.metadata);
+          List<MacroApplication>? macroApplications = prebuildAnnotations(
+              enclosingLibrary: libraryBuilder,
+              scope: libraryBuilder.scope,
+              fileUri: builder.fileUri,
+              metadataBuilders: builder.metadata);
           if (macroApplications != null) {
             libraryMacroApplicationData.memberApplications[builder] =
                 macroApplications;
@@ -1525,18 +1513,21 @@ severity: $severity
       }
       if (libraryMacroApplicationData.classData.isNotEmpty ||
           libraryMacroApplicationData.memberApplications.isNotEmpty) {
-        macroApplicationData.libraryData[libraryBuilder] =
-            libraryMacroApplicationData;
-        if (retainDataForTesting) {
-          dataForTesting!.macroApplicationData.libraryData[libraryBuilder] =
-              libraryMacroApplicationData;
-        }
+        libraryData[libraryBuilder] = libraryMacroApplicationData;
       }
     }
-    if (macroApplicationData.libraryData.isNotEmpty) {
-      await macroApplicationData
-          .loadMacroIds(target.context.options.macroExecutorProvider);
+    if (libraryData.isNotEmpty) {
+      MacroExecutor macroExecutor =
+          await target.context.options.macroExecutorProvider();
+      Map<MacroClass, Uri> precompiledMacroUris =
+          target.context.options.precompiledMacroUris;
+      return await MacroApplications.loadMacroIds(
+          macroExecutor,
+          precompiledMacroUris,
+          libraryData,
+          dataForTesting?.macroApplicationData);
     }
+    return null;
   }
 
   void finishDeferredLoadTearoffs() {
@@ -2012,11 +2003,15 @@ severity: $severity
     ClassHierarchyBuilder hierarchyBuilder = _hierarchyBuilder =
         ClassHierarchyBuilder.build(
             objectClass, sourceClasses, this, coreTypes);
+    typeInferenceEngine.hierarchyBuilder = hierarchyBuilder;
+    ticker.logMs("Built class hierarchy");
+  }
+
+  void buildClassHierarchyMembers(List<SourceClassBuilder> sourceClasses) {
     ClassMembersBuilder membersBuilder = _membersBuilder =
         ClassMembersBuilder.build(hierarchyBuilder, sourceClasses);
-    typeInferenceEngine.hierarchyBuilder = hierarchyBuilder;
     typeInferenceEngine.membersBuilder = membersBuilder;
-    ticker.logMs("Built class hierarchy");
+    ticker.logMs("Built class hierarchy members");
   }
 
   void createTypeInferenceEngine() {
@@ -2558,7 +2553,8 @@ class SourceLoaderDataForTesting {
 
   final MacroDeclarationData macroDeclarationData = new MacroDeclarationData();
 
-  final MacroApplicationData macroApplicationData = new MacroApplicationData();
+  final MacroApplicationDataForTesting macroApplicationData =
+      new MacroApplicationDataForTesting();
 }
 
 class _SourceClassGraph implements Graph<SourceClassBuilder> {

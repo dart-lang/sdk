@@ -32,7 +32,8 @@ class NamedTypeAnnotationImpl extends TypeAnnotationImpl
         name,
         if (typeArguments.isNotEmpty) ...[
           '<',
-          for (TypeAnnotation arg in typeArguments) ...[arg, ','],
+          typeArguments.first,
+          for (TypeAnnotation arg in typeArguments.skip(1)) ...[', ', arg],
           '>',
         ],
         if (isNullable) '?',
@@ -79,10 +80,15 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
         'Function',
         if (typeParameters.isNotEmpty) ...[
           '<',
-          for (TypeParameterDeclaration arg in typeParameters) ...[
+          typeParameters.first.name,
+          if (typeParameters.first.bounds != null) ...[
+            ' extends ',
+            typeParameters.first.bounds!
+          ],
+          for (TypeParameterDeclaration arg in typeParameters.skip(1)) ...[
+            ', ',
             arg.name,
             if (arg.bounds != null) ...[' extends ', arg.bounds!],
-            ','
           ],
           '>',
         ],
@@ -158,7 +164,10 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
 }
 
 abstract class DeclarationImpl extends RemoteInstance implements Declaration {
-  DeclarationImpl(int id) : super(id);
+  final String name;
+
+  DeclarationImpl({required int id, required this.name}) : super(id);
+
   @override
   void serialize(Serializer serializer) {
     super.serialize(serializer);
@@ -173,9 +182,6 @@ abstract class DeclarationImpl extends RemoteInstance implements Declaration {
 
 class ParameterDeclarationImpl extends DeclarationImpl
     implements ParameterDeclaration {
-  @override
-  final String name;
-
   @override
   final Code? defaultValue;
 
@@ -193,12 +199,12 @@ class ParameterDeclarationImpl extends DeclarationImpl
 
   ParameterDeclarationImpl({
     required int id,
-    required this.name,
+    required String name,
     required this.defaultValue,
     required this.isNamed,
     required this.isRequired,
     required this.type,
-  }) : super(id);
+  }) : super(id: id, name: name);
 
   @override
   void serialize(Serializer serializer) {
@@ -222,17 +228,16 @@ class ParameterDeclarationImpl extends DeclarationImpl
 class TypeParameterDeclarationImpl extends DeclarationImpl
     implements TypeParameterDeclaration {
   @override
-  final String name;
-
-  @override
   final TypeAnnotationImpl? bounds;
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.typeParameterDeclaration;
 
-  TypeParameterDeclarationImpl(
-      {required int id, required this.name, required this.bounds})
-      : super(id);
+  TypeParameterDeclarationImpl({
+    required int id,
+    required String name,
+    required this.bounds,
+  }) : super(id: id, name: name);
 
   @override
   void serialize(Serializer serializer) {
@@ -253,9 +258,6 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
 
 class FunctionDeclarationImpl extends DeclarationImpl
     implements FunctionDeclaration {
-  @override
-  final String name;
-
   @override
   final bool isAbstract;
 
@@ -285,7 +287,7 @@ class FunctionDeclarationImpl extends DeclarationImpl
 
   FunctionDeclarationImpl({
     required int id,
-    required this.name,
+    required String name,
     required this.isAbstract,
     required this.isExternal,
     required this.isGetter,
@@ -294,7 +296,7 @@ class FunctionDeclarationImpl extends DeclarationImpl
     required this.positionalParameters,
     required this.returnType,
     required this.typeParameters,
-  }) : super(id);
+  }) : super(id: id, name: name);
 
   @override
   void serialize(Serializer serializer) {
@@ -326,5 +328,306 @@ class FunctionDeclarationImpl extends DeclarationImpl
       param.serialize(serializer);
     }
     serializer.endList();
+  }
+}
+
+class MethodDeclarationImpl extends FunctionDeclarationImpl
+    implements MethodDeclaration {
+  @override
+  final TypeAnnotationImpl definingClass;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.methodDeclaration;
+
+  MethodDeclarationImpl({
+    // Declaration fields
+    required int id,
+    required String name,
+    // Function fields
+    required bool isAbstract,
+    required bool isExternal,
+    required bool isGetter,
+    required bool isSetter,
+    required List<ParameterDeclarationImpl> namedParameters,
+    required List<ParameterDeclarationImpl> positionalParameters,
+    required TypeAnnotationImpl returnType,
+    required List<TypeParameterDeclarationImpl> typeParameters,
+    // Method fields
+    required this.definingClass,
+  }) : super(
+          id: id,
+          name: name,
+          isAbstract: isAbstract,
+          isExternal: isExternal,
+          isGetter: isGetter,
+          isSetter: isSetter,
+          namedParameters: namedParameters,
+          positionalParameters: positionalParameters,
+          returnType: returnType,
+          typeParameters: typeParameters,
+        );
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode == SerializationMode.client) {
+      return;
+    }
+
+    definingClass.serialize(serializer);
+  }
+}
+
+class ConstructorDeclarationImpl extends MethodDeclarationImpl
+    implements ConstructorDeclaration {
+  @override
+  final bool isFactory;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.constructorDeclaration;
+
+  ConstructorDeclarationImpl({
+    // Declaration fields
+    required int id,
+    required String name,
+    // Function fields
+    required bool isAbstract,
+    required bool isExternal,
+    required bool isGetter,
+    required bool isSetter,
+    required List<ParameterDeclarationImpl> namedParameters,
+    required List<ParameterDeclarationImpl> positionalParameters,
+    required TypeAnnotationImpl returnType,
+    required List<TypeParameterDeclarationImpl> typeParameters,
+    // Method fields
+    required TypeAnnotationImpl definingClass,
+    // Constructor fields
+    required this.isFactory,
+  }) : super(
+          id: id,
+          name: name,
+          isAbstract: isAbstract,
+          isExternal: isExternal,
+          isGetter: isGetter,
+          isSetter: isSetter,
+          namedParameters: namedParameters,
+          positionalParameters: positionalParameters,
+          returnType: returnType,
+          typeParameters: typeParameters,
+          definingClass: definingClass,
+        );
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode == SerializationMode.client) {
+      return;
+    }
+
+    serializer.addBool(isFactory);
+  }
+}
+
+class VariableDeclarationImpl extends DeclarationImpl
+    implements VariableDeclaration {
+  @override
+  final Code? initializer;
+
+  @override
+  final bool isAbstract;
+
+  @override
+  final bool isExternal;
+
+  @override
+  final TypeAnnotationImpl type;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.variableDeclaration;
+
+  VariableDeclarationImpl({
+    required int id,
+    required String name,
+    required this.initializer,
+    required this.isAbstract,
+    required this.isExternal,
+    required this.type,
+  }) : super(id: id, name: name);
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode == SerializationMode.client) {
+      return;
+    }
+
+    initializer.serializeNullable(serializer);
+    serializer
+      ..addBool(isAbstract)
+      ..addBool(isExternal);
+    type.serialize(serializer);
+  }
+}
+
+class FieldDeclarationImpl extends VariableDeclarationImpl
+    implements FieldDeclaration {
+  @override
+  final TypeAnnotationImpl definingClass;
+
+  FieldDeclarationImpl({
+    // Declaration fields
+    required int id,
+    required String name,
+    // Variable fields
+    required Code? initializer,
+    required bool isAbstract,
+    required bool isExternal,
+    required TypeAnnotationImpl type,
+    // Field fields
+    required this.definingClass,
+  }) : super(
+            id: id,
+            name: name,
+            initializer: initializer,
+            isAbstract: isAbstract,
+            isExternal: isExternal,
+            type: type);
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.fieldDeclaration;
+
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode == SerializationMode.client) {
+      return;
+    }
+
+    definingClass.serialize(serializer);
+  }
+}
+
+abstract class TypeDeclarationImpl extends DeclarationImpl
+    implements TypeDeclaration {
+  @override
+  final List<TypeParameterDeclarationImpl> typeParameters;
+
+  TypeDeclarationImpl({
+    required int id,
+    required String name,
+    required this.typeParameters,
+  }) : super(id: id, name: name);
+
+  @override
+  Future<StaticType> instantiate(
+      {required List<StaticType> typeArguments, required bool isNullable}) {
+    // TODO: implement instantiate
+    throw new UnimplementedError('instantiate');
+  }
+
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode == SerializationMode.client) {
+      return;
+    }
+
+    serializer..startList();
+    for (TypeParameterDeclarationImpl param in typeParameters) {
+      param.serialize(serializer);
+    }
+    serializer.endList();
+  }
+}
+
+class ClassDeclarationImpl extends TypeDeclarationImpl
+    implements ClassDeclaration {
+  @override
+  final List<TypeAnnotationImpl> interfaces;
+
+  @override
+  final bool isAbstract;
+
+  @override
+  final bool isExternal;
+
+  @override
+  final List<TypeAnnotationImpl> mixins;
+
+  @override
+  final TypeAnnotationImpl? superclass;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.classDeclaration;
+
+  ClassDeclarationImpl({
+    // Declaration fields
+    required int id,
+    required String name,
+    // TypeDeclaration fields
+    required List<TypeParameterDeclarationImpl> typeParameters,
+    // ClassDeclaration fields
+    required this.interfaces,
+    required this.isAbstract,
+    required this.isExternal,
+    required this.mixins,
+    required this.superclass,
+  }) : super(id: id, name: name, typeParameters: typeParameters);
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode == SerializationMode.client) {
+      return;
+    }
+
+    serializer.startList();
+    for (TypeAnnotationImpl interface in interfaces) {
+      interface.serialize(serializer);
+    }
+    serializer
+      ..endList()
+      ..addBool(isAbstract)
+      ..addBool(isExternal)
+      ..startList();
+    for (TypeAnnotationImpl mixin in mixins) {
+      mixin.serialize(serializer);
+    }
+    serializer..endList();
+    superclass.serializeNullable(serializer);
+  }
+}
+
+class TypeAliasDeclarationImpl extends TypeDeclarationImpl
+    implements TypeAliasDeclaration {
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.typeAliasDeclaration;
+
+  @override
+  final TypeAnnotationImpl type;
+
+  TypeAliasDeclarationImpl({
+    // Declaration fields
+    required int id,
+    required String name,
+    // TypeDeclaration fields
+    required List<TypeParameterDeclarationImpl> typeParameters,
+    // TypeAlias fields
+    required this.type,
+  }) : super(id: id, name: name, typeParameters: typeParameters);
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    // Client side we don't encode anything but the ID.
+    if (serializationMode == SerializationMode.client) {
+      return;
+    }
+
+    type.serialize(serializer);
   }
 }

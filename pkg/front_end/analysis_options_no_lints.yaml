@@ -12,6 +12,7 @@ analyzer:
     - test/extensions/data/**
     - test/id_testing/data/**
     - test/language_versioning/data/**
+    - test/macro_application/data/**
     - test/macros/data/**
     - test/patching/data/**
     - test/predicates/data/**

@@ -18,6 +18,7 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import '../base/nnbd_mode.dart';
 
+import '../fasta/kernel/macro.dart';
 import 'experimental_flags.dart'
     show
         AllowedExperimentalFlags,
@@ -115,6 +116,12 @@ class CompilerOptions {
   /// This is an experimental feature.
   Future<MacroExecutor> Function() macroExecutorProvider =
       () async => throw 'Macro execution is not supported.';
+
+  /// Map from [MacroClass] to [Uri] for the precompiled dill that contains
+  /// the macro code.
+  ///
+  /// This is an experimental feature.
+  Map<MacroClass, Uri>? precompiledMacroUris;
 
   /// Whether to generate code for the SDK.
   ///

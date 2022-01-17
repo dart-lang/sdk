@@ -1178,7 +1178,9 @@ class CodeKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline uword Hash(Key key) { return Utils::WordHash(key->Size()); }
+  static inline uword Hash(Key key) {
+    return Utils::WordHash(Instructions::Hash(key->instructions()));
+  }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     // In AOT, disabled code objects should not be considered for deduplication.

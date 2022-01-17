@@ -53,7 +53,7 @@ import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart'
 import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart'
     show ClassHierarchyNode;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
+    show BuildResult, KernelTarget;
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
@@ -1846,13 +1846,17 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         if (compilationSetup.testOptions.errors != null) {
           compilationSetup.errors.addAll(compilationSetup.testOptions.errors!);
         }
-        Component p = (await sourceTarget.buildOutlines())!;
+        BuildResult buildResult = await sourceTarget.buildOutlines();
+        Component p = buildResult.component!;
         if (compileMode == CompileMode.full) {
-          p = (await sourceTarget.buildComponent(
+          buildResult = await sourceTarget.buildComponent(
+              macroApplications: buildResult.macroApplications,
               verify: compilationSetup.folderOptions.noVerify
                   ? false
-                  : context.verify))!;
+                  : context.verify);
+          p = buildResult.component!;
         }
+        buildResult.macroApplications?.macroExecutor.close();
 
         // To avoid possible crash in mixin transformation in the transformation
         // of the user of this linked dependency we have to transform this too.
@@ -1907,20 +1911,24 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           new ValidatingInstrumentation();
       await instrumentation.loadExpectations(description.uri);
       sourceTarget.loader.instrumentation = instrumentation;
-      Component p = (await sourceTarget.buildOutlines())!;
+      BuildResult buildResult = await sourceTarget.buildOutlines();
+      Component p = buildResult.component!;
       Set<Uri> userLibraries = createUserLibrariesImportUriSet(
           p, sourceTarget.uriTranslator,
           excludedLibraries: excludedLibraries);
       if (compileMode != CompileMode.outline) {
-        p = (await sourceTarget.buildComponent(
+        buildResult = await sourceTarget.buildComponent(
+            macroApplications: buildResult.macroApplications,
             verify: compilationSetup.folderOptions.noVerify
                 ? false
-                : context.verify))!;
+                : context.verify);
+        p = buildResult.component!;
         instrumentation.finish();
         if (instrumentation.hasProblems) {
           if (updateComments) {
             await instrumentation.fixSource(description.uri, false);
           } else {
+            buildResult.macroApplications?.macroExecutor.close();
             return new Result<ComponentResult>(
                 new ComponentResult(description, p, userLibraries,
                     compilationSetup, sourceTarget),
@@ -1931,6 +1939,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           }
         }
       }
+      buildResult.macroApplications?.macroExecutor.close();
       return pass(new ComponentResult(
           description, p, userLibraries, compilationSetup, sourceTarget));
     });

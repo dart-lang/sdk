@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show Directory, Platform;
+
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/serialization.dart';
+import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
-import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/builder/class_builder.dart';
@@ -106,19 +107,21 @@ String strongComponentToString(Iterable<Uri> uris) {
 
 class MacroDataExtractor extends CfeDataExtractor<Features> {
   final TestResultData testResultData;
-  late final MacroDeclarationData macroDeclarationData;
-  late final MacroApplicationData macroApplicationData;
 
   MacroDataExtractor(
       this.testResultData, Map<Id, ActualData<Features>> actualMap)
-      : super(testResultData.compilerResult, actualMap) {
-    macroDeclarationData = testResultData.compilerResult.kernelTargetForTesting!
-        .loader.dataForTesting!.macroDeclarationData;
-    macroApplicationData = testResultData.compilerResult.kernelTargetForTesting!
-        .loader.dataForTesting!.macroApplicationData;
-  }
+      : super(testResultData.compilerResult, actualMap);
 
   TestMacroExecutor get macroExecutor => testResultData.customData;
+
+  MacroDeclarationData get macroDeclarationData => testResultData.compilerResult
+      .kernelTargetForTesting!.loader.dataForTesting!.macroDeclarationData;
+  MacroApplicationDataForTesting get macroApplicationData => testResultData
+      .compilerResult
+      .kernelTargetForTesting!
+      .loader
+      .dataForTesting!
+      .macroApplicationData;
 
   LibraryMacroApplicationData? getLibraryMacroApplicationData(Library library) {
     for (MapEntry<LibraryBuilder, LibraryMacroApplicationData> entry
@@ -144,13 +147,13 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
     return null;
   }
 
-  MacroApplications? getClassMacroApplications(Class cls) {
+  List<MacroApplication>? getClassMacroApplications(Class cls) {
     return getClassMacroApplicationData(cls)?.classApplications;
   }
 
-  MacroApplications? getMemberMacroApplications(Member member) {
+  List<MacroApplication>? getMemberMacroApplications(Member member) {
     Class? enclosingClass = member.enclosingClass;
-    Map<MemberBuilder, MacroApplications>? memberApplications;
+    Map<MemberBuilder, List<MacroApplication>>? memberApplications;
     if (enclosingClass != null) {
       memberApplications =
           getClassMacroApplicationData(enclosingClass)?.memberApplications;
@@ -160,7 +163,7 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
               ?.memberApplications;
     }
     if (memberApplications != null) {
-      for (MapEntry<MemberBuilder, MacroApplications> entry
+      for (MapEntry<MemberBuilder, List<MacroApplication>> entry
           in memberApplications.entries) {
         if (entry.key.member == member) {
           return entry.value;
@@ -171,9 +174,9 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
   }
 
   void registerMacroApplications(
-      Features features, MacroApplications? macroApplications) {
+      Features features, List<MacroApplication>? macroApplications) {
     if (macroApplications != null) {
-      for (MacroApplication application in macroApplications.macros) {
+      for (MacroApplication application in macroApplications) {
         String className = application.classBuilder.name;
         String constructorName = application.constructorName == ''
             ? 'new'
@@ -258,9 +261,8 @@ class TestMacroExecutor implements MacroExecutor {
       MacroInstanceIdentifier macro,
       Declaration declaration,
       TypeResolver typeResolver,
-      ClassIntrospector classIntrospector) {
-    // TODO: implement executeDeclarationsPhase
-    throw UnimplementedError();
+      ClassIntrospector classIntrospector) async {
+    return new _MacroExecutionResult();
   }
 
   @override
@@ -269,16 +271,14 @@ class TestMacroExecutor implements MacroExecutor {
       Declaration declaration,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector,
-      TypeDeclarationResolver typeDeclarationResolver) {
-    // TODO: implement executeDefinitionsPhase
-    throw UnimplementedError();
+      TypeDeclarationResolver typeDeclarationResolver) async {
+    return new _MacroExecutionResult();
   }
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(
-      MacroInstanceIdentifier macro, Declaration declaration) {
-    // TODO: implement executeTypesPhase
-    throw UnimplementedError();
+      MacroInstanceIdentifier macro, Declaration declaration) async {
+    return new _MacroExecutionResult();
   }
 
   @override
@@ -342,4 +342,15 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
 
   @override
   void serialize(Serializer serializer) => throw UnimplementedError();
+}
+
+class _MacroExecutionResult implements MacroExecutionResult {
+  @override
+  Iterable<DeclarationCode> augmentations = const [];
+
+  @override
+  Iterable<DeclarationCode> imports = const [];
+
+  @override
+  void serialize(Serializer serializer) {}
 }

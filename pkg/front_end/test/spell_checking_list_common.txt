@@ -1518,6 +1518,7 @@ informally
 information
 informational
 informs
+inherent
 inherently
 inherit
 inheritable
