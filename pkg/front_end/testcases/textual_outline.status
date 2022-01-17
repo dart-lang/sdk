@@ -33,6 +33,7 @@ enhanced_enums/inference_in_constructor_parameters: FormatterCrash
 enhanced_enums/instantiated_generic_enum_types: FormatterCrash
 enhanced_enums/issue48084: FormatterCrash
 enhanced_enums/members: FormatterCrash
+enhanced_enums/named_arguments: FormatterCrash
 enhanced_enums/qualified_names_with_no_type_arguments: FormatterCrash
 enhanced_enums/redirecting_initializers: FormatterCrash
 enhanced_enums/simple_fields: FormatterCrash
@@ -211,6 +212,7 @@ regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
 super_parameters/circular_dependency_inference: FormatterCrash
 super_parameters/default_values: FormatterCrash
+super_parameters/issue48142: FormatterCrash
 super_parameters/simple: FormatterCrash
 super_parameters/simple_inference: FormatterCrash
 super_parameters/simple_named_super_parameters: FormatterCrash

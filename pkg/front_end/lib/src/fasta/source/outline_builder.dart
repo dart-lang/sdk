@@ -1899,6 +1899,13 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void handleNamedArgument(Token colon) {
+    debugEvent("NamedArgument");
+    pop(); // Named argument offset.
+    pop(); // Named argument name.
+  }
+
+  @override
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token? implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
@@ -2300,6 +2307,7 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       declarationName = '#enum';
     }
+    libraryBuilder.setCurrentClassName(declarationName);
     pushDeclarationContext(DeclarationContext.Enum);
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.enumDeclaration, declarationName);
@@ -2404,6 +2412,7 @@ class OutlineBuilder extends StackListenerImpl {
           .resolveNamedTypes(typeVariables, libraryBuilder);
     }
 
+    libraryBuilder.setCurrentClassName(null);
     checkEmpty(enumKeyword.charOffset);
     popDeclarationContext(DeclarationContext.Enum);
   }
