@@ -188,6 +188,12 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleNamedArgument(Token colon) {
+    debugEvent("NamedArgument");
+    pop(); // Named argument name.
+  }
+
+  @override
   void handleClassWithClause(Token withKeyword) {
     debugEvent("ClassWithClause");
   }
