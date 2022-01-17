@@ -1115,6 +1115,23 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    computer._addRegion_token(
+      node.superKeyword,
+      HighlightRegionType.KEYWORD,
+    );
+
+    computer._addRegion_node(
+      node.identifier,
+      HighlightRegionType.PARAMETER_DECLARATION,
+    );
+
+    node.type?.accept(this);
+    node.typeParameters?.accept(this);
+    node.parameters?.accept(this);
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
