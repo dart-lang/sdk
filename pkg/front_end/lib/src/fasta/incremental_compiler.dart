@@ -126,7 +126,7 @@ import 'kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 
 import 'kernel/internal_ast.dart' show VariableDeclarationImpl;
 
-import 'kernel/kernel_target.dart' show KernelTarget;
+import 'kernel/kernel_target.dart' show BuildResult, KernelTarget;
 
 import 'library_graph.dart' show LibraryGraph;
 
@@ -351,13 +351,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Technically, it's the combination of
       // `currentKernelTarget.loader.libraries` and
       // `_dillLoadedData.loader.libraries`.
-      Component? componentWithDill = await currentKernelTarget.buildOutlines();
+      BuildResult buildResult = await currentKernelTarget.buildOutlines();
+      Component? componentWithDill = buildResult.component;
 
       if (!outlineOnly) {
         // Checkpoint: Build the actual bodies.
-        componentWithDill =
-            await currentKernelTarget.buildComponent(verify: c.options.verify);
+        buildResult = await currentKernelTarget.buildComponent(
+            macroApplications: buildResult.macroApplications,
+            verify: c.options.verify);
+        componentWithDill = buildResult.component;
       }
+      buildResult.macroApplications?.macroExecutor.close();
       hierarchy ??= currentKernelTarget.loader.hierarchy;
       if (currentKernelTarget.classHierarchyChanges != null) {
         hierarchy.applyTreeChanges(

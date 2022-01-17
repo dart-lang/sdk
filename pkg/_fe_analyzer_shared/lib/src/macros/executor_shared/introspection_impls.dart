@@ -32,7 +32,8 @@ class NamedTypeAnnotationImpl extends TypeAnnotationImpl
         name,
         if (typeArguments.isNotEmpty) ...[
           '<',
-          for (TypeAnnotation arg in typeArguments) ...[arg, ','],
+          typeArguments.first,
+          for (TypeAnnotation arg in typeArguments.skip(1)) ...[', ', arg],
           '>',
         ],
         if (isNullable) '?',
@@ -79,10 +80,15 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
         'Function',
         if (typeParameters.isNotEmpty) ...[
           '<',
-          for (TypeParameterDeclaration arg in typeParameters) ...[
+          typeParameters.first.name,
+          if (typeParameters.first.bounds != null) ...[
+            ' extends ',
+            typeParameters.first.bounds!
+          ],
+          for (TypeParameterDeclaration arg in typeParameters.skip(1)) ...[
+            ', ',
             arg.name,
             if (arg.bounds != null) ...[' extends ', arg.bounds!],
-            ','
           ],
           '>',
         ],

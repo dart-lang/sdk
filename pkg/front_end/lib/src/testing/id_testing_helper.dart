@@ -4,11 +4,20 @@
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
-    show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
+    show
+        ActualData,
+        ClassId,
+        DataRegistry,
+        Id,
+        IdKind,
+        IdValue,
+        MemberId,
+        NodeId;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
+
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 import '../api_prototype/experimental_flags.dart'
@@ -23,8 +32,8 @@ import 'id_extractor.dart' show DataExtractor;
 import 'id_testing_utils.dart';
 
 export '../fasta/compiler_context.dart' show CompilerContext;
-export '../kernel_generator_impl.dart' show InternalCompilerResult;
 export '../fasta/messages.dart' show FormattedMessage;
+export '../kernel_generator_impl.dart' show InternalCompilerResult;
 
 /// Test configuration used for testing CFE in its default state.
 const TestConfig defaultCfeConfig = const TestConfig(cfeMarker, 'cfe');
@@ -213,11 +222,8 @@ class CfeCompiledData<T> extends CompiledData<T> {
   }
 }
 
-abstract class CfeDataExtractor<T> extends DataExtractor<T> {
-  final InternalCompilerResult compilerResult;
-
-  CfeDataExtractor(this.compilerResult, Map<Id, ActualData<T>> actualMap)
-      : super(actualMap);
+mixin CfeDataRegistryMixin<T> implements DataRegistry<T> {
+  InternalCompilerResult get compilerResult;
 
   @override
   void report(Uri uri, int offset, String message) {
@@ -229,6 +235,25 @@ abstract class CfeDataExtractor<T> extends DataExtractor<T> {
   void fail(String message) {
     onFailure(message);
   }
+}
+
+class CfeDataRegistry<T> with DataRegistry<T>, CfeDataRegistryMixin<T> {
+  @override
+  final InternalCompilerResult compilerResult;
+
+  @override
+  final Map<Id, ActualData<T>> actualMap;
+
+  CfeDataRegistry(this.compilerResult, this.actualMap);
+}
+
+abstract class CfeDataExtractor<T> extends DataExtractor<T>
+    with CfeDataRegistryMixin<T> {
+  @override
+  final InternalCompilerResult compilerResult;
+
+  CfeDataExtractor(this.compilerResult, Map<Id, ActualData<T>> actualMap)
+      : super(actualMap);
 }
 
 /// Create the testing URI used for [fileName] in annotated tests.

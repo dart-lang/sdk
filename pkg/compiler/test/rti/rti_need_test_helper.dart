@@ -329,8 +329,12 @@ abstract class IrMixin implements ComputeValueMixin {
   }
 }
 
-class RtiClassNeedIrComputer extends DataRegistry<String>
-    with ComputeValueMixin, IrMixin, IrDataRegistryMixin<String> {
+class RtiClassNeedIrComputer
+    with
+        DataRegistry<String>,
+        ComputeValueMixin,
+        IrMixin,
+        IrDataRegistryMixin<String> {
   @override
   final Compiler compiler;
   final JsToElementMap _elementMap;

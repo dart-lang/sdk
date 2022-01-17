@@ -23,7 +23,7 @@ import 'fasta/dill/dill_target.dart' show DillTarget;
 
 import 'fasta/fasta_codes.dart' show LocatedMessage;
 
-import 'fasta/kernel/kernel_target.dart' show KernelTarget;
+import 'fasta/kernel/kernel_target.dart' show BuildResult, KernelTarget;
 
 import 'fasta/kernel/utils.dart' show printComponentText, serializeComponent;
 
@@ -96,8 +96,9 @@ Future<CompilerResult> generateKernelInternal(
         new KernelTarget(fs, false, dillTarget, uriTranslator);
     sourceLoader = kernelTarget.loader;
     kernelTarget.setEntryPoints(options.inputs);
-    Component summaryComponent =
-        (await kernelTarget.buildOutlines(nameRoot: nameRoot))!;
+    BuildResult buildResult =
+        await kernelTarget.buildOutlines(nameRoot: nameRoot);
+    Component summaryComponent = buildResult.component!;
     List<int>? summary = null;
     if (buildSummary) {
       if (options.verify) {
@@ -159,13 +160,19 @@ Future<CompilerResult> generateKernelInternal(
 
     Component? component;
     if (buildComponent) {
-      component = await kernelTarget.buildComponent(verify: options.verify);
+      buildResult = await kernelTarget.buildComponent(
+          macroApplications: buildResult.macroApplications,
+          verify: options.verify);
+      component = buildResult.component;
       if (options.debugDump) {
         printComponentText(component,
             libraryFilter: kernelTarget.isSourceLibraryForDebugging);
       }
       options.ticker.logMs("Generated component");
     }
+    // TODO(johnniwinther): Should we reuse the macro executor on subsequent
+    // compilations where possible?
+    buildResult.macroApplications?.macroExecutor.close();
 
     return new InternalCompilerResult(
         summary: summary,

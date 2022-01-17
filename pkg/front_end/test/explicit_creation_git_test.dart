@@ -101,8 +101,10 @@ Future<void> main(List<String> args) async {
 
     kernelTarget.setEntryPoints(c.options.inputs);
     dillTarget.buildOutlines();
-    await kernelTarget.buildOutlines();
-    await kernelTarget.buildComponent();
+    BuildResult buildResult = await kernelTarget.buildOutlines();
+    buildResult = await kernelTarget.buildComponent(
+        macroApplications: buildResult.macroApplications);
+    buildResult.macroApplications?.macroExecutor.close();
   });
 
   print("Done in ${stopwatch.elapsedMilliseconds} ms. "

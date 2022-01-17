@@ -4039,7 +4039,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     push(new NamedTypeBuilder.fromTypeDeclarationBuilder(
         new VoidTypeDeclarationBuilder(
             const VoidType(), libraryBuilder, offset),
-        const NullabilityBuilder.nullable(),
+        const NullabilityBuilder.inherent(),
         fileUri: uri,
         charOffset: offset,
         instanceTypeVariableAccess:

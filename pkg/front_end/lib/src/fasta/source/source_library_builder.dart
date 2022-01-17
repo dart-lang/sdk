@@ -1630,7 +1630,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   TypeBuilder addVoidType(int charOffset) {
     // 'void' is always nullable.
     return addNamedType(
-        "void", const NullabilityBuilder.nullable(), null, charOffset,
+        "void", const NullabilityBuilder.inherent(), null, charOffset,
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected)
       ..bind(
           new VoidTypeDeclarationBuilder(const VoidType(), this, charOffset));
