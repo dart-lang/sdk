@@ -208,3 +208,37 @@ class TopologicalSortResult<T> {
   /// That is, `layers[i]` contain the list of vertices with index `i`.
   final List<List<T>> layers = [];
 }
+
+/// Find vertices in [graph] that either is in [vertices], has a neighbor in
+/// [vertices], has a neighbor of a neighbor (etc) in [vertices].
+Set<T> calculateTransitiveDependenciesOf<T>(Graph<T> graph, Set<T> vertices) {
+  // Compute direct dependencies for each vertex (the reverse of the
+  // edges returned by `graph.neighborsOf`).
+  Map<T, Set<T>> directDependencies = <T, Set<T>>{};
+  List<T> workList = [];
+  {
+    for (T vertex in graph.vertices) {
+      if (vertices.contains(vertex)) workList.add(vertex);
+      for (T neighbor in graph.neighborsOf(vertex)) {
+        (directDependencies[neighbor] ??= new Set<T>()).add(vertex);
+        if (vertices.contains(neighbor)) workList.add(vertex);
+      }
+    }
+  }
+
+  // Collect and remove all dependencies.
+  Set<T> left = new Set<T>.from(graph.vertices);
+  Set<T> transitive = {};
+  while (workList.isNotEmpty) {
+    T removed = workList.removeLast();
+    if (left.remove(removed)) {
+      Set<T>? s = directDependencies[removed];
+      if (s != null) {
+        // [s] is null for leaves.
+        workList.addAll(s);
+      }
+      transitive.add(removed);
+    }
+  }
+  return transitive;
+}

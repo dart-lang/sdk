@@ -16,6 +16,7 @@ import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart'
     show TypeEnvironment, SubtypeCheckMode;
+import 'package:kernel/util/graph.dart' as kernelGraph;
 
 import 'abi.dart';
 import 'native_type_cfe.dart';
@@ -980,18 +981,61 @@ class FfiTransformer extends Transformer {
   }
 }
 
+/// Returns all libraries including the ones from component except for platform
+/// libraries that are only in component.
+Set<Library> _getAllRelevantLibraries(
+    Component component, List<Library> libraries) {
+  Set<Library> allLibs = {};
+  allLibs.addAll(libraries);
+  for (Library lib in component.libraries) {
+    // Skip real dart: libraries. dart:core imports dart:ffi, but that doesn't
+    // mean we have to transform anything.
+    if (lib.importUri.scheme == "dart" && !lib.isSynthetic) continue;
+    allLibs.add(lib);
+  }
+  return allLibs;
+}
+
 /// Checks if any library depends on dart:ffi.
-bool importsFfi(Component component, List<Library> libraries) {
-  Set<Library> allLibs = {...component.libraries, ...libraries};
+Library? importsFfi(Component component, List<Library> libraries) {
   final Uri dartFfiUri = Uri.parse("dart:ffi");
+  Set<Library> allLibs = _getAllRelevantLibraries(component, libraries);
   for (Library lib in allLibs) {
     for (LibraryDependency dependency in lib.dependencies) {
-      if (dependency.targetLibrary.importUri == dartFfiUri) {
-        return true;
+      Library targetLibrary = dependency.targetLibrary;
+      if (targetLibrary.importUri == dartFfiUri) {
+        return targetLibrary;
       }
     }
   }
-  return false;
+  return null;
+}
+
+/// Calculates the libraries in [libraries] that transitively imports dart:ffi.
+///
+/// Returns null if dart:ffi is not imported.
+List<Library>? calculateTransitiveImportsOfDartFfiIfUsed(
+    Component component, List<Library> libraries) {
+  Set<Library> allLibs = _getAllRelevantLibraries(component, libraries);
+
+  final Uri dartFfiUri = Uri.parse("dart:ffi");
+  Library? dartFfi;
+  canFind:
+  for (Library lib in allLibs) {
+    for (LibraryDependency dependency in lib.dependencies) {
+      Library targetLibrary = dependency.targetLibrary;
+      if (targetLibrary.importUri == dartFfiUri) {
+        dartFfi = targetLibrary;
+        break canFind;
+      }
+    }
+  }
+  if (dartFfi == null) return null;
+
+  kernelGraph.LibraryGraph graph = new kernelGraph.LibraryGraph(allLibs);
+  Set<Library> result =
+      kernelGraph.calculateTransitiveDependenciesOf(graph, {dartFfi});
+  return (result..retainAll(libraries)).toList();
 }
 
 extension on Map<Abi, Object?> {
