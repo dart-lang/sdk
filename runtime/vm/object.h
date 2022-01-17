@@ -5513,8 +5513,11 @@ class Instructions : public Object {
     return memcmp(a->untag()->data(), b->untag()->data(), Size(a)) == 0;
   }
 
-  uint32_t Hash() const {
-    return HashBytes(reinterpret_cast<const uint8_t*>(PayloadStart()), Size());
+  uint32_t Hash() const { return Hash(ptr()); }
+
+  static uint32_t Hash(const InstructionsPtr instr) {
+    return HashBytes(reinterpret_cast<const uint8_t*>(PayloadStart(instr)),
+                     Size(instr));
   }
 
   CodeStatistics* stats() const;
