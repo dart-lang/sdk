@@ -1136,6 +1136,50 @@ void f() {
     assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'bbb: 2');
   }
 
+  Future<void> test_PARAMETER_super_children() async {
+    addTestFile('''
+class A {
+  A(Object aaa);
+}
+class B extends A {
+  B(int super.aaa<T>(double a /*0*/));
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.CLASS, 'int');
+    assertHasRegion(HighlightRegionType.CLASS, 'double');
+    assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T>');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'a /*0*/');
+  }
+
+  Future<void> test_PARAMETER_super_requiredNamed() async {
+    addTestFile('''
+class A {
+  A({required int aaa});
+}
+class B extends A {
+  B({required super.aaa /*0*/});
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'super.aaa');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa /*0*/');
+  }
+
+  Future<void> test_PARAMETER_super_requiredPositional() async {
+    addTestFile('''
+class A {
+  A(int aaa);
+}
+class B extends A {
+  B(super.aaa /*0*/);
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'super.aaa');
+    assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa /*0*/');
+  }
+
   Future<void> test_SETTER_DECLARATION() async {
     addTestFile('''
 set aaa(x) {}
