@@ -315,26 +315,28 @@ class SourceEnumBuilder extends SourceClassBuilder {
       });
     }
 
-    ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
-        /* metadata = */ null,
-        0,
-        stringType,
-        "toString",
-        /* typeVariables = */ null,
-        /* formals = */ null,
-        ProcedureKind.Method,
-        parent,
-        charOffset,
-        charOffset,
-        charOffset,
-        charEndOffset,
-        toStringReference,
-        /* tearOffReference = */ null,
-        AsyncMarker.Sync,
-        procedureNameScheme,
-        isExtensionMember: false,
-        isInstanceMember: true);
-    members["toString"] = toStringBuilder;
+    if (scope.lookupLocalMember("toString", setter: false) == null) {
+      ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
+          /* metadata = */ null,
+          0,
+          stringType,
+          "toString",
+          /* typeVariables = */ null,
+          /* formals = */ null,
+          ProcedureKind.Method,
+          parent,
+          charOffset,
+          charOffset,
+          charOffset,
+          charEndOffset,
+          toStringReference,
+          /* tearOffReference = */ null,
+          AsyncMarker.Sync,
+          procedureNameScheme,
+          isExtensionMember: false,
+          isInstanceMember: true);
+      members["toString"] = toStringBuilder;
+    }
     String className = name;
     if (enumConstantInfos != null) {
       for (int i = 0; i < enumConstantInfos.length; i++) {
