@@ -1811,17 +1811,6 @@ DART_EXPORT Dart_Handle Dart_GetStickyError() {
   return Api::NewHandle(T, I->sticky_error());
 }
 
-DART_EXPORT void Dart_HintFreed(intptr_t size) {
-  if (size < 0) {
-    FATAL1("%s requires a non-negative size", CURRENT_FUNC);
-  }
-  Thread* T = Thread::Current();
-  CHECK_ISOLATE(T->isolate());
-  API_TIMELINE_BEGIN_END(T);
-  TransitionNativeToVM transition(T);
-  T->heap()->HintFreed(size);
-}
-
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());
