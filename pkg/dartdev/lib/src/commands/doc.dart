@@ -23,15 +23,20 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
 
   DocCommand({bool verbose = false}) : super(cmdName, cmdDescription, verbose) {
     argParser.addOption(
-      'output-dir',
+      'output',
       abbr: 'o',
+      valueHelp: 'directory',
       defaultsTo: path.join('doc', 'api'),
-      help: 'Output directory',
+      aliases: [
+        // The CLI option that shipped with Dart 2.16.
+        'output-dir',
+      ],
+      help: 'Configure the output directory.',
     );
     argParser.addFlag(
       'validate-links',
-      negatable: true,
-      help: 'Display context aware warnings for broken links (slow)',
+      negatable: false,
+      help: 'Display warnings for broken links.',
     );
   }
 
@@ -51,21 +56,17 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
       usageException("Error: Input directory doesn't exist: ${dir.path}");
     }
 
-    // Parse options.
-    final options = [
-      '--input=${dir.path}',
-      '--output=${argResults['output-dir']}',
-    ];
-    if (argResults['validate-links']) {
-      options.add('--validate-links');
-    } else {
-      options.add('--no-validate-links');
-    }
-
     // Specify where dartdoc resources are located.
     final resourcesPath =
         path.absolute(sdk.sdkPath, 'bin', 'resources', 'dartdoc', 'resources');
-    options.add('--resources-dir=$resourcesPath');
+
+    // Build options.
+    final options = [
+      '--input=${dir.path}',
+      '--output=${argResults['output']}',
+      '--resources-dir=$resourcesPath',
+      if (argResults['validate-links']) '--validate-links'
+    ];
 
     final config = await parseOptions(pubPackageMetaProvider, options);
     if (config == null) {
@@ -73,11 +74,10 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
       return 2;
     }
 
-    // Call dartdoc.
+    // Call into package:dartdoc.
     if (verbose) {
       log.stdout('Using the following options: $options');
     }
-
     final packageConfigProvider = PhysicalPackageConfigProvider();
     final packageBuilder = PubPackageBuilder(
         config, pubPackageMetaProvider, packageConfigProvider);
