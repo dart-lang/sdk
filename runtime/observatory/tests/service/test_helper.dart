@@ -182,7 +182,7 @@ class _ServiceTesteeLauncher {
     if (!testeeControlsServer) {
       fullArgs.add('--enable-vm-service:$port');
     }
-    if (serviceResponseSizesDir != null) {
+    if (serviceResponseSizesDir.isNotEmpty) {
       // Dump service response size details to a CSV. This feature is not used
       // on the build bots and the generated output will persist after the test
       // has completed.
