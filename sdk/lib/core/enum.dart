@@ -10,46 +10,6 @@ part of dart.core;
 /// introduced using an `enum` declaration.
 /// Non-platform classes cannot implement, extend or
 /// mix in this class.
-///
-/// To compare two enum values by their [index], use [compareByIndex].
-/// ```dart
-/// enum Season { spring, summer, autumn, winter }
-///
-/// void main() {
-///   assert(Season.spring.index == 0);
-///   assert(Season.summer.index == 1);
-///   assert(Season.autumn.index == 2);
-///   assert(Season.winter.index == 3);
-///
-///   var relationByIndex =
-///       Enum.compareByIndex(Season.spring, Season.summer); // -1
-///   relationByIndex =
-///       Enum.compareByIndex(Season.summer, Season.spring); // 1
-///   relationByIndex =
-///       Enum.compareByIndex(Season.spring, Season.winter); // -3
-///   relationByIndex =
-///       Enum.compareByIndex(Season.winter, Season.spring); // 3
-/// }
-/// ```
-/// To compare two enum values by their name, use [compareByName].
-/// ```dart continued
-///
-/// void main() {
-///   assert(Season.spring.name == 'spring');
-///   assert(Season.summer.name == 'summer');
-///   assert(Season.autumn.name == 'autumn');
-///   assert(Season.winter.name == 'winter');
-///
-///   var relationByName =
-///       Enum.compareByName(Season.summer, Season.winter); // < 0
-///   relationByName =
-///       Enum.compareByName(Season.winter, Season.summer); // > 0
-///   relationByName =
-///       Enum.compareByName(Season.summer, Season.autumn); // > 0
-///   relationByName =
-///       Enum.compareByName(Season.autumn, Season.spring); // < 0
-/// }
-/// ```
 @Since("2.14")
 abstract class Enum {
   /// A numeric identifier for the enumerated value.
@@ -99,13 +59,13 @@ abstract class Enum {
   ///
   /// void main() {
   ///   var relationByIndex =
-  ///       Enum.compareByIndex(Season.spring, Season.summer); // -1
+  ///       Enum.compareByIndex(Season.spring, Season.summer); // < 0
   ///   relationByIndex =
-  ///       Enum.compareByIndex(Season.summer, Season.spring); // 1
+  ///       Enum.compareByIndex(Season.summer, Season.spring); // > 0
   ///   relationByIndex =
-  ///       Enum.compareByIndex(Season.spring, Season.winter); // -3
+  ///       Enum.compareByIndex(Season.spring, Season.winter); // < 0
   ///   relationByIndex =
-  ///       Enum.compareByIndex(Season.winter, Season.spring); // 3
+  ///       Enum.compareByIndex(Season.winter, Season.spring); // > 0
   /// }
   /// ```
   @Since("2.15")
@@ -126,14 +86,9 @@ abstract class Enum {
   /// enum Season { spring, summer, autumn, winter }
   ///
   /// void main() {
-  ///   var relationByName =
-  ///       Enum.compareByName(Season.summer, Season.winter); // < 0
-  ///   relationByName =
-  ///       Enum.compareByName(Season.winter, Season.summer); // > 0
-  ///   relationByName =
-  ///       Enum.compareByName(Season.summer, Season.autumn); // > 0
-  ///   relationByName =
-  ///       Enum.compareByName(Season.autumn, Season.spring); // < 0
+  ///   var seasons = [...Season.values]..sort(Enum.compareByName);
+  ///   print(seasons);
+  ///   // [Season.autumn, Season.spring, Season.summer, Season.winter]
   /// }
   /// ```
   @Since("2.15")
