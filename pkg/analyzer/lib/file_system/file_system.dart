@@ -15,8 +15,8 @@ abstract class File implements Resource {
   /// Watch for changes to this file.
   ///
   /// File watchers are initialized asynchronously so modifications made for a
-  /// short period after calling this getter may be lost. Use [watch()] to
-  /// obtain the stream in a [Future] that completes once initialization is
+  /// short period after calling this getter may be lost. Use [watch()] and
+  /// await the `ready` [Future] that completes once initialization is
   /// complete.
   @Deprecated('Use watch() instead')
   Stream<WatchEvent> get changes;
@@ -53,8 +53,10 @@ abstract class File implements Resource {
   /// an exception is thrown.
   File renameSync(String newPath);
 
-  /// Watch for changes to the files inside this folder (and in any nested
-  /// folders, including folders reachable via links).
+  /// Watch for changes to this file.
+  ///
+  /// Watchers are initialized asynchronously. Until [ResourceWatcher.ready]
+  /// completes, events are not guaranteed.
   @override
   ResourceWatcher watch();
 
@@ -87,9 +89,9 @@ abstract class Folder implements Resource {
   /// Watch for changes to the files inside this folder (and in any nested
   /// folders, including folders reachable via links).
   ///
-  /// File watchers are initialized asynchronously so modifications made for a
-  /// short period after calling this getter may be lost. Use [watch()] to
-  /// obtain the stream in a [Future] that completes once initialization is
+  /// Folder watchers are initialized asynchronously so modifications made for a
+  /// short period after calling this getter may be lost. Use [watch()] and
+  /// await the `ready` [Future] that completes once initialization is
   /// complete.
   @Deprecated('Use watch() instead')
   Stream<WatchEvent> get changes;
@@ -140,6 +142,9 @@ abstract class Folder implements Resource {
 
   /// Watch for changes to the files inside this folder (and in any nested
   /// folders, including folders reachable via links).
+  ///
+  /// Watchers are initialized asynchronously. Until [ResourceWatcher.ready]
+  /// completes, events are not guaranteed.
   @override
   ResourceWatcher watch();
 }
