@@ -3501,9 +3501,10 @@ constructor._
 
 #### Description
 
-The analyzer produces this diagnostic when there's more than one field
-formal parameter for the same field in a constructor's parameter list. It
-isn't useful to assign a value that will immediately be overwritten.
+The analyzer produces this diagnostic when there's more than one
+initializing formal parameter for the same field in a constructor's
+parameter list. It isn't useful to assign a value that will immediately be
+overwritten.
 
 #### Example
 
@@ -3520,7 +3521,7 @@ class C {
 
 #### Common fixes
 
-Remove one of the field formal parameters:
+Remove one of the initializing formal parameters:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -4718,7 +4719,8 @@ the parameter list and in the initializer list of a constructor.
 #### Example
 
 The following code produces this diagnostic because the field `f` is
-initialized both by a field formal parameter and in the initializer list:
+initialized both by an initializing formal parameter and in the
+initializer list:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -4769,14 +4771,14 @@ _Initializing formal parameters can't be used in factory constructors._
 
 #### Description
 
-The analyzer produces this diagnostic when a factory constructor has a
-field formal parameter. Factory constructors can't assign values to fields
-because no instance is created; hence, there is no field to assign.
+The analyzer produces this diagnostic when a factory constructor has an
+initializing formal parameter. Factory constructors can't assign values to
+fields because no instance is created; hence, there is no field to assign.
 
 #### Example
 
 The following code produces this diagnostic because the factory constructor
-uses a field formal parameter:
+uses an initializing formal parameter:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -4788,7 +4790,7 @@ class C {
 
 #### Common fixes
 
-Replace the field formal parameter with a normal parameter:
+Replace the initializing formal parameter with a normal parameter:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -4862,8 +4864,8 @@ initialized.
 #### Examples
 
 The following code produces this diagnostic because the constructor
-`C.zero`, which redirects to the constructor `C`, has a field formal
-parameter that initializes the field `f`:
+`C.zero`, which redirects to the constructor `C`, has an initializing
+formal parameter that initializes the field `f`:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -4891,8 +4893,8 @@ class C {
 
 #### Common fixes
 
-If the initialization is done by a field formal parameter, then use a
-normal parameter:
+If the initialization is done by an initializing formal parameter, then
+use a normal parameter:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -4923,14 +4925,16 @@ _The parameter type '{0}' is incompatible with the field type '{1}'._
 
 #### Description
 
-The analyzer produces this diagnostic when the type of a field formal
-parameter isn't assignable to the type of the field being initialized.
+The analyzer produces this diagnostic when the type of an initializing
+formal parameter isn't assignable to the type of the field being
+initialized.
 
 #### Example
 
-The following code produces this diagnostic because the field formal
-parameter has the type `String`, but the type of the field is `int`. The
-parameter must have a type that is a subtype of the field's type.
+The following code produces this diagnostic because the initializing
+formal parameter has the type `String`, but the type of the field is
+`int`. The parameter must have a type that is a subtype of the field's
+type.
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -4966,8 +4970,8 @@ class C {
 {% endprettify %}
 
 If the types of both the field and the parameter are correct, then use an
-initializer rather than a field formal parameter to convert the parameter
-value into a value of the correct type:
+initializer rather than an initializing formal parameter to convert the
+parameter value into a value of the correct type:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -5052,7 +5056,7 @@ final x = 0;
 
 For instance fields, you can add an initializer as shown in the previous
 example, or you can initialize the field in every constructor. You can
-initialize the field by using a field formal parameter:
+initialize the field by using an initializing formal parameter:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -5102,8 +5106,8 @@ class C {
 
 #### Common fixes
 
-If the value should be passed in to the constructor directly, then use a
-field formal parameter to initialize the field `value`:
+If the value should be passed in to the constructor directly, then use an
+initializing formal parameter to initialize the field `value`:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -5880,14 +5884,14 @@ constructor can't be static._
 
 #### Description
 
-The analyzer produces this diagnostic when a static field is initialized in
-a constructor using either a field formal parameter or an assignment in the
-initializer list.
+The analyzer produces this diagnostic when a static field is initialized
+in a constructor using either an initializing formal parameter or an
+assignment in the initializer list.
 
 #### Example
 
-The following code produces this diagnostic because the static field `a` is
-being initialized by the field formal parameter `this.a`:
+The following code produces this diagnostic because the static field `a`
+is being initialized by the initializing formal parameter `this.a`:
 
 {% prettify dart tag=pre+code %}
 class C {
@@ -5936,10 +5940,10 @@ _'{0}' isn't a field in the enclosing class._
 
 #### Description
 
-The analyzer produces this diagnostic when a field formal parameter is
-found in a constructor in a class that doesn't declare the field being
-initialized. Constructors can't initialize fields that aren't declared and
-fields that are inherited from superclasses.
+The analyzer produces this diagnostic when an initializing formal
+parameter is found in a constructor in a class that doesn't declare the
+field being initialized. Constructors can't initialize fields that aren't
+declared and fields that are inherited from superclasses.
 
 #### Example
 
