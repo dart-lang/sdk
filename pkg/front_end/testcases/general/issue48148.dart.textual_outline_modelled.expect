@@ -1,0 +1,56 @@
+abstract class HBase<HKT extends HKind> implements Kind<HKT> {}
+
+abstract class HKind {}
+
+abstract class HKindInvalid implements HKindValid {}
+
+abstract class HKindValid implements HKind {}
+
+abstract class Kind<HKT extends HKind> {}
+
+class HBaseChild<HKT extends HKindValid, CHILD extends HBase<HKT>>
+    implements HBase<HKT> {
+  const HBaseChild(
+    final this.child,
+  );
+  final CHILD child;
+}
+
+class HBaseComposite<HKT extends HKindValid, CHILD extends HBase<HKT>>
+    implements HBase<HKT> {
+  const HBaseComposite(
+    final this.children,
+  );
+  final List<CHILD> children;
+}
+
+class HBaseError<HKT extends HKindInvalid> implements HBase<HKT> {
+  const HBaseError(
+    final this.errorMessage,
+  );
+  final String errorMessage;
+}
+
+class HBaseLeaf<HKT extends HKindValid> implements HBase<HKT> {
+  const HBaseLeaf(
+    final this.data,
+  );
+  final int data;
+}
+
+const HInvalid invalidExample = HInvalidComposite(
+  [
+    HInvalidLeaf(0),
+    HInvalidChild(
+      HInvalidLeaf(0),
+    ),
+    HInvalidError("error message"),
+  ],
+);
+main() {}
+typedef HInvalid = HBase<HKindInvalid>;
+typedef HInvalidChild<CHILD extends HInvalid> = HBaseChild<HKindInvalid, CHILD>;
+typedef HInvalidComposite<CHILD extends HInvalid>
+    = HBaseComposite<HKindInvalid, CHILD>;
+typedef HInvalidError = HBaseError<HKindInvalid>;
+typedef HInvalidLeaf = HBaseLeaf<HKindInvalid>;
