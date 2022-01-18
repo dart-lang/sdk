@@ -1648,6 +1648,8 @@ severity: $severity
           denylistedCoreClasses[i],
           required: true) as ClassBuilder);
     }
+    ClassBuilder enumClass =
+        coreLibrary.lookupLocalMember("Enum", required: true) as ClassBuilder;
     if (typedDataLibrary != null) {
       for (int i = 0; i < denylistedTypedDataClasses.length; i++) {
         // Allow the member to not exist. If it doesn't, nobody can extend it.
@@ -1664,8 +1666,8 @@ severity: $severity
         topologicalSort(classGraph);
     List<SourceClassBuilder> classes = result.sortedVertices;
     for (SourceClassBuilder cls in classes) {
-      checkClassSupertypes(
-          cls, classGraph.directSupertypeMap[cls]!, denyListedClasses);
+      checkClassSupertypes(cls, classGraph.directSupertypeMap[cls]!,
+          denyListedClasses, enumClass);
     }
 
     List<SourceClassBuilder> classesWithCycles = result.cyclicVertices;
@@ -1708,10 +1710,30 @@ severity: $severity
     }
   }
 
+  bool checkEnumSupertypeIsDenylisted(SourceClassBuilder cls) {
+    if (!cls.library.enableEnhancedEnumsInLibrary) {
+      cls.addProblem(
+          templateExperimentNotEnabled.withArguments('enhanced-enums',
+              cls.library.enableEnhancedEnumsVersionInLibrary.toText()),
+          cls.charOffset,
+          noLength);
+      return true;
+    } else {
+      if (!cls.isAbstract) {
+        cls.addProblem(
+            templateEnumSupertypeOfNonAbstractClass.withArguments(cls.name),
+            cls.charOffset,
+            noLength);
+      }
+      return false;
+    }
+  }
+
   void checkClassSupertypes(
       SourceClassBuilder cls,
       Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypeMap,
-      Set<ClassBuilder> denyListedClasses) {
+      Set<ClassBuilder> denyListedClasses,
+      ClassBuilder enumClass) {
     // Check that the direct supertypes aren't deny-listed or enums.
     List<TypeDeclarationBuilder?> directSupertypes =
         directSupertypeMap.keys.toList();
@@ -1721,7 +1743,9 @@ severity: $severity
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
       } else if (!cls.library.mayImplementRestrictedTypes &&
-          denyListedClasses.contains(supertype)) {
+          (denyListedClasses.contains(supertype) ||
+              identical(supertype, enumClass) &&
+                  checkEnumSupertypeIsDenylisted(cls))) {
         TypeAliasBuilder? aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
           cls.addProblem(

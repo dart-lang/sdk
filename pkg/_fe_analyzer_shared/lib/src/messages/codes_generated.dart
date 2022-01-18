@@ -2807,6 +2807,30 @@ const MessageCode messageEnumInstantiation = const MessageCode(
     problemMessage: r"""Enums can't be instantiated.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateEnumSupertypeOfNonAbstractClass =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""Non-abstract class '#name' has 'Enum' as a superinterface.""",
+        withArguments: _withArgumentsEnumSupertypeOfNonAbstractClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeEnumSupertypeOfNonAbstractClass =
+    const Code<Message Function(String name)>(
+  "EnumSupertypeOfNonAbstractClass",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsEnumSupertypeOfNonAbstractClass(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeEnumSupertypeOfNonAbstractClass,
+      problemMessage:
+          """Non-abstract class '${name}' has 'Enum' as a superinterface.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEqualityCannotBeEqualityOperand =
     messageEqualityCannotBeEqualityOperand;
 

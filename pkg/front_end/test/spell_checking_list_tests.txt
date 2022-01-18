@@ -321,7 +321,9 @@ dw
 dyn
 e's
 e2e
+ea
 ease
+eb
 ec
 echo
 edits

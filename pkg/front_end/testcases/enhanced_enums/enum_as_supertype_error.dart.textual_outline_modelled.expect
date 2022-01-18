@@ -1,0 +1,9 @@
+class A extends Enum {
+  int get foo => index;
+}
+
+class B implements Enum {
+  int get foo => index;
+}
+
+main() {}
