@@ -628,7 +628,7 @@ class CallHierarchyItem implements ToJsonable {
     final kind = SymbolKind.fromJson(kindJson as int);
     final tagsJson = json['tags'];
     final tags = (tagsJson as List<Object?>?)
-        ?.map((item) => SymbolTag.fromJson(item as num))
+        ?.map((item) => SymbolTag.fromJson(item as int))
         .toList();
     final detailJson = json['detail'];
     final detail = detailJson as String?;
@@ -5528,7 +5528,7 @@ class CompletionClientCapabilitiesInsertTextModeSupport implements ToJsonable {
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>)
-        .map((item) => InsertTextMode.fromJson(item as num))
+        .map((item) => InsertTextMode.fromJson(item as int))
         .toList();
     return CompletionClientCapabilitiesInsertTextModeSupport(
         valueSet: valueSet);
@@ -5743,7 +5743,7 @@ class CompletionContext implements ToJsonable {
   CompletionContext({required this.triggerKind, this.triggerCharacter});
   static CompletionContext fromJson(Map<String, Object?> json) {
     final triggerKindJson = json['triggerKind'];
-    final triggerKind = CompletionTriggerKind.fromJson(triggerKindJson as num);
+    final triggerKind = CompletionTriggerKind.fromJson(triggerKindJson as int);
     final triggerCharacterJson = json['triggerCharacter'];
     final triggerCharacter = triggerCharacterJson as String?;
     return CompletionContext(
@@ -5879,7 +5879,7 @@ class CompletionItem implements ToJsonable {
         : null;
     final insertTextModeJson = json['insertTextMode'];
     final insertTextMode = insertTextModeJson != null
-        ? InsertTextMode.fromJson(insertTextModeJson as num)
+        ? InsertTextMode.fromJson(insertTextModeJson as int)
         : null;
     final textEditJson = json['textEdit'];
     final textEdit = textEditJson == null
@@ -7041,7 +7041,7 @@ class CompletionTriggerKind {
   const CompletionTriggerKind._(this._value);
   const CompletionTriggerKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     switch (obj) {
@@ -8606,7 +8606,7 @@ class Diagnostic implements ToJsonable {
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final severityJson = json['severity'];
     final severity = severityJson != null
-        ? DiagnosticSeverity.fromJson(severityJson as num)
+        ? DiagnosticSeverity.fromJson(severityJson as int)
         : null;
     final codeJson = json['code'];
     final code = codeJson as String?;
@@ -8620,7 +8620,7 @@ class Diagnostic implements ToJsonable {
     final message = messageJson as String;
     final tagsJson = json['tags'];
     final tags = (tagsJson as List<Object?>?)
-        ?.map((item) => DiagnosticTag.fromJson(item as num))
+        ?.map((item) => DiagnosticTag.fromJson(item as int))
         .toList();
     final relatedInformationJson = json['relatedInformation'];
     final relatedInformation = (relatedInformationJson as List<Object?>?)
@@ -8953,10 +8953,10 @@ class DiagnosticSeverity {
   const DiagnosticSeverity(this._value);
   const DiagnosticSeverity.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Reports an error.
@@ -8988,10 +8988,10 @@ class DiagnosticTag {
   const DiagnosticTag(this._value);
   const DiagnosticTag.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Unused or unnecessary code.
@@ -12384,7 +12384,7 @@ class DocumentSymbol implements ToJsonable {
     final kind = SymbolKind.fromJson(kindJson as int);
     final tagsJson = json['tags'];
     final tags = (tagsJson as List<Object?>?)
-        ?.map((item) => SymbolTag.fromJson(item as num))
+        ?.map((item) => SymbolTag.fromJson(item as int))
         .toList();
     final deprecatedJson = json['deprecated'];
     final deprecated = deprecatedJson as bool?;
@@ -12864,7 +12864,7 @@ class DocumentSymbolClientCapabilitiesTagSupport implements ToJsonable {
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>)
-        .map((item) => SymbolTag.fromJson(item as num))
+        .map((item) => SymbolTag.fromJson(item as int))
         .toList();
     return DocumentSymbolClientCapabilitiesTagSupport(valueSet: valueSet);
   }
@@ -16348,7 +16348,8 @@ class InitializeParams implements WorkDoneProgressParams, ToJsonable {
         final trace = obj['trace'];
         if (trace != null &&
             !((trace == 'off' || trace == 'message' || trace == 'verbose'))) {
-          reporter.reportError('must be of type String');
+          reporter.reportError(
+              'must be one of the literals \'off\', \'message\', \'verbose\'');
           return false;
         }
       } finally {
@@ -16870,10 +16871,10 @@ class InsertTextMode {
   const InsertTextMode(this._value);
   const InsertTextMode.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// The insertion or replace strings is taken as it is. If the value is multi
@@ -19567,10 +19568,10 @@ class PrepareSupportDefaultBehavior {
   const PrepareSupportDefaultBehavior(this._value);
   const PrepareSupportDefaultBehavior.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// The client's default behavior is to select the identifier according the to
@@ -19834,7 +19835,7 @@ class PublishDiagnosticsClientCapabilitiesTagSupport implements ToJsonable {
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>)
-        .map((item) => DiagnosticTag.fromJson(item as num))
+        .map((item) => DiagnosticTag.fromJson(item as int))
         .toList();
     return PublishDiagnosticsClientCapabilitiesTagSupport(valueSet: valueSet);
   }
@@ -20906,7 +20907,7 @@ class RenameClientCapabilities implements ToJsonable {
     final prepareSupportDefaultBehavior =
         prepareSupportDefaultBehaviorJson != null
             ? PrepareSupportDefaultBehavior.fromJson(
-                prepareSupportDefaultBehaviorJson as num)
+                prepareSupportDefaultBehaviorJson as int)
             : null;
     final honorsChangeAnnotationsJson = json['honorsChangeAnnotations'];
     final honorsChangeAnnotations = honorsChangeAnnotationsJson as bool?;
@@ -26030,7 +26031,8 @@ class SetTraceParams implements ToJsonable {
           return false;
         }
         if (!((value == 'off' || value == 'message' || value == 'verbose'))) {
-          reporter.reportError('must be of type String');
+          reporter.reportError(
+              'must be one of the literals \'off\', \'message\', \'verbose\'');
           return false;
         }
       } finally {
@@ -27116,7 +27118,7 @@ class SignatureHelpContext implements ToJsonable {
   static SignatureHelpContext fromJson(Map<String, Object?> json) {
     final triggerKindJson = json['triggerKind'];
     final triggerKind =
-        SignatureHelpTriggerKind.fromJson(triggerKindJson as num);
+        SignatureHelpTriggerKind.fromJson(triggerKindJson as int);
     final triggerCharacterJson = json['triggerCharacter'];
     final triggerCharacter = triggerCharacterJson as String?;
     final isRetriggerJson = json['isRetrigger'];
@@ -27683,10 +27685,10 @@ class SignatureHelpTriggerKind {
   const SignatureHelpTriggerKind(this._value);
   const SignatureHelpTriggerKind.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Signature help was invoked manually by the user or by a command.
@@ -27972,7 +27974,7 @@ class SymbolInformation implements ToJsonable {
     final kind = SymbolKind.fromJson(kindJson as int);
     final tagsJson = json['tags'];
     final tags = (tagsJson as List<Object?>?)
-        ?.map((item) => SymbolTag.fromJson(item as num))
+        ?.map((item) => SymbolTag.fromJson(item as int))
         .toList();
     final deprecatedJson = json['deprecated'];
     final deprecated = deprecatedJson as bool?;
@@ -28209,10 +28211,10 @@ class SymbolTag {
   const SymbolTag(this._value);
   const SymbolTag.fromJson(this._value);
 
-  final num _value;
+  final int _value;
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
-    return obj is num;
+    return obj is int;
   }
 
   /// Render a symbol as obsolete, usually using a strike-out.
@@ -32991,7 +32993,7 @@ class WorkspaceSymbolClientCapabilitiesTagSupport implements ToJsonable {
       Map<String, Object?> json) {
     final valueSetJson = json['valueSet'];
     final valueSet = (valueSetJson as List<Object?>)
-        .map((item) => SymbolTag.fromJson(item as num))
+        .map((item) => SymbolTag.fromJson(item as int))
         .toList();
     return WorkspaceSymbolClientCapabilitiesTagSupport(valueSet: valueSet);
   }
