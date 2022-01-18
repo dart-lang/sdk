@@ -214,32 +214,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var reference = _enclosingContext.addEnum(name, element);
     _libraryBuilder.localScope.declare(name, reference);
 
-    var holder = _EnclosingContext(reference, element);
-    _withEnclosing(holder, () {
-      var typeParameters = node.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        element.typeParameters = holder.typeParameters;
-      }
-    });
-
-    var accessors = <PropertyAccessorElement>[];
-    var fields = <FieldElementImpl>[];
-    var methods = <MethodElement>[];
+    var holder = _EnclosingContext(
+      reference,
+      element,
+      hasConstConstructor: true,
+    );
 
     // Build the 'index' field.
-    ConstFieldElementImpl indexField;
-    {
-      indexField = ConstFieldElementImpl('index', -1)
-        ..isSynthetic = true
-        ..isFinal = true;
-      indexField.bindReference(
-        reference.getChild('@field').getChild('index'),
-      );
-      fields.add(indexField);
-      accessors.add(PropertyAccessorElementImpl_ImplicitGetter(indexField,
-          reference: reference.getChild('@getter').getChild('index')));
-    }
+    var indexField = ConstFieldElementImpl('index', -1)
+      ..isSynthetic = true
+      ..isFinal = true;
+    holder.addNonSyntheticField(indexField);
 
     var constructorIndexParameter = FieldFormalParameterElementImpl(
       name: 'index',
@@ -272,13 +257,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.constructors = [constructor];
 
     // Build fields for all enum constants.
-    var containerRef = reference.getChild('@field');
     var constants = node.constants;
     var valuesElements = <Expression>[];
     for (var i = 0; i < constants.length; ++i) {
       var constant = constants[i];
       var name = constant.name.name;
-      var reference = containerRef.getChild(name);
       var field = ConstFieldElementImpl(name, constant.name.offset)
         ..hasImplicitType = true
         ..isConst = true
@@ -287,7 +270,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         ..type = DynamicTypeImpl.instance;
       _setCodeRange(field, constant);
       _setDocumentation(field, constant);
-      field.reference = reference;
       field.metadata = _buildAnnotationsWithUnit(
         _unitElement,
         constant.metadata,
@@ -334,9 +316,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _linker.elementNodes[field] = variableDeclaration;
 
       field.constantInitializer = initializer;
-      field.createImplicitAccessors(containerRef.parent!, name);
-      fields.add(field);
-      accessors.add(field.getter as PropertyAccessorElementImpl);
+      holder.addNonSyntheticField(field);
       valuesElements.add(
         astFactory.simpleIdentifier(
           StringToken(TokenType.STRING, name, -1),
@@ -391,9 +371,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
       _linker.elementNodes[valuesField] = variableDeclaration;
 
-      fields.add(valuesField);
-      accessors.add(PropertyAccessorElementImpl_ImplicitGetter(valuesField,
-          reference: reference.getChild('@getter').getChild('values')));
+      holder.addNonSyntheticField(valuesField);
     }
 
     // TODO(scheglov) implement
@@ -401,23 +379,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     // node.withClause?.accept(this);
     // node.implementsClause?.accept(this);
 
-    // TODO(scheglov) don't create a duplicate
-    {
-      var holder2 = _buildClassMembers(element, node.members);
-      fields.addAll(
-        holder2.properties.whereType<FieldElementImpl>(),
-      );
-      accessors.addAll(holder2.propertyAccessors);
-      methods.addAll(holder2.methods);
-    }
+    _withEnclosing(holder, () {
+      node.typeParameters?.accept(this);
+      _visitPropertyFirst<FieldDeclaration>(node.members);
+    });
 
-    // TODO(scheglov) only if no explicit
-    MethodElementImpl toStringMethod;
-    {
-      toStringMethod = MethodElementImpl('toString', -1)..isSynthetic = true;
-      methods.add(toStringMethod);
-      toStringMethod.reference =
-          reference.getChild('@method').getChild('toString');
+    MethodElementImpl? syntheticToStringMethod;
+    if (holder.getMethod('toString').element == null) {
+      syntheticToStringMethod = MethodElementImpl('toString', -1)
+        ..isSynthetic = true;
+      holder.addMethod(name, syntheticToStringMethod);
     }
 
     _libraryBuilder.implicitEnumNodes.add(
@@ -428,13 +399,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         valuesField: valuesField,
         constructorIndexParameter: constructorIndexParameter,
         constructorNameParameter: constructorNameParameter,
-        syntheticToStringMethod: toStringMethod,
+        syntheticToStringMethod: syntheticToStringMethod,
       ),
     );
 
-    element.accessors = accessors;
-    element.fields = fields;
-    element.methods = methods;
+    element.typeParameters = holder.typeParameters;
+    element.accessors = holder.propertyAccessors;
+    element.fields = holder.properties.whereType<FieldElementImpl>().toList();
+    element.methods = holder.methods;
 
     // TODO(scheglov) resolve field formals
   }
@@ -486,8 +458,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
+    // TODO(scheglov) don't create a duplicate
     {
-      var holder = _buildClassMembers(element, node.members);
+      var holder = _EnclosingContext(reference, element);
+      _withEnclosing(holder, () {
+        _visitPropertyFirst<FieldDeclaration>(node.members);
+      });
       element.accessors = holder.propertyAccessors;
       element.fields = holder.properties.whereType<FieldElement>().toList();
       element.methods = holder.methods;
@@ -500,8 +476,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   void visitFieldDeclaration(
     covariant FieldDeclarationImpl node,
   ) {
-    var enclosingRef = _enclosingContext.reference;
-
     var metadata = _buildAnnotations(node.metadata);
     for (var variable in node.fields.variables) {
       var nameNode = variable.name as SimpleIdentifierImpl;
@@ -533,21 +507,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         element.type = DynamicTypeImpl.instance;
       }
 
-      element.createImplicitAccessors(enclosingRef, name);
+      _enclosingContext.addNonSyntheticField(element);
 
       _linker.elementNodes[element] = variable;
-      _enclosingContext.addField(name, element);
       nameNode.staticElement = element;
-
-      var getter = element.getter;
-      if (getter is PropertyAccessorElementImpl) {
-        _enclosingContext.addGetter(name, getter);
-      }
-
-      var setter = element.setter;
-      if (setter is PropertyAccessorElementImpl) {
-        _enclosingContext.addSetter(name, setter);
-      }
     }
     _buildType(node.fields.type);
   }
@@ -1165,23 +1128,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     return _buildAnnotationsWithUnit(_unitElement, nodeList);
   }
 
-  _EnclosingContext _buildClassMembers(
-      ElementImpl element, List<ClassMember> members) {
-    var hasConstConstructor = members.any((e) {
+  void _buildClassOrMixin(ClassOrMixinDeclaration node) {
+    var element = node.declaredElement as ClassElementImpl;
+    var hasConstConstructor = node.members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
+    // TODO(scheglov) don't create a duplicate
     var holder = _EnclosingContext(element.reference!, element,
         hasConstConstructor: hasConstConstructor);
     _withEnclosing(holder, () {
-      _visitPropertyFirst<FieldDeclaration>(members);
+      _visitPropertyFirst<FieldDeclaration>(node.members);
     });
-    return holder;
-  }
-
-  void _buildClassOrMixin(ClassOrMixinDeclaration node) {
-    var element = node.declaredElement as ClassElementImpl;
-    // TODO(scheglov) don't create a duplicate
-    var holder = _buildClassMembers(element, node.members);
     element.accessors = holder.propertyAccessors;
     element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
@@ -1483,6 +1440,23 @@ class _EnclosingContext {
     return _bindReference('@mixin', name, element);
   }
 
+  void addNonSyntheticField(FieldElementImpl element) {
+    var name = element.name;
+    element.createImplicitAccessors(reference, name);
+
+    addField(name, element);
+
+    var getter = element.getter;
+    if (getter is PropertyAccessorElementImpl) {
+      addGetter(name, getter);
+    }
+
+    var setter = element.setter;
+    if (setter is PropertyAccessorElementImpl) {
+      addSetter(name, setter);
+    }
+  }
+
   Reference? addParameter(String? name, ParameterElementImpl element) {
     parameters.add(element);
     if (name == null) {
@@ -1511,6 +1485,10 @@ class _EnclosingContext {
   void addTypeParameter(String name, TypeParameterElementImpl element) {
     typeParameters.add(element);
     this.element.encloseElement(element);
+  }
+
+  Reference getMethod(String name) {
+    return reference.getChild('@method').getChild(name);
   }
 
   Reference _bindReference(

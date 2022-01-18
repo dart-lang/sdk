@@ -502,18 +502,25 @@ abstract class _FindElementBase {
       }
     }
 
-    for (var extension_ in unitElement.extensions) {
-      if (of != null && extension_.name != of) {
-        continue;
-      }
-      findIn(extension_.methods);
-    }
-
     for (var class_ in unitElement.classes) {
       if (of != null && class_.name != of) {
         continue;
       }
       findIn(class_.methods);
+    }
+
+    for (var enum_ in unitElement.enums) {
+      if (of != null && enum_.name != of) {
+        continue;
+      }
+      findIn(enum_.methods);
+    }
+
+    for (var extension_ in unitElement.extensions) {
+      if (of != null && extension_.name != of) {
+        continue;
+      }
+      findIn(extension_.methods);
     }
 
     for (var mixin in unitElement.mixins) {

@@ -27,7 +27,7 @@ class ImplicitEnumNodes {
   final ConstFieldElementImpl valuesField;
   final ParameterElementImpl constructorIndexParameter;
   final ParameterElementImpl constructorNameParameter;
-  final MethodElementImpl syntheticToStringMethod;
+  final MethodElementImpl? syntheticToStringMethod;
 
   ImplicitEnumNodes({
     required this.element,
@@ -149,7 +149,7 @@ class LibraryBuilder {
       enum_.valuesField.type = valuesType;
       enum_.constructorIndexParameter.type = typeProvider.intType;
       enum_.constructorNameParameter.type = typeProvider.stringType;
-      enum_.syntheticToStringMethod.returnType = typeProvider.stringType;
+      enum_.syntheticToStringMethod?.returnType = typeProvider.stringType;
     }
   }
 
