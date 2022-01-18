@@ -1,3 +1,6 @@
+# 2.2.0
+- Add support for serving DevTools via `package:dds/devtools_server.dart`
+
 # 2.1.7
 - Re-release 2.1.6+1.
 
