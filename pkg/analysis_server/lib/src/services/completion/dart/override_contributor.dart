@@ -71,6 +71,7 @@ class OverrideContributor extends DartCompletionContributor {
 
   SimpleIdentifier? _getTargetIdFromVarList(VariableDeclarationList fields) {
     var variables = fields.variables;
+    var type = fields.type;
     if (variables.length == 1) {
       var variable = variables[0];
       var targetId = variable.name;
@@ -81,10 +82,23 @@ class OverrideContributor extends DartCompletionContributor {
         //   where _s_ is a synthetic id inserted by the analyzer parser
         return targetId;
       } else if (fields.keyword == null &&
-          fields.type == null &&
+          type == null &&
           variable.initializer == null) {
         // fasta parser does not insert a synthetic identifier
         return targetId;
+      } else if (fields.keyword == null &&
+          type is NamedType &&
+          type.typeArguments == null &&
+          variable.initializer == null) {
+        //  class A extends B {
+        //    m^
+        //
+        //    String foo;
+        //  }
+        // Parses as a variable list where `m` is the type and `String` is a
+        // variable.
+        var name = type.name;
+        return name is SimpleIdentifier ? name : null;
       }
     }
     return null;
