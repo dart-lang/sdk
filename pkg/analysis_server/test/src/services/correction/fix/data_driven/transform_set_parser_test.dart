@@ -784,7 +784,7 @@ transforms:
       (transform.changesSelector as UnconditionalChangesSelector).changes;
 
   ElementMatcher _matcher(String name) =>
-      ElementMatcher(importedUris: uris, components: [name]);
+      ElementMatcher(importedUris: uris, components: [name], kinds: const []);
 
   List<Transform> _transforms(String name) =>
       result!.transformsFor(_matcher(name), applyingBulkFixes: false);

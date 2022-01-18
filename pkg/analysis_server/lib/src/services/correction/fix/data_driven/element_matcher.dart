@@ -26,13 +26,14 @@ class ElementMatcher {
   final List<ElementKind> validKinds;
 
   /// Initialize a newly created matcher representing a reference to an element
-  /// with the given [name] in a library that imports the [importedUris].
+  /// whose name matches the given [components] and element [kinds] in a library
+  /// that imports the [importedUris].
   ElementMatcher(
       {required this.importedUris,
       required this.components,
-      List<ElementKind>? kinds})
+      required List<ElementKind> kinds})
       : assert(components.isNotEmpty),
-        validKinds = kinds ?? const [];
+        validKinds = kinds;
 
   /// Return `true` if this matcher matches the given [element].
   bool matches(ElementDescriptor element) {
@@ -93,25 +94,68 @@ class ElementMatcher {
     return false;
   }
 
-  /// Return an element matcher that will match the element that is, or should
-  /// be, associated with the given [node], or `null` if there is no appropriate
-  /// matcher for the node.
-  static ElementMatcher? forNode(AstNode? node) {
+  /// Return a list of element matchers that will match the element that is, or
+  /// should be, associated with the given [node]. The list will be empty if
+  /// there are no appropriate matchers for the [node].
+  static List<ElementMatcher> matchersForNode(AstNode? node) {
     if (node == null) {
-      return null;
+      return const <ElementMatcher>[];
     }
     var importedUris = _importElementsForNode(node);
     if (importedUris == null) {
+      return const <ElementMatcher>[];
+    }
+    var builder = _MatcherBuilder(importedUris);
+    builder.buildMatchersForNode(node);
+    return builder.matchers.toList();
+  }
+
+  /// Return the URIs of the imports in the library containing the [node], or
+  /// `null` if the imports can't be determined.
+  static List<Uri>? _importElementsForNode(AstNode node) {
+    var root = node.root;
+    if (root is! CompilationUnit) {
       return null;
     }
+    var importedUris = <Uri>[];
+    var library = root.declaredElement?.library;
+    if (library == null) {
+      return null;
+    }
+    for (var importElement in library.imports) {
+      // TODO(brianwilkerson) Filter based on combinators to help avoid making
+      //  invalid suggestions.
+      var uri = importElement.importedLibrary?.source.uri;
+      if (uri != null) {
+        // The [uri] is `null` if the literal string is not a valid URI.
+        importedUris.add(uri);
+      }
+    }
+    return importedUris;
+  }
+}
+
+/// A helper class used to build a list of element matchers.
+class _MatcherBuilder {
+  final List<ElementMatcher> matchers = [];
+
+  final List<Uri> importedUris;
+
+  _MatcherBuilder(this.importedUris);
+
+  void buildMatchersForNode(AstNode? node) {
     var components = _componentsForNode(node);
     if (components == null) {
-      return null;
+      return;
     }
-    return ElementMatcher(
-        importedUris: importedUris,
-        components: components,
-        kinds: _kindsForNode(node));
+    var kinds = _kindsForNode(node) ?? [];
+    _addMatcher(components: components, kinds: kinds);
+  }
+
+  void _addMatcher(
+      {required List<String> components, required List<ElementKind> kinds}) {
+    matchers.add(ElementMatcher(
+        importedUris: importedUris, components: components, kinds: kinds));
   }
 
   /// Return the components of the path of the element associated with the given
@@ -244,30 +288,6 @@ class ElementMatcher {
     return null;
   }
 
-  /// Return the URIs of the imports in the library containing the [node], or
-  /// `null` if the imports can't be determined.
-  static List<Uri>? _importElementsForNode(AstNode node) {
-    var root = node.root;
-    if (root is! CompilationUnit) {
-      return null;
-    }
-    var importedUris = <Uri>[];
-    var library = root.declaredElement?.library;
-    if (library == null) {
-      return null;
-    }
-    for (var importElement in library.imports) {
-      // TODO(brianwilkerson) Filter based on combinators to help avoid making
-      //  invalid suggestions.
-      var uri = importElement.importedLibrary?.source.uri;
-      if (uri != null) {
-        // The [uri] is `null` if the literal string is not a valid URI.
-        importedUris.add(uri);
-      }
-    }
-    return importedUris;
-  }
-
   /// Return `true` if the [node] is a prefix
   static bool _isPrefix(AstNode? node) {
     return node is SimpleIdentifier && node.staticElement is PrefixElement;
@@ -312,6 +332,7 @@ class ElementMatcher {
       }
       return const [
         ElementKind.classKind,
+//        ElementKind.constructorKind,
         ElementKind.enumKind,
         ElementKind.mixinKind,
         ElementKind.typedefKind
