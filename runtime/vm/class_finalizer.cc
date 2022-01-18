@@ -1223,6 +1223,7 @@ ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
 void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  ObjectStore* object_store = thread->isolate_group()->object_store();
 
   const auto& values_field =
       Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
@@ -1237,16 +1238,11 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
     ASSERT(values.IsArray());
   }
 
-  // The enum_cls is the actual declared class.
-  // The shared super-class holds the fields for index and name.
-  const auto& super_cls = Class::Handle(zone, enum_cls.SuperClass());
-
   const auto& index_field =
-      Field::Handle(zone, super_cls.LookupInstanceField(Symbols::Index()));
+      Field::Handle(zone, object_store->enum_index_field());
   ASSERT(!index_field.IsNull());
 
-  const auto& name_field = Field::Handle(
-      zone, super_cls.LookupInstanceFieldAllowPrivate(Symbols::_name()));
+  const auto& name_field = Field::Handle(zone, object_store->enum_name_field());
   ASSERT(!name_field.IsNull());
 
   const auto& enum_name = String::Handle(zone, enum_cls.ScrubbedName());
