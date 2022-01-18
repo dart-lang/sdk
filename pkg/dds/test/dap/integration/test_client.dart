@@ -224,6 +224,7 @@ class DapTestClient {
   Future<Response> launch(
     String program, {
     List<String>? args,
+    List<String>? toolArgs,
     String? cwd,
     bool? noDebug,
     List<String>? additionalProjectPaths,
@@ -240,6 +241,7 @@ class DapTestClient {
         program: program,
         cwd: cwd,
         args: args,
+        toolArgs: toolArgs,
         additionalProjectPaths: additionalProjectPaths,
         console: console,
         debugSdkLibraries: debugSdkLibraries,

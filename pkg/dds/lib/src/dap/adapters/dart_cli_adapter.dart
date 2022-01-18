@@ -73,6 +73,14 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     terminatePids(ProcessSignal.sigkill);
   }
 
+  /// Checks whether [flag] is in [args], allowing for both underscore and
+  /// dash format.
+  bool _containsVmFlag(List<String> args, String flag) {
+    final flagUnderscores = flag.replaceAll('-', '_');
+    final flagDashes = flag.replaceAll('_', '-');
+    return args.contains(flagUnderscores) || args.contains(flagDashes);
+  }
+
   /// Called by [launchRequest] to request that we actually start the app to be
   /// run/debugged.
   ///
@@ -103,6 +111,17 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       ],
     ];
 
+    final toolArgs = args.toolArgs ?? [];
+    if (debug) {
+      // If the user has explicitly set pause-isolates-on-exit we need to
+      // not add it ourselves, and disable auto-resuming.
+      if (_containsVmFlag(toolArgs, '--pause_isolates_on_exit')) {
+        resumeIsolatesAfterPauseExit = false;
+      } else {
+        vmArgs.add('--pause_isolates_on_exit');
+      }
+    }
+
     // Handle customTool and deletion of any arguments for it.
     final executable = args.customTool ?? Platform.resolvedExecutable;
     final removeArgs = args.customToolReplacesArgs;
@@ -112,7 +131,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
 
     final processArgs = [
       ...vmArgs,
-      ...?args.toolArgs,
+      ...toolArgs,
       args.program,
       ...?args.args,
     ];

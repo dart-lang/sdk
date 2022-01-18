@@ -4,12 +4,12 @@
 
 import 'dart:async';
 
-import 'package:dds/src/constants.dart';
 import 'package:devtools_shared/devtools_server.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:sse/server/sse_handler.dart';
 
+import '../constants.dart';
 import '../dds_impl.dart';
 import 'devtools_client.dart';
 

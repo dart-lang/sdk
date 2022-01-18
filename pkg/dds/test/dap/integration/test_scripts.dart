@@ -55,6 +55,24 @@ const simpleArgPrintingProgram = r'''
   }
 ''';
 
+/// A simple Dart script that prints to stderr without throwing/terminating.
+///
+/// The output will contain stack traces include both the supplied file and
+/// package URIs.
+String stderrPrintingProgram(Uri fileUri, Uri packageUri) {
+  return '''
+  import 'dart:io';
+  import '$packageUri';
+
+  void main(List<String> args) async {
+    stderr.writeln('Start');
+    stderr.writeln('#0      main ($fileUri:1:2)');
+    stderr.writeln('#1      main2 ($packageUri:1:2)');
+    stderr.write('End');
+  }
+''';
+}
+
 /// Returns a simple Dart script that prints the provided string repeatedly.
 String stringPrintingProgram(String text) {
   // jsonEncode the string to get it into a quoted/escaped form that can be

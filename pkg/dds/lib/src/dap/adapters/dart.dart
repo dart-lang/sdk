@@ -21,6 +21,7 @@ import '../protocol_common.dart';
 import '../protocol_converter.dart';
 import '../protocol_generated.dart';
 import '../protocol_stream.dart';
+import '../utils.dart';
 
 /// The mime type to send with source responses to the client.
 ///
@@ -381,6 +382,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// (terminateRequest/disconnectRequest) or when a process terminates, or the
   /// VM Service disconnects.
   bool isTerminating = false;
+
+  /// Whether isolates that pause in the PauseExit state should be automatically
+  /// resumed after any in-process log events have completed.
+  ///
+  /// Normally this will be true, but it may be set to false if the user
+  /// also manually passes pause-isolates-on-exit.
+  bool resumeIsolatesAfterPauseExit = true;
+
+  /// A [Future] that completes when the last queued OutputEvent has been sent.
+  ///
+  /// Calls to [SendOutput] will reserve their place in this queue and
+  /// subsequent calls will chain their own sends onto this (and replace it) to
+  /// preserve order.
+  Future? _lastOutputEvent;
 
   /// Removes any breakpoints or pause behaviour and resumes any paused
   /// isolates.
@@ -903,7 +918,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   }
 
   /// Sends a [TerminatedEvent] if one has not already been sent.
-  void handleSessionTerminate([String exitSuffix = '']) {
+  ///
+  /// Waits for any in-progress output events to complete first.
+  void handleSessionTerminate([String exitSuffix = '']) async {
+    await _waitForPendingOutputEvents();
+
     if (_hasSentTerminatedEvent) {
       return;
     }
@@ -911,8 +930,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     isTerminating = true;
     _hasSentTerminatedEvent = true;
     // Always add a leading newline since the last written text might not have
-    // had one.
-    sendOutput('console', '\nExited$exitSuffix.');
+    // had one. Send directly via sendEvent and not sendOutput to ensure no
+    // async since we're about to terminate.
+    sendEvent(OutputEventBody(output: '\nExited$exitSuffix.'));
     sendEvent(TerminatedEventBody());
   }
 
@@ -1100,9 +1120,32 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   }
 
   /// Sends an OutputEvent (without a newline, since calls to this method
-  /// may be used by buffered data).
-  void sendOutput(String category, String message) {
-    sendEvent(OutputEventBody(category: category, output: message));
+  /// may be using buffered data that is not split cleanly on newlines).
+  ///
+  /// If [category] is `stderr`, will also look for stack traces and extract
+  /// file/line information to add to the metadata of the event.
+  ///
+  /// To ensure output is sent to the client in the correct order even if
+  /// processing stack frames requires async calls, this function will insert
+  /// output events into a queue and only send them when previous calls have
+  /// been completed.
+  void sendOutput(String category, String message) async {
+    // Reserve our place in the queue be inserting a future that we can complete
+    // after we have sent the output event.
+    final completer = Completer<void>();
+    final _previousEvent = _lastOutputEvent ?? Future.value();
+    _lastOutputEvent = completer.future;
+
+    try {
+      final outputEvents = await _buildOutputEvents(category, message);
+
+      // Chain our sends onto the end of the previous one, and complete our Future
+      // once done so that the next one can go.
+      await _previousEvent;
+      outputEvents.forEach(sendEvent);
+    } finally {
+      completer.complete();
+    }
   }
 
   /// Sends an OutputEvent for [message], prefixed with [prefix] and with [message]
@@ -1577,6 +1620,108 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     return uri.replace(path: newPath);
   }
 
+  /// Creates one or more OutputEvents for the provided [message].
+  ///
+  /// Messages that contain stack traces may be split up into seperate events
+  /// for each frame to allow location metadata to be attached.
+  Future<List<OutputEventBody>> _buildOutputEvents(
+    String category,
+    String message,
+  ) async {
+    try {
+      if (category == 'stderr') {
+        return await _buildStdErrOutputEvents(message);
+      } else {
+        return [OutputEventBody(category: category, output: message)];
+      }
+    } catch (e, s) {
+      // Since callers of [sendOutput] may not await it, don't allow unhandled
+      // errors (for example if the VM Service quits while we were trying to
+      // map URIs), just log and return the event without metadata.
+      logger?.call('Failed to build OutputEvent: $e, $s');
+      return [OutputEventBody(category: category, output: message)];
+    }
+  }
+
+  /// Builds OutputEvents for stderr.
+  ///
+  /// If a stack trace can be parsed from [message], file/line information will
+  /// be included in the metadata of the event.
+  Future<List<OutputEventBody>> _buildStdErrOutputEvents(String message) async {
+    final events = <OutputEventBody>[];
+
+    // Extract all the URIs so we can send a batch request for resolving them.
+    final lines = message.split('\n');
+    final frames = lines.map(parseStackFrame).toList();
+    final uris = frames.whereNotNull().map((f) => f.uri).toList();
+
+    // We need an Isolate to resolve package URIs. Since we don't know what
+    // isolate printed an error to stderr, we just have to use the first one and
+    // hope the packages are available. If one is not available (which should
+    // never be the case), we will just skip resolution.
+    final thread = _isolateManager.threads.firstOrNull;
+
+    // Send a batch request. This will cache the results so we can easily use
+    // them in the loop below by calling the method again.
+    if (uris.isNotEmpty) {
+      try {
+        await thread?.resolveUrisToPathsBatch(uris);
+      } catch (e, s) {
+        // Ignore errors that may occur if the VM is shutting down before we got
+        // this request out. In most cases we will have pre-cached the results
+        // when the libraries were loaded (in order to check if they're user code)
+        // so it's likely this won't cause any issues (dart:isolate-patch is an
+        // exception seen that appears in the stack traces but was not previously
+        // seen/cached).
+        logger?.call('Failed to resolve URIs: $e\n$s');
+      }
+    }
+
+    // Convert any URIs to paths.
+    final paths = await Future.wait(frames.map((frame) async {
+      final uri = frame?.uri;
+      if (uri == null) return null;
+      if (uri.isScheme('file')) return uri.toFilePath();
+      if (isResolvableUri(uri)) {
+        try {
+          return await thread?.resolveUriToPath(uri);
+        } catch (e, s) {
+          // Swallow errors for the same reason noted above.
+          logger?.call('Failed to resolve URIs: $e\n$s');
+        }
+      }
+      return null;
+    }));
+
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      final frame = frames[i];
+      final uri = frame?.uri;
+      final path = paths[i];
+      // For the name, we usually use the package URI, but if we only ended up
+      // with a file URI, try to make it relative to cwd so it's not so long.
+      final name = uri != null && path != null
+          ? (uri.isScheme('file')
+              ? _converter.convertToRelativePath(path)
+              : uri.toString())
+          : null;
+      // Because we split on newlines, all items exept the last one need to
+      // have their trailing newlines added back.
+      final output = i == lines.length - 1 ? line : '$line\n';
+      events.add(
+        OutputEventBody(
+          category: 'stderr',
+          output: output,
+          source: path != null ? Source(name: name, path: path) : null,
+          line: frame?.line,
+          column: frame?.column,
+        ),
+      );
+    }
+
+    return events;
+  }
+
   /// Handles evaluation of an expression that is (or begins with)
   /// `threadExceptionExpression` which corresponds to the exception at the top
   /// of [thread].
@@ -1618,6 +1763,18 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     await debuggerInitialized;
 
     await _isolateManager.handleEvent(event);
+
+    final eventKind = event.kind;
+    final isolate = event.isolate;
+    // We pause isolates on exit to allow requests for resolving URIs in
+    // stderr call stacks, so when we see an isolate pause, wait for any
+    // pending logs and then resume it (so it exits).
+    if (resumeIsolatesAfterPauseExit &&
+        eventKind == vm.EventKind.kPauseExit &&
+        isolate != null) {
+      await _waitForPendingOutputEvents();
+      await _isolateManager.resumeIsolate(isolate);
+    }
   }
 
   @protected
@@ -1855,6 +2012,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     _StreamEventHandler<T> handler,
   ) {
     return (data) => _withErrorHandling(() => handler(data));
+  }
+
+  /// Waits for any pending async output events that might be in progress.
+  ///
+  /// If another output event is queued while waiting, the new event will be
+  /// waited for, until there are no more.
+  Future<void> _waitForPendingOutputEvents() async {
+    // Keep awaiting it as long as it's changing to allow for other
+    // events being queued up while it runs.
+    var lastEvent = _lastOutputEvent;
+    do {
+      lastEvent = _lastOutputEvent;
+      await lastEvent;
+    } while (lastEvent != _lastOutputEvent);
   }
 
   /// Calls a function with an error handler that handles errors that occur when

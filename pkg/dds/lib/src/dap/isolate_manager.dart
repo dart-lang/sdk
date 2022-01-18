@@ -13,6 +13,7 @@ import 'package:vm_service/vm_service.dart' as vm;
 import 'adapters/dart.dart';
 import 'exceptions.dart';
 import 'protocol_generated.dart';
+import 'utils.dart';
 
 /// Manages state of Isolates (called Threads by the DAP protocol).
 ///
@@ -215,8 +216,7 @@ class IsolateManager {
     ));
   }
 
-  Future<void> resumeIsolate(vm.IsolateRef isolateRef,
-      [String? resumeType]) async {
+  Future<void> resumeIsolate(vm.IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
 
     final thread = _threadsByIsolateId[isolateId];
@@ -823,7 +823,7 @@ class ThreadInfo {
   Future<List<String?>> resolveUrisToPathsBatch(List<Uri> uris) async {
     // First find the set of URIs we don't already have results for.
     final requiredUris = uris
-        .where((uri) => !uri.isScheme('file'))
+        .where(isResolvableUri)
         .where((uri) => !_resolvedPaths.containsKey(uri.toString()))
         .toSet() // Take only distinct values.
         .toList();
@@ -837,17 +837,24 @@ class ThreadInfo {
       completers.forEach(
         (uri, completer) => _resolvedPaths[uri] = completer.future,
       );
-      final results =
-          await _manager._lookupResolvedPackageUris(isolate, requiredUris);
-      if (results == null) {
-        // If no result, all of the results are null.
-        completers.forEach((uri, completer) => completer.complete(null));
-      } else {
-        // Otherwise, complete each one by index with the corresponding value.
-        results.map(_convertUriToFilePath).forEachIndexed((i, result) {
-          final uri = requiredUris[i].toString();
-          completers[uri]!.complete(result);
-        });
+      try {
+        final results =
+            await _manager._lookupResolvedPackageUris(isolate, requiredUris);
+        if (results == null) {
+          // If no result, all of the results are null.
+          completers.forEach((uri, completer) => completer.complete(null));
+        } else {
+          // Otherwise, complete each one by index with the corresponding value.
+          results.map(_convertUriToFilePath).forEachIndexed((i, result) {
+            final uri = requiredUris[i].toString();
+            completers[uri]!.complete(result);
+          });
+        }
+      } catch (e) {
+        // We can't leave dangling completers here because others may already
+        // be waiting on them, so propogate the error to them.
+        completers.forEach((uri, completer) => completer.completeError(e));
+        rethrow;
       }
     }
 
