@@ -5455,3 +5455,6 @@ PositionalSuperParametersAndArguments:
 SuperInitializerParameter:
   problemMessage: "This is the super-initializer parameter."
   severity: CONTEXT
+
+EnumSupertypeOfNonAbstractClass:
+  problemMessage: "Non-abstract class '#name' has 'Enum' as a superinterface."

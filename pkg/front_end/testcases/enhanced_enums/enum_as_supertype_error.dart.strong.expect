@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:5:7: Error: Non-abstract class 'A' has 'Enum' as a superinterface.
+// class A extends Enum { // Error.
+//       ^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:9:7: Error: Non-abstract class 'B' has 'Enum' as a superinterface.
+// class B implements Enum { // Error.
+//       ^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:5:7: Error: The non-abstract class 'A' is missing implementations for these members:
+//  - Enum.index
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class A extends Enum { // Error.
+//       ^
+// sdk/lib/core/enum.dart:22:11: Context: 'Enum.index' is defined here.
+//   int get index;
+//           ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:9:7: Error: The non-abstract class 'B' is missing implementations for these members:
+//  - Enum.index
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class B implements Enum { // Error.
+//       ^
+// sdk/lib/core/enum.dart:22:11: Context: 'Enum.index' is defined here.
+//   int get index;
+//           ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Enum {
+  synthetic constructor •() → self::A
+    : super core::Enum::•()
+    ;
+  get foo() → core::int
+    return this.{core::Enum::index}{core::int};
+  no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/core/enum.dart */ _name() → core::String
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+}
+class B extends core::Object implements core::Enum {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  get foo() → core::int
+    return this.{core::Enum::index}{core::int};
+  no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/core/enum.dart */ _name() → core::String
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = #org-dartlang-testcase:///enum_as_supertype_error.dart::_name
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = <core::Symbol*, dynamic>{)
+}

@@ -75,6 +75,7 @@ stringokempty
 struct<#name
 structs
 super.namedconstructor
+superinterface
 supermixin
 team
 this.namedconstructor

@@ -218,6 +218,8 @@ EnumDeclaresConstFactory/example: Fail
 EnumDeclaresFactory/analyzerCode: Fail
 EnumDeclaresFactory/example: Fail
 EnumInstantiation/example: Fail
+EnumSupertypeOfNonAbstractClass/analyzerCode: Fail
+EnumSupertypeOfNonAbstractClass/example: Fail
 EqualityCannotBeEqualityOperand/part_wrapped_script1: Fail
 EqualityCannotBeEqualityOperand/part_wrapped_script2: Fail
 EqualityCannotBeEqualityOperand/script1: Fail
