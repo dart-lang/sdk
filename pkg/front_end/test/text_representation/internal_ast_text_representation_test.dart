@@ -2,11 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart';
 import 'package:expect/expect.dart';
+import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/fasta/builder/type_alias_builder.dart';
+import 'package:front_end/src/fasta/compiler_context.dart';
+import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
+import 'package:front_end/src/fasta/dill/dill_loader.dart';
+import 'package:front_end/src/fasta/dill/dill_target.dart';
+import 'package:front_end/src/fasta/dill/dill_type_alias_builder.dart';
 import 'package:front_end/src/fasta/kernel/collections.dart';
 import 'package:front_end/src/fasta/kernel/forest.dart';
 import 'package:front_end/src/fasta/kernel/internal_ast.dart';
+import 'package:front_end/src/fasta/ticker.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/target/targets.dart';
+import 'package:package_config/package_config.dart';
+
 import 'text_representation_test.dart';
 
 void testStatement(Statement node, String normal,
@@ -32,66 +45,71 @@ void testExpression(Expression node, String normal,
 final Uri dummyUri = Uri.parse('test:dummy');
 
 void main() {
-  _testVariableDeclarations();
-  _testTryStatement();
-  _testForInStatementWithSynthesizedVariable();
-  _testSwitchCaseImpl();
-  _testBreakStatementImpl();
-  _testCascade();
-  _testDeferredCheck();
-  _testFactoryConstructorInvocationJudgment();
-  _testFunctionDeclarationImpl();
-  _testIfNullExpression();
-  _testIntLiterals();
-  _testInternalMethodInvocation();
-  _testInternalPropertyGet();
-  _testInternalPropertySet();
-  _testExpressionInvocation();
-  _testNamedFunctionExpressionJudgment();
-  _testNullAwareMethodInvocation();
-  _testNullAwarePropertyGet();
-  _testNullAwarePropertySet();
-  _testReturnStatementImpl();
-  _testVariableDeclarationImpl();
-  _testVariableGetImpl();
-  _testLoadLibraryImpl();
-  _testLoadLibraryTearOff();
-  _testIfNullPropertySet();
-  _testIfNullSet();
-  _testCompoundExtensionSet();
-  _testCompoundPropertySet();
-  _testPropertyPostIncDec();
-  _testLocalPostIncDec();
-  _testStaticPostIncDec();
-  _testSuperPostIncDec();
-  _testIndexGet();
-  _testIndexSet();
-  _testSuperIndexSet();
-  _testExtensionIndexSet();
-  _testIfNullIndexSet();
-  _testIfNullSuperIndexSet();
-  _testIfNullExtensionIndexSet();
-  _testCompoundIndexSet();
-  _testNullAwareCompoundSet();
-  _testNullAwareIfNullSet();
-  _testCompoundSuperIndexSet();
-  _testCompoundExtensionIndexSet();
-  _testExtensionSet();
-  _testNullAwareExtension();
-  _testPropertySetImpl();
-  _testExtensionTearOff();
-  _testEqualsExpression();
-  _testBinaryExpression();
-  _testUnaryExpression();
-  _testParenthesizedExpression();
-  _testSpreadElement();
-  _testIfElement();
-  _testForElement();
-  _testForInElement();
-  _testSpreadMapEntry();
-  _testIfMapEntry();
-  _testForMapEntry();
-  _testForInMapEntry();
+  CompilerContext.runWithOptions(new ProcessedOptions(inputs: [dummyUri]),
+      (_) async {
+    _testVariableDeclarations();
+    _testTryStatement();
+    _testForInStatementWithSynthesizedVariable();
+    _testSwitchCaseImpl();
+    _testBreakStatementImpl();
+    _testCascade();
+    _testDeferredCheck();
+    _testFactoryConstructorInvocationJudgment();
+    _testTypeAliasedConstructorInvocation();
+    _testTypeAliasedFactoryInvocation();
+    _testFunctionDeclarationImpl();
+    _testIfNullExpression();
+    _testIntLiterals();
+    _testInternalMethodInvocation();
+    _testInternalPropertyGet();
+    _testInternalPropertySet();
+    _testExpressionInvocation();
+    _testNamedFunctionExpressionJudgment();
+    _testNullAwareMethodInvocation();
+    _testNullAwarePropertyGet();
+    _testNullAwarePropertySet();
+    _testReturnStatementImpl();
+    _testVariableDeclarationImpl();
+    _testVariableGetImpl();
+    _testLoadLibraryImpl();
+    _testLoadLibraryTearOff();
+    _testIfNullPropertySet();
+    _testIfNullSet();
+    _testCompoundExtensionSet();
+    _testCompoundPropertySet();
+    _testPropertyPostIncDec();
+    _testLocalPostIncDec();
+    _testStaticPostIncDec();
+    _testSuperPostIncDec();
+    _testIndexGet();
+    _testIndexSet();
+    _testSuperIndexSet();
+    _testExtensionIndexSet();
+    _testIfNullIndexSet();
+    _testIfNullSuperIndexSet();
+    _testIfNullExtensionIndexSet();
+    _testCompoundIndexSet();
+    _testNullAwareCompoundSet();
+    _testNullAwareIfNullSet();
+    _testCompoundSuperIndexSet();
+    _testCompoundExtensionIndexSet();
+    _testExtensionSet();
+    _testNullAwareExtension();
+    _testPropertySetImpl();
+    _testExtensionTearOff();
+    _testEqualsExpression();
+    _testBinaryExpression();
+    _testUnaryExpression();
+    _testParenthesizedExpression();
+    _testSpreadElement();
+    _testIfElement();
+    _testForElement();
+    _testForInElement();
+    _testSpreadMapEntry();
+    _testIfMapEntry();
+    _testForMapEntry();
+    _testForInMapEntry();
+  });
 }
 
 void _testVariableDeclarations() {
@@ -353,6 +371,147 @@ new library test:dummy::Class<void>(0, bar: 1)''');
 new Class<void>.foo(0, bar: 1)''',
       verbose: '''
 new library test:dummy::Class<void>.foo(0, bar: 1)''');
+}
+
+void _testTypeAliasedConstructorInvocation() {
+  DillTarget dillTarget = new DillTarget(
+      new Ticker(),
+      new UriTranslator(
+          new TargetLibrariesSpecification('dummy'), new PackageConfig([])),
+      new NoneTarget(new TargetFlags()));
+  DillLoader dillLoader = new DillLoader(dillTarget);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Class', fileUri: dummyUri);
+  library.addClass(cls);
+  Constructor constructor = new Constructor(new FunctionNode(null),
+      name: new Name(''), fileUri: dummyUri);
+  cls.addConstructor(constructor);
+  DillLibraryBuilder libraryBuilder =
+      new DillLibraryBuilder(library, dillLoader);
+  Typedef typedef = new Typedef(
+      'Typedef', new InterfaceType(cls, Nullability.nonNullable),
+      fileUri: dummyUri);
+  library.addTypedef(typedef);
+  TypeAliasBuilder typeAliasBuilder =
+      new DillTypeAliasBuilder(typedef, null, libraryBuilder);
+
+  testExpression(
+      new TypeAliasedConstructorInvocation(
+          typeAliasBuilder, constructor, new ArgumentsImpl([])),
+      '''
+new Typedef()''',
+      verbose: '''
+new library test:dummy::Typedef()''');
+
+  testExpression(
+      new TypeAliasedConstructorInvocation(
+          typeAliasBuilder,
+          constructor,
+          new ArgumentsImpl([new IntLiteral(0)],
+              types: [const VoidType()],
+              named: [new NamedExpression('bar', new IntLiteral(1))])),
+      '''
+new Typedef<void>(0, bar: 1)''',
+      verbose: '''
+new library test:dummy::Typedef<void>(0, bar: 1)''');
+
+  constructor.name = new Name('foo');
+  testExpression(
+      new TypeAliasedConstructorInvocation(
+          typeAliasBuilder,
+          constructor,
+          new ArgumentsImpl([new IntLiteral(0)],
+              types: [const VoidType()],
+              named: [new NamedExpression('bar', new IntLiteral(1))])),
+      '''
+new Typedef<void>.foo(0, bar: 1)''',
+      verbose: '''
+new library test:dummy::Typedef<void>.foo(0, bar: 1)''');
+
+  constructor.name = new Name('foo');
+  testExpression(
+      new TypeAliasedConstructorInvocation(
+          typeAliasBuilder,
+          constructor,
+          new ArgumentsImpl([new IntLiteral(0)],
+              types: [const VoidType()],
+              named: [new NamedExpression('bar', new IntLiteral(1))]),
+          isConst: true),
+      '''
+const Typedef<void>.foo(0, bar: 1)''',
+      verbose: '''
+const library test:dummy::Typedef<void>.foo(0, bar: 1)''');
+}
+
+void _testTypeAliasedFactoryInvocation() {
+  DillTarget dillTarget = new DillTarget(
+      new Ticker(),
+      new UriTranslator(
+          new TargetLibrariesSpecification('dummy'), new PackageConfig([])),
+      new NoneTarget(new TargetFlags()));
+  DillLoader dillLoader = new DillLoader(dillTarget);
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Class', fileUri: dummyUri);
+  library.addClass(cls);
+  Procedure factoryConstructor = new Procedure(
+      new Name(''), ProcedureKind.Factory, new FunctionNode(null),
+      fileUri: dummyUri);
+  cls.addProcedure(factoryConstructor);
+  DillLibraryBuilder libraryBuilder =
+      new DillLibraryBuilder(library, dillLoader);
+  Typedef typedef = new Typedef(
+      'Typedef', new InterfaceType(cls, Nullability.nonNullable),
+      fileUri: dummyUri);
+  library.addTypedef(typedef);
+  TypeAliasBuilder typeAliasBuilder =
+      new DillTypeAliasBuilder(typedef, null, libraryBuilder);
+
+  testExpression(
+      new TypeAliasedFactoryInvocation(
+          typeAliasBuilder, factoryConstructor, new ArgumentsImpl([])),
+      '''
+new Typedef()''',
+      verbose: '''
+new library test:dummy::Typedef()''');
+
+  testExpression(
+      new TypeAliasedFactoryInvocation(
+          typeAliasBuilder,
+          factoryConstructor,
+          new ArgumentsImpl([new IntLiteral(0)],
+              types: [const VoidType()],
+              named: [new NamedExpression('bar', new IntLiteral(1))])),
+      '''
+new Typedef<void>(0, bar: 1)''',
+      verbose: '''
+new library test:dummy::Typedef<void>(0, bar: 1)''');
+
+  factoryConstructor.name = new Name('foo');
+  testExpression(
+      new TypeAliasedFactoryInvocation(
+          typeAliasBuilder,
+          factoryConstructor,
+          new ArgumentsImpl([new IntLiteral(0)],
+              types: [const VoidType()],
+              named: [new NamedExpression('bar', new IntLiteral(1))])),
+      '''
+new Typedef<void>.foo(0, bar: 1)''',
+      verbose: '''
+new library test:dummy::Typedef<void>.foo(0, bar: 1)''');
+
+  factoryConstructor.name = new Name('foo');
+  testExpression(
+      new TypeAliasedFactoryInvocation(
+          typeAliasBuilder,
+          factoryConstructor,
+          new ArgumentsImpl([new IntLiteral(0)],
+              types: [const VoidType()],
+              named: [new NamedExpression('bar', new IntLiteral(1))]),
+          isConst: true),
+      '''
+const Typedef<void>.foo(0, bar: 1)''',
+      verbose: '''
+const library test:dummy::Typedef<void>.foo(0, bar: 1)''');
 }
 
 void _testFunctionDeclarationImpl() {

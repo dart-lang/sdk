@@ -1,0 +1,83 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef HInvalid = self::HBase<self::HKindInvalid>;
+typedef HInvalidComposite<CHILD extends self::HBase<self::HKindInvalid>> = self::HBaseComposite<self::HKindInvalid, CHILD>;
+typedef HInvalidChild<CHILD extends self::HBase<self::HKindInvalid>> = self::HBaseChild<self::HKindInvalid, CHILD>;
+typedef HInvalidLeaf = self::HBaseLeaf<self::HKindInvalid>;
+typedef HInvalidError = self::HBaseError<self::HKindInvalid>;
+abstract class HBase<HKT extends self::HKind> extends core::Object implements self::Kind<self::HBase::HKT> {
+  synthetic constructor •() → self::HBase<self::HBase::HKT>
+    : super core::Object::•()
+    ;
+}
+class HBaseComposite<HKT extends self::HKindValid, CHILD extends self::HBase<self::HBaseComposite::HKT> = self::HBase<self::HKindValid>> extends core::Object implements self::HBase<self::HBaseComposite::HKT> /*hasConstConstructor*/  {
+  final field core::List<self::HBaseComposite::CHILD> children;
+  const constructor •(final core::List<self::HBaseComposite::CHILD> children) → self::HBaseComposite<self::HBaseComposite::HKT, self::HBaseComposite::CHILD>
+    : self::HBaseComposite::children = children, super core::Object::•()
+    ;
+}
+class HBaseChild<HKT extends self::HKindValid, CHILD extends self::HBase<self::HBaseChild::HKT> = self::HBase<self::HKindValid>> extends core::Object implements self::HBase<self::HBaseChild::HKT> /*hasConstConstructor*/  {
+  final field self::HBaseChild::CHILD child;
+  const constructor •(final self::HBaseChild::CHILD child) → self::HBaseChild<self::HBaseChild::HKT, self::HBaseChild::CHILD>
+    : self::HBaseChild::child = child, super core::Object::•()
+    ;
+}
+class HBaseLeaf<HKT extends self::HKindValid> extends core::Object implements self::HBase<self::HBaseLeaf::HKT> /*hasConstConstructor*/  {
+  final field core::int data;
+  const constructor •(final core::int data) → self::HBaseLeaf<self::HBaseLeaf::HKT>
+    : self::HBaseLeaf::data = data, super core::Object::•()
+    ;
+}
+class HBaseError<HKT extends self::HKindInvalid> extends core::Object implements self::HBase<self::HBaseError::HKT> /*hasConstConstructor*/  {
+  final field core::String errorMessage;
+  const constructor •(final core::String errorMessage) → self::HBaseError<self::HBaseError::HKT>
+    : self::HBaseError::errorMessage = errorMessage, super core::Object::•()
+    ;
+}
+abstract class Kind<HKT extends self::HKind> extends core::Object {
+  synthetic constructor •() → self::Kind<self::Kind::HKT>
+    : super core::Object::•()
+    ;
+}
+abstract class HKind extends core::Object {
+  synthetic constructor •() → self::HKind
+    : super core::Object::•()
+    ;
+}
+abstract class HKindValid extends core::Object implements self::HKind {
+  synthetic constructor •() → self::HKindValid
+    : super core::Object::•()
+    ;
+}
+abstract class HKindInvalid extends core::Object implements self::HKindValid {
+  synthetic constructor •() → self::HKindInvalid
+    : super core::Object::•()
+    ;
+}
+static const field self::HBase<self::HKindInvalid> invalidExample = #C7;
+static method main() → dynamic {}
+static method _#HInvalidComposite#new#tearOff<CHILD extends self::HBase<self::HKindInvalid>>(core::List<self::_#HInvalidComposite#new#tearOff::CHILD> children) → self::HBaseComposite<self::HKindInvalid, self::_#HInvalidComposite#new#tearOff::CHILD>
+  return new self::HBaseComposite::•<self::HKindInvalid, self::_#HInvalidComposite#new#tearOff::CHILD>(children);
+static method _#HInvalidChild#new#tearOff<CHILD extends self::HBase<self::HKindInvalid>>(self::_#HInvalidChild#new#tearOff::CHILD child) → self::HBaseChild<self::HKindInvalid, self::_#HInvalidChild#new#tearOff::CHILD>
+  return new self::HBaseChild::•<self::HKindInvalid, self::_#HInvalidChild#new#tearOff::CHILD>(child);
+
+constants  {
+  #C1 = 0
+  #C2 = self::HBaseLeaf<self::HKindInvalid*> {data:#C1}
+  #C3 = self::HBaseChild<self::HKindInvalid*, self::HBaseLeaf<self::HKindInvalid*>*> {child:#C2}
+  #C4 = "error message"
+  #C5 = self::HBaseError<self::HKindInvalid*> {errorMessage:#C4}
+  #C6 = <self::HBase<self::HKindInvalid*>*>[#C2, #C3, #C5]
+  #C7 = self::HBaseComposite<self::HKindInvalid*, self::HBase<self::HKindInvalid*>*> {children:#C6}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue48148.dart:
+- HBaseLeaf. (from org-dartlang-testcase:///issue48148.dart:45:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- HBaseChild. (from org-dartlang-testcase:///issue48148.dart:37:9)
+- HBaseError. (from org-dartlang-testcase:///issue48148.dart:53:9)
+- HBaseComposite. (from org-dartlang-testcase:///issue48148.dart:28:9)

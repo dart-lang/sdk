@@ -1387,6 +1387,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void _unaliasTypeAliasedConstructorInvocations() {
     for (TypeAliasedConstructorInvocation invocation
         in typeAliasedConstructorInvocations) {
+      if (!invocation.hasBeenInferred) {
+        assert(
+            isOrphaned(invocation), "Node $invocation has not been inferred.");
+        continue;
+      }
       bool inferred = !hasExplicitTypeArguments(invocation.arguments);
       DartType aliasedType = new TypedefType(
           invocation.typeAliasBuilder.typedef,
@@ -1416,6 +1421,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         typeAliasedFactoryInvocations.toList();
     typeAliasedFactoryInvocations.clear();
     for (TypeAliasedFactoryInvocation invocation in invocations) {
+      if (!invocation.hasBeenInferred) {
+        assert(
+            isOrphaned(invocation), "Node $invocation has not been inferred.");
+        continue;
+      }
       bool inferred = !hasExplicitTypeArguments(invocation.arguments);
       DartType aliasedType = new TypedefType(
           invocation.typeAliasBuilder.typedef,
@@ -7736,5 +7746,45 @@ class _BodyBuilderCloner extends CloneVisitorNotMembers {
           node.named.map(clone).toList(), node.types.map(visitType).toList());
     }
     return super.visitArguments(node);
+  }
+}
+
+/// Returns `true` if [node] is not part of its parent member.
+///
+/// This computation is costly and should only be used in assertions to verify
+/// that [node] has been removed from the AST.
+bool isOrphaned(TreeNode node) {
+  TreeNode? parent = node;
+  Member? member;
+  while (parent != null) {
+    if (parent is Member) {
+      member = parent;
+      break;
+    }
+    parent = parent.parent;
+  }
+  if (member == null) {
+    return true;
+  }
+  _FindChildVisitor visitor = new _FindChildVisitor(node);
+  member.accept(visitor);
+  return !visitor.foundNode;
+}
+
+class _FindChildVisitor extends Visitor<void> with VisitorVoidMixin {
+  final TreeNode soughtNode;
+  bool foundNode = false;
+
+  _FindChildVisitor(this.soughtNode);
+
+  @override
+  void defaultNode(Node node) {
+    if (!foundNode) {
+      if (identical(node, soughtNode)) {
+        foundNode = true;
+      } else {
+        node.visitChildren(this);
+      }
+    }
   }
 }

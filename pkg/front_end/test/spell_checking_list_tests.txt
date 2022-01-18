@@ -519,6 +519,7 @@ heuristics
 hi
 hints
 hits
+hkt
 home
 hoo
 hook
