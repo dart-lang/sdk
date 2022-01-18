@@ -25,16 +25,35 @@ final highlightRegionTokenModifiers =
     CustomSemanticTokenModifiers.importPrefix,
   },
   HighlightRegionType.INSTANCE_FIELD_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
+    CustomSemanticTokenModifiers.instance
+  },
+  HighlightRegionType.INSTANCE_FIELD_REFERENCE: {
+    CustomSemanticTokenModifiers.instance
   },
   HighlightRegionType.INSTANCE_GETTER_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
+    CustomSemanticTokenModifiers.instance
+  },
+  HighlightRegionType.INSTANCE_GETTER_REFERENCE: {
+    CustomSemanticTokenModifiers.instance
   },
   HighlightRegionType.INSTANCE_METHOD_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
+    CustomSemanticTokenModifiers.instance
+  },
+  HighlightRegionType.INSTANCE_METHOD_REFERENCE: {
+    CustomSemanticTokenModifiers.instance
+  },
+  HighlightRegionType.INSTANCE_METHOD_TEAR_OFF: {
+    CustomSemanticTokenModifiers.instance
   },
   HighlightRegionType.INSTANCE_SETTER_DECLARATION: {
-    SemanticTokenModifiers.declaration
+    SemanticTokenModifiers.declaration,
+    CustomSemanticTokenModifiers.instance
+  },
+  HighlightRegionType.INSTANCE_SETTER_REFERENCE: {
+    CustomSemanticTokenModifiers.instance
   },
   HighlightRegionType.LOCAL_FUNCTION_DECLARATION: {
     SemanticTokenModifiers.declaration

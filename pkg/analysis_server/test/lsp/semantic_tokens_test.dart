@@ -273,8 +273,10 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('/// field docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('myField', SemanticTokenTypes.property,
-          [SemanticTokenModifiers.declaration]),
+      _Token('myField', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance
+      ]),
       _Token("'FieldVal'", SemanticTokenTypes.string),
       _Token('/// static field docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
@@ -292,7 +294,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [CustomSemanticTokenModifiers.constructor]),
       _Token('print', SemanticTokenTypes.function),
       _Token('a', SemanticTokenTypes.variable),
-      _Token('myField', SemanticTokenTypes.property),
+      _Token('myField', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('myStaticField', SemanticTokenTypes.property,
           [SemanticTokenModifiers.static]),
@@ -334,14 +337,18 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [SemanticTokenModifiers.documentation]),
       _Token('String', SemanticTokenTypes.class_),
       _Token('get', SemanticTokenTypes.keyword),
-      _Token('myGetter', SemanticTokenTypes.property,
-          [SemanticTokenModifiers.declaration]),
+      _Token('myGetter', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance
+      ]),
       _Token("'GetterVal'", SemanticTokenTypes.string),
       _Token('/// setter docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('set', SemanticTokenTypes.keyword),
-      _Token('mySetter', SemanticTokenTypes.property,
-          [SemanticTokenModifiers.declaration]),
+      _Token('mySetter', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance
+      ]),
       _Token('String', SemanticTokenTypes.class_),
       _Token('v', SemanticTokenTypes.parameter,
           [SemanticTokenModifiers.declaration]),
@@ -371,9 +378,11 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [CustomSemanticTokenModifiers.constructor]),
       _Token('print', SemanticTokenTypes.function),
       _Token('a', SemanticTokenTypes.variable),
-      _Token('myGetter', SemanticTokenTypes.property),
+      _Token('myGetter', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
       _Token('a', SemanticTokenTypes.variable),
-      _Token('mySetter', SemanticTokenTypes.property),
+      _Token('mySetter', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
       _Token("'a'", SemanticTokenTypes.string),
     ];
 
@@ -416,8 +425,10 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
           [CustomSemanticTokenModifiers.annotation]),
       _Token('void', SemanticTokenTypes.keyword,
           [CustomSemanticTokenModifiers.void_]),
-      _Token('myMethod', SemanticTokenTypes.method,
-          [SemanticTokenModifiers.declaration]),
+      _Token('myMethod', SemanticTokenTypes.method, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance
+      ]),
       _Token('/// static method docs', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('static', SemanticTokenTypes.keyword),
@@ -434,7 +445,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('MyClass', SemanticTokenTypes.class_,
           [CustomSemanticTokenModifiers.constructor]),
       _Token('a', SemanticTokenTypes.variable),
-      _Token('myMethod', SemanticTokenTypes.method),
+      _Token('myMethod', SemanticTokenTypes.method,
+          [CustomSemanticTokenModifiers.instance]),
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('myStaticMethod', SemanticTokenTypes.method,
           [SemanticTokenModifiers.static]),
@@ -442,7 +454,8 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
       _Token('b', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
       _Token('a', SemanticTokenTypes.variable),
-      _Token('myMethod', SemanticTokenTypes.method),
+      _Token('myMethod', SemanticTokenTypes.method,
+          [CustomSemanticTokenModifiers.instance]),
       _Token('final', SemanticTokenTypes.keyword),
       _Token('c', SemanticTokenTypes.variable,
           [SemanticTokenModifiers.declaration]),
@@ -473,14 +486,17 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     final expected = [
       _Token('/// before [', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
-      _Token('aaa', SemanticTokenTypes.property),
+      _Token('aaa', SemanticTokenTypes.property,
+          [CustomSemanticTokenModifiers.instance]),
       _Token('] after', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('class', SemanticTokenTypes.keyword),
       _Token('MyClass', SemanticTokenTypes.class_),
       _Token('String', SemanticTokenTypes.class_),
-      _Token('aaa', SemanticTokenTypes.property,
-          [SemanticTokenModifiers.declaration]),
+      _Token('aaa', SemanticTokenTypes.property, [
+        SemanticTokenModifiers.declaration,
+        CustomSemanticTokenModifiers.instance
+      ]),
       _Token('/// before [', SemanticTokenTypes.comment,
           [SemanticTokenModifiers.documentation]),
       _Token('bbb', SemanticTokenTypes.parameter),
@@ -813,8 +829,10 @@ class MyTestClass {
         _Token('/// test', SemanticTokenTypes.comment,
             [SemanticTokenModifiers.documentation]),
         _Token('bool', SemanticTokenTypes.class_),
-        _Token('test$i', SemanticTokenTypes.property,
-            [SemanticTokenModifiers.declaration]),
+        _Token('test$i', SemanticTokenTypes.property, [
+          SemanticTokenModifiers.declaration,
+          CustomSemanticTokenModifiers.instance
+        ]),
         _Token('false', CustomSemanticTokenTypes.boolean),
       ],
     ];
