@@ -78,17 +78,6 @@ class _Visitor extends SimpleAstVisitor {
 
   _Visitor(this.rule);
 
-  /// Report the lint for parameters in the [parameters] list that are final.
-  void _reportApplicableParameters(FormalParameterList? parameters) {
-    if (parameters != null) {
-      for (var param in parameters.parameters) {
-        if (param.isFinal) {
-          rule.reportLint(param);
-        }
-      }
-    }
-  }
-
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) =>
       _reportApplicableParameters(node.parameters);
@@ -100,4 +89,15 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitMethodDeclaration(MethodDeclaration node) =>
       _reportApplicableParameters(node.parameters);
+
+  /// Report the lint for parameters in the [parameters] list that are final.
+  void _reportApplicableParameters(FormalParameterList? parameters) {
+    if (parameters != null) {
+      for (var param in parameters.parameters) {
+        if (param.isFinal) {
+          rule.reportLint(param);
+        }
+      }
+    }
+  }
 }

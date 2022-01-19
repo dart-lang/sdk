@@ -18,6 +18,7 @@ import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
+export 'package:analyzer/src/dart/analysis/experiments.dart';
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 export 'package:analyzer/src/error/codes.dart';
 export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
