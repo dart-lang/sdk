@@ -269,7 +269,7 @@ enum EnumAll<S extends num, T extends num>
 
 extension EnumAllExtension on EnumAll {
   String get notExtension => Expect.fail("Unreachable");
-  String get extension => "extension":
+  String get extension => "extension";
 }
 
 typedef TypeDefAll = EnumAll<num, num>;

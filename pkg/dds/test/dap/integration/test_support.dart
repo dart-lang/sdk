@@ -133,15 +133,15 @@ Future<Uri> waitForStdoutVmServiceBanner(Process process) {
 class DapTestSession {
   DapTestServer server;
   DapTestClient client;
-  final Directory _testDir =
+  final Directory testDir =
       Directory.systemTemp.createTempSync('dart-sdk-dap-test');
   late final Directory testAppDir;
   late final Directory testPackagesDir;
 
   DapTestSession._(this.server, this.client) {
-    testAppDir = _testDir.createTempSync('app');
+    testAppDir = testDir.createTempSync('app');
     createPubspec(testAppDir, 'my_test_project');
-    testPackagesDir = _testDir.createTempSync('packages');
+    testPackagesDir = testDir.createTempSync('packages');
   }
 
   /// Adds package with [name] (optionally at [packageFolderUri]) to the
@@ -236,7 +236,7 @@ environment:
     await server.stop();
 
     // Clean up any temp folders created during the test runs.
-    _testDir.deleteSync(recursive: true);
+    testDir.deleteSync(recursive: true);
   }
 
   static Future<DapTestSession> setUp({List<String>? additionalArgs}) async {

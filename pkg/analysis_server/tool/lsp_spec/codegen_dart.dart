@@ -131,6 +131,8 @@ List<N> _getSortedUnique<N extends AstNode>(List<N> items) {
 }
 
 String _getTypeCheckFailureMessage(TypeBase type) {
+  type = resolveTypeAlias(type);
+
   if (type is LiteralType) {
     return 'must be the literal ${type.literal}';
   } else if (type is LiteralUnionType) {

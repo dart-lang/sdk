@@ -5,3 +5,4 @@ linter:
     - depend_on_referenced_packages
     - directives_ordering
     - prefer_generic_function_type_aliases
+    - prefer_relative_imports

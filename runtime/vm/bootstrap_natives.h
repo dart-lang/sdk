@@ -345,10 +345,6 @@ namespace dart {
   V(Internal_deoptimizeFunctionsOnStack, 0)                                    \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
-  V(WeakProperty_getKey, 1)                                                    \
-  V(WeakProperty_setKey, 2)                                                    \
-  V(WeakProperty_getValue, 1)                                                  \
-  V(WeakProperty_setValue, 2)                                                  \
   V(Uri_isWindowsPlatform, 0)                                                  \
   V(UserTag_new, 2)                                                            \
   V(UserTag_label, 1)                                                          \

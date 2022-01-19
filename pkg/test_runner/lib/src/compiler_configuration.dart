@@ -1086,13 +1086,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   String computeCompilerPath() {
     var prefix = 'sdk/bin';
     if (_isHostChecked) {
-      if (_useSdk) {
-        throw "--host-checked and --use-sdk cannot be used together";
-      }
-      // The script dartanalyzer_developer is not included in the
-      // shipped SDK, that is the script is not installed in
-      // "$buildDir/dart-sdk/bin/"
-      return '$prefix/dartanalyzer_developer$shellScriptExtension';
+      throw "--host-checked cannot be used for dartanalyzer";
     }
     if (_useSdk) {
       prefix = '${_configuration.buildDirectory}/dart-sdk/bin';

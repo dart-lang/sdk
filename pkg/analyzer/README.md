@@ -3,7 +3,7 @@
 This package provides a library that performs static analysis
 of Dart code. It is useful for tool integration and embedding.
 
-End-users should use the [dartanalyzer][] command-line tool
+End-users should use the [dart analyze][] command-line tool
 to analyze their Dart code.
 
 Integrators that want to add Dart support to their editor
@@ -14,7 +14,7 @@ by emailing our [list][].
 
 ## Configuring the analyzer
 
-Both `dartanalyzer` and Dart Analysis Server can be configured with an
+Both `dart analyze` and Dart Analysis Server can be configured with an
 `analysis_options.yaml` file (using an `.analysis_options` file is deprecated).
 This YAML file can control which files and paths are analyzed,
 which lints are applied, and more.
@@ -24,7 +24,7 @@ for finding the analysis options file, parsing it, and configuring the analyzer.
 
 The analysis options file should live at the root of your project (for example,
 next to your `pubspec.yaml`). Different embedders of analyzer, such as
-`dartanalyzer` or Dart Analysis Server, may choose to find the file in various
+`dart analyze` or Dart Analysis Server, may choose to find the file in various
 different ways. Consult their documentation to learn more.
 
 Here is an example file that instructs the analyzer to ignore two files:
@@ -71,7 +71,7 @@ For more information, see the docs for
 Many tools embed this library, such as:
 
 * [dart format] - a formatter for Dart code
-* [dartdoc] - a documentation generator for Dart code
+* [dart doc] - a documentation generator for Dart code
 * [Dart Analysis Server][analysis_sever] - a stateful server that supports IDEs and editors
 
 ## Support
@@ -97,12 +97,12 @@ our clients, but some pain is inevitable.
 See the [LICENSE] file.
 
 [serverapi]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/api.html
-[dartanalyzer]: https://github.com/dart-lang/sdk/tree/main/pkg/analyzer_cli#dartanalyzer
+[dart analyze]: https://dart.dev/tools/dart-analyze
 [list]: https://groups.google.com/a/dartlang.org/forum/#!forum/analyzer-discuss
 [lintrules]: https://dart-lang.github.io/linter/lints/
 [glob]: https://pub.dev/packages/glob
 [LICENSE]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/LICENSE
 [dart format]: https://github.com/dart-lang/dart_style
-[dartdoc]: https://github.com/dart-lang/dartdoc
+[dart doc]: https://github.com/dart-lang/dartdoc
 [analysis_sever]: https://github.com/dart-lang/sdk/tree/main/pkg/analysis_server
 [custom_analysis]: https://dart.dev/guides/language/analysis-options
