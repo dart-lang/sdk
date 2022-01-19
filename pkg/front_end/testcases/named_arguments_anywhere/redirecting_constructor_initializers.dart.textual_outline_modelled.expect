@@ -8,5 +8,5 @@ class B extends A {
   B() : super(42, z: "foo", false);
 }
 
-test() {}
 main() {}
+test() {}

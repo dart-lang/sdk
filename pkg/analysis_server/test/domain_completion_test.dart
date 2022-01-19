@@ -2034,6 +2034,17 @@ extension MyClassExtension on MyClass {
     });
   }
 
+  Future<void> test_inComment_block_beforeDartDoc() async {
+    addTestFile('''
+/* text ^ */
+
+/// some doc comments
+class SomeClass {}
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
   Future<void> test_inComment_block_beforeNode() async {
     addTestFile('''
   void f(aaa, bbb) {
@@ -2055,6 +2066,17 @@ extension MyClassExtension on MyClass {
 
   Future<void> test_inComment_endOfFile_withoutNewline() async {
     addTestFile('// text ^');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  Future<void> test_inComment_endOfLine_beforeDartDoc() async {
+    addTestFile('''
+// text ^
+
+/// some doc comments
+class SomeClass {}
+  ''');
     await getSuggestions();
     expect(suggestions, isEmpty);
   }
