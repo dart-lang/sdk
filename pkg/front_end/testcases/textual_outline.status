@@ -40,6 +40,7 @@ enhanced_enums/redirecting_initializers: FormatterCrash
 enhanced_enums/simple_fields: FormatterCrash
 enhanced_enums/simple_interfaces: FormatterCrash
 enhanced_enums/simple_mixins: FormatterCrash
+enhanced_enums/supertype_resolved_before_checking: FormatterCrash
 extension_types/basic_show: FormatterCrash
 extension_types/call_not_get: FormatterCrash
 extension_types/keyword_in_show_hide_element: FormatterCrash
