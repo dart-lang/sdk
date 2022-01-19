@@ -29,6 +29,8 @@ import 'prefer_const_constructors_in_immutables.dart'
 import 'prefer_const_literals_to_create_immutables.dart'
     as prefer_const_literals_to_create_immutables;
 import 'prefer_contains.dart' as prefer_contains;
+import 'prefer_equal_for_default_values.dart'
+    as prefer_equal_for_default_values;
 import 'prefer_generic_function_type_aliases.dart'
     as prefer_generic_function_type_aliases;
 import 'prefer_spread_collections.dart' as prefer_spread_collections;
@@ -59,6 +61,7 @@ void main() {
   prefer_const_constructors_in_immutables.main();
   prefer_const_literals_to_create_immutables.main();
   prefer_contains.main();
+  prefer_equal_for_default_values.main();
   prefer_generic_function_type_aliases.main();
   prefer_spread_collections.main();
   super_goes_last.main();
