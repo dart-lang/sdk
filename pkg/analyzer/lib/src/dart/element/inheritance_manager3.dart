@@ -863,6 +863,7 @@ class InheritanceManager3 {
       result.parameters = resultType.parameters;
 
       var field = FieldElementImpl(variableName, -1);
+      field.enclosingElement = targetClass;
       if (firstAccessor.isGetter) {
         field.getter = result;
         field.type = result.returnType;
