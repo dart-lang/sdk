@@ -50,15 +50,21 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover?> {
     final content = StringBuffer();
     const divider = '---';
 
-    // Description.
-    if (hover.elementDescription != null) {
+    // Description + Types.
+    final elementDescription = hover.elementDescription;
+    final staticType = hover.staticType;
+    final isDeprecated = hover.isDeprecated ?? false;
+    if (elementDescription != null) {
       content.writeln('```dart');
-      if (hover.isDeprecated ?? false) {
+      if (isDeprecated) {
         content.write('(deprecated) ');
       }
       content
-        ..writeln(hover.elementDescription)
+        ..writeln(elementDescription)
         ..writeln('```');
+    }
+    if (staticType != null) {
+      content.writeln('Type: `$staticType`');
     }
 
     // Source library.
