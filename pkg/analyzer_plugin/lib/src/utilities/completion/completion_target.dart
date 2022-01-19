@@ -564,6 +564,7 @@ class CompletionTarget {
     if (token.type != TokenType.EOF && offset >= token.offset) {
       return null;
     }
+    final startToken = token;
     token = token.precedingComments;
     while (token != null) {
       if (offset <= token.offset) {
@@ -576,6 +577,21 @@ class CompletionTarget {
       }
       token = token.next;
     }
+
+    // It's possible the supplied token was a DartDoc token and there were
+    // normal comments before it that don't show up in precedingComments so
+    // check for them too.
+    token = startToken.previous;
+    while (token != null &&
+        offset <= token.end &&
+        (token.type == TokenType.SINGLE_LINE_COMMENT ||
+            token.type == TokenType.MULTI_LINE_COMMENT)) {
+      if (offset >= token.offset) {
+        return token;
+      }
+      token = token.previous;
+    }
+
     return null;
   }
 
