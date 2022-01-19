@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -9,7 +10,34 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidInitToNullTest);
+    defineReflectiveTests(AvoidInitToNullSuperFormalsTest);
   });
+}
+
+@reflectiveTest
+class AvoidInitToNullSuperFormalsTest extends LintRuleTest {
+  @override
+  List<String> get experiments => [
+        EnableString.super_parameters,
+      ];
+
+  @override
+  String get lintRule => 'avoid_init_to_null';
+
+  test_superInit() async {
+    await assertDiagnostics(r'''
+class A {
+  String? a;
+  A({this.a});
+}
+
+class B extends A {
+  B({super.a = null});
+}
+''', [
+      lint('avoid_init_to_null', 66, 14),
+    ]);
+  }
 }
 
 @reflectiveTest
