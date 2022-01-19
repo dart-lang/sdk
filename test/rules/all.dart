@@ -9,6 +9,7 @@ import 'avoid_redundant_argument_values.dart'
     as avoid_redundant_argument_values;
 import 'avoid_shadowing_type_parameters.dart'
     as avoid_shadowing_type_parameters;
+import 'avoid_types_as_parameter_names.dart' as avoid_types_as_parameter_names;
 import 'avoid_unused_constructor_parameters.dart'
     as avoid_unused_constructor_parameters;
 import 'conditional_uri_does_not_exist.dart' as conditional_uri_does_not_exist;
@@ -48,6 +49,7 @@ void main() {
   avoid_init_to_null.main();
   avoid_redundant_argument_values.main();
   avoid_shadowing_type_parameters.main();
+  avoid_types_as_parameter_names.main();
   avoid_unused_constructor_parameters.main();
   conditional_uri_does_not_exist.main();
   deprecated_consistency.main();
