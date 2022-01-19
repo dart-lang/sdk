@@ -318,8 +318,10 @@ class C implements A, B {
   var aaa;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 64, 3)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 109, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 25, 3)]),
     ]);
   }
 

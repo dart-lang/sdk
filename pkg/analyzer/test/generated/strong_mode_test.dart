@@ -3269,7 +3269,8 @@ class C {
 class D extends C {
   T f<T extends B>(T x) => null;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 46, 1)]),
     ]);
   }
 
@@ -3283,7 +3284,8 @@ class C {
 class D extends C {
   T f<T extends A>(T x) => null;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 101, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 46, 1)]),
     ]);
   }
 
@@ -3295,7 +3297,8 @@ class C {
 class D extends C {
   String f<S>(S x) => null;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 74, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 74, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 24, 1)]),
     ]);
   }
 
@@ -3307,7 +3310,8 @@ class C {
 class D extends C {
   S f<T, S>(T x) => null;
 }''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 59, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 59, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 14, 1)]),
     ]);
   }
 
