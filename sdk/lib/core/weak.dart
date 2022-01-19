@@ -58,7 +58,7 @@ class Expando<T extends Object> {
 ///
 /// A _weak_ reference to the [target] object which may be cleared
 /// (set to reference `null` instead) at any time
-/// when there is no other ways for the program to access the target object.
+/// when there is no other way for the program to access the target object.
 ///
 /// _Being the target of a weak reference does not keep an object
 /// from being garbage collected._
