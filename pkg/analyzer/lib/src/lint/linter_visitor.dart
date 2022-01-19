@@ -653,6 +653,12 @@ class LinterVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _runSubscriptions(node, registry._forSuperFormalParameter);
+    super.visitSuperFormalParameter(node);
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _runSubscriptions(node, registry._forSwitchCase);
     super.visitSwitchCase(node);
@@ -897,6 +903,7 @@ class NodeLintRegistry {
   final List<_Subscription<SuperConstructorInvocation>>
       _forSuperConstructorInvocation = [];
   final List<_Subscription<SuperExpression>> _forSuperExpression = [];
+  final List<_Subscription<SuperFormalParameter>> _forSuperFormalParameter = [];
   final List<_Subscription<SwitchCase>> _forSwitchCase = [];
   final List<_Subscription<SwitchDefault>> _forSwitchDefault = [];
   final List<_Subscription<SwitchStatement>> _forSwitchStatement = [];
@@ -1384,6 +1391,11 @@ class NodeLintRegistry {
 
   void addSuperExpression(LintRule linter, AstVisitor visitor) {
     _forSuperExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addSuperFormalParameter(LintRule linter, AstVisitor visitor) {
+    _forSuperFormalParameter
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addSwitchCase(LintRule linter, AstVisitor visitor) {
