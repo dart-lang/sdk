@@ -111,11 +111,17 @@ class _IsolateMirrorMacroExecutor implements MacroExecutor {
           macro,
           declaration,
           new RemoteInstanceImpl(
-              instance: typeResolver, id: RemoteInstance.uniqueId),
+              instance: typeResolver,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.typeResolver),
           new RemoteInstanceImpl(
-              instance: classIntrospector, id: RemoteInstance.uniqueId),
+              instance: classIntrospector,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.classIntrospector),
           new RemoteInstanceImpl(
-              instance: typeDeclarationResolver, id: RemoteInstance.uniqueId),
+              instance: typeDeclarationResolver,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.typeDeclarationResolver),
           // Serialization zones are not necessary in this executor.
           serializationZoneId: -1));
 

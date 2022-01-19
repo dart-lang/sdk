@@ -44,28 +44,29 @@ abstract class ClassIntrospector {
   ///
   /// This may be incomplete if in the declaration phase and additional macros
   /// are going to run on this class.
-  Future<List<FieldDeclaration>> fieldsOf(ClassDeclaration clazz);
+  Future<List<FieldDeclaration>> fieldsOf(covariant ClassDeclaration clazz);
 
   /// The methods available so far for the current class.
   ///
   /// This may be incomplete if additional declaration macros are running on
   /// this class.
-  Future<List<MethodDeclaration>> methodsOf(ClassDeclaration clazz);
+  Future<List<MethodDeclaration>> methodsOf(covariant ClassDeclaration clazz);
 
   /// The constructors available so far for the current class.
   ///
   /// This may be incomplete if additional declaration macros are running on
   /// this class.
-  Future<List<ConstructorDeclaration>> constructorsOf(ClassDeclaration clazz);
+  Future<List<ConstructorDeclaration>> constructorsOf(
+      covariant ClassDeclaration clazz);
 
   /// The class that is directly extended via an `extends` clause.
-  Future<ClassDeclaration?> superclassOf(ClassDeclaration clazz);
+  Future<ClassDeclaration?> superclassOf(covariant ClassDeclaration clazz);
 
   /// All of the classes that are mixed in with `with` clauses.
-  Future<List<ClassDeclaration>> mixinsOf(ClassDeclaration clazz);
+  Future<List<ClassDeclaration>> mixinsOf(covariant ClassDeclaration clazz);
 
   /// All of the classes that are implemented with an `implements` clause.
-  Future<List<ClassDeclaration>> interfacesOf(ClassDeclaration clazz);
+  Future<List<ClassDeclaration>> interfacesOf(covariant ClassDeclaration clazz);
 }
 
 /// The api used by [Macro]s to contribute new (non-type)
@@ -97,7 +98,7 @@ abstract class ClassDeclarationBuilder
 /// Only available in the definition phase of macro expansion.
 abstract class TypeDeclarationResolver {
   /// Resolves a [NamedStaticType] to its [TypeDeclaration].
-  Future<TypeDeclaration> declarationOf(NamedStaticType annotation);
+  Future<TypeDeclaration> declarationOf(covariant NamedStaticType annotation);
 }
 
 /// The base class for builders in the definition phase. These can convert

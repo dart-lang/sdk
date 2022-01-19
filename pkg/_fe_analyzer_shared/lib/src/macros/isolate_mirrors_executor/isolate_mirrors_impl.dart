@@ -47,9 +47,13 @@ Future<Response> _loadMacro(LoadMacroRequest request) async {
     ClassMirror macroClass =
         libMirror.declarations[new Symbol(request.name)] as ClassMirror;
     _macroClasses[identifier] = macroClass;
-    return new Response(response: identifier, requestId: request.id);
+    return new Response(
+        response: identifier,
+        requestId: request.id,
+        responseType: MessageType.macroClassIdentifier);
   } catch (e) {
-    return new Response(error: e, requestId: request.id);
+    return new Response(
+        error: e, requestId: request.id, responseType: MessageType.error);
   }
 }
 
@@ -70,9 +74,13 @@ Future<Response> _instantiateMacro(InstantiateMacroRequest request) async {
     }).reflectee as Macro;
     MacroInstanceIdentifierImpl identifier = new MacroInstanceIdentifierImpl();
     _macroInstances[identifier] = instance;
-    return new Response(response: identifier, requestId: request.id);
+    return new Response(
+        response: identifier,
+        requestId: request.id,
+        responseType: MessageType.macroInstanceIdentifier);
   } catch (e) {
-    return new Response(error: e, requestId: request.id);
+    return new Response(
+        error: e, requestId: request.id, responseType: MessageType.error);
   }
 }
 
@@ -93,12 +101,29 @@ Future<Response> _executeDefinitionsPhase(
           request.typeDeclarationResolver.instance as TypeDeclarationResolver,
           request.classIntrospector.instance as ClassIntrospector);
       await instance.buildDefinitionForFunction(declaration, builder);
-      return new Response(response: builder.result, requestId: request.id);
+      return new Response(
+          response: builder.result,
+          requestId: request.id,
+          responseType: MessageType.macroExecutionResult);
+    } else if (instance is MethodDefinitionMacro &&
+        declaration is MethodDeclarationImpl) {
+      FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
+          declaration,
+          request.typeResolver.instance as TypeResolver,
+          request.typeDeclarationResolver.instance as TypeDeclarationResolver,
+          request.classIntrospector.instance as ClassIntrospector);
+      await instance.buildDefinitionForMethod(declaration, builder);
+      return new SerializableResponse(
+          responseType: MessageType.macroExecutionResult,
+          response: builder.result,
+          requestId: request.id,
+          serializationZoneId: request.serializationZoneId);
     } else {
       throw new UnsupportedError(
-          ('Only FunctionDefinitionMacros are supported currently'));
+          'Only Method and Function Definition Macros are supported currently');
     }
   } catch (e) {
-    return new Response(error: e, requestId: request.id);
+    return new Response(
+        error: e, requestId: request.id, responseType: MessageType.error);
   }
 }

@@ -57,9 +57,7 @@ abstract class StaticType {
 
 /// A subtype of [StaticType] representing types that can be resolved by name
 /// to a concrete declaration.
-abstract class NamedStaticType implements StaticType {
-  String get name;
-}
+abstract class NamedStaticType implements StaticType {}
 
 /// The base class for all declarations.
 abstract class Declaration {

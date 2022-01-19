@@ -1089,6 +1089,7 @@ redirector
 redo
 reexports
 ref
+refactoring
 reflect
 reflectee
 reflective
@@ -1542,6 +1543,7 @@ wn
 worthwhile
 worthy
 woven
+wrappers
 writeln
 wrongfully
 wrt

@@ -155,9 +155,39 @@ Future<SerializableResponse> _executeDefinitionsPhase(
           response: builder.result,
           requestId: request.id,
           serializationZoneId: request.serializationZoneId);
+    } else if (instance is MethodDefinitionMacro
+        && declaration is MethodDeclarationImpl) {
+      FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
+          declaration,
+          typeResolver,
+          typeDeclarationResolver,
+          classIntrospector);
+      await instance.buildDefinitionForMethod(declaration, builder);
+      var result = builder.result;
+      // Wrap augmentations up as a part of the class
+      if (result.augmentations.isNotEmpty) {
+        result = MacroExecutionResultImpl(
+          augmentations: [
+            DeclarationCode.fromParts([
+              'augment class ',
+              declaration.definingClass,
+              ' {\\n',
+              ...result.augmentations,
+              '\\n}',
+            ]),
+          ],
+          imports: result.imports,
+        );
+      }
+      return new SerializableResponse(
+          responseType: MessageType.macroExecutionResult,
+          response: result,
+          requestId: request.id,
+          serializationZoneId: request.serializationZoneId);
     } else {
       throw new UnsupportedError(
-          ('Only FunctionDefinitionMacros are supported currently'));
+          'Unsupported macro type, only Method and Function Definition '
+          'Macros are supported currently');
     }
   } catch (e, s) {
     return new SerializableResponse(
