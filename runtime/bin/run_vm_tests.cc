@@ -380,6 +380,7 @@ static int Main(int argc, const char** argv) {
       /*shutdown_isolate=*/nullptr,
       /*cleanup_isolate=*/nullptr,
       /*cleanup_group=*/CleanupIsolateGroup,
+      /*thread_start=*/nullptr,
       /*thread_exit=*/nullptr, dart::bin::DartUtils::OpenFile,
       dart::bin::DartUtils::ReadFile, dart::bin::DartUtils::WriteFile,
       dart::bin::DartUtils::CloseFile, /*entropy_source=*/nullptr,
