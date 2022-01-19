@@ -624,13 +624,11 @@ abstract class _MemoryResource implements Resource {
     /// or delayed, depending on the value of
     /// [provider.delayWatcherInitialization].
     void setupWatcher() {
-      if (!provider._pathToWatchers.containsKey(path)) {
-        provider._pathToWatchers[path] = <StreamController<WatchEvent>>[];
-      }
-      provider._pathToWatchers[path]!.add(streamController);
+      var watchers = provider._pathToWatchers[path] ??= [];
+      watchers.add(streamController);
       streamController.done.then((_) {
-        provider._pathToWatchers[path]!.remove(streamController);
-        if (provider._pathToWatchers[path]!.isEmpty) {
+        watchers.remove(streamController);
+        if (watchers.isEmpty) {
           provider._pathToWatchers.remove(path);
         }
       });
