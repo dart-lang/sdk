@@ -10,6 +10,7 @@ import 'avoid_redundant_argument_values.dart'
 import 'avoid_shadowing_type_parameters.dart'
     as avoid_shadowing_type_parameters;
 import 'conditional_uri_does_not_exist.dart' as conditional_uri_does_not_exist;
+import 'deprecated_consistency.dart' as deprecated_consistency;
 import 'file_names.dart' as file_names;
 import 'literal_only_boolean_expressions.dart'
     as literal_only_boolean_expressions;
@@ -44,6 +45,7 @@ void main() {
   avoid_redundant_argument_values.main();
   avoid_shadowing_type_parameters.main();
   conditional_uri_does_not_exist.main();
+  deprecated_consistency.main();
   file_names.main();
   literal_only_boolean_expressions.main();
   missing_whitespace_between_adjacent_strings.main();
