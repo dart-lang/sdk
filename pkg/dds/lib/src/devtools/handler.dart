@@ -11,19 +11,23 @@ import 'package:sse/server/sse_handler.dart';
 
 import '../constants.dart';
 import '../dds_impl.dart';
-import 'devtools_client.dart';
+import 'client.dart';
 
 /// Returns a [Handler] which handles serving DevTools and the DevTools server
-/// API under $DDS_URI/devtools/.
+/// API.
 ///
 /// [buildDir] is the path to the pre-compiled DevTools instance to be served.
 ///
 /// [notFoundHandler] is a [Handler] to which requests that could not be handled
 /// by the DevTools handler are forwarded (e.g., a proxy to the VM service).
-FutureOr<Handler> devtoolsHandler({
-  required DartDevelopmentServiceImpl dds,
+///
+/// If [dds] is null, DevTools is not being served by a DDS instance and is
+/// served by a standalone server (see `package:dds/devtools_server.dart`).
+FutureOr<Handler> defaultHandler({
+  DartDevelopmentServiceImpl? dds,
   required String buildDir,
-  required Handler notFoundHandler,
+  ClientManager? clientManager,
+  Handler? notFoundHandler,
 }) {
   // Serves the web assets for DevTools.
   final devtoolsAssetHandler = createStaticHandler(
@@ -35,18 +39,20 @@ FutureOr<Handler> devtoolsHandler({
   // Note: the handler path needs to match the full *original* path, not the
   // current request URL (we remove '/devtools' in the initial router but we
   // need to include it here).
-  const devToolsSseHandlerPath = '/devtools/api/sse';
+  final devToolsSseHandlerPath = dds != null ? '/devtools/api/sse' : '/api/sse';
   final devToolsApiHandler = SseHandler(
-    dds.authCodesEnabled
-        ? Uri.parse('/${dds.authCode}$devToolsSseHandlerPath')
+    (dds?.authCodesEnabled ?? false)
+        ? Uri.parse('/${dds!.authCode}$devToolsSseHandlerPath')
         : Uri.parse(devToolsSseHandlerPath),
     keepAlive: sseKeepAlive,
   );
 
+  clientManager ??= ClientManager(requestNotificationPermissions: false);
+
   devToolsApiHandler.connections.rest.listen(
-    (sseConnection) => DevToolsClient.fromSSEConnection(
+    (sseConnection) => clientManager!.acceptClient(
       sseConnection,
-      dds.shouldLogRequests,
+      enableLogging: dds?.shouldLogRequests ?? false,
     ),
   );
 
@@ -73,12 +79,14 @@ FutureOr<Handler> devtoolsHandler({
   };
 
   return (request) {
-    final pathSegments = request.url.pathSegments;
-    if (pathSegments.isEmpty || pathSegments.first != 'devtools') {
-      return notFoundHandler(request);
+    if (notFoundHandler != null) {
+      final pathSegments = request.url.pathSegments;
+      if (pathSegments.isEmpty || pathSegments.first != 'devtools') {
+        return notFoundHandler(request);
+      }
+      // Forward all requests to /devtools/* to the DevTools handler.
+      request = request.change(path: 'devtools');
     }
-    // Forward all requests to /devtools/* to the DevTools handler.
-    request = request.change(path: 'devtools');
     return devtoolsHandler(request);
   };
 }

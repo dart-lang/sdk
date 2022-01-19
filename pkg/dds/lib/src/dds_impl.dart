@@ -24,7 +24,7 @@ import 'binary_compatible_peer.dart';
 import 'client.dart';
 import 'client_manager.dart';
 import 'constants.dart';
-import 'devtools/devtools_handler.dart';
+import 'devtools/handler.dart';
 import 'expression_evaluator.dart';
 import 'isolate_manager.dart';
 import 'stream_manager.dart';
@@ -297,7 +297,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
       // the VM service.
       final String buildDir =
           _devToolsConfiguration!.customBuildDirectoryPath.toFilePath();
-      return devtoolsHandler(
+      return defaultHandler(
         dds: this,
         buildDir: buildDir,
         notFoundHandler: proxyHandler(remoteVmServiceUri),

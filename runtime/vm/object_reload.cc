@@ -302,10 +302,11 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
   ASSERT(is_finalized());
   ASSERT(old_enum.is_finalized());
 
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  ObjectStore* object_store = thread->isolate_group()->object_store();
 
   Field& field = Field::Handle(zone);
-  Class& cls = Class::Handle(zone);
   String& enum_ident = String::Handle();
   Instance& old_enum_value = Instance::Handle(zone);
   Instance& enum_value = Instance::Handle(zone);
@@ -338,8 +339,7 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
     old_deleted_enum_sentinel ^= field.StaticConstFieldValue();
     ASSERT(!old_deleted_enum_sentinel.IsNull());
 
-    cls = old_enum.SuperClass();
-    field = cls.LookupInstanceFieldAllowPrivate(Symbols::_name());
+    field = object_store->enum_name_field();
     ASSERT(!field.IsNull());
 
     UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.ptr());
@@ -374,8 +374,7 @@ void Class::ReplaceEnum(ProgramReloadContext* reload_context,
     deleted_enum_sentinel ^= field.StaticConstFieldValue();
     ASSERT(!deleted_enum_sentinel.IsNull());
 
-    cls = SuperClass();
-    field = cls.LookupInstanceFieldAllowPrivate(Symbols::_name());
+    field = object_store->enum_name_field();
     ASSERT(!field.IsNull());
 
     UnorderedHashMap<EnumMapTraits> enum_map(enum_map_storage.ptr());

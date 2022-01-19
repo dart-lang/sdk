@@ -3483,9 +3483,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when there's more than one field
-  // formal parameter for the same field in a constructor's parameter list. It
-  // isn't useful to assign a value that will immediately be overwritten.
+  // The analyzer produces this diagnostic when there's more than one
+  // initializing formal parameter for the same field in a constructor's
+  // parameter list. It isn't useful to assign a value that will immediately be
+  // overwritten.
   //
   // #### Example
   //
@@ -3502,7 +3503,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Remove one of the field formal parameters:
+  // Remove one of the initializing formal parameters:
   //
   // ```dart
   // class C {
@@ -4751,7 +4752,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Example
   //
   // The following code produces this diagnostic because the field `f` is
-  // initialized both by a field formal parameter and in the initializer list:
+  // initialized both by an initializing formal parameter and in the
+  // initializer list:
   //
   // ```dart
   // class C {
@@ -4809,14 +4811,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a factory constructor has a
-  // field formal parameter. Factory constructors can't assign values to fields
-  // because no instance is created; hence, there is no field to assign.
+  // The analyzer produces this diagnostic when a factory constructor has an
+  // initializing formal parameter. Factory constructors can't assign values to
+  // fields because no instance is created; hence, there is no field to assign.
   //
   // #### Example
   //
   // The following code produces this diagnostic because the factory constructor
-  // uses a field formal parameter:
+  // uses an initializing formal parameter:
   //
   // ```dart
   // class C {
@@ -4828,7 +4830,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // Replace the field formal parameter with a normal parameter:
+  // Replace the initializing formal parameter with a normal parameter:
   //
   // ```dart
   // class C {
@@ -4924,8 +4926,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Examples
   //
   // The following code produces this diagnostic because the constructor
-  // `C.zero`, which redirects to the constructor `C`, has a field formal
-  // parameter that initializes the field `f`:
+  // `C.zero`, which redirects to the constructor `C`, has an initializing
+  // formal parameter that initializes the field `f`:
   //
   // ```dart
   // class C {
@@ -4953,8 +4955,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // If the initialization is done by a field formal parameter, then use a
-  // normal parameter:
+  // If the initialization is done by an initializing formal parameter, then
+  // use a normal parameter:
   //
   // ```dart
   // class C {
@@ -4994,14 +4996,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when the type of a field formal
-  // parameter isn't assignable to the type of the field being initialized.
+  // The analyzer produces this diagnostic when the type of an initializing
+  // formal parameter isn't assignable to the type of the field being
+  // initialized.
   //
   // #### Example
   //
-  // The following code produces this diagnostic because the field formal
-  // parameter has the type `String`, but the type of the field is `int`. The
-  // parameter must have a type that is a subtype of the field's type.
+  // The following code produces this diagnostic because the initializing
+  // formal parameter has the type `String`, but the type of the field is
+  // `int`. The parameter must have a type that is a subtype of the field's
+  // type.
   //
   // ```dart
   // class C {
@@ -5037,8 +5041,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   //
   // If the types of both the field and the parameter are correct, then use an
-  // initializer rather than a field formal parameter to convert the parameter
-  // value into a value of the correct type:
+  // initializer rather than an initializing formal parameter to convert the
+  // parameter value into a value of the correct type:
   //
   // ```dart
   // class C {
@@ -5139,7 +5143,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // For instance fields, you can add an initializer as shown in the previous
   // example, or you can initialize the field in every constructor. You can
-  // initialize the field by using a field formal parameter:
+  // initialize the field by using an initializing formal parameter:
   //
   // ```dart
   // class C {
@@ -5191,8 +5195,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // #### Common fixes
   //
-  // If the value should be passed in to the constructor directly, then use a
-  // field formal parameter to initialize the field `value`:
+  // If the value should be passed in to the constructor directly, then use an
+  // initializing formal parameter to initialize the field `value`:
   //
   // ```dart
   // class C {
@@ -6199,14 +6203,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a static field is initialized in
-  // a constructor using either a field formal parameter or an assignment in the
-  // initializer list.
+  // The analyzer produces this diagnostic when a static field is initialized
+  // in a constructor using either an initializing formal parameter or an
+  // assignment in the initializer list.
   //
   // #### Example
   //
-  // The following code produces this diagnostic because the static field `a` is
-  // being initialized by the field formal parameter `this.a`:
+  // The following code produces this diagnostic because the static field `a`
+  // is being initialized by the initializing formal parameter `this.a`:
   //
   // ```dart
   // class C {
@@ -6264,10 +6268,10 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
    */
   // #### Description
   //
-  // The analyzer produces this diagnostic when a field formal parameter is
-  // found in a constructor in a class that doesn't declare the field being
-  // initialized. Constructors can't initialize fields that aren't declared and
-  // fields that are inherited from superclasses.
+  // The analyzer produces this diagnostic when an initializing formal
+  // parameter is found in a constructor in a class that doesn't declare the
+  // field being initialized. Constructors can't initialize fields that aren't
+  // declared and fields that are inherited from superclasses.
   //
   // #### Example
   //
@@ -7016,7 +7020,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INVALID_CAST_LITERAL_MAP =
       CompileTimeErrorCode(
     'INVALID_CAST_LITERAL_MAP',
-    "The map literal type '{0}' isn't of expected type '{1}'. The maps's type "
+    "The map literal type '{0}' isn't of expected type '{1}'. The map's type "
         "can be changed with an explicit generic type arguments or by changing "
         "the key and value types.",
   );

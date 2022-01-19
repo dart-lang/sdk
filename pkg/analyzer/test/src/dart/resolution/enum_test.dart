@@ -15,6 +15,20 @@ main() {
 
 @reflectiveTest
 class EnumDriverResolutionTest extends PubPackageResolutionTest {
+  test_field() async {
+    await assertNoErrorsInCode(r'''
+enum E<T> {
+  v;
+  final foo = 42;
+}
+''');
+
+    assertElement(
+      findNode.variableDeclaration('foo ='),
+      findElement.field('foo', of: 'E'),
+    );
+  }
+
   test_inference_listLiteral() async {
     await assertNoErrorsInCode(r'''
 enum E1 {a, b}
@@ -69,6 +83,20 @@ enum E<T> {
     assertSimpleFormalParameter(
       findNode.simpleFormalParameter('U u'),
       element: findElement.parameter('u'),
+    );
+  }
+
+  test_method_toString() async {
+    await assertNoErrorsInCode(r'''
+enum E<T> {
+  v;
+  String toString() => 'E';
+}
+''');
+
+    assertElement(
+      findNode.methodDeclaration('toString'),
+      findElement.method('toString', of: 'E'),
     );
   }
 

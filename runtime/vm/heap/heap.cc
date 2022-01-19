@@ -356,10 +356,6 @@ ObjectPtr Heap::FindObject(FindObjectVisitor* visitor) {
   return raw_obj;
 }
 
-void Heap::HintFreed(intptr_t size) {
-  old_space_.HintFreed(size);
-}
-
 void Heap::NotifyIdle(int64_t deadline) {
   Thread* thread = Thread::Current();
   TIMELINE_FUNCTION_GC_DURATION(thread, "NotifyIdle");

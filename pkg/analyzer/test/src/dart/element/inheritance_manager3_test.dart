@@ -1425,6 +1425,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
 
       if (element is PropertyAccessorElement) {
         var variable = element.variable;
+        expect(variable.enclosingElement, same(element.enclosingElement));
         expect(variable.name, element.displayName);
         if (element.isGetter) {
           expect(variable.type, element.returnType);
