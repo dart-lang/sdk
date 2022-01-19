@@ -1,0 +1,6 @@
+mixin GM<T> on Enum {}
+mixin M on Object {}
+abstract class I {}
+abstract class GI<T> {}
+enum E<S extends num, T extends num> with GM<T>, M implements I, GI<S> { element }
+main() {}

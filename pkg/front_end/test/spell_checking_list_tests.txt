@@ -491,6 +491,8 @@ gesture
 getter1c
 getter1d
 getter1e
+gi
+gm
 goo
 google
 graphic

@@ -6,30 +6,7 @@ library fasta.enum_builder;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 
-import 'package:kernel/ast.dart'
-    show
-        Arguments,
-        AsyncMarker,
-        Class,
-        Constructor,
-        ConstructorInvocation,
-        DartType,
-        Expression,
-        Field,
-        InstanceAccessKind,
-        InstanceGet,
-        IntLiteral,
-        ListLiteral,
-        Name,
-        ProcedureKind,
-        Reference,
-        ReturnStatement,
-        StaticGet,
-        StringConcatenation,
-        StringLiteral,
-        SuperInitializer,
-        ThisExpression,
-        setParents;
+import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 
@@ -594,12 +571,20 @@ class SourceEnumBuilder extends SourceClassBuilder {
               }
             }
             BodyBuilder? bodyBuilder;
-            if (enumConstantInfo.argumentsBeginToken != null) {
+            if (enumConstantInfo.argumentsBeginToken != null ||
+                typeArgumentBuilders == null && cls.typeParameters.isNotEmpty) {
+              // We need to create a BodyBuilder in two cases: 1) if the
+              // arguments token is provided, we'll use the BodyBuilder to
+              // parse them and perform inference, 2) if the type arguments
+              // aren't provided, but required, we'll use it to infer them.
               bodyBuilder = library.loader
                   .createBodyBuilderForOutlineExpression(
                       library, this, this, scope, fileUri);
               bodyBuilder.constantContext = ConstantContext.required;
-              arguments = bodyBuilder
+            }
+
+            if (enumConstantInfo.argumentsBeginToken != null) {
+              arguments = bodyBuilder!
                   .parseArguments(enumConstantInfo.argumentsBeginToken!);
               bodyBuilder.performBacklogComputations(delayedActionPerformers);
 
@@ -607,11 +592,16 @@ class SourceEnumBuilder extends SourceClassBuilder {
             } else {
               arguments = new ArgumentsImpl(enumSyntheticArguments);
             }
+
             if (typeArguments != null && arguments is ArgumentsImpl) {
               ArgumentsImpl.setNonInferrableArgumentTypes(
                   arguments, typeArguments);
+            } else if (cls.typeParameters.isNotEmpty) {
+              arguments.types.addAll(new List<DartType>.filled(
+                  cls.typeParameters.length, const UnknownType()));
             }
             setParents(enumSyntheticArguments, arguments);
+
             Expression initializer = new ConstructorInvocation(
                 constructorBuilder.constructor, arguments,
                 isConst: true)

@@ -199,13 +199,13 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     scope.forEach(buildBuilders);
     constructors.forEach(buildBuilders);
-    if (supertypeBuilder != null) {
-      supertypeBuilder = _checkSupertype(supertypeBuilder!);
-    }
     if (isEnumMixin) {
       assert(supertypeBuilder?.name == "_Enum");
       supertypeBuilder?.resolveIn(coreLibrary.scope,
           supertypeBuilder?.charOffset ?? charOffset, fileUri, library);
+    }
+    if (supertypeBuilder != null) {
+      supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
     Supertype? supertype =
         supertypeBuilder?.buildSupertype(library, charOffset, fileUri);
