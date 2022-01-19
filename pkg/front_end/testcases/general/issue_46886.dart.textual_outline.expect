@@ -1,13 +1,10 @@
 // @dart = 2.13
 class Foo {
-  Foo operator >>>(_) => this;
+  Foo operator >>> (_) => this;
 }
-
 extension on Symbol {
   String operator >(_) => "Greater Than used";
   String call(_) => "Called";
 }
-
 abstract class Bar implements List<List<List<String>>> {}
-
 main() {}
