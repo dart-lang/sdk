@@ -20,10 +20,11 @@ void main() {
 
   setUpAll(() {
     // We support running from either the root of the SDK or the package root.
-    simpleMacroFile =
-        File('pkg/_fe_analyzer_shared/test/macros/simple_macro.dart');
+    simpleMacroFile = File(
+        'pkg/_fe_analyzer_shared/test/macros/isolate_mirror_executor/simple_macro.dart');
     if (!simpleMacroFile.existsSync()) {
-      simpleMacroFile = File('test/macros/simple_macro.dart');
+      simpleMacroFile =
+          File('test/macros/isolate_mirror_executor/simple_macro.dart');
     }
   });
 
@@ -75,7 +76,7 @@ void main() {
           typeParameters: [],
         ),
         TestTypeResolver(
-            {returnType: TestStaticType('dart:core', 'String', [])}),
+            {returnType: TestNamedStaticType('dart:core', 'String', [])}),
         FakeClassIntrospector(),
         FakeTypeDeclarationResolver());
     expect(definitionResult.augmentations, hasLength(1));

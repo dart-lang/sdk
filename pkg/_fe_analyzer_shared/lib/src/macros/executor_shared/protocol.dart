@@ -14,6 +14,7 @@ import '../executor_shared/response_impls.dart';
 import 'introspection_impls.dart';
 import 'remote_instance.dart';
 import 'serialization.dart';
+import 'serialization_extensions.dart';
 
 /// Base class all requests extend, provides a unique id for each request.
 abstract class Request implements Serializable {
@@ -45,12 +46,14 @@ class Response {
   final Object? error;
   final String? stackTrace;
   final int requestId;
+  final MessageType responseType;
 
   Response({
     this.response,
     this.error,
     this.stackTrace,
     required this.requestId,
+    required this.responseType,
   })  : assert(response != null || error != null),
         assert(response == null || error == null);
 }
@@ -71,8 +74,7 @@ class SerializableResponse implements Response, Serializable {
     this.response,
     required this.responseType,
     required this.serializationZoneId,
-  })  : assert(response != null || error != null),
-        assert(response == null || error == null);
+  });
 
   /// You must first parse the [serializationZoneId] yourself, and then
   /// call this function in that zone, and pass the ID.
@@ -100,10 +102,20 @@ class SerializableResponse implements Response, Serializable {
         response = new MacroExecutionResultImpl.deserialize(deserializer);
         break;
       case MessageType.staticType:
+      case MessageType.namedStaticType:
         response = RemoteInstance.deserialize(deserializer);
         break;
       case MessageType.boolean:
         response = new BooleanValue.deserialize(deserializer);
+        break;
+      case MessageType.declarationList:
+        response = new DeclarationList.deserialize(deserializer);
+        break;
+      case MessageType.remoteInstance:
+        deserializer.moveNext();
+        if (!deserializer.checkNull()) {
+          response = deserializer.expectRemoteInstance();
+        }
         break;
       default:
         throw new StateError('Unexpected response type $responseType');
@@ -123,11 +135,13 @@ class SerializableResponse implements Response, Serializable {
       ..addNum(serializationZoneId)
       ..addNum(MessageType.response.index)
       ..addNum(responseType.index);
-    if (response != null) {
-      response!.serialize(serializer);
-    } else if (error != null) {
-      serializer.addString(error!.toString());
-      serializer.addNullableString(stackTrace);
+    switch (responseType) {
+      case MessageType.error:
+        serializer.addString(error!.toString());
+        serializer.addNullableString(stackTrace);
+        break;
+      default:
+        response.serializeNullable(serializer);
     }
     serializer.addNum(requestId);
   }
@@ -143,6 +157,33 @@ class BooleanValue implements Serializable {
 
   @override
   void serialize(Serializer serializer) => serializer..addBool(value);
+}
+
+/// A serialized list of [Declaration]s.
+class DeclarationList<T extends DeclarationImpl> implements Serializable {
+  final List<T> declarations;
+
+  DeclarationList(this.declarations);
+
+  DeclarationList.deserialize(Deserializer deserializer)
+      : declarations = [
+          for (bool hasNext = (deserializer
+                    ..moveNext()
+                    ..expectList())
+                  .moveNext();
+              hasNext;
+              hasNext = deserializer.moveNext())
+            deserializer.expectRemoteInstance(),
+        ];
+
+  @override
+  void serialize(Serializer serializer) {
+    serializer.startList();
+    for (DeclarationImpl declaration in declarations) {
+      declaration.serialize(serializer);
+    }
+    serializer.endList();
+  }
 }
 
 /// A request to load a macro in this isolate.
@@ -286,8 +327,8 @@ class IsExactlyTypeRequest extends Request {
 
 /// A request to check if a type is exactly another type.
 class IsSubtypeOfRequest extends Request {
-  final ClientStaticTypeImpl leftType;
-  final ClientStaticTypeImpl rightType;
+  final RemoteInstanceImpl leftType;
+  final RemoteInstanceImpl rightType;
 
   IsSubtypeOfRequest(this.leftType, this.rightType,
       {required int serializationZoneId})
@@ -303,8 +344,63 @@ class IsSubtypeOfRequest extends Request {
 
   void serialize(Serializer serializer) {
     serializer.addNum(MessageType.isSubtypeOfRequest.index);
-    leftType.remoteInstance.serialize(serializer);
-    rightType.remoteInstance.serialize(serializer);
+    leftType.serialize(serializer);
+    rightType.serialize(serializer);
+    super.serialize(serializer);
+  }
+}
+
+/// A general request class for all requests coming from methods on the
+/// [ClassIntrospector] interface.
+class ClassIntrospectionRequest extends Request {
+  final ClassDeclarationImpl classDeclaration;
+  final RemoteInstanceImpl classIntrospector;
+  final MessageType requestKind;
+
+  ClassIntrospectionRequest(
+      this.classDeclaration, this.classIntrospector, this.requestKind,
+      {required int serializationZoneId})
+      : super(serializationZoneId: serializationZoneId);
+
+  /// When deserializing we have already consumed the message type, so we don't
+  /// consume it again and it should instead be passed in here.
+  ClassIntrospectionRequest.deserialize(
+      Deserializer deserializer, this.requestKind, int serializationZoneId)
+      : classDeclaration = RemoteInstance.deserialize(deserializer),
+        classIntrospector = RemoteInstance.deserialize(deserializer),
+        super.deserialize(deserializer, serializationZoneId);
+
+  @override
+  void serialize(Serializer serializer) {
+    serializer.addNum(requestKind.index);
+    classDeclaration.serialize(serializer);
+    classIntrospector.serialize(serializer);
+    super.serialize(serializer);
+  }
+}
+
+/// A request to get a [TypeDeclaration] for a [StaticType].
+class DeclarationOfRequest extends Request {
+  final RemoteInstanceImpl type;
+  final RemoteInstanceImpl typeDeclarationResolver;
+
+  DeclarationOfRequest(this.type, this.typeDeclarationResolver,
+      {required int serializationZoneId})
+      : super(serializationZoneId: serializationZoneId);
+
+  /// When deserializing we have already consumed the message type, so we don't
+  /// consume it again.
+  DeclarationOfRequest.deserialize(
+      Deserializer deserializer, int serializationZoneId)
+      : type = RemoteInstance.deserialize(deserializer),
+        typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
+        super.deserialize(deserializer, serializationZoneId);
+
+  @override
+  void serialize(Serializer serializer) {
+    serializer.addNum(MessageType.declarationOfRequest.index);
+    type.serialize(serializer);
+    typeDeclarationResolver.serialize(serializer);
     super.serialize(serializer);
   }
 }
@@ -333,8 +429,20 @@ class ClientTypeResolver implements TypeResolver {
         serializationZoneId: serializationZoneId);
     RemoteInstanceImpl remoteType =
         _handleResponse(await _sendRequest(request));
-    return new ClientStaticTypeImpl(_sendRequest,
-        remoteInstance: remoteType, serializationZoneId: serializationZoneId);
+    switch (remoteType.kind) {
+      case RemoteInstanceKind.namedStaticType:
+        return new ClientNamedStaticTypeImpl(_sendRequest,
+            remoteInstance: remoteType,
+            serializationZoneId: serializationZoneId);
+      case RemoteInstanceKind.staticType:
+        return new ClientStaticTypeImpl(_sendRequest,
+            remoteInstance: remoteType,
+            serializationZoneId: serializationZoneId);
+      default:
+        throw new StateError(
+            'Expected either a StaticType or NamedStaticType but got '
+            '${remoteType.kind}');
+    }
   }
 }
 
@@ -361,13 +469,27 @@ class ClientStaticTypeImpl implements StaticType {
 
   @override
   Future<bool> isSubtypeOf(ClientStaticTypeImpl other) async {
-    IsSubtypeOfRequest request = new IsSubtypeOfRequest(this, other,
+    IsSubtypeOfRequest request = new IsSubtypeOfRequest(
+        remoteInstance, other.remoteInstance,
         serializationZoneId: serializationZoneId);
     return _handleResponse<BooleanValue>(await sendRequest(request)).value;
   }
 }
 
-/// TODO: Implement this
+/// Named variant of the [ClientStaticTypeImpl].
+class ClientNamedStaticTypeImpl extends ClientStaticTypeImpl
+    implements NamedStaticType {
+  ClientNamedStaticTypeImpl(
+      Future<Response> Function(Request request) sendRequest,
+      {required RemoteInstanceImpl remoteInstance,
+      required int serializationZoneId})
+      : super(sendRequest,
+            remoteInstance: remoteInstance,
+            serializationZoneId: serializationZoneId);
+}
+
+/// Client side implementation of the [ClientClassIntrospector], converts all
+/// invocations into remote RPC calls.
 class ClientClassIntrospector implements ClassIntrospector {
   /// The actual remote instance of this class introspector.
   final RemoteInstanceImpl remoteInstance;
@@ -383,43 +505,73 @@ class ClientClassIntrospector implements ClassIntrospector {
       {required this.remoteInstance, required this.serializationZoneId});
 
   @override
-  Future<List<ConstructorDeclaration>> constructorsOf(ClassDeclaration clazz) {
-    // TODO: implement constructorsOf
-    throw new UnimplementedError();
+  Future<List<ConstructorDeclaration>> constructorsOf(
+      ClassDeclarationImpl clazz) async {
+    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
+        clazz, remoteInstance, MessageType.constructorsOfRequest,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<DeclarationList>(await sendRequest(request))
+        .declarations
+        // TODO: Refactor so we can remove this cast
+        .cast();
   }
 
   @override
-  Future<List<FieldDeclaration>> fieldsOf(ClassDeclaration clazz) {
-    // TODO: implement fieldsOf
-    throw new UnimplementedError();
+  Future<List<FieldDeclaration>> fieldsOf(ClassDeclarationImpl clazz) async {
+    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
+        clazz, remoteInstance, MessageType.fieldsOfRequest,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<DeclarationList>(await sendRequest(request))
+        .declarations
+        // TODO: Refactor so we can remove this cast
+        .cast();
   }
 
   @override
-  Future<List<ClassDeclaration>> interfacesOf(ClassDeclaration clazz) {
-    // TODO: implement interfacesOf
-    throw new UnimplementedError();
+  Future<List<ClassDeclaration>> interfacesOf(
+      ClassDeclarationImpl clazz) async {
+    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
+        clazz, remoteInstance, MessageType.interfacesOfRequest,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<DeclarationList>(await sendRequest(request))
+        .declarations
+        // TODO: Refactor so we can remove this cast
+        .cast();
   }
 
   @override
-  Future<List<MethodDeclaration>> methodsOf(ClassDeclaration clazz) {
-    // TODO: implement methodsOf
-    throw new UnimplementedError();
+  Future<List<MethodDeclaration>> methodsOf(ClassDeclarationImpl clazz) async {
+    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
+        clazz, remoteInstance, MessageType.methodsOfRequest,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<DeclarationList>(await sendRequest(request))
+        .declarations
+        // TODO: Refactor so we can remove this cast
+        .cast();
   }
 
   @override
-  Future<List<ClassDeclaration>> mixinsOf(ClassDeclaration clazz) {
-    // TODO: implement mixinsOf
-    throw new UnimplementedError();
+  Future<List<ClassDeclaration>> mixinsOf(ClassDeclarationImpl clazz) async {
+    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
+        clazz, remoteInstance, MessageType.mixinsOfRequest,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<DeclarationList>(await sendRequest(request))
+        .declarations
+        // TODO: Refactor so we can remove this cast
+        .cast();
   }
 
   @override
-  Future<ClassDeclaration?> superclassOf(ClassDeclaration clazz) {
-    // TODO: implement superclassOf
-    throw new UnimplementedError();
+  Future<ClassDeclaration?> superclassOf(ClassDeclarationImpl clazz) async {
+    ClassIntrospectionRequest request = new ClassIntrospectionRequest(
+        clazz, remoteInstance, MessageType.superclassOfRequest,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<ClassDeclaration?>(await sendRequest(request));
   }
 }
 
-/// TODO: Implement this
+/// Client side implementation of a [TypeDeclarationResolver], converts all
+/// invocations into remote procedure calls.
 class ClientTypeDeclarationResolver implements TypeDeclarationResolver {
   /// The actual remote instance of this type resolver.
   final RemoteInstanceImpl remoteInstance;
@@ -435,9 +587,11 @@ class ClientTypeDeclarationResolver implements TypeDeclarationResolver {
       {required this.remoteInstance, required this.serializationZoneId});
 
   @override
-  Future<TypeDeclaration> declarationOf(NamedStaticType annotation) {
-    // TODO: implement declarationOf
-    throw new UnimplementedError();
+  Future<TypeDeclaration> declarationOf(ClientNamedStaticTypeImpl type) async {
+    DeclarationOfRequest request = new DeclarationOfRequest(
+        type.remoteInstance, remoteInstance,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<TypeDeclaration>(await sendRequest(request));
   }
 }
 
@@ -456,24 +610,34 @@ class RemoteException implements Exception {
 /// Either returns the actual response from [response], casted to [T], or throws
 /// a [RemoteException] with the given error and stack trace.
 T _handleResponse<T>(Response response) {
-  if (response.response != null) {
-    return response.response as T;
+  if (response.responseType == MessageType.error) {
+    throw new RemoteException(response.error!.toString(), response.stackTrace);
   }
-  throw new RemoteException(response.error!.toString(), response.stackTrace);
+  return response.response as T;
 }
 
 enum MessageType {
   boolean,
+  constructorsOfRequest,
+  declarationOfRequest,
+  declarationList,
+  fieldsOfRequest,
+  interfacesOfRequest,
+  methodsOfRequest,
+  mixinsOfRequest,
+  superclassOfRequest,
   error,
   executeDefinitionsPhaseRequest,
   instantiateMacroRequest,
   isExactlyTypeRequest,
   isSubtypeOfRequest,
   loadMacroRequest,
+  remoteInstance,
   resolveTypeRequest,
   macroClassIdentifier,
   macroInstanceIdentifier,
   macroExecutionResult,
+  namedStaticType,
   response,
   staticType,
 }

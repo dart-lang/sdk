@@ -5,13 +5,73 @@
 import 'dart:mirrors';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
 
 import 'package:test/fake.dart';
 import 'package:test/test.dart';
 
-class FakeClassIntrospector with Fake implements ClassIntrospector {}
+class FakeClassIntrospector extends Fake implements ClassIntrospector {}
 
-class FakeTypeDeclarationResolver with Fake implements TypeDeclarationResolver {
+class TestClassIntrospector implements ClassIntrospector {
+  final Map<ClassDeclaration, List<ConstructorDeclaration>> constructors;
+  final Map<ClassDeclaration, List<FieldDeclaration>> fields;
+  final Map<ClassDeclaration, List<ClassDeclarationImpl>> interfaces;
+  final Map<ClassDeclaration, List<ClassDeclarationImpl>> mixins;
+  final Map<ClassDeclaration, List<MethodDeclaration>> methods;
+  final Map<ClassDeclaration, ClassDeclaration?> superclass;
+
+  TestClassIntrospector({
+    required this.constructors,
+    required this.fields,
+    required this.interfaces,
+    required this.mixins,
+    required this.methods,
+    required this.superclass,
+  });
+
+  @override
+  Future<List<ConstructorDeclaration>> constructorsOf(
+          covariant ClassDeclaration clazz) async =>
+      constructors[clazz]!;
+
+  @override
+  Future<List<FieldDeclaration>> fieldsOf(
+          covariant ClassDeclaration clazz) async =>
+      fields[clazz]!;
+
+  @override
+  Future<List<ClassDeclaration>> interfacesOf(
+          covariant ClassDeclaration clazz) async =>
+      interfaces[clazz]!;
+
+  @override
+  Future<List<MethodDeclaration>> methodsOf(
+          covariant ClassDeclaration clazz) async =>
+      methods[clazz]!;
+
+  @override
+  Future<List<ClassDeclaration>> mixinsOf(
+          covariant ClassDeclaration clazz) async =>
+      mixins[clazz]!;
+
+  @override
+  Future<ClassDeclaration?> superclassOf(
+          covariant ClassDeclaration clazz) async =>
+      superclass[clazz];
+}
+
+class FakeTypeDeclarationResolver extends Fake
+    implements TypeDeclarationResolver {}
+
+class TestTypeDeclarationResolver implements TypeDeclarationResolver {
+  final Map<NamedStaticType, TypeDeclaration> typeDeclarations;
+
+  TestTypeDeclarationResolver(this.typeDeclarations);
+
+  @override
+  Future<TypeDeclaration> declarationOf(
+          covariant NamedStaticType annotation) async =>
+      typeDeclarations[annotation]!;
 }
 
 class TestTypeResolver implements TypeResolver {
@@ -26,22 +86,22 @@ class TestTypeResolver implements TypeResolver {
 }
 
 // Doesn't handle generics etc but thats ok for now
-class TestStaticType implements StaticType {
+class TestNamedStaticType implements NamedStaticType {
   final String library;
   final String name;
-  final List<TestStaticType> superTypes;
+  final List<TestNamedStaticType> superTypes;
 
-  TestStaticType(this.library, this.name, this.superTypes);
-
-  @override
-  Future<bool> isExactly(TestStaticType other) async => _isExactly(other);
+  TestNamedStaticType(this.library, this.name, this.superTypes);
 
   @override
-  Future<bool> isSubtypeOf(TestStaticType other) async =>
+  Future<bool> isExactly(TestNamedStaticType other) async => _isExactly(other);
+
+  @override
+  Future<bool> isSubtypeOf(TestNamedStaticType other) async =>
       _isExactly(other) ||
       superTypes.any((superType) => superType._isExactly(other));
 
-  bool _isExactly(TestStaticType other) =>
+  bool _isExactly(TestNamedStaticType other) =>
       identical(other, this) ||
       (library == other.library && name == other.name);
 }
@@ -71,8 +131,8 @@ Matcher deepEqualsCode(Code other) => _DeepEqualityMatcher(other);
 Matcher deepEqualsDeclaration(Declaration declaration) =>
     _DeepEqualityMatcher(declaration);
 
-/// Checks if two [TypeAnnotation]s are of the same type and all their fields are
-/// equal.
+/// Checks if two [TypeAnnotation]s are of the same type and all their fields
+/// are equal.
 Matcher deepEqualsTypeAnnotation(TypeAnnotation declaration) =>
     _DeepEqualityMatcher(declaration);
 

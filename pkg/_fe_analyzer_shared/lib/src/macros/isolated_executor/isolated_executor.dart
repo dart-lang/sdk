@@ -159,14 +159,20 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
             case MessageType.resolveTypeRequest:
               ResolveTypeRequest request =
                   new ResolveTypeRequest.deserialize(deserializer, zoneId);
+              StaticType instance =
+                  await (request.typeResolver.instance as TypeResolver)
+                      .resolve(request.typeAnnotation);
               SerializableResponse response = new SerializableResponse(
                   response: new RemoteInstanceImpl(
                       id: RemoteInstance.uniqueId,
-                      instance:
-                          await (request.typeResolver.instance as TypeResolver)
-                              .resolve(request.typeAnnotation)),
+                      instance: instance,
+                      kind: instance is NamedStaticType
+                          ? RemoteInstanceKind.namedStaticType
+                          : RemoteInstanceKind.staticType),
                   requestId: request.id,
-                  responseType: MessageType.staticType,
+                  responseType: instance is NamedStaticType
+                      ? MessageType.namedStaticType
+                      : MessageType.staticType,
                   serializationZoneId: zoneId);
               JsonSerializer serializer = new JsonSerializer();
               response.serialize(serializer);
@@ -188,8 +194,8 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
               sendPort.send(serializer.result);
               break;
             case MessageType.isSubtypeOfRequest:
-              IsExactlyTypeRequest request =
-                  new IsExactlyTypeRequest.deserialize(deserializer, zoneId);
+              IsSubtypeOfRequest request =
+                  new IsSubtypeOfRequest.deserialize(deserializer, zoneId);
               StaticType leftType = request.leftType.instance as StaticType;
               StaticType rightType = request.leftType.instance as StaticType;
               SerializableResponse response = new SerializableResponse(
@@ -197,6 +203,131 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
                       new BooleanValue(await leftType.isSubtypeOf(rightType)),
                   requestId: request.id,
                   responseType: MessageType.boolean,
+                  serializationZoneId: zoneId);
+              JsonSerializer serializer = new JsonSerializer();
+              response.serialize(serializer);
+              sendPort.send(serializer.result);
+              break;
+            case MessageType.declarationOfRequest:
+              DeclarationOfRequest request =
+                  new DeclarationOfRequest.deserialize(deserializer, zoneId);
+              NamedStaticType type = request.type.instance as NamedStaticType;
+              TypeDeclarationResolver resolver = request
+                  .typeDeclarationResolver.instance as TypeDeclarationResolver;
+              SerializableResponse response = new SerializableResponse(
+                  requestId: request.id,
+                  responseType: MessageType.remoteInstance,
+                  response: (await resolver.declarationOf(type)
+                      // TODO: Consider refactoring to avoid the need for this.
+                      as TypeDeclarationImpl),
+                  serializationZoneId: zoneId);
+              JsonSerializer serializer = new JsonSerializer();
+              response.serialize(serializer);
+              sendPort.send(serializer.result);
+              break;
+            case MessageType.constructorsOfRequest:
+              ClassIntrospectionRequest request =
+                  new ClassIntrospectionRequest.deserialize(
+                      deserializer, messageType, zoneId);
+              ClassIntrospector classIntrospector =
+                  request.classIntrospector.instance as ClassIntrospector;
+              SerializableResponse response = new SerializableResponse(
+                  requestId: request.id,
+                  responseType: MessageType.declarationList,
+                  response: new DeclarationList((await classIntrospector
+                          .constructorsOf(request.classDeclaration))
+                      // TODO: Consider refactoring to avoid the need for this.
+                      .cast<ConstructorDeclarationImpl>()),
+                  serializationZoneId: zoneId);
+              JsonSerializer serializer = new JsonSerializer();
+              response.serialize(serializer);
+              sendPort.send(serializer.result);
+              break;
+            case MessageType.fieldsOfRequest:
+              ClassIntrospectionRequest request =
+                  new ClassIntrospectionRequest.deserialize(
+                      deserializer, messageType, zoneId);
+              ClassIntrospector classIntrospector =
+                  request.classIntrospector.instance as ClassIntrospector;
+              SerializableResponse response = new SerializableResponse(
+                  requestId: request.id,
+                  responseType: MessageType.declarationList,
+                  response: new DeclarationList((await classIntrospector
+                          .fieldsOf(request.classDeclaration))
+                      // TODO: Consider refactoring to avoid the need for this.
+                      .cast<FieldDeclarationImpl>()),
+                  serializationZoneId: zoneId);
+              JsonSerializer serializer = new JsonSerializer();
+              response.serialize(serializer);
+              sendPort.send(serializer.result);
+              break;
+            case MessageType.interfacesOfRequest:
+              ClassIntrospectionRequest request =
+                  new ClassIntrospectionRequest.deserialize(
+                      deserializer, messageType, zoneId);
+              ClassIntrospector classIntrospector =
+                  request.classIntrospector.instance as ClassIntrospector;
+              SerializableResponse response = new SerializableResponse(
+                  requestId: request.id,
+                  responseType: MessageType.declarationList,
+                  response: new DeclarationList((await classIntrospector
+                          .interfacesOf(request.classDeclaration))
+                      // TODO: Consider refactoring to avoid the need for this.
+                      .cast<ClassDeclarationImpl>()),
+                  serializationZoneId: zoneId);
+              JsonSerializer serializer = new JsonSerializer();
+              response.serialize(serializer);
+              sendPort.send(serializer.result);
+              break;
+            case MessageType.methodsOfRequest:
+              ClassIntrospectionRequest request =
+                  new ClassIntrospectionRequest.deserialize(
+                      deserializer, messageType, zoneId);
+              ClassIntrospector classIntrospector =
+                  request.classIntrospector.instance as ClassIntrospector;
+              SerializableResponse response = new SerializableResponse(
+                  requestId: request.id,
+                  responseType: MessageType.declarationList,
+                  response: new DeclarationList((await classIntrospector
+                          .methodsOf(request.classDeclaration))
+                      // TODO: Consider refactoring to avoid the need for this.
+                      .cast<MethodDeclarationImpl>()),
+                  serializationZoneId: zoneId);
+              JsonSerializer serializer = new JsonSerializer();
+              response.serialize(serializer);
+              sendPort.send(serializer.result);
+              break;
+            case MessageType.mixinsOfRequest:
+              ClassIntrospectionRequest request =
+                  new ClassIntrospectionRequest.deserialize(
+                      deserializer, messageType, zoneId);
+              ClassIntrospector classIntrospector =
+                  request.classIntrospector.instance as ClassIntrospector;
+              SerializableResponse response = new SerializableResponse(
+                  requestId: request.id,
+                  responseType: MessageType.declarationList,
+                  response: new DeclarationList((await classIntrospector
+                          .mixinsOf(request.classDeclaration))
+                      // TODO: Consider refactoring to avoid the need for this.
+                      .cast<ClassDeclarationImpl>()),
+                  serializationZoneId: zoneId);
+              JsonSerializer serializer = new JsonSerializer();
+              response.serialize(serializer);
+              sendPort.send(serializer.result);
+              break;
+            case MessageType.superclassOfRequest:
+              ClassIntrospectionRequest request =
+                  new ClassIntrospectionRequest.deserialize(
+                      deserializer, messageType, zoneId);
+              ClassIntrospector classIntrospector =
+                  request.classIntrospector.instance as ClassIntrospector;
+              SerializableResponse response = new SerializableResponse(
+                  requestId: request.id,
+                  responseType: MessageType.remoteInstance,
+                  response: (await classIntrospector
+                          .superclassOf(request.classDeclaration))
+                      // TODO: Consider refactoring to avoid the need for this.
+                      as ClassDeclarationImpl?,
                   serializationZoneId: zoneId);
               JsonSerializer serializer = new JsonSerializer();
               response.serialize(serializer);
@@ -265,11 +396,17 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
           macro,
           declaration,
           new RemoteInstanceImpl(
-              instance: typeResolver, id: RemoteInstance.uniqueId),
+              instance: typeResolver,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.typeResolver),
           new RemoteInstanceImpl(
-              instance: classIntrospector, id: RemoteInstance.uniqueId),
+              instance: classIntrospector,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.classIntrospector),
           new RemoteInstanceImpl(
-              instance: typeDeclarationResolver, id: RemoteInstance.uniqueId),
+              instance: typeDeclarationResolver,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.typeDeclarationResolver),
           serializationZoneId: zoneId));
 
   @override

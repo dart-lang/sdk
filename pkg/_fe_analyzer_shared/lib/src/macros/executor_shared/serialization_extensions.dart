@@ -12,6 +12,13 @@ extension DeserializerExtensions on Deserializer {
         moveNext();
         RemoteInstanceKind kind = RemoteInstanceKind.values[expectNum()];
         switch (kind) {
+          case RemoteInstanceKind.classIntrospector:
+          case RemoteInstanceKind.namedStaticType:
+          case RemoteInstanceKind.staticType:
+          case RemoteInstanceKind.typeDeclarationResolver:
+          case RemoteInstanceKind.typeResolver:
+            // These are simple wrappers, just pass in the kind
+            return new RemoteInstanceImpl(id: id, kind: kind) as T;
           case RemoteInstanceKind.classDeclaration:
             moveNext();
             return _expectClassDeclaration(id) as T;
@@ -27,8 +34,6 @@ extension DeserializerExtensions on Deserializer {
           case RemoteInstanceKind.functionTypeAnnotation:
             moveNext();
             return _expectFunctionTypeAnnotation(id) as T;
-          case RemoteInstanceKind.instance:
-            return new RemoteInstanceImpl(id: id) as T;
           case RemoteInstanceKind.methodDeclaration:
             moveNext();
             return _expectMethodDeclaration(id) as T;
@@ -170,7 +175,8 @@ extension DeserializerExtensions on Deserializer {
         isAbstract: (this..moveNext()).expectBool(),
         isExternal: (this..moveNext()).expectBool(),
         mixins: (this..moveNext())._expectRemoteInstanceList(),
-        superclass: RemoteInstance.deserialize(this),
+        superclass:
+            (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
       );
 
   TypeAliasDeclaration _expectTypeAliasDeclaration(int id) =>

@@ -79,24 +79,31 @@ class RemoteInstanceImpl extends RemoteInstance {
   final Object? instance;
 
   @override
-  RemoteInstanceKind get kind => RemoteInstanceKind.instance;
+  final RemoteInstanceKind kind;
 
-  RemoteInstanceImpl({required int id, this.instance}) : super(id);
+  RemoteInstanceImpl({
+    required int id,
+    this.instance,
+    required this.kind,
+  }) : super(id);
 }
 
 // The kinds of instances.
 enum RemoteInstanceKind {
   classDeclaration,
+  classIntrospector,
   constructorDeclaration,
   fieldDeclaration,
   functionDeclaration,
   functionTypeAnnotation,
+  namedStaticType,
   methodDeclaration,
   namedTypeAnnotation,
   parameterDeclaration,
+  staticType,
   typeAliasDeclaration,
   typeParameterDeclaration,
+  typeResolver,
+  typeDeclarationResolver,
   variableDeclaration,
-  // A generic instance that is just a pointer to some server side instance.
-  instance,
 }
