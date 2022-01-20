@@ -137,6 +137,14 @@ class KernelTarget extends TargetImplementation {
       /* charOffset = */ null,
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
+  final NamedTypeBuilder enumType = new NamedTypeBuilder(
+      "Enum",
+      const NullabilityBuilder.omitted(),
+      /* arguments = */ null,
+      /* fileUri = */ null,
+      /* charOffset = */ null,
+      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
   final Map<String, String>? environmentDefines =
@@ -406,6 +414,7 @@ class KernelTarget extends TargetImplementation {
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();
       loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
+      loader.checkSupertypes(sourceClassBuilders, enumClass);
       // TODO(johnniwinther): Enable this when supported in the isolate-based
       //  macro executor.
       /*if (macroApplications != null) {
@@ -416,7 +425,6 @@ class KernelTarget extends TargetImplementation {
       loader.computeShowHideElements();
       loader.installTypedefTearOffs();
       loader.performTopLevelInference(sourceClassBuilders);
-      loader.checkSupertypes(sourceClassBuilders);
       loader.checkOverrides(sourceClassBuilders);
       loader.checkAbstractMembers(sourceClassBuilders);
       loader.addNoSuchMethodForwarders(sourceClassBuilders);
@@ -647,6 +655,10 @@ class KernelTarget extends TargetImplementation {
   ClassBuilder get objectClassBuilder => objectType.declaration as ClassBuilder;
 
   Class get objectClass => objectClassBuilder.cls;
+
+  ClassBuilder get enumClassBuilder => enumType.declaration as ClassBuilder;
+
+  Class get enumClass => enumClassBuilder.cls;
 
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
@@ -976,6 +988,8 @@ class KernelTarget extends TargetImplementation {
     nullType.bind(nullClassBuilder..isNullClass = true);
     bottomType.bind(loader.coreLibrary
         .lookupLocalMember("Never", required: true) as TypeDeclarationBuilder);
+    enumType.bind(loader.coreLibrary.lookupLocalMember("Enum", required: true)
+        as TypeDeclarationBuilder);
   }
 
   void computeCoreTypes() {

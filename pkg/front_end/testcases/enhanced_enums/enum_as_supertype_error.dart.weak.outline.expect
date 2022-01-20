@@ -10,6 +10,18 @@ library /*isNonNullableByDefault*/;
 // class B implements Enum { // Error.
 //       ^
 //
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:15:7: Error: Non-abstract class 'EnumClass' has 'Enum' as a superinterface.
+// class EnumClass extends EnumInterface { // Error.
+//       ^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:21:7: Error: Non-abstract class 'EnumClass2' has 'Enum' as a superinterface.
+// class EnumClass2 extends AbstractEnumClass {} // Error.
+//       ^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:27:7: Error: Non-abstract class 'EnumClass3' has 'Enum' as a superinterface.
+// class EnumClass3 extends AbstractEnumClass2 {} // Error.
+//       ^
+//
 // pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:5:7: Error: The non-abstract class 'A' is missing implementations for these members:
 //  - Enum.index
 // Try to either
@@ -38,6 +50,41 @@ library /*isNonNullableByDefault*/;
 //   int get index;
 //           ^^^^^
 //
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:21:7: Error: The non-abstract class 'EnumClass2' is missing implementations for these members:
+//  - Enum.index
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class EnumClass2 extends AbstractEnumClass {} // Error.
+//       ^^^^^^^^^^
+// sdk/lib/core/enum.dart:22:11: Context: 'Enum.index' is defined here.
+//   int get index;
+//           ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:27:7: Error: The non-abstract class 'EnumClass3' is missing implementations for these members:
+//  - Enum.index
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class EnumClass3 extends AbstractEnumClass2 {} // Error.
+//       ^^^^^^^^^^
+// sdk/lib/core/enum.dart:22:11: Context: 'Enum.index' is defined here.
+//   int get index;
+//           ^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart:25:16: Error: 'Object' doesn't implement 'Enum' so it can't be used with 'EnumMixin'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Enum' is from 'dart:core'.
+//  - 'EnumMixin' is from 'pkg/front_end/testcases/enhanced_enums/enum_as_supertype_error.dart'.
+// abstract class AbstractEnumClass2 with EnumMixin {}
+//                ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -57,6 +104,45 @@ class B extends core::Object implements core::Enum {
   no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/core/enum.dart */ _name() → core::String
     return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
 }
+abstract class EnumInterface extends core::Object implements core::Enum {
+  synthetic constructor •() → self::EnumInterface
+    ;
+}
+class EnumClass extends self::EnumInterface {
+  synthetic constructor •() → self::EnumClass
+    ;
+  get index() → core::int
+    ;
+  no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/core/enum.dart */ _name() → core::String
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+}
+abstract class AbstractEnumClass extends self::EnumInterface {
+  synthetic constructor •() → self::AbstractEnumClass
+    ;
+}
+class EnumClass2 extends self::AbstractEnumClass {
+  synthetic constructor •() → self::EnumClass2
+    ;
+  no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/core/enum.dart */ _name() → core::String
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+}
+abstract class EnumMixin extends core::Enum /*isMixinDeclaration*/  {
+}
+abstract class _AbstractEnumClass2&Object&EnumMixin = core::Object with self::EnumMixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_AbstractEnumClass2&Object&EnumMixin
+    : super core::Object::•()
+    ;
+}
+abstract class AbstractEnumClass2 extends self::_AbstractEnumClass2&Object&EnumMixin {
+  synthetic constructor •() → self::AbstractEnumClass2
+    ;
+}
+class EnumClass3 extends self::AbstractEnumClass2 {
+  synthetic constructor •() → self::EnumClass3
+    ;
+  no-such-method-forwarder get /* from org-dartlang-sdk:///sdk/lib/core/enum.dart */ _name() → core::String
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_name, 1, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+}
 static method main() → dynamic
   ;
 
@@ -70,4 +156,16 @@ Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> S
 Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <Type*>[])
 Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <dynamic>[])
 Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> MapConstant(const <Symbol*, dynamic>{})
-Extra constant evaluation: evaluated: 18, effectively constant: 8
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> SymbolConstant(#_name)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> SymbolConstant(#_name)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> MapConstant(const <Symbol*, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> SymbolConstant(#_name)
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <Type*>[])
+Evaluated: ListLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> ListConstant(const <dynamic>[])
+Evaluated: MapLiteral @ org-dartlang-sdk:///sdk/lib/core/enum.dart:47:14 -> MapConstant(const <Symbol*, dynamic>{})
+Extra constant evaluation: evaluated: 45, effectively constant: 20
