@@ -512,7 +512,7 @@ class Operand : public ValueObject {
 class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches = false);
+                     intptr_t far_branch_level = 0);
   ~Assembler() {}
 
   void PushRegister(Register r) { Push(r); }

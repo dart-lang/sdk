@@ -33,6 +33,10 @@ struct RelocatorTestHelper {
   static const intptr_t kOffsetOfCall = 4;
 #elif defined(TARGET_ARCH_ARM)
   static const intptr_t kOffsetOfCall = 4;
+#elif defined(TARGET_ARCH_RISCV32)
+  static const intptr_t kOffsetOfCall = 4;
+#elif defined(TARGET_ARCH_RISCV64)
+  static const intptr_t kOffsetOfCall = 4;
 #else
   static const intptr_t kOffsetOfCall = 0;
 #endif
@@ -85,6 +89,8 @@ struct RelocatorTestHelper {
                                    compiler::Address::PairPreIndex)));
 #elif defined(TARGET_ARCH_ARM)
       SPILLS_RETURN_ADDRESS_FROM_LR_TO_REGISTER(__ PushList((1 << LR)));
+#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+          __ PushRegister(RA);
 #endif
       __ GenerateUnRelocatedPcRelativeCall();
       AddPcRelativeCallTargetAt(__ CodeSize(), code, target);
@@ -95,6 +101,8 @@ struct RelocatorTestHelper {
                                    compiler::Address::PairPostIndex)));
 #elif defined(TARGET_ARCH_ARM)
       RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(__ PopList((1 << LR)));
+#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+          __ PopRegister(RA);
 #endif
       __ Ret();
     });
@@ -107,6 +115,8 @@ struct RelocatorTestHelper {
       __ LoadImmediate(RAX, 42);
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
       __ LoadImmediate(R0, 42);
+#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+          __ LoadImmediate(A0, 42);
 #endif
       __ Ret();
     });
@@ -128,6 +138,10 @@ struct RelocatorTestHelper {
       auto& instructions = Instructions::Handle(code.instructions());
       instructions ^= OldPage::ToExecutable(instructions.ptr());
       code.set_instructions(instructions);
+    }
+    if (FLAG_disassemble) {
+      OS::PrintErr("Disassemble:\n");
+      code.Disassemble();
     }
   }
 
@@ -192,9 +206,9 @@ struct RelocatorTestHelper {
     typedef intptr_t (*Fun)() DART_UNUSED;
 #if defined(TARGET_ARCH_X64)
     EXPECT_EQ(42, reinterpret_cast<Fun>(entrypoint)());
-#elif defined(TARGET_ARCH_ARM)
+#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_RISCV32)
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Fun, entrypoint));
-#elif defined(TARGET_ARCH_ARM64)
+#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV64)
     EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Fun, entrypoint));
 #endif
   }
@@ -275,8 +289,8 @@ ISOLATE_UNIT_TEST_CASE(CodeRelocator_DirectForwardCall) {
   // instruction is emitted (not taking into account that the next instruction
   // might actually make some of those unresolved calls resolved).
   helper.CreateInstructions({
-      16,  // caller (call instruction @helper.kOffsetOfCall)
-      fmax - (16 - helper.kOffsetOfCall) - 8,  // 8 bytes less than maximum gap
+      20,  // caller (call instruction @helper.kOffsetOfCall)
+      fmax - (20 - helper.kOffsetOfCall) - 8,  // 8 bytes less than maximum gap
       8                                        // forward call target
   });
   helper.EmitPcRelativeCallFunction(0, 2);
@@ -301,8 +315,8 @@ ISOLATE_UNIT_TEST_CASE(CodeRelocator_OutOfRangeForwardCall) {
   const intptr_t fmax = FLAG_upper_pc_relative_call_distance;
 
   helper.CreateInstructions({
-      16,  // caller (call instruction @helper.kOffsetOfCall)
-      fmax - (16 - helper.kOffsetOfCall) + 4,  // 4 bytes above maximum gap
+      20,  // caller (call instruction @helper.kOffsetOfCall)
+      fmax - (20 - helper.kOffsetOfCall) + 4,  // 4 bytes above maximum gap
       8                                        // forwards call target
   });
   helper.EmitPcRelativeCallFunction(0, 2);
@@ -333,7 +347,7 @@ ISOLATE_UNIT_TEST_CASE(CodeRelocator_DirectBackwardCall) {
   helper.CreateInstructions({
       8,                                // backwards call target
       bmax - 8 - helper.kOffsetOfCall,  // maximize out backwards call range
-      16  // caller (call instruction @helper.kOffsetOfCall)
+      20  // caller (call instruction @helper.kOffsetOfCall)
   });
   helper.EmitReturn42Function(0);
   helper.EmitPcRelativeCallFunction(2, 0);
@@ -360,8 +374,8 @@ ISOLATE_UNIT_TEST_CASE(CodeRelocator_OutOfRangeBackwardCall) {
   helper.CreateInstructions({
       8,                                    // backward call target
       bmax - 8 - helper.kOffsetOfCall + 4,  // 4 bytes exceeding backwards range
-      16,  // caller (call instruction @helper.kOffsetOfCall)
-      fmax - (16 - helper.kOffsetOfCall) -
+      20,  // caller (call instruction @helper.kOffsetOfCall)
+      fmax - (20 - helper.kOffsetOfCall) -
           4,  // 4 bytes less than forward range
       4,
       4,  // out-of-range, so trampoline has to be inserted before this
@@ -399,7 +413,7 @@ ISOLATE_UNIT_TEST_CASE(CodeRelocator_OutOfRangeBackwardCall2) {
   helper.CreateInstructions({
       8,                                    // backwards call target
       bmax - 8 - helper.kOffsetOfCall + 4,  // 4 bytes exceeding backwards range
-      16,  // caller (call instruction @helper.kOffsetOfCall)
+      20,  // caller (call instruction @helper.kOffsetOfCall)
       4,
   });
   helper.EmitReturn42Function(0);

@@ -335,10 +335,10 @@
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \
-  ONLY_IN_ARM_ARM64_X64(RANGE(                                                 \
-      Thread, write_barrier_wrappers_thread_offset, Register, 0,               \
-      kNumberOfCpuRegisters - 1,                                               \
-      [](Register reg) { return (kDartAvailableCpuRegs & (1 << reg)) != 0; })) \
+  NOT_IN_IA32(RANGE(Thread, write_barrier_wrappers_thread_offset, Register, 0, \
+                    kNumberOfCpuRegisters - 1, [](Register reg) {              \
+                      return (kDartAvailableCpuRegs & (1 << reg)) != 0;        \
+                    }))                                                        \
                                                                                \
   SIZEOF(AbstractType, InstanceSize, UntaggedAbstractType)                     \
   SIZEOF(ApiError, InstanceSize, UntaggedApiError)                             \

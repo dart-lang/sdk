@@ -20,10 +20,10 @@ DECLARE_FLAG(bool, precompiled_mode);
 namespace compiler {
 
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches)
+                     intptr_t far_branch_level)
     : AssemblerBase(object_pool_builder), constant_pool_allowed_(false) {
   // Far branching mode is only needed and implemented for ARM.
-  ASSERT(!use_far_branches);
+  ASSERT(far_branch_level == 0);
 
   generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
     call(Address(THR,

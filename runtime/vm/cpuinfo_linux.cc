@@ -45,6 +45,10 @@ void CpuInfo::Init() {
   fields_[kCpuInfoArchitecture] = "CPU architecture";
   method_ = kCpuInfoSystem;
   ProcCpuInfo::Init();
+#elif defined(HOST_ARCH_RISCV32) || defined(HOST_ARCH_RISCV64)
+  // We only rely on the base Linux configuration of IMAFDC, so don't need
+  // dynamic feature detection.
+  method_ = kCpuInfoNone;
 #else
 #error Unrecognized target architecture
 #endif
@@ -53,9 +57,10 @@ void CpuInfo::Init() {
 void CpuInfo::Cleanup() {
   if (method_ == kCpuInfoCpuId) {
     CpuId::Cleanup();
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
+  } else if (method_ == kCpuInfoSystem) {
     ProcCpuInfo::Cleanup();
+  } else {
+    ASSERT(method_ == kCpuInfoNone);
   }
 }
 
@@ -65,18 +70,20 @@ bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
     bool contains = (strstr(field, search_string) != NULL);
     free(const_cast<char*>(field));
     return contains;
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
+  } else if (method_ == kCpuInfoSystem) {
     return ProcCpuInfo::FieldContains(FieldName(idx), search_string);
+  } else {
+    UNREACHABLE();
   }
 }
 
 const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
   if (method_ == kCpuInfoCpuId) {
     return CpuId::field(idx);
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
+  } else if (method_ == kCpuInfoSystem) {
     return ProcCpuInfo::ExtractField(FieldName(idx));
+  } else {
+    UNREACHABLE();
   }
 }
 
@@ -86,9 +93,12 @@ bool CpuInfo::HasField(const char* field) {
            (strcmp(field, fields_[kCpuInfoModel]) == 0) ||
            (strcmp(field, fields_[kCpuInfoHardware]) == 0) ||
            (strcmp(field, fields_[kCpuInfoFeatures]) == 0);
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
+  } else if (method_ == kCpuInfoSystem) {
     return ProcCpuInfo::HasField(field);
+  } else if (method_ == kCpuInfoNone) {
+    return false;
+  } else {
+    UNREACHABLE();
   }
 }
 

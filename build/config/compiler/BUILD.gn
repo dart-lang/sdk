@@ -258,6 +258,12 @@ config("compiler") {
       } else if (current_cpu == "arm64") {
         cflags += [ "--target=aarch64-linux-gnu" ]
         ldflags += [ "--target=aarch64-linux-gnu" ]
+      } else if (current_cpu == "riscv32") {
+        cflags += [ "--target=riscv32-linux-gnu" ]
+        ldflags += [ "--target=riscv32-linux-gnu" ]
+      } else if (current_cpu == "riscv64") {
+        cflags += [ "--target=riscv64-linux-gnu" ]
+        ldflags += [ "--target=riscv64-linux-gnu" ]
       } else if (current_cpu == "x86") {
         cflags += [ "--target=i386-linux-gnu" ]
         ldflags += [ "--target=i386-linux-gnu" ]
@@ -554,7 +560,7 @@ if (is_win) {
   if (is_clang) {
     default_warning_flags += [
       "-Wno-tautological-constant-compare",
-      "-Wno-unused-but-set-variable", # icu
+      "-Wno-unused-but-set-variable",  # icu
     ]
   } else {
     default_warning_flags +=
@@ -700,6 +706,7 @@ if (is_win) {
   common_optimize_on_ldflags = [
     # Linker GC.
     "/OPT:REF",
+
     # Identical code folding to reduce size.
     # Warning: This changes C/C++ semantics of function pointer comparison.
     "/OPT:ICF",

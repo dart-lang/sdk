@@ -56,11 +56,11 @@ constants  {
   #C6 = dart.core::pragma {name:#C1, options:#C5}
   #C7 = dart.ffi::Uint32 {}
   #C8 = 0
-  #C9 = <dart.core::int*>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
+  #C9 = <dart.core::int*>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
   #C10 = "vm:prefer-inline"
   #C11 = dart.core::pragma {name:#C10, options:#C4}
   #C12 = 4
-  #C13 = <dart.core::int*>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
+  #C13 = <dart.core::int*>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
   #C14 = TypeLiteralConstant(lib::Y)
   #C15 = <dart.core::Type>[#C14]
   #C16 = dart.ffi::_FfiStructLayout {fieldTypes:#C15, packing:#C4}

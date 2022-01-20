@@ -957,3 +957,8 @@ int main(int argc, char** argv) {
 int main(int argc, char** argv) {
   return dart::bin::main(argc, argv);
 }
+
+// TODO(riscv): Why is this missing from libc?
+#if defined(__riscv)
+char __libc_single_threaded = 0;
+#endif

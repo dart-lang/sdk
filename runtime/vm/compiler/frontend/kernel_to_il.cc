@@ -926,7 +926,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
       if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 #if defined(TARGET_ARCH_X64)
       return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
-#elif defined(TARGET_ARCH_ARM64)
+#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
+    defined(TARGET_ARCH_RISCV64)
       return true;
 #else
       return false;

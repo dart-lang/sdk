@@ -15,10 +15,12 @@ namespace dart {
 namespace compiler {
 
 // When entering intrinsics code:
+// PP: Caller's ObjectPool in JIT / global ObjectPool in AOT
+// CODE_REG: Callee's Code in JIT / not passed in AOT
 // R10: Arguments descriptor
 // TOS: Return address
-// The R10 registers can be destroyed only if there is no slow-path, i.e.
-// if the intrinsified method always executes a return.
+// The R10 and CODE_REG registers can be destroyed only if there is no
+// slow-path, i.e. if the intrinsified method always executes a return.
 // The RBP register should not be modified, because it is used by the profiler.
 // The PP and THR registers (see constants_x64.h) must be preserved.
 

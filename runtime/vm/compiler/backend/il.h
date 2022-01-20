@@ -1222,12 +1222,11 @@ class Instruction : public ZoneAllocated {
   void Unsupported(FlowGraphCompiler* compiler);
 
   static bool SlowPathSharingSupported(bool is_optimizing) {
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM) ||                    \
-    defined(TARGET_ARCH_ARM64)
+#if defined(TARGET_ARCH_IA32)
+    return false;
+#else
     return FLAG_enable_slow_path_sharing && FLAG_precompiled_mode &&
            is_optimizing;
-#else
-    return false;
 #endif
   }
 
@@ -5318,6 +5317,8 @@ class FfiCallInstr : public Definition {
                        const Register temp0,
                        const Register temp1);
 
+  void EmitCall(FlowGraphCompiler* compiler, Register target);
+
   Zone* const zone_;
   const compiler::ffi::CallMarshaller& marshaller_;
 
@@ -7969,7 +7970,7 @@ class BinaryInt32OpInstr : public BinaryIntegerOpInstr {
   }
 
   static bool IsSupported(Token::Kind op_kind, Value* left, Value* right) {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_IS_32_BIT)
     switch (op_kind) {
       case Token::kADD:
       case Token::kSUB:

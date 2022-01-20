@@ -50,22 +50,22 @@ constants  {
   #C7 = core::pragma {name:#C1, options:#C6}
   #C8 = ffi::Double {}
   #C9 = 0
-  #C10 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
+  #C10 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C11 = 8
-  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
+  #C12 = <core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
   #C13 = 16
-  #C14 = <core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
+  #C14 = <core::int*>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
   #C15 = "vm:prefer-inline"
   #C16 = core::pragma {name:#C15, options:#C5}
   #C17 = 24
   #C18 = 20
-  #C19 = <core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17]
+  #C19 = <core::int*>[#C17, #C17, #C18, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
 }
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///ffi_sample.dart:
-- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:142:9)
+- Double. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:144:9)
 - _NativeDouble. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:34:9)
 - NativeType. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart:12:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

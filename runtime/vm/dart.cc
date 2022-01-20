@@ -1195,7 +1195,10 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 #else
     buffer.AddString(" x64-sysv");
 #endif
-
+#elif defined(TARGET_ARCH_RISCV32)
+    buffer.AddString(" riscv32");
+#elif defined(TARGET_ARCH_RISCV64)
+    buffer.AddString(" riscv64");
 #else
 #error What architecture?
 #endif

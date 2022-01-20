@@ -57,6 +57,10 @@ const char* Version::str_ =
     "arm"
 #elif defined(TARGET_ARCH_ARM64)
     "arm64"
+#elif defined(TARGET_ARCH_RISCV32)
+    "riscv32"
+#elif defined(TARGET_ARCH_RISCV64)
+    "riscv64"
 #else
 #error Unknown arch
 #endif

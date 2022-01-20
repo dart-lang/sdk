@@ -30,6 +30,8 @@ part of dart.ffi;
 ///   Abi.linuxArm64: Uint64(),
 ///   Abi.linuxIA32: Uint32(),
 ///   Abi.linuxX64: Uint64(),
+///   Abi.linuxRiscv32: Uint32(),
+///   Abi.linuxRiscv64: Uint64(),
 ///   Abi.macosArm64: Uint64(),
 ///   Abi.macosX64: Uint64(),
 ///   Abi.windowsIA32: Uint32(),

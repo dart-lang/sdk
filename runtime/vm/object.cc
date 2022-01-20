@@ -14813,7 +14813,11 @@ void ObjectPool::DebugPrint() const {
   THR_Print("ObjectPool len:%" Pd " {\n", Length());
   for (intptr_t i = 0; i < Length(); i++) {
     intptr_t offset = OffsetFromIndex(i);
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+    THR_Print("  %" Pd "(pp) ", offset + kHeapObjectTag);
+#else
     THR_Print("  [pp+0x%" Px "] ", offset);
+#endif
     if (TypeAt(i) == EntryType::kTaggedObject) {
       const Object& obj = Object::Handle(ObjectAt(i));
       THR_Print("%s (obj)\n", obj.ToCString());

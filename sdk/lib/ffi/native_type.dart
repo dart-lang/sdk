@@ -116,6 +116,8 @@ class Uint64 extends _NativeInteger {
   Abi.linuxArm64: Int64(),
   Abi.linuxIA32: Int32(),
   Abi.linuxX64: Int64(),
+  Abi.linuxRiscv32: Int32(),
+  Abi.linuxRiscv64: Int64(),
   Abi.macosArm64: Int64(),
   Abi.macosX64: Int64(),
   Abi.windowsArm64: Int64(),

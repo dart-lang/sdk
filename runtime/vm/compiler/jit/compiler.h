@@ -171,10 +171,18 @@ class NoBackgroundCompilerScope : public StackResource {
  public:
   explicit NoBackgroundCompilerScope(Thread* thread)
       : StackResource(thread), isolate_group_(thread->isolate_group()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     isolate_group_->background_compiler()->Disable();
+#endif
   }
   ~NoBackgroundCompilerScope() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     isolate_group_->background_compiler()->Enable();
+#endif
   }
 
  private:

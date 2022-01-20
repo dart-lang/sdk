@@ -206,28 +206,22 @@ CodePtr TypeTestingStubGenerator::OptimizedCodeForType(
 #if !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
-#define ONLY_ON_ARM(...) __VA_ARGS__
-#else
-#define ONLY_ON_ARM(...)
-#endif
-
 static CodePtr RetryCompilationWithFarBranches(
     Thread* thread,
     std::function<CodePtr(compiler::Assembler&)> fun) {
-  volatile bool use_far_branches = false;
+  volatile intptr_t far_branch_level = 0;
   while (true) {
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
       // To use the already-defined __ Macro !
-      compiler::Assembler assembler(nullptr ONLY_ON_ARM(, use_far_branches));
+      compiler::Assembler assembler(nullptr, far_branch_level);
       return fun(assembler);
     } else {
       // We bailed out or we encountered an error.
       const Error& error = Error::Handle(thread->StealStickyError());
       if (error.ptr() == Object::branch_offset_error().ptr()) {
-        ASSERT(!use_far_branches);
-        use_far_branches = true;
+        ASSERT(far_branch_level < 2);
+        far_branch_level++;
       } else if (error.ptr() == Object::out_of_memory_error().ptr()) {
         thread->set_sticky_error(error);
         return Code::null();
@@ -237,8 +231,6 @@ static CodePtr RetryCompilationWithFarBranches(
     }
   }
 }
-
-#undef ONLY_ON_ARM
 
 CodePtr TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   auto thread = Thread::Current();

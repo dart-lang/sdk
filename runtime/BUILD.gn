@@ -112,6 +112,10 @@ config("dart_arch_config") {
     defines += [ "TARGET_ARCH_X64" ]
   } else if (dart_target_arch == "ia32" || dart_target_arch == "x86") {
     defines += [ "TARGET_ARCH_IA32" ]
+  } else if (dart_target_arch == "riscv32") {
+    defines += [ "TARGET_ARCH_RISCV32" ]
+  } else if (dart_target_arch == "riscv64") {
+    defines += [ "TARGET_ARCH_RISCV64" ]
   } else {
     print("Invalid dart_target_arch: $dart_target_arch")
     assert(false)

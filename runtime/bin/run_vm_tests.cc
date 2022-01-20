@@ -427,3 +427,8 @@ static int Main(int argc, const char** argv) {
 int main(int argc, const char** argv) {
   dart::bin::Platform::Exit(dart::Main(argc, argv));
 }
+
+// TODO(riscv): Why is this missing from libc?
+#if defined(__riscv)
+char __libc_single_threaded = 0;
+#endif

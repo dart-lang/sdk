@@ -12,6 +12,9 @@ namespace dart {
 namespace compiler {
 namespace ffi {
 
+// TODO(https://github.com/dart-lang/sdk/issues/48164)
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
+
 const NativeCompoundType& RunStructTest(dart::Zone* zone,
                                         const char* name,
                                         const NativeTypes& member_types,
@@ -338,6 +341,8 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCompoundType_union_unaligned) {
 
   EXPECT(union_type.ContainsUnalignedMembers());
 }
+
+#endif  // !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 
 }  // namespace ffi
 }  // namespace compiler

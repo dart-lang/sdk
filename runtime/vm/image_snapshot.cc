@@ -884,7 +884,8 @@ intptr_t ImageWriter::AlignWithBreakInstructions(intptr_t alignment,
     ASSERT_EQUAL(remaining, 4);
     bytes_written += WriteBytes(&kBreakInstructionFiller, remaining);
   }
-#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32) ||                 \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
   // The break instruction is a single byte, repeated to fill a word.
   bytes_written += WriteBytes(&kBreakInstructionFiller, remaining);
 #else

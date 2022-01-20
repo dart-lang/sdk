@@ -143,8 +143,8 @@ none:             No runtime, compile only.''',
 Allowed values are:
 all
 ia32, x64
-arm, armv6, arm64,
-simarm, simarmv6, simarm64, arm_x64''',
+arm, arm64, simarm, simarm64, arm_x64
+riscv32, riscv64, simriscv32, simriscv64''',
         abbr: 'a',
         values: ['all', ...Architecture.names],
         defaultsTo: Architecture.x64.name,

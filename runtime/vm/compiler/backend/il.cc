@@ -5676,7 +5676,7 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
 
   if (is_smi.IsLinked()) {
     compiler::Label done;
-    __ Jump(&done);
+    __ Jump(&done, compiler::Assembler::kNearJump);
     __ Bind(&is_smi);
     EmitSmiConversion(compiler);
     __ Bind(&done);
@@ -6374,7 +6374,8 @@ void NativeCallInstr::SetupNative() {
   set_native_c_function(native_function);
 }
 
-#if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64)
+#if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64) &&                \
+    !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 
 LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   UNREACHABLE();
@@ -6384,7 +6385,8 @@ void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
-#endif  // !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64)
+#endif  // !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64) &&         \
+        // !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx < TargetAddressIndex()) {

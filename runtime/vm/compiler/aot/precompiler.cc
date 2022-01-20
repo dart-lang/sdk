@@ -3110,7 +3110,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   // true. use_far_branches is always false on ia32 and x64.
   bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
-  volatile bool use_far_branches = false;
+  volatile intptr_t far_branch_level = 0;
   SpeculativeInliningPolicy speculative_policy(
       true, FLAG_max_speculative_inlining_attempts);
 
@@ -3198,7 +3198,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // (See TryCommitToParent invocation below).
       compiler::ObjectPoolBuilder object_pool_builder(
           precompiler_->global_object_pool_builder());
-      compiler::Assembler assembler(&object_pool_builder, use_far_branches);
+      compiler::Assembler assembler(&object_pool_builder, far_branch_level);
 
       CodeStatistics* function_stats = NULL;
       if (FLAG_print_instruction_stats) {
@@ -3273,8 +3273,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Compilation failed due to an out of range branch offset in the
         // assembler. We try again (done = false) with far branches enabled.
         done = false;
-        ASSERT(!use_far_branches);
-        use_far_branches = true;
+        RELEASE_ASSERT(far_branch_level < 2);
+        far_branch_level++;
       } else if (error.ptr() == Object::speculative_inlining_error().ptr()) {
         // The return value of setjmp is the deopt id of the check instruction
         // that caused the bailout.

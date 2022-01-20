@@ -94,8 +94,22 @@ class ArgumentAllocator : public ValueObject {
       if (CallingConventions::kArgumentIntRegXorFpuReg) {
         cpu_regs_used++;
       }
-      return *new (zone_) NativeFpuRegistersLocation(payload_type, payload_type,
-                                                     kind, reg_index);
+#if defined(TARGET_ARCH_ARM)
+      if (kind == kSingleFpuReg) {
+        return *new (zone_)
+            NativeFpuRegistersLocation(payload_type, payload_type, kind,
+                                       static_cast<SRegister>(reg_index));
+      }
+      if (kind == kDoubleFpuReg) {
+        return *new (zone_)
+            NativeFpuRegistersLocation(payload_type, payload_type, kind,
+                                       static_cast<DRegister>(reg_index));
+      }
+#endif
+      ASSERT(kind == kQuadFpuReg);
+      FpuRegister reg = CallingConventions::FpuArgumentRegisters[reg_index];
+      return *new (zone_)
+          NativeFpuRegistersLocation(payload_type, payload_type, reg);
     }
 
     BlockAllFpuRegisters();
@@ -252,24 +266,24 @@ class ArgumentAllocator : public ValueObject {
         return AllocateStack(payload_type);
       }
     } else {
-      const intptr_t chunck_size = payload_type.AlignmentInBytesStack();
-      ASSERT(chunck_size == 4 || chunck_size == 8);
+      const intptr_t chunk_size = payload_type.AlignmentInBytesStack();
+      ASSERT(chunk_size == 4 || chunk_size == 8);
       const intptr_t size_rounded =
-          Utils::RoundUp(payload_type.SizeInBytes(), chunck_size);
-      const intptr_t num_chuncks = size_rounded / chunck_size;
+          Utils::RoundUp(payload_type.SizeInBytes(), chunk_size);
+      const intptr_t num_chunks = size_rounded / chunk_size;
       const auto& chuck_type =
-          *new (zone_) NativePrimitiveType(chunck_size == 4 ? kInt32 : kInt64);
+          *new (zone_) NativePrimitiveType(chunk_size == 4 ? kInt32 : kInt64);
 
       NativeLocations& multiple_locations =
-          *new (zone_) NativeLocations(zone_, num_chuncks);
-      for (int i = 0; i < num_chuncks; i++) {
+          *new (zone_) NativeLocations(zone_, num_chunks);
+      for (int i = 0; i < num_chunks; i++) {
         const auto& allocated_chunk = &AllocateArgument(chuck_type);
         // The last chunk should not be 8 bytes, if the struct only has 4
         // remaining bytes to be allocated.
-        if (i == num_chuncks - 1 && chunck_size == 8 &&
+        if (i == num_chunks - 1 && chunk_size == 8 &&
             Utils::RoundUp(payload_type.SizeInBytes(), 4) % 8 == 4) {
           const auto& small_chuck_type = *new (zone_) NativePrimitiveType(
-              chunck_size == 4 ? kInt32 : kInt64);
+              chunk_size == 4 ? kInt32 : kInt64);
           multiple_locations.Add(&allocated_chunk->WithOtherNativeType(
               zone_, small_chuck_type, small_chuck_type));
         } else {
@@ -324,13 +338,13 @@ class ArgumentAllocator : public ValueObject {
       if (regs_available) {
         const intptr_t size_rounded =
             Utils::RoundUp(payload_type.SizeInBytes(), 8);
-        const intptr_t num_chuncks = size_rounded / 8;
-        const auto& chuck_type = *new (zone_) NativePrimitiveType(kInt64);
+        const intptr_t num_chunks = size_rounded / 8;
+        const auto& chunk_type = *new (zone_) NativePrimitiveType(kInt64);
 
         NativeLocations& multiple_locations =
-            *new (zone_) NativeLocations(zone_, num_chuncks);
-        for (int i = 0; i < num_chuncks; i++) {
-          const auto& allocated_chunk = &AllocateArgument(chuck_type);
+            *new (zone_) NativeLocations(zone_, num_chunks);
+        for (int i = 0; i < num_chunks; i++) {
+          const auto& allocated_chunk = &AllocateArgument(chunk_type);
           multiple_locations.Add(allocated_chunk);
         }
         return *new (zone_)
@@ -349,6 +363,36 @@ class ArgumentAllocator : public ValueObject {
         PointerToMemoryLocation(pointer_location, compound_type);
   }
 #endif  // defined(TARGET_ARCH_ARM64)
+
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  // If total size is <= XLEN, passed like an XLEN scalar: use a register if
+  // available or pass by value on the stack.
+  // If total size is <= 2*XLEN, passed like two XLEN scalars: use registers
+  // if available or pass by value on the stack. If only one register is
+  // available, pass the low part by register and the high part on the stack.
+  // Otherwise, passed by reference.
+  const NativeLocation& AllocateCompound(
+      const NativeCompoundType& payload_type) {
+    const auto& pointer_type = *new (zone_) NativePrimitiveType(kFfiIntPtr);
+    const auto& compound_type = payload_type.AsCompound();
+    const intptr_t size = compound_type.SizeInBytes();
+    if (size <= target::kWordSize) {
+      return AllocateArgument(pointer_type);
+    } else if (size <= 2 * target::kWordSize) {
+      NativeLocations& multiple_locations =
+          *new (zone_) NativeLocations(zone_, 2);
+      multiple_locations.Add(&AllocateArgument(pointer_type));
+      multiple_locations.Add(&AllocateArgument(pointer_type));
+      return *new (zone_)
+          MultipleNativeLocations(compound_type, multiple_locations);
+    } else {
+      const auto& pointer_type = *new (zone_) NativePrimitiveType(kFfiIntPtr);
+      const auto& pointer_location = AllocateArgument(pointer_type);
+      return *new (zone_)
+          PointerToMemoryLocation(pointer_location, compound_type);
+    }
+  }
+#endif
 
   static FpuRegisterKind FpuRegKind(const NativeType& payload_type) {
 #if defined(TARGET_ARCH_ARM)
@@ -665,6 +709,22 @@ static const NativeLocation& CompoundResultLocation(
   return PointerToMemoryResultLocation(zone, payload_type);
 }
 #endif  // defined(TARGET_ARCH_ARM64)
+
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+static const NativeLocation& CompoundResultLocation(
+    Zone* zone,
+    const NativeCompoundType& payload_type) {
+  // First or first and second argument registers if it fits, otherwise a
+  // pointer to the result location is passed in.
+  ArgumentAllocator frame_state(zone);
+  const auto& location_as_argument = frame_state.AllocateArgument(payload_type);
+  if (!location_as_argument.IsStack() &&
+      !location_as_argument.IsPointerToMemory()) {
+    return location_as_argument;
+  }
+  return PointerToMemoryResultLocation(zone, payload_type);
+}
+#endif  // defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 
 // Location for the result of a C signature function.
 static const NativeLocation& ResultLocation(Zone* zone,

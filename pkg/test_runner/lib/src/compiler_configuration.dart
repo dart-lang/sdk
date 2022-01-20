@@ -99,6 +99,8 @@ abstract class CompilerConfiguration {
         if (configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
             configuration.architecture == Architecture.simarm64c ||
+            configuration.architecture == Architecture.simriscv32 ||
+            configuration.architecture == Architecture.simriscv64 ||
             configuration.system == System.android) {
           return VMKernelCompilerConfiguration(configuration);
         }
@@ -705,6 +707,16 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isIA32 => _configuration.architecture == Architecture.ia32;
 
+  bool get _isRiscv32 => _configuration.architecture == Architecture.riscv32;
+
+  bool get _isSimRiscv32 =>
+      _configuration.architecture == Architecture.simriscv32;
+
+  bool get _isRiscv64 => _configuration.architecture == Architecture.riscv64;
+
+  bool get _isSimRiscv64 =>
+      _configuration.architecture == Architecture.simriscv64;
+
   bool get _isAot => true;
 
   PrecompilerCompilerConfiguration(TestConfiguration configuration)
@@ -880,6 +892,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         cc = 'arm-linux-gnueabihf-gcc';
       } else if (_isSimArm64 || (_isArm64 && _configuration.useQemu)) {
         cc = 'aarch64-linux-gnu-gcc';
+      } else if (_isSimRiscv32 || (_isRiscv32 && _configuration.useQemu)) {
+        cc = 'riscv32-linux-gnu-gcc';
+      } else if (_isSimRiscv64 || (_isRiscv64 && _configuration.useQemu)) {
+        cc = 'riscv64-linux-gnu-gcc';
       } else {
         cc = 'gcc';
       }
@@ -911,6 +927,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       case Architecture.arm_x64:
       case Architecture.arm64:
       case Architecture.arm64c:
+      case Architecture.riscv32:
+      case Architecture.riscv64:
+      case Architecture.simriscv32:
+      case Architecture.simriscv64:
         ccFlags = null;
         break;
       default:

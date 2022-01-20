@@ -2684,7 +2684,7 @@ intptr_t ChoiceNode::CalculatePreloadCharacters(RegExpCompiler* compiler,
   intptr_t preload_characters =
       Utils::Minimum(static_cast<intptr_t>(4), eats_at_least);
   if (compiler->one_byte()) {
-#if !defined(DART_COMPRESSED_POINTERS)
+#if !defined(DART_COMPRESSED_POINTERS) && !defined(TARGET_ARCH_RISCV32)
     if (preload_characters > 4) preload_characters = 4;
     // We can't preload 3 characters because there is no machine instruction
     // to do that.  We can't just load 4 because we could be reading
@@ -2696,7 +2696,7 @@ intptr_t ChoiceNode::CalculatePreloadCharacters(RegExpCompiler* compiler,
     if (preload_characters > 2) preload_characters = 2;
 #endif
   } else {
-#if !defined(DART_COMPRESSED_POINTERS)
+#if !defined(DART_COMPRESSED_POINTERS) && !defined(TARGET_ARCH_RISCV32)
     if (preload_characters > 2) preload_characters = 2;
 #else
     // Ensure LoadCodeUnitsInstr can always produce a Smi. See

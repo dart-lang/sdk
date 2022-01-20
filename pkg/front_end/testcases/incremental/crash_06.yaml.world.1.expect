@@ -62,7 +62,7 @@ constants  {
   #C5 = dart.ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
   #C6 = dart.core::pragma {name:#C1, options:#C5}
   #C7 = 0
-  #C8 = <dart.core::int*>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
+  #C8 = <dart.core::int*>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
   #C9 = "vm:prefer-inline"
   #C10 = dart.core::pragma {name:#C9, options:#C4}
 }

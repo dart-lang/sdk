@@ -133,6 +133,16 @@ class StubCodeCompiler : public AllStatic {
   static constexpr intptr_t kNativeCallbackSharedStubSize = 268;
 #endif
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+#elif defined(TARGET_ARCH_RISCV32)
+  static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 192;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+#elif defined(TARGET_ARCH_RISCV64)
+  static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 196;
+  static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
+#else
+#error What architecture?
 #endif
 
   static void GenerateJITCallbackTrampolines(Assembler* assembler,

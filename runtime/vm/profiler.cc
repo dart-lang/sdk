@@ -535,12 +535,8 @@ bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
   }
   return false;
 }
-#elif defined(TARGET_ARCH_ARM)
-bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
-  ASSERT(return_address != NULL);
-  return false;
-}
-#elif defined(TARGET_ARCH_ARM64)
+#elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                \
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
   ASSERT(return_address != NULL);
   return false;
