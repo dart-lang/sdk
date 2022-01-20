@@ -25,5 +25,5 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///ffi_struct_inline_array.dart:
-- _ArraySize. (from org-dartlang-sdk:///sdk/lib/ffi/ffi.dart:138:9)
+- _ArraySize. (from org-dartlang-sdk:///sdk/lib/ffi/ffi.dart:139:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
