@@ -333,11 +333,16 @@ class _DebuggingSession {
         stderrSub.cancel();
         completer.complete();
       } else {
+        stderrSub.cancel();
         final error = result['error'] ?? event;
         final stacktrace = result['stacktrace'] ?? '';
-        stderrSub.cancel();
-        completer.completeError(
-            'Could not start Observatory HTTP server:\n$error\n$stacktrace\n');
+        String message = 'Could not start the VM service: ';
+        if (error.contains('Failed to create server socket')) {
+          message += '$host:$port is already in use.\n';
+        } else {
+          message += '$error\n$stacktrace\n';
+        }
+        completer.completeError(message);
       }
     });
     try {

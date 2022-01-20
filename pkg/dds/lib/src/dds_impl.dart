@@ -152,14 +152,30 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     // Start the DDS server. Run in an error Zone to ensure that asynchronous
     // exceptions encountered during request handling are handled, as exceptions
     // thrown during request handling shouldn't take down the entire service.
-    _server = await runZonedGuarded(
-      () async => await io.serve(handler, host, port),
+    late String errorMessage;
+    final tmpServer = await runZonedGuarded(
+      () async {
+        try {
+          return await io.serve(handler, host, port);
+        } on SocketException catch (e) {
+          errorMessage = e.message;
+          if (e.osError != null) {
+            errorMessage += ' (${e.osError!.message})';
+          }
+          errorMessage += ': ${e.address?.host}:${e.port}';
+          return null;
+        }
+      },
       (error, stack) {
         if (shouldLogRequests) {
           print('Asynchronous error: $error\n$stack');
         }
       },
-    )!;
+    );
+    if (tmpServer == null) {
+      throw DartDevelopmentServiceException.connectionIssue(errorMessage);
+    }
+    _server = tmpServer;
 
     final tmpUri = Uri(
       scheme: 'http',

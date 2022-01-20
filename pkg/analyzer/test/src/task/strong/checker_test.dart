@@ -1639,7 +1639,8 @@ class Derived2<S extends B> extends Base<B> {
   S foo() => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 130, 3),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 130, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 63, 3)]),
     ]);
   }
 
@@ -1725,8 +1726,10 @@ class Child extends Base {
   dynamic get f4 => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 162, 2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 226, 2),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 162, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 84, 2)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 226, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 120, 2)]),
     ]);
   }
 
@@ -1749,8 +1752,10 @@ class H implements F {
   ToVoid<dynamic> get g => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 143, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 231, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 143, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 62, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 231, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 62, 1)]),
     ]);
   }
 
@@ -2014,7 +2019,8 @@ class D implements B, C {
   int x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 95, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 95, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 46, 1)]),
     ]);
   }
 
@@ -2036,8 +2042,10 @@ class C2 extends Object with M2 {
   String x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 112, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 197, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 112, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 197, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
     ]);
   }
 
@@ -2079,10 +2087,12 @@ class F extends D with M<int> {
   num x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 28, 1)]),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 184, 1),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 184, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 216, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 216, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 28, 1)]),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 228, 1),
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 228, 1),
     ]);
@@ -2130,34 +2140,44 @@ class T8 implements Base {
 }
 ''', [
       error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 80, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 80, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 80, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 124, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
       error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 124, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 177, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 177, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
       error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 177, 1),
       error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 177, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 259, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 259, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 259, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 259, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           271,
           2),
       error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 300, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 300, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 300, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           320,
           2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 347, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 347, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
       error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 347, 1),
       error(
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           372,
           2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 403, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 403, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
       error(CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 403, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 495, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 495, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 495, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 495, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 42, 1)]),
     ]);
   }
 
@@ -2174,7 +2194,8 @@ class Test extends Base {
   m(B a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 79, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 79, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 38, 1)]),
     ]);
   }
 
@@ -2191,7 +2212,22 @@ class T1 implements I {
   m(B a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 81, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 81, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 44, 1)]),
+    ]);
+  }
+
+  test_invalidOverrides_contextMessage() async {
+    await assertErrorsInCode('''
+class A {
+  void method() {}
+}
+class B extends A {
+  void method(String a) {}
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 58, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 17, 6)]),
     ]);
   }
 
@@ -2213,7 +2249,8 @@ class Test extends Parent {
   m(B a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 162, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 162, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 95, 1)]),
     ]);
   }
 
@@ -2234,7 +2271,8 @@ class Test extends Parent {
   m(B a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 95, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 95, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 45, 1)]),
     ]);
   }
 
@@ -2256,7 +2294,8 @@ class Test extends Parent {
   int x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 135, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 135, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 45, 1)]),
     ]);
   }
 
@@ -2286,12 +2325,18 @@ class U1 = Base with M1;
 class U2 = Base with M1, M2;
 class U3 = Base with M2, M1;
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 144, 2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 177, 2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 218, 2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 271, 2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 304, 2),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 144, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 177, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 218, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 246, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 271, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 304, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 1)]),
     ]);
   }
 
@@ -2317,8 +2362,10 @@ class T1 extends Base with M1, M2 {}
 
 class U1 = Base with M1, M2;
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 148, 2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 180, 2),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 148, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 54, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 180, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 54, 1)]),
     ]);
   }
 
@@ -2492,10 +2539,14 @@ class Child extends Base {
   dynamic m6(dynamic value) => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 227, 2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 252, 2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 277, 2),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 354, 2),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 227, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 71, 2)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 252, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 92, 2)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 277, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 113, 2)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 354, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 176, 2)]),
     ]);
   }
 
@@ -2522,8 +2573,10 @@ class H implements F {
   void g(dynamic x) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 156, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 224, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 156, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 99, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 224, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 99, 1)]),
     ]);
   }
 
@@ -2576,8 +2629,10 @@ class T1 extends Base with M {}
 
 class U1 = Base with M;
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 146, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 173, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 146, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 45, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 173, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 45, 1)]),
     ]);
   }
 
@@ -2604,8 +2659,10 @@ class U1 = Base with M;
           CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
           62,
           4),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 137, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 164, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 137, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 45, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 164, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 45, 1)]),
     ]);
   }
 
@@ -2628,7 +2685,8 @@ class T1 implements I2 {
   m(B a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 145, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 145, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 92, 1)]),
     ]);
   }
 
@@ -2690,7 +2748,8 @@ abstract class D extends C {
   void n(A a);
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 121, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 121, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 59, 1)]),
     ]);
   }
 
@@ -2720,7 +2779,8 @@ class D extends B with X { }
 
 class E extends B implements A { }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 4),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 78, 4,
+          contextMessages: [message('/home/test/lib/test.dart', 24, 4)]),
       error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 159, 1),
       error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 189, 1),
     ]);
@@ -2933,10 +2993,14 @@ class H implements F {
   void set i(dynamic x) {}
 }
  ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 220, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 255, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 362, 1),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 397, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 220, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 85, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 255, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 116, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 362, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 85, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 397, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 116, 1)]),
     ]);
   }
 
@@ -2987,7 +3051,8 @@ class Child extends Base {
   set f5(B value) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 263, 2),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 263, 2,
+          contextMessages: [message('/home/test/lib/test.dart', 111, 2)]),
     ]);
   }
 
@@ -3048,7 +3113,8 @@ class T1 extends Base {
     m(B a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 96, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 96, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 47, 1)]),
     ]);
   }
 
@@ -3069,7 +3135,8 @@ class T1 extends Base {
   m(B a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 85, 1),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 85, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 45, 1)]),
     ]);
   }
 
@@ -3430,7 +3497,8 @@ class B extends A {
   T method<T>(T x) => x;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 227, 6),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 227, 6,
+          contextMessages: [message('/home/test/lib/test.dart', 176, 6)]),
     ]);
   }
 

@@ -171,8 +171,19 @@ class Expando<T> {
 class WeakReference<T extends Object> {
   @patch
   factory WeakReference(T object) {
-    throw UnimplementedError("WeakReference");
+    final weakProperty = _WeakProperty()..key = object;
+    return _WeakReferenceImpl<T>(weakProperty);
   }
+}
+
+class _WeakReferenceImpl<T extends Object> implements WeakReference<T> {
+  // TODO(http://dartbug.com/48162): Implement _WeakReference in the VM
+  // instead of reusing WeakProperty.
+  final _WeakProperty _weakProperty;
+
+  _WeakReferenceImpl(this._weakProperty);
+
+  T? get target => _weakProperty.key as T?;
 }
 
 @patch

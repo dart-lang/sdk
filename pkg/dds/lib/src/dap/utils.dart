@@ -21,7 +21,7 @@ bool isResolvableUri(Uri uri) {
 /// was necessarily a stack frame or that calling `toString` will return the
 /// original input text.
 stack.Frame? parseStackFrame(String line) {
-  // Because we split on \r, on Windows there may be trailing \r which prevents
+  // Because we split on \n, on Windows there may be trailing \r which prevents
   // package:stack_trace from parsing correctly.
   line = line.trim();
 
