@@ -5102,6 +5102,28 @@ mixin foo on Object {
     assertSuggestLocalVariable('foo', 'int');
   }
 
+  Future<void>
+      test_namedArgument_instanceCreation_x_localFunction_void() async {
+    addTestSource('''
+class A {
+  A({required void Function() a});
+}
+
+class B {
+  void bar() {
+    void foo01() {}
+    A(a: foo0^);
+  }
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunction(
+      'foo01',
+      'void',
+      kind: CompletionSuggestionKind.IDENTIFIER,
+    );
+  }
+
   Future<void> test_new_instance() async {
     addTestSource('import "dart:math"; class A {x() {new Random().^}}');
     await computeSuggestions();
