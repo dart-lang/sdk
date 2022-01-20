@@ -130,6 +130,20 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
     return suggestions;
   }
 
+  Future<List<CompletionSuggestion>> getSuggestions2() async {
+    await waitForTasksFinished();
+
+    var request = CompletionGetSuggestions2Params(
+      testFilePath,
+      completionOffset,
+      1 << 16,
+      timeout: 60 * 1000,
+    ).toRequest('0');
+    var response = await waitResponse(request);
+    var result = CompletionGetSuggestions2Result.fromResponse(response);
+    return result.suggestions;
+  }
+
   @override
   File newFile(String path, String content) =>
       resourceProvider.newFile(resourceProvider.convertPath(path), content);
