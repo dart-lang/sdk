@@ -15,14 +15,14 @@ typedef void _TimerCallback();
 /// A Stream provides a way to receive a sequence of events.
 /// Each event is either a data event, also called an *element* of the stream,
 /// or an error event, which is a notification that something has failed.
-/// When a stream has emitted all its event,
-/// a single "done" event will notify the listener that the end has been reached.
+/// When a stream has emitted all its events,
+/// a single "done" event notifies the listener that the end has been reached.
 ///
 /// You produce a stream by calling an `async*` function, which then returns
 /// a stream. Consuming that stream will lead the function to emit events
 /// until it ends, and the stream closes.
 /// You consume a stream either using an `await for` loop, which is available
-/// inside an `async` or `async*` function, or forwards its events directly
+/// inside an `async` or `async*` function, or by forwarding its events directly
 /// using `yield*` inside an `async*` function.
 /// Example:
 /// ```dart
@@ -55,7 +55,7 @@ typedef void _TimerCallback();
 /// then the `optionalMap` function body completes,
 /// which closes the returned stream.
 /// On an error event from the `source` stream,
-/// the `await for` that error is (re-)thrown which breaks the loop.
+/// the `await for` re-throws that error, which breaks the loop.
 /// The error then reaches the end of the `optionalMap` function body,
 /// since it's not caught.
 /// That makes the error be emitted on the returned stream, which then closes.
@@ -71,7 +71,7 @@ typedef void _TimerCallback();
 ///
 /// The more low-level [listen] method is what every other method is based on.
 /// You call `listen` on a stream to tell it that you want to receive
-/// events, and to registers the callbacks which will receive those events.
+/// events, and to register the callbacks which will receive those events.
 /// When you call `listen`, you receive a [StreamSubscription] object
 /// which is the active object providing the events,
 /// and which can be used to stop listening again,
@@ -114,7 +114,7 @@ typedef void _TimerCallback();
 /// Listening on a broadcast stream can be treated as listening on a new stream
 /// containing only the events that have not yet been emitted when the [listen]
 /// call occurs.
-/// For example, the [first] getter listens to the stream, then returns the first
+/// For example the [first] getter listens to the stream, then returns the first
 /// event that listener receives.
 /// This is not necessarily the first even emitted by the stream, but the first
 /// of the *remaining* events of the broadcast stream.
@@ -126,7 +126,7 @@ typedef void _TimerCallback();
 /// as possible.
 ///
 /// Stream subscriptions always respect "pause" requests. If necessary they need
-/// to buffer their input, but often, and preferably, they can simply request
+/// to buffer their input, but often, and preferably they can simply request
 /// their input to pause too.
 ///
 /// The default implementation of [isBroadcast] returns false.
@@ -147,6 +147,19 @@ abstract class Stream<T> {
   ///
   /// This is a stream which does nothing except sending a done event
   /// when it's listened to.
+  ///
+  /// Example:
+  /// ```dart
+  /// const stream = Stream.empty();
+  /// stream.listen(
+  ///   (value) {
+  ///     throw "Unreachable";
+  ///   },
+  ///   onDone: () {
+  ///     print('Done');
+  ///   },
+  /// );
+  /// ```
   const factory Stream.empty() = _EmptyStream<T>;
 
   /// Creates a stream which emits a single data event before closing.
@@ -161,7 +174,7 @@ abstract class Stream<T> {
   ///     print(x);
   ///   }
   /// }
-  /// printThings(Stream<String>.value("ok")); // prints "ok".
+  /// printThings(Stream<String>.value('ok')); // prints "ok".
   /// ```
   ///
   /// The returned stream is effectively equivalent to one created by
@@ -183,13 +196,13 @@ abstract class Stream<T> {
   /// Future<void> tryThings(Stream<int> data) async {
   ///   try {
   ///     await for (var x in data) {
-  ///       print("Data: $x");
+  ///       print('Data: $x');
   ///     }
   ///   } catch (e) {
   ///     print(e);
   ///   }
   /// }
-  /// tryThings(Stream<int>.error("Error")); // prints "Error".
+  /// tryThings(Stream<int>.error('Error')); // prints "Error".
   /// ```
   /// The returned stream is effectively equivalent to one created by
   /// `Future<T>.error(error, stackTrace).asStream()`, by or
@@ -209,6 +222,22 @@ abstract class Stream<T> {
   ///
   /// When the future completes, the stream will fire one event, either
   /// data or error, and then close with a done-event.
+  ///
+  /// Example:
+  /// ```dart
+  /// Future<String> futureTask() async {
+  ///   await Future.delayed(const Duration(seconds: 5));
+  ///   return 'Future complete';
+  /// }
+  ///
+  /// final stream = Stream<String>.fromFuture(futureTask());
+  /// stream.listen(print,
+  ///     onDone: () => print('Done'), onError: print);
+  ///
+  /// // Outputs:
+  /// // "Future complete" after 'futureTask' finished.
+  /// // "Done" when stream completed.
+  /// ```
   factory Stream.fromFuture(Future<T> future) {
     // Use the controller's buffering to fill in the value even before
     // the stream has a listener. For a single value, it's not worth it
@@ -238,6 +267,27 @@ abstract class Stream<T> {
   /// When all futures have completed, the stream is closed.
   ///
   /// If [futures] is empty, the stream closes as soon as possible.
+  ///
+  /// Example:
+  /// ```dart
+  /// Future<int> waitTask() async {
+  ///   await Future.delayed(const Duration(seconds: 2));
+  ///   return 10;
+  /// }
+  ///
+  /// Future<String> doneTask() async {
+  ///   await Future.delayed(const Duration(seconds: 5));
+  ///   return 'Future complete';
+  /// }
+  ///
+  /// final stream = Stream<Object>.fromFutures([doneTask(), waitTask()]);
+  /// stream.listen(print, onDone: () => print('Done'), onError: print);
+  ///
+  /// // Outputs:
+  /// // 10 after 'waitTask' finished.
+  /// // "Future complete" after 'doneTask' finished.
+  /// // "Done" when stream completed.
+  /// ```
   factory Stream.fromFutures(Iterable<Future<T>> futures) {
     _StreamController<T> controller =
         new _SyncStreamController<T>(null, null, null, null);
@@ -282,6 +332,12 @@ abstract class Stream<T> {
   /// the stream emits that error and then it closes.
   /// If reading [Iterator.current] on `elements.iterator` throws,
   /// the stream emits that error, but keeps iterating.
+  ///
+  /// Example:
+  /// ```dart
+  /// final numbers = [1, 2, 3, 5, 6, 7];
+  /// final stream = Stream.fromIterable(numbers);
+  /// ```
   factory Stream.fromIterable(Iterable<T> elements) {
     return new _GeneratedStreamImpl<T>(
         () => new _IterablePendingEvents<T>(elements));
@@ -290,7 +346,7 @@ abstract class Stream<T> {
   /// Creates a multi-subscription stream.
   ///
   /// Each time the created stream is listened to,
-  /// the [onListen] callback is invoked with a new [MultiStreamController]
+  /// the [onListen] callback is invoked with a new [MultiStreamController],
   /// which forwards events to the [StreamSubscription]
   /// returned by that [listen] call.
   ///
@@ -362,12 +418,21 @@ abstract class Stream<T> {
   /// this callback is an integer that starts with 0 and is incremented for
   /// every event.
   ///
-  /// The [period] must a non-negative [Duration].
+  /// The [period] must be a non-negative [Duration].
   ///
-  /// If [computation] is omitted the event values will all be `null`.
+  /// If [computation] is omitted, the event values will all be `null`.
   ///
   /// The [computation] must not be omitted if the event type [T] does not
   /// allow `null` as a value.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream =
+  ///     Stream<int>.periodic(const Duration(
+  ///         seconds: 1), (count) => count * count).take(5);
+  ///
+  /// stream.forEach(print); // Outputs event values 0,1,4,9,16.
+  /// ```
   factory Stream.periodic(Duration period,
       [T computation(int computationCount)?]) {
     if (computation == null && !typeAcceptsNull<T>()) {
@@ -485,7 +550,7 @@ abstract class Stream<T> {
   /// using [StreamSubscription.asFuture].
   ///
   /// If [onCancel] is provided, it is called in a similar way to [onListen]
-  /// when the returned stream stops having listener. If it later gets
+  /// when the returned stream stops having listeners. If it later gets
   /// a new listener, the [onListen] function is called again.
   ///
   /// Use the callbacks, for example, for pausing the underlying subscription
@@ -496,6 +561,51 @@ abstract class Stream<T> {
   /// If the subscription passed to `onListen` or `onCancel` is cancelled,
   /// then no further events are ever emitted by current subscriptions on
   /// the returned broadcast stream, not even a done event.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream =
+  ///     Stream<int>.periodic(const Duration(seconds: 1), (count) => count)
+  ///         .take(10);
+  ///
+  /// final broadcastStream = stream.asBroadcastStream(
+  ///   onCancel: (controller) {
+  ///     print('Stream paused');
+  ///     controller.pause();
+  ///   },
+  ///   onListen: (controller) async {
+  ///     if (controller.isPaused) {
+  ///       print('Stream resumed');
+  ///       controller.resume();
+  ///     }
+  ///   },
+  /// );
+  ///
+  /// final oddNumberStream = broadcastStream.where((event) => event.isOdd);
+  /// final oddNumberListener = oddNumberStream.listen(
+  ///       (event) {
+  ///     print('Odd: $event');
+  ///   },
+  ///   onDone: () => print('Done'),
+  /// );
+  ///
+  /// final evenNumberStream = broadcastStream.where((event) => event.isEven);
+  /// final evenNumberListener = evenNumberStream.listen((event) {
+  ///   print('Even: $event');
+  /// }, onDone: () => print('Done'));
+  ///
+  /// await Future.delayed(const Duration(milliseconds: 3500)); // 3.5 second
+  /// // Outputs:
+  /// // Even: 0
+  /// // Odd: 1
+  /// // Even: 2
+  /// oddNumberListener.cancel(); // Nothing printed.
+  /// evenNumberListener.cancel(); // "Stream paused"
+  /// await Future.delayed(const Duration(seconds: 2));
+  /// print(await broadcastStream.first); // "Stream resumed"
+  /// // Outputs:
+  /// // 3
+  /// ```
   Stream<T> asBroadcastStream(
       {void onListen(StreamSubscription<T> subscription)?,
       void onCancel(StreamSubscription<T> subscription)?}) {
@@ -551,6 +661,16 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// If a broadcast stream is listened to more than once, each subscription
   /// will individually perform the `test`.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream =
+  ///     Stream<int>.periodic(const Duration(seconds: 1), (count) => count)
+  ///         .take(10);
+  ///
+  /// final customStream = stream.where((event) => event > 3 && event <= 6);
+  /// customStream.listen(print); // Outputs event values: 4,5,6.
+  /// ```
   Stream<T> where(bool test(T event)) {
     return new _WhereStream<T>(this, test);
   }
@@ -579,6 +699,22 @@ abstract class Stream<T> {
   /// if a surrogate pair, or a multibyte UTF-8 encoding, is split into
   /// separate events, and those events are attempted encoded or decoded
   /// independently.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream =
+  ///     Stream<int>.periodic(const Duration(seconds: 1), (count) => count)
+  ///         .take(5);
+  ///
+  /// final calculationStream =
+  ///     stream.map<String>((event) => 'Square: ${event * event}');
+  /// calculationStream.forEach(print);
+  /// // Square: 0
+  /// // Square: 1
+  /// // Square: 4
+  /// // Square: 9
+  /// // Square: 16
+  /// ```
   Stream<S> map<S>(S convert(T event)) {
     return new _MapStream<T, S>(this, convert);
   }
@@ -699,8 +835,8 @@ abstract class Stream<T> {
   /// an error without a stack trace.
   ///
   /// An asynchronous error `error` is matched by a test function if
-  ///`test(error)` returns true. If [test] is omitted, every error is considered
-  /// matching.
+  /// `test(error)` returns true. If [test] is omitted, every error is
+  /// considered matching.
   ///
   /// If the error is intercepted, the [onError] function can decide what to do
   /// with it. It can throw if it wants to raise a new (or the same) error,
@@ -716,6 +852,23 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// If a broadcast stream is listened to more than once, each subscription
   /// will individually perform the `test` and handle the error.
+  ///
+  /// Example:
+  /// ```dart
+  /// Stream.periodic(const Duration(seconds: 1), (count) {
+  ///   if (count == 2) {
+  ///     throw Exception('Exceptional event');
+  ///   }
+  ///   return count;
+  /// }).take(4).handleError(print).forEach(print);
+  ///
+  /// // Outputs:
+  /// // 0
+  /// // 1
+  /// // Exception: Exceptional event
+  /// // 3
+  /// // 4
+  /// ```
   Stream<T> handleError(Function onError, {bool test(error)?}) {
     if (onError is! void Function(Object, StackTrace) &&
         onError is! void Function(Object)) {
@@ -813,6 +966,13 @@ abstract class Stream<T> {
   /// If this stream emits an error, or the call to [combine] throws,
   /// the returned future is completed with that error,
   /// and processing is stopped.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await Stream.fromIterable([2, 6, 10, 8, 2])
+  ///     .reduce((previous, element) => previous + element);
+  /// print(result); // 28
+  /// ```
   Future<T> reduce(T combine(T previous, T element)) {
     _Future<T> result = new _Future<T>();
     bool seenFirst = false;
@@ -860,6 +1020,13 @@ abstract class Stream<T> {
   /// If this stream emits an error, or the call to [combine] throws,
   /// the returned future is completed with that error,
   /// and processing is stopped.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await Stream.fromIterable([2, 6, 10, 8, 2])
+  ///     .fold<int>(10, (previous, element) => previous + element);
+  /// print(result); // 38
+  /// ```
   Future<S> fold<S>(S initialValue, S combine(S previous, T element)) {
     _Future<S> result = new _Future<S>();
     S value = initialValue;
@@ -887,6 +1054,13 @@ abstract class Stream<T> {
   /// If this stream emits an error, or the call to [Object.toString] throws,
   /// the returned future is completed with that error,
   /// and processing stops.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await Stream.fromIterable(['Mars', 'Venus', 'Earth'])
+  ///     .join('--');
+  /// print(result); // 'Mars--Venus--Earth'
+  /// ```
   Future<String> join([String separator = ""]) {
     _Future<String> result = new _Future<String>();
     StringBuffer buffer = new StringBuffer();
@@ -927,6 +1101,13 @@ abstract class Stream<T> {
   /// If this stream emits an error, or the call to [Object.==] throws,
   /// the returned future is completed with that error,
   /// and processing stops.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await Stream.fromIterable(['Year', 2021, 12, 24, 'Dart'])
+  ///     .contains('Dart');
+  /// print(result); // true
+  /// ```
   Future<bool> contains(Object? needle) {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription<T> subscription =
@@ -976,6 +1157,15 @@ abstract class Stream<T> {
   /// If this stream emits an error, or if the call to [test] throws,
   /// the returned future is completed with that error,
   /// and processing stops.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result =
+  ///     await Stream.periodic(const Duration(seconds: 1), (count) => count)
+  ///         .take(15)
+  ///         .every((x) => x <= 5);
+  /// print(result); // false
+  /// ```
   Future<bool> every(bool test(T element)) {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription<T> subscription =
@@ -1004,6 +1194,16 @@ abstract class Stream<T> {
   /// If this stream emits an error, or if the call to [test] throws,
   /// the returned future is completed with that error,
   /// and processing stops.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result =
+  ///     await Stream.periodic(const Duration(seconds: 1), (count) => count)
+  ///         .take(15)
+  ///         .any((element) => element >= 5);
+  ///
+  /// print(result); // true
+  /// ```
   Future<bool> any(bool test(T element)) {
     _Future<bool> future = new _Future<bool>();
     StreamSubscription<T> subscription =
@@ -1144,6 +1344,12 @@ abstract class Stream<T> {
   /// [futureValue].
   ///
   /// The [futureValue] must not be omitted if `null` is not assignable to [E].
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = await Stream.fromIterable([1, 2, 3]).drain(100);
+  /// print(result); // Outputs: 100.
+  /// ```
   Future<E> drain<E>([E? futureValue]) {
     if (futureValue == null) {
       futureValue = futureValue as E;
@@ -1170,6 +1376,14 @@ abstract class Stream<T> {
   /// If this is a broadcast stream, the returned stream is a broadcast stream.
   /// In that case, the events are only counted from the time
   /// the returned stream is listened to.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream =
+  ///     Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
+  ///         .take(60);
+  /// stream.forEach(print); // Outputs events: 0, ... 59.
+  /// ```
   Stream<T> take(int count) {
     return new _TakeStream<T>(this, count);
   }
@@ -1194,6 +1408,13 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// For a broadcast stream, the events are only tested from the time
   /// the returned stream is listened to.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream = Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
+  ///     .takeWhile((event) => event < 6);
+  /// stream.forEach(print); // Outputs events: 0, ..., 5.
+  /// ```
   Stream<T> takeWhile(bool test(T element)) {
     return new _TakeWhileStream<T>(this, test);
   }
@@ -1211,6 +1432,13 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// For a broadcast stream, the events are only counted from the time
   /// the returned stream is listened to.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream =
+  ///     Stream<int>.periodic(const Duration(seconds: 1), (i) => i).skip(7);
+  /// stream.forEach(print); // Skips events 0, ..., 6. Outputs events: 7, ...
+  /// ```
   Stream<T> skip(int count) {
     return new _SkipStream<T>(this, count);
   }
@@ -1231,6 +1459,14 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// For a broadcast stream, the events are only tested from the time
   /// the returned stream is listened to.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream = Stream<int>.periodic(const Duration(seconds: 1), (i) => i)
+  ///     .take(10)
+  ///     .skipWhile((x) => x < 5);
+  /// stream.forEach(print); // Outputs events: 5, ..., 9.
+  /// ```
   Stream<T> skipWhile(bool test(T element)) {
     return new _SkipWhileStream<T>(this, test);
   }
@@ -1254,6 +1490,12 @@ abstract class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// If a broadcast stream is listened to more than once, each subscription
   /// will individually perform the `equals` test.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stream = Stream.fromIterable([2, 6, 6, 8, 12, 8, 8, 2]).distinct();
+  /// stream.forEach(print); // Outputs events: 2,6,8,12,8,2.
+  /// ```
   Stream<T> distinct([bool equals(T previous, T next)?]) {
     return new _DistinctStream<T>(this, equals);
   }
@@ -1366,9 +1608,9 @@ abstract class Stream<T> {
   /// Finds the first element of this stream matching [test].
   ///
   /// Returns a future that is completed with the first element of this stream
-  /// that [test] returns `true` for.
+  /// for which [test] returns `true`.
   ///
-  /// If no such element is found before this stream is done, and a
+  /// If no such element is found before this stream is done, and an
   /// [orElse] function is provided, the result of calling [orElse]
   /// becomes the value of the future. If [orElse] throws, the returned
   /// future is completed with that error.
@@ -1386,6 +1628,17 @@ abstract class Stream<T> {
   /// If an error occurs, or if this stream ends without finding a match and
   /// with no [orElse] function provided,
   /// the returned future is completed with an error.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = await Stream.fromIterable([1, 3, 4, 9, 12])
+  ///     .firstWhere((element) => element % 6 == 0, orElse: () => -1);
+  /// print(result); // 12
+  ///
+  /// result = await Stream.fromIterable([1, 2, 3, 4, 5])
+  ///     .firstWhere((element) => element % 6 == 0, orElse: () => -1);
+  /// print(result); // -1
+  /// ```
   Future<T> firstWhere(bool test(T element), {T orElse()?}) {
     _Future<T> future = new _Future();
     StreamSubscription<T> subscription =
@@ -1421,6 +1674,17 @@ abstract class Stream<T> {
   /// instead of the first.
   /// That means that a non-error result cannot be provided before this stream
   /// is done.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = await Stream.fromIterable([1, 3, 4, 7, 12, 24, 32])
+  ///     .lastWhere((element) => element % 6 == 0, orElse: () => -1);
+  /// print(result); // 24
+  ///
+  /// result = await Stream.fromIterable([1, 3, 4, 7, 12, 24, 32])
+  ///     .lastWhere((element) => element % 10 == 0, orElse: () => -1);
+  /// print(result); // -1
+  /// ```
   Future<T> lastWhere(bool test(T element), {T orElse()?}) {
     _Future<T> future = new _Future();
     late T result;
@@ -1457,6 +1721,21 @@ abstract class Stream<T> {
   ///
   /// Like [lastWhere], except that it is an error if more than one
   /// matching element occurs in this stream.
+  ///
+  /// Example:
+  /// ```dart
+  /// var result = await Stream.fromIterable([1, 2, 3, 6, 9, 12])
+  ///     .singleWhere((element) => element % 4 == 0, orElse: () => -1);
+  /// print(result); // 12
+  ///
+  /// result = await Stream.fromIterable([2, 6, 8, 12, 24, 32])
+  ///     .singleWhere((element) => element % 9 == 0, orElse: () => -1);
+  /// print(result); // -1
+  ///
+  /// result = await Stream.fromIterable([2, 6, 8, 12, 24, 32])
+  ///     .singleWhere((element) => element % 6 == 0, orElse: () => -1);
+  /// // Throws.
+  /// ```
   Future<T> singleWhere(bool test(T element), {T orElse()?}) {
     _Future<T> future = new _Future<T>();
     late T result;
@@ -1541,7 +1820,7 @@ abstract class Stream<T> {
   /// the returned stream.
   ///
   /// The countdown starts when the returned stream is listened to,
-  /// and is restarted when an event from the this stream is emitted,
+  /// and is restarted when an event from this stream is emitted,
   /// or when listening on the returned stream is paused and resumed.
   /// The countdown is stopped when listening on the returned stream is
   /// paused or cancelled.
@@ -1565,6 +1844,25 @@ abstract class Stream<T> {
   /// If a broadcast stream is listened to more than once, each subscription
   /// will have its individually timer that starts counting on listen,
   /// and the subscriptions' timers can be paused individually.
+  ///
+  /// Example:
+  /// ```dart
+  /// Future<String> waitTask() async {
+  ///   return await Future.delayed(
+  ///       const Duration(seconds: 4), () => 'Complete');
+  /// }
+  /// final stream = Stream<String>.fromFuture(waitTask())
+  ///     .timeout(const Duration(seconds: 2), onTimeout: (controller) {
+  ///   print('TimeOut occurred');
+  ///   controller.close();
+  /// });
+  ///
+  /// stream.listen(print, onDone: () => print('Done'));
+  ///
+  /// // Outputs:
+  /// // TimeOut occurred
+  /// // Done
+  /// ```
   Stream<T> timeout(Duration timeLimit, {void onTimeout(EventSink<T> sink)?}) {
     _StreamControllerBase<T> controller;
     if (isBroadcast) {
@@ -1648,6 +1946,31 @@ abstract class Stream<T> {
 /// and holds the callbacks used to handle the events.
 /// The subscription can also be used to unsubscribe from the events,
 /// or to temporarily pause the events from the stream.
+///
+/// Example:
+/// ```dart
+/// final stream = Stream.periodic(const Duration(seconds: 1), (i) => i * i)
+///     .take(10);
+///
+/// final subscription = stream.listen(print); // A StreamSubscription<int>.
+/// ```
+/// To pause the subscription, use [pause].
+/// ```dart continued
+/// // Do some work.
+/// subscription.pause();
+/// print(subscription.isPaused); // true
+/// ```
+/// To resume after the pause, use [resume].
+/// ```dart continued
+/// // Do some work.
+/// subscription.resume();
+/// print(subscription.isPaused); // false
+/// ```
+/// To cancel the subscription, use [cancel].
+/// ```dart continued
+/// // Do some work.
+/// subscription.cancel();
+/// ```
 abstract class StreamSubscription<T> {
   /// Cancels this subscription.
   ///
@@ -2223,7 +2546,7 @@ class _ControllerEventSinkWrapper<T> implements EventSink<T> {
 /// As with any synchronous event delivery, the sender should be very careful
 /// to not deliver events at times when a new listener might not
 /// be ready to receive them.
-/// That generally means only delivering events synchronously in response to other
+/// That usually means only delivering events synchronously in response to other
 /// asynchronous events, because that is a time when an asynchronous event could
 /// happen.
 @Since("2.9")
