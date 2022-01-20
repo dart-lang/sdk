@@ -4390,9 +4390,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (arguments.types.isEmpty) return;
     Class klass;
     List<DartType> receiverTypeArguments;
+    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
     if (receiverType is InterfaceType) {
       klass = receiverType.classNode;
       receiverTypeArguments = receiverType.typeArguments;
+      for (int i = 0; i < receiverTypeArguments.length; ++i) {
+        substitutionMap[klass.typeParameters[i]] = receiverTypeArguments[i];
+      }
     } else {
       return;
     }
@@ -4408,10 +4412,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           hierarchy.getClassAsInstanceOf(klass, method.enclosingClass!)!;
       klass = method.enclosingClass!;
       receiverTypeArguments = parent.typeArguments;
-    }
-    Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
-    for (int i = 0; i < receiverTypeArguments.length; ++i) {
-      substitutionMap[klass.typeParameters[i]] = receiverTypeArguments[i];
+      Map<TypeParameter, DartType> instanceSubstitutionMap = substitutionMap;
+      substitutionMap = <TypeParameter, DartType>{};
+      for (int i = 0; i < receiverTypeArguments.length; ++i) {
+        substitutionMap[klass.typeParameters[i]] =
+            substitute(receiverTypeArguments[i], instanceSubstitutionMap);
+      }
     }
     List<TypeParameter> methodParameters = method.function.typeParameters;
     // The error is to be reported elsewhere.
