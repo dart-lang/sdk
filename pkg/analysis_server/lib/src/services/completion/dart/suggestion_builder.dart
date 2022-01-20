@@ -181,6 +181,10 @@ class SuggestionBuilder {
   final Map<String, CompletionSuggestion> _suggestionMap =
       <String, CompletionSuggestion>{};
 
+  /// This flag is set to `true` while adding suggestions for top-level
+  /// elements from not-yet-imported libraries.
+  bool isNotImportedLibrary = false;
+
   /// A flag indicating whether a suggestion should replace any earlier
   /// suggestions for the same completion (`true`) or whether earlier
   /// suggestions should take priority over more recent suggestions.
@@ -269,6 +273,8 @@ class SuggestionBuilder {
         elementKind: elementKind,
         hasDeprecated: hasDeprecated,
         isConstant: isConstant,
+        isNotImported: request.featureComputer
+            .isNotImportedFeature(isNotImportedLibrary, accessor),
         startsWithDollar: startsWithDollar,
         superMatches: superMatches,
         inheritanceDistance: inheritanceDistance,
@@ -662,6 +668,8 @@ class SuggestionBuilder {
       hasDeprecated: hasDeprecated,
       isConstant: isConstant,
       isNoSuchMethod: isNoSuchMethod,
+      isNotImported: request.featureComputer
+          .isNotImportedFeature(isNotImportedLibrary, method),
       startsWithDollar: startsWithDollar,
       superMatches: superMatches,
       inheritanceDistance: inheritanceDistance,
@@ -938,6 +946,8 @@ class SuggestionBuilder {
         elementKind: elementKind,
         hasDeprecated: hasDeprecated,
         isConstant: isConstant,
+        isNotImported: request.featureComputer
+            .isNotImportedFeature(isNotImportedLibrary, accessor),
         startsWithDollar: startsWithDollar,
         superMatches: superMatches,
       );
@@ -1049,6 +1059,7 @@ class SuggestionBuilder {
       double hasDeprecated = 0.0,
       double isConstant = 0.0,
       double isNoSuchMethod = 0.0,
+      double isNotImported = 0.0,
       double keyword = 0.0,
       double startsWithDollar = 0.0,
       double superMatches = 0.0,
@@ -1061,6 +1072,7 @@ class SuggestionBuilder {
         hasDeprecated: hasDeprecated,
         isConstant: isConstant,
         isNoSuchMethod: isNoSuchMethod,
+        isNotImported: isNotImported,
         keyword: keyword,
         startsWithDollar: startsWithDollar,
         superMatches: superMatches);
@@ -1071,6 +1083,7 @@ class SuggestionBuilder {
       hasDeprecated: hasDeprecated,
       isConstant: isConstant,
       isNoSuchMethod: isNoSuchMethod,
+      isNotImported: isNotImported,
       keyword: keyword,
       startsWithDollar: startsWithDollar,
       superMatches: superMatches,
@@ -1101,6 +1114,8 @@ class SuggestionBuilder {
       elementKind: elementKind,
       hasDeprecated: hasDeprecated,
       isConstant: isConstant,
+      isNotImported: request.featureComputer
+          .isNotImportedFeature(isNotImportedLibrary, element),
     );
   }
 
@@ -1296,6 +1311,7 @@ abstract class SuggestionListener {
       double hasDeprecated,
       double isConstant,
       double isNoSuchMethod,
+      double isNotImported,
       double keyword,
       double startsWithDollar,
       double superMatches,

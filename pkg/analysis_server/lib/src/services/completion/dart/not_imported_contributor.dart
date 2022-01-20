@@ -17,6 +17,11 @@ class NotImportedContributor extends DartCompletionContributor {
   final CompletionBudget budget;
   final NotImportedSuggestions additionalData;
 
+  /// When a library is imported with combinators, we cannot skip it, there
+  /// might be elements that were excluded, but should be suggested. So, here
+  /// we record elements that are already imported.
+  final Set<Element> _importedElements = Set.identity();
+
   NotImportedContributor(
     DartCompletionRequest request,
     SuggestionBuilder builder,
@@ -40,6 +45,20 @@ class NotImportedContributor extends DartCompletionContributor {
       return;
     }
 
+    var importedLibraries = Set<LibraryElement>.identity();
+    for (var import in request.libraryElement.imports) {
+      var importedLibrary = import.importedLibrary;
+      if (importedLibrary != null) {
+        if (import.combinators.isEmpty) {
+          importedLibraries.add(importedLibrary);
+        } else {
+          _importedElements.addAll(
+            import.namespace.definedNames.values,
+          );
+        }
+      }
+    }
+
     // Use single instance to track getter / setter pairs.
     var extensionContributor = ExtensionMemberContributor(request, builder);
 
@@ -55,13 +74,14 @@ class NotImportedContributor extends DartCompletionContributor {
       }
 
       var element = analysisDriver.getLibraryByFile(file);
-      if (element == null) {
+      if (element == null || importedLibraries.contains(element)) {
         continue;
       }
 
       var exportNamespace = element.exportNamespace;
       var exportElements = exportNamespace.definedNames.values.toList();
 
+      builder.isNotImportedLibrary = true;
       builder.laterReplacesEarlier = false;
       builder.suggestionAdded = (suggestion) {
         additionalData.set.add(suggestion);
@@ -74,16 +94,19 @@ class NotImportedContributor extends DartCompletionContributor {
       extensionContributor.addExtensions(
         exportElements.whereType<ExtensionElement>().toList(),
       );
-    }
 
-    builder.laterReplacesEarlier = true;
-    builder.suggestionAdded = null;
+      builder.isNotImportedLibrary = false;
+      builder.laterReplacesEarlier = true;
+      builder.suggestionAdded = null;
+    }
   }
 
   void _buildSuggestions(List<Element> elements) {
     var visitor = LibraryElementSuggestionBuilder(request, builder);
     for (var element in elements) {
-      element.accept(visitor);
+      if (!_importedElements.contains(element)) {
+        element.accept(visitor);
+      }
     }
   }
 }
