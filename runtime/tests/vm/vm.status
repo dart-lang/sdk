@@ -168,9 +168,7 @@ dart_2/transferable_throws_oom_test: SkipByDesign # Allocating too much memory t
 [ $system == windows ]
 cc/CorelibCompilerStats: Skip
 dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
-dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579: Dart C API symbols not available.
 dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
-dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579: Dart C API symbols not available.
 
 [ $arch == ia32 && $mode == debug && $system == windows ]
 dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
@@ -275,6 +273,11 @@ dart_2/minimal_kernel_test: SkipByDesign # Test needs to run from source
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test needs to run from source
 dart_2/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
+[ $compiler == dartkp && $system == windows ]
+dart/finalizer/weak_reference_run_gc_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
+dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
+dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
+
 [ $compiler == dartkp && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
 dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
 dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
@@ -317,11 +320,11 @@ dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Do
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
 [ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
-cc/DartAPI_NativeFieldAccess: Skip # Test uses dart:ffi which is not supported on simulators.
-cc/DartAPI_NativeFieldAccess_Throws: Skip # Test uses dart:ffi which is not supported on simulators.
-cc/Dart_SetFfiNativeResolver: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
-cc/Dart_SetFfiNativeResolver_DoesNotResolve: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
-cc/Dart_SetFfiNativeResolver_MissingResolver: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
+cc/DartAPI_NativeFieldAccess: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+cc/DartAPI_NativeFieldAccess_Throws: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+cc/Dart_SetFfiNativeResolver: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+cc/Dart_SetFfiNativeResolver_DoesNotResolve: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+cc/Dart_SetFfiNativeResolver_MissingResolver: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 cc/LargeMap: SkipByDesign
 cc/Profiler_AllocationSampleTest: SkipByDesign
 cc/Profiler_ArrayAllocation: SkipByDesign
@@ -348,20 +351,21 @@ cc/Profiler_ToggleRecordAllocation: SkipByDesign
 cc/Profiler_TrivialRecordAllocation: SkipByDesign
 cc/Profiler_TypedArrayAllocation: SkipByDesign
 cc/Service_Profile: SkipByDesign
-dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
-dart/isolates/thread_pool_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
-dart/regress_41971_test: SkipByDesign # dart:ffi is not supported on simulator
+dart/finalizer/weak_reference_run_gc_test: SkipByDesign # https://dartbug.com/37299 FFI not yet supported on simulators.
+dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+dart/isolates/thread_pool_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+dart/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is not supported on simulator
 dart/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
-dart/unboxed_param_args_descriptor_test: SkipByDesign # FFI helper not supported on simulator
-dart/unboxed_param_tear_off_test: SkipByDesign # FFI helper not supported on simulator
-dart/unboxed_param_test: SkipByDesign # FFI helper not supported on simulator
-dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
-dart_2/isolates/thread_pool_test: SkipByDesign # Test uses dart:ffi which is not supported on simulators.
-dart_2/regress_41971_test: SkipByDesign # dart:ffi is not supported on simulator
+dart/unboxed_param_args_descriptor_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
+dart/unboxed_param_tear_off_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
+dart/unboxed_param_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
+dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+dart_2/isolates/thread_pool_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+dart_2/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is not supported on simulator
 dart_2/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
-dart_2/unboxed_param_args_descriptor_test: SkipByDesign # FFI helper not supported on simulator
-dart_2/unboxed_param_tear_off_test: SkipByDesign # FFI helper not supported on simulator
-dart_2/unboxed_param_test: SkipByDesign # FFI helper not supported on simulator
+dart_2/unboxed_param_args_descriptor_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
+dart_2/unboxed_param_tear_off_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
+dart_2/unboxed_param_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 
 [ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $system != macos ]
 dart/thread_priority_macos_test: SkipByDesign

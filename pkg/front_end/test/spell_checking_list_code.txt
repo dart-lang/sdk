@@ -1247,6 +1247,7 @@ spec
 spec'ed
 specialization
 specially
+specifications
 specifics
 speeding
 spend

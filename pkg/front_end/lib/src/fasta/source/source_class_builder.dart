@@ -40,6 +40,7 @@ import '../builder/void_type_declaration_builder.dart';
 import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
 import '../kernel/combined_member_signature.dart';
+import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/redirecting_factory_body.dart'
@@ -621,12 +622,34 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  void checkSupertypes(CoreTypes coreTypes) {
+  void checkSupertypes(CoreTypes coreTypes,
+      ClassHierarchyBuilder hierarchyBuilder, Class enumClass) {
     // This method determines whether the class (that's being built) its super
     // class appears both in 'extends' and 'implements' clauses and whether any
     // interface appears multiple times in the 'implements' clause.
     // Moreover, it checks that `FutureOr` and `void` are not among the
-    // supertypes.
+    // supertypes and that `Enum` is not implemented by non-abstract classes.
+
+    if (!cls.isAbstract && !cls.isEnum) {
+      bool isEnumFound = false;
+      List<Supertype> interfaces =
+          hierarchyBuilder.getNodeFromClass(cls).superclasses;
+      for (int i = 0; !isEnumFound && i < interfaces.length; i++) {
+        if (interfaces[i].classNode == enumClass) {
+          isEnumFound = true;
+        }
+      }
+      interfaces = hierarchyBuilder.getNodeFromClass(cls).interfaces;
+      for (int i = 0; !isEnumFound && i < interfaces.length; i++) {
+        if (interfaces[i].classNode == enumClass) {
+          isEnumFound = true;
+        }
+      }
+      if (isEnumFound) {
+        addProblem(templateEnumSupertypeOfNonAbstractClass.withArguments(name),
+            charOffset, noLength);
+      }
+    }
 
     void fail(NamedTypeBuilder target, Message message,
         TypeAliasBuilder? aliasBuilder) {

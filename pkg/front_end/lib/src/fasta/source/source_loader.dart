@@ -1713,20 +1713,12 @@ severity: $severity
   bool checkEnumSupertypeIsDenylisted(SourceClassBuilder cls) {
     if (!cls.library.enableEnhancedEnumsInLibrary) {
       cls.addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              cls.library.enableEnhancedEnumsVersionInLibrary.toText()),
+          templateEnumSupertypeOfNonAbstractClass.withArguments(cls.name),
           cls.charOffset,
           noLength);
       return true;
-    } else {
-      if (!cls.isAbstract) {
-        cls.addProblem(
-            templateEnumSupertypeOfNonAbstractClass.withArguments(cls.name),
-            cls.charOffset,
-            noLength);
-      }
-      return false;
     }
+    return false;
   }
 
   void checkClassSupertypes(
@@ -1925,10 +1917,11 @@ severity: $severity
     ticker.logMs("Computed core types");
   }
 
-  void checkSupertypes(List<SourceClassBuilder> sourceClasses) {
+  void checkSupertypes(
+      List<SourceClassBuilder> sourceClasses, Class enumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
-        builder.checkSupertypes(coreTypes);
+        builder.checkSupertypes(coreTypes, hierarchyBuilder, enumClass);
       }
     }
     ticker.logMs("Checked supertypes");
