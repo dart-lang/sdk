@@ -3899,21 +3899,50 @@
       },
       "steps": [
         {
-          "name": "build dart (aot and jit)",
+          "name": "build dart (x64)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
-            "--arch=x64,x64c,simarm64,simarm64c,simriscv32,simriscv64",
+            "--arch=x64,x64c",
             "runtime",
             "dart_precompiled_runtime"
           ]
         },
         {
-          "name": "build dart (jit)",
+          "name": "build dart (arm64)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
-            "--arch=ia32,simarm",
+            "--arch=simarm64,simarm64c",
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "build dart (riscv)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug,release",
+            "--arch=simriscv32,simriscv64",
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "build dart (ia32)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug,release",
+            "--arch=ia32",
+            "runtime"
+          ]
+        },
+        {
+          "name": "build dart (arm)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug,release",
+            "--arch=simarm",
             "runtime"
           ]
         },

@@ -578,8 +578,14 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       Expression argument, int index, Set<String> usedNames) {
     // append type name
     var type = argument.staticType;
+    var library = dartFileEditBuilder.resolvedUnit.libraryElement;
     if (type == null || type.isBottom || type.isDartCoreNull) {
       type = DynamicTypeImpl.instance;
+    }
+    if (argument is NamedExpression &&
+        library.isNonNullableByDefault &&
+        type.nullabilitySuffix == NullabilitySuffix.none) {
+      write('required ');
     }
     if (writeType(type, addSupertypeProposals: true, groupName: 'TYPE$index')) {
       write(' ');
