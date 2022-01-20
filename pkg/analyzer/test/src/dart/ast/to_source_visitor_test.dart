@@ -810,6 +810,30 @@ class ToSourceVisitorTest {
     _assertSource(";", AstTestFactory.emptyStatement());
   }
 
+  void test_visitEnumDeclaration_constant_arguments_named() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {
+  v<double>.named(42)
+}
+''');
+    _assertSource(
+      'enum E {v<double>.named(42)}',
+      findNode.enumDeclaration('enum E'),
+    );
+  }
+
+  void test_visitEnumDeclaration_constant_arguments_unnamed() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {
+  v<double>(42)
+}
+''');
+    _assertSource(
+      'enum E {v<double>(42)}',
+      findNode.enumDeclaration('enum E'),
+    );
+  }
+
   void test_visitEnumDeclaration_constants_multiple() {
     var findNode = _parseStringToFindNode(r'''
 enum E {one, two}

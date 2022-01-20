@@ -230,6 +230,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitExpression(node);
 
   @override
+  R? visitConstructorSelector(ConstructorSelector node) => visitNode(node);
+
+  @override
   R? visitContinueStatement(ContinueStatement node) => visitStatement(node);
 
   R? visitDeclaration(Declaration node) => visitAnnotatedNode(node);
@@ -257,6 +260,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitEmptyStatement(EmptyStatement node) => visitStatement(node);
+
+  @override
+  R? visitEnumConstantArguments(EnumConstantArguments node) => visitNode(node);
 
   @override
   R? visitEnumConstantDeclaration(EnumConstantDeclaration node) =>
@@ -803,6 +809,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitConstructorSelector(ConstructorSelector node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitContinueStatement(ContinueStatement node) {
     node.visitChildren(this);
     return null;
@@ -846,6 +858,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitEmptyStatement(EmptyStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitEnumConstantArguments(EnumConstantArguments node) {
     node.visitChildren(this);
     return null;
   }
@@ -1511,6 +1529,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitConstructorReference(ConstructorReference node) => null;
 
   @override
+  R? visitConstructorSelector(ConstructorSelector node) => null;
+
+  @override
   R? visitContinueStatement(ContinueStatement node) => null;
 
   @override
@@ -1533,6 +1554,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitEmptyStatement(EmptyStatement node) => null;
+
+  @override
+  R? visitEnumConstantArguments(EnumConstantArguments node) => null;
 
   @override
   R? visitEnumConstantDeclaration(EnumConstantDeclaration node) => null;
@@ -1917,6 +1941,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitConstructorReference(ConstructorReference node) => _throw(node);
 
   @override
+  R? visitConstructorSelector(ConstructorSelector node) => _throw(node);
+
+  @override
   R? visitContinueStatement(ContinueStatement node) => _throw(node);
 
   @override
@@ -1939,6 +1966,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitEmptyStatement(EmptyStatement node) => _throw(node);
+
+  @override
+  R? visitEnumConstantArguments(EnumConstantArguments node) => _throw(node);
 
   @override
   R? visitEnumConstantDeclaration(EnumConstantDeclaration node) => _throw(node);
@@ -2466,6 +2496,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitConstructorSelector(ConstructorSelector node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitConstructorSelector(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitContinueStatement(ContinueStatement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitContinueStatement(node);
@@ -2525,6 +2563,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitEmptyStatement(EmptyStatement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitEmptyStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitEnumConstantArguments(EnumConstantArguments node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitEnumConstantArguments(node);
     stopwatch.stop();
     return result;
   }
@@ -3387,6 +3433,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitConstructorReference(ConstructorReference node) => visitNode(node);
 
   @override
+  R? visitConstructorSelector(ConstructorSelector node) => visitNode(node);
+
+  @override
   R? visitContinueStatement(ContinueStatement node) => visitNode(node);
 
   @override
@@ -3410,6 +3459,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitEmptyStatement(EmptyStatement node) => visitNode(node);
+
+  @override
+  R? visitEnumConstantArguments(EnumConstantArguments node) => visitNode(node);
 
   @override
   R? visitEnumConstantDeclaration(EnumConstantDeclaration node) =>
