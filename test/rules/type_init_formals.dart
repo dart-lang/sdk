@@ -9,7 +9,34 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TypeInitFormalsTest);
+    defineReflectiveTests(TypeInitFormalsSuperTest);
   });
+}
+
+@reflectiveTest
+class TypeInitFormalsSuperTest extends LintRuleTest {
+  @override
+  List<String> get experiments => [
+        EnableString.super_parameters,
+      ];
+
+  @override
+  String get lintRule => 'type_init_formals';
+
+  test_super() async {
+    await assertDiagnostics(r'''
+class A {
+  String? a;
+  A({this.a});
+}
+
+class B extends A {
+  B({String? super.a});
+}
+''', [
+      lint('type_init_formals', 66, 7),
+    ]);
+  }
 }
 
 @reflectiveTest
