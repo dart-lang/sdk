@@ -170,10 +170,7 @@ class Expando<T> {
 @patch
 class WeakReference<T extends Object> {
   @patch
-  factory WeakReference(T object) {
-    final weakProperty = _WeakProperty()..key = object;
-    return _WeakReferenceImpl<T>(weakProperty);
-  }
+  factory WeakReference(T object) = _WeakReferenceImpl<T>;
 }
 
 class _WeakReferenceImpl<T extends Object> implements WeakReference<T> {
@@ -181,9 +178,9 @@ class _WeakReferenceImpl<T extends Object> implements WeakReference<T> {
   // instead of reusing WeakProperty.
   final _WeakProperty _weakProperty;
 
-  _WeakReferenceImpl(this._weakProperty);
+  _WeakReferenceImpl(T object) : _weakProperty = _WeakProperty()..key = object;
 
-  T? get target => _weakProperty.key as T?;
+  T? get target => unsafeCast<T?>(_weakProperty.key);
 }
 
 @patch
