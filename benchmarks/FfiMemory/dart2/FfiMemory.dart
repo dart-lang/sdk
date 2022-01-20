@@ -35,6 +35,8 @@ import 'package:benchmark_harness/benchmark_harness.dart';
   Abi.linuxArm64: Uint64(),
   Abi.linuxIA32: Uint32(),
   Abi.linuxX64: Uint64(),
+  Abi.linuxRiscv32: Uint32(),
+  Abi.linuxRiscv64: Uint64(),
   Abi.macosArm64: Uint64(),
   Abi.macosX64: Uint64(),
   Abi.windowsArm64: Uint64(),

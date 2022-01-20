@@ -73,13 +73,13 @@ constants  {
   #C6 = core::pragma {name:#C1, options:#C5}
   #C7 = ffi::Int64 {}
   #C8 = 0
-  #C9 = <core::int*>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
+  #C9 = <core::int*>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
   #C10 = 8
-  #C11 = <core::int*>[#C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10]
+  #C11 = <core::int*>[#C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10]
   #C12 = "vm:prefer-inline"
   #C13 = core::pragma {name:#C12, options:#C4}
   #C14 = 16
-  #C15 = <core::int*>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
+  #C15 = <core::int*>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
   #C16 = TypeLiteralConstant(self::Coordinate)
   #C17 = <core::Type>[#C16, #C2]
   #C18 = ffi::_FfiStructLayout {fieldTypes:#C17, packing:#C4}

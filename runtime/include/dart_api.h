@@ -757,6 +757,15 @@ typedef void (*Dart_IsolateCleanupCallback)(void* isolate_group_data,
 typedef void (*Dart_IsolateGroupCleanupCallback)(void* isolate_group_data);
 
 /**
+ * A thread start callback function.
+ * This callback, provided by the embedder, is called after a thread in the
+ * vm thread pool starts.
+ * This function could be used to adjust thread priority or attach native
+ * resources to the thread.
+ */
+typedef void (*Dart_ThreadStartCallback)(void);
+
+/**
  * A thread death callback function.
  * This callback, provided by the embedder, is called before a thread in the
  * vm thread pool exits.
@@ -840,7 +849,7 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)(void);
  * The current version of the Dart_InitializeFlags. Should be incremented every
  * time Dart_InitializeFlags changes in a binary incompatible way.
  */
-#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000005)
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000006)
 
 /** Forward declaration */
 struct Dart_CodeObserver;
@@ -966,6 +975,7 @@ typedef struct {
    */
   Dart_IsolateGroupCleanupCallback cleanup_group;
 
+  Dart_ThreadStartCallback thread_start;
   Dart_ThreadExitCallback thread_exit;
   Dart_FileOpenCallback file_open;
   Dart_FileReadCallback file_read;

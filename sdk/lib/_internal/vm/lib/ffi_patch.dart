@@ -37,6 +37,8 @@ int get _intPtrSize => (const [
       8, // linuxArm64,
       4, // linuxIA32,
       8, // linuxX64,
+      4, // linuxRiscv32,
+      8, // linuxRiscv64,
       8, // macosArm64,
       8, // macosX64,
       8, // windowsArm64,

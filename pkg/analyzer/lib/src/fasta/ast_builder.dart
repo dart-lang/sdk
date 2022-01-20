@@ -64,6 +64,9 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         ClassDeclarationImpl,
         CompilationUnitImpl,
         ConstructorNameImpl,
+        EnumConstantArgumentsImpl,
+        ConstructorSelectorImpl,
+        EnumConstantDeclarationImpl,
         EnumDeclarationImpl,
         ExtensionDeclarationImpl,
         ImportDirectiveImpl,
@@ -2809,17 +2812,17 @@ class AstBuilder extends StackListener {
   @override
   void handleEnumElement(Token beginToken) {
     debugEvent("EnumElement");
-    var arguments = pop() as MethodInvocationImpl?;
-    var constructorName = pop() as ConstructorNameImpl?;
+    var tmpArguments = pop() as MethodInvocationImpl?;
+    var tmpConstructor = pop() as ConstructorNameImpl?;
 
     if (!enableEnhancedEnums &&
-        (arguments != null ||
-            constructorName != null &&
-                (constructorName.type2.typeArguments != null ||
-                    constructorName.name != null))) {
-      Token token = arguments != null
-          ? arguments.argumentList.beginToken
-          : constructorName!.beginToken;
+        (tmpArguments != null ||
+            tmpConstructor != null &&
+                (tmpConstructor.type2.typeArguments != null ||
+                    tmpConstructor.name != null))) {
+      Token token = tmpArguments != null
+          ? tmpArguments.argumentList.beginToken
+          : tmpConstructor!.beginToken;
       var feature = ExperimentalFeatures.enhanced_enums;
       handleRecoverableError(
         templateExperimentNotEnabled.withArguments(
@@ -2830,6 +2833,37 @@ class AstBuilder extends StackListener {
         token,
       );
     }
+
+    var constant = pop() as EnumConstantDeclarationImpl;
+
+    // Replace the constant to include arguments.
+    if (tmpArguments != null) {
+      TypeArgumentListImpl? typeArguments;
+      ConstructorSelectorImpl? constructorName;
+      if (tmpConstructor != null) {
+        typeArguments = tmpConstructor.type2.typeArguments;
+        var constructorNamePeriod = tmpConstructor.period;
+        var constructorNameId = tmpConstructor.name;
+        if (constructorNamePeriod != null && constructorNameId != null) {
+          constructorName = ConstructorSelectorImpl(
+            period: constructorNamePeriod,
+            name: constructorNameId,
+          );
+        }
+      }
+      constant = EnumConstantDeclarationImpl(
+        documentationComment: constant.documentationComment,
+        metadata: constant.metadata,
+        name: constant.name,
+        arguments: EnumConstantArgumentsImpl(
+          typeArguments: typeArguments,
+          constructorSelector: constructorName,
+          argumentList: tmpArguments.argumentList,
+        ),
+      );
+    }
+
+    push(constant);
   }
 
   @override

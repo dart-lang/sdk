@@ -399,6 +399,8 @@ class FfiTestSuite extends TestSuite {
     "x64_linux",
     "x64_macos",
     "x64_win",
+    "riscv32_linux",
+    "riscv64_linux",
   ];
 
   FfiTestSuite(TestConfiguration configuration)

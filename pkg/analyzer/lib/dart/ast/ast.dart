@@ -402,6 +402,8 @@ abstract class AstVisitor<R> {
 
   R? visitConstructorReference(ConstructorReference node);
 
+  R? visitConstructorSelector(ConstructorSelector node);
+
   R? visitContinueStatement(ContinueStatement node);
 
   R? visitDeclaredIdentifier(DeclaredIdentifier node);
@@ -417,6 +419,8 @@ abstract class AstVisitor<R> {
   R? visitEmptyFunctionBody(EmptyFunctionBody node);
 
   R? visitEmptyStatement(EmptyStatement node);
+
+  R? visitEnumConstantArguments(EnumConstantArguments node);
 
   R? visitEnumConstantDeclaration(EnumConstantDeclaration node);
 
@@ -1365,6 +1369,20 @@ abstract class ConstructorReferenceNode implements AstNode {
   ConstructorElement? get staticElement;
 }
 
+/// The name of a constructor being invoked.
+///
+///    constructorSelector ::=
+///        '.' identifier
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ConstructorSelector implements AstNode {
+  /// Return the constructor name.
+  SimpleIdentifier get name;
+
+  /// Return the period before the constructor name.
+  Token get period;
+}
+
 /// A continue statement.
 ///
 ///    continueStatement ::=
@@ -1563,10 +1581,41 @@ abstract class EmptyStatement implements Statement {
   Token get semicolon;
 }
 
+/// The arguments part of an enum constant.
+///
+///    enumConstantArguments ::=
+///        [TypeArgumentList]? [ConstructorSelector]? [ArgumentList]
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class EnumConstantArguments implements AstNode {
+  /// Return the explicit arguments (there are always implicit `index` and
+  /// `name` leading arguments) to the invoked constructor.
+  ArgumentList get argumentList;
+
+  /// Return the selector of the constructor that is invoked by this enum
+  /// constant, or `null` if the default constructor is invoked.
+  ConstructorSelector? get constructorSelector;
+
+  /// Return the type arguments applied to the enclosing enum declaration
+  /// when invoking the constructor, or `null` if no type arguments were
+  /// provided.
+  TypeArgumentList? get typeArguments;
+}
+
 /// The declaration of an enum constant.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class EnumConstantDeclaration implements Declaration {
+  /// Return the explicit arguments (there are always implicit `index` and
+  /// `name` leading arguments) to the invoked constructor, or `null` if this
+  /// constant does not provide any explicit arguments.
+  EnumConstantArguments? get arguments;
+
+  /// Return the constructor that is invoked by this enum constant, or `null`
+  /// if the AST structure has not been resolved, or if the constructor could
+  /// not be resolved.
+  ConstructorElement? get constructorElement;
+
   /// Return the name of the constant.
   SimpleIdentifier get name;
 }

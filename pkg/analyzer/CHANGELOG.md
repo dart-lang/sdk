@@ -1,4 +1,4 @@
-## 3.2.0-dev
+## 3.2.0
 * Deprecated `changes` getter in `File` and `Folder`, use `watch()` instead.
 
 ## 3.1.0

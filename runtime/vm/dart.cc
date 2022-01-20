@@ -63,6 +63,7 @@ ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 Snapshot::Kind Dart::vm_snapshot_kind_ = Snapshot::kInvalid;
+Dart_ThreadStartCallback Dart::thread_start_callback_ = NULL;
 Dart_ThreadExitCallback Dart::thread_exit_callback_ = NULL;
 Dart_FileOpenCallback Dart::file_open_callback_ = NULL;
 Dart_FileReadCallback Dart::file_read_callback_ = NULL;
@@ -254,6 +255,7 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
                      Dart_IsolateShutdownCallback shutdown,
                      Dart_IsolateCleanupCallback cleanup,
                      Dart_IsolateGroupCleanupCallback cleanup_group,
+                     Dart_ThreadStartCallback thread_start,
                      Dart_ThreadExitCallback thread_exit,
                      Dart_FileOpenCallback file_open,
                      Dart_FileReadCallback file_read,
@@ -296,6 +298,7 @@ char* Dart::DartInit(const uint8_t* vm_isolate_snapshot,
 
   UntaggedFrame::Init();
 
+  set_thread_start_callback(thread_start);
   set_thread_exit_callback(thread_exit);
   SetFileCallbacks(file_open, file_read, file_write, file_close);
   set_entropy_source_callback(entropy_source);
@@ -532,6 +535,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
                  Dart_IsolateShutdownCallback shutdown,
                  Dart_IsolateCleanupCallback cleanup,
                  Dart_IsolateGroupCleanupCallback cleanup_group,
+                 Dart_ThreadStartCallback thread_start,
                  Dart_ThreadExitCallback thread_exit,
                  Dart_FileOpenCallback file_open,
                  Dart_FileReadCallback file_read,
@@ -552,9 +556,9 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   char* retval =
       DartInit(vm_isolate_snapshot, instructions_snapshot, create_group,
                initialize_isolate, shutdown, cleanup, cleanup_group,
-               thread_exit, file_open, file_read, file_write, file_close,
-               entropy_source, get_service_assets, start_kernel_isolate,
-               observer, post_task, post_task_data);
+               thread_start, thread_exit, file_open, file_read, file_write,
+               file_close, entropy_source, get_service_assets,
+               start_kernel_isolate, observer, post_task, post_task_data);
   if (retval != NULL) {
     init_state_.ResetInitializing();
     return retval;
@@ -1191,7 +1195,10 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 #else
     buffer.AddString(" x64-sysv");
 #endif
-
+#elif defined(TARGET_ARCH_RISCV32)
+    buffer.AddString(" riscv32");
+#elif defined(TARGET_ARCH_RISCV64)
+    buffer.AddString(" riscv64");
 #else
 #error What architecture?
 #endif

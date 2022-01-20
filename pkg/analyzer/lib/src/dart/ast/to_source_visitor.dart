@@ -249,6 +249,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    _visitToken(node.period);
+    _visitNode(node.name);
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     sink.write('continue');
     _visitNode(node.label, prefix: ' ');
@@ -306,9 +312,17 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitEnumConstantArguments(EnumConstantArguments node) {
+    _visitNode(node.typeArguments);
+    _visitNode(node.constructorSelector);
+    _visitNode(node.argumentList);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitNode(node.name);
+    _visitNode(node.arguments);
   }
 
   @override

@@ -73,13 +73,14 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ str(TMP, compiler::Address(THR, Thread::vm_tag_offset()));
     __ mov(SP, kCallLeafRuntimeCalleeSaveScratch2);
     __ mov(CSP, kCallLeafRuntimeCalleeSaveScratch1);
-    COMPILE_ASSERT(IsAbiPreservedRegister(THR));
-    COMPILE_ASSERT(IsAbiPreservedRegister(PP));
-    COMPILE_ASSERT(IsAbiPreservedRegister(NULL_REG));
-    COMPILE_ASSERT(IsAbiPreservedRegister(HEAP_BITS));
-    COMPILE_ASSERT(IsAbiPreservedRegister(DISPATCH_TABLE_REG));
-    // These registers must be preserved by the runtime functions, otherwise
+    // These registers must be preserved by runtime functions, otherwise
     // we'd need to restore them here.
+    COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+    COMPILE_ASSERT(IsCalleeSavedRegister(PP));
+    COMPILE_ASSERT(IsCalleeSavedRegister(CODE_REG));
+    COMPILE_ASSERT(IsCalleeSavedRegister(NULL_REG));
+    COMPILE_ASSERT(IsCalleeSavedRegister(HEAP_BITS));
+    COMPILE_ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

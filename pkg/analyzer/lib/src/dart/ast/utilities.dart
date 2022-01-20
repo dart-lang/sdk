@@ -350,6 +350,13 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConstructorSelector(ConstructorSelector node) {
+    var other = _other as ConstructorSelector;
+    return isEqualTokens(node.period, other.period) &&
+        isEqualNodes(node.name, other.name);
+  }
+
+  @override
   bool visitContinueStatement(ContinueStatement node) {
     ContinueStatement other = _other as ContinueStatement;
     return isEqualTokens(node.continueKeyword, other.continueKeyword) &&
@@ -412,6 +419,14 @@ class AstComparator implements AstVisitor<bool> {
   bool visitEmptyStatement(EmptyStatement node) {
     EmptyStatement other = _other as EmptyStatement;
     return isEqualTokens(node.semicolon, other.semicolon);
+  }
+
+  @override
+  bool visitEnumConstantArguments(EnumConstantArguments node) {
+    var other = _other as EnumConstantArguments;
+    return isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualNodes(node.constructorSelector, other.constructorSelector) &&
+        isEqualNodes(node.argumentList, other.argumentList);
   }
 
   @override
@@ -1913,6 +1928,11 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConstructorSelector(ConstructorSelector node) {
+    throw UnimplementedError();
+  }
+
+  @override
   bool visitContinueStatement(covariant ContinueStatementImpl node) {
     if (identical(node.label, _oldNode)) {
       node.label = _newNode as SimpleIdentifier;
@@ -1979,6 +1999,11 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitEmptyStatement(EmptyStatement node) => visitNode(node);
+
+  @override
+  bool visitEnumConstantArguments(EnumConstantArguments node) {
+    throw UnimplementedError();
+  }
 
   @override
   bool visitEnumConstantDeclaration(

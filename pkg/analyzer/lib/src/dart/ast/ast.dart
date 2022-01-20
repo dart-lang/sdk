@@ -2725,6 +2725,41 @@ class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   }
 }
 
+class ConstructorSelectorImpl extends AstNodeImpl
+    implements ConstructorSelector {
+  @override
+  final Token period;
+
+  @override
+  final SimpleIdentifierImpl name;
+
+  ConstructorSelectorImpl({
+    required this.period,
+    required this.name,
+  }) {
+    _becomeParentOf(name);
+  }
+
+  @override
+  Token get beginToken => period;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(period)
+    ..add(name);
+
+  @override
+  Token get endToken => name.token;
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitConstructorSelector(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {}
+}
+
 /// A continue statement.
 ///
 ///    continueStatement ::=
@@ -3242,31 +3277,89 @@ class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   }
 }
 
+class EnumConstantArgumentsImpl extends AstNodeImpl
+    implements EnumConstantArguments {
+  @override
+  final TypeArgumentListImpl? typeArguments;
+
+  @override
+  final ConstructorSelectorImpl? constructorSelector;
+
+  @override
+  final ArgumentListImpl argumentList;
+
+  EnumConstantArgumentsImpl({
+    required this.typeArguments,
+    required this.constructorSelector,
+    required this.argumentList,
+  }) {
+    _becomeParentOf(typeArguments);
+    _becomeParentOf(constructorSelector);
+    _becomeParentOf(argumentList);
+  }
+
+  @override
+  Token get beginToken =>
+      (typeArguments ?? constructorSelector ?? argumentList).beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => ChildEntities()
+    ..add(typeArguments)
+    ..add(constructorSelector)
+    ..add(argumentList);
+
+  @override
+  Token get endToken => argumentList.endToken;
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitEnumConstantArguments(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeArguments?.accept(visitor);
+    constructorSelector?.accept(visitor);
+    argumentList.accept(visitor);
+  }
+}
+
 /// The declaration of an enum constant.
 class EnumConstantDeclarationImpl extends DeclarationImpl
     implements EnumConstantDeclaration {
   /// The name of the constant.
   SimpleIdentifierImpl _name;
 
+  @override
+  final EnumConstantArgumentsImpl? arguments;
+
+  @override
+  ConstructorElement? constructorElement;
+
   /// Initialize a newly created enum constant declaration. Either or both of
-  /// the [comment] and [metadata] can be `null` if the constant does not have
-  /// the corresponding attribute. (Technically, enum constants cannot have
-  /// metadata, but we allow it for consistency.)
-  EnumConstantDeclarationImpl(
-      CommentImpl? comment, List<Annotation>? metadata, this._name)
-      : super(comment, metadata) {
+  /// the [documentationComment] and [metadata] can be `null` if the constant
+  /// does not have the corresponding attribute.
+  EnumConstantDeclarationImpl({
+    required CommentImpl? documentationComment,
+    required List<Annotation>? metadata,
+    required SimpleIdentifierImpl name,
+    required this.arguments,
+  })  : _name = name,
+        super(documentationComment, metadata) {
     _becomeParentOf(_name);
+    _becomeParentOf(arguments);
   }
 
   @override
-  Iterable<SyntacticEntity> get childEntities =>
-      super._childEntities..add(_name);
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(_name)
+    ..add(arguments);
 
   @override
   FieldElement get declaredElement => _name.staticElement as FieldElement;
 
   @override
-  Token get endToken => _name.endToken;
+  Token get endToken => (arguments ?? _name).endToken;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
@@ -3286,6 +3379,7 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _name.accept(visitor);
+    arguments?.accept(visitor);
   }
 }
 

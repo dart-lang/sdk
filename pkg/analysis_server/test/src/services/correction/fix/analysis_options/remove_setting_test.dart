@@ -18,13 +18,13 @@ class RemoveSettingTest extends AnalysisOptionsFixTest {
     await assertHasFix('''
 analyzer:
   enable-experiment:
-    - non-nullable
+    - super-parameters
   language:
     enableSuperMixins: true
 ''', '''
 analyzer:
   enable-experiment:
-    - non-nullable
+    - super-parameters
 ''');
   }
 
@@ -33,11 +33,11 @@ analyzer:
 analyzer:
   enable-experiment:
     - not-an-experiment
-    - non-nullable
+    - super-parameters
 ''', '''
 analyzer:
   enable-experiment:
-    - non-nullable
+    - super-parameters
 ''');
   }
 
@@ -45,12 +45,12 @@ analyzer:
     await assertHasFix('''
 analyzer:
   enable-experiment:
-    - non-nullable
+    - super-parameters
     - not-an-experiment
 ''', '''
 analyzer:
   enable-experiment:
-    - non-nullable
+    - super-parameters
 ''');
   }
 

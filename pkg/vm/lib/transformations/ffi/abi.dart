@@ -12,6 +12,8 @@ enum _Architecture {
   arm64,
   ia32,
   x64,
+  riscv32,
+  riscv64,
 }
 
 extension on _Architecture {
@@ -20,9 +22,11 @@ extension on _Architecture {
     switch (this) {
       case _Architecture.arm:
       case _Architecture.ia32:
+      case _Architecture.riscv32:
         return 4;
       case _Architecture.arm64:
       case _Architecture.x64:
+      case _Architecture.riscv64:
         return 8;
     }
   }
@@ -91,6 +95,12 @@ class Abi {
   /// The application binary interface for linux on the X64 architecture.
   static const linuxX64 = _linuxX64;
 
+  /// The application binary interface for linux on 32-bit RISC-V.
+  static const linuxRiscv32 = _linuxRiscv32;
+
+  /// The application binary interface for linux on 64-bit RISC-V.
+  static const linuxRiscv64 = _linuxRiscv64;
+
   /// The application binary interface for MacOS on the Arm64 architecture.
   static const macosArm64 = _macosArm64;
 
@@ -128,6 +138,8 @@ class Abi {
     linuxArm64,
     linuxIA32,
     linuxX64,
+    linuxRiscv32,
+    linuxRiscv64,
     macosArm64,
     macosX64,
     windowsArm64,
@@ -171,6 +183,8 @@ class Abi {
   static const _linuxArm64 = Abi._(_Architecture.arm64, _OS.linux);
   static const _linuxIA32 = Abi._(_Architecture.ia32, _OS.linux);
   static const _linuxX64 = Abi._(_Architecture.x64, _OS.linux);
+  static const _linuxRiscv32 = Abi._(_Architecture.riscv32, _OS.linux);
+  static const _linuxRiscv64 = Abi._(_Architecture.riscv64, _OS.linux);
   static const _macosArm64 = Abi._(_Architecture.arm64, _OS.macos);
   static const _macosX64 = Abi._(_Architecture.x64, _OS.macos);
   static const _windowsArm64 = Abi._(_Architecture.arm64, _OS.windows);
@@ -193,6 +207,8 @@ const Map<Abi, String> abiNames = {
   Abi.linuxArm64: 'linuxArm64',
   Abi.linuxIA32: 'linuxIA32',
   Abi.linuxX64: 'linuxX64',
+  Abi.linuxRiscv32: 'linuxRiscv32',
+  Abi.linuxRiscv64: 'linuxRiscv64',
   Abi.macosArm64: 'macosArm64',
   Abi.macosX64: 'macosX64',
   Abi.windowsArm64: 'windowsArm64',
@@ -229,6 +245,7 @@ const Map<Abi, Map<NativeType, int>> nonSizeAlignment = {
   Abi.iosX64: _wordSize64,
   Abi.linuxArm64: _wordSize64,
   Abi.linuxX64: _wordSize64,
+  Abi.linuxRiscv64: _wordSize64,
   Abi.macosArm64: _wordSize64,
   Abi.macosX64: _wordSize64,
   Abi.windowsArm64: _wordSize64,
@@ -240,6 +257,7 @@ const Map<Abi, Map<NativeType, int>> nonSizeAlignment = {
   // _wordSize32Align64
   Abi.androidArm: _wordSize32Align64,
   Abi.linuxArm: _wordSize32Align64,
+  Abi.linuxRiscv32: _wordSize32Align64,
   Abi.windowsIA32: _wordSize32Align64,
 };
 

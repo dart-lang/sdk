@@ -26,9 +26,9 @@ DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 namespace compiler {
 
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches)
+                     intptr_t far_branch_level)
     : AssemblerBase(object_pool_builder),
-      use_far_branches_(use_far_branches),
+      use_far_branches_(far_branch_level != 0),
       constant_pool_allowed_(false) {
   generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
     Call(Address(THR,

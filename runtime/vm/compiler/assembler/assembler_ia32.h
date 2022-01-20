@@ -229,12 +229,12 @@ class FieldAddress : public Address {
 class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches = false)
+                     intptr_t far_branch_level = 0)
       : AssemblerBase(object_pool_builder),
         jit_cookie_(0),
         code_(NewZoneHandle(ThreadState::Current()->zone())) {
     // This mode is only needed and implemented for ARM.
-    ASSERT(!use_far_branches);
+    ASSERT(far_branch_level == 0);
   }
   ~Assembler() {}
 

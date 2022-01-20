@@ -57,6 +57,12 @@ class Abi {
   /// The application binary interface for linux on the X64 architecture.
   static const linuxX64 = _linuxX64;
 
+  /// The application binary interface for linux on 32-bit RISC-V.
+  static const linuxRiscv32 = _linuxRiscv32;
+
+  /// The application binary interface for linux on 64-bit RISC-V.
+  static const linuxRiscv64 = _linuxRiscv64;
+
   /// The application binary interface for MacOS on the Arm64 architecture.
   static const macosArm64 = _macosArm64;
 
@@ -94,6 +100,8 @@ class Abi {
     linuxArm64,
     linuxIA32,
     linuxX64,
+    linuxRiscv32,
+    linuxRiscv64,
     macosArm64,
     macosX64,
     windowsArm64,
@@ -134,6 +142,8 @@ class Abi {
   static const _linuxArm64 = Abi._(_Architecture.arm64, _OS.linux);
   static const _linuxIA32 = Abi._(_Architecture.ia32, _OS.linux);
   static const _linuxX64 = Abi._(_Architecture.x64, _OS.linux);
+  static const _linuxRiscv32 = Abi._(_Architecture.riscv32, _OS.linux);
+  static const _linuxRiscv64 = Abi._(_Architecture.riscv64, _OS.linux);
   static const _macosArm64 = Abi._(_Architecture.arm64, _OS.macos);
   static const _macosX64 = Abi._(_Architecture.x64, _OS.macos);
   static const _windowsArm64 = Abi._(_Architecture.arm64, _OS.windows);
@@ -147,6 +157,8 @@ enum _Architecture {
   arm64,
   ia32,
   x64,
+  riscv32,
+  riscv64,
 }
 
 /// The operating systems the Dart VM runs on.

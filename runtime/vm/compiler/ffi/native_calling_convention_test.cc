@@ -11,6 +11,9 @@ namespace dart {
 namespace compiler {
 namespace ffi {
 
+// TODO(https://github.com/dart-lang/sdk/issues/48164)
+#if !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
+
 const NativeCallingConvention& RunSignatureTest(
     dart::Zone* zone,
     const char* name,
@@ -624,6 +627,8 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_struct12bytesFloatx6) {
 
   RunSignatureTest(Z, "struct12bytesFloatx6", arguments, int64_type);
 }
+
+#endif  // !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 
 }  // namespace ffi
 }  // namespace compiler

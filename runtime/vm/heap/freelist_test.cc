@@ -213,6 +213,8 @@ static void TestRegress38528(intptr_t header_overlap) {
   const uint8_t ret[4] = {0x1e, 0xff, 0x2f, 0xe1};  // bx lr
 #elif defined(HOST_ARCH_ARM64)
   const uint8_t ret[4] = {0xc0, 0x03, 0x5f, 0xd6};  // ret
+#elif defined(HOST_ARCH_RISCV32) || defined(HOST_ARCH_RISCV64)
+  const uint8_t ret[2] = {0x82, 0x80};  // c.ret
 #else
 #error "Unknown architecture."
 #endif

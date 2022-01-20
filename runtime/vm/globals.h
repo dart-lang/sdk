@@ -95,11 +95,10 @@ const intptr_t kDefaultNewGenSemiMaxSize = (kWordSize <= 4) ? 8 : 16;
 #define ONLY_IN_PRECOMPILED(code)
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_X64)
-#define ONLY_IN_ARM_ARM64_X64(code) code
+#if defined(TARGET_ARCH_IA32)
+#define NOT_IN_IA32(code)
 #else
-#define ONLY_IN_ARM_ARM64_X64(code)
+#define NOT_IN_IA32(code) code
 #endif
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -198,13 +197,15 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #endif  // !defined(DART_HOST_OS_WINDOWS))
 
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_X64)
+    defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_RISCV32) ||                \
+    defined(TARGET_ARCH_RISCV64)
 #define TARGET_USES_OBJECT_POOL 1
 #endif
 
 #if defined(DART_PRECOMPILER) &&                                               \
     (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM) ||                   \
-     defined(TARGET_ARCH_ARM64))
+     defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||             \
+     defined(TARGET_ARCH_RISCV64))
 #define DART_SUPPORT_PRECOMPILATION 1
 #endif
 

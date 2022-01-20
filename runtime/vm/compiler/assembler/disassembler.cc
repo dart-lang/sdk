@@ -114,7 +114,30 @@ void DisassembleToMemory::ConsumeInstruction(char* hex_buffer,
   if (overflowed_) {
     return;
   }
-  intptr_t len = strlen(human_buffer);
+  intptr_t len;
+
+  // TODO(compiler): Update assembler tests for other architectures so there is
+  // coverage of encodings, not just mnemonics.
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  len = strlen(hex_buffer);
+  if (remaining_ < len + 100) {
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '\n';
+    *buffer_++ = '\0';
+    overflowed_ = true;
+    return;
+  }
+  memmove(buffer_, hex_buffer, len);
+  buffer_ += len;
+  remaining_ -= len;
+  *buffer_++ = ' ';
+  remaining_--;
+  *buffer_ = '\0';
+#endif
+
+  len = strlen(human_buffer);
   if (remaining_ < len + 100) {
     *buffer_++ = '.';
     *buffer_++ = '.';
