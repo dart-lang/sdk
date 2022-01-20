@@ -1,4 +1,4 @@
-# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -7,6 +7,9 @@ dummy_compiler_test: SkipByDesign # Issue 30773. Test should be migrated as a un
 
 [ $runtime == jsshell ]
 deferred/load_in_correct_order_test: SkipByDesign # jsshell preamble does not support this test.
+
+[ $browser ]
+native/*: Skip
 
 [ $compiler == dart2js && $mode == debug ]
 operator_test: Skip
