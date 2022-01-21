@@ -1141,28 +1141,25 @@ void help() {
   // before and after running the compiler. Another two lines may be
   // used to print an error message.
   print('''
-Usage: dart compile js [options] dartfile
+Compile Dart to JavaScript.
 
-Compiles Dart to JavaScript.
-
-Common options:
-  -o <file> Generate the output into <file>.
-  -m        Generate minified output.
-  -h        Display this message (add -v for information about all options).''');
+Usage: dart compile js [arguments] <dart entry point>
+  -h, --help      Print this usage information (add -v for information about all options).
+  -o, --output    Write the output to <file name>.
+  -O<0,1,2,3,4>   Set the compiler optimization level (defaults to -O1).
+  ''');
 }
 
 void verboseHelp() {
   print(r'''
-Usage: dart compile js [options] dartfile
+Compile Dart to JavaScript.
 
-Compiles Dart to JavaScript.
-
-Supported options:
+Usage: dart compile js [arguments] <dart entry point>
   -h, /h, /?, --help
-    Display this message (add -v for information about all options).
+    Print this usage information (add -v for information about all options).
 
-  -o <file>, --out=<file>
-    Generate the output into <file>.
+  -o <file name>, --out=<file name>
+    Write the output to <file name>.
 
   -m, --minify
     Generate minified output.
