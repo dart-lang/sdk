@@ -386,27 +386,26 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
       : super._subclass(configuration);
 
   String computeCompilerPath() {
-    var prefix = 'sdk/bin';
-    var suffix = shellScriptExtension;
-
-    if (_isHostChecked) {
-      if (_useSdk) {
-        // Note: when [_useSdk] is true, dart2js is run from a snapshot that was
-        // built without checked mode. The VM cannot make such snapshot run in
-        // checked mode later. These two flags could be used together if we also
-        // build an sdk with checked snapshots.
-        throw "--host-checked and --use-sdk cannot be used together";
-      }
-      // The script dart2js_developer is not included in the
-      // shipped SDK, that is the script is not installed in
-      // "$buildDir/dart-sdk/bin/"
-      return '$prefix/dart2js_developer$suffix';
+    if (_isHostChecked && _useSdk) {
+      // When [_useSdk] is true, dart2js is compiled into a snapshot that was
+      // built without checked mode. The VM cannot make such snapshot run in
+      // checked mode later. These two flags could be used together if we also
+      // build an sdk with checked snapshots.
+      throw "--host-checked and --use-sdk cannot be used together";
     }
 
     if (_useSdk) {
-      prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
+      var dartSdk = '${_configuration.buildDirectory}/dart-sdk';
+      // When using the shipped sdk, we invoke dart2js via the dart CLI using
+      // `dart compile js`.  The additional `compile js` arguments are added
+      // within [Dart2jsCompilationCommand]. This is because the arguments are
+      // added differently depending on whether the command is executed in batch
+      // mode or not.
+      return '$dartSdk/bin/dart$executableExtension';
+    } else {
+      var scriptName = _isHostChecked ? 'dart2js_developer' : 'dart2js';
+      return 'sdk/bin/$scriptName$shellScriptExtension';
     }
-    return '$prefix/dart2js$suffix';
   }
 
   Command computeCompilationCommand(String outputFileName,
@@ -414,14 +413,9 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
     arguments.add('--out=$outputFileName');
 
-    return CompilationCommand(
-        'dart2js',
-        outputFileName,
-        bootstrapDependencies(),
-        computeCompilerPath(),
-        arguments,
-        environmentOverrides,
-        alwaysCompile: !_useSdk);
+    return Dart2jsCompilationCommand(outputFileName, bootstrapDependencies(),
+        computeCompilerPath(), arguments, environmentOverrides,
+        useSdk: _useSdk, alwaysCompile: !_useSdk);
   }
 
   List<Uri> bootstrapDependencies() {
