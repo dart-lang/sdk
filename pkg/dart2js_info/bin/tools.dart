@@ -16,6 +16,7 @@ import 'src/convert.dart';
 import 'src/function_size_analysis.dart';
 import 'src/library_size_split.dart';
 import 'src/live_code_size_analysis.dart';
+import 'src/runtime_coverage_analysis.dart';
 import 'src/show_inferred_types.dart';
 import 'src/text_print.dart';
 
@@ -35,6 +36,7 @@ void main(args) {
     ..addCommand(FunctionSizeCommand())
     ..addCommand(LibrarySizeCommand())
     ..addCommand(LiveCodeAnalysisCommand())
+    ..addCommand(RuntimeCoverageAnalysisCommand())
     ..addCommand(ShowInferredTypesCommand())
     ..addCommand(ShowCommand());
   commandRunner.run(args);

@@ -9,6 +9,7 @@
 // VMOptions=--verify_after_gc
 // VMOptions=--verify_before_gc --verify_after_gc
 // VMOptions=--verify_store_buffer
+// VMOptions=--no_intrinsify
 
 import "package:expect/expect.dart";
 import 'dart:async';
