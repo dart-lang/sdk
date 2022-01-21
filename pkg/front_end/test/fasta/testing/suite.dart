@@ -1856,7 +1856,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
                   : context.verify);
           p = buildResult.component!;
         }
-        buildResult.macroApplications?.macroExecutor.close();
+        buildResult.macroApplications?.close();
 
         // To avoid possible crash in mixin transformation in the transformation
         // of the user of this linked dependency we have to transform this too.
@@ -1928,7 +1928,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           if (updateComments) {
             await instrumentation.fixSource(description.uri, false);
           } else {
-            buildResult.macroApplications?.macroExecutor.close();
+            buildResult.macroApplications?.close();
             return new Result<ComponentResult>(
                 new ComponentResult(description, p, userLibraries,
                     compilationSetup, sourceTarget),
@@ -1939,7 +1939,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           }
         }
       }
-      buildResult.macroApplications?.macroExecutor.close();
+      buildResult.macroApplications?.close();
       return pass(new ComponentResult(
           description, p, userLibraries, compilationSetup, sourceTarget));
     });

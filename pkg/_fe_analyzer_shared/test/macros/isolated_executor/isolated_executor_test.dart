@@ -44,8 +44,11 @@ void main() {
     var macroUri = simpleMacroFile.absolute.uri;
     var macroName = 'SimpleMacro';
 
-    var bootstrapContent =
-        bootstrapMacroIsolate(macroUri.toString(), macroName, ['', 'named']);
+    var bootstrapContent = bootstrapMacroIsolate({
+      macroUri.toString(): {
+        macroName: ['', 'named']
+      }
+    });
     var bootstrapFile = File(tmpDir.uri.resolve('main.dart').toFilePath())
       ..writeAsStringSync(bootstrapContent);
     var kernelOutputFile =

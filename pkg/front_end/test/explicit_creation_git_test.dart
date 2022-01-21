@@ -104,7 +104,7 @@ Future<void> main(List<String> args) async {
     BuildResult buildResult = await kernelTarget.buildOutlines();
     buildResult = await kernelTarget.buildComponent(
         macroApplications: buildResult.macroApplications);
-    buildResult.macroApplications?.macroExecutor.close();
+    buildResult.macroApplications?.close();
   });
 
   print("Done in ${stopwatch.elapsedMilliseconds} ms. "

@@ -309,7 +309,7 @@ class CompileTask {
         output: output,
         omitPlatform: omitPlatform,
         supportAdditionalDills: supportAdditionalDills);
-    buildResult.macroApplications?.macroExecutor.close();
+    buildResult.macroApplications?.close();
     return kernelTarget;
   }
 
@@ -384,7 +384,7 @@ class CompileTask {
     buildResult = await kernelTarget.buildComponent(
         macroApplications: buildResult.macroApplications,
         verify: c.options.verify);
-    buildResult.macroApplications?.macroExecutor.close();
+    buildResult.macroApplications?.close();
     Component component = buildResult.component!;
     if (c.options.debugDump) {
       printComponentText(component,

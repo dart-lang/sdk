@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*library: 
- compilationSequence=[
-  package:_fe_analyzer_shared/src/macros/api.dart,
-  main.dart],
+ compilationSequence=[main.dart|package:_fe_analyzer_shared/src/macros/api.dart],
  declaredMacros=[MyMacro],
  macrosAreAvailable
 */

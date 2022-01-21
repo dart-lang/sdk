@@ -79,7 +79,7 @@ def DartArchiveUnstrippedBinaries(arch):
 def CreateUploadAPIDocs():
     dartdoc_dir = BuildRootPath('gen-dartdocs')
     dartdoc_zip = BuildRootPath('dartdocs-api.zip')
-    if CHANNEL == bot_utils.Channel.TRY:
+    if CHANNEL == bot_utils.Channel.TRY or DART_EXPERIMENTAL_BUILD == '1':
         BuildDartdocAPIDocs(dartdoc_dir)
     else:
         UploadApiLatestFile()
@@ -222,12 +222,13 @@ if __name__ == '__main__':
 
     BUILD_OS = utils.GuessOS()
     BUILDER_NAME = os.environ.get('BUILDBOT_BUILDERNAME')
+    DART_EXPERIMENTAL_BUILD = os.environ.get('DART_EXPERIMENTAL_BUILD')
     CHANNEL = bot_utils.GetChannelFromName(BUILDER_NAME)
 
     if command == 'api_docs':
         if BUILD_OS == 'linux':
             CreateUploadAPIDocs()
-    elif CHANNEL != bot_utils.Channel.TRY:
+    elif CHANNEL != bot_utils.Channel.TRY and DART_EXPERIMENTAL_BUILD != '1':
         for arch in archs:
             print('Create and upload sdk zip for ' + arch)
             sdk_path = BuildRootPath('dart-sdk', arch=arch)

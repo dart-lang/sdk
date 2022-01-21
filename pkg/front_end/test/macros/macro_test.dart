@@ -43,6 +43,11 @@ class MacroTestConfig extends TestConfig {
       CompilerOptions options, TestData testData) {
     TestMacroExecutor macroExecutor = new TestMacroExecutor();
     options.macroExecutorProvider = () async => macroExecutor;
+    Uri precompiledPackage =
+        Uri.parse('package:precompiled_macro/precompiled_macro.dart');
+    options.precompiledMacroUris = {
+      new MacroClass(precompiledPackage, 'PrecompiledMacro'): dummyUri,
+    };
     return macroExecutor;
   }
 }
@@ -295,10 +300,6 @@ class TestMacroExecutor implements MacroExecutor {
   @override
   Future<MacroClassIdentifier> loadMacro(Uri library, String name,
       {Uri? precompiledKernelUri}) async {
-    if (precompiledKernelUri != null) {
-      throw new UnsupportedError(
-          'Precompiled kernel not supported for this implementation.');
-    }
     _MacroClassIdentifier id = new _MacroClassIdentifier(library, name);
     macroClasses.add(id);
     return id;

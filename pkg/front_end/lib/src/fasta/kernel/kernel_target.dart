@@ -284,6 +284,7 @@ class KernelTarget extends TargetImplementation {
   }
 
   Version? _currentSdkVersion;
+
   Version get currentSdkVersion {
     if (_currentSdkVersion == null) {
       _parseCurrentSdkVersion();
@@ -464,7 +465,8 @@ class KernelTarget extends TargetImplementation {
       loader.finishNoSuchMethodForwarders();
       List<SourceClassBuilder> sourceClasses = loader.collectSourceClasses();
       if (macroApplications != null) {
-        await macroApplications.applyDefinitionMacros();
+        await macroApplications.applyDefinitionMacros(
+            loader.coreTypes, loader.hierarchy);
       }
       loader.finishNativeMethods();
       loader.finishPatchMethods();

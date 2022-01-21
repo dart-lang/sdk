@@ -4,8 +4,7 @@
 
 /*library: 
  compilationSequence=[
-  package:_fe_analyzer_shared/src/macros/api.dart,
-  macro_lib1.dart|macro_lib2a.dart,
+  macro_lib1.dart|macro_lib2a.dart|package:_fe_analyzer_shared/src/macros/api.dart,
   macro_lib2b.dart,
   main.dart],
  macroClassIds=[

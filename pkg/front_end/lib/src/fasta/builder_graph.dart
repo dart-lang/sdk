@@ -23,13 +23,15 @@ import 'incremental_compiler.dart' show getPartUri;
 class BuilderGraph implements Graph<Uri> {
   final Map<Uri, LibraryBuilder> builders;
 
+  final Map<Uri, List<Uri>> _neighborsCache = {};
+
   BuilderGraph(this.builders);
 
   @override
   Iterable<Uri> get vertices => builders.keys;
 
-  @override
-  Iterable<Uri> neighborsOf(Uri vertex) sync* {
+  List<Uri> _computeNeighborsOf(Uri vertex) {
+    List<Uri> neighbors = [];
     LibraryBuilder? library = builders[vertex];
     if (library == null) {
       throw "Library not found: $vertex";
@@ -40,20 +42,20 @@ class BuilderGraph implements Graph<Uri> {
         if (import.imported != null) {
           Uri uri = import.imported!.importUri;
           if (builders.containsKey(uri)) {
-            yield uri;
+            neighbors.add(uri);
           }
         }
       }
       for (Export export in library.exports) {
         Uri uri = export.exported.importUri;
         if (builders.containsKey(uri)) {
-          yield uri;
+          neighbors.add(uri);
         }
       }
       for (LibraryBuilder part in library.parts) {
         Uri uri = part.importUri;
         if (builders.containsKey(uri)) {
-          yield uri;
+          neighbors.add(uri);
         }
       }
     } else if (library is DillLibraryBuilder) {
@@ -61,7 +63,7 @@ class BuilderGraph implements Graph<Uri> {
       for (LibraryDependency dependency in library.library.dependencies) {
         Uri uri = dependency.targetLibrary.importUri;
         if (builders.containsKey(uri)) {
-          yield uri;
+          neighbors.add(uri);
         }
       }
 
@@ -69,9 +71,14 @@ class BuilderGraph implements Graph<Uri> {
       for (LibraryPart part in library.library.parts) {
         Uri uri = getPartUri(library.importUri, part);
         if (builders.containsKey(uri)) {
-          yield uri;
+          neighbors.add(uri);
         }
       }
     }
+    return neighbors;
   }
+
+  @override
+  Iterable<Uri> neighborsOf(Uri vertex) =>
+      _neighborsCache[vertex] ??= _computeNeighborsOf(vertex);
 }
