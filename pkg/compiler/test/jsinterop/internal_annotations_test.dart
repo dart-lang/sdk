@@ -184,7 +184,15 @@ $mainSource
             "Expected $name to be indirectly instantiated in `${mainSource}`:"
             "\n${world.classHierarchy.dump(cls)}");
       }
-      if (!isInstantiated && (name != 'Object' && name != 'Interceptor')) {
+      // Classes that are expected to be instantiated by default. `Object` and
+      // `Interceptor` are base types for non-native and native types, and
+      // `JavaScriptObject` is the base type for `dart:html` types.
+      var insantiatedBaseClasses = [
+        'Object',
+        'Interceptor',
+        'JavaScriptObject'
+      ];
+      if (!isInstantiated && !insantiatedBaseClasses.contains(name)) {
         Expect.isFalse(
             world.classHierarchy.isInstantiated(cls),
             "Expected $name to be uninstantiated in `${mainSource}`:"

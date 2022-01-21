@@ -24,12 +24,16 @@ deferred_split_test: Slow, Pass # Issue 25940
 [ $compiler == dart2js && $runtime == chrome && $csp ]
 deferred/load_in_correct_order_test: SkipByDesign # Purposely uses `eval`
 
+[ $compiler == dart2js && $runtime == d8 ]
+internal/object_members_test: SkipByDesign # Browser test
+
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 consistent_index_error_string_test: Slow, Pass # Issue 25940
 
 [ $compiler == dart2js && $csp ]
 deferred_custom_loader_test: SkipByDesign # Issue 25683
 deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
+internal/object_members_test: SkipByDesign # Uses eval for interop
 
 [ $compiler == dart2js && !$host_checked ]
 dummy_compiler_test: Slow, Pass # Issue 32439. self-hosting doesn't work with CFE yet.
