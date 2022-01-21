@@ -25,6 +25,13 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/vm.dart';
 
+const Map<String, Map<String, List<String>>> macroDeclarations = {
+  'package:macro/macro.dart': {
+    'FunctionDefinitionMacro1': [''],
+    'FunctionDefinitionMacro2': [''],
+  }
+};
+
 Future<Uri> compileMacros(Directory directory) async {
   CompilerOptions options = new CompilerOptions();
   options.target = new VmTarget(new TargetFlags());
@@ -32,10 +39,9 @@ Future<Uri> compileMacros(Directory directory) async {
   options.environmentDefines = {};
   options.packagesFileUri = Platform.script.resolve('data/package_config.json');
 
-  CompilerResult? compilerResult = await compileScript({
-    'main.dart': bootstrapMacroIsolate(
-        'package:macro/macro.dart', 'FunctionDefinitionMacro1', [''])
-  }, options: options, requireMain: false);
+  CompilerResult? compilerResult = await compileScript(
+      {'main.dart': bootstrapMacroIsolate(macroDeclarations)},
+      options: options, requireMain: false);
   Uri uri = directory.absolute.uri.resolve('macros.dill');
   await writeComponentToFile(compilerResult!.component!, uri);
   return uri;
@@ -48,11 +54,14 @@ Future<void> main(List<String> args) async {
       await Directory.systemTemp.createTemp('macro_application');
 
   Uri macrosUri = await compileMacros(tempDirectory);
-  Map<MacroClass, Uri> precompiledMacroUris = {
-    new MacroClass(
-            Uri.parse('package:macro/macro.dart'), 'FunctionDefinitionMacro1'):
-        macrosUri
-  };
+  Map<MacroClass, Uri> precompiledMacroUris = {};
+  macroDeclarations
+      .forEach((String macroUri, Map<String, List<String>> macroClasses) {
+    macroClasses.forEach((String macroClass, List<String> constructorNames) {
+      precompiledMacroUris[new MacroClass(Uri.parse(macroUri), macroClass)] =
+          macrosUri;
+    });
+  });
 
   Directory dataDir =
       new Directory.fromUri(Platform.script.resolve('data/tests'));

@@ -182,7 +182,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
               IsExactlyTypeRequest request =
                   new IsExactlyTypeRequest.deserialize(deserializer, zoneId);
               StaticType leftType = request.leftType.instance as StaticType;
-              StaticType rightType = request.leftType.instance as StaticType;
+              StaticType rightType = request.rightType.instance as StaticType;
               SerializableResponse response = new SerializableResponse(
                   response:
                       new BooleanValue(await leftType.isExactly(rightType)),
@@ -197,7 +197,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
               IsSubtypeOfRequest request =
                   new IsSubtypeOfRequest.deserialize(deserializer, zoneId);
               StaticType leftType = request.leftType.instance as StaticType;
-              StaticType rightType = request.leftType.instance as StaticType;
+              StaticType rightType = request.rightType.instance as StaticType;
               SerializableResponse response = new SerializableResponse(
                   response:
                       new BooleanValue(await leftType.isSubtypeOf(rightType)),

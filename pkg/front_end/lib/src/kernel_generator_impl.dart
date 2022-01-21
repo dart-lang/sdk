@@ -172,7 +172,7 @@ Future<CompilerResult> generateKernelInternal(
     }
     // TODO(johnniwinther): Should we reuse the macro executor on subsequent
     // compilations where possible?
-    buildResult.macroApplications?.macroExecutor.close();
+    buildResult.macroApplications?.close();
 
     return new InternalCompilerResult(
         summary: summary,

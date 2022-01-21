@@ -36,13 +36,13 @@ class SimpleMacro implements MethodDefinitionMacro {
     }
     var classType =
         await builder.resolve(method.definingClass) as NamedStaticType;
-    if (!(await staticReturnType.isExactly(classType))) {
+    if (await staticReturnType.isExactly(classType)) {
       throw StateError(
           'The return type should not be exactly equal to the class type');
     }
-    if (!(await staticReturnType.isSubtypeOf(classType))) {
+    if (await staticReturnType.isSubtypeOf(classType)) {
       throw StateError(
-          'The return type should be a subtype of the class type!');
+          'The return type should not be a subtype of the class type!');
     }
 
     // Test the type declaration resolver

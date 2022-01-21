@@ -2,21 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Generates a Dart program for a given macro, which can be compiled and then
-/// passed as a precompiled kernel file to `MacroExecutor.loadMacro`.
+/// Generates a Dart program for a given set of macros, which can be compiled
+/// and then passed as a precompiled kernel file to `MacroExecutor.loadMacro`.
+///
+/// The [macroDeclarations] is a map from library URIs to macro classes for the
+/// macros supported. The macro classes are provided as a map from macro class
+/// names to the names of the macro class constructors.
 String bootstrapMacroIsolate(
-    String macroImport, String macroName, List<String> constructorNames) {
-  StringBuffer constructorEntries = new StringBuffer(
-      "MacroClassIdentifierImpl(Uri.parse('$macroImport'), '$macroName'): {");
-  for (String constructor in constructorNames) {
-    constructorEntries.writeln("'$constructor': "
-        "$macroName.${constructor.isEmpty ? 'new' : constructor},");
-  }
-  constructorEntries.writeln('},');
-  return template
-      .replaceFirst(_importMarker, 'import \'$macroImport\';')
-      .replaceFirst(
-          _macroConstructorEntriesMarker, constructorEntries.toString());
+    Map<String, Map<String, List<String>>> macroDeclarations) {
+  StringBuffer imports = new StringBuffer();
+  StringBuffer constructorEntries = new StringBuffer();
+  macroDeclarations
+      .forEach((String macroImport, Map<String, List<String>> macroClasses) {
+    imports.writeln('import \'$macroImport\';');
+    macroClasses.forEach((String macroName, List<String> constructorNames) {
+      constructorEntries
+          .writeln("MacroClassIdentifierImpl(Uri.parse('$macroImport'), "
+              "'$macroName'): {");
+      for (String constructor in constructorNames) {
+        constructorEntries.writeln("'$constructor': "
+            "$macroName.${constructor.isEmpty ? 'new' : constructor},");
+      }
+      constructorEntries.writeln('},');
+    });
+  });
+  return template.replaceFirst(_importMarker, imports.toString()).replaceFirst(
+      _macroConstructorEntriesMarker, constructorEntries.toString());
 }
 
 const String _importMarker = '{{IMPORT}}';

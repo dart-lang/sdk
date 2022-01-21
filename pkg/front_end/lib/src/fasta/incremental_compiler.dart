@@ -361,7 +361,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             verify: c.options.verify);
         componentWithDill = buildResult.component;
       }
-      buildResult.macroApplications?.macroExecutor.close();
+      buildResult.macroApplications?.close();
       hierarchy ??= currentKernelTarget.loader.hierarchy;
       if (currentKernelTarget.classHierarchyChanges != null) {
         hierarchy.applyTreeChanges(

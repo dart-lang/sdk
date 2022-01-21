@@ -15,3 +15,21 @@ macro class FunctionDefinitionMacro1 implements FunctionDefinitionMacro {
 }'''));
   }
 }
+
+macro class FunctionDefinitionMacro2 implements FunctionDefinitionMacro {
+  const FunctionDefinitionMacro2();
+
+  FutureOr<void> buildDefinitionForFunction(
+      FunctionDeclaration function, FunctionDefinitionBuilder builder) async {
+    if (function.positionalParameters.isEmpty) {
+      return;
+    }
+    StaticType returnType = await builder.resolve(function.returnType);
+    StaticType parameterType =
+        await builder.resolve(function.positionalParameters.first.type);
+    builder.augment(new FunctionBodyCode.fromString('''{
+  print('isExactly=${await returnType.isExactly(parameterType)}');
+  print('isSubtype=${await returnType.isSubtypeOf(parameterType)}');
+}'''));
+  }
+}
