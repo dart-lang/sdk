@@ -16515,7 +16515,7 @@ HintCode:
   TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
     problemMessage: The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.
     correctionMessage: Try removing the code point or using the Unicode escape sequence '\u{0}'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the unicode sequence of the code point.
@@ -16555,7 +16555,7 @@ HintCode:
   TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
     problemMessage: The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.
     correctionMessage: Try removing the code point or using the Unicode escape sequence '\u{0}'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the unicode sequence of the code point.

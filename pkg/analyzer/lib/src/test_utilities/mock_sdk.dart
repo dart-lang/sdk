@@ -66,6 +66,9 @@ abstract class Completer<T> {
 }
 
 abstract class Timer {
+  factory Timer(Duration duration, void Function() callback) {
+    throw 0;
+  }
   static void run(void callback()) {}
 }
 ''',

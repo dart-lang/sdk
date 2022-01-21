@@ -557,6 +557,9 @@ var ${startupMetricsGlobal} =
     js.Program program = js.Program([
       if (isFirst) buildGeneratedBy(),
       if (isFirst) buildDeferredInitializerGlobal(),
+      if (_options.experimentalTrackAllocations)
+        js.js.statement("var allocations = #deferredGlobal['allocations']",
+            {'deferredGlobal': deferredInitializersGlobal}),
       js.js.statement('$deferredInitializersGlobal.current = #', code)
     ]);
 

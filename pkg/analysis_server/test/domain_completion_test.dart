@@ -334,6 +334,256 @@ void f() {
       ..suggestions.withElementClass.isEmpty;
   }
 
+  Future<void> test_notImported_lowerRelevance_extension_getter() async {
+    await _configureWithWorkspaceRoot();
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+extension E1 on int {
+  int get foo01 => 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+extension E2 on int {
+  int get foo02 => 0;
+}
+''');
+
+    var response = await _getTestCodeSuggestions(r'''
+import 'b.dart';
+ 
+void f() {
+  0.foo0^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 4);
+
+    // `foo01` relevance is decreased because it is not yet imported.
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
+  }
+
+  Future<void> test_notImported_lowerRelevance_extension_method() async {
+    await _configureWithWorkspaceRoot();
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+extension E1 on int {
+  void foo01() {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+extension E2 on int {
+  void foo02() {}
+}
+''');
+
+    var response = await _getTestCodeSuggestions(r'''
+import 'b.dart';
+ 
+void f() {
+  0.foo0^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 4);
+
+    // `foo01` relevance is decreased because it is not yet imported.
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
+  }
+
+  Future<void> test_notImported_lowerRelevance_extension_setter() async {
+    await _configureWithWorkspaceRoot();
+
+    newFile('$testPackageLibPath/a.dart', content: '''
+extension E1 on int {
+  set foo01(int _) {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+extension E2 on int {
+  set foo02(int _) {}
+}
+''');
+
+    var response = await _getTestCodeSuggestions(r'''
+import 'b.dart';
+ 
+void f() {
+  0.foo0^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 4);
+
+    // `foo01` relevance is decreased because it is not yet imported.
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
+  }
+
+  Future<void> test_notImported_lowerRelevance_topLevel_class() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A01 {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+class A02 {}
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var response = await _getTestCodeSuggestions('''
+import 'b.dart';
+
+void f() {
+  A0^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 2);
+
+    // `A01` relevance is decreased because it is not yet imported.
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A02')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('A01')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
+  }
+
+  Future<void> test_notImported_lowerRelevance_topLevel_getter() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+int get foo01 => 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+int get foo02 => 0;
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var response = await _getTestCodeSuggestions('''
+import 'b.dart';
+
+void f() {
+  foo0^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 4);
+
+    // `foo01` relevance is decreased because it is not yet imported.
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
+  }
+
+  Future<void> test_notImported_lowerRelevance_topLevel_setter() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+set foo01(int _) {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+set foo02(int _) {}
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var response = await _getTestCodeSuggestions('''
+import 'b.dart';
+
+void f() {
+  foo0^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 4);
+
+    // `foo01` relevance is decreased because it is not yet imported.
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
+  }
+
+  Future<void> test_notImported_lowerRelevance_topLevel_variable() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+var foo01 = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+var foo02 = 0;
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var response = await _getTestCodeSuggestions('''
+import 'b.dart';
+
+void f() {
+  foo0^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 4);
+
+    // `foo01` relevance is decreased because it is not yet imported.
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
+  }
+
   Future<void> test_notImported_pub_dependencies_inLib() async {
     writeTestPackagePubspecYamlFile(r'''
 name: test
@@ -522,7 +772,7 @@ class A03 {}
     await _configureWithWorkspaceRoot();
 
     var response = await _getTestCodeSuggestions('''
-import 'a.dart' show A01;
+import 'a.dart' show A02;
 
 void f() {
   A0^
@@ -533,12 +783,16 @@ void f() {
       ..assertComplete()
       ..hasReplacement(left: 2);
 
+    // Note:
+    // 1. A02 is the first, because it is already imported.
+    // 2. A01 is still suggested, but with lower relevance.
+    // 3. A03 has the same relevance (not tested), but sorted by name.
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
-        ..completion.isEqualTo('A01')
+        ..completion.isEqualTo('A02')
         ..libraryUriToImport.isNull,
       (suggestion) => suggestion
-        ..completion.isEqualTo('A02')
+        ..completion.isEqualTo('A01')
         ..libraryUriToImport.isEqualTo('package:test/a.dart'),
       (suggestion) => suggestion
         ..completion.isEqualTo('A03')
@@ -1368,6 +1622,29 @@ void f() {
       (suggestion) => suggestion
         ..completion.isEqualTo('foo02')
         ..isTopLevelVariable,
+    ]);
+  }
+
+  Future<void> test_unprefixed_imported_withPrefix_class() async {
+    await _configureWithWorkspaceRoot();
+
+    var response = await _getTestCodeSuggestions('''
+import 'dart:math' as math;
+
+void f() {
+  Rand^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 4);
+
+    // No suggestion without the `math` prefix.
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('math.Random')
+        ..libraryUriToImport.isNull,
     ]);
   }
 
