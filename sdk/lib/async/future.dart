@@ -598,7 +598,7 @@ abstract class Future<T> {
   ///
   /// Future<String> delayedString() async {
   ///   await Future.delayed(const Duration(seconds: 2));
-  ///   return 'result';
+  ///   throw TimeoutException('Time has passed');
   /// }
   ///
   /// Future<int> fastInt() async {
@@ -683,7 +683,7 @@ abstract class Future<T> {
   ///       print('Finished with $value');
   ///       return false;
   ///     }
-  ///   return true;
+  ///     return true;
   ///   });
   /// }
   /// // Outputs: 'Finished with 3'
@@ -855,8 +855,11 @@ abstract class Future<T> {
   /// ```
   /// Example:
   /// ```dart
-  /// void main() {
-  ///   waitTask().whenComplete(() => print('do some work here'));
+  /// void main() async {
+  ///   var value =
+  ///       await waitTask().whenComplete(() => print('do something here'));
+  ///   // Prints "do something here" after waitTask() completed.
+  ///   print(value); // Prints "done"
   /// }
   ///
   /// Future<String> waitTask() {
