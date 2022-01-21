@@ -5887,6 +5887,11 @@ class CodeSourceMap : public Object {
     return memcmp(untag(), other.untag(), InstanceSize(Length())) == 0;
   }
 
+  uint32_t Hash() const {
+    NoSafepointScope no_safepoint;
+    return HashBytes(Data(), Length());
+  }
+
   void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
 
  private:

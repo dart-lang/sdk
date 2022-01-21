@@ -184,6 +184,11 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isField;
   }
 
+  void get isFunctionReference {
+    kind.isIdentifier;
+    element.isNotNull.kind.isFunction;
+  }
+
   void get isGetter {
     kind.isIdentifier;
     element.isNotNull.kind.isGetter;
@@ -378,6 +383,10 @@ extension ElementKindExtension on CheckTarget<ElementKind> {
 
   void get isField {
     isEqualTo(ElementKind.FIELD);
+  }
+
+  void get isFunction {
+    isEqualTo(ElementKind.FUNCTION);
   }
 
   void get isGetter {

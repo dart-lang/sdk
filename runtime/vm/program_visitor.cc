@@ -1020,7 +1020,7 @@ class CodeSourceMapKeyValueTrait {
 
   static inline uword Hash(Key key) {
     ASSERT(!key->IsNull());
-    return Utils::WordHash(key->Length());
+    return Utils::WordHash(key->Hash());
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -1070,7 +1070,14 @@ class ArrayKeyValueTrait {
 
   static inline uword Hash(Key key) {
     ASSERT(!key->IsNull());
-    return Utils::WordHash(key->Length());
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
+    const intptr_t len = key->Length();
+    uint32_t hash = Utils::WordHash(len);
+    for (intptr_t i = 0; i < len; ++i) {
+      hash =
+          CombineHashes(hash, Utils::WordHash(static_cast<uword>(key->At(i))));
+    }
+    return hash;
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -1128,6 +1135,9 @@ void ProgramVisitor::DedupLists(Thread* thread) {
   };
 
   StackZone stack_zone(thread);
+  // ArrayKeyValueTrait::Hash is based on object addresses, so make
+  // sure GC doesn't happen and doesn't move objects.
+  NoSafepointScope no_safepoint;
   DedupListsVisitor visitor(thread->zone());
   WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
 }

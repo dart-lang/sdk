@@ -181,6 +181,9 @@ inline const Object& ToObject(const Function& handle) {
 // or canonical hash.
 intptr_t ObjectHash(const Object& obj);
 
+// Prints the given object into a C string.
+const char* ObjectToCString(const Object& obj);
+
 // If the given object represents a Dart integer returns true and sets [value]
 // to the value of the integer.
 bool HasIntegerValue(const dart::Object& obj, int64_t* value);

@@ -143,6 +143,8 @@ constexpr bool FLAG_support_il_printer = false;
   P(marker_tasks, int, 2,                                                      \
     "The number of tasks to spawn during old gen GC marking (0 means "         \
     "perform all marking on main thread).")                                    \
+  P(hash_map_probes_limit, int, kMaxInt32,                                     \
+    "Limit number of probes while doing lookups in hash maps.")                \
   P(max_polymorphic_checks, int, 4,                                            \
     "Maximum number of polymorphic check, otherwise it is megamorphic.")       \
   P(max_equality_polymorphic_checks, int, 32,                                  \
