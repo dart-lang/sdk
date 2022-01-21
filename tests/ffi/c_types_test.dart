@@ -7,11 +7,11 @@
 // SharedObjects=ffi_test_functions
 
 import 'dart:ffi';
+
+import "package:expect/expect.dart";
 import 'dart:io' show Platform;
 
-import 'package:expect/expect.dart';
-import 'package:ffi/ffi.dart';
-
+import 'abi_specific_ints.dart';
 import 'ffi_test_helpers.dart';
 
 void main() {
@@ -20,162 +20,62 @@ void main() {
   testIntAssumptions();
   testSizeTAssumptions();
   testLongAssumptions();
+  testOffTAssumptions();
   testWCharTAssumptions();
 }
 
 class CType {
   final int ffiSize;
-  final int Function(Pointer)? ffiLoad;
   final String modifier;
   final String type;
-  final String type2;
 
-  CType(this.ffiSize, this.type,
-      {this.type2 = '', this.modifier = '', this.ffiLoad});
+  CType(this.ffiSize, this.type, [this.modifier = ""]);
 
-  String get cRepresentation => '$modifier $type $type2'.trim();
+  String get cRepresentation => "$modifier $type".trim();
 
-  String get _getSizeName => 'FfiSizeOf_$modifier\_$type\_$type2';
-
-  String get _getSignName => 'FfiSignOf_$modifier\_$type\_$type2';
+  String get _getSizeName => "FfiSizeOf_$modifier\_$type";
 
   int Function() get sizeFunction => ffiTestFunctions
       .lookupFunction<Uint64 Function(), int Function()>(_getSizeName);
 
-  int Function() get signFunction => ffiTestFunctions
-      .lookupFunction<Uint64 Function(), int Function()>(_getSignName);
-
   int get size => sizeFunction();
-
-  bool get isSigned => signFunction() != 0;
-
-  bool? get ffiIsSigned {
-    final ffiLoad_ = ffiLoad;
-    if (ffiLoad_ == null) {
-      return null;
-    }
-    assert(size < 8);
-    return using((Arena arena) {
-      final p = arena<Int64>()..value = -1;
-      return ffiLoad_(p) < 0;
-    });
-  }
 
   String toString() => cRepresentation;
 }
 
-final char = CType(
-  sizeOf<Char>(),
-  'char',
-  ffiLoad: (Pointer p) => p.cast<Char>().value,
-);
-final uchar = CType(
-  sizeOf<UnsignedChar>(),
-  'char',
-  modifier: 'unsigned',
-  ffiLoad: (Pointer p) => p.cast<UnsignedChar>().value,
-);
-final schar = CType(
-  sizeOf<SignedChar>(),
-  'char',
-  modifier: 'signed',
-  ffiLoad: (Pointer p) => p.cast<SignedChar>().value,
-);
-final short = CType(
-  sizeOf<Short>(),
-  'short',
-  ffiLoad: (Pointer p) => p.cast<Short>().value,
-);
-final ushort = CType(
-  sizeOf<UnsignedShort>(),
-  'short',
-  modifier: 'unsigned',
-  ffiLoad: (Pointer p) => p.cast<UnsignedShort>().value,
-);
-final int_ = CType(
-  sizeOf<Int>(),
-  'int',
-  ffiLoad: (Pointer p) => p.cast<Int>().value,
-);
-final uint = CType(
-  sizeOf<UnsignedInt>(),
-  'int',
-  modifier: 'unsigned',
-  ffiLoad: (Pointer p) => p.cast<UnsignedInt>().value,
-);
-final long = CType(
-  sizeOf<Long>(),
-  'long',
-);
-final ulong = CType(
-  sizeOf<UnsignedLong>(),
-  'long',
-  modifier: 'unsigned',
-);
-final longlong = CType(
-  sizeOf<LongLong>(),
-  'long',
-  type2: 'long',
-);
-final ulonglong = CType(
-  sizeOf<UnsignedLongLong>(),
-  'long',
-  type2: 'long',
-  modifier: 'unsigned',
-);
-final intptr_t = CType(
-  sizeOf<IntPtr>(),
-  'intptr_t',
-);
-final uintptr_t = CType(
-  sizeOf<UintPtr>(),
-  'uintptr_t',
-);
-final size_t = CType(
-  sizeOf<Size>(),
-  'size_t',
-);
-final wchar_t = CType(
-  sizeOf<WChar>(),
-  'wchar_t',
-  ffiLoad: (Pointer p) => p.cast<WChar>().value,
-);
+final intptr_t = CType(sizeOf<IntPtr>(), "intptr_t");
+final uintptr_t = CType(sizeOf<UintPtr>(), "uintptr_t");
+final int_ = CType(sizeOf<Int>(), "int");
+final uint = CType(sizeOf<UnsignedInt>(), "int", "unsigned");
+final long = CType(sizeOf<Long>(), "long");
+final ulong = CType(sizeOf<UnsignedLong>(), "long", "unsigned");
+final wchar_t = CType(sizeOf<WChar>(), "wchar_t");
+final size_t = CType(sizeOf<Size>(), "size_t");
+final ssize_t = CType(sizeOf<SSize>(), "ssize_t");
+final off_t = CType(sizeOf<Off>(), "off_t");
 
 final cTypes = [
-  char,
-  uchar,
-  schar,
-  short,
-  ushort,
+  intptr_t,
+  uintptr_t,
   int_,
   uint,
   long,
   ulong,
-  longlong,
-  ulonglong,
-  intptr_t,
-  uintptr_t,
-  size_t,
   wchar_t,
+  size_t,
+  ssize_t,
+  off_t
 ];
 
 void printSizes() {
   cTypes.forEach((element) {
-    final cName = element.cRepresentation.padRight(20);
-    final size = element.size;
-    final signed = element.isSigned ? 'signed' : 'unsigned';
-    print('$cName: $size $signed');
+    print("${element.cRepresentation.padRight(20)}: ${element.size}");
   });
 }
 
 void testSizes() {
   cTypes.forEach((element) {
-    print(element);
     Expect.equals(element.size, element.ffiSize);
-    final ffiIsSigned = element.ffiIsSigned;
-    if (ffiIsSigned != null) {
-      Expect.equals(element.isSigned, ffiIsSigned);
-    }
   });
 }
 
@@ -186,6 +86,7 @@ void testIntAssumptions() {
 
 void testSizeTAssumptions() {
   Expect.equals(intptr_t.size, size_t.size);
+  Expect.equals(intptr_t.size, ssize_t.size);
 }
 
 void testLongAssumptions() {
@@ -198,9 +99,13 @@ void testLongAssumptions() {
   }
 }
 
+void testOffTAssumptions() {
+  Expect.equals(long.size, off_t.size);
+}
+
 void testWCharTAssumptions() {
-  final bool isSigned = wchar_t.isSigned;
-  print('wchar_t isSigned $isSigned');
+  final bool isSigned = wCharMinValue() != 0;
+  print("wchar_t isSigned $isSigned");
   if (Platform.isWindows) {
     Expect.equals(2, wchar_t.size);
     if (isSigned) {

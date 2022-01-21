@@ -15,8 +15,10 @@ import 'impl/completion_driver.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BasicCompletionTest);
-    defineReflectiveTests(CompletionWithSuggestionsTest);
+    defineReflectiveTests(BasicCompletionTest1);
+    defineReflectiveTests(BasicCompletionTest2);
+    defineReflectiveTests(CompletionWithSuggestionsTest1);
+    defineReflectiveTests(CompletionWithSuggestionsTest2);
   });
 }
 
@@ -28,6 +30,8 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   String get projectName => 'project';
 
   String get projectPath => '/$projectName';
+
+  TestingCompletionProtocol get protocol;
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
@@ -108,7 +112,14 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
       await driver.waitForSetWithUri('dart:async');
     }
 
-    suggestions = await driver.getSuggestions();
+    switch (protocol) {
+      case TestingCompletionProtocol.version1:
+        suggestions = await driver.getSuggestions();
+        break;
+      case TestingCompletionProtocol.version2:
+        suggestions = await driver.getSuggestions2();
+        break;
+    }
     return suggestions;
   }
 
@@ -199,7 +210,20 @@ project:${toUri('$projectPath/lib')}
 }
 
 @reflectiveTest
-class BasicCompletionTest extends AbstractCompletionDriverTest {
+class BasicCompletionTest1 extends AbstractCompletionDriverTest
+    with BasicCompletionTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class BasicCompletionTest2 extends AbstractCompletionDriverTest
+    with BasicCompletionTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
+mixin BasicCompletionTestCases on AbstractCompletionDriverTest {
   @override
   bool get supportsAvailableSuggestions => false;
 
@@ -233,7 +257,40 @@ void f() {
 }
 
 @reflectiveTest
-class CompletionWithSuggestionsTest extends AbstractCompletionDriverTest {
+class CompletionWithSuggestionsTest1 extends AbstractCompletionDriverTest
+    with CompletionWithSuggestionsTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+
+  @failingTest
+  @override
+  Future<void> test_project_lib_multipleExports() async {
+    return super.test_project_lib_multipleExports();
+  }
+}
+
+@reflectiveTest
+class CompletionWithSuggestionsTest2 extends AbstractCompletionDriverTest
+    with CompletionWithSuggestionsTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+
+  @FailingTest(reason: 'Not implemented yet')
+  @override
+  Future<void> test_project_lib_fields_static() {
+    // TODO: implement test_project_lib_fields_static
+    return super.test_project_lib_fields_static();
+  }
+
+  @FailingTest(reason: 'Not implemented yet')
+  @override
+  Future<void> test_project_lib_getters_static() {
+    // TODO: implement test_project_lib_getters_static
+    return super.test_project_lib_getters_static();
+  }
+}
+
+mixin CompletionWithSuggestionsTestCases on AbstractCompletionDriverTest {
   @override
   bool get supportsAvailableSuggestions => true;
 
@@ -507,7 +564,6 @@ void f() {
     assertNoSuggestion(completion: 'A.foo');
   }
 
-  @failingTest
   Future<void> test_project_lib_multipleExports() async {
     await addProjectFile('lib/a.dart', r'''
 class A {}
@@ -732,3 +788,5 @@ void f() {
     // (No typedefs, enums, extensions defined in the Mock SDK.)
   }
 }
+
+enum TestingCompletionProtocol { version1, version2 }

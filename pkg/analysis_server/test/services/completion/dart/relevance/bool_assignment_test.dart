@@ -5,16 +5,50 @@
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../client/completion_driver_test.dart';
 import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BoolAssignmentTest);
+    // defineReflectiveTests(BoolAssignmentTest1);
+    defineReflectiveTests(BoolAssignmentTest2);
   });
 }
 
 @reflectiveTest
-class BoolAssignmentTest extends CompletionRelevanceTest {
+class BoolAssignmentTest1 extends CompletionRelevanceTest
+    with BoolAssignmentTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class BoolAssignmentTest2 extends CompletionRelevanceTest
+    with BoolAssignmentTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+
+  @FailingTest(reason: r'''
+The actual relevances are:
+[completion: bool.fromEnvironment][relevance: 591]
+[completion: bool.hasEnvironment][relevance: 591]
+[completion: b][relevance: 587]
+[completion: bool][relevance: 578]
+[completion: true][relevance: 574]
+[completion: false][relevance: 572]
+[completion: identical][relevance: 563]
+  for (var e in result) {
+    print('[completion: ${e.completion}][relevance: ${e.relevance}]');
+  }
+''')
+  @override
+  Future<void> test_boolLiterals_imported() {
+    // TODO: implement test_boolLiterals_imported
+    return super.test_boolLiterals_imported();
+  }
+}
+
+mixin BoolAssignmentTestCases on CompletionRelevanceTest {
   Future<void> test_boolLiterals_imported() async {
     await addTestFile('''
 foo() {

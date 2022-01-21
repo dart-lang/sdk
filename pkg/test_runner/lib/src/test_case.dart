@@ -260,7 +260,7 @@ class RunningProcess {
       _commandComplete(0);
     } else {
       var processEnvironment = _createProcessEnvironment();
-      var args = command.arguments;
+      var args = [...command.nonBatchArguments, ...command.arguments];
       var processFuture = io.Process.start(command.executable, args,
           environment: processEnvironment,
           workingDirectory: command.workingDirectory);

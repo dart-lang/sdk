@@ -90,6 +90,7 @@ class CompileJSCommand extends CompileSubcommandCommand {
         [
           '--libraries-spec=$librariesPath',
           '--cfe-invocation-modes=compile',
+          '--invoker=dart_cli',
           ...argResults.arguments,
         ],
         packageConfigOverride: null);

@@ -377,13 +377,22 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
 
   @override
   Future<MacroExecutionResult> executeDeclarationsPhase(
-      MacroInstanceIdentifier macro,
-      DeclarationImpl declaration,
-      TypeResolver typeResolver,
-      ClassIntrospector classIntrospector) {
-    // TODO: implement executeDeclarationsPhase
-    throw new UnimplementedError();
-  }
+          MacroInstanceIdentifier macro,
+          DeclarationImpl declaration,
+          TypeResolver typeResolver,
+          ClassIntrospector classIntrospector) =>
+      _sendRequest((zoneId) => new ExecuteDeclarationsPhaseRequest(
+          macro,
+          declaration,
+          new RemoteInstanceImpl(
+              instance: typeResolver,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.typeResolver),
+          new RemoteInstanceImpl(
+              instance: classIntrospector,
+              id: RemoteInstance.uniqueId,
+              kind: RemoteInstanceKind.classIntrospector),
+          serializationZoneId: zoneId));
 
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(

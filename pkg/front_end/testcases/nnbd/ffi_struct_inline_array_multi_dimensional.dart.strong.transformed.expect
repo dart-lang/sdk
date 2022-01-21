@@ -84,5 +84,5 @@ Extra constant evaluation: evaluated: 110, effectively constant: 2
 
 Constructor coverage from constants:
 org-dartlang-testcase:///ffi_struct_inline_array_multi_dimensional.dart:
-- _ArraySize. (from org-dartlang-sdk:///sdk/lib/ffi/ffi.dart:139:9)
+- _ArraySize. (from org-dartlang-sdk:///sdk/lib/ffi/ffi.dart:138:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

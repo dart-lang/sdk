@@ -239,6 +239,41 @@ class InstantiateMacroRequest extends Request {
 
 /// A request to execute a macro on a particular declaration in the definition
 /// phase.
+class ExecuteDeclarationsPhaseRequest extends Request {
+  final MacroInstanceIdentifier macro;
+  final DeclarationImpl declaration;
+
+  final RemoteInstanceImpl typeResolver;
+  final RemoteInstanceImpl classIntrospector;
+
+  ExecuteDeclarationsPhaseRequest(
+      this.macro, this.declaration, this.typeResolver, this.classIntrospector,
+      {required int serializationZoneId})
+      : super(serializationZoneId: serializationZoneId);
+
+  /// When deserializing we have already consumed the message type, so we don't
+  /// consume it again.
+  ExecuteDeclarationsPhaseRequest.deserialize(
+      Deserializer deserializer, int serializationZoneId)
+      : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
+        declaration = RemoteInstance.deserialize(deserializer),
+        typeResolver = RemoteInstance.deserialize(deserializer),
+        classIntrospector = RemoteInstance.deserialize(deserializer),
+        super.deserialize(deserializer, serializationZoneId);
+
+  void serialize(Serializer serializer) {
+    serializer.addNum(MessageType.executeDeclarationsPhaseRequest.index);
+    macro.serialize(serializer);
+    declaration.serialize(serializer);
+    typeResolver.serialize(serializer);
+    classIntrospector.serialize(serializer);
+
+    super.serialize(serializer);
+  }
+}
+
+/// A request to execute a macro on a particular declaration in the definition
+/// phase.
 class ExecuteDefinitionsPhaseRequest extends Request {
   final MacroInstanceIdentifier macro;
   final DeclarationImpl declaration;
@@ -627,6 +662,7 @@ enum MessageType {
   mixinsOfRequest,
   superclassOfRequest,
   error,
+  executeDeclarationsPhaseRequest,
   executeDefinitionsPhaseRequest,
   instantiateMacroRequest,
   isExactlyTypeRequest,

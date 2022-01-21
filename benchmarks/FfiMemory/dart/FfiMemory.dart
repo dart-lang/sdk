@@ -15,6 +15,36 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:benchmark_harness/benchmark_harness.dart';
 
+/// Represents a native unsigned pointer-sized integer in C.
+///
+/// [UintPtr] is not constructible in the Dart code and serves purely as marker in
+/// type signatures.
+@AbiSpecificIntegerMapping({
+  Abi.androidArm: Uint32(),
+  Abi.androidArm64: Uint64(),
+  Abi.androidIA32: Uint32(),
+  Abi.androidX64: Uint64(),
+  Abi.fuchsiaArm64: Uint64(),
+  Abi.fuchsiaX64: Uint64(),
+  Abi.iosArm: Uint32(),
+  Abi.iosArm64: Uint64(),
+  Abi.iosX64: Uint64(),
+  Abi.linuxArm: Uint32(),
+  Abi.linuxArm64: Uint64(),
+  Abi.linuxIA32: Uint32(),
+  Abi.linuxX64: Uint64(),
+  Abi.linuxRiscv32: Uint32(),
+  Abi.linuxRiscv64: Uint64(),
+  Abi.macosArm64: Uint64(),
+  Abi.macosX64: Uint64(),
+  Abi.windowsArm64: Uint64(),
+  Abi.windowsIA32: Uint32(),
+  Abi.windowsX64: Uint64(),
+})
+class UintPtr extends AbiSpecificInteger {
+  const UintPtr();
+}
+
 //
 // Pointer store.
 //

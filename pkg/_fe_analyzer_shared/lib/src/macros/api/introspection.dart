@@ -69,6 +69,9 @@ abstract class Declaration {
 ///
 /// See subtypes [ClassDeclaration] and [TypeAliasDeclaration].
 abstract class TypeDeclaration implements Declaration {
+  // TODO: Change this to a [StaticType]? https://github.com/dart-lang/language/issues/2072
+  TypeAnnotation get type;
+
   /// The type parameters defined for this type declaration.
   Iterable<TypeParameterDeclaration> get typeParameters;
 
@@ -144,7 +147,7 @@ abstract class FunctionDeclaration implements Declaration {
 /// Method introspection information.
 abstract class MethodDeclaration implements FunctionDeclaration {
   /// The class that defines this method.
-  TypeAnnotation get definingClass;
+  NamedTypeAnnotation get definingClass;
 }
 
 /// Constructor introspection information.
@@ -155,23 +158,27 @@ abstract class ConstructorDeclaration implements MethodDeclaration {
 
 /// Variable introspection information.
 abstract class VariableDeclaration implements Declaration {
-  /// Whether this function has an `abstract` modifier.
-  bool get isAbstract;
-
-  /// Whether this function has an `external` modifier.
+  /// Whether this field has an `external` modifier.
   bool get isExternal;
+
+  /// Whether this field has a `final` modifier.
+  bool get isFinal;
+
+  /// Whether this field has a `late` modifier.
+  bool get isLate;
 
   /// The type of this field.
   TypeAnnotation get type;
 
-  /// A [Code] object representing the initializer for this field, if present.
-  Code? get initializer;
+  /// A [ExpressionCode] object representing the initializer for this field, if
+  /// present.
+  ExpressionCode? get initializer;
 }
 
 /// Field introspection information ..
 abstract class FieldDeclaration implements VariableDeclaration {
   /// The class that defines this method.
-  TypeAnnotation get definingClass;
+  NamedTypeAnnotation get definingClass;
 }
 
 /// Parameter introspection information.

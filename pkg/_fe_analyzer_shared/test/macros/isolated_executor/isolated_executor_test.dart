@@ -18,31 +18,23 @@ import '../util.dart';
 
 void main() {
   late MacroExecutor executor;
-  late Directory tmpDir;
+  late File kernelOutputFile;
+  final macroName = 'SimpleMacro';
+  late MacroInstanceIdentifier instanceId;
+  late Uri macroUri;
   late File simpleMacroFile;
+  late Directory tmpDir;
 
-  setUpAll(() {
+  setUpAll(() async {
     // We support running from either the root of the SDK or the package root.
     simpleMacroFile = File(
         'pkg/_fe_analyzer_shared/test/macros/isolated_executor/simple_macro.dart');
     if (!simpleMacroFile.existsSync()) {
       simpleMacroFile = File('test/macros/isolated_executor/simple_macro.dart');
     }
-  });
-
-  setUp(() async {
     executor = await isolatedExecutor.start();
     tmpDir = Directory.systemTemp.createTempSync('isolated_executor_test');
-  });
-
-  tearDown(() {
-    if (tmpDir.existsSync()) tmpDir.deleteSync(recursive: true);
-    executor.close();
-  });
-
-  test('can load and run macros', () async {
-    var macroUri = simpleMacroFile.absolute.uri;
-    var macroName = 'SimpleMacro';
+    macroUri = simpleMacroFile.absolute.uri;
 
     var bootstrapContent = bootstrapMacroIsolate({
       macroUri.toString(): {
@@ -51,22 +43,22 @@ void main() {
     });
     var bootstrapFile = File(tmpDir.uri.resolve('main.dart').toFilePath())
       ..writeAsStringSync(bootstrapContent);
-    var kernelOutputFile =
-        File(tmpDir.uri.resolve('main.dart.dill').toFilePath());
-    var result = await Process.run(Platform.resolvedExecutable, [
+    kernelOutputFile = File(tmpDir.uri.resolve('main.dart.dill').toFilePath());
+    var buildSnapshotResult = await Process.run(Platform.resolvedExecutable, [
       '--snapshot=${kernelOutputFile.uri.toFilePath()}',
       '--snapshot-kind=kernel',
       '--packages=${(await Isolate.packageConfig)!}',
       bootstrapFile.uri.toFilePath(),
     ]);
-    expect(result.exitCode, 0,
-        reason: 'stdout: ${result.stdout}\nstderr: ${result.stderr}');
+    expect(buildSnapshotResult.exitCode, 0,
+        reason: 'stdout: ${buildSnapshotResult.stdout}\n'
+            'stderr: ${buildSnapshotResult.stderr}');
 
     var clazzId = await executor.loadMacro(macroUri, macroName,
         precompiledKernelUri: kernelOutputFile.uri);
     expect(clazzId, isNotNull, reason: 'Can load a macro.');
 
-    var instanceId =
+    instanceId =
         await executor.instantiateMacro(clazzId, '', Arguments([], {}));
     expect(instanceId, isNotNull,
         reason: 'Can create an instance with no arguments.');
@@ -80,7 +72,14 @@ void main() {
         clazzId, 'named', Arguments([], {'x': 1, 'y': 2}));
     expect(instanceId, isNotNull,
         reason: 'Can create an instance with named arguments.');
+  });
 
+  tearDownAll(() {
+    if (tmpDir.existsSync()) tmpDir.deleteSync(recursive: true);
+    executor.close();
+  });
+
+  group('run macros', () {
     var stringType = NamedTypeAnnotationImpl(
         id: RemoteInstance.uniqueId,
         name: 'String',
@@ -111,6 +110,7 @@ void main() {
     var myClass = ClassDeclarationImpl(
         id: RemoteInstance.uniqueId,
         name: myClassType.name,
+        type: myClassType,
         typeParameters: [],
         interfaces: [myInterfaceType],
         isAbstract: false,
@@ -134,13 +134,15 @@ void main() {
         id: RemoteInstance.uniqueId,
         name: 'myField',
         initializer: null,
-        isAbstract: false,
         isExternal: false,
+        isFinal: false,
+        isLate: false,
         type: stringType,
         definingClass: myClassType);
     var myInterface = ClassDeclarationImpl(
         id: RemoteInstance.uniqueId,
         name: myInterfaceType.name,
+        type: myInterfaceType,
         typeParameters: [],
         interfaces: [],
         isAbstract: false,
@@ -162,6 +164,7 @@ void main() {
     var myMixin = ClassDeclarationImpl(
         id: RemoteInstance.uniqueId,
         name: myMixinType.name,
+        type: myMixinType,
         typeParameters: [],
         interfaces: [],
         isAbstract: false,
@@ -171,6 +174,7 @@ void main() {
     var mySuperclass = ClassDeclarationImpl(
         id: RemoteInstance.uniqueId,
         name: mySuperclassType.name,
+        type: mySuperclassType,
         typeParameters: [],
         interfaces: [],
         isAbstract: false,
@@ -181,61 +185,189 @@ void main() {
     var myClassStaticType = TestNamedStaticType(
         'package:my_package/my_package.dart', myClassType.name, []);
 
-    var definitionResult = await executor.executeDefinitionsPhase(
-        instanceId,
-        MethodDeclarationImpl(
-          id: RemoteInstance.uniqueId,
-          definingClass: myClassType,
-          isAbstract: false,
-          isExternal: false,
-          isGetter: false,
-          isSetter: false,
-          name: 'foo',
-          namedParameters: [],
-          positionalParameters: [],
-          returnType: stringType,
-          typeParameters: [],
-        ),
-        TestTypeResolver({
-          stringType: TestNamedStaticType('dart:core', stringType.name, []),
-          myClassType: myClassStaticType,
-        }),
-        TestClassIntrospector(
-          constructors: {
-            myClass: [myConstructor],
-          },
-          fields: {
-            myClass: [myField],
-          },
-          interfaces: {
-            myClass: [myInterface],
-          },
-          methods: {
-            myClass: [myMethod],
-          },
-          mixins: {
-            myClass: [myMixin],
-          },
-          superclass: {
-            myClass: mySuperclass,
-          },
-        ),
-        TestTypeDeclarationResolver({myClassStaticType: myClass}));
-    expect(definitionResult.augmentations, hasLength(1));
-    expect(definitionResult.augmentations.first.debugString().toString(),
-        equalsIgnoringWhitespace('''
-          augment class MyClass {
-            augment String foo() {
-              print('x: 1, y: 2');
-              print('parentClass: MyClass');
-              print('superClass: MySuperclass');
-              print('interface: MyInterface');
-              print('mixin: MyMixin');
-              print('field: myField');
-              print('method: myMethod');
-              print('constructor: myConstructor');
-              return augment super();
-            }
-          }'''));
+    var testTypeResolver = TestTypeResolver({
+      stringType: TestNamedStaticType('dart:core', stringType.name, []),
+      myClassType: myClassStaticType,
+    });
+    var testClassIntrospector = TestClassIntrospector(
+      constructors: {
+        myClass: [myConstructor],
+      },
+      fields: {
+        myClass: [myField],
+      },
+      interfaces: {
+        myClass: [myInterface],
+      },
+      methods: {
+        myClass: [myMethod],
+      },
+      mixins: {
+        myClass: [myMixin],
+      },
+      superclass: {
+        myClass: mySuperclass,
+      },
+    );
+    var testTypeDeclarationResolver =
+        TestTypeDeclarationResolver({myClassStaticType: myClass});
+
+    group('in the declaration phase', () {
+      test('on methods', () async {
+        var result = await executor.executeDeclarationsPhase(
+            instanceId, myMethod, testTypeResolver, testClassIntrospector);
+        expect(
+            result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace(
+                'String delegateMemberMyMethod() => myMethod();'));
+      });
+
+      test('on constructors', () async {
+        var result = await executor.executeDeclarationsPhase(
+            instanceId, myConstructor, testTypeResolver, testClassIntrospector);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('''
+              augment class MyClass {
+                factory MyClass.myConstructorDelegate() => MyClass.myConstructor();
+              }'''));
+      });
+
+      test('on fields', () async {
+        var result = await executor.executeDeclarationsPhase(
+            instanceId, myField, testTypeResolver, testClassIntrospector);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('''
+              augment class MyClass {
+                String get delegateMyField => myField;
+              }'''));
+      });
+
+      test('on classes', () async {
+        var result = await executor.executeDeclarationsPhase(
+            instanceId, myClass, testTypeResolver, testClassIntrospector);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('''
+              augment class MyClass {
+                static const List<String> fieldNames = ['myField',];
+              }'''));
+      });
+    });
+
+    group('in the definition phase', () {
+      test('on methods', () async {
+        var definitionResult = await executor.executeDefinitionsPhase(
+            instanceId,
+            myMethod,
+            testTypeResolver,
+            testClassIntrospector,
+            testTypeDeclarationResolver);
+        expect(definitionResult.augmentations, hasLength(2));
+        var augmentationStrings = definitionResult.augmentations
+            .map((a) => a.debugString().toString())
+            .toList();
+        expect(augmentationStrings, unorderedEquals(methodDefinitionMatchers));
+      });
+
+      test('on constructors', () async {
+        var definitionResult = await executor.executeDefinitionsPhase(
+            instanceId,
+            myConstructor,
+            testTypeResolver,
+            testClassIntrospector,
+            testTypeDeclarationResolver);
+        expect(definitionResult.augmentations, hasLength(1));
+        expect(definitionResult.augmentations.first.debugString().toString(),
+            constructorDefinitionMatcher);
+      });
+
+      test('on fields', () async {
+        var definitionResult = await executor.executeDefinitionsPhase(
+            instanceId,
+            myField,
+            testTypeResolver,
+            testClassIntrospector,
+            testTypeDeclarationResolver);
+        expect(definitionResult.augmentations, hasLength(1));
+        expect(definitionResult.augmentations.first.debugString().toString(),
+            fieldDefinitionMatcher);
+      });
+
+      test('on classes', () async {
+        var definitionResult = await executor.executeDefinitionsPhase(
+            instanceId,
+            myClass,
+            testTypeResolver,
+            testClassIntrospector,
+            testTypeDeclarationResolver);
+        var augmentationStrings = definitionResult.augmentations
+            .map((a) => a.debugString().toString())
+            .toList();
+        expect(
+            augmentationStrings,
+            unorderedEquals([
+              ...methodDefinitionMatchers,
+              constructorDefinitionMatcher,
+              fieldDefinitionMatcher
+            ]));
+      });
+    });
   });
 }
+
+final constructorDefinitionMatcher = equalsIgnoringWhitespace('''
+augment class MyClass {
+  augment MyClass.myConstructor() {
+    print('definingClass: MyClass');
+    print('isFactory: false');
+    print('isAbstract: false');
+    print('isExternal: false');
+    print('isGetter: false');
+    print('isSetter: false');
+    print('returnType: MyClass');
+    return augment super();
+  }
+}''');
+
+final fieldDefinitionMatcher = equalsIgnoringWhitespace('''
+augment class MyClass {
+  augment String get myField {
+    print('parentClass: MyClass');
+    print('isExternal: false');
+    print('isFinal: false');
+    print('isLate: false');
+    return augment super;
+  }
+  augment set (String value) {
+    augment super(value);
+  }
+}''');
+
+final methodDefinitionMatchers = [
+  equalsIgnoringWhitespace('''
+    augment class MyClass {
+      augment String myMethod() {
+        print('definingClass: MyClass');
+        print('isAbstract: false');
+        print('isExternal: false');
+        print('isGetter: false');
+        print('isSetter: false');
+        print('returnType: String');
+        return augment super();
+      }
+    }
+    '''),
+  equalsIgnoringWhitespace('''
+    augment class MyClass {
+      augment String myMethod() {
+        print('x: 1, y: 2');
+        print('parentClass: MyClass');
+        print('superClass: MySuperclass');
+        print('interface: MyInterface');
+        print('mixin: MyMixin');
+        print('field: myField');
+        print('method: myMethod');
+        print('constructor: myConstructor');
+        return augment super();
+      }
+    }'''),
+];

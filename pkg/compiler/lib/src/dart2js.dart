@@ -139,6 +139,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   ReadStrategy readStrategy = ReadStrategy.fromDart;
   WriteStrategy writeStrategy = WriteStrategy.toJs;
   FeatureOptions features = FeatureOptions();
+  String invoker;
 
   void passThrough(String argument) => options.add(argument);
   void ignoreOption(String argument) {}
@@ -480,6 +481,10 @@ Future<api.CompilationResult> compile(List<String> argv,
     passThrough(argument);
   }
 
+  void setInvoker(String argument) {
+    invoker = extractParameter(argument);
+  }
+
   void handleThrowOnError(String argument) {
     throwOnError = true;
     String parameter = extractParameter(argument, isOptionalArgument: true);
@@ -645,6 +650,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     OptionHandler(Flags.testMode, passThrough),
     OptionHandler('${Flags.dumpSsa}=.+', passThrough),
     OptionHandler('${Flags.cfeInvocationModes}=.+', passThrough),
+    OptionHandler('${Flags.invoker}=.+', setInvoker),
     OptionHandler('${Flags.verbosity}=.+', passThrough),
 
     // Experimental features.
@@ -693,6 +699,13 @@ Future<api.CompilationResult> compile(List<String> argv,
   ];
 
   parseCommandLine(handlers, argv);
+
+  if (invoker == null) {
+    warning("The 'dart2js' entrypoint script is deprecated, "
+        "please use 'dart compile js' instead.");
+  } else if (verbose != null) {
+    print("Compiler invoked from: '$invoker'");
+  }
 
   // TODO(johnniwinther): Measure time for reading files.
   SourceFileProvider inputProvider;
@@ -1128,7 +1141,7 @@ void help() {
   // before and after running the compiler. Another two lines may be
   // used to print an error message.
   print('''
-Usage: dart2js [options] dartfile
+Usage: dart compile js [options] dartfile
 
 Compiles Dart to JavaScript.
 
@@ -1140,7 +1153,7 @@ Common options:
 
 void verboseHelp() {
   print(r'''
-Usage: dart2js [options] dartfile
+Usage: dart compile js [options] dartfile
 
 Compiles Dart to JavaScript.
 
@@ -1350,6 +1363,15 @@ void helpAndFail(String message) {
   help();
   print('');
   fail(message);
+}
+
+void warning(String message) {
+  if (diagnosticHandler != null) {
+    diagnosticHandler.report(
+        null, null, -1, -1, message, api.Diagnostic.WARNING);
+  } else {
+    print('Warning: $message');
+  }
 }
 
 Future<void> main(List<String> arguments) async {
