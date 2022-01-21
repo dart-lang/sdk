@@ -49,6 +49,14 @@ abstract class Iterator<E> {
   /// If that happens, the iterator may be in an inconsistent
   /// state, and any further behavior of the iterator is unspecified,
   /// including the effect of reading [current].
+  /// ```dart
+  /// final colors = ['blue', 'yellow', 'red'];
+  /// final colorsIterator = colors.iterator;
+  /// print(colorsIterator.moveNext()); // true
+  /// print(colorsIterator.moveNext()); // true
+  /// print(colorsIterator.moveNext()); // true
+  /// print(colorsIterator.moveNext()); // false
+  /// ```
   bool moveNext();
 
   /// The current element.
@@ -65,5 +73,18 @@ abstract class Iterator<E> {
   /// [moveNext], even if an underlying collection changes.
   /// After a successful call to `moveNext`, the user doesn't need to cache
   /// the current value, but can keep reading it from the iterator.
+  /// ```dart
+  /// final colors = ['blue', 'yellow', 'red'];
+  /// var colorsIterator = colors.iterator;
+  /// while (colorsIterator.moveNext()) {
+  ///   print(colorsIterator.current);
+  /// }
+  /// ```
+  /// The output of the example is:
+  /// ```
+  /// blue
+  /// yellow
+  /// red
+  /// ```
   E get current;
 }
