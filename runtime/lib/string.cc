@@ -343,8 +343,8 @@ DEFINE_NATIVE_ENTRY(Internal_writeIntoOneByteString, 0, 3) {
   ASSERT(receiver.IsOneByteString());
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, code_point_obj, arguments->NativeArgAt(2));
-  ASSERT((0 <= code_point_obj.Value()) && (code_point_obj.Value() <= 0xFF));
-  OneByteString::SetCharAt(receiver, index_obj.Value(), code_point_obj.Value());
+  OneByteString::SetCharAt(receiver, index_obj.Value(),
+                           code_point_obj.Value() & 0xFF);
   return Object::null();
 }
 
@@ -353,8 +353,8 @@ DEFINE_NATIVE_ENTRY(Internal_writeIntoTwoByteString, 0, 3) {
   ASSERT(receiver.IsTwoByteString());
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, code_point_obj, arguments->NativeArgAt(2));
-  ASSERT((0 <= code_point_obj.Value()) && (code_point_obj.Value() <= 0xFFFF));
-  TwoByteString::SetCharAt(receiver, index_obj.Value(), code_point_obj.Value());
+  TwoByteString::SetCharAt(receiver, index_obj.Value(),
+                           code_point_obj.Value() & 0xFFFF);
   return Object::null();
 }
 

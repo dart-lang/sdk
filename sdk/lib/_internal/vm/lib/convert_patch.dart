@@ -1979,7 +1979,7 @@ class _Utf8Decoder {
         }
         byte = (byte << 6) | e;
       }
-      writeIntoOneByteString(result, j++, byte & 0xFF);
+      writeIntoOneByteString(result, j++, byte);
     }
     // Output size must match, unless we are doing single conversion and are
     // inside an unfinished sequence (which will trigger an error later).
