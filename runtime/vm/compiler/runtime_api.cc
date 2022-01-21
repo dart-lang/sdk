@@ -101,6 +101,11 @@ intptr_t ObjectHash(const Object& obj) {
   if (obj.IsNull()) {
     return kNullIdentityHash;
   }
+  // TypeArguments should be handled before Instance as TypeArguments extends
+  // Instance and TypeArguments::CanonicalizeHash just returns 0.
+  if (obj.IsTypeArguments()) {
+    return TypeArguments::Cast(obj).Hash();
+  }
   if (obj.IsInstance()) {
     return Instance::Cast(obj).CanonicalizeHash();
   }
@@ -119,6 +124,10 @@ intptr_t ObjectHash(const Object& obj) {
   }
   // Unlikely.
   return obj.GetClassId();
+}
+
+const char* ObjectToCString(const Object& obj) {
+  return obj.ToCString();
 }
 
 void SetToNull(Object* obj) {

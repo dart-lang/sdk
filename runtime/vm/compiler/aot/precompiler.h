@@ -219,7 +219,7 @@ class InstanceKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline uword Hash(Key key) { return key->GetClassId(); }
+  static inline uword Hash(Key key) { return key->CanonicalizeHash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();
