@@ -19,7 +19,7 @@ part of dart.core;
 /// and returns the first [RegExpMatch].
 /// All other methods in [RegExp] can be build from that.
 ///
-/// The following example finds first match of a regular expression in
+/// The following example finds the first match of a regular expression in
 /// a string.
 /// ```dart
 /// RegExp exp = RegExp(r'(\w+)');
@@ -165,11 +165,11 @@ abstract class RegExp implements Pattern {
   /// ```dart
   /// final str = 'Parse my string';
   /// var regExp = RegExp(r'STRING', caseSensitive: false);
-  /// Iterable<RegExpMatch> matches = regExp.allMatches(str); // Has matches.
+  /// final hasMatch = regExp.hasMatch(str); // Has matches.
   /// print(regExp.isCaseSensitive); // false
   ///
   /// regExp = RegExp(r'STRING', caseSensitive: true);
-  /// Iterable<RegExpMatch> caseSensitiveMatches = regExp.allMatches(str); // No matches.
+  /// final hasCaseSensitiveMatch = regExp.hasMatch(str); // No matches.
   /// print(regExp.isCaseSensitive); // true
   /// ```
   bool get isCaseSensitive;
