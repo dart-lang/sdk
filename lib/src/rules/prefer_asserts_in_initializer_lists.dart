@@ -71,9 +71,7 @@ class _AssertVisitor extends RecursiveAstVisitor {
         element is PropertyAccessorElement &&
             !element.isStatic &&
             _hasAccessor(element) &&
-            !constructorElement.parameters
-                .whereType<FieldFormalParameterElement>()
-                .any((p) => p.field?.getter == element);
+            !_paramMatchesField(element, constructorElement.parameters);
   }
 
   @override
@@ -89,6 +87,23 @@ class _AssertVisitor extends RecursiveAstVisitor {
   bool _hasMethod(MethodElement element) {
     var classes = classAndSuperClasses?.classes;
     return classes != null && classes.contains(element.enclosingElement);
+  }
+
+  bool _paramMatchesField(
+      PropertyAccessorElement element, List<ParameterElement> parameters) {
+    for (var p in parameters) {
+      ParameterElement? parameterElement = p;
+      if (parameterElement is SuperFormalParameterElement) {
+        parameterElement = parameterElement.superConstructorParameter;
+      }
+
+      if (parameterElement is FieldFormalParameterElement) {
+        if (parameterElement.field?.getter == element) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
 

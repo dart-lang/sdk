@@ -9,7 +9,36 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PreferAssertsInInitializerListsTest);
+    defineReflectiveTests(PreferAssertsInInitializerListsSuperTest);
   });
+}
+
+@reflectiveTest
+class PreferAssertsInInitializerListsSuperTest extends LintRuleTest {
+  @override
+  List<String> get experiments => [
+        EnableString.super_parameters,
+      ];
+
+  @override
+  String get lintRule => 'prefer_asserts_in_initializer_lists';
+
+  test_super() async {
+    await assertDiagnostics(r'''
+class A {
+  final int a;
+  A(this.a);
+}
+
+class B extends A {
+  B(super.a) {
+    assert(a != 0);
+  }
+}
+''', [
+      lint('prefer_asserts_in_initializer_lists', 80, 6),
+    ]);
+  }
 }
 
 @reflectiveTest
