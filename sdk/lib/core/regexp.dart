@@ -19,12 +19,13 @@ part of dart.core;
 /// and returns the first [RegExpMatch].
 /// All other methods in [RegExp] can be build from that.
 ///
-/// /// The following example finds first match of a regular expression in
+/// The following example finds first match of a regular expression in
 /// a string.
 /// ```dart
-/// RegExp exp = RegExp(r'Parse');
+/// RegExp exp = RegExp(r'(\w+)');
 /// String str = 'Parse my string';
 /// RegExpMatch? match = exp.firstMatch(str);
+/// print(match![0]); // "Parse"
 /// ```
 /// Use [allMatches] to look for all matches of a regular expression in
 /// a string.
@@ -35,6 +36,15 @@ part of dart.core;
 /// RegExp exp = RegExp(r'(\w+)');
 /// String str = 'Parse my string';
 /// Iterable<RegExpMatch> matches = exp.allMatches(str);
+/// for (final m in matches) {
+///   print(m[0]);
+/// }
+/// ```
+/// The output of the example is:
+/// ```
+/// Parse
+/// my
+/// string
 /// ```
 ///
 /// Note the use of a _raw string_ (a string prefixed with `r`)
@@ -103,7 +113,7 @@ abstract class RegExp implements Pattern {
   /// Returns `null` if there is no match.
   /// ```dart
   /// final string = '[00:13.37] This is a chat message.';
-  /// final regExp = RegExp(r'chat');
+  /// final regExp = RegExp(r'c\w*');
   /// final match = regExp.firstMatch(string)!;
   /// print(match[0]); // chat
   /// ```
@@ -114,10 +124,9 @@ abstract class RegExp implements Pattern {
   /// Whether the regular expression has a match in the string [input].
   /// ```dart
   /// var string = 'Dash is a bird';
-  /// var regExp = RegExp(r'bird');
+  /// var regExp = RegExp(r'(humming)?bird');
   /// var match = regExp.hasMatch(string); // true
   ///
-  /// string = 'Dash is a bird';
   /// regExp = RegExp(r'dog');
   /// match = regExp.hasMatch(string); // false
   /// ```
@@ -126,10 +135,9 @@ abstract class RegExp implements Pattern {
   /// The substring of the first match of this regular expression in [input].
   /// ```dart
   /// var string = 'Dash is a bird';
-  /// var regExp = RegExp(r'bird');
+  /// var regExp = RegExp(r'(humming)?bird');
   /// var match = regExp.stringMatch(string); // Match
   ///
-  /// string = 'Dash is a bird';
   /// regExp = RegExp(r'dog');
   /// match = regExp.stringMatch(string); // No match
   /// ```
@@ -177,15 +185,17 @@ abstract class RegExp implements Pattern {
   /// some pattern features, like Unicode property escapes, are only available in
   /// this mode.
   /// ```dart
-  /// var regExp = RegExp(r'\p{L}', unicode: true);
+  /// var regExp = RegExp(r'^\p{L}$', unicode: true);
   /// print(regExp.hasMatch('a')); // true
   /// print(regExp.hasMatch('b')); // true
   /// print(regExp.hasMatch('?')); // false
+  /// print(regExp.hasMatch(r'p{L}')); // false
   ///
-  /// regExp = RegExp(r'\p{L}', unicode: false);
+  /// regExp = RegExp(r'^\p{L}$', unicode: false);
   /// print(regExp.hasMatch('a')); // false
   /// print(regExp.hasMatch('b')); // false
   /// print(regExp.hasMatch('?')); // false
+  /// print(regExp.hasMatch(r'p{L}')); // true
   /// ```
   @Since("2.4")
   bool get isUnicode;
