@@ -378,13 +378,11 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-/// Common configuration for dart2js-based tools, such as dart2js.
-class Dart2xCompilerConfiguration extends CompilerConfiguration {
+/// Configuration for dart2js.
+class Dart2jsCompilerConfiguration extends CompilerConfiguration {
   static final Map<String, List<Uri>> _bootstrapDependenciesCache = {};
 
-  final String moniker;
-
-  Dart2xCompilerConfiguration(this.moniker, TestConfiguration configuration)
+  Dart2jsCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   String computeCompilerPath() {
@@ -416,8 +414,13 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
     arguments.add('--out=$outputFileName');
 
-    return CompilationCommand(moniker, outputFileName, bootstrapDependencies(),
-        computeCompilerPath(), arguments, environmentOverrides,
+    return CompilationCommand(
+        'dart2js',
+        outputFileName,
+        bootstrapDependencies(),
+        computeCompilerPath(),
+        arguments,
+        environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 
@@ -431,12 +434,6 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
                   .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')
             ]);
   }
-}
-
-/// Configuration for dart2js.
-class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
-  Dart2jsCompilerConfiguration(TestConfiguration configuration)
-      : super('dart2js', configuration);
 
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
