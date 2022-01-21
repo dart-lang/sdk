@@ -66,7 +66,6 @@ namespace dart {
 #define Z (T->zone())
 
 DECLARE_FLAG(bool, print_class_table);
-DECLARE_FLAG(bool, verify_handles);
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
 DEFINE_FLAG(bool,
             check_function_fingerprints,
@@ -372,10 +371,6 @@ ObjectPtr Api::UnwrapHandle(Dart_Handle object) {
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread->isolate() != NULL);
-  ASSERT(!FLAG_verify_handles || thread->IsValidLocalHandle(object) ||
-         thread->isolate()->group()->api_state()->IsActivePersistentHandle(
-             reinterpret_cast<Dart_PersistentHandle>(object)) ||
-         Dart::IsReadOnlyApiHandle(object));
   ASSERT(FinalizablePersistentHandle::ptr_offset() == 0 &&
          PersistentHandle::ptr_offset() == 0 && LocalHandle::ptr_offset() == 0);
 #endif

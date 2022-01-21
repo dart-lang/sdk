@@ -2510,15 +2510,6 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
 #if defined(DEBUG)
 bool Object::InVMIsolateHeap() const {
-  if (FLAG_verify_handles && ptr()->untag()->InVMIsolateHeap()) {
-    Heap* vm_isolate_heap = Dart::vm_isolate_group()->heap();
-    uword addr = UntaggedObject::ToAddr(ptr());
-    if (!vm_isolate_heap->Contains(addr)) {
-      ASSERT(FLAG_write_protect_code);
-      addr = UntaggedObject::ToAddr(OldPage::ToWritable(ptr()));
-      ASSERT(vm_isolate_heap->Contains(addr));
-    }
-  }
   return ptr()->untag()->InVMIsolateHeap();
 }
 #endif  // DEBUG
@@ -2610,19 +2601,6 @@ void Object::CheckHandle() const {
       cid = kInstanceCid;
     }
     ASSERT(vtable() == builtin_vtables_[cid]);
-    if (FLAG_verify_handles && ptr_->IsHeapObject()) {
-      Heap* isolate_heap = IsolateGroup::Current()->heap();
-      if (!isolate_heap->new_space()->scavenging()) {
-        Heap* vm_isolate_heap = Dart::vm_isolate_group()->heap();
-        uword addr = UntaggedObject::ToAddr(ptr_);
-        if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
-          ASSERT(FLAG_write_protect_code);
-          addr = UntaggedObject::ToAddr(OldPage::ToWritable(ptr_));
-          ASSERT(isolate_heap->Contains(addr) ||
-                 vm_isolate_heap->Contains(addr));
-        }
-      }
-    }
   }
 #endif
 }
