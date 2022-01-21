@@ -76,9 +76,9 @@ abstract class Iterator<E> {
   /// ```dart
   /// final colors = ['blue', 'yellow', 'red'];
   /// var colorsIterator = colors.iterator;
-  ///  while (colorsIterator.moveNext()) {
+  /// while (colorsIterator.moveNext()) {
   ///   print(colorsIterator.current);
-  ///  }
+  /// }
   /// ```
   /// The output of the example is:
   /// ```
