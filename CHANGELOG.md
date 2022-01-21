@@ -17,6 +17,19 @@
 - `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
   `false`.
 
+### Tools
+
+#### Dart command line
+
+- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dart2js` tool has been
+  marked deprecated as previously announced.
+  Its replacement is the `dart compile js` command.
+  Should you find any issues, or missing features, in the replacement
+  command, kindly file [an issue][].
+
+[an issue]: https://github.com/dart-lang/sdk/issues/new
+
 ## 2.16.0
 
 ### Core libraries
