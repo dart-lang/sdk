@@ -9,6 +9,9 @@
 
 import 'dart:ffi';
 
+// Reuse the AbiSpecificInts.
+import 'abi_specific_ints.dart';
+
 class Struct1ByteBool extends Struct {
   @Bool()
   bool a0;

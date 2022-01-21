@@ -20,7 +20,6 @@ part 'abi_specific.dart';
 part 'native_type.dart';
 part 'allocation.dart';
 part 'annotations.dart';
-part 'c_type.dart';
 part 'dynamic_library.dart';
 part 'struct.dart';
 part 'union.dart';

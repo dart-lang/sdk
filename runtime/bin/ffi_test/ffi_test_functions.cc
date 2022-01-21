@@ -1138,36 +1138,27 @@ DART_EXPORT uint64_t SizeOfStruct3BytesPackedInt() {
 typedef intptr_t ssize_t;
 #endif
 
-#define DEFINE_SIZE_OF_AND_SIGN_OF(type_modifier, type, type2)                 \
-  DART_EXPORT uint64_t FfiSizeOf_##type_modifier##_##type##_##type2() {        \
-    return sizeof(type_modifier type type2);                                   \
-  }                                                                            \
-                                                                               \
-  DART_EXPORT uint64_t FfiSignOf_##type_modifier##_##type##_##type2() {        \
-    return std::numeric_limits<type_modifier type type2>::is_signed;           \
+#define DEFINE_SIZE_OF(type_modifier, type)                                    \
+  DART_EXPORT uint64_t FfiSizeOf_##type_modifier##_##type() {                  \
+    return sizeof(type_modifier type);                                         \
   }
 
-#define TYPES(F)                                                               \
-  F(, char, )             /* NOLINT */                                         \
-  F(signed, char, )       /* NOLINT */                                         \
-  F(unsigned, char, )     /* NOLINT */                                         \
-  F(, short, )            /* NOLINT */                                         \
-  F(unsigned, short, )    /* NOLINT */                                         \
-  F(, int, )              /* NOLINT */                                         \
-  F(unsigned, int, )      /* NOLINT */                                         \
-  F(, long, )             /* NOLINT */                                         \
-  F(unsigned, long, )     /* NOLINT */                                         \
-  F(, long, long)         /* NOLINT */                                         \
-  F(unsigned, long, long) /* NOLINT */                                         \
-  F(, intptr_t, )         /* NOLINT */                                         \
-  F(, uintptr_t, )        /* NOLINT */                                         \
-  F(, size_t, )           /* NOLINT */                                         \
-  F(, wchar_t, )          /* NOLINT */
+#define SIZES(F)                                                               \
+  F(, intptr_t)                                                                \
+  F(, uintptr_t)                                                               \
+  F(, int)                                                                     \
+  F(unsigned, int)                                                             \
+  F(, long)         /* NOLINT */                                               \
+  F(unsigned, long) /* NOLINT */                                               \
+  F(, wchar_t)                                                                 \
+  F(, size_t)                                                                  \
+  F(, ssize_t)                                                                 \
+  F(, off_t)
 
-TYPES(DEFINE_SIZE_OF_AND_SIGN_OF)
+SIZES(DEFINE_SIZE_OF)
 
-#undef DEFINE_SIZE_OF_AND_SIGN_OF
-#undef TYPES
+#undef DEFINE_SIZE_OF
+#undef SIZES
 
 DART_EXPORT int64_t WCharMinValue() {
   return WCHAR_MIN;

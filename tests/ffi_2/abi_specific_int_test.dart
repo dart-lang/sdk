@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
+import 'abi_specific_ints.dart';
+
 void main() {
   testSizeOf();
   testStoreLoad();

@@ -55,6 +55,11 @@ class Uint32 extends _NativeInteger {}
 @pragma("vm:entry-point")
 class Uint64 extends _NativeInteger {}
 
+// TODO(http://dartbug.com/47938): Implement as AbiSpecificInteger.
+@patch
+@pragma("vm:entry-point")
+class IntPtr extends _NativeInteger {}
+
 @patch
 @pragma("vm:entry-point")
 class Float extends _NativeDouble {}
