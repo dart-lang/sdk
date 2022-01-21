@@ -728,7 +728,7 @@ abstract class String implements Comparable<String>, Pattern {
 /// The characters of a string are encoded in UTF-16. Decoding UTF-16, which
 /// combines surrogate pairs, yields Unicode code points. Following a similar
 /// terminology to Go, Dart uses the name 'rune' for an integer representing a
-/// Unicode code point. Use the [runes] property to get the runes of a string:
+/// Unicode code point. Use the `runes` property to get the runes of a string.
 ///
 /// Example:
 /// ```dart
@@ -741,30 +741,19 @@ abstract class String implements Comparable<String>, Pattern {
 /// composed of a surrogate pair, runes combines the pair and returns a
 /// single integer.
 ///
-/// For example, the Unicode character for a Family emoji ('👨‍👩‍👦') combines:
-/// * Man ('👨', U+1F468),
-/// * Woman ('👩', U+1F469) and
-/// * Boy ('👦', U+1F466).
-///
-/// Zero Width Joiner (U+200D) is a Unicode character that joins two or more
-/// other characters together in sequence to create a new emoji.
+/// For example, the Unicode character for "Man" emoji ('👨', `U+1F468`) is
+/// combined from the surrogates `U+d83d` and `U+dc68`.
 ///
 /// Example:
 /// ```dart
-/// const emojiFamily = '👨‍👩‍👦';
-/// ```
-/// Using `runes` returns their combined value:
-/// ```dart continued
-/// print(emojiFamily.runes); // (128104, 8205, 128105, 8205, 128102)
+/// const emojiMan = '👨';
+/// print(emojiMan.runes); // (128104)
 ///
-/// // Unicode values:
-/// for (final item in emojiFamily.runes) {
+/// // Surrogate pairs:
+/// for (final item in emojiMan.codeUnits) {
 ///   print(item.toRadixString(16));
-///   // 1f468 // Man
-///   // 200d // Zero Width Joiner
-///   // 1f469 // Woman
-///   // 200d // Zero Width Joiner
-///   // 1f466 // Boy
+///   // d83d
+///   // dc68
 /// }
 /// ```
 ///
