@@ -100,10 +100,10 @@ general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
 general/issue45490: FormatterCrash
 general/issue45700.crash: FormatterCrash
-general/issue_46886: FormatterCrash
 general/issue47495: FormatterCrash
 general/issue47728_2: FormatterCrash
 general/issue47728_3: FormatterCrash
+general/issue_46886: FormatterCrash
 general/macro_class: FormatterCrash
 general/many_errors: FormatterCrash
 general/missing_prefix_name: FormatterCrash
@@ -219,6 +219,7 @@ super_parameters/simple: FormatterCrash
 super_parameters/simple_inference: FormatterCrash
 super_parameters/simple_named_super_parameters: FormatterCrash
 super_parameters/simple_positional_super_parameters: FormatterCrash
+super_parameters/super_parameters_with_types_and_default_values: FormatterCrash
 super_parameters/synthesized_super_constructor_with_parameters: FormatterCrash
 super_parameters/type_alias_in_supertype: FormatterCrash
 super_parameters/typed_super_parameter: FormatterCrash

@@ -357,45 +357,42 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       if (formal.isSuperInitializingFormal) {
         superInitializingFormalIndex++;
         bool hasImmediatelyDeclaredInitializer = formal.hasDeclaredInitializer;
-        if (formal.type == null) {
-          DartType? type;
 
-          if (formal.isPositional) {
-            if (superInitializingFormalIndex < superFormals.length) {
-              FormalParameterBuilder correspondingSuperFormal =
-                  superFormals[superInitializingFormalIndex];
-              formal.hasDeclaredInitializer =
-                  hasImmediatelyDeclaredInitializer ||
-                      correspondingSuperFormal.hasDeclaredInitializer;
-              if (!hasImmediatelyDeclaredInitializer) {
-                (positionalSuperParameters ??= <int>[]).add(formalIndex);
-              }
-              type = correspondingSuperFormal.variable!.type;
-            } else {
-              // TODO(cstefantsova): Report an error.
+        FormalParameterBuilder? correspondingSuperFormal;
+
+        if (formal.isPositional) {
+          if (superInitializingFormalIndex < superFormals.length) {
+            correspondingSuperFormal =
+                superFormals[superInitializingFormalIndex];
+            formal.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer ||
+                correspondingSuperFormal.hasDeclaredInitializer;
+            if (!hasImmediatelyDeclaredInitializer) {
+              (positionalSuperParameters ??= <int>[]).add(formalIndex);
             }
           } else {
-            FormalParameterBuilder? correspondingSuperFormal;
-            for (FormalParameterBuilder superFormal in superFormals) {
-              if (superFormal.isNamed && superFormal.name == formal.name) {
-                correspondingSuperFormal = superFormal;
-                break;
-              }
-            }
-
-            if (correspondingSuperFormal != null) {
-              formal.hasDeclaredInitializer =
-                  hasImmediatelyDeclaredInitializer ||
-                      correspondingSuperFormal.hasDeclaredInitializer;
-              if (!hasImmediatelyDeclaredInitializer) {
-                (namedSuperParameters ??= <String>[]).add(formal.name);
-              }
-              type = correspondingSuperFormal.variable!.type;
-            } else {
-              // TODO(cstefantsova): Report an error.
+            // TODO(cstefantsova): Report an error.
+          }
+        } else {
+          for (FormalParameterBuilder superFormal in superFormals) {
+            if (superFormal.isNamed && superFormal.name == formal.name) {
+              correspondingSuperFormal = superFormal;
+              break;
             }
           }
 
+          if (correspondingSuperFormal != null) {
+            formal.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer ||
+                correspondingSuperFormal.hasDeclaredInitializer;
+            if (!hasImmediatelyDeclaredInitializer) {
+              (namedSuperParameters ??= <String>[]).add(formal.name);
+            }
+          } else {
+            // TODO(cstefantsova): Report an error.
+          }
+        }
+
+        if (formal.type == null) {
+          DartType? type = correspondingSuperFormal?.variable?.type;
           if (substitution.isNotEmpty && type != null) {
             type = substitute(type, substitution);
           }
