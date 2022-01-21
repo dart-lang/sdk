@@ -242,7 +242,7 @@ class BazelWorkspace extends Workspace
     resolvers.add(packageUriResolver);
     resolvers.add(BazelFileUriResolver(this));
     if (summaryData != null) {
-      resolvers.add(InSummaryUriResolver(provider, summaryData));
+      resolvers.add(InSummaryUriResolver(summaryData));
     }
     return SourceFactory(resolvers);
   }

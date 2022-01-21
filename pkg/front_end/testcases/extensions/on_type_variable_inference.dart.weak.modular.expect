@@ -1,0 +1,148 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference.dart:44:13: Error: The method 'method' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'method'.
+//   nonStruct.method();
+//             ^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference.dart:45:34: Error: The getter 'property' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+//   nonStruct.property = nonStruct.property;
+//                                  ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference.dart:45:13: Error: The setter 'property' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+//   nonStruct.property = nonStruct.property;
+//             ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference.dart:46:19: Error: The method 'method' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'method'.
+//   new NonStruct().method();
+//                   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference.dart:47:19: Error: The getter 'property' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+//   new NonStruct().property;
+//                   ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference.dart:48:19: Error: The setter 'property' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+//   new NonStruct().property = null;
+//                   ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Struct extends core::Object {
+  synthetic constructor •() → self::Struct*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class StructA extends self::Struct {
+  synthetic constructor •() → self::StructA*
+    : super self::Struct::•()
+    ;
+}
+class StructB extends self::Struct {
+  synthetic constructor •() → self::StructB*
+    : super self::Struct::•()
+    ;
+}
+class NonStruct extends core::Object {
+  synthetic constructor •() → self::NonStruct*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension<T extends self::Struct*> on T* {
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  get property = self::Extension|get#property;
+  set property = self::Extension|set#property;
+}
+static method Extension|method<T extends self::Struct*>(lowered final self::Extension|method::T* #this) → self::Extension|method::T*
+  return #this;
+static method Extension|get#method<T extends self::Struct*>(lowered final self::Extension|get#method::T* #this) → () →* self::Extension|get#method::T*
+  return () → self::Extension|get#method::T* => self::Extension|method<self::Extension|get#method::T*>(#this);
+static method Extension|get#property<T extends self::Struct*>(lowered final self::Extension|get#property::T* #this) → self::Extension|get#property::T*
+  return #this;
+static method Extension|set#property<T extends self::Struct*>(lowered final self::Extension|set#property::T* #this, self::Extension|set#property::T* value) → void {}
+static method main() → dynamic {
+  self::Struct* struct;
+  self::StructA* structA;
+  self::StructB* structB;
+  self::Extension|method<self::Struct*>(struct);
+  self::Extension|set#property<self::Struct*>(struct, self::Extension|get#property<self::StructA*>(structA));
+  self::Extension|method<self::StructA*>(structA);
+  self::Extension|set#property<self::StructA*>(structA, self::Extension|get#property<self::Struct*>(struct) as{TypeError} self::StructA*);
+  self::Extension|method<self::StructB*>(structB);
+  self::Extension|set#property<self::StructB*>(structB, self::Extension|get#property<self::StructB*>(structB));
+  self::Extension|method<self::Struct*>(new self::Struct::•());
+  self::Extension|get#property<self::Struct*>(new self::Struct::•());
+  self::Extension|set#property<self::Struct*>(new self::Struct::•(), null);
+  self::Extension|method<self::StructA*>(new self::StructA::•());
+  self::Extension|get#property<self::StructA*>(new self::StructA::•());
+  self::Extension|set#property<self::StructA*>(new self::StructA::•(), null);
+  self::Extension|method<self::StructB*>(new self::StructB::•());
+  self::Extension|get#property<self::StructB*>(new self::StructB::•());
+  self::Extension|set#property<self::StructB*>(new self::StructB::•(), null);
+}
+static method testNonStruct() → dynamic {
+  self::NonStruct* nonStruct;
+  invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference.dart:44:13: Error: The method 'method' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'method'.
+  nonStruct.method();
+            ^^^^^^" in nonStruct{<unresolved>}.method();
+  invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference.dart:45:13: Error: The setter 'property' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+  nonStruct.property = nonStruct.property;
+            ^^^^^^^^" in nonStruct{<unresolved>}.property = invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference.dart:45:34: Error: The getter 'property' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+  nonStruct.property = nonStruct.property;
+                                 ^^^^^^^^" in nonStruct{<unresolved>}.property;
+  invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference.dart:46:19: Error: The method 'method' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'method'.
+  new NonStruct().method();
+                  ^^^^^^" in new self::NonStruct::•(){<unresolved>}.method();
+  invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference.dart:47:19: Error: The getter 'property' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+  new NonStruct().property;
+                  ^^^^^^^^" in new self::NonStruct::•(){<unresolved>}.property;
+  invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference.dart:48:19: Error: The setter 'property' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+  new NonStruct().property = null;
+                  ^^^^^^^^" in new self::NonStruct::•(){<unresolved>}.property = null;
+}

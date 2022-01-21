@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A1<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::A1<self::A1::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension A2<T extends core::Object* = dynamic> on self::A1<T*>* {
+  method method1 = self::A2|method1;
+  tearoff method1 = self::A2|get#method1;
+  method method2 = self::A2|method2;
+  tearoff method2 = self::A2|get#method2;
+}
+extension A3<T extends self::A1<T*>* = self::A1<dynamic>*> on self::A1<T*>* {
+}
+extension A4<T extends core::Object* = dynamic> on self::A1<T*>* {
+  method method = self::A4|method;
+  tearoff method = self::A4|get#method;
+}
+static method A2|method1<T extends core::Object* = dynamic, S extends self::A2|method1::T* = dynamic>(lowered final self::A1<self::A2|method1::T*>* #this) → self::A1<self::A2|method1::T*>* {
+  return #this;
+}
+static method A2|get#method1<T extends core::Object* = dynamic>(lowered final self::A1<self::A2|get#method1::T*>* #this) → <S extends self::A2|get#method1::T* = dynamic>() →* self::A1<self::A2|get#method1::T*>*
+  return <S extends self::A2|get#method1::T* = dynamic>() → self::A1<self::A2|get#method1::T*>* => self::A2|method1<self::A2|get#method1::T*, S*>(#this);
+static method A2|method2<T extends core::Object* = dynamic, S extends self::A1<self::A2|method2::T*>* = self::A1<dynamic>*>(lowered final self::A1<self::A2|method2::T*>* #this, self::A2|method2::S* o) → self::A1<self::A2|method2::T*>* {
+  core::print(o);
+  core::print(self::A2|method2::T*);
+  core::print(self::A2|method2::S*);
+  return #this;
+}
+static method A2|get#method2<T extends core::Object* = dynamic>(lowered final self::A1<self::A2|get#method2::T*>* #this) → <S extends self::A1<self::A2|get#method2::T*>* = self::A1<dynamic>*>(S*) →* self::A1<self::A2|get#method2::T*>*
+  return <S extends self::A1<self::A2|get#method2::T*>* = self::A1<dynamic>*>(S* o) → self::A1<self::A2|get#method2::T*>* => self::A2|method2<self::A2|get#method2::T*, S*>(#this, o);
+static method A4|method<#T extends core::Object* = dynamic, T extends core::Object* = dynamic>(lowered final self::A1<self::A4|method::#T*>* #this) → dynamic {}
+static method A4|get#method<#T extends core::Object* = dynamic>(lowered final self::A1<self::A4|get#method::#T*>* #this) → <T extends core::Object* = dynamic>() →* dynamic
+  return <T extends core::Object* = dynamic>() → dynamic => self::A4|method<self::A4|get#method::#T*, T*>(#this);
+static method main() → dynamic {}

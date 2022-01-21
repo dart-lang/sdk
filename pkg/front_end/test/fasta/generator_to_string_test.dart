@@ -84,18 +84,18 @@ Future<void> main() async {
     Expression index = new VariableGet(new VariableDeclaration("index"));
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     SourceLibraryBuilder libraryBuilder = new SourceLibraryBuilder(
-        uri,
-        uri,
-        /*packageUri*/ null,
-        new ImplicitLanguageVersion(defaultLanguageVersion),
-        new KernelTarget(
+        importUri: uri,
+        fileUri: uri,
+        packageLanguageVersion:
+            new ImplicitLanguageVersion(defaultLanguageVersion),
+        loader: new KernelTarget(
                 const MockFileSystem(),
                 false,
                 new DillTarget(c.options.ticker, uriTranslator,
                     new NoneTarget(new TargetFlags())),
                 uriTranslator)
             .loader,
-        null);
+        isUnsupported: false);
     libraryBuilder.markLanguageVersionFinal();
     LoadLibraryBuilder loadLibraryBuilder =
         new LoadLibraryBuilder(libraryBuilder, dummyLibraryDependency, -1);

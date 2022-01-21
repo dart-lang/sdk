@@ -352,6 +352,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     var constructorDeclaration =
         node.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructorDeclaration != null) {
+      if (request.featureSet.isEnabled(Feature.super_parameters)) {
+        _addSuggestion(Keyword.SUPER);
+      }
       _addSuggestion(Keyword.THIS);
     }
     final entity = this.entity;

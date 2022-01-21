@@ -1,0 +1,155 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue41156.dart:39:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+//   String Function(int) x2 = (int v) /* error */ {
+//                             ^
+//
+// pkg/front_end/testcases/nnbd/issue41156.dart:44:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+//   String Function(int) x3 = (int v) /* error */ {
+//                             ^
+//
+// pkg/front_end/testcases/nnbd/issue41156.dart:49:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+//   String Function(int) x5 = (int v) /* error */ {
+//                             ^
+//
+// pkg/front_end/testcases/nnbd/issue41156.dart:54:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+//   String Function(int) x6 = (int v) /* error */ {
+//                             ^
+//
+// pkg/front_end/testcases/nnbd/issue41156.dart:59:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+//   Future<String> Function(int) y2 = (int v) async /* error */ {
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/issue41156.dart:64:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+//   Future<String> Function(int) y3 = (int v) async /* error */ {
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/issue41156.dart:69:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+//   Future<String> Function(int) y5 = (int v) async /* error */ {
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/issue41156.dart:74:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+//   Future<String> Function(int) y6 = (int v) async /* error */ {
+//                                     ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+import "dart:async" as asy;
+
+static method throwing() → Never
+  return throw "";
+static method main() → void {
+  (core::int) → core::String x1 = (core::int v) → Never => throw v;
+  (core::int) → core::String x2 = (core::int v) → Never {
+    throw v;
+  };
+  (core::int) → core::String x3 = (core::int v) → Never {
+    return throw v;
+  };
+  (core::int) → core::String x4 = (core::int v) → Never => let final Never #t1 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  (core::int) → core::String x5 = (core::int v) → Never {
+    let final Never #t2 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  };
+  (core::int) → core::String x6 = (core::int v) → Never {
+    return let final Never #t3 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  };
+  (core::int) → asy::Future<core::String> y1 = (core::int v) → asy::Future<Never> async => throw v;
+  (core::int) → asy::Future<core::String> y2 = (core::int v) → asy::Future<Never> async {
+    throw v;
+  };
+  (core::int) → asy::Future<core::String> y3 = (core::int v) → asy::Future<Never> async {
+    return throw v;
+  };
+  (core::int) → asy::Future<core::String> y4 = (core::int v) → asy::Future<Never> async => let final Never #t4 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<Never> async {
+    let final Never #t5 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  };
+  (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<Never> async {
+    return let final Never #t6 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  };
+}
+static method errors() → void async {
+  (core::int) → core::String x2 = (core::int v) → core::String {
+    try {
+      throw v;
+    }
+    on core::Object catch(final core::Object _) {
+    }
+    return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:39:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  String Function(int) x2 = (int v) /* error */ {
+                            ^" in null;
+  };
+  (core::int) → core::String x3 = (core::int v) → core::String {
+    try {
+      return throw v;
+    }
+    on core::Object catch(final core::Object _) {
+    }
+    return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:44:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  String Function(int) x3 = (int v) /* error */ {
+                            ^" in null;
+  };
+  (core::int) → core::String x5 = (core::int v) → core::String {
+    try {
+      let final Never #t7 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    }
+    on core::Object catch(final core::Object _) {
+    }
+    return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:49:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  String Function(int) x5 = (int v) /* error */ {
+                            ^" in null;
+  };
+  (core::int) → core::String x6 = (core::int v) → core::String {
+    try {
+      return let final Never #t8 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    }
+    on core::Object catch(final core::Object _) {
+    }
+    return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:54:29: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  String Function(int) x6 = (int v) /* error */ {
+                            ^" in null;
+  };
+  (core::int) → asy::Future<core::String> y2 = (core::int v) → asy::Future<core::String> async {
+    try {
+      throw v;
+    }
+    on core::Object catch(final core::Object _) {
+    }
+    return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:59:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  Future<String> Function(int) y2 = (int v) async /* error */ {
+                                    ^" in null;
+  };
+  (core::int) → asy::Future<core::String> y3 = (core::int v) → asy::Future<core::String> async {
+    try {
+      return throw v;
+    }
+    on core::Object catch(final core::Object _) {
+    }
+    return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:64:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  Future<String> Function(int) y3 = (int v) async /* error */ {
+                                    ^" in null;
+  };
+  (core::int) → asy::Future<core::String> y5 = (core::int v) → asy::Future<core::String> async {
+    try {
+      let final Never #t9 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    }
+    on core::Object catch(final core::Object _) {
+    }
+    return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:69:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  Future<String> Function(int) y5 = (int v) async /* error */ {
+                                    ^" in null;
+  };
+  (core::int) → asy::Future<core::String> y6 = (core::int v) → asy::Future<core::String> async {
+    try {
+      return let final Never #t10 = self::throwing() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+    }
+    on core::Object catch(final core::Object _) {
+    }
+    return invalid-expression "pkg/front_end/testcases/nnbd/issue41156.dart:74:37: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
+  Future<String> Function(int) y6 = (int v) async /* error */ {
+                                    ^" in null;
+  };
+}

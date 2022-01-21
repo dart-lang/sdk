@@ -40,7 +40,6 @@ import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../compiler_context.dart' show CompilerContext;
 import '../crash.dart' show withCrashReporting;
-import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 import '../dill/dill_target.dart' show DillTarget;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../loader.dart' show Loader;
@@ -59,13 +58,14 @@ import '../messages.dart'
         templateFieldNonNullableWithoutInitializerError,
         templateFinalFieldNotInitialized,
         templateFinalFieldNotInitializedByConstructor,
-        templateInferredPackageUri,
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 import '../problems.dart' show unhandled;
 import '../scope.dart' show AmbiguousBuilder;
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
+import '../source/source_constructor_builder.dart';
+import '../source/source_field_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
@@ -81,6 +81,7 @@ import 'constant_evaluator.dart' as constants
         ConstantEvaluationData;
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 import 'kernel_helper.dart';
+import 'macro.dart';
 import 'verifier.dart' show verifyComponent, verifyGetStaticType;
 
 class KernelTarget extends TargetImplementation {
@@ -102,7 +103,7 @@ class KernelTarget extends TargetImplementation {
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final TypeBuilder dynamicType = new NamedTypeBuilder(
       "dynamic",
-      const NullabilityBuilder.nullable(),
+      const NullabilityBuilder.inherent(),
       /* arguments = */ null,
       /* fileUri = */ null,
       /* charOffset = */ null,
@@ -121,7 +122,7 @@ class KernelTarget extends TargetImplementation {
   //  have NullType?
   final TypeBuilder nullType = new NamedTypeBuilder(
       "Null",
-      const NullabilityBuilder.nullable(),
+      const NullabilityBuilder.inherent(),
       /* arguments = */ null,
       /* fileUri = */ null,
       /* charOffset = */ null,
@@ -130,6 +131,14 @@ class KernelTarget extends TargetImplementation {
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
   final TypeBuilder bottomType = new NamedTypeBuilder(
       "Never",
+      const NullabilityBuilder.omitted(),
+      /* arguments = */ null,
+      /* fileUri = */ null,
+      /* charOffset = */ null,
+      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+
+  final NamedTypeBuilder enumType = new NamedTypeBuilder(
+      "Enum",
       const NullabilityBuilder.omitted(),
       /* arguments = */ null,
       /* fileUri = */ null,
@@ -315,8 +324,7 @@ class KernelTarget extends TargetImplementation {
       Uri translatedEntryPoint =
           getEntryPointUri(entryPoint, issueProblem: true);
       result.add(translatedEntryPoint);
-      loader.read(translatedEntryPoint, -1,
-          accessorUri: loader.firstUri,
+      loader.readAsEntryPoint(translatedEntryPoint,
           fileUri: translatedEntryPoint != entryPoint ? entryPoint : null);
     }
     return result;
@@ -345,13 +353,6 @@ class KernelTarget extends TargetImplementation {
             Uri reversed = Uri.parse(
                 "package:$packageName/${asString.substring(prefix.length)}");
             if (entryPoint == uriTranslator.translate(reversed)) {
-              if (issueProblem) {
-                loader.addProblem(
-                    templateInferredPackageUri.withArguments(reversed),
-                    -1,
-                    1,
-                    entryPoint);
-              }
               entryPoint = reversed;
               break;
             }
@@ -359,23 +360,6 @@ class KernelTarget extends TargetImplementation {
         }
     }
     return entryPoint;
-  }
-
-  /// Returns classes defined in libraries in [loader].
-  List<SourceClassBuilder> collectMyClasses() {
-    List<SourceClassBuilder> result = <SourceClassBuilder>[];
-    for (LibraryBuilder library in loader.libraryBuilders) {
-      if (library.loader == loader) {
-        Iterator<Builder> iterator = library.iterator;
-        while (iterator.moveNext()) {
-          Builder member = iterator.current;
-          if (member is SourceClassBuilder && !member.isPatch) {
-            result.add(member);
-          }
-        }
-      }
-    }
-    return result;
   }
 
   /// The class [cls] is involved in a cyclic definition. This method should
@@ -398,21 +382,28 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInTypeBuilder = null;
   }
 
-  Future<Component?> buildOutlines({CanonicalName? nameRoot}) async {
-    if (loader.first == null) return null;
-    return withCrashReporting<Component?>(() async {
+  Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
+    if (loader.first == null) return new BuildResult();
+    return withCrashReporting<BuildResult>(() async {
       await loader.buildOutlines();
       loader.coreLibrary.becomeCoreLibrary();
       loader.resolveParts();
+      loader.computeMacroDeclarations();
       loader.computeLibraryScopes();
+      MacroApplications? macroApplications =
+          await loader.computeMacroApplications();
       setupTopAndBottomTypes();
       loader.resolveTypes();
       loader.computeVariances();
       loader.computeDefaultTypes(
           dynamicType, nullType, bottomType, objectClassBuilder);
+      // TODO(johnniwinther): Enable this when supported in the isolate-based
+      //  macro executor.
+      /*if (macroApplications != null) {
+        await macroApplications.applyTypeMacros();
+      }*/
       List<SourceClassBuilder> sourceClassBuilders =
           loader.checkSemantics(objectClassBuilder);
-      loader.computeMacroDeclarations(sourceClassBuilders);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
       loader.createTypeInferenceEngine();
       loader.buildComponent();
@@ -423,24 +414,31 @@ class KernelTarget extends TargetImplementation {
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();
       loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
+      loader.checkSupertypes(sourceClassBuilders, enumClass);
+      // TODO(johnniwinther): Enable this when supported in the isolate-based
+      //  macro executor.
+      /*if (macroApplications != null) {
+        await macroApplications.applyDeclarationMacros();
+      }*/
+      loader.buildClassHierarchyMembers(sourceClassBuilders);
       loader.computeHierarchy();
       loader.computeShowHideElements();
       loader.installTypedefTearOffs();
       loader.performTopLevelInference(sourceClassBuilders);
-      loader.checkSupertypes(sourceClassBuilders);
       loader.checkOverrides(sourceClassBuilders);
       loader.checkAbstractMembers(sourceClassBuilders);
       loader.addNoSuchMethodForwarders(sourceClassBuilders);
       loader.checkMixins(sourceClassBuilders);
       loader.buildOutlineExpressions(
-          loader.coreTypes, synthesizedFunctionNodes);
-      loader.computeMacroApplications();
+          loader.hierarchy, synthesizedFunctionNodes);
       loader.checkTypes();
       loader.checkRedirectingFactories(sourceClassBuilders);
+      finishSynthesizedParameters(forOutline: true);
       loader.checkMainMethods();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
-      return component;
+      return new BuildResult(
+          component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
   }
 
@@ -452,23 +450,31 @@ class KernelTarget extends TargetImplementation {
   ///
   /// If [verify], run the default kernel verification on the resulting
   /// component.
-  Future<Component?> buildComponent({bool verify: false}) async {
-    if (loader.first == null) return null;
-    return withCrashReporting<Component?>(() async {
+  Future<BuildResult> buildComponent(
+      {required MacroApplications? macroApplications,
+      bool verify: false}) async {
+    if (loader.first == null) {
+      return new BuildResult(macroApplications: macroApplications);
+    }
+    return withCrashReporting<BuildResult>(() async {
       ticker.logMs("Building component");
       await loader.buildBodies();
       finishSynthesizedParameters();
       loader.finishDeferredLoadTearoffs();
       loader.finishNoSuchMethodForwarders();
-      List<SourceClassBuilder> myClasses = collectMyClasses();
+      List<SourceClassBuilder> sourceClasses = loader.collectSourceClasses();
+      if (macroApplications != null) {
+        await macroApplications.applyDefinitionMacros();
+      }
       loader.finishNativeMethods();
       loader.finishPatchMethods();
-      finishAllConstructors(myClasses);
+      finishAllConstructors(sourceClasses);
       runBuildTransformations();
 
       if (verify) this.verify();
       installAllComponentProblems(loader.allComponentProblems);
-      return component;
+      return new BuildResult(
+          component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
   }
 
@@ -532,11 +538,7 @@ class KernelTarget extends TargetImplementation {
         declaration = problem.getFirstDeclaration();
       }
       if (declaration is ProcedureBuilder) {
-        mainReference = declaration.actualProcedure.reference;
-      } else if (declaration is DillMemberBuilder) {
-        if (declaration.member is Procedure) {
-          mainReference = declaration.member.reference;
-        }
+        mainReference = declaration.procedure.reference;
       }
     }
     component.setMainMethodAndMode(mainReference, true, compiledMode);
@@ -625,33 +627,8 @@ class KernelTarget extends TargetImplementation {
 
   void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
-    for (LibraryBuilder library in loader.libraryBuilders) {
-      if (library.loader == loader) {
-        Iterator<Builder> iterator = library.iterator;
-        while (iterator.moveNext()) {
-          Builder declaration = iterator.current;
-          if (declaration is SourceClassBuilder) {
-            Class cls = declaration.cls;
-            if (cls != objectClass) {
-              cls.supertype ??= objectClass.asRawSupertype;
-              declaration.supertypeBuilder ??= new NamedTypeBuilder(
-                  "Object",
-                  const NullabilityBuilder.omitted(),
-                  /* arguments = */ null,
-                  /* fileUri = */ null,
-                  /* charOffset = */ null,
-                  instanceTypeVariableAccess:
-                      InstanceTypeVariableAccessState.Unexpected)
-                ..bind(objectClassBuilder);
-            }
-            if (declaration.isMixinApplication) {
-              cls.mixedInType = declaration.mixedInTypeBuilder!
-                  .buildMixedInType(
-                      library, declaration.charOffset, declaration.fileUri);
-            }
-          }
-        }
-      }
+    for (SourceLibraryBuilder library in loader.sourceLibraryBuilders) {
+      library.installDefaultSupertypes(objectClassBuilder, objectClass);
     }
     ticker.logMs("Installed Object as implicit superclass");
   }
@@ -678,6 +655,10 @@ class KernelTarget extends TargetImplementation {
   ClassBuilder get objectClassBuilder => objectType.declaration as ClassBuilder;
 
   Class get objectClass => objectClassBuilder.cls;
+
+  ClassBuilder get enumClassBuilder => enumType.declaration as ClassBuilder;
+
+  Class get enumClass => enumClassBuilder.cls;
 
   /// If [builder] doesn't have a constructors, install the defaults.
   void installDefaultConstructor(SourceClassBuilder builder) {
@@ -821,10 +802,10 @@ class KernelTarget extends TargetImplementation {
     }
   }
 
-  SyntheticConstructorBuilder _makeMixinApplicationConstructor(
+  SyntheticSourceConstructorBuilder _makeMixinApplicationConstructor(
       SourceClassBuilder classBuilder,
       Class mixin,
-      MemberBuilderImpl superConstructorBuilder,
+      MemberBuilder superConstructorBuilder,
       Map<TypeParameter, DartType> substitutionMap,
       Reference? constructorReference,
       Reference? tearOffReference) {
@@ -925,26 +906,32 @@ class KernelTarget extends TargetImplementation {
       buildConstructorTearOffProcedure(constructorTearOff, constructor,
           classBuilder.cls, classBuilder.library);
     }
-    return new SyntheticConstructorBuilder(
+    return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff,
-        // If the constructor is constant, the default values must be part of
-        // the outline expressions. We pass on the original constructor and
-        // cloned function nodes to ensure that the default values are computed
-        // and cloned for the outline.
-        origin: isConst ? superConstructorBuilder : null,
-        synthesizedFunctionNode: isConst ? synthesizedFunctionNode : null);
+        // We pass on the original constructor and the cloned function nodes to
+        // ensure that the default values are computed and cloned for the
+        // outline. It is needed to make the default values a part of the
+        // outline for const constructors, and additionally it is required for
+        // a potential subclass using super initializing parameters that will
+        // required the cloning of the default values.
+        origin: superConstructorBuilder,
+        synthesizedFunctionNode: synthesizedFunctionNode);
   }
 
-  void finishSynthesizedParameters() {
+  void finishSynthesizedParameters({bool forOutline = false}) {
     for (SynthesizedFunctionNode synthesizedFunctionNode
         in synthesizedFunctionNodes) {
-      synthesizedFunctionNode.cloneDefaultValues();
+      if (!forOutline || synthesizedFunctionNode.isOutlineNode) {
+        synthesizedFunctionNode.cloneDefaultValues();
+      }
     }
-    synthesizedFunctionNodes.clear();
+    if (!forOutline) {
+      synthesizedFunctionNodes.clear();
+    }
     ticker.logMs("Cloned default values of formals");
   }
 
-  SyntheticConstructorBuilder _makeDefaultConstructor(
+  SyntheticSourceConstructorBuilder _makeDefaultConstructor(
       SourceClassBuilder classBuilder,
       Reference? constructorReference,
       Reference? tearOffReference) {
@@ -974,7 +961,7 @@ class KernelTarget extends TargetImplementation {
       buildConstructorTearOffProcedure(constructorTearOff, constructor,
           classBuilder.cls, classBuilder.library);
     }
-    return new SyntheticConstructorBuilder(
+    return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff);
   }
 
@@ -1001,6 +988,8 @@ class KernelTarget extends TargetImplementation {
     nullType.bind(nullClassBuilder..isNullClass = true);
     bottomType.bind(loader.coreLibrary
         .lookupLocalMember("Never", required: true) as TypeDeclarationBuilder);
+    enumType.bind(loader.coreLibrary.lookupLocalMember("Enum", required: true)
+        as TypeDeclarationBuilder);
   }
 
   void computeCoreTypes() {
@@ -1059,11 +1048,12 @@ class KernelTarget extends TargetImplementation {
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
-    List<FieldBuilder> uninitializedFields = <FieldBuilder>[];
-    List<FieldBuilder> nonFinalFields = <FieldBuilder>[];
-    List<FieldBuilder> lateFinalFields = <FieldBuilder>[];
+    List<SourceFieldBuilder> uninitializedFields = [];
+    List<SourceFieldBuilder> nonFinalFields = [];
+    List<SourceFieldBuilder> lateFinalFields = [];
 
-    builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
+    builder
+        .forEachDeclaredField((String name, SourceFieldBuilder fieldBuilder) {
       if (fieldBuilder.isAbstract || fieldBuilder.isExternal) {
         // Skip abstract and external fields. These are abstract/external
         // getters/setters and have no initialization.
@@ -1082,11 +1072,11 @@ class KernelTarget extends TargetImplementation {
         // declared towards the beginning of the file) come last in the list.
         // To report errors on the first definition of a field, we need to
         // iterate until that last element.
-        FieldBuilder earliest = fieldBuilder;
+        SourceFieldBuilder earliest = fieldBuilder;
         Builder current = fieldBuilder;
         while (current.next != null) {
           current = current.next!;
-          if (current is FieldBuilder && !fieldBuilder.hasInitializer) {
+          if (current is SourceFieldBuilder && !fieldBuilder.hasInitializer) {
             earliest = current;
           }
         }
@@ -1170,7 +1160,7 @@ class KernelTarget extends TargetImplementation {
               constructor.fileOffset, noLength,
               context: nonFinalFields
                   .map((field) => messageConstConstructorNonFinalFieldCause
-                      .withLocation(field.fileUri!, field.charOffset, noLength))
+                      .withLocation(field.fileUri, field.charOffset, noLength))
                   .toList());
           nonFinalFields.clear();
         }
@@ -1191,22 +1181,22 @@ class KernelTarget extends TargetImplementation {
       }
     }
 
-    Map<ConstructorBuilder, Set<FieldBuilder>> constructorInitializedFields =
-        new Map<ConstructorBuilder, Set<FieldBuilder>>.identity();
-    Set<FieldBuilder>? initializedFields = null;
+    Map<ConstructorBuilder, Set<SourceFieldBuilder>>
+        constructorInitializedFields = new Map.identity();
+    Set<SourceFieldBuilder>? initializedFields = null;
 
     builder.forEachDeclaredConstructor(
-        (String name, ConstructorBuilder constructorBuilder) {
+        (String name, DeclaredSourceConstructorBuilder constructorBuilder) {
       if (constructorBuilder.isExternal) return;
       // In case of duplicating constructors the earliest ones (those that
       // declared towards the beginning of the file) come last in the list.
       // To report errors on the first definition of a constructor, we need to
       // iterate until that last element.
-      ConstructorBuilder earliest = constructorBuilder;
+      DeclaredSourceConstructorBuilder earliest = constructorBuilder;
       Builder earliestBuilder = constructorBuilder;
       while (earliestBuilder.next != null) {
         earliestBuilder = earliestBuilder.next!;
-        if (earliestBuilder is ConstructorBuilder) {
+        if (earliestBuilder is DeclaredSourceConstructorBuilder) {
           earliest = earliestBuilder;
         }
       }
@@ -1218,15 +1208,17 @@ class KernelTarget extends TargetImplementation {
         }
       }
       if (!isRedirecting) {
-        Set<FieldBuilder> fields = earliest.takeInitializedFields() ?? const {};
+        Set<SourceFieldBuilder> fields =
+            earliest.takeInitializedFields() ?? const {};
         constructorInitializedFields[earliest] = fields;
-        (initializedFields ??= new Set<FieldBuilder>.identity()).addAll(fields);
+        (initializedFields ??= new Set<SourceFieldBuilder>.identity())
+            .addAll(fields);
       }
     });
 
     // Run through all fields that aren't initialized by any constructor, and
     // set their initializer to `null`.
-    for (FieldBuilder fieldBuilder in uninitializedFields) {
+    for (SourceFieldBuilder fieldBuilder in uninitializedFields) {
       if (initializedFields == null ||
           !initializedFields!.contains(fieldBuilder)) {
         bool uninitializedFinalOrNonNullableFieldIsError =
@@ -1236,7 +1228,7 @@ class KernelTarget extends TargetImplementation {
           if (fieldBuilder.isFinal &&
               uninitializedFinalOrNonNullableFieldIsError) {
             String uri = '${fieldBuilder.library.importUri}';
-            String file = fieldBuilder.fileUri!.pathSegments.last;
+            String file = fieldBuilder.fileUri.pathSegments.last;
             if (uri == 'dart:html' ||
                 uri == 'dart:svg' ||
                 uri == 'dart:_native_typed_data' ||
@@ -1274,7 +1266,7 @@ class KernelTarget extends TargetImplementation {
     // make sure that all other constructors also initialize them.
     constructorInitializedFields.forEach((ConstructorBuilder constructorBuilder,
         Set<FieldBuilder> fieldBuilders) {
-      for (FieldBuilder fieldBuilder
+      for (SourceFieldBuilder fieldBuilder
           in initializedFields!.difference(fieldBuilders)) {
         if (!fieldBuilder.hasInitializer && !fieldBuilder.isLate) {
           FieldInitializer initializer =
@@ -1292,7 +1284,7 @@ class KernelTarget extends TargetImplementation {
                 context: [
                   templateMissingImplementationCause
                       .withArguments(fieldBuilder.name)
-                      .withLocation(fieldBuilder.fileUri!,
+                      .withLocation(fieldBuilder.fileUri,
                           fieldBuilder.charOffset, fieldBuilder.name.length)
                 ]);
           } else if (fieldBuilder.field.type is! InvalidType &&
@@ -1310,7 +1302,7 @@ class KernelTarget extends TargetImplementation {
                   context: [
                     templateMissingImplementationCause
                         .withArguments(fieldBuilder.name)
-                        .withLocation(fieldBuilder.fileUri!,
+                        .withLocation(fieldBuilder.fileUri,
                             fieldBuilder.charOffset, fieldBuilder.name.length)
                   ]);
             }
@@ -1332,14 +1324,14 @@ class KernelTarget extends TargetImplementation {
     // it's so.
     assert(() {
       Set<String> patchFieldNames = {};
-      builder.forEachDeclaredField((String name, FieldBuilder fieldBuilder) {
+      builder
+          .forEachDeclaredField((String name, SourceFieldBuilder fieldBuilder) {
         patchFieldNames.add(NameScheme.createFieldName(
           FieldNameType.Field,
           name,
           isInstanceMember: fieldBuilder.isClassInstanceMember,
           className: builder.name,
-          isSynthesized:
-              fieldBuilder is SourceFieldBuilder && fieldBuilder.isLateLowered,
+          isSynthesized: fieldBuilder.isLateLowered,
         ));
       });
       builder.forEach((String name, Builder builder) {
@@ -1379,8 +1371,9 @@ class KernelTarget extends TargetImplementation {
 
     constants.ConstantEvaluationData constantEvaluationData =
         constants.transformLibraries(
+            component!,
             loader.libraries,
-            backendTarget.constantsBackend,
+            backendTarget,
             environmentDefines,
             environment,
             new KernelConstantErrorReporter(loader),
@@ -1436,7 +1429,8 @@ class KernelTarget extends TargetImplementation {
 
     constants.transformProcedure(
       procedure,
-      backendTarget.constantsBackend,
+      backendTarget,
+      component!,
       environmentDefines,
       environment,
       new KernelConstantErrorReporter(loader),
@@ -1570,4 +1564,11 @@ class KernelDiagnosticReporter
       {List<LocatedMessage>? context}) {
     loader.addProblem(message, charOffset, noLength, fileUri, context: context);
   }
+}
+
+class BuildResult {
+  final Component? component;
+  final MacroApplications? macroApplications;
+
+  BuildResult({this.component, this.macroApplications});
 }

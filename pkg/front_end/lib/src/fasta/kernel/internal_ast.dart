@@ -828,8 +828,19 @@ class TypeAliasedConstructorInvocation extends ConstructorInvocation
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    if (isConst) {
+      printer.write('const ');
+    } else {
+      printer.write('new ');
+    }
+    printer.writeTypedefName(typeAliasBuilder.typedef.reference);
+    printer.writeTypeArguments(arguments.types);
+    if (target.name.text.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.text);
+    }
+    printer.writeArguments(arguments, includeTypeArguments: false);
   }
 }
 
@@ -857,8 +868,19 @@ class TypeAliasedFactoryInvocation extends StaticInvocation
   }
 
   @override
-  String toStringInternal() {
-    return "";
+  void toTextInternal(AstPrinter printer) {
+    if (isConst) {
+      printer.write('const ');
+    } else {
+      printer.write('new ');
+    }
+    printer.writeTypedefName(typeAliasBuilder.typedef.reference);
+    printer.writeTypeArguments(arguments.types);
+    if (target.name.text.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.text);
+    }
+    printer.writeArguments(arguments, includeTypeArguments: false);
   }
 }
 

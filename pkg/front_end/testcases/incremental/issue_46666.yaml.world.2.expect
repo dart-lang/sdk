@@ -12,17 +12,17 @@ library from "org-dartlang-test:///a.dart" as a {
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
       ;
     get a1() → dart.ffi::Pointer<dart.ffi::Void>
-      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C9.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
+      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C9.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
     set a1(dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C9.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
+      return dart.ffi::_storeAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C9.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
     get a2() → dart.ffi::Pointer<dart.ffi::Void>
-      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
+      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
     set a2(dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
+      return dart.ffi::_storeAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
     get a3() → dart.ffi::Pointer<dart.ffi::Void>
-      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
+      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
     set a3(dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
+      return dart.ffi::_storeAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
     get blah() → a::NestedStruct
       return new a::NestedStruct::#fromTypedDataBase( block {
         dart.core::Object #typedDataBase = this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object};
@@ -43,17 +43,17 @@ library from "org-dartlang-test:///a.dart" as a {
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
       ;
     get n1() → dart.ffi::Pointer<dart.ffi::Void>
-      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C9.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
+      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C9.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
     set n1(dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C9.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
+      return dart.ffi::_storeAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C9.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
     get n2() → dart.ffi::Pointer<dart.ffi::Void>
-      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
+      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
     set n2(dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
+      return dart.ffi::_storeAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
     get n3() → dart.ffi::Pointer<dart.ffi::Void>
-      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
+      return dart.ffi::_fromAddress<dart.ffi::Void>(dart.ffi::_loadAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
     set n3(dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
-      return dart.ffi::_storeIntPtr(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
+      return dart.ffi::_storeAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
     @#C19
     static get #sizeOf() → dart.core::int*
       return #C17.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
@@ -101,19 +101,19 @@ constants  {
   #C6 = dart.ffi::_FfiStructLayout {fieldTypes:#C4, packing:#C5}
   #C7 = dart.core::pragma {name:#C1, options:#C6}
   #C8 = 0
-  #C9 = <dart.core::int*>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
+  #C9 = <dart.core::int*>[#C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8, #C8]
   #C10 = 4
   #C11 = 8
-  #C12 = <dart.core::int*>[#C10, #C11, #C10, #C11, #C11, #C11, #C10, #C11, #C11, #C10, #C11, #C10, #C11, #C11, #C11, #C11, #C10, #C11]
+  #C12 = <dart.core::int*>[#C10, #C11, #C10, #C11, #C11, #C11, #C10, #C11, #C11, #C10, #C11, #C10, #C11, #C10, #C11, #C11, #C11, #C11, #C10, #C11]
   #C13 = 16
-  #C14 = <dart.core::int*>[#C11, #C13, #C11, #C13, #C13, #C13, #C11, #C13, #C13, #C11, #C13, #C11, #C13, #C13, #C13, #C13, #C11, #C13]
+  #C14 = <dart.core::int*>[#C11, #C13, #C11, #C13, #C13, #C13, #C11, #C13, #C13, #C11, #C13, #C11, #C13, #C11, #C13, #C13, #C13, #C13, #C11, #C13]
   #C15 = 12
   #C16 = 24
-  #C17 = <dart.core::int*>[#C15, #C16, #C15, #C16, #C16, #C16, #C15, #C16, #C16, #C15, #C16, #C15, #C16, #C16, #C16, #C16, #C15, #C16]
+  #C17 = <dart.core::int*>[#C15, #C16, #C15, #C16, #C16, #C16, #C15, #C16, #C16, #C15, #C16, #C15, #C16, #C15, #C16, #C16, #C16, #C16, #C15, #C16]
   #C18 = "vm:prefer-inline"
   #C19 = dart.core::pragma {name:#C18, options:#C5}
   #C20 = 48
-  #C21 = <dart.core::int*>[#C16, #C20, #C16, #C20, #C20, #C20, #C16, #C20, #C20, #C16, #C20, #C16, #C20, #C20, #C20, #C20, #C16, #C20]
+  #C21 = <dart.core::int*>[#C16, #C20, #C16, #C20, #C20, #C20, #C16, #C20, #C20, #C16, #C20, #C16, #C20, #C16, #C20, #C20, #C20, #C20, #C16, #C20]
   #C22 = <dart.core::Type>[#C2, #C2, #C2]
   #C23 = dart.ffi::_FfiStructLayout {fieldTypes:#C22, packing:#C5}
   #C24 = dart.core::pragma {name:#C1, options:#C23}

@@ -1,0 +1,62 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/super_parameters/simple_positional_super_parameters.dart:15:24: Error: Positional super-initializer parameters cannot be used when the super initializer has positional arguments.
+//   C1(super.foo) : super(42); // Error.
+//                        ^
+// pkg/front_end/testcases/super_parameters/simple_positional_super_parameters.dart:15:12: Context: This is the super-initializer parameter.
+//   C1(super.foo) : super(42); // Error.
+//            ^
+//
+// pkg/front_end/testcases/super_parameters/simple_positional_super_parameters.dart:25:15: Error: Too many positional arguments: 2 allowed, but 3 found.
+// Try removing the extra positional arguments.
+//   B2() : super(0, 1, 2); // Error.
+//               ^
+//
+// pkg/front_end/testcases/super_parameters/simple_positional_super_parameters.dart:29:24: Error: Too few positional arguments: 2 required, 1 given.
+//   C2(super.foo) : super(); // Error.
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  final field core::int foo;
+  constructor •(core::int foo) → self::A1
+    : self::A1::foo = foo, super core::Object::•()
+    ;
+}
+class B1 extends self::A1 {
+  constructor •(core::int foo) → self::B1
+    : super self::A1::•(foo)
+    ;
+}
+class C1 extends self::A1 {
+  constructor •(core::int foo) → self::C1
+    : super self::A1::•(42)
+    ;
+}
+class A2 extends core::Object {
+  final field core::int foo;
+  final field core::String bar;
+  constructor •(core::int foo, core::String bar) → self::A2
+    : self::A2::foo = foo, self::A2::bar = bar, super core::Object::•()
+    ;
+}
+class B2 extends self::A2 {
+  constructor •() → self::B2
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/super_parameters/simple_positional_super_parameters.dart:25:15: Error: Too many positional arguments: 2 allowed, but 3 found.
+Try removing the extra positional arguments.
+  B2() : super(0, 1, 2); // Error.
+              ^"
+    ;
+}
+class C2 extends self::A2 {
+  constructor •(core::int foo) → self::C2
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/super_parameters/simple_positional_super_parameters.dart:29:24: Error: Too few positional arguments: 2 required, 1 given.
+  C2(super.foo) : super(); // Error.
+                       ^"
+    ;
+}
+static method main() → dynamic {}

@@ -1,0 +1,668 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:7:8: Error: 'methodAndField1' is already declared in this scope.
+//   int? methodAndField1;
+//        ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:6:8: Context: Previous declaration of 'methodAndField1'.
+//   int? methodAndField1() {}
+//        ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:10:8: Error: 'methodAndField2' is already declared in this scope.
+//   int? methodAndField2() {}
+//        ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:9:8: Context: Previous declaration of 'methodAndField2'.
+//   int? methodAndField2;
+//        ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:13:14: Error: 'methodAndFinalField1' is already declared in this scope.
+//   final int? methodAndFinalField1 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:12:8: Context: Previous declaration of 'methodAndFinalField1'.
+//   int? methodAndFinalField1() {}
+//        ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:16:8: Error: 'methodAndFinalField2' is already declared in this scope.
+//   int? methodAndFinalField2() {}
+//        ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:15:14: Context: Previous declaration of 'methodAndFinalField2'.
+//   final int? methodAndFinalField2 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:19:8: Error: 'methodAndFieldAndSetter1' is already declared in this scope.
+//   int? methodAndFieldAndSetter1;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:18:8: Context: Previous declaration of 'methodAndFieldAndSetter1'.
+//   int? methodAndFieldAndSetter1() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:23:8: Error: 'methodAndFieldAndSetter2' is already declared in this scope.
+//   int? methodAndFieldAndSetter2() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:22:8: Context: Previous declaration of 'methodAndFieldAndSetter2'.
+//   int? methodAndFieldAndSetter2;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: 'methodAndFieldAndSetter3' is already declared in this scope.
+//   int? methodAndFieldAndSetter3;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:27:8: Context: Previous declaration of 'methodAndFieldAndSetter3'.
+//   int? methodAndFieldAndSetter3() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:32:8: Error: 'methodAndFieldAndSetter4' is already declared in this scope.
+//   int? methodAndFieldAndSetter4() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:31:8: Context: Previous declaration of 'methodAndFieldAndSetter4'.
+//   int? methodAndFieldAndSetter4;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:35:14: Error: 'methodAndFinalFieldAndSetter1' is already declared in this scope.
+//   final int? methodAndFinalFieldAndSetter1 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:34:8: Context: Previous declaration of 'methodAndFinalFieldAndSetter1'.
+//   int? methodAndFinalFieldAndSetter1() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:39:8: Error: 'methodAndFinalFieldAndSetter2' is already declared in this scope.
+//   int? methodAndFinalFieldAndSetter2() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:38:14: Context: Previous declaration of 'methodAndFinalFieldAndSetter2'.
+//   final int? methodAndFinalFieldAndSetter2 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:44:14: Error: 'methodAndFinalFieldAndSetter3' is already declared in this scope.
+//   final int? methodAndFinalFieldAndSetter3 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:43:8: Context: Previous declaration of 'methodAndFinalFieldAndSetter3'.
+//   int? methodAndFinalFieldAndSetter3() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:48:8: Error: 'methodAndFinalFieldAndSetter4' is already declared in this scope.
+//   int? methodAndFinalFieldAndSetter4() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:47:14: Context: Previous declaration of 'methodAndFinalFieldAndSetter4'.
+//   final int? methodAndFinalFieldAndSetter4 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:54:3: Error: The return type of the setter must be 'void' or absent.
+// Try removing the return type, or define a method rather than a setter.
+//   int? set methodAndSetter2() {}
+//   ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:63:14: Error: 'fieldAndFinalFieldAndSetter1' is already declared in this scope.
+//   final int? fieldAndFinalFieldAndSetter1 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:62:8: Context: Previous declaration of 'fieldAndFinalFieldAndSetter1'.
+//   int? fieldAndFinalFieldAndSetter1;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:67:8: Error: 'fieldAndFinalFieldAndSetter2' is already declared in this scope.
+//   int? fieldAndFinalFieldAndSetter2;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:66:14: Context: Previous declaration of 'fieldAndFinalFieldAndSetter2'.
+//   final int? fieldAndFinalFieldAndSetter2 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:72:14: Error: 'fieldAndFinalFieldAndSetter3' is already declared in this scope.
+//   final int? fieldAndFinalFieldAndSetter3 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Context: Previous declaration of 'fieldAndFinalFieldAndSetter3'.
+//   int? fieldAndFinalFieldAndSetter3;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:76:8: Error: 'fieldAndFinalFieldAndSetter4' is already declared in this scope.
+//   int? fieldAndFinalFieldAndSetter4;
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:75:14: Context: Previous declaration of 'fieldAndFinalFieldAndSetter4'.
+//   final int? fieldAndFinalFieldAndSetter4 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:20:12: Error: Conflicts with the implicit setter of the field 'methodAndFieldAndSetter1'.
+//   void set methodAndFieldAndSetter1(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:19:8: Error: Conflicts with setter 'methodAndFieldAndSetter1'.
+//   int? methodAndFieldAndSetter1;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:24:12: Error: Conflicts with the implicit setter of the field 'methodAndFieldAndSetter2'.
+//   void set methodAndFieldAndSetter2(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:22:8: Error: Conflicts with setter 'methodAndFieldAndSetter2'.
+//   int? methodAndFieldAndSetter2;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:26:12: Error: Conflicts with the implicit setter of the field 'methodAndFieldAndSetter3'.
+//   void set methodAndFieldAndSetter3(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: Conflicts with setter 'methodAndFieldAndSetter3'.
+//   int? methodAndFieldAndSetter3;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:30:12: Error: Conflicts with the implicit setter of the field 'methodAndFieldAndSetter4'.
+//   void set methodAndFieldAndSetter4(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:31:8: Error: Conflicts with setter 'methodAndFieldAndSetter4'.
+//   int? methodAndFieldAndSetter4;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:57:12: Error: Conflicts with the implicit setter of the field 'fieldAndSetter1'.
+//   void set fieldAndSetter1(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:56:8: Error: Conflicts with setter 'fieldAndSetter1'.
+//   int? fieldAndSetter1;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:60:12: Error: Conflicts with the implicit setter of the field 'fieldAndSetter2'.
+//   void set fieldAndSetter2(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:59:8: Error: Conflicts with setter 'fieldAndSetter2'.
+//   int? fieldAndSetter2;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:64:12: Error: Conflicts with the implicit setter of the field 'fieldAndFinalFieldAndSetter1'.
+//   void set fieldAndFinalFieldAndSetter1(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:62:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter1'.
+//   int? fieldAndFinalFieldAndSetter1;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:68:12: Error: Conflicts with the implicit setter of the field 'fieldAndFinalFieldAndSetter2'.
+//   void set fieldAndFinalFieldAndSetter2(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:67:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter2'.
+//   int? fieldAndFinalFieldAndSetter2;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:70:12: Error: Conflicts with the implicit setter of the field 'fieldAndFinalFieldAndSetter3'.
+//   void set fieldAndFinalFieldAndSetter3(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter3'.
+//   int? fieldAndFinalFieldAndSetter3;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:74:12: Error: Conflicts with the implicit setter of the field 'fieldAndFinalFieldAndSetter4'.
+//   void set fieldAndFinalFieldAndSetter4(int? value) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:76:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter4'.
+//   int? fieldAndFinalFieldAndSetter4;
+//        ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:40:12: Error: 'methodAndFinalFieldAndSetter2' is already declared in this scope.
+//   void set methodAndFinalFieldAndSetter2(int? value) {}
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:39:8: Context: Previous declaration of 'methodAndFinalFieldAndSetter2'.
+//   int? methodAndFinalFieldAndSetter2() {}
+//        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:51:12: Error: 'methodAndSetter1' is already declared in this scope.
+//   void set methodAndSetter1(int? value) {}
+//            ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:50:8: Context: Previous declaration of 'methodAndSetter1'.
+//   int? methodAndSetter1() {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:54:12: Error: 'methodAndSetter2' is already declared in this scope.
+//   int? set methodAndSetter2() {}
+//            ^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:53:8: Context: Previous declaration of 'methodAndSetter2'.
+//   void methodAndSetter2(int? value) {}
+//        ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:54:28: Error: A setter should have exactly one formal parameter.
+//   int? set methodAndSetter2() {}
+//                            ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: Can't use 'methodAndField1' because it is declared more than once.
+//   c.methodAndField1 = c.methodAndField1;
+//     ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:25: Error: Can't use 'methodAndField1' because it is declared more than once.
+//   c.methodAndField1 = c.methodAndField1;
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:25: Error: The getter 'methodAndField1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndField1'.
+//   c.methodAndField1 = c.methodAndField1;
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: The setter 'methodAndField1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndField1'.
+//   c.methodAndField1 = c.methodAndField1;
+//     ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:81:5: Error: Can't use 'methodAndField2' because it is declared more than once.
+//   c.methodAndField2 = c.methodAndField2;
+//     ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:81:25: Error: Can't use 'methodAndField2' because it is declared more than once.
+//   c.methodAndField2 = c.methodAndField2;
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:81:25: Error: The getter 'methodAndField2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndField2'.
+//   c.methodAndField2 = c.methodAndField2;
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:81:5: Error: The setter 'methodAndField2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndField2'.
+//   c.methodAndField2 = c.methodAndField2;
+//     ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:82:5: Error: Can't use 'methodAndFinalField1' because it is declared more than once.
+//   c.methodAndFinalField1;
+//     ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:82:5: Error: The getter 'methodAndFinalField1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalField1'.
+//   c.methodAndFinalField1;
+//     ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:83:5: Error: Can't use 'methodAndFinalField2' because it is declared more than once.
+//   c.methodAndFinalField2;
+//     ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:83:5: Error: The getter 'methodAndFinalField2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalField2'.
+//   c.methodAndFinalField2;
+//     ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:5: Error: Can't use 'methodAndFieldAndSetter1' because it is declared more than once.
+//   c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:34: Error: Can't use 'methodAndFieldAndSetter1' because it is declared more than once.
+//   c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:34: Error: The getter 'methodAndFieldAndSetter1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter1'.
+//   c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:5: Error: The setter 'methodAndFieldAndSetter1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter1'.
+//   c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:85:5: Error: Can't use 'methodAndFieldAndSetter2' because it is declared more than once.
+//   c.methodAndFieldAndSetter2 = c.methodAndFieldAndSetter2;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:85:34: Error: Can't use 'methodAndFieldAndSetter2' because it is declared more than once.
+//   c.methodAndFieldAndSetter2 = c.methodAndFieldAndSetter2;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:85:34: Error: The getter 'methodAndFieldAndSetter2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter2'.
+//   c.methodAndFieldAndSetter2 = c.methodAndFieldAndSetter2;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:85:5: Error: The setter 'methodAndFieldAndSetter2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter2'.
+//   c.methodAndFieldAndSetter2 = c.methodAndFieldAndSetter2;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:5: Error: Can't use 'methodAndFieldAndSetter3' because it is declared more than once.
+//   c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:34: Error: Can't use 'methodAndFieldAndSetter3' because it is declared more than once.
+//   c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:34: Error: The getter 'methodAndFieldAndSetter3' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter3'.
+//   c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:5: Error: The setter 'methodAndFieldAndSetter3' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter3'.
+//   c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:5: Error: Can't use 'methodAndFieldAndSetter4' because it is declared more than once.
+//   c.methodAndFieldAndSetter4 = c.methodAndFieldAndSetter4;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:34: Error: Can't use 'methodAndFieldAndSetter4' because it is declared more than once.
+//   c.methodAndFieldAndSetter4 = c.methodAndFieldAndSetter4;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:34: Error: The getter 'methodAndFieldAndSetter4' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter4'.
+//   c.methodAndFieldAndSetter4 = c.methodAndFieldAndSetter4;
+//                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:5: Error: The setter 'methodAndFieldAndSetter4' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter4'.
+//   c.methodAndFieldAndSetter4 = c.methodAndFieldAndSetter4;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:39: Error: Can't use 'methodAndFinalFieldAndSetter1' because it is declared more than once.
+//   c.methodAndFinalFieldAndSetter1 = c.methodAndFinalFieldAndSetter1;
+//                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:39: Error: The getter 'methodAndFinalFieldAndSetter1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalFieldAndSetter1'.
+//   c.methodAndFinalFieldAndSetter1 = c.methodAndFinalFieldAndSetter1;
+//                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:89:39: Error: Can't use 'methodAndFinalFieldAndSetter2' because it is declared more than once.
+//   c.methodAndFinalFieldAndSetter2 = c.methodAndFinalFieldAndSetter2;
+//                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:89:39: Error: The getter 'methodAndFinalFieldAndSetter2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalFieldAndSetter2'.
+//   c.methodAndFinalFieldAndSetter2 = c.methodAndFinalFieldAndSetter2;
+//                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:90:39: Error: Can't use 'methodAndFinalFieldAndSetter3' because it is declared more than once.
+//   c.methodAndFinalFieldAndSetter3 = c.methodAndFinalFieldAndSetter3;
+//                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:90:39: Error: The getter 'methodAndFinalFieldAndSetter3' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalFieldAndSetter3'.
+//   c.methodAndFinalFieldAndSetter3 = c.methodAndFinalFieldAndSetter3;
+//                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:91:39: Error: Can't use 'methodAndFinalFieldAndSetter4' because it is declared more than once.
+//   c.methodAndFinalFieldAndSetter4 = c.methodAndFinalFieldAndSetter4;
+//                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:91:39: Error: The getter 'methodAndFinalFieldAndSetter4' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalFieldAndSetter4'.
+//   c.methodAndFinalFieldAndSetter4 = c.methodAndFinalFieldAndSetter4;
+//                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:26: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
+//   c.methodAndSetter1 = c.methodAndSetter1;
+//                          ^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:96:5: Error: Can't use 'fieldAndFinalFieldAndSetter1' because it is declared more than once.
+//   c.fieldAndFinalFieldAndSetter1 = c.fieldAndFinalFieldAndSetter1;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:96:38: Error: Can't use 'fieldAndFinalFieldAndSetter1' because it is declared more than once.
+//   c.fieldAndFinalFieldAndSetter1 = c.fieldAndFinalFieldAndSetter1;
+//                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:96:38: Error: The getter 'fieldAndFinalFieldAndSetter1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'fieldAndFinalFieldAndSetter1'.
+//   c.fieldAndFinalFieldAndSetter1 = c.fieldAndFinalFieldAndSetter1;
+//                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:96:5: Error: The setter 'fieldAndFinalFieldAndSetter1' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter1'.
+//   c.fieldAndFinalFieldAndSetter1 = c.fieldAndFinalFieldAndSetter1;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:97:5: Error: Can't use 'fieldAndFinalFieldAndSetter2' because it is declared more than once.
+//   c.fieldAndFinalFieldAndSetter2 = c.fieldAndFinalFieldAndSetter2;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:97:38: Error: Can't use 'fieldAndFinalFieldAndSetter2' because it is declared more than once.
+//   c.fieldAndFinalFieldAndSetter2 = c.fieldAndFinalFieldAndSetter2;
+//                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:97:38: Error: The getter 'fieldAndFinalFieldAndSetter2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'fieldAndFinalFieldAndSetter2'.
+//   c.fieldAndFinalFieldAndSetter2 = c.fieldAndFinalFieldAndSetter2;
+//                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:97:5: Error: The setter 'fieldAndFinalFieldAndSetter2' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter2'.
+//   c.fieldAndFinalFieldAndSetter2 = c.fieldAndFinalFieldAndSetter2;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:98:5: Error: Can't use 'fieldAndFinalFieldAndSetter3' because it is declared more than once.
+//   c.fieldAndFinalFieldAndSetter3 = c.fieldAndFinalFieldAndSetter3;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:98:38: Error: Can't use 'fieldAndFinalFieldAndSetter3' because it is declared more than once.
+//   c.fieldAndFinalFieldAndSetter3 = c.fieldAndFinalFieldAndSetter3;
+//                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:98:38: Error: The getter 'fieldAndFinalFieldAndSetter3' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'fieldAndFinalFieldAndSetter3'.
+//   c.fieldAndFinalFieldAndSetter3 = c.fieldAndFinalFieldAndSetter3;
+//                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:98:5: Error: The setter 'fieldAndFinalFieldAndSetter3' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter3'.
+//   c.fieldAndFinalFieldAndSetter3 = c.fieldAndFinalFieldAndSetter3;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:99:5: Error: Can't use 'fieldAndFinalFieldAndSetter4' because it is declared more than once.
+//   c.fieldAndFinalFieldAndSetter4 = c.fieldAndFinalFieldAndSetter4;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:99:38: Error: Can't use 'fieldAndFinalFieldAndSetter4' because it is declared more than once.
+//   c.fieldAndFinalFieldAndSetter4 = c.fieldAndFinalFieldAndSetter4;
+//                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:99:38: Error: The getter 'fieldAndFinalFieldAndSetter4' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'fieldAndFinalFieldAndSetter4'.
+//   c.fieldAndFinalFieldAndSetter4 = c.fieldAndFinalFieldAndSetter4;
+//                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:99:5: Error: The setter 'fieldAndFinalFieldAndSetter4' isn't defined for the class 'Class'.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter4'.
+//   c.fieldAndFinalFieldAndSetter4 = c.fieldAndFinalFieldAndSetter4;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:66:14: Error: Final field 'fieldAndFinalFieldAndSetter2' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int? fieldAndFinalFieldAndSetter2 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:75:14: Error: Final field 'fieldAndFinalFieldAndSetter4' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int? fieldAndFinalFieldAndSetter4 = 0;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int? methodAndField2 = null;
+  final field core::int? methodAndFinalField2 = null;
+  field core::int? methodAndFieldAndSetter2 = null;
+  field core::int? methodAndFieldAndSetter4 = null;
+  final field core::int? methodAndFinalFieldAndSetter2 = null;
+  final field core::int? methodAndFinalFieldAndSetter4 = null;
+  field core::int? fieldAndSetter1 = null;
+  field core::int? fieldAndSetter2 = null;
+  field core::int? fieldAndFinalFieldAndSetter1 = null;
+  final field core::int? fieldAndFinalFieldAndSetter2 = null;
+  field core::int? fieldAndFinalFieldAndSetter3 = null;
+  final field core::int? fieldAndFinalFieldAndSetter4 = null;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method methodAndField1() → core::int? {}
+  method methodAndFinalField1() → core::int? {}
+  method methodAndFieldAndSetter1() → core::int? {}
+  method methodAndFieldAndSetter3() → core::int? {}
+  method methodAndFinalFieldAndSetter1() → core::int? {}
+  set methodAndFinalFieldAndSetter1(core::int? value) → void {}
+  set methodAndFinalFieldAndSetter2(core::int? value) → void {}
+  set methodAndFinalFieldAndSetter3(core::int? value) → void {}
+  method methodAndFinalFieldAndSetter3() → core::int? {}
+  set methodAndFinalFieldAndSetter4(core::int? value) → void {}
+  method methodAndSetter1() → core::int? {}
+  set methodAndSetter1(core::int? value) → void {}
+  method methodAndSetter2(core::int? value) → void {}
+  set methodAndSetter2(dynamic #synthetic) → void {
+    invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:54:28: Error: A setter should have exactly one formal parameter.
+  int? set methodAndSetter2() {}
+                           ^";
+    {}
+  }
+}
+static method test(self::Class c) → dynamic {
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:5: Error: The setter 'methodAndField1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndField1'.
+  c.methodAndField1 = c.methodAndField1;
+    ^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndField1 = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:80:25: Error: The getter 'methodAndField1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndField1'.
+  c.methodAndField1 = c.methodAndField1;
+                        ^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndField1;
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:81:5: Error: The setter 'methodAndField2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndField2'.
+  c.methodAndField2 = c.methodAndField2;
+    ^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndField2 = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:81:25: Error: The getter 'methodAndField2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndField2'.
+  c.methodAndField2 = c.methodAndField2;
+                        ^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndField2;
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:82:5: Error: The getter 'methodAndFinalField1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalField1'.
+  c.methodAndFinalField1;
+    ^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFinalField1;
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:83:5: Error: The getter 'methodAndFinalField2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalField2'.
+  c.methodAndFinalField2;
+    ^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFinalField2;
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:5: Error: The setter 'methodAndFieldAndSetter1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter1'.
+  c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
+    ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter1 = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:84:34: Error: The getter 'methodAndFieldAndSetter1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter1'.
+  c.methodAndFieldAndSetter1 = c.methodAndFieldAndSetter1;
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter1;
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:85:5: Error: The setter 'methodAndFieldAndSetter2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter2'.
+  c.methodAndFieldAndSetter2 = c.methodAndFieldAndSetter2;
+    ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter2 = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:85:34: Error: The getter 'methodAndFieldAndSetter2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter2'.
+  c.methodAndFieldAndSetter2 = c.methodAndFieldAndSetter2;
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter2;
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:5: Error: The setter 'methodAndFieldAndSetter3' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter3'.
+  c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
+    ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter3 = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:86:34: Error: The getter 'methodAndFieldAndSetter3' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter3'.
+  c.methodAndFieldAndSetter3 = c.methodAndFieldAndSetter3;
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter3;
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:5: Error: The setter 'methodAndFieldAndSetter4' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'methodAndFieldAndSetter4'.
+  c.methodAndFieldAndSetter4 = c.methodAndFieldAndSetter4;
+    ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter4 = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:87:34: Error: The getter 'methodAndFieldAndSetter4' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFieldAndSetter4'.
+  c.methodAndFieldAndSetter4 = c.methodAndFieldAndSetter4;
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFieldAndSetter4;
+  c.{self::Class::methodAndFinalFieldAndSetter1} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:88:39: Error: The getter 'methodAndFinalFieldAndSetter1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalFieldAndSetter1'.
+  c.methodAndFinalFieldAndSetter1 = c.methodAndFinalFieldAndSetter1;
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFinalFieldAndSetter1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
+  c.{self::Class::methodAndFinalFieldAndSetter2} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:89:39: Error: The getter 'methodAndFinalFieldAndSetter2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalFieldAndSetter2'.
+  c.methodAndFinalFieldAndSetter2 = c.methodAndFinalFieldAndSetter2;
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFinalFieldAndSetter2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
+  c.{self::Class::methodAndFinalFieldAndSetter3} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:90:39: Error: The getter 'methodAndFinalFieldAndSetter3' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalFieldAndSetter3'.
+  c.methodAndFinalFieldAndSetter3 = c.methodAndFinalFieldAndSetter3;
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFinalFieldAndSetter3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
+  c.{self::Class::methodAndFinalFieldAndSetter4} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:91:39: Error: The getter 'methodAndFinalFieldAndSetter4' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'methodAndFinalFieldAndSetter4'.
+  c.methodAndFinalFieldAndSetter4 = c.methodAndFinalFieldAndSetter4;
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.methodAndFinalFieldAndSetter4 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
+  c.{self::Class::methodAndSetter1} = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:92:26: Error: A value of type 'int? Function()' can't be assigned to a variable of type 'int?'.
+  c.methodAndSetter1 = c.methodAndSetter1;
+                         ^" in c.{self::Class::methodAndSetter1}{() → core::int?} as{TypeError,ForNonNullableByDefault} core::int?;
+  c.{self::Class::methodAndSetter2} = c.{self::Class::methodAndSetter2}{(core::int?) → void};
+  c.{self::Class::fieldAndSetter1} = c.{self::Class::fieldAndSetter1}{core::int?};
+  c.{self::Class::fieldAndSetter2} = c.{self::Class::fieldAndSetter2}{core::int?};
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:96:5: Error: The setter 'fieldAndFinalFieldAndSetter1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter1'.
+  c.fieldAndFinalFieldAndSetter1 = c.fieldAndFinalFieldAndSetter1;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.fieldAndFinalFieldAndSetter1 = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:96:38: Error: The getter 'fieldAndFinalFieldAndSetter1' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'fieldAndFinalFieldAndSetter1'.
+  c.fieldAndFinalFieldAndSetter1 = c.fieldAndFinalFieldAndSetter1;
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.fieldAndFinalFieldAndSetter1;
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:97:5: Error: The setter 'fieldAndFinalFieldAndSetter2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter2'.
+  c.fieldAndFinalFieldAndSetter2 = c.fieldAndFinalFieldAndSetter2;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.fieldAndFinalFieldAndSetter2 = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:97:38: Error: The getter 'fieldAndFinalFieldAndSetter2' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'fieldAndFinalFieldAndSetter2'.
+  c.fieldAndFinalFieldAndSetter2 = c.fieldAndFinalFieldAndSetter2;
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.fieldAndFinalFieldAndSetter2;
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:98:5: Error: The setter 'fieldAndFinalFieldAndSetter3' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter3'.
+  c.fieldAndFinalFieldAndSetter3 = c.fieldAndFinalFieldAndSetter3;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.fieldAndFinalFieldAndSetter3 = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:98:38: Error: The getter 'fieldAndFinalFieldAndSetter3' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'fieldAndFinalFieldAndSetter3'.
+  c.fieldAndFinalFieldAndSetter3 = c.fieldAndFinalFieldAndSetter3;
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.fieldAndFinalFieldAndSetter3;
+  invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:99:5: Error: The setter 'fieldAndFinalFieldAndSetter4' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'fieldAndFinalFieldAndSetter4'.
+  c.fieldAndFinalFieldAndSetter4 = c.fieldAndFinalFieldAndSetter4;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.fieldAndFinalFieldAndSetter4 = invalid-expression "pkg/front_end/testcases/nnbd/instance_duplicates.dart:99:38: Error: The getter 'fieldAndFinalFieldAndSetter4' isn't defined for the class 'Class'.
+ - 'Class' is from 'pkg/front_end/testcases/nnbd/instance_duplicates.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'fieldAndFinalFieldAndSetter4'.
+  c.fieldAndFinalFieldAndSetter4 = c.fieldAndFinalFieldAndSetter4;
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.fieldAndFinalFieldAndSetter4;
+}
+static method main() → dynamic {}

@@ -12,26 +12,31 @@ import 'package:path/path.dart' as path;
 import '../core.dart';
 import '../sdk.dart';
 
-/// A command to create a new project from a set of templates.
+/// A command to generate documentation for a project.
 class DocCommand extends DartdevCommand {
   static const String cmdName = 'doc';
 
-  DocCommand({bool verbose = false})
-      : super(
-          cmdName,
-          'Generate HTML API documentation from Dart documentation comments.',
-          verbose,
-        ) {
+  static const String cmdDescription = '''
+Generate API documentation for Dart projects.
+
+For additional documentation generation options, see the 'dartdoc_options.yaml' file documentation at https://dart.dev/go/dartdoc-options-file.''';
+
+  DocCommand({bool verbose = false}) : super(cmdName, cmdDescription, verbose) {
     argParser.addOption(
-      'output-dir',
+      'output',
       abbr: 'o',
-      defaultsTo: path.join('.', 'doc', 'api'),
-      help: 'Output directory',
+      valueHelp: 'directory',
+      defaultsTo: path.join('doc', 'api'),
+      aliases: [
+        // The CLI option that shipped with Dart 2.16.
+        'output-dir',
+      ],
+      help: 'Configure the output directory.',
     );
     argParser.addFlag(
       'validate-links',
-      negatable: true,
-      help: 'Display context aware warnings for broken links (slow)',
+      negatable: false,
+      help: 'Display warnings for broken links.',
     );
   }
 
@@ -51,21 +56,17 @@ class DocCommand extends DartdevCommand {
       usageException("Error: Input directory doesn't exist: ${dir.path}");
     }
 
-    // Parse options.
-    final options = [
-      '--input=${dir.path}',
-      '--output=${argResults['output-dir']}',
-    ];
-    if (argResults['validate-links']) {
-      options.add('--validate-links');
-    } else {
-      options.add('--no-validate-links');
-    }
-
     // Specify where dartdoc resources are located.
     final resourcesPath =
         path.absolute(sdk.sdkPath, 'bin', 'resources', 'dartdoc', 'resources');
-    options.add('--resources-dir=$resourcesPath');
+
+    // Build options.
+    final options = [
+      '--input=${dir.path}',
+      '--output=${argResults['output']}',
+      '--resources-dir=$resourcesPath',
+      if (argResults['validate-links']) '--validate-links'
+    ];
 
     final config = await parseOptions(pubPackageMetaProvider, options);
     if (config == null) {
@@ -73,9 +74,9 @@ class DocCommand extends DartdevCommand {
       return 2;
     }
 
-    // Call dartdoc.
+    // Call into package:dartdoc.
     if (verbose) {
-      log.stdout('Calling dartdoc with the following options: $options');
+      log.stdout('Using the following options: $options');
     }
     final packageConfigProvider = PhysicalPackageConfigProvider();
     final packageBuilder = PubPackageBuilder(

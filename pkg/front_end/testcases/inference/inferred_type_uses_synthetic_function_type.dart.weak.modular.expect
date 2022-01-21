@@ -1,0 +1,17 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static field core::List<() →* core::Object*>* v = <() →* core::Object*>[#C1, #C2];
+static method f() → core::int*
+  return null;
+static method g() → core::String*
+  return null;
+static method main() → dynamic {
+  self::v;
+}
+
+constants  {
+  #C1 = static-tearoff self::f
+  #C2 = static-tearoff self::g
+}

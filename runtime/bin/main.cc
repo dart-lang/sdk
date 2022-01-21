@@ -96,7 +96,7 @@ static Dart_Isolate main_isolate = NULL;
     SAVE_ERROR_AND_EXIT(result);                                               \
   }
 
-static void WriteDepsFile(Dart_Isolate isolate) {
+static void WriteDepsFile() {
   if (Options::depfile() == NULL) {
     return;
   }
@@ -142,7 +142,7 @@ static void OnExitHook(int64_t exit_code) {
     if (Options::gen_snapshot_kind() == kAppJIT) {
       Snapshot::GenerateAppJIT(Options::snapshot_filename());
     }
-    WriteDepsFile(main_isolate);
+    WriteDepsFile();
   }
 }
 
@@ -937,6 +937,20 @@ static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {
     ErrorExit(exit_code, "%s\n", Dart_GetError(result));                       \
   }
 
+static void CompileAndSaveKernel(const char* script_name,
+                                 const char* package_config_override,
+                                 CommandLineOptions* dart_options) {
+  if (vm_run_app_snapshot) {
+    Syslog::PrintErr("Cannot create a script snapshot from an app snapshot.\n");
+    // The snapshot would contain references to the app snapshot instead of
+    // the core snapshot.
+    Platform::Exit(kErrorExitCode);
+  }
+  Snapshot::GenerateKernel(Options::snapshot_filename(), script_name,
+                           package_config_override);
+  WriteDepsFile();
+}
+
 void RunMainIsolate(const char* script_name,
                     const char* package_config_override,
                     CommandLineOptions* dart_options) {
@@ -1001,71 +1015,59 @@ void RunMainIsolate(const char* script_name,
 
   Dart_EnterScope();
 
-  auto isolate_group_data =
-      reinterpret_cast<IsolateGroupData*>(Dart_IsolateGroupData(isolate));
-  if (Options::gen_snapshot_kind() == kKernel) {
-    if (vm_run_app_snapshot) {
-      Syslog::PrintErr(
-          "Cannot create a script snapshot from an app snapshot.\n");
-      // The snapshot would contain references to the app snapshot instead of
-      // the core snapshot.
-      Platform::Exit(kErrorExitCode);
-    }
-    Snapshot::GenerateKernel(Options::snapshot_filename(), script_name,
-                             isolate_group_data->resolved_packages_config());
-  } else {
-    // Lookup the library of the root script.
-    Dart_Handle root_lib = Dart_RootLibrary();
+  // Kernel snapshots should have been handled before reaching this point.
+  ASSERT(Options::gen_snapshot_kind() != kKernel);
+  // Lookup the library of the root script.
+  Dart_Handle root_lib = Dart_RootLibrary();
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    if (Options::compile_all()) {
-      result = Dart_CompileAll();
-      CHECK_RESULT(result);
-    }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
-    if (Dart_IsNull(root_lib)) {
-      ErrorExit(kErrorExitCode, "Unable to find root library for '%s'\n",
-                script_name);
-    }
-
-    // Create a closure for the main entry point which is in the exported
-    // namespace of the root library or invoke a getter of the same name
-    // in the exported namespace and return the resulting closure.
-    Dart_Handle main_closure =
-        Dart_GetField(root_lib, Dart_NewStringFromCString("main"));
-    CHECK_RESULT(main_closure);
-    if (!Dart_IsClosure(main_closure)) {
-      ErrorExit(kErrorExitCode, "Unable to find 'main' in root library '%s'\n",
-                script_name);
-    }
-
-    // Call _startIsolate in the isolate library to enable dispatching the
-    // initial startup message.
-    const intptr_t kNumIsolateArgs = 2;
-    Dart_Handle isolate_args[kNumIsolateArgs];
-    isolate_args[0] = main_closure;                          // entryPoint
-    isolate_args[1] = dart_options->CreateRuntimeOptions();  // args
-
-    Dart_Handle isolate_lib =
-        Dart_LookupLibrary(Dart_NewStringFromCString("dart:isolate"));
-    result =
-        Dart_Invoke(isolate_lib, Dart_NewStringFromCString("_startMainIsolate"),
-                    kNumIsolateArgs, isolate_args);
-    CHECK_RESULT(result);
-
-    // Keep handling messages until the last active receive port is closed.
-    result = Dart_RunLoop();
-    // Generate an app snapshot after execution if specified.
-    if (Options::gen_snapshot_kind() == kAppJIT) {
-      if (!Dart_IsCompilationError(result)) {
-        Snapshot::GenerateAppJIT(Options::snapshot_filename());
-      }
-    }
+  if (Options::compile_all()) {
+    result = Dart_CompileAll();
     CHECK_RESULT(result);
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-  WriteDepsFile(isolate);
+  if (Dart_IsNull(root_lib)) {
+    ErrorExit(kErrorExitCode, "Unable to find root library for '%s'\n",
+              script_name);
+  }
+
+  // Create a closure for the main entry point which is in the exported
+  // namespace of the root library or invoke a getter of the same name
+  // in the exported namespace and return the resulting closure.
+  Dart_Handle main_closure =
+      Dart_GetField(root_lib, Dart_NewStringFromCString("main"));
+  CHECK_RESULT(main_closure);
+  if (!Dart_IsClosure(main_closure)) {
+    ErrorExit(kErrorExitCode, "Unable to find 'main' in root library '%s'\n",
+              script_name);
+  }
+
+  // Call _startIsolate in the isolate library to enable dispatching the
+  // initial startup message.
+  const intptr_t kNumIsolateArgs = 2;
+  Dart_Handle isolate_args[kNumIsolateArgs];
+  isolate_args[0] = main_closure;                          // entryPoint
+  isolate_args[1] = dart_options->CreateRuntimeOptions();  // args
+
+  Dart_Handle isolate_lib =
+      Dart_LookupLibrary(Dart_NewStringFromCString("dart:isolate"));
+  result =
+      Dart_Invoke(isolate_lib, Dart_NewStringFromCString("_startMainIsolate"),
+                  kNumIsolateArgs, isolate_args);
+  CHECK_RESULT(result);
+
+  // Keep handling messages until the last active receive port is closed.
+  result = Dart_RunLoop();
+  // Generate an app snapshot after execution if specified.
+  if (Options::gen_snapshot_kind() == kAppJIT) {
+    if (!Dart_IsCompilationError(result)) {
+      Snapshot::GenerateAppJIT(Options::snapshot_filename());
+    }
+  }
+  CHECK_RESULT(result);
+
+  WriteDepsFile();
 
   Dart_ExitScope();
 
@@ -1242,6 +1244,12 @@ void main(int argc, char** argv) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
+  if (Options::gen_snapshot_kind() == kAppJIT) {
+    // App-jit snapshot can be deployed to another machine,
+    // so generated code should not depend on the CPU features
+    // of the system where snapshot was generated.
+    vm_options.AddArgument("--target-unknown-cpu");
+  }
   // If we need to write an app-jit snapshot or a depfile, then add an exit
   // hook that writes the snapshot and/or depfile as appropriate.
   if ((Options::gen_snapshot_kind() == kAppJIT) ||
@@ -1344,8 +1352,14 @@ void main(int argc, char** argv) {
           script_name);
       Platform::Exit(kErrorExitCode);
     } else {
-      // Run the main isolate until we aren't told to restart.
-      RunMainIsolate(script_name, package_config_override, &dart_options);
+      if (Options::gen_snapshot_kind() == kKernel) {
+        CompileAndSaveKernel(script_name, package_config_override,
+                             &dart_options);
+
+      } else {
+        // Run the main isolate until we aren't told to restart.
+        RunMainIsolate(script_name, package_config_override, &dart_options);
+      }
     }
   }
 
@@ -1386,3 +1400,8 @@ int main(int argc, char** argv) {
   dart::bin::main(argc, argv);
   UNREACHABLE();
 }
+
+// TODO(riscv): Why is this missing from libc?
+#if defined(__riscv)
+char __libc_single_threaded = 0;
+#endif

@@ -1,0 +1,20 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+abstract class _C&Object&M extends core::Object implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
+[@vm.inferred-type.metadata=int?] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  field core::int x;
+  synthetic constructor •() → self::_C&Object&M
+    : self::_C&Object&M::x = (() → core::int => 7)(){() → core::int}, super core::Object::•()
+    ;
+}
+class C extends self::_C&Object&M {
+  synthetic constructor •() → self::C
+    : super self::_C&Object&M::•()
+    ;
+}
+static method main() → dynamic {
+  core::print([@vm.direct-call.metadata=#lib::_C&Object&M.x] [@vm.inferred-type.metadata=int?] new self::C::•().{self::_C&Object&M::x}{core::int});
+}

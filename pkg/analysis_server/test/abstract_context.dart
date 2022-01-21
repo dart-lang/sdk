@@ -50,11 +50,15 @@ class AbstractContextTest with ResourceProviderMixin {
   List<String> get experiments => [
         EnableString.constructor_tearoffs,
         EnableString.named_arguments_anywhere,
+        EnableString.super_parameters,
       ];
 
   String get latestLanguageVersion =>
       '${ExperimentStatus.currentVersion.major}.'
       '${ExperimentStatus.currentVersion.minor}';
+
+  /// The path that is not in [workspaceRootPath], contains external packages.
+  String get packagesRootPath => '/packages';
 
   Folder get sdkRoot => newFolder('/sdk');
 
@@ -65,6 +69,8 @@ class AbstractContextTest with ResourceProviderMixin {
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
   String get testPackageRootPath => '$workspaceRootPath/test';
+
+  String get testPackageTestPath => '$testPackageRootPath/test';
 
   /// The file system specific `/home/test/pubspec.yaml` path.
   String get testPubspecPath => convertPath('/home/test/pubspec.yaml');

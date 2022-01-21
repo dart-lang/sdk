@@ -1,0 +1,244 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:58:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     f1b(42, 87); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:66:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     f1c(42); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:67:8: Error: Too many positional arguments: 0 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     f1c(42, 87); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:112:21: Error: No named parameter with the name 'field2'.
+//     f2c(field1: 42, field2: 87); // error
+//                     ^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:123:9: Error: No named parameter with the name 'field1'.
+//     f2d(field1: 42, field2: 87); // error
+//         ^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:131:9: Error: No named parameter with the name 'field1'.
+//     f2e(field1: 42); // error
+//         ^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:132:9: Error: No named parameter with the name 'field2'.
+//     f2e(field2: 87); // error
+//         ^^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:133:9: Error: No named parameter with the name 'field1'.
+//     f2e(field1: 42, field2: 87); // error
+//         ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  final field core::int field1;
+  final field core::int field2;
+  static final field dynamic _redirecting# = <dynamic>[#C1, #C2, #C3, #C4, #C5, #C6, #C7, #C8]/*isLegacy*/;
+  constructor positional([core::int field1 = #C9, core::int field2 = #C10]) → self::Class1
+    : self::Class1::field1 = field1, self::Class1::field2 = field2, super core::Object::•()
+    ;
+  constructor named({core::int field1 = #C9, core::int field2 = #C10}) → self::Class1
+    : self::Class1::field1 = field1, self::Class1::field2 = field2, super core::Object::•()
+    ;
+  static method _#positional#tearOff([core::int field1 = #C9, core::int field2 = #C10]) → self::Class1
+    return new self::Class1::positional(field1, field2);
+  static factory redirectPositionalSame([core::int field1 = #C11, core::int field2 = #C11]) → self::Class1
+    return new self::Class1::positional(field1, field2);
+  static method _#redirectPositionalSame#tearOff([core::int field1 = #C9, core::int field2 = #C10]) → self::Class1
+    return new self::Class1::positional(field1, field2);
+  static factory redirectPositionalFewer1([core::int field1 = #C11]) → self::Class1
+    return new self::Class1::positional(field1);
+  static method _#redirectPositionalFewer1#tearOff([core::int field1 = #C9]) → self::Class1
+    return new self::Class1::positional(field1);
+  static factory redirectPositionalFewer2() → self::Class1
+    return new self::Class1::positional();
+  static method _#redirectPositionalFewer2#tearOff() → self::Class1
+    return new self::Class1::positional();
+  static method _#named#tearOff({core::int field1 = #C9, core::int field2 = #C10}) → self::Class1
+    return new self::Class1::named(field1: field1, field2: field2);
+  static factory redirectNamedSame({core::int field1 = #C11, core::int field2 = #C11}) → self::Class1
+    return new self::Class1::named(field1: field1, field2: field2);
+  static method _#redirectNamedSame#tearOff({core::int field1 = #C9, core::int field2 = #C10}) → self::Class1
+    return new self::Class1::named(field1: field1, field2: field2);
+  static factory redirectNamedReorder({core::int field2 = #C11, core::int field1 = #C11}) → self::Class1
+    return new self::Class1::named(field2: field2, field1: field1);
+  static method _#redirectNamedReorder#tearOff({core::int field2 = #C10, core::int field1 = #C9}) → self::Class1
+    return new self::Class1::named(field2: field2, field1: field1);
+  static factory redirectNamedFewer1({core::int field1 = #C11}) → self::Class1
+    return new self::Class1::named(field1: field1);
+  static method _#redirectNamedFewer1#tearOff({core::int field1 = #C9}) → self::Class1
+    return new self::Class1::named(field1: field1);
+  static factory redirectNamedFewer2({core::int field2 = #C11}) → self::Class1
+    return new self::Class1::named(field2: field2);
+  static method _#redirectNamedFewer2#tearOff({core::int field2 = #C10}) → self::Class1
+    return new self::Class1::named(field2: field2);
+  static factory redirectNamedFewer3() → self::Class1
+    return new self::Class1::named();
+  static method _#redirectNamedFewer3#tearOff() → self::Class1
+    return new self::Class1::named();
+}
+static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static method main() → dynamic {
+  core::print("inSoundMode: ${self::inSoundMode}");
+  self::testDefaultValues();
+}
+static method testDefaultValues() → dynamic {
+  ([core::int, core::int]) → self::Class1 f1a = #C12;
+  self::Class1 c1a = f1a(){([core::int, core::int]) → self::Class1};
+  self::expect(1, c1a.{self::Class1::field1}{core::int});
+  self::expect(2, c1a.{self::Class1::field2}{core::int});
+  self::Class1 c1b = f1a(42){([core::int, core::int]) → self::Class1};
+  self::expect(42, c1b.{self::Class1::field1}{core::int});
+  self::expect(2, c1b.{self::Class1::field2}{core::int});
+  self::Class1 c1c = f1a(42, 87){([core::int, core::int]) → self::Class1};
+  self::expect(42, c1c.{self::Class1::field1}{core::int});
+  self::expect(87, c1c.{self::Class1::field2}{core::int});
+  ([core::int]) → self::Class1 f1b = #C13;
+  self::Class1 c1d = f1b(){([core::int]) → self::Class1};
+  self::expect(1, c1d.{self::Class1::field1}{core::int});
+  self::expect(2, c1d.{self::Class1::field2}{core::int});
+  self::Class1 c1e = f1b(42){([core::int]) → self::Class1};
+  self::expect(42, c1e.{self::Class1::field1}{core::int});
+  self::expect(2, c1e.{self::Class1::field2}{core::int});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:58:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+Try removing the extra positional arguments.
+    f1b(42, 87); // error
+       ^" in f1b{<inapplicable>}.(42, 87);
+  };
+  () → self::Class1 f1c = #C14;
+  self::Class1 c1f = f1c(){() → self::Class1};
+  self::expect(1, c1f.{self::Class1::field1}{core::int});
+  self::expect(2, c1f.{self::Class1::field2}{core::int});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:66:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    f1c(42); // error
+       ^" in f1c{<inapplicable>}.(42);
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:67:8: Error: Too many positional arguments: 0 allowed, but 2 found.
+Try removing the extra positional arguments.
+    f1c(42, 87); // error
+       ^" in f1c{<inapplicable>}.(42, 87);
+  };
+  ({field1: core::int, field2: core::int}) → self::Class1 f2a = #C15;
+  self::Class1 c2a = f2a(){({field1: core::int, field2: core::int}) → self::Class1};
+  self::expect(1, c2a.{self::Class1::field1}{core::int});
+  self::expect(2, c2a.{self::Class1::field2}{core::int});
+  self::Class1 c2b = f2a(field1: 42){({field1: core::int, field2: core::int}) → self::Class1};
+  self::expect(42, c2b.{self::Class1::field1}{core::int});
+  self::expect(2, c2b.{self::Class1::field2}{core::int});
+  self::Class1 c2c = f2a(field1: 42, field2: 87){({field1: core::int, field2: core::int}) → self::Class1};
+  self::expect(42, c2c.{self::Class1::field1}{core::int});
+  self::expect(87, c2c.{self::Class1::field2}{core::int});
+  self::Class1 c2d = f2a(field2: 87){({field1: core::int, field2: core::int}) → self::Class1};
+  self::expect(1, c2d.{self::Class1::field1}{core::int});
+  self::expect(87, c2d.{self::Class1::field2}{core::int});
+  self::Class1 c2e = f2a(field2: 87, field1: 42){({field1: core::int, field2: core::int}) → self::Class1};
+  self::expect(42, c2e.{self::Class1::field1}{core::int});
+  self::expect(87, c2e.{self::Class1::field2}{core::int});
+  ({field1: core::int, field2: core::int}) → self::Class1 f2b = #C16;
+  self::Class1 c3a = f2b(){({field1: core::int, field2: core::int}) → self::Class1};
+  self::expect(1, c3a.{self::Class1::field1}{core::int});
+  self::expect(2, c3a.{self::Class1::field2}{core::int});
+  self::Class1 c3b = f2b(field1: 42){({field1: core::int, field2: core::int}) → self::Class1};
+  self::expect(42, c3b.{self::Class1::field1}{core::int});
+  self::expect(2, c3b.{self::Class1::field2}{core::int});
+  self::Class1 c3c = f2b(field1: 42, field2: 87){({field1: core::int, field2: core::int}) → self::Class1};
+  self::expect(42, c3c.{self::Class1::field1}{core::int});
+  self::expect(87, c3c.{self::Class1::field2}{core::int});
+  self::Class1 c3d = f2b(field2: 87){({field1: core::int, field2: core::int}) → self::Class1};
+  self::expect(1, c3d.{self::Class1::field1}{core::int});
+  self::expect(87, c3d.{self::Class1::field2}{core::int});
+  self::Class1 c3e = f2b(field2: 87, field1: 42){({field1: core::int, field2: core::int}) → self::Class1};
+  self::expect(42, c3e.{self::Class1::field1}{core::int});
+  self::expect(87, c3e.{self::Class1::field2}{core::int});
+  ({field1: core::int}) → self::Class1 f2c = #C17;
+  self::Class1 c4a = f2c(){({field1: core::int}) → self::Class1};
+  self::expect(1, c4a.{self::Class1::field1}{core::int});
+  self::expect(2, c4a.{self::Class1::field2}{core::int});
+  self::Class1 c4b = f2c(field1: 42){({field1: core::int}) → self::Class1};
+  self::expect(42, c4b.{self::Class1::field1}{core::int});
+  self::expect(2, c4b.{self::Class1::field2}{core::int});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:112:21: Error: No named parameter with the name 'field2'.
+    f2c(field1: 42, field2: 87); // error
+                    ^^^^^^" in f2c{<inapplicable>}.(field1: 42, field2: 87);
+  };
+  ({field2: core::int}) → self::Class1 f2d = #C18;
+  self::Class1 c5a = f2d(){({field2: core::int}) → self::Class1};
+  self::expect(1, c5a.{self::Class1::field1}{core::int});
+  self::expect(2, c5a.{self::Class1::field2}{core::int});
+  self::Class1 c5b = f2d(field2: 87){({field2: core::int}) → self::Class1};
+  self::expect(1, c5b.{self::Class1::field1}{core::int});
+  self::expect(87, c5b.{self::Class1::field2}{core::int});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:123:9: Error: No named parameter with the name 'field1'.
+    f2d(field1: 42, field2: 87); // error
+        ^^^^^^" in f2d{<inapplicable>}.(field1: 42, field2: 87);
+  };
+  () → self::Class1 f2e = #C19;
+  self::Class1 c6a = f2e(){() → self::Class1};
+  self::expect(1, c6a.{self::Class1::field1}{core::int});
+  self::expect(2, c6a.{self::Class1::field2}{core::int});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:131:9: Error: No named parameter with the name 'field1'.
+    f2e(field1: 42); // error
+        ^^^^^^" in f2e{<inapplicable>}.(field1: 42);
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:132:9: Error: No named parameter with the name 'field2'.
+    f2e(field2: 87); // error
+        ^^^^^^" in f2e{<inapplicable>}.(field2: 87);
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/redirecting_factory_tear_off_default_values_complex.dart:133:9: Error: No named parameter with the name 'field1'.
+    f2e(field1: 42, field2: 87); // error
+        ^^^^^^" in f2e{<inapplicable>}.(field1: 42, field2: 87);
+  };
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C20}) → dynamic {
+  try {
+    f(){() → dynamic};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Thrown: ${e}");
+    return;
+  }
+  if(!self::inSoundMode && inSoundModeOnly) {
+    return;
+  }
+  throw "Expected exception";
+}
+
+constants  {
+  #C1 = constructor-tearoff self::Class1::redirectPositionalSame
+  #C2 = constructor-tearoff self::Class1::redirectPositionalFewer1
+  #C3 = constructor-tearoff self::Class1::redirectPositionalFewer2
+  #C4 = constructor-tearoff self::Class1::redirectNamedSame
+  #C5 = constructor-tearoff self::Class1::redirectNamedReorder
+  #C6 = constructor-tearoff self::Class1::redirectNamedFewer1
+  #C7 = constructor-tearoff self::Class1::redirectNamedFewer2
+  #C8 = constructor-tearoff self::Class1::redirectNamedFewer3
+  #C9 = 1
+  #C10 = 2
+  #C11 = null
+  #C12 = static-tearoff self::Class1::_#redirectPositionalSame#tearOff
+  #C13 = static-tearoff self::Class1::_#redirectPositionalFewer1#tearOff
+  #C14 = static-tearoff self::Class1::_#redirectPositionalFewer2#tearOff
+  #C15 = static-tearoff self::Class1::_#redirectNamedSame#tearOff
+  #C16 = static-tearoff self::Class1::_#redirectNamedReorder#tearOff
+  #C17 = static-tearoff self::Class1::_#redirectNamedFewer1#tearOff
+  #C18 = static-tearoff self::Class1::_#redirectNamedFewer2#tearOff
+  #C19 = static-tearoff self::Class1::_#redirectNamedFewer3#tearOff
+  #C20 = false
+}

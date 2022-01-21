@@ -1,3 +1,7 @@
+## 0.6.6
+
+* Added the `comm` tool for finding commonalities between info files.
+
 ## 0.6.5
 
 * Drop unused dependencies.

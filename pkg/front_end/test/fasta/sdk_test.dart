@@ -8,7 +8,7 @@ import 'testing/suite.dart';
 
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
-  environment[ENABLE_FULL_COMPILE] = "";
+  environment[COMPILATION_MODE] = CompileMode.full.name;
   environment["skipVm"] ??= "true";
   environment["onlyCrashes"] ??= "true";
   environment["ignoreExpectations"] ??= "true";

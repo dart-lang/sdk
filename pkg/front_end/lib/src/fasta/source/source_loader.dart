@@ -8,6 +8,8 @@ import 'dart:collection' show Queue;
 import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/macros/executor.dart'
+    show MacroExecutor;
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
@@ -26,6 +28,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, HandleAmbiguousSupertypes;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/util/graph.dart';
 import 'package:package_config/package_config.dart' as package_config;
@@ -35,15 +38,9 @@ import '../../api_prototype/file_system.dart';
 import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
-import '../dill/dill_class_builder.dart';
-import '../dill/dill_library_builder.dart';
-import '../builder_graph.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/constructor_builder.dart';
 import '../builder/declaration_builder.dart';
-import '../builder/dynamic_type_declaration_builder.dart';
-import '../builder/enum_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
@@ -51,28 +48,32 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/never_type_declaration_builder.dart';
-import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
+import '../builder_graph.dart';
 import '../crash.dart' show firstSourceUri;
 import '../denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
+import '../dill/dill_library_builder.dart';
 import '../export.dart' show Export;
 import '../fasta_codes.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
-import '../kernel/class_hierarchy_builder.dart';
+import '../kernel/hierarchy/class_member.dart';
+import '../kernel/hierarchy/delayed.dart';
+import '../kernel/hierarchy/hierarchy_builder.dart';
+import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart'
     show SynthesizedFunctionNode, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/macro.dart';
+import '../kernel/macro_annotation_parser.dart';
 import '../kernel/transform_collections.dart' show CollectionTransformer;
 import '../kernel/transform_set_literals.dart' show SetLiteralTransformer;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../loader.dart' show Loader, untranslatableUriScheme;
-import '../problems.dart' show internalProblem, unhandled;
+import '../problems.dart' show internalProblem;
 import '../scope.dart';
 import '../ticker.dart' show Ticker;
 import '../type_inference/type_inference_engine.dart';
@@ -83,13 +84,16 @@ import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'name_scheme.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
+import 'source_constructor_builder.dart';
+import 'source_enum_builder.dart';
+import 'source_field_builder.dart';
 import 'source_library_builder.dart'
     show
-        LanguageVersion,
-        InvalidLanguageVersion,
         ImplicitLanguageVersion,
+        InvalidLanguageVersion,
+        LanguageVersion,
         SourceLibraryBuilder;
-import 'source_type_alias_builder.dart';
+import 'source_procedure_builder.dart';
 import 'stack_listener_impl.dart' show offsetForToken;
 
 class SourceLoader extends Loader {
@@ -101,7 +105,9 @@ class SourceLoader extends Loader {
 
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
 
-  ClassHierarchyBuilder? _builderHierarchy;
+  ClassHierarchyBuilder? _hierarchyBuilder;
+
+  ClassMembersBuilder? _membersBuilder;
 
   ReferenceFromIndex? referenceFromIndex;
 
@@ -147,6 +153,8 @@ class SourceLoader extends Loader {
   final SourceLoaderDataForTesting? dataForTesting;
 
   final Map<Uri, LibraryBuilder> _builders = <Uri, LibraryBuilder>{};
+
+  List<SourceLibraryBuilder>? _sourceLibraryBuilders;
 
   final Queue<LibraryBuilder> _unparsedLibraries = new Queue<LibraryBuilder>();
 
@@ -223,12 +231,36 @@ class SourceLoader extends Loader {
   @override
   LibraryBuilder? lookupLibraryBuilder(Uri importUri) => _builders[importUri];
 
+  /// The [LibraryBuilder]s for libraries built from source or loaded from dill.
+  ///
+  /// Before [resolveParts] have been called, this includes parts and patches.
   Iterable<LibraryBuilder> get libraryBuilders => _builders.values;
+
+  /// The [SourceLibraryBuilder]s for the libraries built from source by this
+  /// source loader.
+  ///
+  /// This is available after [resolveParts] have been called and doesn't
+  /// include parts or patches. Orphaned parts _are_ included.
+  List<SourceLibraryBuilder> get sourceLibraryBuilders {
+    assert(
+        _sourceLibraryBuilders != null,
+        "Source library builder hasn't been computed yet. "
+        "The source libraries are in SourceLoader.resolveParts.");
+    return _sourceLibraryBuilders!;
+  }
+
+  void clearSourceLibraryBuilders() {
+    assert(
+        _sourceLibraryBuilders != null,
+        "Source library builder hasn't been computed yet. "
+        "The source libraries are in SourceLoader.resolveParts.");
+    _sourceLibraryBuilders!.clear();
+  }
 
   Iterable<Uri> get libraryImportUris => _builders.keys;
 
-  void registerLibraryBuilder(LibraryBuilder libraryBuilder, [Uri? uri]) {
-    uri ??= libraryBuilder.importUri;
+  void registerLibraryBuilder(LibraryBuilder libraryBuilder) {
+    Uri uri = libraryBuilder.importUri;
     if (uri.scheme == "dart" && uri.path == "core") {
       _coreLibrary = libraryBuilder;
     }
@@ -248,8 +280,8 @@ class SourceLoader extends Loader {
 
   Ticker get ticker => target.ticker;
 
-  /// Creates a [SourceLibraryBuilder] corresponding to [uri], if one doesn't
-  /// exist already.
+  /// Creates a [SourceLibraryBuilder] corresponding to [importUri], if one
+  /// doesn't exist already.
   ///
   /// [fileUri] must not be null and is a URI that can be passed to FileSystem
   /// to locate the corresponding file.
@@ -273,17 +305,47 @@ class SourceLoader extends Loader {
   /// which the library belongs to, or the current sdk version if the library
   /// doesn't belong to a package.
   SourceLibraryBuilder createLibraryBuilder(
-      Uri uri,
-      Uri fileUri,
+      {required Uri importUri,
+      required Uri fileUri,
       Uri? packageUri,
-      LanguageVersion packageLanguageVersion,
+      required LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder? origin,
       Library? referencesFrom,
-      bool? referenceIsPartOwner) {
+      bool? referenceIsPartOwner}) {
     return new SourceLibraryBuilder(
-        uri, fileUri, packageUri, packageLanguageVersion, this, origin,
+        importUri: importUri,
+        fileUri: fileUri,
+        packageUri: packageUri,
+        packageLanguageVersion: packageLanguageVersion,
+        loader: this,
+        origin: origin,
         referencesFrom: referencesFrom,
-        referenceIsPartOwner: referenceIsPartOwner);
+        referenceIsPartOwner: referenceIsPartOwner,
+        isUnsupported: origin?.library.isUnsupported ??
+            importUri.scheme == 'dart' &&
+                !target.uriTranslator.isLibrarySupported(importUri.path));
+  }
+
+  /// Return `"true"` if the [dottedName] is a 'dart.library.*' qualifier for a
+  /// supported dart:* library, and `""` otherwise.
+  ///
+  /// This is used to determine conditional imports and `bool.fromEnvironment`
+  /// constant values for "dart.library.[libraryName]" values.
+  String getLibrarySupportValue(String dottedName) {
+    if (!DartLibrarySupport.isDartLibraryQualifier(dottedName)) {
+      return "";
+    }
+    String libraryName = DartLibrarySupport.getDartLibraryName(dottedName);
+    Uri uri = new Uri(scheme: "dart", path: libraryName);
+    LibraryBuilder? library = lookupLibraryBuilder(uri);
+    // TODO(johnniwinther): Why is the dill target sometimes not loaded at this
+    // point? And does it matter?
+    library ??= target.dillTarget.loader.lookupLibraryBuilder(uri);
+    return DartLibrarySupport.getDartLibrarySupportValue(libraryName,
+        libraryExists: library != null,
+        isSynthetic: library?.isSynthetic ?? true,
+        isUnsupported: library?.isUnsupported ?? true,
+        dartLibrarySupport: target.backendTarget.dartLibrarySupport);
   }
 
   SourceLibraryBuilder _createSourceLibraryBuilder(
@@ -365,13 +427,13 @@ class SourceLoader extends Loader {
         new ImplicitLanguageVersion(target.currentSdkVersion);
 
     SourceLibraryBuilder libraryBuilder = createLibraryBuilder(
-        uri,
-        fileUri,
-        packageUri,
-        packageLanguageVersion,
-        origin,
-        referencesFrom,
-        referenceIsPartOwner);
+        importUri: uri,
+        fileUri: fileUri,
+        packageUri: packageUri,
+        packageLanguageVersion: packageLanguageVersion,
+        origin: origin,
+        referencesFrom: referencesFrom,
+        referenceIsPartOwner: referenceIsPartOwner);
     if (packageLanguageVersionProblem != null) {
       libraryBuilder.addPostponedProblem(
           packageLanguageVersionProblem, 0, noLength, libraryBuilder.fileUri);
@@ -480,8 +542,68 @@ class SourceLoader extends Loader {
   /// compile-time error.
   LibraryBuilder read(Uri uri, int charOffset,
       {Uri? fileUri,
-      LibraryBuilder? accessor,
-      Uri? accessorUri,
+      required LibraryBuilder accessor,
+      LibraryBuilder? origin,
+      Library? referencesFrom,
+      bool? referenceIsPartOwner}) {
+    LibraryBuilder libraryBuilder = _read(uri,
+        fileUri: fileUri,
+        origin: origin,
+        referencesFrom: referencesFrom,
+        referenceIsPartOwner: referenceIsPartOwner);
+    libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
+    if (!_hasLibraryAccess(imported: uri, importer: accessor.importUri) &&
+        !accessor.isPatch) {
+      accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
+          noLength, accessor.fileUri);
+    }
+    return libraryBuilder;
+  }
+
+  /// Reads the library [uri] as an entry point. This is used for reading the
+  /// entry point library of a script or the explicitly mention libraries of
+  /// a modular or incremental compilation.
+  ///
+  /// This differs from [read] in that there is no accessor library, meaning
+  /// that access to platform private libraries cannot be granted.
+  LibraryBuilder readAsEntryPoint(Uri uri,
+      {Uri? fileUri, Library? referencesFrom}) {
+    LibraryBuilder libraryBuilder =
+        _read(uri, fileUri: fileUri, referencesFrom: referencesFrom);
+    // TODO(johnniwinther): Avoid using the first library, if present, as the
+    // accessor of [libraryBuilder]. Currently the incremental compiler doesn't
+    // handle errors reported without an accessor, since the messages are not
+    // associated with a library. This currently has the side effect that
+    // the first library is the accessor of itself.
+    LibraryBuilder? firstLibrary = first;
+    if (firstLibrary != null) {
+      libraryBuilder.recordAccess(-1, noLength, firstLibrary.fileUri);
+    }
+    if (!_hasLibraryAccess(imported: uri, importer: firstLibrary?.importUri)) {
+      if (firstLibrary != null) {
+        firstLibrary.addProblem(
+            messagePlatformPrivateLibraryAccess, -1, noLength, firstUri);
+      } else {
+        addProblem(messagePlatformPrivateLibraryAccess, -1, noLength, null);
+      }
+    }
+    return libraryBuilder;
+  }
+
+  bool _hasLibraryAccess({required Uri imported, required Uri? importer}) {
+    if (imported.scheme == "dart" && imported.path.startsWith("_")) {
+      if (importer == null) {
+        return false;
+      } else {
+        return target.backendTarget
+            .allowPlatformPrivateLibraryAccess(importer, imported);
+      }
+    }
+    return true;
+  }
+
+  LibraryBuilder _read(Uri uri,
+      {Uri? fileUri,
       LibraryBuilder? origin,
       Library? referencesFrom,
       bool? referenceIsPartOwner}) {
@@ -498,45 +620,27 @@ class SourceLoader extends Loader {
             referencesFrom,
             referenceIsPartOwner);
       }
-
       _builders[uri] = libraryBuilder;
-    }
-    accessor ??= _builders[accessorUri];
-    if (accessor == null) {
-      if (libraryBuilder.loader == this && first != libraryBuilder) {
-        unhandled("null", "accessor", charOffset, uri);
-      }
-    } else {
-      libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
-      if (!accessor.isPatch &&
-          !accessor.isPart &&
-          !target.backendTarget
-              .allowPlatformPrivateLibraryAccess(accessor.importUri, uri)) {
-        accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
-            noLength, accessor.fileUri);
-      }
     }
     return libraryBuilder;
   }
 
   void _ensureCoreLibrary() {
     if (_coreLibrary == null) {
-      read(Uri.parse("dart:core"), 0, accessorUri: firstUri);
+      readAsEntryPoint(Uri.parse("dart:core"));
       // TODO(askesc): When all backends support set literals, we no longer
       // need to index dart:collection, as it is only needed for desugaring of
       // const sets. We can remove it from this list at that time.
-      read(Uri.parse("dart:collection"), 0, accessorUri: firstUri);
+      readAsEntryPoint(Uri.parse("dart:collection"));
       assert(_coreLibrary != null);
     }
   }
 
   Future<Null> buildBodies() async {
     assert(_coreLibrary != null);
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        currentUriForCrashReporting = library.importUri;
-        await buildBody(library);
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      currentUriForCrashReporting = library.importUri;
+      await buildBody(library);
     }
     currentUriForCrashReporting = null;
     logSummary(templateSourceBodySummary);
@@ -546,7 +650,12 @@ class SourceLoader extends Loader {
     ticker.log((Duration elapsed, Duration sinceStart) {
       int libraryCount = 0;
       for (LibraryBuilder library in libraryBuilders) {
-        if (library.loader == this) libraryCount++;
+        if (library.loader == this) {
+          libraryCount++;
+          if (library is SourceLibraryBuilder) {
+            libraryCount += library.patchLibraries?.length ?? 0;
+          }
+        }
       }
       double ms = elapsed.inMicroseconds / Duration.microsecondsPerMillisecond;
       Message message = template.withArguments(
@@ -646,9 +755,11 @@ severity: $severity
       DeclarationBuilder? declarationBuilder,
       ModifierBuilder member,
       Scope scope,
-      Uri fileUri) {
+      Uri fileUri,
+      {Scope? formalParameterScope}) {
     return new BodyBuilder.forOutlineExpression(
-        library, declarationBuilder, member, scope, fileUri);
+        library, declarationBuilder, member, scope, fileUri,
+        formalParameterScope: formalParameterScope);
   }
 
   NnbdMode get nnbdMode => target.context.options.nnbdMode;
@@ -676,7 +787,9 @@ severity: $severity
 
   TypeInferenceEngineImpl get typeInferenceEngine => _typeInferenceEngine!;
 
-  ClassHierarchyBuilder get builderHierarchy => _builderHierarchy!;
+  ClassHierarchyBuilder get hierarchyBuilder => _hierarchyBuilder!;
+
+  ClassMembersBuilder get membersBuilder => _membersBuilder!;
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
       templateSourceOutlineSummary;
@@ -836,7 +949,7 @@ severity: $severity
   }
 
   void registerConstructorToBeInferred(
-      Constructor constructor, ConstructorBuilder builder) {
+      Constructor constructor, DeclaredSourceConstructorBuilder builder) {
     _typeInferenceEngine!.toBeInferred[constructor] = builder;
   }
 
@@ -963,29 +1076,34 @@ severity: $severity
   }
 
   /// Builds all the method bodies found in the given [library].
-  Future<Null> buildBody(LibraryBuilder library) async {
-    if (library is SourceLibraryBuilder) {
-      // We tokenize source files twice to keep memory usage low. This is the
-      // second time, and the first time was in [buildOutline] above. So this
-      // time we suppress lexical errors.
-      Token tokens = await tokenize(library, suppressLexicalErrors: true);
+  Future<Null> buildBody(SourceLibraryBuilder library) async {
+    Iterable<SourceLibraryBuilder>? patches = library.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        await buildBody(patchLibrary);
+      }
+    }
+
+    // We tokenize source files twice to keep memory usage low. This is the
+    // second time, and the first time was in [buildOutline] above. So this
+    // time we suppress lexical errors.
+    Token tokens = await tokenize(library, suppressLexicalErrors: true);
+    // ignore: unnecessary_null_comparison
+    if (tokens == null) return;
+    DietListener listener = createDietListener(library);
+    DietParser parser = new DietParser(listener);
+    parser.parseUnit(tokens);
+    for (LibraryBuilder part in library.parts) {
+      if (part.partOfLibrary != library) {
+        // Part was included in multiple libraries. Skip it here.
+        continue;
+      }
+      Token tokens = await tokenize(part as SourceLibraryBuilder,
+          suppressLexicalErrors: true);
       // ignore: unnecessary_null_comparison
-      if (tokens == null) return;
-      DietListener listener = createDietListener(library);
-      DietParser parser = new DietParser(listener);
-      parser.parseUnit(tokens);
-      for (LibraryBuilder part in library.parts) {
-        if (part.partOfLibrary != library) {
-          // Part was included in multiple libraries. Skip it here.
-          continue;
-        }
-        Token tokens = await tokenize(part as SourceLibraryBuilder,
-            suppressLexicalErrors: true);
-        // ignore: unnecessary_null_comparison
-        if (tokens != null) {
-          listener.uri = part.fileUri;
-          parser.parseUnit(tokens);
-        }
+      if (tokens != null) {
+        listener.uri = part.fileUri;
+        parser.parseUnit(tokens);
       }
     }
   }
@@ -1047,6 +1165,9 @@ severity: $severity
         builder, dietListener.memberScope,
         isDeclarationInstanceMember: isClassInstanceMember,
         extensionThis: extensionThis);
+    for (VariableDeclaration variable in parameters.positionalParameters) {
+      listener.typeInferrer.assignedVariables.declare(variable);
+    }
 
     return listener.parseSingleExpression(
         new Parser(listener,
@@ -1061,13 +1182,20 @@ severity: $severity
 
   void resolveParts() {
     List<Uri> parts = <Uri>[];
-    List<SourceLibraryBuilder> libraries = <SourceLibraryBuilder>[];
+    List<SourceLibraryBuilder> libraries = [];
+    List<SourceLibraryBuilder> sourceLibraries = [];
+    List<SourceLibraryBuilder> patchLibraries = [];
     _builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library.loader == this) {
+      if (library.loader == this && library is SourceLibraryBuilder) {
         if (library.isPart) {
           parts.add(uri);
         } else {
-          libraries.add(library as SourceLibraryBuilder);
+          if (library.isPatch) {
+            patchLibraries.add(library);
+          } else {
+            sourceLibraries.add(library);
+          }
+          libraries.add(library);
         }
       }
     });
@@ -1086,6 +1214,7 @@ severity: $severity
             lookupLibraryBuilder(uri) as SourceLibraryBuilder;
         part.addProblem(messagePartOrphan, 0, 1, part.fileUri);
         part.validatePart(null, null);
+        sourceLibraries.add(part);
       }
     }
     ticker.logMs("Resolved parts");
@@ -1095,6 +1224,25 @@ severity: $severity
         library.applyPatches();
       }
     }
+    for (SourceLibraryBuilder patchLibrary in patchLibraries) {
+      _builders.remove(patchLibrary.fileUri);
+      patchLibrary.origin.addPatchLibrary(patchLibrary);
+    }
+    _sourceLibraryBuilders = sourceLibraries;
+    assert(
+        libraryBuilders.every((library) => !library.isPatch),
+        "Patch library found in libraryBuilders: "
+        "${libraryBuilders.where((library) => library.isPatch)}.");
+    assert(
+        sourceLibraries.every((library) => !library.isPatch),
+        "Patch library found in sourceLibraryBuilders: "
+        "${sourceLibraries.where((library) => library.isPatch)}.");
+    assert(
+        libraryBuilders.every((library) =>
+            library.loader != this || sourceLibraries.contains(library)),
+        "Source library not found in sourceLibraryBuilders:"
+        "${libraryBuilders.where((library) => // force line break
+            library.loader == this && !sourceLibraries.contains(library))}");
     ticker.logMs("Applied patches");
   }
 
@@ -1110,6 +1258,19 @@ severity: $severity
         exportees.add(library);
         for (Export exporter in library.exporters) {
           exporters.add(exporter.exporter);
+        }
+      }
+
+      Iterable<SourceLibraryBuilder>? patches =
+          library is SourceLibraryBuilder ? library.patchLibraries : null;
+      if (patches != null) {
+        for (SourceLibraryBuilder patchLibrary in patches) {
+          if (patchLibrary.exporters.isNotEmpty) {
+            exportees.add(patchLibrary);
+            for (Export exporter in patchLibrary.exporters) {
+              exporters.add(exporter.exporter);
+            }
+          }
         }
       }
     }
@@ -1178,16 +1339,13 @@ severity: $severity
 
   void resolveTypes() {
     int typeCount = 0;
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
-        typeCount += sourceLibrary.resolveTypes();
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      typeCount += library.resolveTypes();
     }
     ticker.logMs("Resolved $typeCount types");
   }
 
-  void computeMacroDeclarations(List<SourceClassBuilder> sourceClassBuilders) {
+  void computeMacroDeclarations() {
     if (!enableMacros) return;
 
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
@@ -1209,42 +1367,18 @@ severity: $severity
     Set<ClassBuilder> macroClasses = {macroClassBuilder};
     Set<Uri> macroLibraries = {macroLibraryBuilder.importUri};
 
-    bool isMacroClass(TypeDeclarationBuilder? typeDeclarationBuilder) {
-      if (typeDeclarationBuilder == null) return false;
-      while (typeDeclarationBuilder is TypeAliasBuilder) {
-        typeDeclarationBuilder =
-            typeDeclarationBuilder.unaliasDeclaration(null);
-      }
-      if (typeDeclarationBuilder is ClassBuilder) {
-        if (macroClasses.contains(typeDeclarationBuilder)) return true;
-        if (typeDeclarationBuilder is DillClassBuilder) {
-          // TODO(johnniwinther): Recognize macro classes from dill.
-        }
-      }
-      return false;
-    }
-
-    for (SourceClassBuilder sourceClassBuilder in sourceClassBuilders) {
-      bool isMacro =
-          isMacroClass(sourceClassBuilder.supertypeBuilder?.declaration);
-      if (!isMacro && sourceClassBuilder.interfaceBuilders != null) {
-        for (TypeBuilder interfaceBuilder
-            in sourceClassBuilder.interfaceBuilders!) {
-          if (isMacroClass(interfaceBuilder.declaration)) {
-            isMacro = true;
-            break;
+    for (SourceLibraryBuilder sourceLibraryBuilder in sourceLibraryBuilders) {
+      Iterator<Builder> iterator = sourceLibraryBuilder.iterator;
+      while (iterator.moveNext()) {
+        Builder builder = iterator.current;
+        if (builder is SourceClassBuilder && builder.isMacro) {
+          macroClasses.add(builder);
+          macroLibraries.add(builder.library.importUri);
+          if (retainDataForTesting) {
+            (dataForTesting!.macroDeclarationData
+                    .macroDeclarations[builder.library.importUri] ??= [])
+                .add(builder.name);
           }
-        }
-      }
-      isMacro = isMacro ||
-          isMacroClass(sourceClassBuilder.mixedInTypeBuilder?.declaration);
-      if (isMacro) {
-        macroClasses.add(sourceClassBuilder);
-        macroLibraries.add(sourceClassBuilder.library.importUri);
-        if (retainDataForTesting) {
-          (dataForTesting!.macroDeclarationData.macroDeclarations[
-                  sourceClassBuilder.library.importUri] ??= [])
-              .add(sourceClassBuilder.name);
         }
       }
     }
@@ -1293,141 +1427,153 @@ severity: $severity
     }
   }
 
-  void computeMacroApplications() {
-    if (!enableMacros || _macroClassBuilder == null) return;
-    Class macroClass = _macroClassBuilder!.cls;
+  Future<MacroApplications?> computeMacroApplications() async {
+    if (!enableMacros || _macroClassBuilder == null) return null;
 
-    Class? computeApplication(Expression expression) {
-      if (expression is ConstructorInvocation) {
-        Class cls = expression.target.enclosingClass;
-        if (hierarchy.isSubtypeOf(cls, macroClass)) {
-          return cls;
-        }
-      }
-      return null;
-    }
-
-    MacroApplications? computeApplications(List<Expression> annotations) {
-      List<Class> macros = [];
-      for (Expression annotation in annotations) {
-        Class? cls = computeApplication(annotation);
-        if (cls != null) {
-          macros.add(cls);
-        }
-      }
-      return macros.isNotEmpty ? new MacroApplications(macros) : null;
-    }
-
-    for (LibraryBuilder libraryBuilder in libraryBuilders) {
-      if (libraryBuilder.loader != this) continue;
+    Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
+    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
+      // TODO(johnniwinther): Handle patch libraries.
       LibraryMacroApplicationData libraryMacroApplicationData =
           new LibraryMacroApplicationData();
-      Library library = libraryBuilder.library;
-      libraryMacroApplicationData.libraryApplications =
-          computeApplications(library.annotations);
-      for (Class cls in library.classes) {
-        ClassMacroApplicationData classMacroApplicationData =
-            new ClassMacroApplicationData();
-        classMacroApplicationData.classApplications =
-            computeApplications(cls.annotations);
-        for (Member member in cls.members) {
-          MacroApplications? macroApplications =
-              computeApplications(member.annotations);
+      Iterator<Builder> iterator = libraryBuilder.iterator;
+      while (iterator.moveNext()) {
+        Builder builder = iterator.current;
+        if (builder is SourceClassBuilder) {
+          SourceClassBuilder classBuilder = builder;
+          ClassMacroApplicationData classMacroApplicationData =
+              new ClassMacroApplicationData();
+          classMacroApplicationData.classApplications = prebuildAnnotations(
+              enclosingLibrary: libraryBuilder,
+              scope: classBuilder.scope,
+              fileUri: classBuilder.fileUri,
+              metadataBuilders: classBuilder.metadata);
+          builder.forEach((String name, Builder memberBuilder) {
+            if (memberBuilder is SourceProcedureBuilder) {
+              List<MacroApplication>? macroApplications = prebuildAnnotations(
+                  enclosingLibrary: libraryBuilder,
+                  scope: classBuilder.scope,
+                  fileUri: memberBuilder.fileUri,
+                  metadataBuilders: memberBuilder.metadata);
+              if (macroApplications != null) {
+                classMacroApplicationData.memberApplications[memberBuilder] =
+                    macroApplications;
+              }
+            } else if (memberBuilder is SourceFieldBuilder) {
+              List<MacroApplication>? macroApplications = prebuildAnnotations(
+                  enclosingLibrary: libraryBuilder,
+                  scope: classBuilder.scope,
+                  fileUri: memberBuilder.fileUri,
+                  metadataBuilders: memberBuilder.metadata);
+              if (macroApplications != null) {
+                classMacroApplicationData.memberApplications[memberBuilder] =
+                    macroApplications;
+              }
+            }
+          });
+          classBuilder.forEachConstructor((String name, Builder memberBuilder) {
+            if (memberBuilder is DeclaredSourceConstructorBuilder) {
+              List<MacroApplication>? macroApplications = prebuildAnnotations(
+                  enclosingLibrary: libraryBuilder,
+                  scope: classBuilder.scope,
+                  fileUri: memberBuilder.fileUri,
+                  metadataBuilders: memberBuilder.metadata);
+              if (macroApplications != null) {
+                classMacroApplicationData.memberApplications[memberBuilder] =
+                    macroApplications;
+              }
+            }
+          });
+
+          if (classMacroApplicationData.classApplications != null ||
+              classMacroApplicationData.memberApplications.isNotEmpty) {
+            libraryMacroApplicationData.classData[builder] =
+                classMacroApplicationData;
+          }
+        } else if (builder is SourceProcedureBuilder) {
+          List<MacroApplication>? macroApplications = prebuildAnnotations(
+              enclosingLibrary: libraryBuilder,
+              scope: libraryBuilder.scope,
+              fileUri: builder.fileUri,
+              metadataBuilders: builder.metadata);
           if (macroApplications != null) {
-            classMacroApplicationData.memberApplications[member] =
+            libraryMacroApplicationData.memberApplications[builder] =
+                macroApplications;
+          }
+        } else if (builder is SourceFieldBuilder) {
+          List<MacroApplication>? macroApplications = prebuildAnnotations(
+              enclosingLibrary: libraryBuilder,
+              scope: libraryBuilder.scope,
+              fileUri: builder.fileUri,
+              metadataBuilders: builder.metadata);
+          if (macroApplications != null) {
+            libraryMacroApplicationData.memberApplications[builder] =
                 macroApplications;
           }
         }
-        if (classMacroApplicationData.classApplications != null ||
-            classMacroApplicationData.memberApplications.isNotEmpty) {
-          libraryMacroApplicationData.classData[cls] =
-              classMacroApplicationData;
-        }
       }
-      for (Member member in library.members) {
-        MacroApplications? macroApplications =
-            computeApplications(member.annotations);
-        if (macroApplications != null) {
-          libraryMacroApplicationData.memberApplications[member] =
-              macroApplications;
-        }
-      }
-      for (Typedef typedef in library.typedefs) {
-        MacroApplications? macroApplications =
-            computeApplications(typedef.annotations);
-        if (macroApplications != null) {
-          libraryMacroApplicationData.typedefApplications[typedef] =
-              macroApplications;
-        }
-      }
-      if (libraryMacroApplicationData.libraryApplications != null ||
-          libraryMacroApplicationData.classData.isNotEmpty ||
-          libraryMacroApplicationData.typedefApplications.isNotEmpty ||
+      if (libraryMacroApplicationData.classData.isNotEmpty ||
           libraryMacroApplicationData.memberApplications.isNotEmpty) {
-        if (retainDataForTesting) {
-          dataForTesting!.macroApplicationData.libraryData[library] =
-              libraryMacroApplicationData;
-        }
+        libraryData[libraryBuilder] = libraryMacroApplicationData;
       }
     }
+    if (libraryData.isNotEmpty) {
+      MacroExecutor macroExecutor =
+          await target.context.options.macroExecutorProvider();
+      Map<MacroClass, Uri> precompiledMacroUris =
+          target.context.options.precompiledMacroUris;
+      return await MacroApplications.loadMacroIds(
+          macroExecutor,
+          precompiledMacroUris,
+          libraryData,
+          dataForTesting?.macroApplicationData);
+    }
+    return null;
   }
 
   void finishDeferredLoadTearoffs() {
     int count = 0;
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        count += library.finishDeferredLoadTearoffs();
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      count += library.finishDeferredLoadTearoffs();
     }
     ticker.logMs("Finished deferred load tearoffs $count");
   }
 
   void finishNoSuchMethodForwarders() {
     int count = 0;
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        count += library.finishForwarders();
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      count += library.finishForwarders();
     }
     ticker.logMs("Finished forwarders for $count procedures");
   }
 
   void resolveConstructors() {
     int count = 0;
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        count += library.resolveConstructors(null);
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      count += library.resolveConstructors();
     }
     ticker.logMs("Resolved $count constructors");
   }
 
   void installTypedefTearOffs() {
     if (target.backendTarget.isTypedefTearOffLoweringEnabled) {
-      for (LibraryBuilder library in libraryBuilders) {
-        if (library.loader == this && library is SourceLibraryBuilder) {
-          library.installTypedefTearOffs();
-        }
+      for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+        library.installTypedefTearOffs();
       }
     }
   }
 
   void finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = 0;
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        count += library.finishTypeVariables(object, dynamicType);
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      count += library.finishTypeVariables(object, dynamicType);
     }
     ticker.logMs("Resolved $count type-variable bounds");
   }
 
   void computeVariances() {
     int count = 0;
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        count += library.computeVariances();
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      count += library.computeVariances();
     }
     ticker.logMs("Computed variances of $count type variables");
   }
@@ -1435,31 +1581,25 @@ severity: $severity
   void computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
       TypeBuilder bottomType, ClassBuilder objectClass) {
     int count = 0;
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        count += library.computeDefaultTypes(
-            dynamicType, nullType, bottomType, objectClass);
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      count += library.computeDefaultTypes(
+          dynamicType, nullType, bottomType, objectClass);
     }
     ticker.logMs("Computed default types for $count type variables");
   }
 
   void finishNativeMethods() {
     int count = 0;
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        count += library.finishNativeMethods();
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      count += library.finishNativeMethods();
     }
     ticker.logMs("Finished $count native methods");
   }
 
   void finishPatchMethods() {
     int count = 0;
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        count += library.finishPatchMethods();
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      count += library.finishPatchMethods();
     }
     ticker.logMs("Finished $count patch methods");
   }
@@ -1487,6 +1627,15 @@ severity: $severity
     }
   }
 
+  /// Returns classes defined in libraries in this [SourceLoader].
+  List<SourceClassBuilder> collectSourceClasses() {
+    List<SourceClassBuilder> sourceClasses = <SourceClassBuilder>[];
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      library.collectSourceClasses(sourceClasses);
+    }
+    return sourceClasses;
+  }
+
   /// Returns a list of all class builders declared in this loader.  As the
   /// classes are sorted, any cycles in the hierarchy are reported as
   /// errors. Recover by breaking the cycles. This means that the rest of the
@@ -1499,6 +1648,8 @@ severity: $severity
           denylistedCoreClasses[i],
           required: true) as ClassBuilder);
     }
+    ClassBuilder enumClass =
+        coreLibrary.lookupLocalMember("Enum", required: true) as ClassBuilder;
     if (typedDataLibrary != null) {
       for (int i = 0; i < denylistedTypedDataClasses.length; i++) {
         // Allow the member to not exist. If it doesn't, nobody can extend it.
@@ -1509,13 +1660,14 @@ severity: $severity
     }
 
     // Sort the classes topologically.
-    _SourceClassGraph classGraph = new _SourceClassGraph(this, objectClass);
+    _SourceClassGraph classGraph =
+        new _SourceClassGraph(collectSourceClasses(), objectClass);
     TopologicalSortResult<SourceClassBuilder> result =
         topologicalSort(classGraph);
     List<SourceClassBuilder> classes = result.sortedVertices;
     for (SourceClassBuilder cls in classes) {
-      checkClassSupertypes(
-          cls, classGraph.directSupertypeMap[cls]!, denyListedClasses);
+      checkClassSupertypes(cls, classGraph.directSupertypeMap[cls]!,
+          denyListedClasses, enumClass);
     }
 
     List<SourceClassBuilder> classesWithCycles = result.cyclicVertices;
@@ -1558,20 +1710,34 @@ severity: $severity
     }
   }
 
+  bool checkEnumSupertypeIsDenylisted(SourceClassBuilder cls) {
+    if (!cls.library.enableEnhancedEnumsInLibrary) {
+      cls.addProblem(
+          templateEnumSupertypeOfNonAbstractClass.withArguments(cls.name),
+          cls.charOffset,
+          noLength);
+      return true;
+    }
+    return false;
+  }
+
   void checkClassSupertypes(
       SourceClassBuilder cls,
       Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypeMap,
-      Set<ClassBuilder> denyListedClasses) {
+      Set<ClassBuilder> denyListedClasses,
+      ClassBuilder enumClass) {
     // Check that the direct supertypes aren't deny-listed or enums.
     List<TypeDeclarationBuilder?> directSupertypes =
         directSupertypeMap.keys.toList();
     for (int i = 0; i < directSupertypes.length; i++) {
       TypeDeclarationBuilder? supertype = directSupertypes[i];
-      if (supertype is EnumBuilder) {
+      if (supertype is SourceEnumBuilder) {
         cls.addProblem(templateExtendingEnum.withArguments(supertype.name),
             cls.charOffset, noLength);
       } else if (!cls.library.mayImplementRestrictedTypes &&
-          denyListedClasses.contains(supertype)) {
+          (denyListedClasses.contains(supertype) ||
+              identical(supertype, enumClass) &&
+                  checkEnumSupertypeIsDenylisted(cls))) {
         TypeAliasBuilder? aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
           cls.addProblem(
@@ -1654,19 +1820,14 @@ severity: $severity
 
   /// Builds the core AST structure needed for the outline of the component.
   void buildComponent() {
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        SourceLibraryBuilder sourceLibrary = library as SourceLibraryBuilder;
-        Library target = sourceLibrary.build(coreLibrary);
-        if (!library.isPatch) {
-          if (sourceLibrary.referencesFrom != null) {
-            referenceFromIndex ??= new ReferenceFromIndex();
-            referenceFromIndex!.addIndexedLibrary(
-                target, sourceLibrary.referencesFromIndexed!);
-          }
-          libraries.add(target);
-        }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      Library target = library.build(coreLibrary);
+      if (library.referencesFrom != null) {
+        referenceFromIndex ??= new ReferenceFromIndex();
+        referenceFromIndex!
+            .addIndexedLibrary(target, library.referencesFromIndexed!);
       }
+      libraries.add(target);
     }
     ticker.logMs("Built component");
   }
@@ -1721,11 +1882,8 @@ severity: $severity
   }
 
   void computeShowHideElements() {
-    for (LibraryBuilder libraryBuilder in libraryBuilders) {
-      if (libraryBuilder.loader == this &&
-          libraryBuilder is SourceLibraryBuilder) {
-        libraryBuilder.computeShowHideElements(_builderHierarchy!);
-      }
+    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
+      libraryBuilder.computeShowHideElements(membersBuilder);
     }
     ticker.logMs("Computed show and hide elements");
   }
@@ -1759,31 +1917,27 @@ severity: $severity
     ticker.logMs("Computed core types");
   }
 
-  void checkSupertypes(List<SourceClassBuilder> sourceClasses) {
+  void checkSupertypes(
+      List<SourceClassBuilder> sourceClasses, Class enumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
       if (builder.library.loader == this && !builder.isPatch) {
-        builder.checkSupertypes(coreTypes);
+        builder.checkSupertypes(coreTypes, hierarchyBuilder, enumClass);
       }
     }
     ticker.logMs("Checked supertypes");
   }
 
   void checkTypes() {
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library is SourceLibraryBuilder) {
-        if (library.loader == this) {
-          library
-              .checkTypesInOutline(typeInferenceEngine.typeSchemaEnvironment);
-        }
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      library.checkTypesInOutline(typeInferenceEngine.typeSchemaEnvironment);
     }
     ticker.logMs("Checked type arguments of supers against the bounds");
   }
 
   void checkOverrides(List<SourceClassBuilder> sourceClasses) {
-    List<DelayedCheck> overrideChecks = builderHierarchy.takeDelayedChecks();
+    List<DelayedCheck> overrideChecks = membersBuilder.takeDelayedChecks();
     for (int i = 0; i < overrideChecks.length; i++) {
-      overrideChecks[i].check(builderHierarchy);
+      overrideChecks[i].check(membersBuilder);
     }
     ticker.logMs("Checked ${overrideChecks.length} overrides");
 
@@ -1793,10 +1947,10 @@ severity: $severity
 
   void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
     List<ClassMember> delayedMemberChecks =
-        builderHierarchy.takeDelayedMemberComputations();
+        membersBuilder.takeDelayedMemberComputations();
     Set<Class> changedClasses = new Set<Class>();
     for (int i = 0; i < delayedMemberChecks.length; i++) {
-      delayedMemberChecks[i].getMember(builderHierarchy);
+      delayedMemberChecks[i].getMember(membersBuilder);
       changedClasses.add(delayedMemberChecks[i].classBuilder.cls);
     }
     ticker.logMs(
@@ -1846,38 +2000,13 @@ severity: $severity
     ticker.logMs("Checked mixin declaration applications");
   }
 
-  void buildOutlineExpressions(CoreTypes coreTypes,
+  void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     List<DelayedActionPerformer> delayedActionPerformers =
         <DelayedActionPerformer>[];
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        (library as SourceLibraryBuilder).buildOutlineExpressions();
-        Iterator<Builder> iterator = library.iterator;
-        while (iterator.moveNext()) {
-          Builder declaration = iterator.current;
-          if (declaration is ClassBuilder) {
-            declaration.buildOutlineExpressions(library, coreTypes,
-                delayedActionPerformers, synthesizedFunctionNodes);
-          } else if (declaration is ExtensionBuilder) {
-            declaration.buildOutlineExpressions(library, coreTypes,
-                delayedActionPerformers, synthesizedFunctionNodes);
-          } else if (declaration is MemberBuilder) {
-            declaration.buildOutlineExpressions(library, coreTypes,
-                delayedActionPerformers, synthesizedFunctionNodes);
-          } else if (declaration is SourceTypeAliasBuilder) {
-            declaration.buildOutlineExpressions(library, coreTypes,
-                delayedActionPerformers, synthesizedFunctionNodes);
-          } else {
-            assert(
-                declaration is PrefixBuilder ||
-                    declaration is DynamicTypeDeclarationBuilder ||
-                    declaration is NeverTypeDeclarationBuilder,
-                "Unexpected builder in library: ${declaration} "
-                "(${declaration.runtimeType}");
-          }
-        }
-      }
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      library.buildOutlineExpressions(
+          classHierarchy, synthesizedFunctionNodes, delayedActionPerformers);
     }
     for (DelayedActionPerformer delayedActionPerformer
         in delayedActionPerformers) {
@@ -1888,10 +2017,18 @@ severity: $severity
 
   void buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
-    _builderHierarchy = ClassHierarchyBuilder.build(
-        objectClass, sourceClasses, this, coreTypes);
-    typeInferenceEngine.hierarchyBuilder = builderHierarchy;
+    ClassHierarchyBuilder hierarchyBuilder = _hierarchyBuilder =
+        ClassHierarchyBuilder.build(
+            objectClass, sourceClasses, this, coreTypes);
+    typeInferenceEngine.hierarchyBuilder = hierarchyBuilder;
     ticker.logMs("Built class hierarchy");
+  }
+
+  void buildClassHierarchyMembers(List<SourceClassBuilder> sourceClasses) {
+    ClassMembersBuilder membersBuilder = _membersBuilder =
+        ClassMembersBuilder.build(hierarchyBuilder, sourceClasses);
+    typeInferenceEngine.membersBuilder = membersBuilder;
+    ticker.logMs("Built class hierarchy members");
   }
 
   void createTypeInferenceEngine() {
@@ -1904,17 +2041,11 @@ severity: $severity
     /// might be subject to type inference, and records dependencies between
     /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
-    builderHierarchy.computeTypes();
+    membersBuilder.computeTypes();
 
-    List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
-    for (LibraryBuilder library in libraryBuilders) {
-      if (library.loader == this) {
-        List<FieldBuilder>? implicitlyTypedFields =
-            library.takeImplicitlyTypedFields();
-        if (implicitlyTypedFields != null) {
-          allImplicitlyTypedFields.addAll(implicitlyTypedFields);
-        }
-      }
+    List<SourceFieldBuilder> allImplicitlyTypedFields = [];
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      library.collectImplicitlyTypedFields(allImplicitlyTypedFields);
     }
 
     for (int i = 0; i < allImplicitlyTypedFields.length; i++) {
@@ -2000,27 +2131,48 @@ severity: $severity
         isTopLevel: isTopLevel);
   }
 
-  void checkMainMethods() {
-    DartType? listOfString;
+  void _checkMainMethods(
+      SourceLibraryBuilder libraryBuilder, DartType listOfString) {
+    Iterable<SourceLibraryBuilder>? patches = libraryBuilder.patchLibraries;
+    if (patches != null) {
+      for (SourceLibraryBuilder patchLibrary in patches) {
+        _checkMainMethods(patchLibrary, listOfString);
+      }
+    }
 
-    for (LibraryBuilder libraryBuilder in libraryBuilders) {
-      if (libraryBuilder.loader == this &&
-          libraryBuilder.isNonNullableByDefault) {
-        Builder? mainBuilder =
-            libraryBuilder.exportScope.lookupLocalMember('main', setter: false);
-        mainBuilder ??=
-            libraryBuilder.exportScope.lookupLocalMember('main', setter: true);
-        if (mainBuilder is MemberBuilder) {
-          if (mainBuilder is InvalidTypeDeclarationBuilder) {
-            // This is an ambiguous export, skip the check.
-            return;
+    if (libraryBuilder.isNonNullableByDefault) {
+      Builder? mainBuilder =
+          libraryBuilder.exportScope.lookupLocalMember('main', setter: false);
+      mainBuilder ??=
+          libraryBuilder.exportScope.lookupLocalMember('main', setter: true);
+      if (mainBuilder is MemberBuilder) {
+        if (mainBuilder is InvalidTypeDeclarationBuilder) {
+          // This is an ambiguous export, skip the check.
+          return;
+        }
+        if (mainBuilder.isField ||
+            mainBuilder.isGetter ||
+            mainBuilder.isSetter) {
+          if (mainBuilder.parent != libraryBuilder) {
+            libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
+                libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+                context: [
+                  messageExportedMain.withLocation(mainBuilder.fileUri!,
+                      mainBuilder.charOffset, mainBuilder.name.length)
+                ]);
+          } else {
+            libraryBuilder.addProblem(
+                messageMainNotFunctionDeclaration,
+                mainBuilder.charOffset,
+                mainBuilder.name.length,
+                mainBuilder.fileUri);
           }
-          if (mainBuilder.isField ||
-              mainBuilder.isGetter ||
-              mainBuilder.isSetter) {
+        } else {
+          Procedure procedure = mainBuilder.member as Procedure;
+          if (procedure.function.requiredParameterCount > 2) {
             if (mainBuilder.parent != libraryBuilder) {
               libraryBuilder.addProblem(
-                  messageMainNotFunctionDeclarationExported,
+                  messageMainTooManyRequiredParametersExported,
                   libraryBuilder.charOffset,
                   noLength,
                   libraryBuilder.fileUri,
@@ -2030,17 +2182,42 @@ severity: $severity
                   ]);
             } else {
               libraryBuilder.addProblem(
-                  messageMainNotFunctionDeclaration,
+                  messageMainTooManyRequiredParameters,
                   mainBuilder.charOffset,
                   mainBuilder.name.length,
                   mainBuilder.fileUri);
             }
-          } else {
-            Procedure procedure = mainBuilder.member as Procedure;
-            if (procedure.function.requiredParameterCount > 2) {
+          } else if (procedure.function.namedParameters
+              .any((parameter) => parameter.isRequired)) {
+            if (mainBuilder.parent != libraryBuilder) {
+              libraryBuilder.addProblem(
+                  messageMainRequiredNamedParametersExported,
+                  libraryBuilder.charOffset,
+                  noLength,
+                  libraryBuilder.fileUri,
+                  context: [
+                    messageExportedMain.withLocation(mainBuilder.fileUri!,
+                        mainBuilder.charOffset, mainBuilder.name.length)
+                  ]);
+            } else {
+              libraryBuilder.addProblem(
+                  messageMainRequiredNamedParameters,
+                  mainBuilder.charOffset,
+                  mainBuilder.name.length,
+                  mainBuilder.fileUri);
+            }
+          } else if (procedure.function.positionalParameters.length > 0) {
+            DartType parameterType =
+                procedure.function.positionalParameters.first.type;
+
+            if (!typeEnvironment.isSubtypeOf(listOfString, parameterType,
+                SubtypeCheckMode.withNullabilities)) {
               if (mainBuilder.parent != libraryBuilder) {
                 libraryBuilder.addProblem(
-                    messageMainTooManyRequiredParametersExported,
+                    templateMainWrongParameterTypeExported.withArguments(
+                        parameterType,
+                        listOfString,
+                        libraryBuilder.isNonNullableByDefault),
                     libraryBuilder.charOffset,
                     noLength,
                     libraryBuilder.fileUri,
@@ -2050,87 +2227,44 @@ severity: $severity
                     ]);
               } else {
                 libraryBuilder.addProblem(
-                    messageMainTooManyRequiredParameters,
+                    templateMainWrongParameterType.withArguments(parameterType,
+                        listOfString, libraryBuilder.isNonNullableByDefault),
                     mainBuilder.charOffset,
                     mainBuilder.name.length,
                     mainBuilder.fileUri);
-              }
-            } else if (procedure.function.namedParameters
-                .any((parameter) => parameter.isRequired)) {
-              if (mainBuilder.parent != libraryBuilder) {
-                libraryBuilder.addProblem(
-                    messageMainRequiredNamedParametersExported,
-                    libraryBuilder.charOffset,
-                    noLength,
-                    libraryBuilder.fileUri,
-                    context: [
-                      messageExportedMain.withLocation(mainBuilder.fileUri!,
-                          mainBuilder.charOffset, mainBuilder.name.length)
-                    ]);
-              } else {
-                libraryBuilder.addProblem(
-                    messageMainRequiredNamedParameters,
-                    mainBuilder.charOffset,
-                    mainBuilder.name.length,
-                    mainBuilder.fileUri);
-              }
-            } else if (procedure.function.positionalParameters.length > 0) {
-              DartType parameterType =
-                  procedure.function.positionalParameters.first.type;
-
-              listOfString ??= new InterfaceType(
-                  coreTypes.listClass,
-                  Nullability.nonNullable,
-                  [coreTypes.stringNonNullableRawType]);
-
-              if (!typeEnvironment.isSubtypeOf(listOfString, parameterType,
-                  SubtypeCheckMode.withNullabilities)) {
-                if (mainBuilder.parent != libraryBuilder) {
-                  libraryBuilder.addProblem(
-                      templateMainWrongParameterTypeExported.withArguments(
-                          parameterType,
-                          listOfString,
-                          libraryBuilder.isNonNullableByDefault),
-                      libraryBuilder.charOffset,
-                      noLength,
-                      libraryBuilder.fileUri,
-                      context: [
-                        messageExportedMain.withLocation(mainBuilder.fileUri!,
-                            mainBuilder.charOffset, mainBuilder.name.length)
-                      ]);
-                } else {
-                  libraryBuilder.addProblem(
-                      templateMainWrongParameterType.withArguments(
-                          parameterType,
-                          listOfString,
-                          libraryBuilder.isNonNullableByDefault),
-                      mainBuilder.charOffset,
-                      mainBuilder.name.length,
-                      mainBuilder.fileUri);
-                }
               }
             }
           }
-        } else if (mainBuilder != null) {
-          if (mainBuilder.parent != libraryBuilder) {
-            libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
-                libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
-                context: [
-                  messageExportedMain.withLocation(
-                      mainBuilder.fileUri!, mainBuilder.charOffset, noLength)
-                ]);
-          } else {
-            libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
-                mainBuilder.charOffset, noLength, mainBuilder.fileUri);
-          }
+        }
+      } else if (mainBuilder != null) {
+        if (mainBuilder.parent != libraryBuilder) {
+          libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
+              libraryBuilder.charOffset, noLength, libraryBuilder.fileUri,
+              context: [
+                messageExportedMain.withLocation(
+                    mainBuilder.fileUri!, mainBuilder.charOffset, noLength)
+              ]);
+        } else {
+          libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
+              mainBuilder.charOffset, noLength, mainBuilder.fileUri);
         }
       }
     }
   }
 
+  void checkMainMethods() {
+    DartType listOfString = new InterfaceType(coreTypes.listClass,
+        Nullability.nonNullable, [coreTypes.stringNonNullableRawType]);
+
+    for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
+      _checkMainMethods(libraryBuilder, listOfString);
+    }
+  }
+
   void releaseAncillaryResources() {
     hierarchy = null;
-    _builderHierarchy = null;
+    _hierarchyBuilder = null;
+    _membersBuilder = null;
     _typeInferenceEngine = null;
     _builders.clear();
     libraries.clear();
@@ -2436,31 +2570,19 @@ class SourceLoaderDataForTesting {
 
   final MacroDeclarationData macroDeclarationData = new MacroDeclarationData();
 
-  final MacroApplicationData macroApplicationData = new MacroApplicationData();
+  final MacroApplicationDataForTesting macroApplicationData =
+      new MacroApplicationDataForTesting();
 }
 
 class _SourceClassGraph implements Graph<SourceClassBuilder> {
   @override
-  final List<SourceClassBuilder> vertices = [];
+  final List<SourceClassBuilder> vertices;
   final ClassBuilder _objectClass;
   final Map<SourceClassBuilder, Map<TypeDeclarationBuilder?, TypeAliasBuilder?>>
       directSupertypeMap = {};
   final Map<SourceClassBuilder, List<SourceClassBuilder>> _supertypeMap = {};
 
-  _SourceClassGraph(SourceLoader loader, this._objectClass) {
-    // Compute the vertices as all classes declared in this loader.
-    for (LibraryBuilder library in loader.libraryBuilders) {
-      if (library.loader == loader) {
-        Iterator<Builder> members = library.iterator;
-        while (members.moveNext()) {
-          Builder member = members.current;
-          if (member is SourceClassBuilder && !member.isPatch) {
-            vertices.add(member);
-          }
-        }
-      }
-    }
-  }
+  _SourceClassGraph(this.vertices, this._objectClass);
 
   List<SourceClassBuilder> computeSuperClasses(SourceClassBuilder cls) {
     Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypes =

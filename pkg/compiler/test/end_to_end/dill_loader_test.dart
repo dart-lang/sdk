@@ -43,7 +43,6 @@ main() {
         memorySourceFiles: {'main.dill': kernelBinary},
         diagnosticHandler: diagnostics,
         outputProvider: output);
-    await compiler.setupSdk();
     KernelResult result = await compiler.kernelLoader.load();
     compiler.frontendStrategy.registerLoadedLibraries(result);
 

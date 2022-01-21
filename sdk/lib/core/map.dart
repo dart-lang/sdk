@@ -51,6 +51,11 @@ abstract class Map<K, V> {
   /// A `LinkedHashMap` requires the keys to implement compatible
   /// `operator==` and `hashCode`.
   /// It iterates in key insertion order.
+  /// ```dart
+  /// final planets = <num, String>{1: 'Mercury', 2: 'Venus', 3: 'Earth', 4: 'Mars'};
+  /// final mapFrom = Map<int, String>.from(planets);
+  /// print(mapFrom); // {1: Mercury, 2: Venus, 3: Earth, 4: Mars}
+  /// ```
   factory Map.from(Map other) = LinkedHashMap<K, V>.from;
 
   /// Creates a [LinkedHashMap] with the same keys and values as [other].
@@ -58,6 +63,11 @@ abstract class Map<K, V> {
   /// A `LinkedHashMap` requires the keys to implement compatible
   /// `operator==` and `hashCode`, and it allows `null` as a key.
   /// It iterates in key insertion order.
+  /// ```dart
+  /// final planets = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Earth'};
+  /// final mapOf = Map<num, String>.of(planets);
+  /// print(mapOf); // {1: Mercury, 2: Venus, 3: Earth}
+  /// ```
   factory Map.of(Map<K, V> other) = LinkedHashMap<K, V>.of;
 
   /// Creates an unmodifiable hash-based map containing the entries of [other].
@@ -72,6 +82,11 @@ abstract class Map<K, V> {
   ///
   /// The resulting map behaves like the result of [Map.from],
   /// except that the map returned by this constructor is not modifiable.
+  /// ```dart
+  /// final planets = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Earth'};
+  /// final unmodifiableMap = Map.unmodifiable(planets);
+  /// unmodifiableMap[4] = 'Mars'; // Throws
+  /// ```
   external factory Map.unmodifiable(Map<dynamic, dynamic> other);
 
   /// Creates an identity map with the default implementation, [LinkedHashMap].
@@ -100,11 +115,11 @@ abstract class Map<K, V> {
   /// The keys of `map` are the `list` values converted to strings,
   /// and the values of the `map` are the squares of the `list` values:
   /// ```dart
-  /// List<int> list = [1, 2, 3];
-  /// var map = Map<String, int>.fromIterable(list,
+  /// final numbers = <int>[1, 2, 3];
+  /// final map = Map<String, int>.fromIterable(numbers,
   ///     key: (item) => item.toString(),
   ///     value: (item) => item * item);
-  /// // map is {"1": 1, "2": 4, "3": 9}
+  /// print(map); // {1: 1, 2: 4, 3: 9}
   /// ```
   /// If no values are specified for [key] and [value],
   /// the default is the identity function.
@@ -114,8 +129,9 @@ abstract class Map<K, V> {
   /// In the following example, the keys and corresponding values of `map`
   /// are the `list` values directly:
   /// ```dart
-  /// var map = Map<int, int>.fromIterable(list);
-  /// // map is {1: 1, 2: 2, 3: 3}
+  /// final numbers = <int>[1, 2, 3];
+  /// final map = Map.fromIterable(numbers);
+  /// print(map); // {1: 1, 2: 2, 3: 3}
   /// ```
   /// The keys computed by the source [iterable] do not need to be unique.
   /// The last occurrence of a key will overwrite
@@ -134,10 +150,10 @@ abstract class Map<K, V> {
   /// The map construction iterates over [keys] and [values] simultaneously,
   /// and adds an entry to the map for each pair of key and value.
   /// ```dart
-  /// List<String> letters = ['b', 'c'];
-  /// List<String> words = ['bad', 'cat'];
-  /// var map = Map.fromIterables(letters, words);
-  /// // map is {"b": "bad", "c": "cat"}
+  /// final rings = <bool>[false, false, true, true];
+  /// final planets = <String>{'Earth', 'Mars', 'Jupiter', 'Saturn'};
+  /// final map = Map<String, bool>.fromIterables(planets, rings);
+  /// print(map); // {Earth: false, Mars: false, Jupiter: true, Saturn: true}
   /// ```
   /// If [keys] contains the same object multiple times,
   /// the value of the last occurrence overwrites any previous value.
@@ -183,6 +199,12 @@ abstract class Map<K, V> {
   /// ```dart
   /// <K, V>{for (var e in entries) e.key: e.value}
   /// ```
+  /// Example:
+  /// ```dart
+  /// final moonCount = <String, int>{'Mercury': 0, 'Venus': 0, 'Earth': 1,
+  ///   'Mars': 2, 'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14};
+  /// final map = Map.fromEntries(moonCount.entries);
+  /// ```
   factory Map.fromEntries(Iterable<MapEntry<K, V>> entries) =>
       <K, V>{}..addEntries(entries);
 
@@ -211,12 +233,24 @@ abstract class Map<K, V> {
   ///
   /// Returns true if any of the values in the map are equal to `value`
   /// according to the `==` operator.
+  /// ```dart
+  /// final moonCount = <String, int>{'Mercury': 0, 'Venus': 0, 'Earth': 1,
+  ///   'Mars': 2, 'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14 };
+  /// final moons3 = moonCount.containsValue(3); // false
+  /// final moons82 = moonCount.containsValue(82); // true
+  /// ```
   bool containsValue(Object? value);
 
   /// Whether this map contains the given [key].
   ///
   /// Returns true if any of the keys in the map are equal to `key`
   /// according to the equality used by the map.
+  /// ```dart
+  /// final moonCount = <String, int>{'Mercury': 0, 'Venus': 0, 'Earth': 1,
+  ///   'Mars': 2, 'Jupiter': 79, 'Saturn': 82, 'Uranus': 27, 'Neptune': 14 };
+  /// final containsUranus = moonCount.containsKey('Uranus'); // true
+  /// final containsPluto = moonCount.containsKey('Pluto'); // false
+  /// ```
   bool containsKey(Object? key);
 
   /// The value for the given [key], or `null` if [key] is not in the map.
@@ -248,6 +282,17 @@ abstract class Map<K, V> {
   ///
   /// The operation is equivalent to doing `this[entry.key] = entry.value`
   /// for each [MapEntry] of the iterable.
+  /// ```dart
+  /// final planets = <int, String>{1: 'Mercury', 2: 'Venus',
+  ///   3: 'Earth', 4: 'Mars'};
+  /// final gasGiants = <int, String>{5: 'Jupiter', 6: 'Saturn'};
+  /// final iceGiants = <int, String>{7: 'Uranus', 8: 'Neptune'};
+  /// planets.addEntries(gasGiants.entries);
+  /// planets.addEntries(iceGiants.entries);
+  /// print(planets);
+  /// // {1: Mercury, 2: Venus, 3: Earth, 4: Mars, 5: Jupiter, 6: Saturn,
+  /// //  7: Uranus, 8: Neptune}
+  /// ```
   void addEntries(Iterable<MapEntry<K, V>> newEntries);
 
   /// Updates the value for the provided [key].
@@ -261,15 +306,38 @@ abstract class Map<K, V> {
   /// and adds the key with the returned value to the map.
   ///
   /// If the key is not present, [ifAbsent] must be provided.
+  /// ```dart
+  /// final planetsFromSun = <int, String>{1: 'Mercury', 2: 'unknown',
+  ///   3: 'Earth'};
+  /// // Update value for known key value 2.
+  /// planetsFromSun.update(2, (value) => 'Venus');
+  /// print(planetsFromSun); // {1: Mercury, 2: Venus, 3: Earth}
+  ///
+  /// final largestPlanets = <int, String>{1: 'Jupiter', 2: 'Saturn',
+  ///   3: 'Neptune'};
+  /// // Key value 8 is missing from list, add it using [ifAbsent].
+  /// largestPlanets.update(8, (value) => 'New', ifAbsent: () => 'Mercury');
+  /// print(largestPlanets); // {1: Jupiter, 2: Saturn, 3: Neptune, 8: Mercury}
+  /// ```
   V update(K key, V update(V value), {V ifAbsent()?});
 
   /// Updates all values.
   ///
   /// Iterates over all entries in the map and updates them with the result
   /// of invoking [update].
+  /// ```dart
+  /// final terrestrial = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Earth'};
+  /// terrestrial.updateAll((key, value) => value.toUpperCase());
+  /// print(terrestrial); // {1: MERCURY, 2: VENUS, 3: EARTH}
+  /// ```
   void updateAll(V update(K key, V value));
 
   /// Removes all entries of this map that satisfy the given [test].
+  /// ```dart
+  /// final terrestrial = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Earth'};
+  /// terrestrial.removeWhere((key, value) => value.startsWith('E'));
+  /// print(terrestrial); // {1: Mercury, 2: Venus}
+  /// ```
   void removeWhere(bool test(K key, V value));
 
   /// Look up the value of [key], or add a new entry if it isn't there.
@@ -278,13 +346,18 @@ abstract class Map<K, V> {
   /// Otherwise calls [ifAbsent] to get a new value, associates [key] to
   /// that value, and then returns the new value.
   /// ```dart
-  /// Map<String, int> scores = {'Bob': 36};
-  /// for (var key in ['Bob', 'Rohan', 'Sophena']) {
-  ///   scores.putIfAbsent(key, () => key.length);
+  /// final diameters = <num, String>{1.0: 'Earth'};
+  /// final otherDiameters = <double, String>{0.383: 'Mercury', 0.949: 'Venus'};
+  ///
+  /// for (final item in otherDiameters.entries) {
+  ///   diameters.putIfAbsent(item.key, () => item.value);
   /// }
-  /// scores['Bob'];      // 36
-  /// scores['Rohan'];    //  5
-  /// scores['Sophena'];  //  7
+  /// print(diameters); // {1.0: Earth, 0.383: Mercury, 0.949: Venus}
+  ///
+  /// // If the key already exists, the current value is returned.
+  /// final result = diameters.putIfAbsent(0.383, () => 'Random');
+  /// print(result); // Mercury
+  /// print(diameters); // {1.0: Earth, 0.383: Mercury, 0.949: Venus}
   /// ```
   /// Calling [ifAbsent] must not add or remove keys from the map.
   V putIfAbsent(K key, V ifAbsent());
@@ -296,6 +369,11 @@ abstract class Map<K, V> {
   /// The operation is equivalent to doing `this[key] = value` for each key
   /// and associated value in other. It iterates over [other], which must
   /// therefore not change during the iteration.
+  /// ```dart
+  /// final planets = <int, String>{1: 'Mercury', 2: 'Earth'};
+  /// planets.addAll({5: 'Jupiter', 6: 'Saturn'});
+  /// print(planets); // {1: Mercury, 2: Earth, 5: Jupiter, 6: Saturn}
+  /// ```
   void addAll(Map<K, V> other);
 
   /// Removes [key] and its associated value, if present, from the map.
@@ -305,16 +383,37 @@ abstract class Map<K, V> {
   ///
   /// Note that some maps allow `null` as a value,
   /// so a returned `null` value doesn't always mean that the key was absent.
+  /// ```dart
+  /// final terrestrial = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Earth'};
+  /// final removedValue = terrestrial.remove(2); // Venus
+  /// print(terrestrial); // {1: Mercury, 3: Earth}
+  /// ```
   V? remove(Object? key);
 
   /// Removes all entries from the map.
   ///
   /// After this, the map is empty.
+  /// ```dart
+  /// final planets = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Earth'};
+  /// planets.clear(); // {}
+  /// ```
   void clear();
 
   /// Applies [action] to each key/value pair of the map.
   ///
   /// Calling `action` must not add or remove keys from the map.
+  /// ```dart
+  /// final planetsByMass = <num, String>{0.81: 'Venus', 1: 'Earth',
+  ///   0.11: 'Mars', 17.15: 'Neptune'};
+  ///
+  /// planetsByMass.forEach((key, value) {
+  ///   print('$key: $value');
+  ///   // 0.81: Venus
+  ///   // 1: Earth
+  ///   // 0.11: Mars
+  ///   // 17.15: Neptune
+  /// });
+  /// ```
   void forEach(void action(K key, V value));
 
   /// The keys of [this].
@@ -352,11 +451,32 @@ abstract class Map<K, V> {
 }
 
 /// A key/value pair representing an entry in a [Map].
+///
+/// The [Map] interface contains various methods that can
+/// inspect or modify the map based on entry objects.
+/// ```dart
+/// final map = {'1': 'A', '2': 'B'};
+/// map.addEntries([
+///  MapEntry('3', 'C'),
+///  MapEntry('4', 'D'),
+/// ]);
+/// print(map); // {1: A, 2: B, 3: C, 4: D}
+/// ```
 class MapEntry<K, V> {
   /// The key of the entry.
+  /// ```dart
+  /// final map = {'theKey': 'theValue'};
+  /// var entry = map.entries.first;
+  /// print(entry.key); // theKey
+  /// ```
   final K key;
 
   /// The value associated to [key] in the map.
+  /// ```dart
+  /// final map = {'theKey': 'theValue'};
+  /// var entry = map.entries.first;
+  /// print(entry.value); // theValue
+  /// ```
   final V value;
 
   /// Creates an entry with [key] and [value].

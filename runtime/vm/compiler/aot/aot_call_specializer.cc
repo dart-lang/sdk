@@ -509,7 +509,7 @@ bool AotCallSpecializer::TryOptimizeIntegerOperation(TemplateDartCall<0>* instr,
         if (replacement != nullptr) break;
         FALL_THROUGH;
       case Token::kTRUNCDIV:
-#if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64)
+#if !defined(TARGET_ARCH_IS_64_BIT)
         // TODO(ajcbik): 32-bit archs too?
         break;
 #else
@@ -646,10 +646,6 @@ bool AotCallSpecializer::TryOptimizeDoubleOperation(TemplateDartCall<0>* instr,
       case Token::kMUL:
         FALL_THROUGH;
       case Token::kDIV: {
-        if (op_kind == Token::kDIV &&
-            !FlowGraphCompiler::SupportsHardwareDivision()) {
-          return false;
-        }
         left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
         right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
         replacement = new (Z) BinaryDoubleOpInstr(

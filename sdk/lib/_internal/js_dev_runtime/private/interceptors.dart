@@ -81,14 +81,21 @@ abstract class JSMutableIndexable<E> extends JSIndexable<E> {
 /// interop library.
 abstract class JSObject {}
 
+/// Superclass of all interop objects and native types defined in the web
+/// libraries.
+///
+/// This is the class static interop classes erase to and the class interop
+/// extension types should use as the on-type.
+class JavaScriptObject extends Interceptor {
+  const JavaScriptObject();
+}
+
 /// Interceptor base class for JavaScript objects not recognized as some more
 /// specific native type.
-
-/// Unlike dart2js, ddc does not intercept JS objects, so this is only used as
-/// an on-type for JS interop extension types. All JS interop objects should be
-/// castable to this type.
-abstract class JavaScriptObject extends Interceptor implements JSObject {
-  const JavaScriptObject();
+///
+/// Note that this used to be `JavaScriptObject`.
+class LegacyJavaScriptObject extends JavaScriptObject implements JSObject {
+  const LegacyJavaScriptObject();
 }
 
 /// Interceptor for plain JavaScript objects created as JavaScript object
@@ -96,7 +103,7 @@ abstract class JavaScriptObject extends Interceptor implements JSObject {
 ///
 /// Note that this isn't being used today in ddc. Instead of using interceptors,
 /// we have other type logic to distinguish JS types.
-class PlainJavaScriptObject extends JavaScriptObject {
+class PlainJavaScriptObject extends LegacyJavaScriptObject {
   const PlainJavaScriptObject();
 }
 
@@ -106,7 +113,7 @@ class PlainJavaScriptObject extends JavaScriptObject {
 /// This class also serves as a fallback for unknown JavaScript exceptions.
 /// Note that this isn't being used today in ddc. Instead of using interceptors,
 /// we have other type logic to distinguish JS types.
-class UnknownJavaScriptObject extends JavaScriptObject {
+class UnknownJavaScriptObject extends LegacyJavaScriptObject {
   const UnknownJavaScriptObject();
 }
 

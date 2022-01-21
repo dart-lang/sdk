@@ -60,22 +60,10 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getErrors(path);
   }
 
-  @Deprecated('Use getErrors() instead')
-  @override
-  Future<SomeErrorsResult> getErrors2(String path) {
-    return getErrors(path);
-  }
-
   @override
   SomeFileResult getFile(String path) {
     _checkConsistency();
     return _driver.getFileSync(path);
-  }
-
-  @Deprecated('Use getFile() instead')
-  @override
-  SomeFileResult getFile2(String path) {
-    return getFile(path);
   }
 
   @override
@@ -84,22 +72,10 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getLibraryByUri(uri);
   }
 
-  @Deprecated('Use getLibraryByUri() instead')
-  @override
-  Future<SomeLibraryElementResult> getLibraryByUri2(String uri) {
-    return getLibraryByUri(uri);
-  }
-
   @override
   SomeParsedLibraryResult getParsedLibrary(String path) {
     _checkConsistency();
     return _driver.getParsedLibrary(path);
-  }
-
-  @Deprecated('Use getParsedLibrary() instead')
-  @override
-  SomeParsedLibraryResult getParsedLibrary2(String path) {
-    return getParsedLibrary(path);
   }
 
   @override
@@ -113,34 +89,16 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getParsedLibraryByUri(element.source.uri);
   }
 
-  @Deprecated('Use getParsedLibraryByElement() instead')
-  @override
-  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
-    return getParsedLibraryByElement(element);
-  }
-
   @override
   SomeParsedUnitResult getParsedUnit(String path) {
     _checkConsistency();
     return _driver.parseFileSync(path);
   }
 
-  @Deprecated('Use getParsedUnit() instead')
-  @override
-  SomeParsedUnitResult getParsedUnit2(String path) {
-    return getParsedUnit(path);
-  }
-
   @override
   Future<SomeResolvedLibraryResult> getResolvedLibrary(String path) {
     _checkConsistency();
     return _driver.getResolvedLibrary(path);
-  }
-
-  @Deprecated('Use getResolvedLibrary() instead')
-  @override
-  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path) {
-    return getResolvedLibrary(path);
   }
 
   @override
@@ -158,36 +116,16 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getResolvedLibraryByUri(element.source.uri);
   }
 
-  @Deprecated('Use getResolvedLibraryByElement() instead')
-  @override
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
-    LibraryElement element,
-  ) {
-    return getResolvedLibraryByElement(element);
-  }
-
   @override
   Future<SomeResolvedUnitResult> getResolvedUnit(String path) {
     _checkConsistency();
     return _driver.getResult(path);
   }
 
-  @Deprecated('Use getResolvedUnit() instead')
-  @override
-  Future<SomeResolvedUnitResult> getResolvedUnit2(String path) {
-    return getResolvedUnit(path);
-  }
-
   @override
   Future<SomeUnitElementResult> getUnitElement(String path) {
     _checkConsistency();
     return _driver.getUnitElement(path);
-  }
-
-  @Deprecated('Use getUnitElement() instead')
-  @override
-  Future<SomeUnitElementResult> getUnitElement2(String path) {
-    return getUnitElement(path);
   }
 
   /// Check to see that results from this session will be consistent, and throw

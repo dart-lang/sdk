@@ -1259,3 +1259,10 @@ class Union16BytesNestedFloat extends Union {
 
   String toString() => "(${a0}, ${a1}, ${a2})";
 }
+
+class StructInlineArrayInt extends Struct {
+  @Array(10)
+  Array<WChar> a0;
+
+  String toString() => "(${[for (var i0 = 0; i0 < 10; i0 += 1) a0[i0]]})";
+}

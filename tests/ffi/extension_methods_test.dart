@@ -11,6 +11,7 @@ main(List<String> arguments) {
   for (int i = 0; i < 100; i++) {
     testStoreLoad();
     testReifiedGeneric();
+    testCompoundLoadAndStore();
   }
 }
 
@@ -50,6 +51,14 @@ testStoreLoad() {
   foo.a = 1;
   Expect.equals(1, foo.a);
   calloc.free(p3);
+
+  final p4 = calloc<Foo>(2);
+  Foo src = p4[1];
+  src.a = 2;
+  p4.ref = src;
+  Foo dst = p4.ref;
+  Expect.equals(2, dst.a);
+  calloc.free(p4);
 }
 
 testReifiedGeneric() {
@@ -59,7 +68,37 @@ testReifiedGeneric() {
   calloc.free(p);
 }
 
+testCompoundLoadAndStore() {
+  final foos = calloc<Foo>(10);
+  final reference = foos.ref..a = 10;
+
+  for (var i = 1; i < 9; i++) {
+    foos[i] = reference;
+    Expect.isTrue(foos[i].a == 10);
+
+    foos.elementAt(i).ref = reference;
+    Expect.isTrue(foos.elementAt(i).ref.a == 10);
+  }
+
+  final bars = calloc<Bar>(10);
+  bars[0].foo = reference;
+
+  for (var i = 1; i < 9; i++) {
+    bars[i] = bars[0];
+    Expect.isTrue(bars.elementAt(i).ref.foo.a == 10);
+  }
+
+  calloc.free(foos);
+  calloc.free(bars);
+}
+
 class Foo extends Struct {
   @Int8()
   external int a;
+}
+
+class Bar extends Union {
+  external Foo foo;
+  @Int32()
+  external int baz;
 }

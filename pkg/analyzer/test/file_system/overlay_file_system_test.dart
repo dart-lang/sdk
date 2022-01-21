@@ -812,20 +812,6 @@ class OverlayResourceProviderTest extends OverlayTestSupport {
     expect(folder.exists, isTrue);
   }
 
-  @Deprecated('Not used by clients')
-  test_getModificationTimes_withoutOverlay() async {
-    Source source = _file(exists: true).createSource();
-    List<int> times = await provider.getModificationTimes([source]);
-    expect(times, [source.modificationStamp]);
-  }
-
-  @Deprecated('Not used by clients')
-  test_getModificationTimes_withOverlay() async {
-    Source source = _file(exists: true, withOverlay: true).createSource();
-    List<int> times = await provider.getModificationTimes([source]);
-    expect(times, [42]);
-  }
-
   test_getResource_file_existing_withoutOverlay() {
     String path = _file(exists: true).path;
     Resource resource = provider.getResource(path);

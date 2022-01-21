@@ -6,6 +6,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -96,7 +97,7 @@ class TestAbstractRequestHandler extends AbstractRequestHandler {
   TestAbstractRequestHandler(AnalysisServer server) : super(server);
 
   @override
-  Response handleRequest(Request request) {
+  Response handleRequest(Request request, CancellationToken cancellationToken) {
     fail('Unexpected invocation of handleRequest');
   }
 }

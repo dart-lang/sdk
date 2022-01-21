@@ -1,0 +1,68 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/const_functions/const_functions_string_error.dart:28:14: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//   return str[1.1];
+//              ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_string_error.dart:10:17: Error: Constant evaluation error:
+// const var1 = str[-1];
+//                 ^
+// pkg/front_end/testcases/const_functions/const_functions_string_error.dart:10:17: Context: Unhandled core exception: RangeError: Index out of range: index must not be negative: -1
+// const var1 = str[-1];
+//                 ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_string_error.dart:11:17: Error: Constant evaluation error:
+// const var2 = str[3];
+//                 ^
+// pkg/front_end/testcases/const_functions/const_functions_string_error.dart:11:17: Context: Unhandled core exception: RangeError: Index out of range: index should be less than 3: 3
+// const var2 = str[3];
+//                 ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_string_error.dart:13:14: Error: Constant evaluation error:
+// const var3 = fn();
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_string_error.dart:16:13: Context: Unhandled core exception: RangeError: Index out of range: index must not be negative: -1
+//   return str[-1];
+//             ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_string_error.dart:19:14: Error: Constant evaluation error:
+// const var4 = fn2();
+//              ^
+// pkg/front_end/testcases/const_functions/const_functions_string_error.dart:22:13: Context: Unhandled core exception: RangeError: Index out of range: index should be less than 3: 3
+//   return str[3];
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::String str = #C1;
+static const field core::String var1 = invalid-expression "Unhandled core exception: RangeError: Index out of range: index must not be negative: -1";
+static const field core::String var2 = invalid-expression "Unhandled core exception: RangeError: Index out of range: index should be less than 3: 3";
+static const field dynamic var3 = invalid-expression "Unhandled core exception: RangeError: Index out of range: index must not be negative: -1";
+static const field dynamic var4 = invalid-expression "Unhandled core exception: RangeError: Index out of range: index should be less than 3: 3";
+static const field dynamic var5 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_string_error.dart:28:14: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+  return str[1.1];
+             ^";
+static method fn() → dynamic {
+  core::String s = "str";
+  return #C1.{core::String::[]}(1.{core::int::unary-}(){() → core::int}){(core::int) → core::String};
+}
+static method fn2() → dynamic {
+  core::String s = "str";
+  return #C1.{core::String::[]}(3){(core::int) → core::String};
+}
+static method fn3() → dynamic {
+  core::String s = "str";
+  return #C1.{core::String::[]}(invalid-expression "pkg/front_end/testcases/const_functions/const_functions_string_error.dart:28:14: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+  return str[1.1];
+             ^" in 1.1 as{TypeError,ForNonNullableByDefault} core::int){(core::int) → core::String};
+}
+static method main() → void {}
+
+constants  {
+  #C1 = "str"
+}

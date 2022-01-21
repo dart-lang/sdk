@@ -140,7 +140,7 @@ int Function() f = () {};
   }
 
   test_functionExpression_sync_dynamic() async {
-    await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode('''
 Function() f = () {};
 ''');
   }
@@ -153,7 +153,7 @@ int Function() f = () => null;
 
   test_localFunction_sync_dynamic() async {
     await assertNoErrorsInCode(r'''
-main() {
+void foo() {
   f() {}
   f;
 }
@@ -217,7 +217,26 @@ class B extends A {
 
 @reflectiveTest
 class MissingReturnWithNullSafetyTest extends PubPackageResolutionTest {
-  test_returnNever() async {
+  test_function_async_block_futureOrVoid() async {
+    await assertNoErrorsInCode('''
+import 'dart:async';
+FutureOr<void> f() async {}
+''');
+  }
+
+  test_function_async_block_void() async {
+    await assertNoErrorsInCode('''
+void f() async {}
+''');
+  }
+
+  test_function_sync_block_dynamic() async {
+    await assertNoErrorsInCode('''
+dynamic f() {}
+''');
+  }
+
+  test_function_sync_block_Never() async {
     newFile('$testPackageLibPath/a.dart', content: r'''
 Never foo() {
   throw 0;
@@ -230,6 +249,18 @@ import 'a.dart';
 int f() {
   foo();
 }
+''');
+  }
+
+  test_function_sync_block_Null() async {
+    await assertNoErrorsInCode('''
+Null f() {}
+''');
+  }
+
+  test_function_sync_block_void() async {
+    await assertNoErrorsInCode('''
+void f() {}
 ''');
   }
 }

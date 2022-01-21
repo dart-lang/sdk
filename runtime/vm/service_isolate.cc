@@ -229,9 +229,11 @@ bool ServiceIsolate::SendIsolateStartupMessage() {
                                               " registered.\n",
                  name.ToCString(), Dart_GetMainPortId());
   }
-  return PortMap::PostMessage(WriteMessage(
+  bool result = PortMap::PostMessage(WriteMessage(
       /* can_send_any_object */ false, /* same_group */ false, list, port_,
       Message::kNormalPriority));
+  isolate->set_is_service_registered(true);
+  return result;
 }
 
 bool ServiceIsolate::SendIsolateShutdownMessage() {

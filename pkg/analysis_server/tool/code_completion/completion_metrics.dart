@@ -1899,6 +1899,7 @@ class MetricsSuggestionListener implements SuggestionListener {
     0.0,
     0.0,
     0.0,
+    0.0,
     0.0
   ];
 
@@ -1923,6 +1924,7 @@ class MetricsSuggestionListener implements SuggestionListener {
       double hasDeprecated = 0.0,
       double isConstant = 0.0,
       double isNoSuchMethod = 0.0,
+      double isNotImported = 0.0,
       double keyword = 0.0,
       double startsWithDollar = 0.0,
       double superMatches = 0.0,
@@ -1935,6 +1937,7 @@ class MetricsSuggestionListener implements SuggestionListener {
       hasDeprecated,
       isConstant,
       isNoSuchMethod,
+      isNotImported,
       keyword,
       startsWithDollar,
       superMatches,

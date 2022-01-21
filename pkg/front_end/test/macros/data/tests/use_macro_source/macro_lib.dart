@@ -9,13 +9,13 @@
  macrosAreAvailable
 */
 
-import 'package:macro_builder/macro_builder.dart';
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
-class Macro1 implements Macro {
+macro class Macro1 implements Macro {
   const Macro1();
 }
 
-class Macro2 implements Macro {
+macro class Macro2 implements Macro {
   const Macro2();
 }
 

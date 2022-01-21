@@ -1,4 +1,11 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:15: Error: Type variables can't be used in static members.
+//   C({a: 0, b: T}) : trace = "a: $a, b: $b";
+//               ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -6,7 +13,7 @@ import "package:expect/expect.dart";
 
 class C<T extends core::Object* = dynamic> extends core::Object {
   field core::String* trace;
-  constructor •({dynamic a, dynamic b}) → self::C<self::C::T*>*
+  constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::C<self::C::T*>*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -34,7 +41,7 @@ class M extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class D = self::C<core::String*> with self::M {
-  synthetic constructor •({dynamic a, dynamic b}) → self::D*
+  synthetic constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::D*
     : super self::C::•(a: a, b: b)
     ;
 }
@@ -43,7 +50,7 @@ class E extends self::D {
     ;
 }
 abstract class _F&C&M = self::C<core::int*> with self::M /*isAnonymousMixin*/  {
-  synthetic constructor •({dynamic a, dynamic b}) → self::_F&C&M*
+  synthetic constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::_F&C&M*
     : super self::C::•(a: a, b: b)
     ;
 }
@@ -53,3 +60,10 @@ class F extends self::_F&C&M {
 }
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:9:15 -> TypeLiteralConstant(<invalid>)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:14:7 -> TypeLiteralConstant(<invalid>)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:18:7 -> TypeLiteralConstant(<invalid>)
+Extra constant evaluation: evaluated: 7, effectively constant: 3

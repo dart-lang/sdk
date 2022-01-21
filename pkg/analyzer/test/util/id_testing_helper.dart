@@ -145,7 +145,7 @@ Future<TestResult<T>> runTestForConfig<T>(
   var byteStore = MemoryByteStore();
   var analysisOptions = AnalysisOptionsImpl()
     ..contextFeatures = config.featureSet;
-  var driver = AnalysisDriver.tmp1(
+  var driver = AnalysisDriver(
     scheduler: scheduler,
     logger: logger,
     resourceProvider: resourceProvider,

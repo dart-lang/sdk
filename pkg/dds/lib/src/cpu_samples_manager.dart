@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dds/src/common/ring_buffer.dart';
 import 'package:vm_service/vm_service.dart';
 
+import 'common/ring_buffer.dart';
 import 'dds_impl.dart';
 
 /// Manages CPU sample caches for an individual [Isolate].
@@ -15,34 +15,15 @@ class CpuSamplesManager {
     }
   }
 
-  void handleUserTagEvent(Event event) {
-    assert(event.kind! == EventKind.kUserTagChanged);
-    _currentTag = event.updatedTag!;
-    final previousTag = event.previousTag!;
-    if (cpuSamplesCaches.containsKey(previousTag)) {
-      _lastCachedTag = previousTag;
-    }
-  }
-
   void handleCpuSamplesEvent(Event event) {
-    assert(event.kind! == EventKind.kCpuSamples);
-    // There might be some samples left in the buffer for the previously set
-    // user tag. We'll check for them here and then close out the cache.
-    if (_lastCachedTag != null) {
-      cpuSamplesCaches[_lastCachedTag]!.cacheSamples(
-        event.cpuSamples!,
-      );
-      _lastCachedTag = null;
+    for (final userTag in dds.cachedUserTags) {
+      cpuSamplesCaches[userTag]!.cacheSamples(event.cpuSamples!);
     }
-    cpuSamplesCaches[_currentTag]?.cacheSamples(event.cpuSamples!);
   }
 
   final DartDevelopmentServiceImpl dds;
   final String isolateId;
   final cpuSamplesCaches = <String, CpuSamplesRepository>{};
-
-  String _currentTag = '';
-  String? _lastCachedTag;
 }
 
 class CpuSamplesRepository extends RingBuffer<CpuSample> {

@@ -15,7 +15,6 @@ import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
-import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -94,10 +93,6 @@ abstract class AbstractAnalysisServer {
   /// A map from analysis contexts to the documentation cache associated with
   /// each context.
   Map<AnalysisContext, DocumentationCache> documentationForContext = {};
-
-  /// A map from analysis contexts to the extension cache associated with
-  /// each context.
-  Map<AnalysisContext, ExtensionCache> extensionForContext = {};
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
@@ -252,7 +247,6 @@ abstract class AbstractAnalysisServer {
   void addContextsToDeclarationsTracker() {
     declarationsTracker?.discardContexts();
     documentationForContext.clear();
-    extensionForContext.clear();
     for (var driver in driverMap.values) {
       declarationsTracker?.addContext(driver.analysisContext!);
     }
@@ -383,14 +377,6 @@ abstract class AbstractAnalysisServer {
     return element;
   }
 
-  /// Return the object used to cache information about extensions in the
-  /// context that produced the [result], or `null` if there is no cache for the
-  /// context.
-  ExtensionCache? getExtensionCacheFor(ResolvedUnitResult result) {
-    var context = result.session.analysisContext;
-    return extensionForContext.putIfAbsent(context, () => ExtensionCache());
-  }
-
   /// Return a [Future] that completes with the resolved [AstNode] at the
   /// given [offset] of the given [file], or with `null` if there is no node as
   /// the [offset].
@@ -473,8 +459,8 @@ abstract class AbstractAnalysisServer {
 
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
-  void reanalyze() {
-    contextManager.refresh();
+  Future<void> reanalyze() async {
+    await contextManager.refresh();
   }
 
   ResolvedForCompletionResultImpl? resolveForCompletion({

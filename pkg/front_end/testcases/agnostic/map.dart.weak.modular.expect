@@ -1,0 +1,16 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::int> a = #C1;
+static const field core::List<core::int?> b = #C2;
+static const field core::Map<core::List<core::int?>, core::int> c = #C5;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = <core::int*>[]
+  #C2 = <core::int?>[]
+  #C3 = 0
+  #C4 = 1
+  #C5 = <core::List<core::int?>*, core::int*>{#C1:#C3, #C2:#C4)
+}

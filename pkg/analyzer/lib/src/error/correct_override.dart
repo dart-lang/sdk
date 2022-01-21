@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 class CorrectOverrideHelper {
@@ -22,6 +23,8 @@ class CorrectOverrideHelper {
 
   final ExecutableElement _thisMember;
   FunctionType? _thisTypeForSubtype;
+
+  final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
   CorrectOverrideHelper({
     required LibraryElementImpl library,
@@ -52,20 +55,12 @@ class CorrectOverrideHelper {
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
-      // Elements enclosing members that can participate in overrides are always
-      // named, so we can safely assume `_thisMember.enclosingElement.name` and
-      // `superMember.enclosingElement.name` are non-`null`.
-      errorReporter.reportErrorForNode(
-        errorCode ?? CompileTimeErrorCode.INVALID_OVERRIDE,
-        errorNode,
-        [
-          _thisMember.name,
-          _thisMember.enclosingElement.name!,
-          _thisMember.type,
-          superMember.enclosingElement.name!,
-          superMember.type,
-        ],
-      );
+      errorReporter.reportError(_diagnosticFactory.invalidOverride(
+          errorReporter.source,
+          errorCode,
+          errorNode,
+          _thisMember,
+          superMember));
     }
   }
 

@@ -1,0 +1,20 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  external get i1() → core::int;
+  external set i1(core::int #externalFieldValue) → void;
+  external get cx() → dynamic;
+  external set cx(covariant-by-declaration dynamic #externalFieldValue) → void;
+  external static get s1() → core::int;
+  external static set s1(core::int #externalFieldValue) → void;
+  external static get fx() → dynamic;
+}
+external static get s1() → core::int;
+external static set s1(core::int #externalFieldValue) → void;
+external static get fx() → dynamic;
+static method main() → dynamic {}

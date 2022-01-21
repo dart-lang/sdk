@@ -3,40 +3,33 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/common.dart';
-
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/field_builder.dart';
 import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-
 import '../fasta_codes.dart'
     show
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength,
         templateExtensionMemberConflictsWithObjectMember;
-
 import '../kernel/kernel_helper.dart';
-
 import '../operator.dart';
-
 import '../problems.dart';
-
 import '../scope.dart';
-
 import '../util/helpers.dart';
-
+import 'source_field_builder.dart';
 import 'source_library_builder.dart';
+import 'source_member_builder.dart';
+import 'source_procedure_builder.dart';
 
 const String extensionThisName = '#this';
 
@@ -128,8 +121,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
             unexpected(fullNameForErrors, declaration.parent!.fullNameForErrors,
                 charOffset, fileUri);
           }
-        } else if (declaration is MemberBuilderImpl) {
-          MemberBuilderImpl memberBuilder = declaration;
+        } else if (declaration is SourceMemberBuilder) {
+          SourceMemberBuilder memberBuilder = declaration;
           memberBuilder.buildMembers(libraryBuilder,
               (Member member, BuiltMemberKind memberKind) {
             if (addMembersToLibrary &&
@@ -262,7 +255,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       if (builder is SourceFieldBuilder) {
         // Check fields.
         library.checkTypesInField(builder, typeEnvironment);
-      } else if (builder is ProcedureBuilder) {
+      } else if (builder is SourceProcedureBuilder) {
         // Check procedures
         library.checkTypesInFunctionBuilder(builder, typeEnvironment);
         if (builder.isGetter) {
@@ -282,7 +275,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
   @override
   void buildOutlineExpressions(
       SourceLibraryBuilder library,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<SynthesizedFunctionNode> synthesizedFunctionNodes) {
     MetadataBuilder.buildAnnotations(isPatch ? origin.extension : extension,
@@ -290,13 +283,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(library, this, null,
-            coreTypes, delayedActionPerformers, scope.parent!);
+            classHierarchy, delayedActionPerformers, scope.parent!);
       }
     }
 
     void build(String ignore, Builder declaration) {
-      MemberBuilder member = declaration as MemberBuilder;
-      member.buildOutlineExpressions(library, coreTypes,
+      SourceMemberBuilder member = declaration as SourceMemberBuilder;
+      member.buildOutlineExpressions(library, classHierarchy,
           delayedActionPerformers, synthesizedFunctionNodes);
     }
 

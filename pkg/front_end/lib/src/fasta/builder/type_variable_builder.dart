@@ -6,7 +6,7 @@ library fasta.type_variable_builder;
 
 import 'package:kernel/ast.dart'
     show DartType, Nullability, TypeParameter, TypeParameterType;
-import 'package:kernel/core_types.dart';
+import 'package:kernel/class_hierarchy.dart';
 
 import '../fasta_codes.dart'
     show
@@ -201,7 +201,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       SourceLibraryBuilder libraryBuilder,
       DeclarationBuilder? classOrExtensionBuilder,
       MemberBuilder? memberBuilder,
-      CoreTypes coreTypes,
+      ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       Scope scope) {
     MetadataBuilder.buildAnnotations(parameter, metadata, libraryBuilder,

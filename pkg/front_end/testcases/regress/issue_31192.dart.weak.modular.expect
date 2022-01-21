@@ -1,0 +1,34 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31192.dart:7:17: Error: Expected an assignment after the field name.
+// To initialize a field, use the syntax 'name = value'.
+//   Increment() : x++ {}
+//                 ^
+//
+// pkg/front_end/testcases/regress/issue_31192.dart:7:17: Error: Can't access 'this' in a field initializer to read 'x'.
+//   Increment() : x++ {}
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Increment extends core::Object {
+  field core::int* x = null;
+  constructor •() → self::Increment*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_31192.dart:7:17: Error: This couldn't be parsed.
+  Increment() : x++ {}
+                ^" {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

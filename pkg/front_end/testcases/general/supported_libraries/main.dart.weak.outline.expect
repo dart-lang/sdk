@@ -1,0 +1,64 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "dart:supported.by.spec";
+import "dart:unsupported.by.spec";
+import "dart:unsupported.by.target";
+import "org-dartlang-testcase:///import_supported.by.spec_lib.dart" as from_supported_by_spec_first;
+import "org-dartlang-testcase:///import_supported.by.target_lib.dart" as from_supported_by_target;
+import "org-dartlang-testcase:///import_supported.by.spec_lib.dart" as from_supported_by_spec_last;
+
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+library dart.supported.by.spec /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:_supported.by.target" as by_;
+additionalExports = (by_::supportedByTarget)
+
+export "dart:_supported.by.target";
+
+static method supportedBySpec() → void
+  ;
+
+library dart.unsupported.by.spec /*isUnsupported,isNonNullableByDefault*/;
+import self as self3;
+import "dart:_unsupported.by.spec_internal" as spe;
+additionalExports = (spe::unsupportedBySpecInternal)
+
+export "dart:_unsupported.by.spec_internal";
+
+static method unsupportedBySpec() → void
+  ;
+
+library dart.unsupported.by.target /*isNonNullableByDefault*/;
+import self as self4;
+
+static method unsupportedByTarget() → void
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self5;
+import "dart:core" as core;
+
+static field core::String field;
+
+library /*isNonNullableByDefault*/;
+import self as self6;
+import "dart:core" as core;
+
+static field core::String field;
+
+library dart._supported.by_target /*isUnsupported,isNonNullableByDefault*/;
+import self as by_;
+
+static method supportedByTarget() → void
+  ;
+
+library dart._unsupported.by.spec_internal /*isUnsupported,isNonNullableByDefault*/;
+import self as spe;
+
+static method unsupportedBySpecInternal() → void
+  ;

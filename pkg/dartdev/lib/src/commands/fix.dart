@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:analysis_server_client/protocol.dart' hide AnalysisError;
-import 'package:intl/intl.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
@@ -17,8 +16,6 @@ import '../utils.dart';
 
 class FixCommand extends DartdevCommand {
   static const String cmdName = 'fix';
-
-  static final NumberFormat _numberFormat = NumberFormat.decimalPattern();
 
   static const String cmdDescription =
       '''Apply automated fixes to Dart source code.
@@ -152,16 +149,16 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
 
       if (dryRun) {
         log.stdout('');
-        log.stdout('${_format(fixCount)} proposed ${_pluralFix(fixCount)} '
-            'in ${_format(fileCount)} ${pluralize("file", fileCount)}.');
+        log.stdout('$fixCount proposed ${_pluralFix(fixCount)} '
+            'in $fileCount ${pluralize("file", fileCount)}.');
         _printDetails(detailsMap, dir);
       } else {
         var applyFixesProgress = log.progress('Applying fixes');
         _writeFiles();
         applyFixesProgress.finish(showTiming: true);
         _printDetails(detailsMap, dir);
-        log.stdout('${_format(fixCount)} ${_pluralFix(fixCount)} made in '
-            '${_format(fileCount)} ${pluralize("file", fileCount)}.');
+        log.stdout('$fixCount ${_pluralFix(fixCount)} made in '
+            '$fileCount ${pluralize("file", fileCount)}.');
       }
     }
 
@@ -314,7 +311,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       fixes.sort((a, b) => a.code.compareTo(b.code));
       for (var fix in fixes) {
         log.stdout('  ${fix.code} $bullet '
-            '${_format(fix.occurrences)} ${_pluralFix(fix.occurrences)}');
+            '${fix.occurrences} ${_pluralFix(fix.occurrences)}');
       }
       log.stdout('');
     }
@@ -343,8 +340,6 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       file.writeAsStringSync(entry.value);
     }
   }
-
-  static String _format(int value) => _numberFormat.format(value);
 }
 
 /// The result of running tests in a given directory.

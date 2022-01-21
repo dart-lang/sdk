@@ -1,0 +1,74 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35151.dart:10:15: Error: A field can only be initialized in its declaring class
+// Try passing a value into the superclass constructor, or moving the initialization into the constructor body.
+//   B() : super.a = 42;
+//               ^
+//
+// pkg/front_end/testcases/regress/issue_35151.dart:10:15: Error: Not a valid initializer.
+// To initialize a field, use the syntax 'name = value'.
+//   B() : super.a = 42;
+//               ^
+//
+// pkg/front_end/testcases/regress/issue_35151.dart:14:9: Error: Can't access 'super' in a field initializer.
+//   C() : super = 42;
+//         ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::int* a = null;
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  constructor •() → self::B*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_35151.dart:10:15: Error: Not a valid initializer.
+To initialize a field, use the syntax 'name = value'.
+  B() : super.a = 42;
+              ^"
+    ;
+}
+class C extends core::Object {
+  constructor •() → self::C*
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/regress/issue_35151.dart:14:9: Error: Can't access 'super' in a field initializer.
+  C() : super = 42;
+        ^^^^^"
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  try {
+    self::B* b = new self::B::•();
+  }
+  on dynamic catch(final dynamic _) {
+  }
+  try {
+    self::C* c = new self::C::•();
+  }
+  on dynamic catch(final dynamic _) {
+  }
+}

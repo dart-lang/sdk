@@ -10,9 +10,9 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/resolver/comment_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -81,10 +81,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// The element for the library containing the compilation unit being visited.
   final LibraryElement _definingLibrary;
 
-  /// Helper for resolving properties on types.
-  final TypePropertyResolver _typePropertyResolver;
-
   final MethodInvocationResolver _methodInvocationResolver;
+
+  late final _commentReferenceResolver =
+      CommentReferenceResolver(_typeProvider, _resolver);
 
   /// Initialize a newly created visitor to work for the given [_resolver] to
   /// resolve the nodes in a compilation unit.
@@ -92,7 +92,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
       {MigratableAstInfoProvider migratableAstInfoProvider =
           const MigratableAstInfoProvider()})
       : _definingLibrary = _resolver.definingLibrary,
-        _typePropertyResolver = _resolver.typePropertyResolver,
         _methodInvocationResolver = MethodInvocationResolver(
           _resolver,
           migratableAstInfoProvider,
@@ -124,70 +123,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitCommentReference(covariant CommentReferenceImpl node) {
-    var expression = node.expression;
-    if (expression is SimpleIdentifierImpl) {
-      var element = _resolveSimpleIdentifier(expression);
-      if (element == null) {
-        return;
-      }
-      expression.staticElement = element;
-      if (node.newKeyword != null) {
-        if (element is ClassElement) {
-          var constructor = element.unnamedConstructor;
-          if (constructor == null) {
-            // TODO(brianwilkerson) Report this error.
-          } else {
-            expression.staticElement = constructor;
-          }
-        } else {
-          // TODO(brianwilkerson) Report this error.
-        }
-      }
-    } else if (expression is PrefixedIdentifierImpl) {
-      var prefix = expression.prefix;
-      var prefixElement = _resolveSimpleIdentifier(prefix);
-      prefix.staticElement = prefixElement;
-
-      var name = expression.identifier;
-
-      if (prefixElement == null) {
-        return;
-      }
-
-      if (prefixElement is PrefixElement) {
-        var prefixScope = prefixElement.scope;
-        var lookupResult = prefixScope.lookup(name.name);
-        var element = lookupResult.getter ?? lookupResult.setter;
-        element = _resolver.toLegacyElement(element);
-        name.staticElement = element;
-        return;
-      }
-
-      if (node.newKeyword == null) {
-        if (prefixElement is ClassElement) {
-          name.staticElement = prefixElement.getMethod(name.name) ??
-              prefixElement.getGetter(name.name) ??
-              prefixElement.getSetter(name.name) ??
-              prefixElement.getNamedConstructor(name.name);
-        } else if (prefixElement is ExtensionElement) {
-          name.staticElement = prefixElement.getMethod(name.name) ??
-              prefixElement.getGetter(name.name) ??
-              prefixElement.getSetter(name.name);
-        } else {
-          // TODO(brianwilkerson) Report this error.
-        }
-      } else if (prefixElement is ClassElement) {
-        var constructor = prefixElement.getNamedConstructor(name.name);
-        if (constructor == null) {
-          // TODO(brianwilkerson) Report this error.
-        } else {
-          name.staticElement = constructor;
-        }
-      } else {
-        // TODO(brianwilkerson) Report this error.
-      }
-    }
+  void visitCommentReference(CommentReference node) {
+    _commentReferenceResolver.resolve(node);
   }
 
   @override
@@ -469,7 +406,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return;
     }
     var argumentList = node.argumentList;
-    var parameters = _resolveArgumentsToFunction(argumentList, element);
+    var parameters = _resolveArgumentsToFunction(
+      argumentList,
+      element,
+      enclosingConstructor: node.thisOrAncestorOfType<ConstructorDeclaration>(),
+    );
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
@@ -509,23 +450,19 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// cannot be matched to a parameter. Return the parameters that correspond to
   /// the arguments, or `null` if no correspondence could be computed.
   List<ParameterElement?>? _resolveArgumentsToFunction(
-      ArgumentList argumentList, ExecutableElement? executableElement) {
+    ArgumentList argumentList,
+    ExecutableElement? executableElement, {
+    ConstructorDeclaration? enclosingConstructor,
+  }) {
     if (executableElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = executableElement.parameters;
-    return _resolveArgumentsToParameters(argumentList, parameters);
-  }
-
-  /// Given an [argumentList] and the [parameters] related to the element that
-  /// will be invoked using those arguments, compute the list of parameters that
-  /// correspond to the list of arguments. An error will be reported if any of
-  /// the arguments cannot be matched to a parameter. Return the parameters that
-  /// correspond to the arguments.
-  List<ParameterElement?> _resolveArgumentsToParameters(
-      ArgumentList argumentList, List<ParameterElement> parameters) {
     return ResolverVisitor.resolveArgumentsToParameters(
-        argumentList, parameters, _errorReporter.reportErrorForNode);
+      argumentList: argumentList,
+      parameters: executableElement.parameters,
+      errorReporter: _errorReporter,
+      enclosingConstructor: enclosingConstructor,
+    );
   }
 
   /// Resolve the names in the given [combinators] in the scope of the given
@@ -570,88 +507,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   void _resolveMetadataForParameter(NormalFormalParameter node) {
     _resolveAnnotations(node.metadata);
   }
-
-  /// Resolve the given simple [identifier] if possible. Return the element to
-  /// which it could be resolved, or `null` if it could not be resolved. This
-  /// does not record the results of the resolution.
-  Element? _resolveSimpleIdentifier(SimpleIdentifierImpl identifier) {
-    var lookupResult = identifier.scopeLookupResult!;
-
-    var element = lookupResult.getter;
-    element = _resolver.toLegacyElement(element);
-
-    if (element is PropertyAccessorElement && identifier.inSetterContext()) {
-      var setter = lookupResult.setter;
-      if (setter == null) {
-        //
-        // Check to see whether there might be a locally defined getter and
-        // an inherited setter.
-        //
-        var enclosingClass = _resolver.enclosingClass;
-        if (enclosingClass != null) {
-          var result = _typePropertyResolver.resolve(
-            receiver: null,
-            receiverType: enclosingClass.thisType,
-            name: identifier.name,
-            propertyErrorEntity: identifier,
-            nameErrorEntity: identifier,
-          );
-          setter = result.setter;
-        }
-      }
-      if (setter != null) {
-        setter = _resolver.toLegacyElement(setter);
-        element = setter;
-      }
-    } else if (element == null &&
-        (identifier.inSetterContext() ||
-            identifier.parent is CommentReference)) {
-      element = lookupResult.setter;
-      element = _resolver.toLegacyElement(element);
-    }
-    if (element == null) {
-      InterfaceType enclosingType;
-      var enclosingClass = _resolver.enclosingClass;
-      if (enclosingClass == null) {
-        var enclosingExtension = _resolver.enclosingExtension;
-        if (enclosingExtension == null) {
-          return null;
-        }
-        DartType extendedType =
-            _resolveTypeParameter(enclosingExtension.extendedType);
-        if (extendedType is InterfaceType) {
-          enclosingType = extendedType;
-        } else if (extendedType is FunctionType) {
-          enclosingType = _typeProvider.functionType;
-        } else {
-          return null;
-        }
-      } else {
-        enclosingType = enclosingClass.thisType;
-      }
-      if (element == null) {
-        var result = _typePropertyResolver.resolve(
-          receiver: null,
-          receiverType: enclosingType,
-          name: identifier.name,
-          propertyErrorEntity: identifier,
-          nameErrorEntity: identifier,
-        );
-        if (identifier.inSetterContext() ||
-            identifier.parent is CommentReference) {
-          element = result.setter;
-        }
-        element ??= result.getter;
-      }
-    }
-    return element;
-  }
-
-  /// If the given [type] is a type parameter, resolve it to the type that
-  /// should be used when looking up members. Otherwise, return the original
-  /// type.
-  DartType _resolveTypeParameter(DartType type) =>
-      type.resolveToBound(_typeProvider.objectType);
 
   /// Checks whether the given [expression] is a reference to a class. If it is
   /// then the element representing the class is returned, otherwise `null` is

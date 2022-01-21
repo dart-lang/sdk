@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class B extends mai::A {
+  synthetic constructor •() → self::B*
+    : super mai::A::•()
+    ;
+}
+static method main() → dynamic {}

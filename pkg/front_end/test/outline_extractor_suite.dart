@@ -150,7 +150,6 @@ class CompileAndCompareStep
         await extractOutline([description.uri], packages: packages);
 
     void onDiagnostic(DiagnosticMessage message) {
-      if (message.codeName == "InferredPackageUri") return;
       if (message.severity == Severity.error ||
           message.severity == Severity.warning) {
         throw ("Unexpected error: ${message.plainTextFormatted.join('\n')}");

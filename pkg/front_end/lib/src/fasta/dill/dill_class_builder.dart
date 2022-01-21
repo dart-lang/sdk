@@ -47,7 +47,13 @@ class DillClassBuilder extends ClassBuilderImpl {
             cls.fileOffset);
 
   @override
+  DillClassBuilder get origin => this;
+
+  @override
   DillLibraryBuilder get library => super.library as DillLibraryBuilder;
+
+  @override
+  bool get isMacro => cls.isMacro;
 
   @override
   List<TypeVariableBuilder>? get typeVariables {
@@ -73,9 +79,6 @@ class DillClassBuilder extends ClassBuilderImpl {
     }
     return supertype;
   }
-
-  @override
-  Class get actualCls => cls;
 
   void addField(Field field) {
     DillFieldBuilder builder = new DillFieldBuilder(field, this);
@@ -166,6 +169,12 @@ class DillClassBuilder extends ClassBuilderImpl {
       super.interfaceBuilders = result;
     }
     return super.interfaceBuilders;
+  }
+
+  @override
+  void forEachConstructor(void Function(String, MemberBuilder) f,
+      {bool includeInjectedConstructors: false}) {
+    constructors.forEach(f);
   }
 
   void clearCachedValues() {

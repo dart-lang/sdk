@@ -47,6 +47,10 @@ class Platform {
     return "ia32";
 #elif defined(HOST_ARCH_X64)
     return "x64";
+#elif defined(HOST_ARCH_RISCV32)
+    return "riscv32";
+#elif defined(HOST_ARCH_RISCV64)
+    return "riscv64";
 #else
 #error Architecture detection failed.
 #endif

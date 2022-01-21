@@ -57,7 +57,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
       'aaa': [getFolder('/aaa/lib')],
       'bbb': [getFolder('/bbb/lib')],
     };
-    return AnalysisDriver.tmp1(
+    return AnalysisDriver(
       scheduler: scheduler,
       logger: logger,
       resourceProvider: resourceProvider,

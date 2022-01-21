@@ -37,7 +37,9 @@ JSONStream::JSONStream(intptr_t buf_size)
       param_values_(NULL),
       num_params_(0),
       offset_(0),
-      count_(-1) {
+      count_(-1),
+      include_private_members_(true),
+      ignore_object_depth_(0) {
   ObjectIdRing* ring = NULL;
   Isolate* isolate = Isolate::Current();
   if (isolate != NULL) {
@@ -89,6 +91,10 @@ void JSONStream::Setup(Zone* zone,
                  ") %s processing service "
                  "request %s\n",
                  Dart::UptimeMillis(), main_port, isolate_name, method_);
+  }
+  const char* kIncludePrivateMembersKey = "_includePrivateMembers";
+  if (HasParam(kIncludePrivateMembersKey)) {
+    include_private_members_ = ParamIs(kIncludePrivateMembersKey, "true");
   }
   buffer()->Printf("{\"jsonrpc\":\"2.0\", \"result\":");
 }
@@ -164,16 +170,16 @@ void JSONStream::PrintError(intptr_t code, const char* details_format, ...) {
     JSONObject data(&jsobj, "data");
     PrintRequest(&data, this);
     if (details_format != NULL) {
-      va_list args;
-      va_start(args, details_format);
-      intptr_t len = Utils::VSNPrint(NULL, 0, details_format, args);
-      va_end(args);
+      va_list measure_args;
+      va_start(measure_args, details_format);
+      intptr_t len = Utils::VSNPrint(NULL, 0, details_format, measure_args);
+      va_end(measure_args);
 
       char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
-      va_list args2;
-      va_start(args2, details_format);
-      Utils::VSNPrint(buffer, (len + 1), details_format, args2);
-      va_end(args2);
+      va_list print_args;
+      va_start(print_args, details_format);
+      Utils::VSNPrint(buffer, (len + 1), details_format, print_args);
+      va_end(print_args);
       data.AddProperty("details", buffer);
     }
   }
@@ -368,49 +374,61 @@ void JSONStream::PrintServiceId(const Object& o) {
   PrintProperty("id", id_zone_->GetServiceId(o));
 }
 
+#define PRIVATE_NAME_CHECK()                                                   \
+  if (!IsAllowableKey(name) || ignore_object_depth_ > 0) return
+
 void JSONStream::PrintProperty(const char* name, const ServiceEvent* event) {
+  PRIVATE_NAME_CHECK();
   PrintPropertyName(name);
   PrintValue(event);
 }
 
 void JSONStream::PrintProperty(const char* name, Breakpoint* bpt) {
+  PRIVATE_NAME_CHECK();
   PrintPropertyName(name);
   PrintValue(bpt);
 }
 
 void JSONStream::PrintProperty(const char* name, TokenPosition tp) {
+  PRIVATE_NAME_CHECK();
   PrintPropertyName(name);
   PrintValue(tp);
 }
 
 void JSONStream::PrintProperty(const char* name, Metric* metric) {
+  PRIVATE_NAME_CHECK();
   PrintPropertyName(name);
   PrintValue(metric);
 }
 
 void JSONStream::PrintProperty(const char* name, MessageQueue* queue) {
+  PRIVATE_NAME_CHECK();
   PrintPropertyName(name);
   PrintValue(queue);
 }
 
 void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
+  PRIVATE_NAME_CHECK();
   PrintPropertyName(name);
   PrintValue(isolate);
 }
 
 void JSONStream::PrintProperty(const char* name,
                                const TimelineEvent* timeline_event) {
+  PRIVATE_NAME_CHECK();
   PrintPropertyName(name);
   PrintValue(timeline_event);
 }
 
 void JSONStream::PrintProperty(const char* name,
                                const TimelineEventBlock* timeline_event_block) {
+  PRIVATE_NAME_CHECK();
   PrintPropertyName(name);
   PrintValue(timeline_event_block);
 }
 
 void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
+  PRIVATE_NAME_CHECK();
   va_list args;
   va_start(args, format);
   writer_.VPrintfProperty(name, format, args);
@@ -462,11 +480,13 @@ void JSONStream::SetParams(const char** param_keys,
 }
 
 void JSONStream::PrintProperty(const char* name, const Object& o, bool ref) {
+  PRIVATE_NAME_CHECK();
   PrintPropertyName(name);
   PrintValue(o, ref);
 }
 
 void JSONStream::PrintPropertyVM(const char* name, bool ref) {
+  PRIVATE_NAME_CHECK();
   PrintPropertyName(name);
   PrintValueVM(ref);
 }
@@ -502,6 +522,13 @@ void JSONObject::AddLocation(const Script& script,
   location.AddProperty("tokenPos", token_pos);
   if (end_token_pos.IsReal()) {
     location.AddProperty("endTokenPos", end_token_pos);
+  }
+  intptr_t line = -1;
+  intptr_t column = -1;
+  // Add line and column information if token_pos is real.
+  if (script.GetTokenLocation(token_pos, &line, &column)) {
+    location.AddProperty("line", line);
+    location.AddProperty("column", column);
   }
 }
 

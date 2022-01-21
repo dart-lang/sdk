@@ -4698,6 +4698,15 @@ class CompletionGetSuggestions2Params implements RequestParams {
   /// to true.
   int maxResults;
 
+  /// The mode of code completion being invoked. If no value is provided, BASIC
+  /// will be assumed. BASIC is also the only currently supported.
+  CompletionMode? completionMode;
+
+  /// The number of times that the user has invoked code completion at the same
+  /// code location, counting from 1. If no value is provided, 1 will be
+  /// assumed.
+  int? invocationCount;
+
   /// The approximate time in milliseconds that the server should spend. The
   /// server will perform some steps anyway, even if it takes longer than the
   /// specified timeout. This field is intended to be used for benchmarking,
@@ -4705,7 +4714,7 @@ class CompletionGetSuggestions2Params implements RequestParams {
   int? timeout;
 
   CompletionGetSuggestions2Params(this.file, this.offset, this.maxResults,
-      {this.timeout});
+      {this.completionMode, this.invocationCount, this.timeout});
 
   factory CompletionGetSuggestions2Params.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4730,11 +4739,23 @@ class CompletionGetSuggestions2Params implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'maxResults');
       }
+      CompletionMode? completionMode;
+      if (json.containsKey('completionMode')) {
+        completionMode = CompletionMode.fromJson(
+            jsonDecoder, jsonPath + '.completionMode', json['completionMode']);
+      }
+      int? invocationCount;
+      if (json.containsKey('invocationCount')) {
+        invocationCount = jsonDecoder.decodeInt(
+            jsonPath + '.invocationCount', json['invocationCount']);
+      }
       int? timeout;
       if (json.containsKey('timeout')) {
         timeout = jsonDecoder.decodeInt(jsonPath + '.timeout', json['timeout']);
       }
       return CompletionGetSuggestions2Params(file, offset, maxResults,
+          completionMode: completionMode,
+          invocationCount: invocationCount,
           timeout: timeout);
     } else {
       throw jsonDecoder.mismatch(
@@ -4753,6 +4774,14 @@ class CompletionGetSuggestions2Params implements RequestParams {
     result['file'] = file;
     result['offset'] = offset;
     result['maxResults'] = maxResults;
+    var completionMode = this.completionMode;
+    if (completionMode != null) {
+      result['completionMode'] = completionMode.toJson();
+    }
+    var invocationCount = this.invocationCount;
+    if (invocationCount != null) {
+      result['invocationCount'] = invocationCount;
+    }
     var timeout = this.timeout;
     if (timeout != null) {
       result['timeout'] = timeout;
@@ -4774,6 +4803,8 @@ class CompletionGetSuggestions2Params implements RequestParams {
       return file == other.file &&
           offset == other.offset &&
           maxResults == other.maxResults &&
+          completionMode == other.completionMode &&
+          invocationCount == other.invocationCount &&
           timeout == other.timeout;
     }
     return false;
@@ -4784,6 +4815,8 @@ class CompletionGetSuggestions2Params implements RequestParams {
         file,
         offset,
         maxResults,
+        completionMode,
+        invocationCount,
         timeout,
       );
 }
@@ -4794,7 +4827,6 @@ class CompletionGetSuggestions2Params implements RequestParams {
 ///   "replacementOffset": int
 ///   "replacementLength": int
 ///   "suggestions": List<CompletionSuggestion>
-///   "libraryUrisToImport": List<String>
 ///   "isIncomplete": bool
 /// }
 ///
@@ -4820,31 +4852,16 @@ class CompletionGetSuggestions2Result implements ResponseResult {
   /// (if isIncomplete was true).
   ///
   /// This list contains suggestions from both imported, and not yet imported
-  /// libraries. Items from not yet imported libraries will have
-  /// libraryUriToImportIndex set, which is an index into the
-  /// libraryUrisToImport in this response.
+  /// libraries. Items from not yet imported libraries will have isNotImported
+  /// set to true.
   List<CompletionSuggestion> suggestions;
-
-  /// The list of libraries with declarations that are not yet available in the
-  /// file where completion was requested, most often because the library is
-  /// not yet imported. The declarations still might be included into the
-  /// suggestions, and the client should use getSuggestionDetails2 on selection
-  /// to make the library available in the file.
-  ///
-  /// Each item is the URI of a library, such as package:foo/bar.dart or
-  /// file:///home/me/workspace/foo/test/bar_test.dart.
-  List<String> libraryUrisToImport;
 
   /// True if the number of suggestions after filtering was greater than the
   /// requested maxResults.
   bool isIncomplete;
 
-  CompletionGetSuggestions2Result(
-      this.replacementOffset,
-      this.replacementLength,
-      this.suggestions,
-      this.libraryUrisToImport,
-      this.isIncomplete);
+  CompletionGetSuggestions2Result(this.replacementOffset,
+      this.replacementLength, this.suggestions, this.isIncomplete);
 
   factory CompletionGetSuggestions2Result.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4874,15 +4891,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'suggestions');
       }
-      List<String> libraryUrisToImport;
-      if (json.containsKey('libraryUrisToImport')) {
-        libraryUrisToImport = jsonDecoder.decodeList(
-            jsonPath + '.libraryUrisToImport',
-            json['libraryUrisToImport'],
-            jsonDecoder.decodeString);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, 'libraryUrisToImport');
-      }
       bool isIncomplete;
       if (json.containsKey('isIncomplete')) {
         isIncomplete = jsonDecoder.decodeBool(
@@ -4890,8 +4898,8 @@ class CompletionGetSuggestions2Result implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'isIncomplete');
       }
-      return CompletionGetSuggestions2Result(replacementOffset,
-          replacementLength, suggestions, libraryUrisToImport, isIncomplete);
+      return CompletionGetSuggestions2Result(
+          replacementOffset, replacementLength, suggestions, isIncomplete);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, 'completion.getSuggestions2 result', json);
@@ -4913,7 +4921,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
     result['suggestions'] = suggestions
         .map((CompletionSuggestion value) => value.toJson())
         .toList();
-    result['libraryUrisToImport'] = libraryUrisToImport;
     result['isIncomplete'] = isIncomplete;
     return result;
   }
@@ -4933,8 +4940,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
           replacementLength == other.replacementLength &&
           listEqual(suggestions, other.suggestions,
               (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
-          listEqual(libraryUrisToImport, other.libraryUrisToImport,
-              (String a, String b) => a == b) &&
           isIncomplete == other.isIncomplete;
     }
     return false;
@@ -4945,7 +4950,6 @@ class CompletionGetSuggestions2Result implements ResponseResult {
         replacementOffset,
         replacementLength,
         suggestions,
-        libraryUrisToImport,
         isIncomplete,
       );
 }
@@ -5088,6 +5092,58 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 
   @override
   int get hashCode => id.hashCode;
+}
+
+/// CompletionMode
+///
+/// enum {
+///   BASIC
+///   SMART
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class CompletionMode implements Enum {
+  /// Basic code completion invocation type, and the default for this
+  /// enumeration.
+  static const CompletionMode BASIC = CompletionMode._('BASIC');
+
+  /// Smart code completion, currently not implemented.
+  static const CompletionMode SMART = CompletionMode._('SMART');
+
+  /// A list containing all of the enum values that are defined.
+  static const List<CompletionMode> VALUES = <CompletionMode>[BASIC, SMART];
+
+  @override
+  final String name;
+
+  const CompletionMode._(this.name);
+
+  factory CompletionMode(String name) {
+    switch (name) {
+      case 'BASIC':
+        return BASIC;
+      case 'SMART':
+        return SMART;
+    }
+    throw Exception('Illegal enum value: $name');
+  }
+
+  factory CompletionMode.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    if (json is String) {
+      try {
+        return CompletionMode(json);
+      } catch (_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, 'CompletionMode', json);
+  }
+
+  @override
+  String toString() => 'CompletionMode.$name';
+
+  String toJson() => name;
 }
 
 /// completion.registerLibraryPaths params
@@ -15631,6 +15687,91 @@ class SearchResultsParams implements HasToJson {
         results,
         isLast,
       );
+}
+
+/// server.cancelRequest params
+///
+/// {
+///   "id": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerCancelRequestParams implements RequestParams {
+  /// The id of the request that should be cancelled.
+  String id;
+
+  ServerCancelRequestParams(this.id);
+
+  factory ServerCancelRequestParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String id;
+      if (json.containsKey('id')) {
+        id = jsonDecoder.decodeString(jsonPath + '.id', json['id']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'id');
+      }
+      return ServerCancelRequestParams(id);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'server.cancelRequest params', json);
+    }
+  }
+
+  factory ServerCancelRequestParams.fromRequest(Request request) {
+    return ServerCancelRequestParams.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['id'] = id;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'server.cancelRequest', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerCancelRequestParams) {
+      return id == other.id;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+}
+
+/// server.cancelRequest result
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerCancelRequestResult implements ResponseResult {
+  @override
+  Map<String, Object> toJson() => <String, Object>{};
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: null);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerCancelRequestResult) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => 183255719;
 }
 
 /// server.connected params

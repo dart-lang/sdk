@@ -158,14 +158,16 @@ int computeTypeVariableBuilderVariance(TypeVariableBuilder variable,
 NullabilityBuilder combineNullabilityBuildersForSubstitution(
     NullabilityBuilder a, NullabilityBuilder b) {
   assert(
-      (identical(a, const NullabilityBuilder.nullable()) ||
-              identical(a, const NullabilityBuilder.omitted())) &&
-          (identical(b, const NullabilityBuilder.nullable()) ||
-              identical(b, const NullabilityBuilder.omitted())),
+      // ignore: unnecessary_null_comparison
+      a != null && b != null,
       "Both arguments to combineNullabilityBuildersForSubstitution "
       "should be identical to either 'const NullabilityBuilder.nullable()' or "
       "'const NullabilityBuilder.omitted()'.");
 
+  if (identical(a, const NullabilityBuilder.inherent()) &&
+      identical(b, const NullabilityBuilder.inherent())) {
+    return const NullabilityBuilder.inherent();
+  }
   if (identical(a, const NullabilityBuilder.nullable()) ||
       identical(b, const NullabilityBuilder.nullable())) {
     return const NullabilityBuilder.nullable();

@@ -1,0 +1,64 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/static_access_of_instance.dart:14:13: Error: Member not found: 'Extension.instanceMethod'.
+//   Extension.instanceMethod();
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access_of_instance.dart:15:13: Error: Member not found: 'instanceMethod'.
+//   Extension.instanceMethod;
+//             ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access_of_instance.dart:16:13: Error: Member not found: 'instanceProperty'.
+//   Extension.instanceProperty;
+//             ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/static_access_of_instance.dart:17:13: Error: Setter not found: 'instanceProperty'.
+//   Extension.instanceProperty = 42;
+//             ^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension on self::Class* {
+  method instanceMethod = self::Extension|instanceMethod;
+  tearoff instanceMethod = self::Extension|get#instanceMethod;
+  get instanceProperty = self::Extension|get#instanceProperty;
+  set instanceProperty = self::Extension|set#instanceProperty;
+}
+static method Extension|instanceMethod(lowered final self::Class* #this) → dynamic {}
+static method Extension|get#instanceMethod(lowered final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::Extension|instanceMethod(#this);
+static method Extension|get#instanceProperty(lowered final self::Class* #this) → dynamic
+  return 42;
+static method Extension|set#instanceProperty(lowered final self::Class* #this, dynamic value) → void {}
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/static_access_of_instance.dart:14:13: Error: Member not found: 'Extension.instanceMethod'.
+  Extension.instanceMethod();
+            ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/static_access_of_instance.dart:15:13: Error: Member not found: 'instanceMethod'.
+  Extension.instanceMethod;
+            ^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/static_access_of_instance.dart:16:13: Error: Member not found: 'instanceProperty'.
+  Extension.instanceProperty;
+            ^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/static_access_of_instance.dart:17:13: Error: Setter not found: 'instanceProperty'.
+  Extension.instanceProperty = 42;
+            ^^^^^^^^^^^^^^^^";
+}

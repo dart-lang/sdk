@@ -1082,7 +1082,7 @@ CompileTimeErrorCode:
       immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
       await expression.)
   BODY_MIGHT_COMPLETE_NORMALLY:
-    problemMessage: "The body might complete normally, causing 'null' to be returned, but the return type is a potentially non-nullable type."
+    problemMessage: "The body might complete normally, causing 'null' to be returned, but the return type, '{0}', is a potentially non-nullable type."
     correctionMessage: Try adding either a return or a throw statement at the end.
     hasPublishedDocs: true
     comment: No parameters.
@@ -1146,13 +1146,15 @@ CompileTimeErrorCode:
       }
       ```
 
-      If the method intentionally returns `null` at the end, then change the
+      If the method intentionally returns `null` at the end, then add an
+      explicit return of `null` at the end of the method and change the
       return type so that it's valid to return `null`:
 
       ```dart
       class C<T> {
         T? m(T t) {
           print(t);
+          return null;
         }
       }
       ```
@@ -3201,9 +3203,10 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when there's more than one field
-      formal parameter for the same field in a constructor's parameter list. It
-      isn't useful to assign a value that will immediately be overwritten.
+      The analyzer produces this diagnostic when there's more than one
+      initializing formal parameter for the same field in a constructor's
+      parameter list. It isn't useful to assign a value that will immediately be
+      overwritten.
 
       #### Example
 
@@ -3220,7 +3223,7 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      Remove one of the field formal parameters:
+      Remove one of the initializing formal parameters:
 
       ```dart
       class C {
@@ -3969,13 +3972,16 @@ CompileTimeErrorCode:
       If there are multiple cascaded accesses, you'll need to duplicate the
       extension override for each one.
   EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
-    problemMessage: External fields cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the field initializer or the 'external' keyword from the field declaration."
   EXTERNAL_FIELD_INITIALIZER:
-    problemMessage: External fields cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
   EXTERNAL_VARIABLE_INITIALIZER:
-    problemMessage: External variables cannot have initializers.
+    sharedName: EXTERNAL_WITH_INITIALIZER
+    problemMessage: External variables can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
   EXTRA_POSITIONAL_ARGUMENTS:
     problemMessage: "Too many positional arguments: {0} expected, but {1} found."
@@ -4164,7 +4170,8 @@ CompileTimeErrorCode:
       #### Example
 
       The following code produces this diagnostic because the field `f` is
-      initialized both by a field formal parameter and in the initializer list:
+      initialized both by an initializing formal parameter and in the
+      initializer list:
 
       ```dart
       class C {
@@ -4216,14 +4223,14 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a factory constructor has a
-      field formal parameter. Factory constructors can't assign values to fields
-      because no instance is created; hence, there is no field to assign.
+      The analyzer produces this diagnostic when a factory constructor has an
+      initializing formal parameter. Factory constructors can't assign values to
+      fields because no instance is created; hence, there is no field to assign.
 
       #### Example
 
       The following code produces this diagnostic because the factory constructor
-      uses a field formal parameter:
+      uses an initializing formal parameter:
 
       ```dart
       class C {
@@ -4235,7 +4242,7 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      Replace the field formal parameter with a normal parameter:
+      Replace the initializing formal parameter with a normal parameter:
 
       ```dart
       class C {
@@ -4326,8 +4333,8 @@ CompileTimeErrorCode:
       #### Examples
 
       The following code produces this diagnostic because the constructor
-      `C.zero`, which redirects to the constructor `C`, has a field formal
-      parameter that initializes the field `f`:
+      `C.zero`, which redirects to the constructor `C`, has an initializing
+      formal parameter that initializes the field `f`:
 
       ```dart
       class C {
@@ -4355,8 +4362,8 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      If the initialization is done by a field formal parameter, then use a
-      normal parameter:
+      If the initialization is done by an initializing formal parameter, then
+      use a normal parameter:
 
       ```dart
       class C {
@@ -4391,14 +4398,16 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when the type of a field formal
-      parameter isn't assignable to the type of the field being initialized.
+      The analyzer produces this diagnostic when the type of an initializing
+      formal parameter isn't assignable to the type of the field being
+      initialized.
 
       #### Example
 
-      The following code produces this diagnostic because the field formal
-      parameter has the type `String`, but the type of the field is `int`. The
-      parameter must have a type that is a subtype of the field's type.
+      The following code produces this diagnostic because the initializing
+      formal parameter has the type `String`, but the type of the field is
+      `int`. The parameter must have a type that is a subtype of the field's
+      type.
 
       ```dart
       class C {
@@ -4434,8 +4443,8 @@ CompileTimeErrorCode:
       ```
 
       If the types of both the field and the parameter are correct, then use an
-      initializer rather than a field formal parameter to convert the parameter
-      value into a value of the correct type:
+      initializer rather than an initializing formal parameter to convert the
+      parameter value into a value of the correct type:
 
       ```dart
       class C {
@@ -4525,7 +4534,7 @@ CompileTimeErrorCode:
 
       For instance fields, you can add an initializer as shown in the previous
       example, or you can initialize the field in every constructor. You can
-      initialize the field by using a field formal parameter:
+      initialize the field by using an initializing formal parameter:
 
       ```dart
       class C {
@@ -4574,8 +4583,8 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      If the value should be passed in to the constructor directly, then use a
-      field formal parameter to initialize the field `value`:
+      If the value should be passed in to the constructor directly, then use an
+      initializing formal parameter to initialize the field `value`:
 
       ```dart
       class C {
@@ -5183,6 +5192,12 @@ CompileTimeErrorCode:
         int get defaultX => 0;
       }
       ```
+  IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT:
+    problemMessage: The named parameter '{0}' is required in the implicitly invoked unnamed constructor of '{1}'.
+    correctionMessage: Try declaring corresponding named super-parameter, or explicitly invoking a different constructor.
+  IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS:
+    problemMessage: The implicitly invoked unnamed constructor of '{0}' expects {1} positional arguments, but {2} found.
+    correctionMessage: Try declaring positional super-parameters, or explicitly invoking a different constructor.
   IMPORT_INTERNAL_LIBRARY:
     problemMessage: "The library '{0}' is internal and can't be imported."
     hasPublishedDocs: true
@@ -5369,14 +5384,14 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a static field is initialized in
-      a constructor using either a field formal parameter or an assignment in the
-      initializer list.
+      The analyzer produces this diagnostic when a static field is initialized
+      in a constructor using either an initializing formal parameter or an
+      assignment in the initializer list.
 
       #### Example
 
-      The following code produces this diagnostic because the static field `a` is
-      being initialized by the field formal parameter `this.a`:
+      The following code produces this diagnostic because the static field `a`
+      is being initialized by the initializing formal parameter `this.a`:
 
       ```dart
       class C {
@@ -5429,10 +5444,10 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a field formal parameter is
-      found in a constructor in a class that doesn't declare the field being
-      initialized. Constructors can't initialize fields that aren't declared and
-      fields that are inherited from superclasses.
+      The analyzer produces this diagnostic when an initializing formal
+      parameter is found in a constructor in a class that doesn't declare the
+      field being initialized. Constructors can't initialize fields that aren't
+      declared and fields that are inherited from superclasses.
 
       #### Example
 
@@ -6065,7 +6080,7 @@ CompileTimeErrorCode:
       0: the type of the list literal
       1: the expected type
   INVALID_CAST_LITERAL_MAP:
-    problemMessage: "The map literal type '{0}' isn't of expected type '{1}'. The maps's type can be changed with an explicit generic type arguments or by changing the key and value types."
+    problemMessage: "The map literal type '{0}' isn't of expected type '{1}'. The map's type can be changed with an explicit generic type arguments or by changing the key and value types."
     comment: |-
       Parameters:
       0: the type of the map literal
@@ -6096,11 +6111,6 @@ CompileTimeErrorCode:
       for more informative errors.
 
       See TODOs in ConstantVisitor
-  INVALID_CONSTRUCTOR_NAME:
-    problemMessage: Invalid constructor name.
-    comment: |-
-      7.6 Constructors: It is a compile-time error if the name of a constructor
-      is not a constructor name.
   INVALID_EXTENSION_ARGUMENT_COUNT:
     problemMessage: "Extension overrides must have exactly one argument: the value of 'this' in the extension method."
     correctionMessage: Try specifying exactly one argument.
@@ -6524,6 +6534,12 @@ CompileTimeErrorCode:
 
       class C {}
       ```
+  INVALID_SUPER_FORMAL_PARAMETER_LOCATION:
+    problemMessage: "Super-formal parameters can only be used in non-redirecting generative constructors."
+    comment: |-
+      Parameters:
+      0: the super modifier
+    correctionMessage: Try removing the 'super' modifier, or changing the constructor to be non-redirecting and generative.
   INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
     sharedName: INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL
     problemMessage: "Constant list literals can't include a type parameter as a type argument, such as '{0}'."
@@ -7367,6 +7383,12 @@ CompileTimeErrorCode:
       void f(int x) {}
       void g({required int x}) {}
       ```
+  MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
+    sharedName: MISSING_DEFAULT_VALUE_FOR_PARAMETER
+    problemMessage: "With null safety, use the 'required' keyword, not the '@required' annotation."
+    correctionMessage: "Try removing the '@'."
+    hasPublishedDocs: true
+    comment: No parameters.
   MISSING_REQUIRED_ARGUMENT:
     problemMessage: "The named parameter '{0}' is required, but there's no corresponding argument."
     correctionMessage: Try adding the required argument.
@@ -7687,17 +7709,6 @@ CompileTimeErrorCode:
 
       class B extends A {}
       ```
-  MIXIN_DECLARES_CONSTRUCTOR:
-    problemMessage: "Mixins can't declare constructors."
-    comment: |-
-      The <i>mixinMember</i> production allows the same instance or static
-      members that a class would allow, but no constructors (for now).
-  MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES:
-    problemMessage: "Type parameters couldn't be inferred for the mixin '{0}' because the base class implements the mixin's supertype constraint '{1}' in multiple conflicting ways"
-  MIXIN_INFERENCE_NO_MATCHING_CLASS:
-    problemMessage: "Type parameters couldn't be inferred for the mixin '{0}' because the base class doesn't implement the mixin's supertype constraint '{1}'"
-  MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION:
-    problemMessage: "Type parameters couldn't be inferred for the mixin '{0}' because no type parameter substitution could be found matching the mixin's supertype constraints"
   MIXIN_INHERITS_FROM_NOT_OBJECT:
     problemMessage: "The class '{0}' can't be used as a mixin because it extends a class other than 'Object'."
     hasPublishedDocs: true
@@ -9858,6 +9869,10 @@ CompileTimeErrorCode:
       ```dart
       part of 'test.dart';
       ```
+  POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
+    problemMessage: Positional super-formal parameters can't be used when the super-constructor invocation has a positional argument.
+    comment: No parameters.
+    correctionMessage: Try removing the 'super' modifier, or changing the super-constructor to use named parameters.
   PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER:
     problemMessage: "The name '{0}' is already used as an import prefix and can't be used to name a top-level element."
     correctionMessage: Try renaming either the top-level element or the prefix.
@@ -11090,6 +11105,21 @@ CompileTimeErrorCode:
 
       int f(C c) => c.b;
       ```
+  SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
+    problemMessage: The type '{0}' of this parameter is not a subtype of the type '{1}' of the associated super-constructor parameter.
+    comment: |-
+      Parameters:
+      0: the type of super-parameter
+      1: the type of associated super-constructor parameter
+    correctionMessage: Try removing the explicit type annotation from the parameter.
+  SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
+    problemMessage: No associated named super-constructor parameter.
+    comment: No parameters.
+    correctionMessage: Try changing the name to the name of an existing named super-constructor parameter, or creating such named parameter.
+  SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL:
+    problemMessage: No associated positional super-constructor parameter.
+    comment: No parameters.
+    correctionMessage: Try using named parameters instead, or adding more positional parameters to the super-constructor.
   IMPLEMENTS_DEFERRED_CLASS:
     sharedName: SUBTYPE_OF_DEFERRED_CLASS
     problemMessage: "Classes and mixins can't implement deferred classes."
@@ -13775,6 +13805,10 @@ CompileTimeErrorCode:
       }
       ```
 FfiCode:
+  ABI_SPECIFIC_INTEGER_INVALID:
+    problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments."
+    correctionMessage: Try removing all type arguments, removing all members, and adding one const constructor.
+    comment: No parameters.
   ABI_SPECIFIC_INTEGER_MAPPING_EXTRA:
     problemMessage: "Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a 'NativeType' integer with a fixed size."
     correctionMessage: Try removing the extra annotation.
@@ -13963,7 +13997,7 @@ FfiCode:
   SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't implement '{1}'."
-    correctionMessage: "Try extending 'Struct' or 'Union'."
+    correctionMessage: "Try implementing 'Allocator' or 'Finalizable'."
     comment: |-
       Parameters:
       0: the name of the subclass
@@ -13978,24 +14012,24 @@ FfiCode:
       1: the name of the class being extended, implemented, or mixed in
   SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
-    problemMessage: "The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct' or 'Union'."
-    correctionMessage: "Try extending 'Struct' or 'Union' directly."
+    problemMessage: "The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
   SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
-    problemMessage: "The class '{0}' can't implement '{1}' because '{1}' is a subtype of 'Struct' or 'Union'."
-    correctionMessage: "Try extending 'Struct' or 'Union' directly."
+    problemMessage: "The class '{0}' can't implement '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     comment: |-
       Parameters:
       0: the name of the subclass
       1: the name of the class being extended, implemented, or mixed in
   SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
     sharedName: SUBTYPE_OF_STRUCT_CLASS
-    problemMessage: "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct' or 'Union'."
-    correctionMessage: "Try extending 'Struct' or 'Union' directly."
+    problemMessage: "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct', 'Union', or 'AbiSpecificInteger'."
+    correctionMessage: "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly."
     comment: |-
       Parameters:
       0: the name of the subclass
@@ -14065,6 +14099,13 @@ HintCode:
     problemMessage: "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable."
     correctionMessage: Try removing the assignment.
     comment: Users should not assign values marked `@doNotStore`.
+  BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
+    problemMessage: "This function has a nullable return type of '{0}', but ends without returning a value."
+    correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the declared return type
   CAN_BE_NULL_AFTER_NULL_AWARE:
     problemMessage: "The receiver uses '?.', so its value can be null."
     correctionMessage: "Replace the '.' with a '?.' in the invocation."
@@ -16474,7 +16515,7 @@ HintCode:
   TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
     problemMessage: The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.
     correctionMessage: Try removing the code point or using the Unicode escape sequence '\u{0}'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the unicode sequence of the code point.
@@ -16514,7 +16555,7 @@ HintCode:
   TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
     problemMessage: The Unicode code point 'U+{0}' changes the appearance of text from how it's interpreted by the compiler.
     correctionMessage: Try removing the code point or using the Unicode escape sequence '\u{0}'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the unicode sequence of the code point.

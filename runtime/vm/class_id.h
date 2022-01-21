@@ -152,12 +152,8 @@ typedef uint16_t ClassIdTagType;
   V(Float)                                                                     \
   V(Double)
 
-#define CLASS_LIST_FFI_NUMERIC(V)                                              \
-  CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(V)                                         \
-  V(IntPtr)
-
 #define CLASS_LIST_FFI_TYPE_MARKER(V)                                          \
-  CLASS_LIST_FFI_NUMERIC(V)                                                    \
+  CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(V)                                         \
   V(Void)                                                                      \
   V(Handle)                                                                    \
   V(Bool)

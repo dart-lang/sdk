@@ -1,0 +1,69 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Fisk<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::Fisk::T* x;
+  const constructor fisk(self::Fisk::T* x) → self::Fisk<self::Fisk::T*>*
+    : self::Fisk::x = x, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Foo extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::Foo*>* values = #C10;
+  @#C11
+  static const field self::Foo* bar = #C3;
+  @#C12
+  static const field self::Foo* baz = #C6;
+  static const field self::Foo* cafebabe = #C9;
+  const constructor •(core::int* index, core::String* name) → self::Foo*
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String*
+    return "Foo.${this.{core::_Enum::_name}{core::String}}";
+  abstract member-signature get index() → core::int*; -> core::_Enum::index
+  abstract member-signature get _name() → core::String*; -> core::_Enum::_name
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field core::int* hest = #C11;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+  #C2 = "bar"
+  #C3 = self::Foo {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "baz"
+  #C6 = self::Foo {index:#C4, _name:#C5}
+  #C7 = 2
+  #C8 = "cafebabe"
+  #C9 = self::Foo {index:#C7, _name:#C8}
+  #C10 = <self::Foo*>[#C3, #C6, #C9]
+  #C11 = 42
+  #C12 = self::Fisk<core::int*> {x:#C11}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///annotation_on_enum_values.dart:
+- Foo. (from org-dartlang-testcase:///annotation_on_enum_values.dart:15:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Fisk.fisk (from org-dartlang-testcase:///annotation_on_enum_values.dart:12:9)

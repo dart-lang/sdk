@@ -1,9 +1,4 @@
 main = main::main;
-//
-// Problems in component:
-//
-// org-dartlang-test:///main.dart: Warning: Interpreting this as package URI, 'package:untitled/main.dart'.
-//
 library from "package:untitled/main.dart" as main {
 
   static method main() → dynamic {}

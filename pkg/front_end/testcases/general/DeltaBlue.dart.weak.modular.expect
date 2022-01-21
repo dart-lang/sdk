@@ -1,0 +1,541 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class DeltaBlue extends core::Object {
+  synthetic constructor •() → self::DeltaBlue*
+    : super core::Object::•()
+    ;
+  method run() → void {
+    self::chainTest(100);
+    self::projectionTest(100);
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Strength extends core::Object /*hasConstConstructor*/  {
+  final field core::int* value;
+  final field core::String* name;
+  const constructor •(core::int* value, core::String* name) → self::Strength*
+    : self::Strength::value = value, self::Strength::name = name, super core::Object::•()
+    ;
+  method nextWeaker() → self::Strength*
+    return #C19.{core::List::[]}(this.{self::Strength::value}{core::int*}){(core::int*) →* self::Strength*};
+  static method stronger(self::Strength* s1, self::Strength* s2) → core::bool* {
+    return s1.{self::Strength::value}{core::int*}.{core::num::<}(s2.{self::Strength::value}{core::int*}){(core::num*) →* core::bool*};
+  }
+  static method weaker(self::Strength* s1, self::Strength* s2) → core::bool* {
+    return s1.{self::Strength::value}{core::int*}.{core::num::>}(s2.{self::Strength::value}{core::int*}){(core::num*) →* core::bool*};
+  }
+  static method weakest(self::Strength* s1, self::Strength* s2) → self::Strength* {
+    return self::Strength::weaker(s1, s2) ?{self::Strength*} s1 : s2;
+  }
+  static method strongest(self::Strength* s1, self::Strength* s2) → self::Strength* {
+    return self::Strength::stronger(s1, s2) ?{self::Strength*} s1 : s2;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class Constraint extends core::Object /*hasConstConstructor*/  {
+  final field self::Strength* strength;
+  const constructor •(self::Strength* strength) → self::Constraint*
+    : self::Constraint::strength = strength, super core::Object::•()
+    ;
+  abstract method isSatisfied() → core::bool*;
+  abstract method markUnsatisfied() → void;
+  abstract method addToGraph() → void;
+  abstract method removeFromGraph() → void;
+  abstract method chooseMethod(core::int* mark) → void;
+  abstract method markInputs(core::int* mark) → void;
+  abstract method inputsKnown(core::int* mark) → core::bool*;
+  abstract method output() → self::Variable*;
+  abstract method execute() → void;
+  abstract method recalculate() → void;
+  method addConstraint() → void {
+    this.{self::Constraint::addToGraph}(){() →* void};
+    self::planner.{self::Planner::incrementalAdd}(this){(self::Constraint*) →* void};
+  }
+  method satisfy(dynamic mark) → self::Constraint* {
+    this.{self::Constraint::chooseMethod}(mark as{TypeError,ForDynamic} core::int*){(core::int*) →* void};
+    if(!this.{self::Constraint::isSatisfied}(){() →* core::bool*}) {
+      if(this.{self::Constraint::strength}{self::Strength*} =={self::Strength::==}{(dynamic) →* core::bool*} #C22) {
+        core::print("Could not satisfy a required constraint!");
+      }
+      return null;
+    }
+    this.{self::Constraint::markInputs}(mark as{TypeError,ForDynamic} core::int*){(core::int*) →* void};
+    self::Variable* out = this.{self::Constraint::output}(){() →* self::Variable*};
+    self::Constraint* overridden = out.{self::Variable::determinedBy}{self::Constraint*};
+    if(!(overridden == null))
+      overridden.{self::Constraint::markUnsatisfied}(){() →* void};
+    out.{self::Variable::determinedBy} = this;
+    if(!self::planner.{self::Planner::addPropagate}(this, mark as{TypeError,ForDynamic} core::int*){(self::Constraint*, core::int*) →* core::bool*})
+      core::print("Cycle encountered");
+    out.{self::Variable::mark} = mark as{TypeError,ForDynamic} core::int*;
+    return overridden;
+  }
+  method destroyConstraint() → void {
+    if(this.{self::Constraint::isSatisfied}(){() →* core::bool*})
+      self::planner.{self::Planner::incrementalRemove}(this){(self::Constraint*) →* void};
+    this.{self::Constraint::removeFromGraph}(){() →* void};
+  }
+  method isInput() → core::bool*
+    return false;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class UnaryConstraint extends self::Constraint {
+  final field self::Variable* myOutput;
+  field core::bool* satisfied = false;
+  constructor •(self::Variable* myOutput, self::Strength* strength) → self::UnaryConstraint*
+    : self::UnaryConstraint::myOutput = myOutput, super self::Constraint::•(strength) {
+    this.{self::Constraint::addConstraint}(){() →* void};
+  }
+  method addToGraph() → void {
+    this.{self::UnaryConstraint::myOutput}{self::Variable*}.{self::Variable::addConstraint}(this){(self::Constraint*) →* void};
+    this.{self::UnaryConstraint::satisfied} = false;
+  }
+  method chooseMethod(core::int* mark) → void {
+    this.{self::UnaryConstraint::satisfied} = !(this.{self::UnaryConstraint::myOutput}{self::Variable*}.{self::Variable::mark}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} mark) && self::Strength::stronger(this.{self::Constraint::strength}{self::Strength*}, this.{self::UnaryConstraint::myOutput}{self::Variable*}.{self::Variable::walkStrength}{self::Strength*});
+  }
+  method isSatisfied() → core::bool*
+    return this.{self::UnaryConstraint::satisfied}{core::bool*};
+  method markInputs(core::int* mark) → void {}
+  method output() → self::Variable*
+    return this.{self::UnaryConstraint::myOutput}{self::Variable*};
+  method recalculate() → void {
+    this.{self::UnaryConstraint::myOutput}{self::Variable*}.{self::Variable::walkStrength} = this.{self::Constraint::strength}{self::Strength*};
+    this.{self::UnaryConstraint::myOutput}{self::Variable*}.{self::Variable::stay} = !this.{self::Constraint::isInput}(){() →* core::bool*};
+    if(this.{self::UnaryConstraint::myOutput}{self::Variable*}.{self::Variable::stay}{core::bool*})
+      this.{self::Constraint::execute}(){() →* void};
+  }
+  method markUnsatisfied() → void {
+    this.{self::UnaryConstraint::satisfied} = false;
+  }
+  method inputsKnown(core::int* mark) → core::bool*
+    return true;
+  method removeFromGraph() → void {
+    if(!(this.{self::UnaryConstraint::myOutput}{self::Variable*} == null))
+      this.{self::UnaryConstraint::myOutput}{self::Variable*}.{self::Variable::removeConstraint}(this){(self::Constraint*) →* void};
+    this.{self::UnaryConstraint::satisfied} = false;
+  }
+}
+class StayConstraint extends self::UnaryConstraint {
+  constructor •(self::Variable* v, self::Strength* str) → self::StayConstraint*
+    : super self::UnaryConstraint::•(v, str)
+    ;
+  method execute() → void {}
+}
+class EditConstraint extends self::UnaryConstraint {
+  constructor •(self::Variable* v, self::Strength* str) → self::EditConstraint*
+    : super self::UnaryConstraint::•(v, str)
+    ;
+  method isInput() → core::bool*
+    return true;
+  method execute() → void {}
+}
+abstract class BinaryConstraint extends self::Constraint {
+  field self::Variable* v1;
+  field self::Variable* v2;
+  field core::int* direction = #C1;
+  constructor •(self::Variable* v1, self::Variable* v2, self::Strength* strength) → self::BinaryConstraint*
+    : self::BinaryConstraint::v1 = v1, self::BinaryConstraint::v2 = v2, super self::Constraint::•(strength) {
+    this.{self::Constraint::addConstraint}(){() →* void};
+  }
+  method chooseMethod(core::int* mark) → void {
+    if(this.{self::BinaryConstraint::v1}{self::Variable*}.{self::Variable::mark}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} mark) {
+      this.{self::BinaryConstraint::direction} = !(this.{self::BinaryConstraint::v2}{self::Variable*}.{self::Variable::mark}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} mark) && self::Strength::stronger(this.{self::Constraint::strength}{self::Strength*}, this.{self::BinaryConstraint::v2}{self::Variable*}.{self::Variable::walkStrength}{self::Strength*}) ?{core::int*} #C4 : #C1;
+    }
+    if(this.{self::BinaryConstraint::v2}{self::Variable*}.{self::Variable::mark}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} mark) {
+      this.{self::BinaryConstraint::direction} = !(this.{self::BinaryConstraint::v1}{self::Variable*}.{self::Variable::mark}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} mark) && self::Strength::stronger(this.{self::Constraint::strength}{self::Strength*}, this.{self::BinaryConstraint::v1}{self::Variable*}.{self::Variable::walkStrength}{self::Strength*}) ?{core::int*} #C20 : #C1;
+    }
+    if(self::Strength::weaker(this.{self::BinaryConstraint::v1}{self::Variable*}.{self::Variable::walkStrength}{self::Strength*}, this.{self::BinaryConstraint::v2}{self::Variable*}.{self::Variable::walkStrength}{self::Strength*})) {
+      this.{self::BinaryConstraint::direction} = self::Strength::stronger(this.{self::Constraint::strength}{self::Strength*}, this.{self::BinaryConstraint::v1}{self::Variable*}.{self::Variable::walkStrength}{self::Strength*}) ?{core::int*} #C20 : #C1;
+    }
+    else {
+      this.{self::BinaryConstraint::direction} = self::Strength::stronger(this.{self::Constraint::strength}{self::Strength*}, this.{self::BinaryConstraint::v2}{self::Variable*}.{self::Variable::walkStrength}{self::Strength*}) ?{core::int*} #C4 : #C20;
+    }
+  }
+  method addToGraph() → void {
+    this.{self::BinaryConstraint::v1}{self::Variable*}.{self::Variable::addConstraint}(this){(self::Constraint*) →* void};
+    this.{self::BinaryConstraint::v2}{self::Variable*}.{self::Variable::addConstraint}(this){(self::Constraint*) →* void};
+    this.{self::BinaryConstraint::direction} = #C1;
+  }
+  method isSatisfied() → core::bool*
+    return !(this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} #C1);
+  method markInputs(core::int* mark) → void {
+    this.{self::BinaryConstraint::input}(){() →* self::Variable*}.{self::Variable::mark} = mark;
+  }
+  method input() → self::Variable*
+    return this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} #C4 ?{self::Variable*} this.{self::BinaryConstraint::v1}{self::Variable*} : this.{self::BinaryConstraint::v2}{self::Variable*};
+  method output() → self::Variable*
+    return this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} #C4 ?{self::Variable*} this.{self::BinaryConstraint::v2}{self::Variable*} : this.{self::BinaryConstraint::v1}{self::Variable*};
+  method recalculate() → void {
+    self::Variable* ihn = this.{self::BinaryConstraint::input}(){() →* self::Variable*};
+    self::Variable* out = this.{self::BinaryConstraint::output}(){() →* self::Variable*};
+    out.{self::Variable::walkStrength} = self::Strength::weakest(this.{self::Constraint::strength}{self::Strength*}, ihn.{self::Variable::walkStrength}{self::Strength*});
+    out.{self::Variable::stay} = ihn.{self::Variable::stay}{core::bool*};
+    if(out.{self::Variable::stay}{core::bool*})
+      this.{self::Constraint::execute}(){() →* void};
+  }
+  method markUnsatisfied() → void {
+    this.{self::BinaryConstraint::direction} = #C1;
+  }
+  method inputsKnown(core::int* mark) → core::bool* {
+    self::Variable* i = this.{self::BinaryConstraint::input}(){() →* self::Variable*};
+    return i.{self::Variable::mark}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} mark || i.{self::Variable::stay}{core::bool*} || i.{self::Variable::determinedBy}{self::Constraint*} == null;
+  }
+  method removeFromGraph() → void {
+    if(!(this.{self::BinaryConstraint::v1}{self::Variable*} == null))
+      this.{self::BinaryConstraint::v1}{self::Variable*}.{self::Variable::removeConstraint}(this){(self::Constraint*) →* void};
+    if(!(this.{self::BinaryConstraint::v2}{self::Variable*} == null))
+      this.{self::BinaryConstraint::v2}{self::Variable*}.{self::Variable::removeConstraint}(this){(self::Constraint*) →* void};
+    this.{self::BinaryConstraint::direction} = #C1;
+  }
+}
+class ScaleConstraint extends self::BinaryConstraint {
+  final field self::Variable* scale;
+  final field self::Variable* offset;
+  constructor •(self::Variable* src, self::Variable* scale, self::Variable* offset, self::Variable* dest, self::Strength* strength) → self::ScaleConstraint*
+    : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength)
+    ;
+  method addToGraph() → void {
+    super.{self::BinaryConstraint::addToGraph}();
+    this.{self::ScaleConstraint::scale}{self::Variable*}.{self::Variable::addConstraint}(this){(self::Constraint*) →* void};
+    this.{self::ScaleConstraint::offset}{self::Variable*}.{self::Variable::addConstraint}(this){(self::Constraint*) →* void};
+  }
+  method removeFromGraph() → void {
+    super.{self::BinaryConstraint::removeFromGraph}();
+    if(!(this.{self::ScaleConstraint::scale}{self::Variable*} == null))
+      this.{self::ScaleConstraint::scale}{self::Variable*}.{self::Variable::removeConstraint}(this){(self::Constraint*) →* void};
+    if(!(this.{self::ScaleConstraint::offset}{self::Variable*} == null))
+      this.{self::ScaleConstraint::offset}{self::Variable*}.{self::Variable::removeConstraint}(this){(self::Constraint*) →* void};
+  }
+  method markInputs(core::int* mark) → void {
+    super.{self::BinaryConstraint::markInputs}(mark);
+    this.{self::ScaleConstraint::scale}{self::Variable*}.{self::Variable::mark} = this.{self::ScaleConstraint::offset}{self::Variable*}.{self::Variable::mark} = mark;
+  }
+  method execute() → void {
+    if(this.{self::BinaryConstraint::direction}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} #C4) {
+      this.{self::BinaryConstraint::v2}{self::Variable*}.{self::Variable::value} = this.{self::BinaryConstraint::v1}{self::Variable*}.{self::Variable::value}{core::int*}.{core::num::*}(this.{self::ScaleConstraint::scale}{self::Variable*}.{self::Variable::value}{core::int*}){(core::num*) →* core::int*}.{core::num::+}(this.{self::ScaleConstraint::offset}{self::Variable*}.{self::Variable::value}{core::int*}){(core::num*) →* core::int*};
+    }
+    else {
+      this.{self::BinaryConstraint::v1}{self::Variable*}.{self::Variable::value} = this.{self::BinaryConstraint::v2}{self::Variable*}.{self::Variable::value}{core::int*}.{core::num::-}(this.{self::ScaleConstraint::offset}{self::Variable*}.{self::Variable::value}{core::int*}){(core::num*) →* core::int*}.{core::num::~/}(this.{self::ScaleConstraint::scale}{self::Variable*}.{self::Variable::value}{core::int*}){(core::num*) →* core::int*};
+    }
+  }
+  method recalculate() → void {
+    self::Variable* ihn = this.{self::BinaryConstraint::input}(){() →* self::Variable*};
+    self::Variable* out = this.{self::BinaryConstraint::output}(){() →* self::Variable*};
+    out.{self::Variable::walkStrength} = self::Strength::weakest(this.{self::Constraint::strength}{self::Strength*}, ihn.{self::Variable::walkStrength}{self::Strength*});
+    out.{self::Variable::stay} = ihn.{self::Variable::stay}{core::bool*} && this.{self::ScaleConstraint::scale}{self::Variable*}.{self::Variable::stay}{core::bool*} && this.{self::ScaleConstraint::offset}{self::Variable*}.{self::Variable::stay}{core::bool*};
+    if(out.{self::Variable::stay}{core::bool*})
+      this.{self::ScaleConstraint::execute}(){() →* void};
+  }
+}
+class EqualityConstraint extends self::BinaryConstraint {
+  constructor •(self::Variable* v1, self::Variable* v2, self::Strength* strength) → self::EqualityConstraint*
+    : super self::BinaryConstraint::•(v1, v2, strength)
+    ;
+  method execute() → void {
+    this.{self::BinaryConstraint::output}(){() →* self::Variable*}.{self::Variable::value} = this.{self::BinaryConstraint::input}(){() →* self::Variable*}.{self::Variable::value}{core::int*};
+  }
+}
+class Variable extends core::Object {
+  field core::List<self::Constraint*>* constraints = <self::Constraint*>[];
+  field self::Constraint* determinedBy = null;
+  field core::int* mark = 0;
+  field self::Strength* walkStrength = #C18;
+  field core::bool* stay = true;
+  field core::int* value;
+  final field core::String* name;
+  constructor •(core::String* name, core::int* value) → self::Variable*
+    : self::Variable::name = name, self::Variable::value = value, super core::Object::•()
+    ;
+  method addConstraint(self::Constraint* c) → void {
+    this.{self::Variable::constraints}{core::List<self::Constraint*>*}.{core::List::add}(c){(self::Constraint*) →* void};
+  }
+  method removeConstraint(self::Constraint* c) → void {
+    this.{self::Variable::constraints}{core::List<self::Constraint*>*}.{core::List::remove}(c){(core::Object*) →* core::bool*};
+    if(this.{self::Variable::determinedBy}{self::Constraint*} =={self::Constraint::==}{(dynamic) →* core::bool*} c)
+      this.{self::Variable::determinedBy} = null;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Planner extends core::Object {
+  field core::int* currentMark = 0;
+  synthetic constructor •() → self::Planner*
+    : super core::Object::•()
+    ;
+  method incrementalAdd(self::Constraint* c) → void {
+    core::int* mark = this.{self::Planner::newMark}(){() →* core::int*};
+    for (self::Constraint* overridden = c.{self::Constraint::satisfy}(mark){(dynamic) →* self::Constraint*}; !(overridden == null); overridden = overridden.{self::Constraint::satisfy}(mark){(dynamic) →* self::Constraint*})
+      ;
+  }
+  method incrementalRemove(self::Constraint* c) → void {
+    self::Variable* out = c.{self::Constraint::output}(){() →* self::Variable*};
+    c.{self::Constraint::markUnsatisfied}(){() →* void};
+    c.{self::Constraint::removeFromGraph}(){() →* void};
+    core::List<self::Constraint*>* unsatisfied = this.{self::Planner::removePropagateFrom}(out){(self::Variable*) →* core::List<self::Constraint*>*};
+    self::Strength* strength = #C22;
+    do {
+      for (core::int* i = 0; i.{core::num::<}(unsatisfied.{core::List::length}{core::int*}){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+        self::Constraint* u = unsatisfied.{core::List::[]}(i){(core::int*) →* self::Constraint*};
+        if(u.{self::Constraint::strength}{self::Strength*} =={self::Strength::==}{(dynamic) →* core::bool*} strength)
+          this.{self::Planner::incrementalAdd}(u){(self::Constraint*) →* void};
+      }
+      strength = strength.{self::Strength::nextWeaker}(){() →* self::Strength*};
+    }
+    while (!(strength =={self::Strength::==}{(dynamic) →* core::bool*} #C18))
+  }
+  method newMark() → core::int*
+    return this.{self::Planner::currentMark} = this.{self::Planner::currentMark}{core::int*}.{core::num::+}(1){(core::num*) →* core::int*};
+  method makePlan(core::List<self::Constraint*>* sources) → self::Plan* {
+    core::int* mark = this.{self::Planner::newMark}(){() →* core::int*};
+    self::Plan* plan = new self::Plan::•();
+    core::List<self::Constraint*>* todo = sources;
+    while (todo.{core::List::length}{core::int*}.{core::num::>}(0){(core::num*) →* core::bool*}) {
+      self::Constraint* c = todo.{core::List::removeLast}(){() →* self::Constraint*};
+      if(!(c.{self::Constraint::output}(){() →* self::Variable*}.{self::Variable::mark}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} mark) && c.{self::Constraint::inputsKnown}(mark){(core::int*) →* core::bool*}) {
+        plan.{self::Plan::addConstraint}(c){(self::Constraint*) →* void};
+        c.{self::Constraint::output}(){() →* self::Variable*}.{self::Variable::mark} = mark;
+        this.{self::Planner::addConstraintsConsumingTo}(c.{self::Constraint::output}(){() →* self::Variable*}, todo){(self::Variable*, core::List<self::Constraint*>*) →* void};
+      }
+    }
+    return plan;
+  }
+  method extractPlanFromConstraints(core::List<self::Constraint*>* constraints) → self::Plan* {
+    core::List<self::Constraint*>* sources = <self::Constraint*>[];
+    for (core::int* i = 0; i.{core::num::<}(constraints.{core::List::length}{core::int*}){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+      self::Constraint* c = constraints.{core::List::[]}(i){(core::int*) →* self::Constraint*};
+      if(c.{self::Constraint::isInput}(){() →* core::bool*} && c.{self::Constraint::isSatisfied}(){() →* core::bool*})
+        sources.{core::List::add}(c){(self::Constraint*) →* void};
+    }
+    return this.{self::Planner::makePlan}(sources){(core::List<self::Constraint*>*) →* self::Plan*};
+  }
+  method addPropagate(self::Constraint* c, core::int* mark) → core::bool* {
+    core::List<self::Constraint*>* todo = <self::Constraint*>[c];
+    while (todo.{core::List::length}{core::int*}.{core::num::>}(0){(core::num*) →* core::bool*}) {
+      self::Constraint* d = todo.{core::List::removeLast}(){() →* self::Constraint*};
+      if(d.{self::Constraint::output}(){() →* self::Variable*}.{self::Variable::mark}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} mark) {
+        this.{self::Planner::incrementalRemove}(c){(self::Constraint*) →* void};
+        return false;
+      }
+      d.{self::Constraint::recalculate}(){() →* void};
+      this.{self::Planner::addConstraintsConsumingTo}(d.{self::Constraint::output}(){() →* self::Variable*}, todo){(self::Variable*, core::List<self::Constraint*>*) →* void};
+    }
+    return true;
+  }
+  method removePropagateFrom(self::Variable* out) → core::List<self::Constraint*>* {
+    out.{self::Variable::determinedBy} = null;
+    out.{self::Variable::walkStrength} = #C18;
+    out.{self::Variable::stay} = true;
+    core::List<self::Constraint*>* unsatisfied = <self::Constraint*>[];
+    core::List<self::Variable*>* todo = <self::Variable*>[out];
+    while (todo.{core::List::length}{core::int*}.{core::num::>}(0){(core::num*) →* core::bool*}) {
+      self::Variable* v = todo.{core::List::removeLast}(){() →* self::Variable*};
+      for (core::int* i = 0; i.{core::num::<}(v.{self::Variable::constraints}{core::List<self::Constraint*>*}.{core::List::length}{core::int*}){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+        self::Constraint* c = v.{self::Variable::constraints}{core::List<self::Constraint*>*}.{core::List::[]}(i){(core::int*) →* self::Constraint*};
+        if(!c.{self::Constraint::isSatisfied}(){() →* core::bool*})
+          unsatisfied.{core::List::add}(c){(self::Constraint*) →* void};
+      }
+      self::Constraint* determining = v.{self::Variable::determinedBy}{self::Constraint*};
+      for (core::int* i = 0; i.{core::num::<}(v.{self::Variable::constraints}{core::List<self::Constraint*>*}.{core::List::length}{core::int*}){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+        self::Constraint* next = v.{self::Variable::constraints}{core::List<self::Constraint*>*}.{core::List::[]}(i){(core::int*) →* self::Constraint*};
+        if(!(next =={self::Constraint::==}{(dynamic) →* core::bool*} determining) && next.{self::Constraint::isSatisfied}(){() →* core::bool*}) {
+          next.{self::Constraint::recalculate}(){() →* void};
+          todo.{core::List::add}(next.{self::Constraint::output}(){() →* self::Variable*}){(self::Variable*) →* void};
+        }
+      }
+    }
+    return unsatisfied;
+  }
+  method addConstraintsConsumingTo(self::Variable* v, core::List<self::Constraint*>* coll) → void {
+    self::Constraint* determining = v.{self::Variable::determinedBy}{self::Constraint*};
+    for (core::int* i = 0; i.{core::num::<}(v.{self::Variable::constraints}{core::List<self::Constraint*>*}.{core::List::length}{core::int*}){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+      self::Constraint* c = v.{self::Variable::constraints}{core::List<self::Constraint*>*}.{core::List::[]}(i){(core::int*) →* self::Constraint*};
+      if(!(c =={self::Constraint::==}{(dynamic) →* core::bool*} determining) && c.{self::Constraint::isSatisfied}(){() →* core::bool*})
+        coll.{core::List::add}(c){(self::Constraint*) →* void};
+    }
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Plan extends core::Object {
+  field core::List<self::Constraint*>* list = <self::Constraint*>[];
+  synthetic constructor •() → self::Plan*
+    : super core::Object::•()
+    ;
+  method addConstraint(self::Constraint* c) → void {
+    this.{self::Plan::list}{core::List<self::Constraint*>*}.{core::List::add}(c){(self::Constraint*) →* void};
+  }
+  method size() → core::int*
+    return this.{self::Plan::list}{core::List<self::Constraint*>*}.{core::List::length}{core::int*};
+  method execute() → void {
+    for (core::int* i = 0; i.{core::num::<}(this.{self::Plan::list}{core::List<self::Constraint*>*}.{core::List::length}{core::int*}){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+      this.{self::Plan::list}{core::List<self::Constraint*>*}.{core::List::[]}(i){(core::int*) →* self::Constraint*}.{self::Constraint::execute}(){() →* void};
+    }
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field self::Strength* REQUIRED = #C22;
+static const field self::Strength* STRONG_PREFERRED = #C3;
+static const field self::Strength* PREFERRED = #C6;
+static const field self::Strength* STRONG_DEFAULT = #C9;
+static const field self::Strength* NORMAL = #C12;
+static const field self::Strength* WEAK_DEFAULT = #C15;
+static const field self::Strength* WEAKEST = #C18;
+static const field core::int* NONE = #C1;
+static const field core::int* FORWARD = #C4;
+static const field core::int* BACKWARD = #C20;
+static field self::Planner* planner;
+static method main() → dynamic {
+  new self::DeltaBlue::•().{self::DeltaBlue::run}(){() →* void};
+}
+static method chainTest(core::int* n) → void {
+  self::planner = new self::Planner::•();
+  self::Variable* prev = null;
+  self::Variable* first = null;
+  self::Variable* last = null;
+  for (core::int* i = 0; i.{core::num::<=}(n){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+    self::Variable* v = new self::Variable::•("v${i}", 0);
+    if(!(prev == null))
+      new self::EqualityConstraint::•(prev, v, #C22);
+    if(i =={core::num::==}{(core::Object*) →* core::bool*} 0)
+      first = v;
+    if(i =={core::num::==}{(core::Object*) →* core::bool*} n)
+      last = v;
+    prev = v;
+  }
+  new self::StayConstraint::•(last, #C9);
+  self::EditConstraint* edit = new self::EditConstraint::•(first, #C6);
+  self::Plan* plan = self::planner.{self::Planner::extractPlanFromConstraints}(<self::Constraint*>[edit]){(core::List<self::Constraint*>*) →* self::Plan*};
+  for (core::int* i = 0; i.{core::num::<}(100){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+    first.{self::Variable::value} = i;
+    plan.{self::Plan::execute}(){() →* void};
+    if(!(last.{self::Variable::value}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} i)) {
+      core::print("Chain test failed:");
+      core::print("Expected last value to be ${i} but it was ${last.{self::Variable::value}{core::int*}}.");
+    }
+  }
+}
+static method projectionTest(core::int* n) → void {
+  self::planner = new self::Planner::•();
+  self::Variable* scale = new self::Variable::•("scale", 10);
+  self::Variable* offset = new self::Variable::•("offset", 1000);
+  self::Variable* src = null;
+  self::Variable* dst = null;
+  core::List<self::Variable*>* dests = <self::Variable*>[];
+  for (core::int* i = 0; i.{core::num::<}(n){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+    src = new self::Variable::•("src", i);
+    dst = new self::Variable::•("dst", i);
+    dests.{core::List::add}(dst){(self::Variable*) →* void};
+    new self::StayConstraint::•(src, #C12);
+    new self::ScaleConstraint::•(src, scale, offset, dst, #C22);
+  }
+  self::change(src, 17);
+  if(!(dst.{self::Variable::value}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} 1170))
+    core::print("Projection 1 failed");
+  self::change(dst, 1050);
+  if(!(src.{self::Variable::value}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} 5))
+    core::print("Projection 2 failed");
+  self::change(scale, 5);
+  for (core::int* i = 0; i.{core::num::<}(n.{core::num::-}(1){(core::num*) →* core::int*}){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+    if(!(dests.{core::List::[]}(i){(core::int*) →* self::Variable*}.{self::Variable::value}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} i.{core::num::*}(5){(core::num*) →* core::int*}.{core::num::+}(1000){(core::num*) →* core::int*}))
+      core::print("Projection 3 failed");
+  }
+  self::change(offset, 2000);
+  for (core::int* i = 0; i.{core::num::<}(n.{core::num::-}(1){(core::num*) →* core::int*}){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+    if(!(dests.{core::List::[]}(i){(core::int*) →* self::Variable*}.{self::Variable::value}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} i.{core::num::*}(5){(core::num*) →* core::int*}.{core::num::+}(2000){(core::num*) →* core::int*}))
+      core::print("Projection 4 failed");
+  }
+}
+static method change(self::Variable* v, core::int* newValue) → void {
+  self::EditConstraint* edit = new self::EditConstraint::•(v, #C6);
+  self::Plan* plan = self::planner.{self::Planner::extractPlanFromConstraints}(<self::EditConstraint*>[edit]){(core::List<self::Constraint*>*) →* self::Plan*};
+  for (core::int* i = 0; i.{core::num::<}(10){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+    v.{self::Variable::value} = newValue;
+    plan.{self::Plan::execute}(){() →* void};
+  }
+  edit.{self::Constraint::destroyConstraint}(){() →* void};
+}
+
+constants  {
+  #C1 = 1
+  #C2 = "strongPreferred"
+  #C3 = self::Strength {value:#C1, name:#C2}
+  #C4 = 2
+  #C5 = "preferred"
+  #C6 = self::Strength {value:#C4, name:#C5}
+  #C7 = 3
+  #C8 = "strongDefault"
+  #C9 = self::Strength {value:#C7, name:#C8}
+  #C10 = 4
+  #C11 = "normal"
+  #C12 = self::Strength {value:#C10, name:#C11}
+  #C13 = 5
+  #C14 = "weakDefault"
+  #C15 = self::Strength {value:#C13, name:#C14}
+  #C16 = 6
+  #C17 = "weakest"
+  #C18 = self::Strength {value:#C16, name:#C17}
+  #C19 = <self::Strength*>[#C3, #C6, #C9, #C12, #C15, #C18]
+  #C20 = 0
+  #C21 = "required"
+  #C22 = self::Strength {value:#C20, name:#C21}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///DeltaBlue.dart:
+- Strength. (from org-dartlang-testcase:///DeltaBlue.dart:59:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

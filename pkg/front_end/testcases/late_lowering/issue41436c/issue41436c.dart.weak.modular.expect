@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "issue41436c_lib.dart" as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue41436c_lib.dart";
+
+class C extends iss::B {
+  synthetic constructor •() → self::C
+    : super iss::B::•()
+    ;
+  no-such-method-forwarder get /* from org-dartlang-testcase:///issue41436c_lib.dart */ _#A#x#isSet() → core::bool
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+  no-such-method-forwarder get /* from org-dartlang-testcase:///issue41436c_lib.dart */ _#A#x() → core::int?
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
+  no-such-method-forwarder set /* from org-dartlang-testcase:///issue41436c_lib.dart */ _#A#x#isSet(core::bool value) → void
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set /* from org-dartlang-testcase:///issue41436c_lib.dart */ _#A#x(core::int? value) → void
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic};
+}
+static method main() → dynamic {
+  new self::C::•();
+}
+
+constants  {
+  #C1 = #org-dartlang-testcase:///issue41436c.dart::_#A#x#isSet
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = <core::Symbol*, dynamic>{)
+  #C5 = #org-dartlang-testcase:///issue41436c.dart::_#A#x
+  #C6 = #org-dartlang-testcase:///issue41436c.dart::_#A#x#isSet=
+  #C7 = #org-dartlang-testcase:///issue41436c.dart::_#A#x=
+}

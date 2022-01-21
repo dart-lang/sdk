@@ -229,15 +229,6 @@ mixin FileTestMixin implements FileSystemTestSupport {
     expect(() => file.modificationStamp, throwsA(isFileSystemException));
   }
 
-  @deprecated
-  test_parent() {
-    File file = getFile(exists: true);
-
-    var parent = file.parent!;
-    expect(parent.exists, isTrue);
-    expect(parent.path, defaultFolderPath);
-  }
-
   test_parent2() {
     File file = getFile(exists: true);
 
@@ -923,22 +914,6 @@ mixin ResourceProviderTestMixin implements FileSystemTestSupport {
     expect(folder, isNotNull);
     expect(folder.path, defaultFolderPath);
     expect(folder.exists, isFalse);
-  }
-
-  @Deprecated('Not used by clients')
-  test_getModificationTimes_existing() async {
-    Source source = getFile(exists: true).createSource();
-
-    var times = await provider.getModificationTimes([source]);
-    expect(times, [source.modificationStamp]);
-  }
-
-  @Deprecated('Not used by clients')
-  test_getModificationTimes_notExisting() async {
-    Source source = getFile(exists: false).createSource();
-
-    var times = await provider.getModificationTimes([source]);
-    expect(times, [-1]);
   }
 
   test_getResource_file_existing() {

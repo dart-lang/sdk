@@ -358,7 +358,7 @@ class ActualData<T> {
       'offset=$offset,object=$objectText)';
 }
 
-abstract class DataRegistry<T> {
+mixin DataRegistry<T> {
   Map<Id, ActualData<T>> get actualMap;
 
   /// Registers [value] with [id] in [actualMap].

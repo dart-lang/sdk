@@ -78,11 +78,6 @@ abstract class TestRunner {
         extraFlags += ['--optimization_counter_threshold=1'];
       }
     }
-    // Every once in a while, disable VFP on arm32.
-    if (mode.contains('arm32') && rand.nextInt(4) == 0) {
-      prefix += '-noVFP';
-      extraFlags += ['--no-use-vfp'];
-    }
     // Every once in a while, use -O3 compiler.
     if (!mode.startsWith('djs') && rand.nextInt(4) == 0) {
       prefix += '-O3';
@@ -117,12 +112,16 @@ abstract class TestRunner {
     if (mode.endsWith('debug-arm32')) return 'DebugSIMARM';
     if (mode.endsWith('debug-arm64')) return 'DebugSIMARM64';
     if (mode.endsWith('debug-arm64c')) return 'DebugSIMARM64C';
+    if (mode.endsWith('debug-riscv32')) return 'DebugSIMRISCV32';
+    if (mode.endsWith('debug-riscv64')) return 'DebugSIMRISCV64';
     if (mode.endsWith('ia32')) return 'ReleaseIA32';
     if (mode.endsWith('x64')) return 'ReleaseX64';
     if (mode.endsWith('x64c')) return 'ReleaseX64C';
     if (mode.endsWith('arm32')) return 'ReleaseSIMARM';
     if (mode.endsWith('arm64')) return 'ReleaseSIMARM64';
     if (mode.endsWith('arm64c')) return 'ReleaseSIMARM64C';
+    if (mode.endsWith('riscv32')) return 'ReleaseSIMRISCV32';
+    if (mode.endsWith('riscv64')) return 'ReleaseSIMRISCV64';
     throw ('unknown tag in mode: $mode');
   }
 
@@ -338,7 +337,8 @@ class DartFuzzTest {
       ((mode1.contains('arm32') && mode2.contains('arm32')) ||
           (mode1.contains('arm64') && mode2.contains('arm64')) ||
           (mode1.contains('x64') && mode2.contains('x64')) ||
-          (mode1.contains('ia32') && mode2.contains('ia32')));
+          (mode1.contains('riscv32') && mode2.contains('riscv32')) ||
+          (mode1.contains('riscv64') && mode2.contains('riscv64')));
 
   bool ffiCapable(String mode1, String mode2) =>
       mode1.startsWith('jit') &&
@@ -681,12 +681,16 @@ class DartFuzzTestSession {
     'jit-debug-arm32',
     'jit-debug-arm64',
     'jit-debug-arm64c',
+    'jit-debug-riscv32',
+    'jit-debug-riscv64',
     'jit-ia32',
     'jit-x64',
     'jit-x64c',
     'jit-arm32',
     'jit-arm64',
     'jit-arm64c',
+    'jit-riscv32',
+    'jit-riscv64',
     'aot-debug-x64',
     'aot-debug-x64c',
     'aot-x64',
@@ -699,9 +703,13 @@ class DartFuzzTestSession {
     'aot-debug-arm32',
     'aot-debug-arm64',
     'aot-debug-arm64c',
+    'aot-debug-riscv32',
+    'aot-debug-riscv64',
     'aot-arm32',
     'aot-arm64',
     'aot-arm64c',
+    'aot-riscv32',
+    'aot-riscv64',
     // Too many divergences (due to arithmetic):
     'js-x64',
   ];

@@ -1,0 +1,47 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/dynamic_explicit_instantiation.dart:5:26: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+// Try changing the operand or remove the type arguments.
+// test1(dynamic x) => x.foo<int>; // Error.
+//                          ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/dynamic_explicit_instantiation.dart:6:24: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
+// Try changing the operand or remove the type arguments.
+// test2(Never x) => x.foo<int>; // Error.
+//                        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/dynamic_explicit_instantiation.dart:7:31: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String Function()'.
+// Try changing the operand or remove the type arguments.
+// test3(dynamic x) => x.toString<int>; // Error.
+//                               ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/dynamic_explicit_instantiation.dart:8:29: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
+// Try changing the operand or remove the type arguments.
+// test4(Never x) => x.toString<int>; // Error.
+//                             ^
+//
+import self as self;
+
+static method test1(dynamic x) → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/dynamic_explicit_instantiation.dart:5:26: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic'.
+Try changing the operand or remove the type arguments.
+test1(dynamic x) => x.foo<int>; // Error.
+                         ^";
+static method test2(Never x) → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/dynamic_explicit_instantiation.dart:6:24: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
+Try changing the operand or remove the type arguments.
+test2(Never x) => x.foo<int>; // Error.
+                       ^";
+static method test3(dynamic x) → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/dynamic_explicit_instantiation.dart:7:31: Error: The static type of the explicit instantiation operand must be a generic function type but is 'String Function()'.
+Try changing the operand or remove the type arguments.
+test3(dynamic x) => x.toString<int>; // Error.
+                              ^";
+static method test4(Never x) → dynamic
+  return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/dynamic_explicit_instantiation.dart:8:29: Error: The static type of the explicit instantiation operand must be a generic function type but is 'Never'.
+Try changing the operand or remove the type arguments.
+test4(Never x) => x.toString<int>; // Error.
+                            ^";
+static method main() → dynamic {}

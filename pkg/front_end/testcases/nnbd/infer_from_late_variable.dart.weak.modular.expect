@@ -1,0 +1,10 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method f<T extends core::Object? = dynamic>(self::f::T% t) → self::f::T%
+  return t;
+static method main() → dynamic {
+  late core::int local;
+  local = self::f<core::int>(0);
+}

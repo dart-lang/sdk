@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart' hide Declaration;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1392,6 +1393,46 @@ main(A<int> a) {
     await _verifyReferences(method, expected);
   }
 
+  test_searchReferences_ParameterElement_ofConstructor_super_named() async {
+    await resolveTestCode('''
+class A {
+  A({required int a});
+}
+class B extends A {
+  B({required super.a}); // ref
+}
+''');
+    var element = findElement.unnamedConstructor('A').parameter('a');
+    var expected = [
+      _expectIdQ(
+        findElement.unnamedConstructor('B').superFormalParameter('a'),
+        SearchResultKind.REFERENCE,
+        'a}); // ref',
+      ),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_ofConstructor_super_positional() async {
+    await resolveTestCode('''
+class A {
+  A(int a);
+}
+class B extends A {
+  B(super.a); // ref
+}
+''');
+    var element = findElement.unnamedConstructor('A').parameter('a');
+    var expected = [
+      _expectIdQ(
+        findElement.unnamedConstructor('B').superFormalParameter('a'),
+        SearchResultKind.REFERENCE,
+        'a); // ref',
+      ),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_ParameterElement_optionalNamed() async {
     await resolveTestCode('''
 foo({p}) {
@@ -2400,14 +2441,6 @@ class NoMatchABCDEF {}
 }
 
 extension on List<Declaration> {
-  void assertNo(String name) {
-    for (var declaration in this) {
-      if (declaration.name == name) {
-        fail('Unexpected declaration $name');
-      }
-    }
-  }
-
   Declaration assertHas(String name, DeclarationKind kind,
       {int? offset,
       int? codeOffset,
@@ -2431,5 +2464,13 @@ extension on List<Declaration> {
             'className=${d.className}, mixinName=${d.mixinName})').join('\n');
     fail('Expected to find (name=$name, kind=$kind, offset=$offset, '
         'codeOffset=$codeOffset, codeLength=$codeLength) in\n$actual');
+  }
+
+  void assertNo(String name) {
+    for (var declaration in this) {
+      if (declaration.name == name) {
+        fail('Unexpected declaration $name');
+      }
+    }
   }
 }

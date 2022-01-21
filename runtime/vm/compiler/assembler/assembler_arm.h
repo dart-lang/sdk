@@ -354,7 +354,7 @@ class FieldAddress : public Address {
 class Assembler : public AssemblerBase {
  public:
   explicit Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches = false);
+                     intptr_t far_branch_level = 0);
   ~Assembler() {}
 
   void PushRegister(Register r) { Push(r); }
@@ -614,9 +614,12 @@ class Assembler : public AssemblerBase {
                                    bool enter_safepoint);
   void TransitionNativeToGenerated(Register scratch0,
                                    Register scratch1,
-                                   bool exit_safepoint);
+                                   bool exit_safepoint,
+                                   bool ignore_unwind_in_progress = false);
   void EnterFullSafepoint(Register scratch0, Register scratch1);
-  void ExitFullSafepoint(Register scratch0, Register scratch1);
+  void ExitFullSafepoint(Register scratch0,
+                         Register scratch1,
+                         bool ignore_unwind_in_progress);
 
   // Miscellaneous instructions.
   void clrex();

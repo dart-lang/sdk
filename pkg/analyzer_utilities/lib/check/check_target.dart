@@ -16,13 +16,6 @@ class CheckTarget<T> {
 
   String get _indent => '  ' * (_depth + 1);
 
-  String valueStr(value) {
-    if (value is String) {
-      return "'$value'";
-    }
-    return '$value';
-  }
-
   Never fail(String message) {
     test_package.fail(_describe() + '\n' + _indent + message);
   }
@@ -36,5 +29,17 @@ class CheckTarget<T> {
     return CheckTarget(value, _depth + 1, () {
       return _describe() + '\n' + _indent + describe(value);
     });
+  }
+
+  String valueStr(value) {
+    if (value is String) {
+      return "'$value'";
+    }
+    return '$value';
+  }
+
+  /// Use this if multiple checks are required on the value.
+  void which(void Function(CheckTarget<T> e) checker) {
+    checker(this);
   }
 }

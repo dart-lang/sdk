@@ -59,9 +59,7 @@ linter:
     - invalid_lint_rule_name
 ''').path;
 
-    var request =
-        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(request);
+    await setRoots(included: [projectPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
@@ -81,9 +79,7 @@ linter:
 include: package:pedantic/analysis_options.yaml
 ''').path;
 
-    var request =
-        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(request);
+    await setRoots(included: [projectPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
 
@@ -122,9 +118,7 @@ analyzer:
     chrome-os-manifest-checks: true
 ''');
 
-    var request =
-        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(request);
+    await setRoots(included: [projectPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
@@ -153,9 +147,7 @@ analyzer:
     chrome-os-manifest-checks: true
 ''');
 
-    var request =
-        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(request);
+    await setRoots(included: [projectPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
@@ -185,7 +177,7 @@ import 'package:foo/foo.dart';
 A? a;
     ''');
 
-    createProject();
+    await createProject();
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
     expect(filesErrors[testFile], isEmpty);
@@ -206,9 +198,7 @@ version: 1
 transforms:
 ''').path;
 
-    var request =
-        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(request);
+    await setRoots(included: [projectPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
@@ -226,7 +216,7 @@ transforms:
     // Files inside dotFolders should not generate error notifications even
     // if they are added to priority (priority affects only priority, not what
     // is analyzed).
-    createProject();
+    await createProject();
     addTestFile('');
     var brokenFile =
         newFile(join(projectPath, '.dart_tool/broken.dart'), content: 'err')
@@ -251,7 +241,7 @@ transforms:
     // them to be opened (such as hovers) should not result in error notifications
     // because there is no event that would flush them and they'd remain in the
     // editor forever.
-    createProject();
+    await createProject();
     addTestFile('');
     var brokenFile =
         newFile(join(projectPath, '.dart_tool/broken.dart'), content: 'err')
@@ -276,7 +266,7 @@ analyzer:
   exclude:
     - excluded/**
 ''');
-    createProject();
+    await createProject();
     var excludedFile =
         newFile(join(projectPath, 'excluded/broken.dart'), content: 'err').path;
 
@@ -300,7 +290,7 @@ analyzer:
   }
 
   Future<void> test_importError() async {
-    createProject();
+    await createProject();
 
     addTestFile('''
 import 'does_not_exist.dart';
@@ -328,10 +318,7 @@ linter:
 
     addTestFile('class a { }');
 
-    var request =
-        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(request);
-
+    await setRoots(included: [projectPath], excluded: []);
     await waitForTasksFinished();
 
     var testDriver = server.getAnalysisDriver(testFile)!;
@@ -353,7 +340,7 @@ linter:
   }
 
   Future<void> test_notInAnalysisRoot() async {
-    createProject();
+    await createProject();
     var otherFile = newFile('/other.dart', content: 'UnknownType V;').path;
     addTestFile('''
 import '/other.dart';
@@ -368,7 +355,7 @@ main() {
   Future<void> test_overlay_dotFolder() async {
     // Files inside dotFolders should not generate error notifications even
     // if they have overlays added.
-    createProject();
+    await createProject();
     addTestFile('');
     var brokenFile =
         newFile(join(projectPath, '.dart_tool/broken.dart'), content: 'err')
@@ -396,7 +383,7 @@ main() {
     // Overlays added for files that don't exist on disk should still generate
     // error notifications. Removing the overlay if the file is not on disk
     // should clear the errors.
-    createProject();
+    await createProject();
     addTestFile('');
     var brokenFile = convertPath(join(projectPath, 'broken.dart'));
 
@@ -432,7 +419,7 @@ main() {
     // error notifications. If the file is subsequently saved to disk before the
     // overlay is removed, the errors should not be flushed when the overlay is
     // removed.
-    createProject();
+    await createProject();
     addTestFile('');
     var brokenFile = convertPath(join(projectPath, 'broken.dart'));
 
@@ -468,7 +455,7 @@ main() {
   }
 
   Future<void> test_ParserError() async {
-    createProject();
+    await createProject();
     addTestFile('library lib');
     await waitForTasksFinished();
     await pumpEventQueue(times: 5000);
@@ -489,9 +476,7 @@ main() {
 version: 1.3.2
 ''').path;
 
-    var setRootsRequest =
-        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(setRootsRequest);
+    await setRoots(included: [projectPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
@@ -533,9 +518,7 @@ dependencies:
   a: any
 ''').path;
 
-    var setRootsRequest =
-        AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(setRootsRequest);
+    await setRoots(included: [projectPath], excluded: []);
     await waitForTasksFinished();
     await pumpEventQueue();
     //
@@ -565,7 +548,7 @@ dependencies:
   }
 
   Future<void> test_StaticWarning() async {
-    createProject();
+    await createProject();
     addTestFile('''
 enum E {e1, e2}
 

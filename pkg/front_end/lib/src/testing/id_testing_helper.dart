@@ -4,11 +4,20 @@
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
-    show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
+    show
+        ActualData,
+        ClassId,
+        DataRegistry,
+        Id,
+        IdKind,
+        IdValue,
+        MemberId,
+        NodeId;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/base/nnbd_mode.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
+
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 import '../api_prototype/experimental_flags.dart'
@@ -23,8 +32,8 @@ import 'id_extractor.dart' show DataExtractor;
 import 'id_testing_utils.dart';
 
 export '../fasta/compiler_context.dart' show CompilerContext;
-export '../kernel_generator_impl.dart' show InternalCompilerResult;
 export '../fasta/messages.dart' show FormattedMessage;
+export '../kernel_generator_impl.dart' show InternalCompilerResult;
 
 /// Test configuration used for testing CFE in its default state.
 const TestConfig defaultCfeConfig = const TestConfig(cfeMarker, 'cfe');
@@ -68,58 +77,53 @@ class TestConfig {
       this.targetFlags: const TestTargetFlags(),
       this.nnbdMode: NnbdMode.Weak});
 
-  void customizeCompilerOptions(CompilerOptions options, TestData testData) {}
+  /// Called before running test on [testData].
+  ///
+  /// This allows tests to customize the [options] based on the [testData].
+  ///
+  /// A custom object can be returned. This is passed to data computer.
+  dynamic customizeCompilerOptions(
+          CompilerOptions options, TestData testData) =>
+      null;
 }
 
-// TODO(johnniwinther): Support annotations for compile-time errors.
 abstract class DataComputer<T> {
   const DataComputer();
 
   /// Called before testing to setup flags needed for data collection.
   void setup() {}
 
-  // Called to allow for (awaited) inspection of the compilation result.
-  Future<void> inspectComponent(Component component) {
+  /// Called to allow for (awaited) inspection of the [testResultData] from
+  /// running the test.
+  Future<void> inspectTestResultData(TestResultData testResultData) {
     return new Future.value(null);
   }
 
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<T>> actualMap,
       {bool? verbose}) {}
 
   /// Function that computes a data mapping for [cls].
   ///
   /// Fills [actualMap] with the data.
-  void computeClassData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Class cls,
+  void computeClassData(TestResultData testResultData, Class cls,
       Map<Id, ActualData<T>> actualMap,
       {bool? verbose}) {}
 
   /// Function that computes a data mapping for [extension].
   ///
   /// Fills [actualMap] with the data.
-  void computeExtensionData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Extension extension,
+  void computeExtensionData(TestResultData testResultData, Extension extension,
       Map<Id, ActualData<T>> actualMap,
       {bool? verbose}) {}
 
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
-  void computeLibraryData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Library library,
+  void computeLibraryData(TestResultData testResultData, Library library,
       Map<Id, ActualData<T>> actualMap,
       {bool? verbose}) {}
 
@@ -131,7 +135,7 @@ abstract class DataComputer<T> {
   bool get supportsErrors => false;
 
   /// Returns data corresponding to [error].
-  T? computeErrorData(TestConfig config, InternalCompilerResult compiler, Id id,
+  T? computeErrorData(TestResultData testResultData, Id id,
           List<FormattedMessage> errors) =>
       null;
 
@@ -141,6 +145,21 @@ abstract class DataComputer<T> {
 
   /// Returns `true` if data should be collected for member signatures.
   bool get includeMemberSignatures => false;
+}
+
+/// Auxiliary data from running a test.
+class TestResultData {
+  /// The test config used to run the test.
+  final TestConfig config;
+
+  /// CustomData is passed from [TestConfig.customizeCompilerOptions].
+  final dynamic customData;
+
+  /// The compiler result from running the test, include access to the used
+  /// compiler.
+  final InternalCompilerResult compilerResult;
+
+  TestResultData(this.config, this.customData, this.compilerResult);
 }
 
 class CfeCompiledData<T> extends CompiledData<T> {
@@ -203,11 +222,8 @@ class CfeCompiledData<T> extends CompiledData<T> {
   }
 }
 
-abstract class CfeDataExtractor<T> extends DataExtractor<T> {
-  final InternalCompilerResult compilerResult;
-
-  CfeDataExtractor(this.compilerResult, Map<Id, ActualData<T>> actualMap)
-      : super(actualMap);
+mixin CfeDataRegistryMixin<T> implements DataRegistry<T> {
+  InternalCompilerResult get compilerResult;
 
   @override
   void report(Uri uri, int offset, String message) {
@@ -219,6 +235,25 @@ abstract class CfeDataExtractor<T> extends DataExtractor<T> {
   void fail(String message) {
     onFailure(message);
   }
+}
+
+class CfeDataRegistry<T> with DataRegistry<T>, CfeDataRegistryMixin<T> {
+  @override
+  final InternalCompilerResult compilerResult;
+
+  @override
+  final Map<Id, ActualData<T>> actualMap;
+
+  CfeDataRegistry(this.compilerResult, this.actualMap);
+}
+
+abstract class CfeDataExtractor<T> extends DataExtractor<T>
+    with CfeDataRegistryMixin<T> {
+  @override
+  final InternalCompilerResult compilerResult;
+
+  CfeDataExtractor(this.compilerResult, Map<Id, ActualData<T>> actualMap)
+      : super(actualMap);
 }
 
 /// Create the testing URI used for [fileName] in annotated tests.
@@ -325,12 +360,15 @@ Future<TestResult<T>> runTestForConfig<T>(
     }
   }
   options.packagesFileUri = config.packageConfigUri;
-  config.customizeCompilerOptions(options, testData);
+  dynamic customData = config.customizeCompilerOptions(options, testData);
   InternalCompilerResult compilerResult = await compileScript(
       testData.memorySourceFiles,
       options: options,
       retainDataForTesting: true,
       requireMain: false) as InternalCompilerResult;
+
+  TestResultData testResultData =
+      new TestResultData(config, customData, compilerResult);
 
   Component component = compilerResult.component!;
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
@@ -362,8 +400,7 @@ Future<TestResult<T>> runTestForConfig<T>(
           offset = 0;
         }
         NodeId id = new NodeId(offset, IdKind.error);
-        T? data =
-            dataComputer.computeErrorData(config, compilerResult, id, list);
+        T? data = dataComputer.computeErrorData(testResultData, id, list);
         if (data != null) {
           Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
           actualMap[id] = new ActualData<T>(id, data, uri, offset, list);
@@ -398,18 +435,17 @@ Future<TestResult<T>> runTestForConfig<T>(
         return;
       }
     }
-    dataComputer.computeMemberData(config, compilerResult, member, actualMap,
+    dataComputer.computeMemberData(testResultData, member, actualMap,
         verbose: verbose);
   }
 
   void processClass(Class cls, Map<Id, ActualData<T>> actualMap) {
-    dataComputer.computeClassData(config, compilerResult, cls, actualMap,
+    dataComputer.computeClassData(testResultData, cls, actualMap,
         verbose: verbose);
   }
 
   void processExtension(Extension extension, Map<Id, ActualData<T>> actualMap) {
-    dataComputer.computeExtensionData(
-        config, compilerResult, extension, actualMap,
+    dataComputer.computeExtensionData(testResultData, extension, actualMap,
         verbose: verbose);
   }
 
@@ -419,7 +455,7 @@ Future<TestResult<T>> runTestForConfig<T>(
             library.importUri.scheme == 'package');
   }
 
-  await dataComputer.inspectComponent(component);
+  await dataComputer.inspectTestResultData(testResultData);
 
   for (Library library in component.libraries) {
     if (excludeLibrary(library) &&
@@ -427,7 +463,7 @@ Future<TestResult<T>> runTestForConfig<T>(
       continue;
     }
     dataComputer.computeLibraryData(
-        config, compilerResult, library, actualMapFor(library));
+        testResultData, library, actualMapFor(library));
     for (Class cls in library.classes) {
       processClass(cls, actualMapFor(cls));
       for (Member member in cls.members) {

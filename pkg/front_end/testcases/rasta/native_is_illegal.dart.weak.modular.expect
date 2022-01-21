@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Bar extends core::Object {
+  @#C2
+  external get x() → self::Bar*;
+  @#C4
+  external set x(self::Bar* value) → void;
+  @#C6
+  external method f() → dynamic;
+  @#C8
+  external static factory •() → self::Bar*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+@#C10
+external static method foo() → dynamic;
+
+constants  {
+  #C1 = "Bar_get_x"
+  #C2 = _in::ExternalName {name:#C1}
+  #C3 = "Bar_set_x"
+  #C4 = _in::ExternalName {name:#C3}
+  #C5 = "Bar_f"
+  #C6 = _in::ExternalName {name:#C5}
+  #C7 = "Bar_constructor"
+  #C8 = _in::ExternalName {name:#C7}
+  #C9 = "foo"
+  #C10 = _in::ExternalName {name:#C9}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///native_is_illegal.dart:
+- ExternalName. (from org-dartlang-sdk:///sdk/lib/internal/internal.dart:92:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

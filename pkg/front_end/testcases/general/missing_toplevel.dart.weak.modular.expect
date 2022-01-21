@@ -1,0 +1,131 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/missing_toplevel.dart:27:48: Error: The operator '+' isn't defined for the class 'EmptyClass'.
+//  - 'EmptyClass' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+// var missingBinary = classWithProperty.property += 2;
+//                                                ^
+//
+// pkg/front_end/testcases/general/missing_toplevel.dart:28:40: Error: The operator '[]' isn't defined for the class 'ClassWithIndexSet'.
+//  - 'ClassWithIndexSet' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
+// Try correcting the operator to an existing operator, or defining a '[]' operator.
+// var missingIndexGet = classWithIndexSet[0] ??= 2;
+//                                        ^
+//
+// pkg/front_end/testcases/general/missing_toplevel.dart:29:40: Error: The operator '[]=' isn't defined for the class 'ClassWithIndexGet'.
+//  - 'ClassWithIndexGet' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
+// Try correcting the operator to an existing operator, or defining a '[]=' operator.
+// var missingIndexSet = classWithIndexGet[0] ??= 2;
+//                                        ^
+//
+// pkg/front_end/testcases/general/missing_toplevel.dart:30:37: Error: The getter 'property' isn't defined for the class 'EmptyClass'.
+//  - 'EmptyClass' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+// var missingPropertyGet = emptyClass.property;
+//                                     ^^^^^^^^
+//
+// pkg/front_end/testcases/general/missing_toplevel.dart:31:37: Error: The setter 'property' isn't defined for the class 'EmptyClass'.
+//  - 'EmptyClass' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+// var missingPropertySet = emptyClass.property = 42;
+//                                     ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class EmptyClass extends core::Object {
+  synthetic constructor •() → self::EmptyClass*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class ClassWithProperty extends core::Object {
+  field self::EmptyClass* property = null;
+  synthetic constructor •() → self::ClassWithProperty*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class ClassWithIndexSet extends core::Object {
+  synthetic constructor •() → self::ClassWithIndexSet*
+    : super core::Object::•()
+    ;
+  operator []=(core::int* index, core::int* value) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class ClassWithIndexGet extends core::Object {
+  synthetic constructor •() → self::ClassWithIndexGet*
+    : super core::Object::•()
+    ;
+  operator [](core::int* index) → core::int*
+    return 42;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field self::EmptyClass* emptyClass = new self::EmptyClass::•();
+static field self::ClassWithProperty* classWithProperty = new self::ClassWithProperty::•();
+static field self::ClassWithIndexSet* classWithIndexSet = new self::ClassWithIndexSet::•();
+static field self::ClassWithIndexGet* classWithIndexGet = new self::ClassWithIndexGet::•();
+static field dynamic missingBinary = let final self::ClassWithProperty* #t1 = self::classWithProperty in #t1.{self::ClassWithProperty::property} = invalid-expression "pkg/front_end/testcases/general/missing_toplevel.dart:27:48: Error: The operator '+' isn't defined for the class 'EmptyClass'.
+ - 'EmptyClass' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+var missingBinary = classWithProperty.property += 2;
+                                               ^" in #t1.{self::ClassWithProperty::property}{self::EmptyClass*}{<unresolved>}.+(2) as{TypeError,ForDynamic} self::EmptyClass*;
+static field dynamic missingIndexGet = let final self::ClassWithIndexSet* #t2 = self::classWithIndexSet in let final core::int* #t3 = 0 in let final dynamic #t4 = invalid-expression "pkg/front_end/testcases/general/missing_toplevel.dart:28:40: Error: The operator '[]' isn't defined for the class 'ClassWithIndexSet'.
+ - 'ClassWithIndexSet' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
+Try correcting the operator to an existing operator, or defining a '[]' operator.
+var missingIndexGet = classWithIndexSet[0] ??= 2;
+                                       ^" in #t2{<unresolved>}.[](#t3) in #t4 == null ?{dynamic} let final core::int* #t5 = 2 in let final void #t6 = #t2.{self::ClassWithIndexSet::[]=}(#t3, #t5){(core::int*, core::int*) →* void} in #t5 : #t4;
+static field core::int* missingIndexSet = let final self::ClassWithIndexGet* #t7 = self::classWithIndexGet in let final core::int* #t8 = 0 in let final core::int* #t9 = #t7.{self::ClassWithIndexGet::[]}(#t8){(core::int*) →* core::int*} in #t9 == null ?{core::int*} let final core::int* #t10 = 2 in let final void #t11 = invalid-expression "pkg/front_end/testcases/general/missing_toplevel.dart:29:40: Error: The operator '[]=' isn't defined for the class 'ClassWithIndexGet'.
+ - 'ClassWithIndexGet' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
+Try correcting the operator to an existing operator, or defining a '[]=' operator.
+var missingIndexSet = classWithIndexGet[0] ??= 2;
+                                       ^" in #t7{<unresolved>}.[]=(#t8, #t10) in #t10 : #t9;
+static field dynamic missingPropertyGet = invalid-expression "pkg/front_end/testcases/general/missing_toplevel.dart:30:37: Error: The getter 'property' isn't defined for the class 'EmptyClass'.
+ - 'EmptyClass' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+var missingPropertyGet = emptyClass.property;
+                                    ^^^^^^^^" in self::emptyClass{<unresolved>}.property;
+static field core::int* missingPropertySet = invalid-expression "pkg/front_end/testcases/general/missing_toplevel.dart:31:37: Error: The setter 'property' isn't defined for the class 'EmptyClass'.
+ - 'EmptyClass' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+var missingPropertySet = emptyClass.property = 42;
+                                    ^^^^^^^^" in self::emptyClass{<unresolved>}.property = 42;
+static method main() → dynamic {}

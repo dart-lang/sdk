@@ -21,6 +21,7 @@ const char* SourceReport::kCallSitesStr = "_CallSites";
 const char* SourceReport::kCoverageStr = "Coverage";
 const char* SourceReport::kPossibleBreakpointsStr = "PossibleBreakpoints";
 const char* SourceReport::kProfileStr = "_Profile";
+const char* SourceReport::kBranchCoverageStr = "BranchCoverage";
 
 SourceReport::SourceReport(intptr_t report_set,
                            CompileMode compile_mode,
@@ -105,7 +106,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       return true;
   }
   if (func.is_abstract() || func.IsImplicitConstructor() ||
-      func.is_synthetic()) {
+      func.is_synthetic() || func.is_redirecting_factory()) {
     return true;
   }
   if (func.IsNonImplicitClosureFunction() &&
@@ -285,7 +286,8 @@ bool SourceReport::ShouldCoverageSkipCallSite(const ICData* ic_data) {
 
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      const Function& function,
-                                     const Code& code) {
+                                     const Code& code,
+                                     bool report_branch_coverage) {
   ASSERT(!code.IsNull());
   const TokenPosition& begin_pos = function.token_pos();
   const TokenPosition& end_pos = function.end_token_pos();
@@ -329,16 +331,18 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     }
   };
 
-  PcDescriptors::Iterator iter(
-      descriptors,
-      UntaggedPcDescriptors::kIcCall | UntaggedPcDescriptors::kUnoptStaticCall);
-  while (iter.MoveNext()) {
-    HANDLESCOPE(thread());
-    ASSERT(iter.DeoptId() < ic_data_array->length());
-    const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
-    if (!ShouldCoverageSkipCallSite(ic_data)) {
-      const TokenPosition& token_pos = iter.TokenPos();
-      update_coverage(token_pos, ic_data->AggregateCount() > 0);
+  if (!report_branch_coverage) {
+    PcDescriptors::Iterator iter(descriptors,
+                                 UntaggedPcDescriptors::kIcCall |
+                                     UntaggedPcDescriptors::kUnoptStaticCall);
+    while (iter.MoveNext()) {
+      HANDLESCOPE(thread());
+      ASSERT(iter.DeoptId() < ic_data_array->length());
+      const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
+      if (!ShouldCoverageSkipCallSite(ic_data)) {
+        const TokenPosition& token_pos = iter.TokenPos();
+        update_coverage(token_pos, ic_data->AggregateCount() > 0);
+      }
     }
   }
 
@@ -346,15 +350,18 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   const Array& coverage_array = Array::Handle(function.GetCoverageArray());
   if (!coverage_array.IsNull()) {
     for (intptr_t i = 0; i < coverage_array.Length(); i += 2) {
-      const TokenPosition token_pos = TokenPosition::Deserialize(
-          Smi::Value(Smi::RawCast(coverage_array.At(i))));
-      const bool was_executed =
-          Smi::Value(Smi::RawCast(coverage_array.At(i + 1))) != 0;
-      update_coverage(token_pos, was_executed);
+      bool is_branch_coverage;
+      const TokenPosition token_pos = TokenPosition::DecodeCoveragePosition(
+          Smi::Value(Smi::RawCast(coverage_array.At(i))), &is_branch_coverage);
+      if (is_branch_coverage == report_branch_coverage) {
+        const bool was_executed =
+            Smi::Value(Smi::RawCast(coverage_array.At(i + 1))) != 0;
+        update_coverage(token_pos, was_executed);
+      }
     }
   }
 
-  JSONObject cov(jsobj, "coverage");
+  JSONObject cov(jsobj, report_branch_coverage ? "branchCoverage" : "coverage");
   {
     JSONArray hits(&cov, "hits");
     TokenPosition pos = begin_pos;
@@ -529,7 +536,10 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       PrintCallSitesData(&range, func, code);
     }
     if (IsReportRequested(kCoverage)) {
-      PrintCoverageData(&range, func, code);
+      PrintCoverageData(&range, func, code, /* report_branch_coverage */ false);
+    }
+    if (IsReportRequested(kBranchCoverage)) {
+      PrintCoverageData(&range, func, code, /* report_branch_coverage */ true);
     }
     if (IsReportRequested(kPossibleBreakpoints)) {
       PrintPossibleBreakpointsData(&range, func, code);

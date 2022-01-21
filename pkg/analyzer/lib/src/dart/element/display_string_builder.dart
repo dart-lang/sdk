@@ -73,6 +73,7 @@ class ElementDisplayStringBuilder {
   void writeEnumElement(EnumElementImpl element) {
     _write('enum ');
     _write(element.displayName);
+    _writeTypeParameters(element.typeParameters);
   }
 
   void writeExecutableElement(ExecutableElement element, String name) {

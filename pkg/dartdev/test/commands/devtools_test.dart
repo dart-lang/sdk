@@ -16,7 +16,7 @@ void main() {
 void devtools() {
   TestProject p;
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
   test('--help', () async {
     p = project();
@@ -37,8 +37,10 @@ void devtools() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Open DevTools'));
-    expect(result.stdout,
-        contains('Usage: dart devtools [arguments] [service protocol uri]'));
+    expect(
+        result.stdout,
+        contains(
+            'Usage: dart [vm-options] devtools [arguments] [service protocol uri]'));
 
     // Shows verbose help.
     expect(result.stdout, contains('--try-ports'));

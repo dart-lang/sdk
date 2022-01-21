@@ -488,7 +488,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   // true. use_far_branches is always false on ia32 and x64.
   volatile bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
-  volatile bool use_far_branches = false;
+  volatile intptr_t far_branch_level = 0;
 
   // In the JIT case we allow speculative inlining and have no need for a
   // suppression, since we don't restart optimization.
@@ -572,7 +572,7 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
       compiler::ObjectPoolBuilder object_pool_builder;
-      compiler::Assembler assembler(&object_pool_builder, use_far_branches);
+      compiler::Assembler assembler(&object_pool_builder, far_branch_level);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
           &speculative_policy, pass_state.inline_id_to_function,
@@ -647,8 +647,8 @@ CodePtr CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Compilation failed due to an out of range branch offset in the
         // assembler. We try again (done = false) with far branches enabled.
         done = false;
-        ASSERT(!use_far_branches);
-        use_far_branches = true;
+        RELEASE_ASSERT(far_branch_level < 2);
+        far_branch_level++;
       } else if (error.ptr() == Object::speculative_inlining_error().ptr()) {
         // Can only happen with precompilation.
         UNREACHABLE();

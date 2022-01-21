@@ -42,6 +42,18 @@ main() {
     ]);
   }
 
+  test_constructor_superParameter() async {
+    await assertErrorsInCode(r'''
+class A {
+  A({required int a});
+}
+
+class B extends A {
+  B({required super.a}) : super(a: 0);
+}
+''', [error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 88, 1)]);
+  }
+
   test_function() async {
     await assertErrorsInCode(r'''
 f({a, b}) {}

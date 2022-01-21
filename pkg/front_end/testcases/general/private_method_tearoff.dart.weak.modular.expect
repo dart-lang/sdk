@@ -1,0 +1,63 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "private_method_tearoff_lib.dart" as pri;
+
+import "org-dartlang-testcase:///private_method_tearoff_lib.dart";
+
+class Foo extends core::Object implements pri::Bar {
+  synthetic constructor •() → self::Foo*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  no-such-method-forwarder method /* from org-dartlang-testcase:///private_method_tearoff_lib.dart */ _f() → void
+    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
+}
+class Baz extends self::Foo {
+  synthetic constructor •() → self::Baz*
+    : super self::Foo::•()
+    ;
+}
+static method main() → dynamic {
+  pri::baz(new self::Foo::•());
+}
+
+library;
+import self as pri;
+import "dart:core" as core;
+
+class Bar extends core::Object {
+  synthetic constructor •() → pri::Bar*
+    : super core::Object::•()
+    ;
+  method _f() → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method baz(pri::Bar* bar) → void {
+  core::print("${bar.{pri::Bar::_f}{() →* void}.{core::Object::runtimeType}{core::Type*}}");
+}
+
+constants  {
+  #C1 = #org-dartlang-testcase:///private_method_tearoff.dart::_f
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = <core::Symbol*, dynamic>{)
+}

@@ -49,6 +49,14 @@ config("define_target_arch_x64") {
   defines = [ "TARGET_ARCH_X64" ]
 }
 
+config("define_target_arch_riscv32") {
+  defines = [ "TARGET_ARCH_RISCV32" ]
+}
+
+config("define_target_arch_riscv64") {
+  defines = [ "TARGET_ARCH_RISCV64" ]
+}
+
 config("define_target_os_android") {
   defines = [ "DART_TARGET_OS_ANDROID" ]
 }
@@ -167,6 +175,20 @@ build_run_ffi_unit_tests("run_ffi_unit_tests_x64_win") {
   ]
 }
 
+build_run_ffi_unit_tests("run_ffi_unit_tests_riscv32_linux") {
+  extra_configs = [
+    ":define_target_arch_riscv32",
+    ":define_target_os_linux",
+  ]
+}
+
+build_run_ffi_unit_tests("run_ffi_unit_tests_riscv64_linux") {
+  extra_configs = [
+    ":define_target_arch_riscv64",
+    ":define_target_os_linux",
+  ]
+}
+
 group("run_ffi_unit_tests") {
   deps = [
     ":run_ffi_unit_tests_arm64_android",
@@ -179,6 +201,8 @@ group("run_ffi_unit_tests") {
     ":run_ffi_unit_tests_ia32_android",  # Emulator, no other test coverage.
     ":run_ffi_unit_tests_ia32_linux",
     ":run_ffi_unit_tests_ia32_win",
+    ":run_ffi_unit_tests_riscv32_linux",
+    ":run_ffi_unit_tests_riscv64_linux",
     ":run_ffi_unit_tests_x64_ios",  # Simulator, no other test coverage.
     ":run_ffi_unit_tests_x64_linux",
     ":run_ffi_unit_tests_x64_macos",

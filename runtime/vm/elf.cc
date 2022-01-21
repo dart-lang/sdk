@@ -1908,6 +1908,8 @@ void ElfHeader::Write(ElfWriteStream* stream) const {
   stream->WriteHalf(elf::EM_ARM);
 #elif defined(TARGET_ARCH_ARM64)
   stream->WriteHalf(elf::EM_AARCH64);
+#elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  stream->WriteHalf(elf::EM_RISCV);
 #else
   FATAL("Unknown ELF architecture");
 #endif

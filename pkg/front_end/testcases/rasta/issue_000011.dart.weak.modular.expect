@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  try {
+    core::print(42);
+  }
+  finally {
+    core::print(87);
+  }
+}

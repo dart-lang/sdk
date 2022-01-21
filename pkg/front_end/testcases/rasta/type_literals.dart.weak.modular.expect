@@ -1,0 +1,538 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Couldn't find constructor 'dynamic'.
+//     dynamic();
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Couldn't find constructor 'dynamic'.
+//     use(dynamic());
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Couldn't find constructor 'T'.
+//     T();
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Couldn't find constructor 'T'.
+//     use(T());
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Couldn't find constructor 'Func'.
+//     Func();
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Couldn't find constructor 'Func'.
+//     use(Func());
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:29:5: Error: Can't assign to a type literal.
+//     C = 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:30:9: Error: Can't assign to a type literal.
+//     use(C = 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:31:5: Error: Can't assign to a type literal.
+//     dynamic = 42;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:32:9: Error: Can't assign to a type literal.
+//     use(dynamic = 42);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:33:5: Error: Can't assign to a type literal.
+//     T = 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:34:9: Error: Can't assign to a type literal.
+//     use(T = 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:35:5: Error: Can't assign to a type literal.
+//     Func = 42;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:36:9: Error: Can't assign to a type literal.
+//     use(Func = 42);
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:38:5: Error: Can't assign to a type literal.
+//     C++;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:39:9: Error: Can't assign to a type literal.
+//     use(C++);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:40:5: Error: Can't assign to a type literal.
+//     dynamic++;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:41:9: Error: Can't assign to a type literal.
+//     use(dynamic++);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:42:5: Error: Can't assign to a type literal.
+//     T++;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:43:9: Error: Can't assign to a type literal.
+//     use(T++);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:44:5: Error: Can't assign to a type literal.
+//     Func++;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:45:9: Error: Can't assign to a type literal.
+//     use(Func++);
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:47:7: Error: Can't assign to a type literal.
+//     ++C;
+//       ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:48:11: Error: Can't assign to a type literal.
+//     use(++C);
+//           ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:49:7: Error: Can't assign to a type literal.
+//     ++dynamic;
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:50:11: Error: Can't assign to a type literal.
+//     use(++dynamic);
+//           ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:51:7: Error: Can't assign to a type literal.
+//     ++T;
+//       ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:52:11: Error: Can't assign to a type literal.
+//     use(++T);
+//           ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:53:7: Error: Can't assign to a type literal.
+//     ++Func;
+//       ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:54:11: Error: Can't assign to a type literal.
+//     use(++Func);
+//           ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:56:5: Error: Can't assign to a type literal.
+//     C--;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:57:9: Error: Can't assign to a type literal.
+//     use(C--);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:58:5: Error: Can't assign to a type literal.
+//     dynamic--;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:59:9: Error: Can't assign to a type literal.
+//     use(dynamic--);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:60:5: Error: Can't assign to a type literal.
+//     T--;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:61:9: Error: Can't assign to a type literal.
+//     use(T--);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:62:5: Error: Can't assign to a type literal.
+//     Func--;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:63:9: Error: Can't assign to a type literal.
+//     use(Func--);
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:65:7: Error: Can't assign to a type literal.
+//     --C;
+//       ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:66:11: Error: Can't assign to a type literal.
+//     use(--C);
+//           ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:67:7: Error: Can't assign to a type literal.
+//     --dynamic;
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:68:11: Error: Can't assign to a type literal.
+//     use(--dynamic);
+//           ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:69:7: Error: Can't assign to a type literal.
+//     --T;
+//       ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:70:11: Error: Can't assign to a type literal.
+//     use(--T);
+//           ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:71:7: Error: Can't assign to a type literal.
+//     --Func;
+//       ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:72:11: Error: Can't assign to a type literal.
+//     use(--Func);
+//           ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Can't assign to a type literal.
+//     C ??= 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Can't assign to a type literal.
+//     use(C ??= 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Can't assign to a type literal.
+//     dynamic ??= 42;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Can't assign to a type literal.
+//     use(dynamic ??= 42);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Can't assign to a type literal.
+//     T ??= 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Can't assign to a type literal.
+//     use(T ??= 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Can't assign to a type literal.
+//     Func ??= 42;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Can't assign to a type literal.
+//     use(Func ??= 42);
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:83:5: Error: Can't assign to a type literal.
+//     C += 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:84:9: Error: Can't assign to a type literal.
+//     use(C += 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:85:5: Error: Can't assign to a type literal.
+//     dynamic += 42;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:86:9: Error: Can't assign to a type literal.
+//     use(dynamic += 42);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:87:5: Error: Can't assign to a type literal.
+//     T += 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:88:9: Error: Can't assign to a type literal.
+//     use(T += 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:89:5: Error: Can't assign to a type literal.
+//     Func += 42;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:90:9: Error: Can't assign to a type literal.
+//     use(Func += 42);
+//         ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:92:5: Error: Can't assign to a type literal.
+//     C -= 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:93:9: Error: Can't assign to a type literal.
+//     use(C -= 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:94:5: Error: Can't assign to a type literal.
+//     dynamic -= 42;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:95:9: Error: Can't assign to a type literal.
+//     use(dynamic -= 42);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:96:5: Error: Can't assign to a type literal.
+//     T -= 42;
+//     ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:97:9: Error: Can't assign to a type literal.
+//     use(T -= 42);
+//         ^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:98:5: Error: Can't assign to a type literal.
+//     Func -= 42;
+//     ^^^^
+//
+// pkg/front_end/testcases/rasta/type_literals.dart:99:9: Error: Can't assign to a type literal.
+//     use(Func -= 42);
+//         ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Func = () →* void;
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
+    : super core::Object::•()
+    ;
+  method test() → dynamic {
+    #C1;
+    self::use(#C1);
+    #C2;
+    self::use(#C2);
+    self::C::T*;
+    self::use(self::C::T*);
+    #C3;
+    self::use(#C3);
+    new self::C::•<dynamic>();
+    self::use(new self::C::•<dynamic>());
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:22:5: Error: Couldn't find constructor 'dynamic'.
+    dynamic();
+    ^^^^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:23:9: Error: Couldn't find constructor 'dynamic'.
+    use(dynamic());
+        ^^^^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:24:5: Error: Couldn't find constructor 'T'.
+    T();
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:25:9: Error: Couldn't find constructor 'T'.
+    use(T());
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:26:5: Error: Couldn't find constructor 'Func'.
+    Func();
+    ^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:27:9: Error: Couldn't find constructor 'Func'.
+    use(Func());
+        ^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:29:5: Error: Can't assign to a type literal.
+    C = 42;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:30:9: Error: Can't assign to a type literal.
+    use(C = 42);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:31:5: Error: Can't assign to a type literal.
+    dynamic = 42;
+    ^^^^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:32:9: Error: Can't assign to a type literal.
+    use(dynamic = 42);
+        ^^^^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:33:5: Error: Can't assign to a type literal.
+    T = 42;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:34:9: Error: Can't assign to a type literal.
+    use(T = 42);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:35:5: Error: Can't assign to a type literal.
+    Func = 42;
+    ^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:36:9: Error: Can't assign to a type literal.
+    use(Func = 42);
+        ^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:38:5: Error: Can't assign to a type literal.
+    C++;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:39:9: Error: Can't assign to a type literal.
+    use(C++);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:40:5: Error: Can't assign to a type literal.
+    dynamic++;
+    ^^^^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:41:9: Error: Can't assign to a type literal.
+    use(dynamic++);
+        ^^^^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:42:5: Error: Can't assign to a type literal.
+    T++;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:43:9: Error: Can't assign to a type literal.
+    use(T++);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:44:5: Error: Can't assign to a type literal.
+    Func++;
+    ^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:45:9: Error: Can't assign to a type literal.
+    use(Func++);
+        ^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:47:7: Error: Can't assign to a type literal.
+    ++C;
+      ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:48:11: Error: Can't assign to a type literal.
+    use(++C);
+          ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:49:7: Error: Can't assign to a type literal.
+    ++dynamic;
+      ^^^^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:50:11: Error: Can't assign to a type literal.
+    use(++dynamic);
+          ^^^^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:51:7: Error: Can't assign to a type literal.
+    ++T;
+      ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:52:11: Error: Can't assign to a type literal.
+    use(++T);
+          ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:53:7: Error: Can't assign to a type literal.
+    ++Func;
+      ^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:54:11: Error: Can't assign to a type literal.
+    use(++Func);
+          ^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:56:5: Error: Can't assign to a type literal.
+    C--;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:57:9: Error: Can't assign to a type literal.
+    use(C--);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:58:5: Error: Can't assign to a type literal.
+    dynamic--;
+    ^^^^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:59:9: Error: Can't assign to a type literal.
+    use(dynamic--);
+        ^^^^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:60:5: Error: Can't assign to a type literal.
+    T--;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:61:9: Error: Can't assign to a type literal.
+    use(T--);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:62:5: Error: Can't assign to a type literal.
+    Func--;
+    ^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:63:9: Error: Can't assign to a type literal.
+    use(Func--);
+        ^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:65:7: Error: Can't assign to a type literal.
+    --C;
+      ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:66:11: Error: Can't assign to a type literal.
+    use(--C);
+          ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:67:7: Error: Can't assign to a type literal.
+    --dynamic;
+      ^^^^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:68:11: Error: Can't assign to a type literal.
+    use(--dynamic);
+          ^^^^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:69:7: Error: Can't assign to a type literal.
+    --T;
+      ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:70:11: Error: Can't assign to a type literal.
+    use(--T);
+          ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:71:7: Error: Can't assign to a type literal.
+    --Func;
+      ^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:72:11: Error: Can't assign to a type literal.
+    use(--Func);
+          ^^^^");
+    #C1 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:74:5: Error: Can't assign to a type literal.
+    C ??= 42;
+    ^" : null;
+    self::use(let final core::Type* #t1 = #C1 in #t1 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:75:9: Error: Can't assign to a type literal.
+    use(C ??= 42);
+        ^" : #t1);
+    #C2 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:76:5: Error: Can't assign to a type literal.
+    dynamic ??= 42;
+    ^^^^^^^" : null;
+    self::use(let final core::Type* #t2 = #C2 in #t2 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:77:9: Error: Can't assign to a type literal.
+    use(dynamic ??= 42);
+        ^^^^^^^" : #t2);
+    self::C::T* == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:78:5: Error: Can't assign to a type literal.
+    T ??= 42;
+    ^" : null;
+    self::use(let final core::Type* #t3 = self::C::T* in #t3 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:79:9: Error: Can't assign to a type literal.
+    use(T ??= 42);
+        ^" : #t3);
+    #C3 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:80:5: Error: Can't assign to a type literal.
+    Func ??= 42;
+    ^^^^" : null;
+    self::use(let final core::Type* #t4 = #C3 in #t4 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:81:9: Error: Can't assign to a type literal.
+    use(Func ??= 42);
+        ^^^^" : #t4);
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:83:5: Error: Can't assign to a type literal.
+    C += 42;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:84:9: Error: Can't assign to a type literal.
+    use(C += 42);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:85:5: Error: Can't assign to a type literal.
+    dynamic += 42;
+    ^^^^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:86:9: Error: Can't assign to a type literal.
+    use(dynamic += 42);
+        ^^^^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:87:5: Error: Can't assign to a type literal.
+    T += 42;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:88:9: Error: Can't assign to a type literal.
+    use(T += 42);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:89:5: Error: Can't assign to a type literal.
+    Func += 42;
+    ^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:90:9: Error: Can't assign to a type literal.
+    use(Func += 42);
+        ^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:92:5: Error: Can't assign to a type literal.
+    C -= 42;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:93:9: Error: Can't assign to a type literal.
+    use(C -= 42);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:94:5: Error: Can't assign to a type literal.
+    dynamic -= 42;
+    ^^^^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:95:9: Error: Can't assign to a type literal.
+    use(dynamic -= 42);
+        ^^^^^^^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:96:5: Error: Can't assign to a type literal.
+    T -= 42;
+    ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:97:9: Error: Can't assign to a type literal.
+    use(T -= 42);
+        ^");
+    invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:98:5: Error: Can't assign to a type literal.
+    Func -= 42;
+    ^^^^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/type_literals.dart:99:9: Error: Can't assign to a type literal.
+    use(Func -= 42);
+        ^^^^");
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method use(dynamic x) → dynamic {
+  if(x =={core::Object::==}{(core::Object*) →* core::bool*} new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int*})
+    throw "Shouldn't happen";
+}
+static method main() → dynamic {
+  new self::C::•<dynamic>().{self::C::test}(){() →* dynamic};
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(self::C<dynamic>*)
+  #C2 = TypeLiteralConstant(dynamic)
+  #C3 = TypeLiteralConstant(() →* void)
+}

@@ -9,7 +9,7 @@ import 'utils.dart';
 void main() {
   TestProject p;
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
   test('Ensure parsing fails after encountering invalid file', () async {
     // Regression test for https://github.com/dart-lang/sdk/issues/43991
@@ -32,7 +32,8 @@ void main() {
     final result = await p.run(['--snapshot=abc', 'foo.dart']);
     expect(result.stderr, isNotEmpty);
     expect(result.stderr, contains("Error when reading 'foo.dart':"));
-    expect(result.stdout, isEmpty);
+    expect(result.stdout, isNotEmpty);
+    expect(result.stdout, contains("Info: Compiling with sound null safety\n"));
     expect(result.exitCode, 254);
   });
 }

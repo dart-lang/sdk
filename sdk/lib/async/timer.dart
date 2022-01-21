@@ -4,7 +4,7 @@
 
 part of dart.async;
 
-/// A count-down timer that can be configured to fire once or repeatedly.
+/// A countdown timer that can be configured to fire once or repeatedly.
 ///
 /// The timer counts down from the specified duration to 0.
 /// When the timer reaches 0, the timer invokes the specified callback function.
@@ -17,27 +17,33 @@ part of dart.async;
 /// following example (taking advantage of the multiplication operator of
 /// the [Duration] class):
 /// ```dart
-/// const timeout = Duration(seconds: 3);
-/// const ms = Duration(milliseconds: 1);
-///
-/// Timer startTimeout([int? milliseconds]) {
-///   var duration = milliseconds == null ? timeout : ms * milliseconds;
-///   return Timer(duration, handleTimeout);
+/// void main() {
+///   scheduleTimeout(5 * 1000); // 5 seconds.
 /// }
-/// ...
+///
+/// Timer scheduleTimeout([int milliseconds = 10000]) =>
+///     Timer(Duration(milliseconds: milliseconds), handleTimeout);
+///
 /// void handleTimeout() {  // callback function
-///   ...
+///   // Do some work.
 /// }
 /// ```
-/// Note: If Dart code using [Timer] is compiled to JavaScript, the finest
+/// **Note:** If Dart code using [Timer] is compiled to JavaScript, the finest
 /// granularity available in the browser is 4 milliseconds.
 ///
-/// See [Stopwatch] for measuring elapsed time.
+/// See also:
+/// * [Stopwatch] for measuring elapsed time.
 abstract class Timer {
   /// Creates a new timer.
   ///
   /// The [callback] function is invoked after the given [duration].
   ///
+  /// Example:
+  /// ```dart
+  /// final timer =
+  ///     Timer(const Duration(seconds: 5), () => print('Timer finished'));
+  /// // Outputs after 5 seconds: "Timer finished".
+  /// ```
   factory Timer(Duration duration, void Function() callback) {
     if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
@@ -64,6 +70,24 @@ abstract class Timer {
   /// scheduled for - even if the actual callback was delayed.
   ///
   /// [duration] must a non-negative [Duration].
+  ///
+  /// Example:
+  /// ```dart
+  /// var counter = 3;
+  /// Timer.periodic(const Duration(seconds: 2), (timer) {
+  ///   print(timer.tick);
+  ///   counter--;
+  ///   if (counter == 0) {
+  ///     print('Cancel timer');
+  ///     timer.cancel();
+  ///   }
+  /// });
+  /// // Outputs:
+  /// // 1
+  /// // 2
+  /// // 3
+  /// // "Cancel timer"
+  /// ```
   factory Timer.periodic(Duration duration, void callback(Timer timer)) {
     if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
@@ -77,6 +101,11 @@ abstract class Timer {
   /// Runs the given [callback] asynchronously as soon as possible.
   ///
   /// This function is equivalent to `new Timer(Duration.zero, callback)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Timer.run(() => print('timer run'));
+  /// ```
   static void run(void Function() callback) {
     new Timer(Duration.zero, callback);
   }
@@ -86,6 +115,14 @@ abstract class Timer {
   /// Once a [Timer] has been canceled, the callback function will not be called
   /// by the timer. Calling [cancel] more than once on a [Timer] is allowed, and
   /// will have no further effect.
+  ///
+  /// Example:
+  /// ```dart
+  /// final timer =
+  ///     Timer(const Duration(seconds: 5), () => print('Timer finished'));
+  /// // Cancel timer, callback never called.
+  /// timer.cancel();
+  /// ```
   void cancel();
 
   /// The number of durations preceding the most recent timer event.
@@ -99,6 +136,25 @@ abstract class Timer {
   /// and no callback is invoked for them.
   /// The [tick] count reflects the number of durations that have passed and
   /// not the number of callback invocations that have happened.
+  ///
+  /// Example:
+  /// ```dart
+  /// final stopwatch = Stopwatch()..start();
+  /// Timer.periodic(const Duration(seconds: 1), (timer) {
+  ///   print(timer.tick);
+  ///   if (timer.tick == 1) {
+  ///     while (stopwatch.elapsedMilliseconds < 4500) {
+  ///       // Run uninterrupted for another 3.5 seconds!
+  ///       // The latest due tick after that is the 4-second tick.
+  ///     }
+  ///   } else {
+  ///     timer.cancel();
+  ///   }
+  /// });
+  /// // Outputs:
+  /// // 1
+  /// // 4
+  /// ```
   int get tick;
 
   /// Returns whether the timer is still active.

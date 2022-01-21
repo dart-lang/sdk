@@ -7,7 +7,8 @@ import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart';
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart';
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -48,24 +49,18 @@ class InheritanceDataComputer extends DataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Library library,
+  void computeLibraryData(TestResultData testResultData, Library library,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    new InheritanceDataExtractor(config, compilerResult, actualMap)
+    new InheritanceDataExtractor(testResultData, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeClassData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Class cls,
+  void computeClassData(TestResultData testResultData, Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
-    new InheritanceDataExtractor(config, compilerResult, actualMap)
+    new InheritanceDataExtractor(testResultData, actualMap)
         .computeForClass(cls);
   }
 
@@ -73,8 +68,8 @@ class InheritanceDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   @override
-  String computeErrorData(TestConfig config, InternalCompilerResult compiler,
-      Id id, List<FormattedMessage> errors) {
+  String computeErrorData(
+      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
     return errorsToText(errors, useCodes: true);
   }
 
@@ -83,19 +78,22 @@ class InheritanceDataComputer extends DataComputer<String> {
 }
 
 class InheritanceDataExtractor extends CfeDataExtractor<String> {
-  final TestConfig _config;
-  final InternalCompilerResult _compilerResult;
+  final TestResultData _testResultData;
 
   InheritanceDataExtractor(
-      this._config, this._compilerResult, Map<Id, ActualData<String>> actualMap)
-      : super(_compilerResult, actualMap);
+      this._testResultData, Map<Id, ActualData<String>> actualMap)
+      : super(_testResultData.compilerResult, actualMap);
+
+  TestConfig get _config => _testResultData.config;
+
+  InternalCompilerResult get _compilerResult => _testResultData.compilerResult;
 
   ClassHierarchy get _hierarchy => _compilerResult.classHierarchy!;
 
   CoreTypes get _coreTypes => _compilerResult.coreTypes!;
 
   ClassHierarchyBuilder get _classHierarchyBuilder =>
-      _compilerResult.kernelTargetForTesting!.loader.builderHierarchy;
+      _compilerResult.kernelTargetForTesting!.loader.hierarchyBuilder;
 
   @override
   String computeLibraryValue(Id id, Library node) {

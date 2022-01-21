@@ -10,9 +10,9 @@ class C extends core::Object {
     ;
   get x() → core::int
     return let final core::int? #t1 = this.{self::C::_#C#x}{core::int?} in #t1 == null ?{core::int} throw new _in::LateError::fieldNI("x") : #t1{core::int};
-  set x(covariant-by-declaration core::int #t2) → void
+  set x(covariant-by-declaration core::int x#param) → void
     if(this.{self::C::_#C#x}{core::int?} == null)
-      this.{self::C::_#C#x} = #t2;
+      this.{self::C::_#C#x} = x#param;
     else
       throw new _in::LateError::fieldAI("x");
 }

@@ -6,8 +6,6 @@ import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
@@ -413,9 +411,6 @@ abstract class _AbstractCorrectionProducer {
   /// Returns the EOL to use for this [CompilationUnit].
   String get eol => utils.endOfLine;
 
-  /// Return the extension cache used to find available extensions.
-  ExtensionCache get extensionCache => _context.dartFixContext!.extensionCache;
-
   String get file => _context.file;
 
   Flutter get flutter => Flutter.instance;
@@ -491,10 +486,15 @@ abstract class _AbstractCorrectionProducer {
     return utils.getRangeText(range);
   }
 
-  /// Return the top-level declarations with the [name] in libraries that are
-  /// available to this context.
-  List<TopLevelDeclaration> getTopLevelDeclarations(String name) =>
-      _context.dartFixContext!.getTopLevelDeclarations(name);
+  /// Return the mapping from a library (that is available to this context) to
+  /// a top-level declaration that is exported (not necessary declared) by this
+  /// library, and has the requested base name. For getters and setters the
+  /// corresponding top-level variable is returned.
+  Future<Map<LibraryElement, Element>> getTopLevelDeclarations(
+    String baseName,
+  ) {
+    return _context.dartFixContext!.getTopLevelDeclarations(baseName);
+  }
 
   /// Return `true` the lint with the given [name] is enabled.
   bool isLintEnabled(String name) {
@@ -521,6 +521,12 @@ abstract class _AbstractCorrectionProducer {
     }
     // invalid selection (part of node, etc)
     return false;
+  }
+
+  /// Return libraries with extensions that declare non-static public
+  /// extension members with the [memberName].
+  Stream<LibraryElement> librariesWithExtensions(String memberName) {
+    return _context.dartFixContext!.librariesWithExtensions(memberName);
   }
 
   /// Return `true` if the given [node] is in a location where an implicit

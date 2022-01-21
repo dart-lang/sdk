@@ -91,6 +91,7 @@ void main() {
     testPassUint8Boolx9Struct10BytesHomogeneousBoolBoolLeaf();
     testPassUint8Boolx9Struct10BytesInlineArrayBoolBoolLeaf();
     testPassUint8Struct1ByteBoolLeaf();
+    testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedLeaf();
     testReturnStruct1ByteIntLeaf();
     testReturnStruct3BytesHomogeneousUint8Leaf();
     testReturnStruct3BytesInt2ByteAlignedLeaf();
@@ -5459,6 +5460,50 @@ void testPassUint8Struct1ByteBoolLeaf() {
   print("result = $result");
 
   Expect.equals(1 % 2 != 0, result);
+
+  calloc.free(a1Pointer);
+}
+
+final passWCharStructInlineArrayIntUintPtrx2LongUnsignedLeaf = ffiTestFunctions
+    .lookupFunction<
+            WChar Function(WChar, StructInlineArrayInt, UintPtr, UintPtr, Long,
+                UnsignedLong),
+            int Function(int, StructInlineArrayInt, int, int, int, int)>(
+        "PassWCharStructInlineArrayIntUintPtrx2LongUnsigned",
+        isLeaf: true);
+
+/// Returning a wchar.
+void testPassWCharStructInlineArrayIntUintPtrx2LongUnsignedLeaf() {
+  int a0;
+  final a1Pointer = calloc<StructInlineArrayInt>();
+  final StructInlineArrayInt a1 = a1Pointer.ref;
+  int a2;
+  int a3;
+  int a4;
+  int a5;
+
+  a0 = 1;
+  a1.a0[0] = 2;
+  a1.a0[1] = 3;
+  a1.a0[2] = 4;
+  a1.a0[3] = 5;
+  a1.a0[4] = 6;
+  a1.a0[5] = 7;
+  a1.a0[6] = 8;
+  a1.a0[7] = 9;
+  a1.a0[8] = 10;
+  a1.a0[9] = 11;
+  a2 = 12;
+  a3 = 13;
+  a4 = 14;
+  a5 = 15;
+
+  final result = passWCharStructInlineArrayIntUintPtrx2LongUnsignedLeaf(
+      a0, a1, a2, a3, a4, a5);
+
+  print("result = $result");
+
+  Expect.equals(120, result);
 
   calloc.free(a1Pointer);
 }

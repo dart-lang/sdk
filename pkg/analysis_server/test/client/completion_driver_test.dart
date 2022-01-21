@@ -122,7 +122,7 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   }
 
   @mustCallSuper
-  void setUp() {
+  Future<void> setUp() async {
     driver = CompletionDriver(
       supportsAvailableSuggestions: supportsAvailableSuggestions,
       projectPath: projectPath,
@@ -130,9 +130,11 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
       resourceProvider: resourceProvider,
       serverOptions: serverOptions,
     );
-    driver.createProject(packageRoots: packageRoots);
+    await driver.createProject(packageRoots: packageRoots);
 
-    newPubspecYamlFile(projectPath, '');
+    newPubspecYamlFile(projectPath, '''
+name: project
+''');
     newDotPackagesFile(projectPath, content: '''
 project:${toUri('$projectPath/lib')}
 ''');
@@ -279,9 +281,9 @@ void f() {
 }
 ''');
     assertSuggestion(
-        completion: 'E.e',
-        element: ElementKind.ENUM_CONSTANT,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'E.e',
+      element: ElementKind.ENUM_CONSTANT,
+    );
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40620
@@ -327,9 +329,9 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 'A',
-        element: ElementKind.CLASS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A',
+      element: ElementKind.CLASS,
+    );
   }
 
   Future<void> test_project_lib() async {
@@ -356,33 +358,33 @@ void f() {
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
     assertSuggestion(
-        completion: 'A',
-        element: ElementKind.CLASS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A',
+      element: ElementKind.CLASS,
+    );
     assertSuggestion(
-        completion: 'E',
-        element: ElementKind.ENUM,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'E',
+      element: ElementKind.ENUM,
+    );
     assertSuggestion(
-        completion: 'Ex',
-        element: ElementKind.EXTENSION,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'Ex',
+      element: ElementKind.EXTENSION,
+    );
     assertSuggestion(
-        completion: 'M',
-        element: ElementKind.MIXIN,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'M',
+      element: ElementKind.MIXIN,
+    );
     assertSuggestion(
-        completion: 'T',
-        element: ElementKind.FUNCTION_TYPE_ALIAS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'T',
+      element: ElementKind.TYPE_ALIAS,
+    );
     assertSuggestion(
-        completion: 'T2',
-        element: ElementKind.TYPE_ALIAS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'T2',
+      element: ElementKind.TYPE_ALIAS,
+    );
     assertSuggestion(
-        completion: 'v',
-        element: ElementKind.TOP_LEVEL_VARIABLE,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'v',
+      element: ElementKind.TOP_LEVEL_VARIABLE,
+    );
   }
 
   Future<void> test_project_lib_fields_class() async {
@@ -415,9 +417,9 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 'A.f',
-        element: ElementKind.FIELD,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A.f',
+      element: ElementKind.FIELD,
+    );
   }
 
   Future<void> test_project_lib_getters_class() async {
@@ -450,9 +452,9 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 'A.g',
-        element: ElementKind.GETTER,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A.g',
+      element: ElementKind.GETTER,
+    );
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40626
@@ -468,9 +470,41 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 'g',
-        element: ElementKind.GETTER,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'g',
+      element: ElementKind.GETTER,
+    );
+  }
+
+  Future<void> test_project_lib_methods_class() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {
+  void foo() => 0;
+}
+''');
+
+    await addTestFile('''
+void f() {
+  ^
+}
+''');
+
+    assertNoSuggestion(completion: 'A.foo');
+  }
+
+  Future<void> test_project_lib_methods_static() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {
+  static void foo() => 0;
+}
+''');
+
+    await addTestFile('''
+void f() {
+  ^
+}
+''');
+
+    assertNoSuggestion(completion: 'A.foo');
   }
 
   @failingTest
@@ -541,9 +575,9 @@ void f() {
 ''');
 
     assertSuggestion(
-        completion: 's',
-        element: ElementKind.SETTER,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 's',
+      element: ElementKind.SETTER,
+    );
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38739')
@@ -596,16 +630,17 @@ void f(List<String> args) {
 ''');
 
     expect(
+      suggestionWith(
+        completion: 'A',
+        element: ElementKind.CONSTRUCTOR,
+      ).relevance,
+      greaterThan(
         suggestionWith(
-                completion: 'A',
-                element: ElementKind.CONSTRUCTOR,
-                kind: CompletionSuggestionKind.INVOCATION)
-            .relevance,
-        greaterThan(suggestionWith(
-                completion: 'A',
-                element: ElementKind.CLASS,
-                kind: CompletionSuggestionKind.INVOCATION)
-            .relevance));
+          completion: 'A',
+          element: ElementKind.CLASS,
+        ).relevance,
+      ),
+    );
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/35529
@@ -620,13 +655,13 @@ class C extends Object with ^
 ''');
 
     assertSuggestion(
-        completion: 'M',
-        element: ElementKind.MIXIN,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'M',
+      element: ElementKind.MIXIN,
+    );
     assertSuggestion(
-        completion: 'A',
-        element: ElementKind.CLASS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'A',
+      element: ElementKind.CLASS,
+    );
   }
 
   Future<void> test_sdk_lib_future_isNotDuplicated() async {
@@ -682,17 +717,17 @@ void f() {
 
     // + Classes.
     assertSuggestion(
-        completion: 'HashMap',
-        file: '/sdk/lib/collection/collection.dart',
-        element: ElementKind.CLASS,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'HashMap',
+      file: '/sdk/lib/collection/collection.dart',
+      element: ElementKind.CLASS,
+    );
 
     // + Top level variables.
     assertSuggestion(
-        completion: 'pi',
-        file: '/sdk/lib/math/math.dart',
-        element: ElementKind.TOP_LEVEL_VARIABLE,
-        kind: CompletionSuggestionKind.INVOCATION);
+      completion: 'pi',
+      file: '/sdk/lib/math/math.dart',
+      element: ElementKind.TOP_LEVEL_VARIABLE,
+    );
 
     // (No typedefs, enums, extensions defined in the Mock SDK.)
   }

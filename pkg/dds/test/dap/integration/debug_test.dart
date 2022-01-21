@@ -94,6 +94,76 @@ main() {
       expect(proc!.exitCode, completes);
     });
 
+    test('does not resume isolates if user passes --pause-isolates-on-exit',
+        () async {
+      // Internally we always pass --pause-isolates-on-exit and resume the
+      // isolates after waiting for any output events to complete (in case they
+      // need to resolve URIs that involve API calls on an Isolate).
+      //
+      // However if a user passes this flag explicitly, we should not
+      // auto-resume because they might be trying to debug something.
+      final testFile = dap.createTestFile(simpleArgPrintingProgram);
+
+      // Run the script, expecting a Stopped event.
+      final stop = dap.client.expectStop('pause');
+      await Future.wait([
+        stop,
+        dap.client.initialize(),
+        dap.client
+            .launch(testFile.path, toolArgs: ["--pause-isolates-on-exit"]),
+      ], eagerError: true);
+
+      // Resume and expect termination.
+      await await Future.wait([
+        dap.client.event('terminated'),
+        dap.client.continue_((await stop).threadId!),
+      ], eagerError: true);
+    });
+
+    test('sends output events in the correct order', () async {
+      // Output events that have their URIs mapped will be processed slowly due
+      // the async requests for resolving the package URI. This should not cause
+      // them to appear out-of-order with other lines that do not require this
+      // work.
+      //
+      // Use a sample program that prints output to stderr that includes:
+      // - non stack frame lines
+      // - stack frames with file:// URIs
+      // - stack frames with package URIs (that need asynchronously resolving)
+      final fileUri = Uri.file(dap.createTestFile('').path);
+      final packageUri = await dap.createFooPackage();
+      final testFile =
+          dap.createTestFile(stderrPrintingProgram(fileUri, packageUri));
+
+      var outputEvents = await dap.client.collectOutput(
+        launch: () => dap.client.launch(testFile.path),
+      );
+      outputEvents = outputEvents.where((e) => e.category == 'stderr').toList();
+
+      // Verify the order of the stderr output events.
+      final output = outputEvents
+          .map((e) => '${e.output.trim()}')
+          .where((output) => output.isNotEmpty)
+          .join('\n');
+      expectLines(output, [
+        'Start',
+        '#0      main ($fileUri:1:2)',
+        '#1      main2 ($packageUri:1:2)',
+        'End',
+      ]);
+
+      // As a sanity check, verify we did actually do the async path mapping and
+      // got both frames with paths in our test folder.
+      final stackFramesWithPaths = outputEvents.where((e) =>
+          e.source?.path != null &&
+          path.isWithin(dap.testDir.path, e.source!.path!));
+      expect(
+        stackFramesWithPaths,
+        hasLength(2),
+        reason: 'Expected two frames within path ${dap.testDir.path}',
+      );
+    });
+
     test('provides a list of threads', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointProgram);

@@ -11,10 +11,10 @@ class Class extends core::Object {
     ;
   constructor constructor3(core::int value) → self::Class
     ;
-  constructor constructor4([core::int? field]) → self::Class
+  constructor constructor4([core::int? field = 42]) → self::Class
     ;
   get field() → core::int?;
-  set field(core::int? #t1) → void;
+  set field(core::int? field#param) → void;
 }
 class Subclass extends self::Class {
   constructor constructor1() → self::Subclass
@@ -23,7 +23,7 @@ class Subclass extends self::Class {
     ;
   constructor constructor3(core::int value) → self::Subclass
     ;
-  constructor constructor4([core::int value]) → self::Subclass
+  constructor constructor4([core::int value = 87]) → self::Subclass
     ;
 }
 static method test1() → dynamic

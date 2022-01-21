@@ -7,7 +7,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/micro/cider_byte_store.dart';
-import 'package:analyzer/src/dart/micro/library_graph.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -768,8 +767,7 @@ var b = 1 + 2;
       var files = fileResolver.getFilesWithTopLevelDeclarations('a');
       expect(files, hasLength(1));
       var file = files.single;
-      expect(file.file.path, result.path);
-      expect(file.kind, FileTopLevelDeclarationKind.variable);
+      expect(file.path, result.path);
     }
 
     // Ask to check that it works when parsed.

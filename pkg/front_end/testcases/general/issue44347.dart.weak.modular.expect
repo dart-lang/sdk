@@ -1,0 +1,28 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue44347.dart:8:6: Error: This requires the 'constructor-tearoffs' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'.
+//   Set<int>.();
+//      ^
+//
+// pkg/front_end/testcases/general/issue44347.dart:8:13: Error: Expected an identifier, but got ')'.
+// Try inserting an identifier before ')'.
+//   Set<int>.();
+//             ^
+//
+// pkg/front_end/testcases/general/issue44347.dart:8:12: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   Set<int>.();
+//            ^
+//
+import self as self;
+
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/issue44347.dart:8:12: Error: Expected an identifier, but got '('.
+Try inserting an identifier before '('.
+  Set<int>.();
+           ^";
+}
+static method main() → dynamic {}

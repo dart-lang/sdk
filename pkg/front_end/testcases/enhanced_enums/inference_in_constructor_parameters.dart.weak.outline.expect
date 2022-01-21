@@ -1,0 +1,45 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::bar];
+  static const field self::E1 bar = const self::E1::•(0, "bar", self::foo<core::int>);
+  const constructor •(core::int index, core::String name, (core::int) → core::int f) → self::E1
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2<X extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E2<dynamic>> values = const <self::E2<dynamic>>[self::E2::bar];
+  static const field self::E2<<X extends core::Object? = dynamic>(X%) → X%> bar = const self::E2::•<<X extends core::Object? = dynamic>(X%) → X%>(0, "bar", self::foo);
+  const constructor •(core::int index, core::String name, self::E2::X% f) → self::E2<self::E2::X%>
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3<X extends core::num, Y extends core::String, Z extends (self::E3::X, self::E3::Y) → dynamic = (Never, Never) → dynamic> extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E3<core::num, core::String, (Never, Never) → dynamic>> values = const <self::E3<dynamic, dynamic, dynamic>>[self::E3::element];
+  static const field self::E3<core::num, core::String, (core::num, core::String) → dynamic> element = const self::E3::•<core::num, core::String, (core::num, core::String) → dynamic>(0, "element");
+  const constructor •(core::int index, core::String name) → self::E3<self::E3::X, self::E3::Y, self::E3::Z>
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+static method foo<X extends core::Object? = dynamic>(self::foo::X% x) → self::foo::X%
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:7:6 -> ListConstant(const <E1*>[const E1{_Enum.index: 0, _Enum._name: "bar"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:8:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "bar"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:13:6 -> ListConstant(const <E2<dynamic>*>[const E2<X* Function<X>(X*)*>{_Enum.index: 0, _Enum._name: "bar"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:14:3 -> InstanceConstant(const E2<X* Function<X>(X*)*>{_Enum.index: 0, _Enum._name: "bar"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:19:6 -> ListConstant(const <E3<dynamic, dynamic, dynamic>*>[const E3<num*, String*, dynamic Function(num*, String*)*>{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///inference_in_constructor_parameters.dart:20:3 -> InstanceConstant(const E3<num*, String*, dynamic Function(num*, String*)*>{_Enum.index: 0, _Enum._name: "element"})
+Extra constant evaluation: evaluated: 21, effectively constant: 6

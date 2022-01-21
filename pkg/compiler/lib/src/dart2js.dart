@@ -1359,7 +1359,7 @@ Future<void> main(List<String> arguments) async {
   // file and expanding them into the resulting argument list.
   //
   // TODO: Move this logic to a single place and share it among all tools.
-  if (arguments.last.startsWith('@')) {
+  if (arguments.length > 0 && arguments.last.startsWith('@')) {
     var extra = _readLines(arguments.last.substring(1));
     arguments = arguments.take(arguments.length - 1).followedBy(extra).toList();
   }

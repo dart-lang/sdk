@@ -1,0 +1,59 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class I extends core::Object {
+  synthetic constructor •() → self::I*
+    : super core::Object::•()
+    ;
+  abstract method interfaceMethod() → dynamic;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C extends core::Object implements self::I {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation* _) → dynamic
+    return "C";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  no-such-method-forwarder method interfaceMethod() → dynamic
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} dynamic;
+}
+class D extends self::C {
+  synthetic constructor •() → self::D*
+    : super self::C::•()
+    ;
+  method noSuchMethod(core::Invocation* _) → dynamic
+    return "D";
+  method dMethod() → dynamic
+    return super.{self::C::interfaceMethod}();
+}
+static method main() → dynamic {
+  dynamic result = new self::D::•().{self::D::dMethod}(){() →* dynamic};
+  if(!(result =={core::Object::==}{(core::Object*) →* core::bool*} "D"))
+    throw "Expected 'D' but got: '${result}'";
+}
+
+constants  {
+  #C1 = #interfaceMethod
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = <core::Symbol*, dynamic>{)
+}

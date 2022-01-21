@@ -5,17 +5,17 @@
 library fasta.dill_member_builder;
 
 import 'package:kernel/ast.dart'
-    show Constructor, Field, Member, Procedure, ProcedureKind;
+    show Constructor, Field, FunctionNode, Member, Procedure, ProcedureKind;
 
 import '../builder/builder.dart';
+import '../builder/constructor_builder.dart';
+import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/library_builder.dart';
 
-import '../kernel/class_hierarchy_builder.dart'
-    show ClassHierarchyBuilder, ClassMember;
+import '../builder/procedure_builder.dart';
+import '../kernel/hierarchy/class_member.dart' show ClassMember;
+import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/member_covariance.dart';
-import '../kernel/utils.dart'
-    show isRedirectingGenerativeConstructorImplementation;
 
 import '../modifier.dart'
     show abstractMask, constMask, externalMask, finalMask, lateMask, staticMask;
@@ -67,12 +67,6 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
   bool get isFactory => identical(ProcedureKind.Factory, kind);
 
   @override
-  bool get isRedirectingGenerativeConstructor {
-    return isConstructor &&
-        isRedirectingGenerativeConstructorImplementation(member as Constructor);
-  }
-
-  @override
   bool get isSynthetic {
     final Member member = this.member;
     return member is Constructor && member.isSynthetic;
@@ -80,12 +74,6 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
 
   @override
   bool get isAssignable => false;
-
-  @override
-  void buildMembers(
-      LibraryBuilder library, void Function(Member, BuiltMemberKind) f) {
-    throw new UnsupportedError('DillMemberBuilder.buildMembers');
-  }
 
   List<ClassMember>? _localMembers;
   List<ClassMember>? _localSetters;
@@ -102,7 +90,8 @@ abstract class DillMemberBuilder extends MemberBuilderImpl {
           : const <ClassMember>[];
 }
 
-class DillFieldBuilder extends DillMemberBuilder {
+class DillFieldBuilder extends DillMemberBuilder implements FieldBuilder {
+  @override
   final Field field;
 
   DillFieldBuilder(this.field, Builder parent) : super(field, parent);
@@ -126,10 +115,23 @@ class DillFieldBuilder extends DillMemberBuilder {
   bool get isAssignable => field.hasSetter;
 }
 
-class DillGetterBuilder extends DillMemberBuilder {
+abstract class DillProcedureBuilder extends DillMemberBuilder
+    implements ProcedureBuilder {
+  @override
   final Procedure procedure;
 
-  DillGetterBuilder(this.procedure, Builder parent)
+  DillProcedureBuilder(this.procedure, Builder parent)
+      : super(procedure, parent);
+
+  @override
+  ProcedureKind get kind => procedure.kind;
+
+  @override
+  FunctionNode get function => procedure.function;
+}
+
+class DillGetterBuilder extends DillProcedureBuilder {
+  DillGetterBuilder(Procedure procedure, Builder parent)
       : assert(procedure.kind == ProcedureKind.Getter),
         super(procedure, parent);
 
@@ -146,10 +148,8 @@ class DillGetterBuilder extends DillMemberBuilder {
   Member get invokeTarget => procedure;
 }
 
-class DillSetterBuilder extends DillMemberBuilder {
-  final Procedure procedure;
-
-  DillSetterBuilder(this.procedure, Builder parent)
+class DillSetterBuilder extends DillProcedureBuilder {
+  DillSetterBuilder(Procedure procedure, Builder parent)
       : assert(procedure.kind == ProcedureKind.Setter),
         super(procedure, parent);
 
@@ -166,10 +166,8 @@ class DillSetterBuilder extends DillMemberBuilder {
   Member? get invokeTarget => null;
 }
 
-class DillMethodBuilder extends DillMemberBuilder {
-  final Procedure procedure;
-
-  DillMethodBuilder(this.procedure, Builder parent)
+class DillMethodBuilder extends DillProcedureBuilder {
+  DillMethodBuilder(Procedure procedure, Builder parent)
       : assert(procedure.kind == ProcedureKind.Method),
         super(procedure, parent);
 
@@ -186,10 +184,8 @@ class DillMethodBuilder extends DillMemberBuilder {
   Member get invokeTarget => procedure;
 }
 
-class DillOperatorBuilder extends DillMemberBuilder {
-  final Procedure procedure;
-
-  DillOperatorBuilder(this.procedure, Builder parent)
+class DillOperatorBuilder extends DillProcedureBuilder {
+  DillOperatorBuilder(Procedure procedure, Builder parent)
       : assert(procedure.kind == ProcedureKind.Operator),
         super(procedure, parent);
 
@@ -206,11 +202,10 @@ class DillOperatorBuilder extends DillMemberBuilder {
   Member get invokeTarget => procedure;
 }
 
-class DillFactoryBuilder extends DillMemberBuilder {
-  final Procedure procedure;
+class DillFactoryBuilder extends DillProcedureBuilder {
   final Procedure? _factoryTearOff;
 
-  DillFactoryBuilder(this.procedure, this._factoryTearOff, Builder parent)
+  DillFactoryBuilder(Procedure procedure, this._factoryTearOff, Builder parent)
       : super(procedure, parent);
 
   @override
@@ -226,13 +221,18 @@ class DillFactoryBuilder extends DillMemberBuilder {
   Member get invokeTarget => procedure;
 }
 
-class DillConstructorBuilder extends DillMemberBuilder {
+class DillConstructorBuilder extends DillMemberBuilder
+    implements ConstructorBuilder {
+  @override
   final Constructor constructor;
   final Procedure? _constructorTearOff;
 
   DillConstructorBuilder(
       this.constructor, this._constructorTearOff, Builder parent)
       : super(constructor, parent);
+
+  @override
+  FunctionNode get function => constructor.function;
 
   @override
   Constructor get member => constructor;
@@ -282,16 +282,16 @@ class DillClassMember extends BuilderClassMember {
   }
 
   @override
-  Member getMember(ClassHierarchyBuilder hierarchy) => memberBuilder.member;
+  Member getMember(ClassMembersBuilder membersBuilder) => memberBuilder.member;
 
   @override
-  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+  Covariance getCovariance(ClassMembersBuilder membersBuilder) {
     return _covariance ??=
         new Covariance.fromMember(memberBuilder.member, forSetter: forSetter);
   }
 
   @override
-  void inferType(ClassHierarchyBuilder hierarchy) {
+  void inferType(ClassMembersBuilder hierarchy) {
     // Do nothing; this is only for source members.
   }
 

@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends self::Class<self::Class::T*>* = self::Class<dynamic>*> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Subclass extends self::Class<self::Subclass*> {
+  synthetic constructor •() → self::Subclass*
+    : super self::Class::•()
+    ;
+}
+extension _extension#0<R extends core::Object* = dynamic, T extends core::Object* = dynamic> on (T*) →* R* {
+  get returnType = self::_extension#0|get#returnType;
+  get parameterType = self::_extension#0|get#parameterType;
+}
+extension _extension#1<T extends self::Class<T*>* = self::Class<dynamic>*> on <S extends T* = dynamic>(T*, S*) →* dynamic {
+  get parameterType = self::_extension#1|get#parameterType;
+}
+static method _extension#0|get#returnType<R extends core::Object* = dynamic, T extends core::Object* = dynamic>(lowered final (self::_extension#0|get#returnType::T*) →* self::_extension#0|get#returnType::R* #this) → core::Type*
+  return self::_extension#0|get#returnType::R*;
+static method _extension#0|get#parameterType<R extends core::Object* = dynamic, T extends core::Object* = dynamic>(lowered final (self::_extension#0|get#parameterType::T*) →* self::_extension#0|get#parameterType::R* #this) → core::Type*
+  return self::_extension#0|get#parameterType::T*;
+static method _extension#1|get#parameterType<T extends self::Class<self::_extension#1|get#parameterType::T*>* = self::Class<dynamic>*>(lowered final <S extends self::_extension#1|get#parameterType::T* = dynamic>(self::_extension#1|get#parameterType::T*, S*) →* dynamic #this) → core::Type*
+  return self::_extension#1|get#parameterType::T*;
+static method main() → dynamic {
+  function local1(core::int* i) → core::int*
+    return i;
+  core::print(self::_extension#0|get#returnType<core::int*, core::int*>(local1));
+  core::print(self::_extension#0|get#parameterType<core::int*, core::int*>(local1));
+  function local2<S extends self::Subclass*>(self::Subclass* a, S* b) → self::Subclass*
+    return a;
+  core::print(self::_extension#1|get#parameterType<self::Subclass*>(local2));
+}

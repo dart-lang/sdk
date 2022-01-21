@@ -11,11 +11,25 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddSuperConstructorInvocationTest);
+    defineReflectiveTests(AddSuperConstructorInvocationTest_language215);
   });
 }
 
 @reflectiveTest
-class AddSuperConstructorInvocationTest extends FixProcessorTest {
+class AddSuperConstructorInvocationTest extends FixProcessorTest
+    with AddSuperConstructorInvocationTestCases {}
+
+@reflectiveTest
+class AddSuperConstructorInvocationTest_language215 extends FixProcessorTest
+    with AddSuperConstructorInvocationTestCases {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(languageVersion: '2.15');
+  }
+}
+
+mixin AddSuperConstructorInvocationTestCases on FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_SUPER_CONSTRUCTOR_INVOCATION;
 
@@ -71,7 +85,26 @@ class B extends A {
     await assertNoFix();
   }
 
-  Future<void> test_requiredAndNamed() async {
+  Future<void> test_typeArgument() async {
+    await resolveTestCode('''
+class A<T> {
+  A(T p);
+}
+class B extends A<int> {
+  B();
+}
+''');
+    await assertHasFix('''
+class A<T> {
+  A(T p);
+}
+class B extends A<int> {
+  B() : super(0);
+}
+''');
+  }
+
+  Future<void> test_unnamed_requiredAndNamed() async {
     await resolveTestCode('''
 class A {
   A(bool p1, int p2, double p3, String p4, {p5});
@@ -90,21 +123,24 @@ class B extends A {
 ''');
   }
 
-  Future<void> test_typeArgument() async {
+  @FailingTest(
+    reason: 'Generates positional arguments instead of named',
+  )
+  Future<void> test_unnamed_requiredNamed() async {
     await resolveTestCode('''
-class A<T> {
-  A(T p);
+class A {
+  A({required int p1});
 }
-class B extends A<int> {
+class B extends A {
   B();
 }
 ''');
     await assertHasFix('''
-class A<T> {
-  A(T p);
+class A {
+  A({required int p1});
 }
-class B extends A<int> {
-  B() : super(0);
+class B extends A {
+  B() : super(p1: 0);
 }
 ''');
   }

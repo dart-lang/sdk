@@ -18,7 +18,6 @@ namespace dart {
   V(DartAsync_fatal, 1)                                                        \
   V(Object_equals, 2)                                                          \
   V(Object_getHash, 1)                                                         \
-  V(Object_setHashIfNotSetYet, 2)                                              \
   V(Object_toString, 1)                                                        \
   V(Object_runtimeType, 1)                                                     \
   V(Object_haveSameRuntimeType, 2)                                             \
@@ -346,10 +345,6 @@ namespace dart {
   V(Internal_deoptimizeFunctionsOnStack, 0)                                    \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
-  V(WeakProperty_getKey, 1)                                                    \
-  V(WeakProperty_setKey, 2)                                                    \
-  V(WeakProperty_getValue, 1)                                                  \
-  V(WeakProperty_setValue, 2)                                                  \
   V(Uri_isWindowsPlatform, 0)                                                  \
   V(UserTag_new, 2)                                                            \
   V(UserTag_label, 1)                                                          \
@@ -362,10 +357,12 @@ namespace dart {
   V(VMService_OnStart, 0)                                                      \
   V(VMService_OnExit, 0)                                                       \
   V(VMService_OnServerAddressChange, 1)                                        \
-  V(VMService_ListenStream, 1)                                                 \
+  V(VMService_ListenStream, 2)                                                 \
   V(VMService_CancelStream, 1)                                                 \
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
+  V(VMService_AddUserTagsToStreamableSampleList, 1)                            \
+  V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_loadInt8, 2)                                                           \
   V(Ffi_loadInt16, 2)                                                          \
   V(Ffi_loadInt32, 2)                                                          \
@@ -374,7 +371,6 @@ namespace dart {
   V(Ffi_loadUint16, 2)                                                         \
   V(Ffi_loadUint32, 2)                                                         \
   V(Ffi_loadUint64, 2)                                                         \
-  V(Ffi_loadIntPtr, 2)                                                         \
   V(Ffi_loadFloat, 2)                                                          \
   V(Ffi_loadDouble, 2)                                                         \
   V(Ffi_loadPointer, 2)                                                        \
@@ -387,7 +383,6 @@ namespace dart {
   V(Ffi_storeUint16, 3)                                                        \
   V(Ffi_storeUint32, 3)                                                        \
   V(Ffi_storeUint64, 3)                                                        \
-  V(Ffi_storeIntPtr, 3)                                                        \
   V(Ffi_storeFloat, 3)                                                         \
   V(Ffi_storeDouble, 3)                                                        \
   V(Ffi_storePointer, 3)                                                       \

@@ -34,6 +34,11 @@ class DefaultTypesBuilder {
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
+      } else if (node is EnumDeclaration) {
+        var element = node.declaredElement!;
+        _breakSelfCycles(node.typeParameters);
+        _breakRawTypeCycles(element, node.typeParameters);
+        _computeBounds(element, node.typeParameters);
       } else if (node is FunctionTypeAlias) {
         var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
@@ -55,6 +60,8 @@ class DefaultTypesBuilder {
       if (node is ClassDeclaration) {
         _build(node.typeParameters);
       } else if (node is ClassTypeAlias) {
+        _build(node.typeParameters);
+      } else if (node is EnumDeclaration) {
         _build(node.typeParameters);
       } else if (node is FunctionTypeAlias) {
         _build(node.typeParameters);
@@ -246,7 +253,6 @@ class DefaultTypesBuilder {
           void recurseParameters(List<TypeParameterElement> parameters) {
             for (var parameter in parameters) {
               var parameterNode = _linker.getLinkingNode(parameter);
-              // TODO(scheglov) How to we skip already linked?
               if (parameterNode is TypeParameter) {
                 var bound = parameterNode.bound;
                 if (bound != null) {

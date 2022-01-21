@@ -10,6 +10,7 @@
 #endif
 
 #include "vm/allocation.h"
+#include "vm/flags.h"
 #include "vm/simulator.h"
 
 namespace dart {

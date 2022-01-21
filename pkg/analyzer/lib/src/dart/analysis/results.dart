@@ -16,15 +16,7 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
 
-  @Deprecated('Use FileResult.path instead')
-  @override
-  final String path;
-
-  @Deprecated('Use FileResult.uri instead')
-  @override
-  final Uri uri;
-
-  AnalysisResultImpl(this.session, this.path, this.uri);
+  AnalysisResultImpl(this.session);
 }
 
 class ElementDeclarationResultImpl implements ElementDeclarationResult {
@@ -55,28 +47,20 @@ class ErrorsResultImpl extends FileResultImpl implements ErrorsResult {
 
 class FileResultImpl extends AnalysisResultImpl implements FileResult {
   @override
+  final String path;
+
+  @override
+  final Uri uri;
+
+  @override
   final LineInfo lineInfo;
 
   @override
   final bool isPart;
 
   FileResultImpl(
-      AnalysisSession session, String path, Uri uri, this.lineInfo, this.isPart)
-      : super(session, path, uri);
-
-  @override
-  // TODO(scheglov) Convert into a field.
-  // ignore: deprecated_member_use_from_same_package, unnecessary_overrides
-  String get path => super.path;
-
-  @Deprecated('Check for specific Result subtypes instead')
-  @override
-  ResultState get state => ResultState.VALID;
-
-  @override
-  // TODO(scheglov) Convert into a field.
-  // ignore: deprecated_member_use_from_same_package, unnecessary_overrides
-  Uri get uri => super.uri;
+      AnalysisSession session, this.path, this.uri, this.lineInfo, this.isPart)
+      : super(session);
 }
 
 class LibraryElementResultImpl implements LibraryElementResult {
@@ -91,15 +75,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ParsedUnitResult> units;
 
-  ParsedLibraryResultImpl(
-      AnalysisSession session, String path, Uri uri, this.units)
-      : super(session, path, uri);
-
-  @Deprecated('Check for specific Result subtypes instead')
-  @override
-  ResultState get state {
-    return ResultState.VALID;
-  }
+  ParsedLibraryResultImpl(AnalysisSession session, this.units) : super(session);
 
   @override
   ElementDeclarationResult? getElementDeclaration(Element element) {
@@ -145,10 +121,6 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
   ParsedUnitResultImpl(AnalysisSession session, String path, Uri uri,
       this.content, LineInfo lineInfo, bool isPart, this.unit, this.errors)
       : super(session, path, uri, lineInfo, isPart);
-
-  @Deprecated('Check for specific Result subtypes instead')
-  @override
-  ResultState get state => ResultState.VALID;
 }
 
 class ParseStringResultImpl implements ParseStringResult {
@@ -217,15 +189,8 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ResolvedUnitResult> units;
 
-  ResolvedLibraryResultImpl(
-      AnalysisSession session, String path, Uri uri, this.element, this.units)
-      : super(session, path, uri);
-
-  @Deprecated('Check for specific Result subtypes instead')
-  @override
-  ResultState get state {
-    return ResultState.VALID;
-  }
+  ResolvedLibraryResultImpl(AnalysisSession session, this.element, this.units)
+      : super(session);
 
   @override
   TypeProvider get typeProvider => element.typeProvider;
@@ -292,10 +257,6 @@ class ResolvedUnitResultImpl extends FileResultImpl
     return unit.declaredElement!.library;
   }
 
-  @Deprecated('Check for specific Result subtypes instead')
-  @override
-  ResultState get state => ResultState.VALID;
-
   @override
   TypeProvider get typeProvider => libraryElement.typeProvider;
 
@@ -306,18 +267,11 @@ class ResolvedUnitResultImpl extends FileResultImpl
 class UnitElementResultImpl extends FileResultImpl
     implements UnitElementResult {
   @override
-  final String signature;
-
-  @override
   final CompilationUnitElement element;
 
   UnitElementResultImpl(AnalysisSession session, String path, Uri uri,
-      LineInfo lineInfo, bool isPart, this.signature, this.element)
+      LineInfo lineInfo, bool isPart, this.element)
       : super(session, path, uri, lineInfo, isPart);
-
-  @Deprecated('Check for specific Result subtypes instead')
-  @override
-  ResultState get state => ResultState.VALID;
 }
 
 class _DeclarationByElementLocator extends GeneralizingAstVisitor<void> {

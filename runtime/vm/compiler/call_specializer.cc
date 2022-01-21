@@ -539,7 +539,6 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       }
       break;
     case Token::kDIV:
-      if (!FlowGraphCompiler::SupportsHardwareDivision()) return false;
       if (ShouldSpecializeForDouble(binary_feedback) ||
           binary_feedback.OperandsAre(kSmiCid)) {
         operands_type = kDoubleCid;
@@ -593,7 +592,6 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       break;
     case Token::kMOD:
     case Token::kTRUNCDIV:
-      if (!FlowGraphCompiler::SupportsHardwareDivision()) return false;
       if (binary_feedback.OperandsAre(kSmiCid)) {
         if (call->ic_data()->HasDeoptReason(ICData::kDeoptBinarySmiOp)) {
           return false;

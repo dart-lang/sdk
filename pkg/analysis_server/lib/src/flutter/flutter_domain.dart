@@ -7,6 +7,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_abstract.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 
 /// A [RequestHandler] that handles requests in the `flutter` domain.
@@ -71,7 +72,8 @@ class FlutterDomainHandler extends AbstractRequestHandler {
   }
 
   @override
-  Response? handleRequest(Request request) {
+  Response? handleRequest(
+      Request request, CancellationToken cancellationToken) {
     try {
       var requestName = request.method;
       if (requestName == FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION) {

@@ -1,3 +1,21 @@
+# 2.2.0
+- Add support for serving DevTools via `package:dds/devtools_server.dart`
+
+# 2.1.7
+- Re-release 2.1.6+1.
+
+# 2.1.6+3
+- Roll back to 2.1.4.
+
+# 2.1.6+2
+- Roll back to 2.1.5.
+
+# 2.1.6+1
+- Fix dependencies.
+
+# 2.1.6
+- Improve performance of CPU sample caching.
+
 # 2.1.5
 - Update to new CpuSamplesEvent format for CPU sample caching for improved
   performance.

@@ -1,0 +1,124 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:24:3: Warning: Operand of null-aware operation '?.' has type 'Never' which excludes null.
+//   x?.foo(); // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:25:3: Warning: Operand of null-aware operation '?.' has type 'Never' which excludes null.
+//   x?.bar; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:26:3: Warning: Operand of null-aware operation '?.' has type 'Never' which excludes null.
+//   x?.baz = 42; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:27:3: Warning: Operand of null-aware operation '?.' has type 'Never' which excludes null.
+//   x?[42]; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:28:3: Warning: Operand of null-aware operation '?.' has type 'Never' which excludes null.
+//   x?[42] = 42; // Warning.
+//   ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:30:5: Error: The method 'foo' isn't defined for the class 'Never?'.
+// Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+//   y.foo(); // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:31:5: Error: The getter 'bar' isn't defined for the class 'Never?'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.
+//   y.bar; // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:32:5: Error: The setter 'baz' isn't defined for the class 'Never?'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'baz'.
+//   y.baz = 42; // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:33:4: Error: The method 'call' isn't defined for the class 'Never?'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
+//   y(); // Error.
+//    ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:34:4: Error: The operator '+' isn't defined for the class 'Never?'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//   y++; // Error.
+//    ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:35:5: Error: The operator '+' isn't defined for the class 'Never?'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//   y += 1; // Error.
+//     ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:36:4: Error: The operator '[]' isn't defined for the class 'Never?'.
+// Try correcting the operator to an existing operator, or defining a '[]' operator.
+//   y[42]; // Error.
+//    ^
+//
+// pkg/front_end/testcases/nnbd/never_receiver.dart:37:4: Error: The operator '[]=' isn't defined for the class 'Never?'.
+// Try correcting the operator to an existing operator, or defining a '[]=' operator.
+//   y[42] = 42; // Error.
+//    ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method foo(Never x, Never? y) → dynamic {
+  core::String local0 = y.{core::Object::toString}(){() → core::String};
+  core::int local1 = y.{core::Object::hashCode}{core::int};
+  let final Never #t1 = (let final Never #t2 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.foo() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t3 = (let final Never #t4 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.bar in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  (let final Never #t5 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.baz = 42;
+  let final Never #t6 = (let final Never #t7 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.call() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t8 = (let final Never #t9 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[](42) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  (let final Never #t10 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[]=(42, 42);
+  let final Never #t11 = x = let final Never #t12 = (let final Never #t13 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.+(1) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t14 = x = let final Never #t15 = (let final Never #t16 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.+(1) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never? #t17 = y in #t17 == null ?{Null} null : let final Never #t18 = (let final Never #t19 = #t17{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.foo() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never? #t20 = y in #t20 == null ?{Null} null : let final Never #t21 = (let final Never #t22 = #t20{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.bar in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never? #t23 = y in #t23 == null ?{core::int?} null : (let final Never #t24 = #t23{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.baz = 42;
+  let final Never? #t25 = y in #t25 == null ?{Null} null : let final Never #t26 = (let final Never #t27 = #t25{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.call() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never? #t28 = y in #t28 == null ?{Null} null : let final Never #t29 = (let final Never #t30 = #t28{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[](42) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never? #t31 = y in #t31 == null ?{core::int?} null : (let final Never #t32 = #t31{Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[]=(42, 42);
+  let final Never #t33 = let final Never #t34 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in #t33 == null ?{Null} null : let final Never #t35 = (let final Never #t36 = #t33 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.foo() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t37 = let final Never #t38 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in #t37 == null ?{Null} null : let final Never #t39 = (let final Never #t40 = #t37 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.bar in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t41 = let final Never #t42 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in #t41 == null ?{core::int?} null : (let final Never #t43 = #t41 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.baz = 42;
+  let final Never #t44 = let final Never #t45 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in #t44 == null ?{Null} null : let final Never #t46 = (let final Never #t47 = #t44 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[](42) in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+  let final Never #t48 = let final Never #t49 = x in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.") in #t48 == null ?{core::int?} null : (let final Never #t50 = #t48 in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.[]=(42, 42);
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:30:5: Error: The method 'foo' isn't defined for the class 'Never?'.
+Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+  y.foo(); // Error.
+    ^^^" in y{<unresolved>}.foo();
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:31:5: Error: The getter 'bar' isn't defined for the class 'Never?'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'bar'.
+  y.bar; // Error.
+    ^^^" in y{<unresolved>}.bar;
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:32:5: Error: The setter 'baz' isn't defined for the class 'Never?'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'baz'.
+  y.baz = 42; // Error.
+    ^^^" in y{<unresolved>}.baz = 42;
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:33:4: Error: The method 'call' isn't defined for the class 'Never?'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+  y(); // Error.
+   ^" in y{<unresolved>}.call();
+  y = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:34:4: Error: The operator '+' isn't defined for the class 'Never?'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+  y++; // Error.
+   ^" in y{<unresolved>}.+(1) as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
+  y = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:35:5: Error: The operator '+' isn't defined for the class 'Never?'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+  y += 1; // Error.
+    ^" in y{<unresolved>}.+(1) as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:36:4: Error: The operator '[]' isn't defined for the class 'Never?'.
+Try correcting the operator to an existing operator, or defining a '[]' operator.
+  y[42]; // Error.
+   ^" in y{<unresolved>}.[](42);
+  invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:37:4: Error: The operator '[]=' isn't defined for the class 'Never?'.
+Try correcting the operator to an existing operator, or defining a '[]=' operator.
+  y[42] = 42; // Error.
+   ^" in y{<unresolved>}.[]=(42, 42);
+}
+static method main() → dynamic {}

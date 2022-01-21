@@ -18,12 +18,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ToSourceVisitor2Test);
+    defineReflectiveTests(ToSourceVisitorTest);
   });
 }
 
 @reflectiveTest
-class ToSourceVisitor2Test {
+class ToSourceVisitorTest {
   void test_visitAdjacentStrings() {
     _assertSource(
         "'a' 'b'",
@@ -211,6 +211,13 @@ class ToSourceVisitor2Test {
             Keyword.ABSTRACT, "C", null, null, null, null));
   }
 
+  void test_visitClassDeclaration_abstractMacro() {
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        Keyword.ABSTRACT, "C", null, null, null, null,
+        isMacro: true);
+    _assertSource("abstract macro class C {}", declaration);
+  }
+
   void test_visitClassDeclaration_empty() {
     _assertSource("class C {}",
         AstTestFactory.classDeclaration(null, "C", null, null, null, null));
@@ -271,15 +278,23 @@ class ToSourceVisitor2Test {
             AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
   }
 
+  void test_visitClassDeclaration_macro() {
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        null, "C", null, null, null, null,
+        isMacro: true);
+    _assertSource("macro class C {}", declaration);
+  }
+
   void test_visitClassDeclaration_multipleMember() {
     _assertSource(
         "class C {var a; var b;}",
-        AstTestFactory.classDeclaration(null, "C", null, null, null, null, [
-          AstTestFactory.fieldDeclaration2(
-              false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")]),
-          AstTestFactory.fieldDeclaration2(
-              false, Keyword.VAR, [AstTestFactory.variableDeclaration("b")])
-        ]));
+        AstTestFactory.classDeclaration(null, "C", null, null, null, null,
+            members: [
+              AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
+                  [AstTestFactory.variableDeclaration("a")]),
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration("b")])
+            ]));
   }
 
   void test_visitClassDeclaration_parameters() {
@@ -352,10 +367,11 @@ class ToSourceVisitor2Test {
   void test_visitClassDeclaration_singleMember() {
     _assertSource(
         "class C {var a;}",
-        AstTestFactory.classDeclaration(null, "C", null, null, null, null, [
-          AstTestFactory.fieldDeclaration2(
-              false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")])
-        ]));
+        AstTestFactory.classDeclaration(null, "C", null, null, null, null,
+            members: [
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")])
+            ]));
   }
 
   void test_visitClassDeclaration_withMetadata() {
@@ -390,6 +406,19 @@ class ToSourceVisitor2Test {
             AstTestFactory.implementsClause([AstTestFactory.namedType4("I")])));
   }
 
+  void test_visitClassTypeAlias_abstractMacro() {
+    _assertSource(
+        "abstract macro class C = S with M1;",
+        AstTestFactory.classTypeAlias(
+            "C",
+            null,
+            Keyword.ABSTRACT,
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            null,
+            isMacro: true));
+  }
+
   void test_visitClassTypeAlias_generic() {
     _assertSource(
         "class C<E> = S<E> with M1<E>;",
@@ -414,6 +443,19 @@ class ToSourceVisitor2Test {
             AstTestFactory.namedType4("S"),
             AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
             AstTestFactory.implementsClause([AstTestFactory.namedType4("I")])));
+  }
+
+  void test_visitClassTypeAlias_macro() {
+    _assertSource(
+        "macro class C = S with M1;",
+        AstTestFactory.classTypeAlias(
+            "C",
+            null,
+            null,
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            null,
+            isMacro: true));
   }
 
   void test_visitClassTypeAlias_minimal() {
@@ -766,6 +808,30 @@ class ToSourceVisitor2Test {
 
   void test_visitEmptyStatement() {
     _assertSource(";", AstTestFactory.emptyStatement());
+  }
+
+  void test_visitEnumDeclaration_constant_arguments_named() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {
+  v<double>.named(42)
+}
+''');
+    _assertSource(
+      'enum E {v<double>.named(42)}',
+      findNode.enumDeclaration('enum E'),
+    );
+  }
+
+  void test_visitEnumDeclaration_constant_arguments_unnamed() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {
+  v<double>(42)
+}
+''');
+    _assertSource(
+      'enum E {v<double>(42)}',
+      findNode.enumDeclaration('enum E'),
+    );
   }
 
   void test_visitEnumDeclaration_constants_multiple() {
@@ -3400,7 +3466,7 @@ import 'foo.dart'
         AstTestFactory.yieldEachStatement(AstTestFactory.identifier3("e")));
   }
 
-  /// Assert that a `ToSourceVisitor2` will produce the [expectedSource] when
+  /// Assert that a [ToSourceVisitor] will produce the [expectedSource] when
   /// visiting the given [node].
   void _assertSource(String expectedSource, AstNode node) {
     StringBuffer buffer = StringBuffer();

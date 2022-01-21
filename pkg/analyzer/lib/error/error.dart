@@ -216,6 +216,10 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
   CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
   CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+  CompileTimeErrorCode
+      .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_MISSING_REQUIRED_ARGUMENT,
+  CompileTimeErrorCode
+      .IMPLICIT_UNNAMED_SUPER_CONSTRUCTOR_INVOCATION_NOT_ENOUGH_POSITIONAL_ARGUMENTS,
   CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
   CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
   CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
@@ -247,7 +251,6 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INVALID_CAST_METHOD,
   CompileTimeErrorCode.INVALID_CAST_NEW_EXPR,
   CompileTimeErrorCode.INVALID_CONSTANT,
-  CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
   CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
   CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
@@ -256,6 +259,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
   CompileTimeErrorCode.INVALID_OVERRIDE,
   CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,
+  CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET,
@@ -282,16 +286,13 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL,
   CompileTimeErrorCode.MISSING_DART_LIBRARY,
   CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
+  CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION,
   CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
   CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
   CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
   CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
   CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
-  CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
   CompileTimeErrorCode.MIXIN_DEFERRED_CLASS,
-  CompileTimeErrorCode.MIXIN_INFERENCE_INCONSISTENT_MATCHING_CLASSES,
-  CompileTimeErrorCode.MIXIN_INFERENCE_NO_MATCHING_CLASS,
-  CompileTimeErrorCode.MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION,
   CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
   CompileTimeErrorCode.MIXIN_INSTANTIATE,
   CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
@@ -364,6 +365,8 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
   CompileTimeErrorCode.PART_OF_NON_PART,
   CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
+  CompileTimeErrorCode
+      .POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT,
   CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
   CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
   CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION,
@@ -402,6 +405,9 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.SHARED_DEFERRED_PREFIX,
   CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
   CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+  CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
+  CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED,
+  CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
   CompileTimeErrorCode.SUPER_IN_EXTENSION,
   CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
   CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
@@ -477,6 +483,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
   CompileTimeErrorCode.YIELD_OF_INVALID_TYPE,
+  FfiCode.ABI_SPECIFIC_INTEGER_INVALID,
   FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA,
   FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING,
   FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
@@ -522,6 +529,7 @@ const List<ErrorCode> errorCodeValues = [
   FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
   HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
   HintCode.ASSIGNMENT_OF_DO_NOT_STORE,
+  HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE,
   HintCode.CAN_BE_NULL_AFTER_NULL_AWARE,
   HintCode.DEAD_CODE,
   HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
@@ -1024,21 +1032,6 @@ class AnalysisError implements Diagnostic {
         url: null);
   }
 
-  /// Initialize a newly created analysis error. The error is associated with
-  /// the given [source] and is located at the given [offset] with the given
-  /// [length]. The error will have the given [errorCode] and the map  of
-  /// [arguments] will be used to complete the message and correction. If any
-  /// [contextMessages] are provided, they will be recorded with the error.
-  ///
-  /// Deprecated - no analyzer errors use named arguments anymore.  Please use
-  /// `AnalysisError()`.
-  @deprecated
-  AnalysisError.withNamedArguments(Source source, int offset, int length,
-      ErrorCode errorCode, Map<String, dynamic> arguments,
-      {List<DiagnosticMessage> contextMessages = const []})
-      : this(source, offset, length, errorCode,
-            _translateNamedArguments(arguments), contextMessages);
-
   @override
   List<DiagnosticMessage> get contextMessages => _contextMessages;
 
@@ -1136,21 +1129,5 @@ class AnalysisError implements Diagnostic {
       errors.addAll(errorList);
     }
     return errors.toList();
-  }
-
-  static Null _translateNamedArguments(Map<String, dynamic> arguments) {
-    // All analyzer errors now use positional arguments, so if this method is
-    // being called, either no arguments were provided to the
-    // AnalysisError.withNamedArguments constructor, or the client was
-    // developed against an older version of the analyzer that used named
-    // arguments.  In either case, we'll make a best effort translation of named
-    // arguments to positional ones.  In the case where some arguments were
-    // provided, we have an assertion to alert the developer that they may not
-    // get correct results.
-    assert(
-        arguments.isEmpty,
-        'AnalysisError.withNamedArguments is no longer supported.  Making a '
-        'best effort translation to positional arguments.  Please use '
-        'AnalysisError() instead.');
   }
 }

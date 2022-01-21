@@ -17,6 +17,7 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         DataComputer,
         InternalCompilerResult,
         TestConfig,
+        TestResultData,
         createUriForFileName,
         onFailure,
         runTestFor;
@@ -42,16 +43,13 @@ Future<void> main(List<String> args) async {
       ]);
 }
 
-// Ugly hack.
-late CompilerOptions stashedOptions;
-
 class TestConfigWithLanguageVersion extends TestConfig {
   TestConfigWithLanguageVersion(String marker, String name)
       : super(marker, name);
 
   @override
-  void customizeCompilerOptions(CompilerOptions options, TestData testData) {
-    stashedOptions = options;
+  CompilerOptions customizeCompilerOptions(
+      CompilerOptions options, TestData testData) {
     options.currentSdkVersion = "2.8";
 
     File f = new File.fromUri(testData.testFileUri.resolve("test.options"));
@@ -69,6 +67,7 @@ class TestConfigWithLanguageVersion extends TestConfig {
         }
       }
     }
+    return options;
   }
 }
 
@@ -82,15 +81,15 @@ class LanguageVersioningDataComputer extends DataComputer<Features> {
   const LanguageVersioningDataComputer();
 
   @override
-  Future<void> inspectComponent(Component component) async {
+  Future<void> inspectTestResultData(TestResultData testResultData) async {
+    CompilerOptions options = testResultData.customData;
+    Component component = testResultData.compilerResult.component!;
     for (Library library in component.libraries) {
       if (library.importUri.scheme == "dart") continue;
       Version lvFile =
-          (await lv.languageVersionForUri(library.fileUri, stashedOptions))
-              .version;
+          (await lv.languageVersionForUri(library.fileUri, options)).version;
       Version lvImportUri =
-          (await lv.languageVersionForUri(library.importUri, stashedOptions))
-              .version;
+          (await lv.languageVersionForUri(library.importUri, options)).version;
       if ((lvFile != lvImportUri || lvFile != library.languageVersion)) {
         throw """
 Language version disagreement:
@@ -103,13 +102,11 @@ Language version API (import URI): ${lvImportUri}
   }
 
   @override
-  void computeLibraryData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Library library,
+  void computeLibraryData(TestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new LanguageVersioningDataExtractor(compilerResult, actualMap)
+    new LanguageVersioningDataExtractor(
+            testResultData.compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
@@ -117,8 +114,8 @@ Language version API (import URI): ${lvImportUri}
   bool get supportsErrors => true;
 
   @override
-  Features computeErrorData(TestConfig config, InternalCompilerResult compiler,
-      Id id, List<FormattedMessage> errors) {
+  Features computeErrorData(
+      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     features[Tags.errors] = errors.map((m) => m.code.name).join(',');
     return features;

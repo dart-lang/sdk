@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<@#C1 contravariant T extends core::Object? = dynamic> = (T%) → void;
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class Class<@#C1 T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+  method method<@#C1 T extends core::Object? = dynamic>() → void {
+    function local<@#C1 T extends core::Object? = dynamic>() → void {}
+  }
+}
+extension Extension<@#C1 T extends core::Object? = dynamic> on T% {
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+}
+static method method<@#C1 T extends core::Object? = dynamic>() → void {}
+static method Extension|method<#T extends core::Object? = dynamic, @#C1 T extends core::Object? = dynamic>(lowered final self::Extension|method::#T% #this) → void {}
+static method Extension|get#method<#T extends core::Object? = dynamic>(lowered final self::Extension|get#method::#T% #this) → <T extends core::Object? = dynamic>() → void
+  return <T extends core::Object? = dynamic>() → void => self::Extension|method<self::Extension|get#method::#T%, T%>(#this);
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::A {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///type_variable_annotations.dart:
+- A. (from org-dartlang-testcase:///type_variable_annotations.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

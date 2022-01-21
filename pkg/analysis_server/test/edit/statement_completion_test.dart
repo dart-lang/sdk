@@ -22,9 +22,9 @@ class StatementCompletionTest extends AbstractAnalysisTest {
   late SourceChange change;
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     handler = EditDomainHandler(server);
   }
 

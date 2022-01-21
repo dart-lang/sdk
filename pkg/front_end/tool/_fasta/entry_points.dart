@@ -37,7 +37,7 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
+    show BuildResult, KernelTarget;
 
 import 'package:front_end/src/fasta/kernel/utils.dart'
     show printComponentText, writeComponentToFile;
@@ -304,10 +304,27 @@ class CompileTask {
       {Uri? output,
       bool omitPlatform: false,
       bool supportAdditionalDills: true}) async {
+    KernelTarget kernelTarget = await _createKernelTarget();
+    BuildResult buildResult = await _buildOutline(kernelTarget,
+        output: output,
+        omitPlatform: omitPlatform,
+        supportAdditionalDills: supportAdditionalDills);
+    buildResult.macroApplications?.macroExecutor.close();
+    return kernelTarget;
+  }
+
+  Future<KernelTarget> _createKernelTarget() async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     ticker.logMs("Read packages file");
     DillTarget dillTarget = createDillTarget(uriTranslator);
-    KernelTarget kernelTarget = createKernelTarget(dillTarget, uriTranslator);
+    return createKernelTarget(dillTarget, uriTranslator);
+  }
+
+  Future<BuildResult> _buildOutline(KernelTarget kernelTarget,
+      {Uri? output,
+      bool omitPlatform: false,
+      bool supportAdditionalDills: true}) async {
+    DillTarget dillTarget = kernelTarget.dillTarget;
 
     if (supportAdditionalDills) {
       Component? sdkSummary = await c.options.loadSdkSummary(null);
@@ -329,7 +346,8 @@ class CompileTask {
 
     kernelTarget.setEntryPoints(c.options.inputs);
     dillTarget.buildOutlines();
-    var outline = await kernelTarget.buildOutlines();
+    BuildResult buildResult = await kernelTarget.buildOutlines();
+    Component? outline = buildResult.component;
     if (c.options.debugDump && output != null) {
       printComponentText(outline,
           libraryFilter: kernelTarget.isSourceLibraryForDebugging);
@@ -353,17 +371,21 @@ class CompileTask {
       await writeComponentToFile(outline!, output);
       ticker.logMs("Wrote outline to ${output.toFilePath()}");
     }
-    return kernelTarget;
+    return buildResult;
   }
 
   Future<Uri> compile(
       {bool omitPlatform: false, bool supportAdditionalDills: true}) async {
     c.options.reportNullSafetyCompilationModeInfo();
-    KernelTarget kernelTarget =
-        await buildOutline(supportAdditionalDills: supportAdditionalDills);
+    KernelTarget kernelTarget = await _createKernelTarget();
+    BuildResult buildResult = await _buildOutline(kernelTarget,
+        supportAdditionalDills: supportAdditionalDills);
     Uri uri = c.options.output!;
-    Component component =
-        (await kernelTarget.buildComponent(verify: c.options.verify))!;
+    buildResult = await kernelTarget.buildComponent(
+        macroApplications: buildResult.macroApplications,
+        verify: c.options.verify);
+    buildResult.macroApplications?.macroExecutor.close();
+    Component component = buildResult.component!;
     if (c.options.debugDump) {
       printComponentText(component,
           libraryFilter: kernelTarget.isSourceLibraryForDebugging);

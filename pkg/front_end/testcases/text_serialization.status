@@ -8,6 +8,7 @@
 
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError
+enhanced_enums/simple_mixins: RuntimeError
 extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
 extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
@@ -33,7 +34,6 @@ general/bug30695: TypeCheckError
 general/bug31124: RuntimeError
 general/call: RuntimeError
 general/cascade: RuntimeError
-general/conditional_import: RuntimeError # Issue 47814
 general/constructor_initializer_invalid: RuntimeError
 general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError
@@ -90,6 +90,7 @@ general/issue41210a: TypeCheckError
 general/issue41210b/issue41210.no_link: TypeCheckError
 general/issue41210b/issue41210: TypeCheckError
 general/issue44733: TypeCheckError
+general/issue47994b: RuntimeError # Assertions are not enabled
 general/issue_46886: RuntimeError
 general/micro: RuntimeError
 general/mixin_application_override: TypeCheckError

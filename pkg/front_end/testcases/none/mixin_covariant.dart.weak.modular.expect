@@ -1,0 +1,79 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Superclass extends core::Object {
+  synthetic constructor •() → self::Superclass
+    : super core::Object::•()
+    ;
+  method method1(core::num argument1, core::num argument2) → core::String
+    return "Superclass";
+  method method2(core::num argument1, core::num argument2) → core::String
+    return "Superclass";
+  method method3(core::num argument1, covariant-by-declaration core::int argument2) → core::String
+    return "Superclass";
+  method method4(core::num argument1, covariant-by-declaration core::num argument2) → core::String
+    return "Superclass";
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin
+    : super core::Object::•()
+    ;
+  method method1(core::num argument1, core::num argument2) → core::String
+    return "Mixin";
+  method method2(covariant-by-declaration core::int argument1, core::num argument2) → core::String
+    return "Mixin";
+  method method3(core::num argument1, core::num argument2) → core::String
+    return "Mixin";
+  method method4(covariant-by-declaration core::int argument1, core::int argument2) → core::String
+    return "Mixin";
+}
+abstract class _Class&Superclass&Mixin = self::Superclass with self::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Superclass&Mixin
+    : super self::Superclass::•()
+    ;
+  mixin-super-stub method method1(core::num argument1, core::num argument2) → core::String
+    return super.{self::Mixin::method1}(argument1, argument2);
+  mixin-super-stub method method2(covariant-by-declaration core::int argument1, core::num argument2) → core::String
+    return super.{self::Mixin::method2}(argument1, argument2);
+  forwarding-stub method method3(core::num argument1, covariant-by-declaration core::num argument2) → core::String
+    return super.{self::Mixin::method3}(argument1, argument2);
+  forwarding-stub method method4(covariant-by-declaration core::int argument1, covariant-by-declaration core::int argument2) → core::String
+    return super.{self::Mixin::method4}(argument1, argument2);
+}
+class Class extends self::_Class&Superclass&Mixin {
+  synthetic constructor •() → self::Class
+    : super self::_Class&Superclass&Mixin::•()
+    ;
+}
+static method main() → dynamic {
+  self::Class c = new self::Class::•();
+  self::expect("Mixin", c.{self::_Class&Superclass&Mixin::method1}(0, 1){(core::num, core::num) → core::String});
+  self::expect("Mixin", c.{self::_Class&Superclass&Mixin::method2}(0, 1){(core::int, core::num) → core::String});
+  self::expect("Mixin", c.{self::_Class&Superclass&Mixin::method3}(0, 1){(core::num, core::num) → core::String});
+  self::expect("Mixin", c.{self::_Class&Superclass&Mixin::method4}(0, 1){(core::int, core::int) → core::String});
+  self::Superclass s = c;
+  self::expect("Mixin", s.{self::Superclass::method1}(0.5, 1.5){(core::num, core::num) → core::String});
+  self::throws(() → void => s.{self::Superclass::method2}(0.5, 1.5){(core::num, core::num) → core::String});
+  self::expect("Mixin", s.{self::Superclass::method3}(0.5, 1){(core::num, core::int) → core::String});
+  self::throws(() → void => s.{self::Superclass::method4}(0.5, 1){(core::num, core::num) → core::String});
+  self::expect("Mixin", s.{self::Superclass::method4}(1, 0.5){(core::num, core::num) → core::String});
+  self::Mixin m = c;
+  self::expect("Mixin", m.{self::Mixin::method1}(0, 1){(core::num, core::num) → core::String});
+  self::expect("Mixin", m.{self::Mixin::method2}(0, 1){(core::int, core::num) → core::String});
+  self::expect("Mixin", m.{self::Mixin::method3}(0, 1){(core::num, core::num) → core::String});
+  self::expect("Mixin", m.{self::Mixin::method4}(0, 1){(core::int, core::int) → core::String});
+}
+static method expect(dynamic expected, dynamic actual) → void {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → void f) → void {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object _) {
+    return;
+  }
+  throw "Expected exception";
+}

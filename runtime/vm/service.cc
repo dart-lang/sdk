@@ -72,6 +72,56 @@ DEFINE_FLAG(bool,
             "Print a message when an isolate is paused but there is no "
             "debugger attached.");
 
+DEFINE_FLAG(
+    charp,
+    log_service_response_sizes,
+    nullptr,
+    "Log sizes of service responses and events to a file in CSV format.");
+
+void* Service::service_response_size_log_file_ = nullptr;
+
+void Service::LogResponseSize(const char* method, JSONStream* js) {
+  if (service_response_size_log_file_ == nullptr) {
+    return;
+  }
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  char* entry =
+      OS::SCreate(nullptr, "%s, %" Pd "\n", method, js->buffer()->length());
+  (*file_write)(entry, strlen(entry), service_response_size_log_file_);
+  free(entry);
+}
+
+void Service::Init() {
+  if (FLAG_log_service_response_sizes == nullptr) {
+    return;
+  }
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
+  if ((file_open == nullptr) || (file_write == nullptr) ||
+      (file_close == nullptr)) {
+    OS::PrintErr("Error: Could not access file callbacks.");
+    UNREACHABLE();
+  }
+  ASSERT(service_response_size_log_file_ == nullptr);
+  service_response_size_log_file_ =
+      (*file_open)(FLAG_log_service_response_sizes, true);
+  if (service_response_size_log_file_ == nullptr) {
+    OS::PrintErr("Warning: Failed to open service response size log file: %s\n",
+                 FLAG_log_service_response_sizes);
+    return;
+  }
+}
+
+void Service::Cleanup() {
+  if (service_response_size_log_file_ == nullptr) {
+    return;
+  }
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
+  (*file_close)(service_response_size_log_file_);
+  service_response_size_log_file_ = nullptr;
+}
+
 static void PrintInvalidParamError(JSONStream* js, const char* param) {
 #if !defined(PRODUCT)
   js->PrintError(kInvalidParams, "%s: invalid '%s' parameter: %s", js->method(),
@@ -367,7 +417,8 @@ static StreamInfo* const streams_[] = {
     &Service::timeline_stream, &Service::profiler_stream,
 };
 
-bool Service::ListenStream(const char* stream_id) {
+bool Service::ListenStream(const char* stream_id,
+                           bool include_private_members) {
   if (FLAG_trace_service) {
     OS::PrintErr("vm-service: starting stream '%s'\n", stream_id);
   }
@@ -375,6 +426,7 @@ bool Service::ListenStream(const char* stream_id) {
   for (intptr_t i = 0; i < num_streams; i++) {
     if (strcmp(stream_id, streams_[i]->id()) == 0) {
       streams_[i]->set_enabled(true);
+      streams_[i]->set_include_private_members(include_private_members);
       return true;
     }
   }
@@ -986,6 +1038,7 @@ ErrorPtr Service::InvokeMethod(Isolate* I,
         return T->StealStickyError();
       }
       method->entry(T, &js);
+      Service::LogResponseSize(c_method_name, &js);
       js.PostReply();
       return T->StealStickyError();
     }
@@ -1164,7 +1217,7 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
 }
 
 void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
-  if (event->stream_info() != NULL && !event->stream_info()->enabled()) {
+  if (event->stream_info() != nullptr && !event->stream_info()->enabled()) {
     if (FLAG_warn_on_pause_with_no_debugger && event->IsPause()) {
       // If we are about to pause a running program which has no
       // debugger connected, tell the user about it.
@@ -1172,7 +1225,7 @@ void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
     }
     // Ignore events when no one is listening to the event stream.
     return;
-  } else if (event->stream_info() != NULL &&
+  } else if (event->stream_info() != nullptr &&
              FLAG_warn_on_pause_with_no_debugger && event->IsPause()) {
     ReportPauseOnConsole(event);
   }
@@ -1180,8 +1233,12 @@ void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
     return;
   }
   JSONStream js;
+  if (event->stream_info() != nullptr) {
+    js.set_include_private_members(
+        event->stream_info()->include_private_members());
+  }
   const char* stream_id = event->stream_id();
-  ASSERT(stream_id != NULL);
+  ASSERT(stream_id != nullptr);
   {
     JSONObject jsobj(&js);
     jsobj.AddProperty("jsonrpc", "2.0");
@@ -1232,6 +1289,8 @@ void Service::PostEventImpl(Isolate* isolate,
           kind, stream_id);
     }
   }
+
+  Service::LogResponseSize(kind, event);
 
   // Message is of the format [<stream id>, <json string>].
   //
@@ -1493,6 +1552,31 @@ static void PrintSentinel(JSONStream* js, SentinelType sentinel_type) {
       UNIMPLEMENTED();
       break;
   }
+}
+
+static const MethodParameter* const
+    set_stream_include_private_members_params[] = {
+        NO_ISOLATE_PARAMETER,
+        new BoolParameter("includePrivateMembers", true),
+        nullptr,
+};
+
+static void SetStreamIncludePrivateMembers(Thread* thread, JSONStream* js) {
+  const char* stream_id = js->LookupParam("streamId");
+  if (stream_id == nullptr) {
+    PrintMissingParamError(js, "streamId");
+    return;
+  }
+  bool include_private_members =
+      BoolParameter::Parse(js->LookupParam("includePrivateMembers"), false);
+  intptr_t num_streams = sizeof(streams_) / sizeof(streams_[0]);
+  for (intptr_t i = 0; i < num_streams; i++) {
+    if (strcmp(stream_id, streams_[i]->id()) == 0) {
+      streams_[i]->set_include_private_members(include_private_members);
+      break;
+    }
+  }
+  PrintSuccess(js);
 }
 
 static void ActOnIsolateGroup(JSONStream* js,
@@ -3380,11 +3464,9 @@ static void GetPorts(Thread* thread, JSONStream* js) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static const char* const report_enum_names[] = {
-    SourceReport::kCallSitesStr,
-    SourceReport::kCoverageStr,
-    SourceReport::kPossibleBreakpointsStr,
-    SourceReport::kProfileStr,
-    NULL,
+    SourceReport::kCallSitesStr,           SourceReport::kCoverageStr,
+    SourceReport::kPossibleBreakpointsStr, SourceReport::kProfileStr,
+    SourceReport::kBranchCoverageStr,      NULL,
 };
 #endif
 
@@ -3423,6 +3505,8 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
       report_set |= SourceReport::kPossibleBreakpoints;
     } else if (strcmp(*riter, SourceReport::kProfileStr) == 0) {
       report_set |= SourceReport::kProfile;
+    } else if (strcmp(*riter, SourceReport::kBranchCoverageStr) == 0) {
+      report_set |= SourceReport::kBranchCoverage;
     }
     riter++;
   }
@@ -4842,7 +4926,7 @@ class ServiceIsolateVisitor : public IsolateVisitor {
   virtual ~ServiceIsolateVisitor() {}
 
   void VisitIsolate(Isolate* isolate) {
-    if (!IsSystemIsolate(isolate)) {
+    if (!IsSystemIsolate(isolate) && isolate->is_service_registered()) {
       jsarr_->AddValue(isolate);
     }
   }
@@ -5626,6 +5710,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_library_debuggable_params },
   { "setName", SetName,
     set_name_params },
+  { "_setStreamIncludePrivateMembers", SetStreamIncludePrivateMembers,
+    set_stream_include_private_members_params },
   { "setTraceClassAllocation", SetTraceClassAllocation,
     set_trace_class_allocation_params },
   { "setVMName", SetVMName,

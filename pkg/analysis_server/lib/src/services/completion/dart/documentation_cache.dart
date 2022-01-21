@@ -162,17 +162,16 @@ class DocumentationCache {
 }
 
 extension on Map<String, DocumentationWithSummary> {
-  /// Cache the data associated with the top-level [element], and return the
-  /// [key] used for the element. This does not cache any data associated with
-  /// any other elements, including children of the [element].
-  String? cacheTopLevelElement(
-      DartdocDirectiveInfo dartdocDirectiveInfo, Element element) {
-    var key = element.name;
-    if (key == null) {
-      return null;
+  /// Cache the data associated with the [element], using the given [key].
+  DocumentationWithSummary? cacheElement(
+      DartdocDirectiveInfo dartdocDirectiveInfo, String key, Element element) {
+    var documentation = DartUnitHoverComputer.computeDocumentation(
+        dartdocDirectiveInfo, element,
+        includeSummary: true);
+    if (documentation is DocumentationWithSummary) {
+      return this[key] = documentation;
     }
-    cacheElement(dartdocDirectiveInfo, key, element);
-    return key;
+    return this[key] = DocumentationCache._emptyDocs;
   }
 
   /// Cache the data associated with the [member] element given that the key
@@ -186,15 +185,16 @@ extension on Map<String, DocumentationWithSummary> {
     cacheElement(dartdocDirectiveInfo, '$parentKey.$name', member);
   }
 
-  /// Cache the data associated with the [element], using the given [key].
-  DocumentationWithSummary? cacheElement(
-      DartdocDirectiveInfo dartdocDirectiveInfo, String key, Element element) {
-    var documentation = DartUnitHoverComputer.computeDocumentation(
-        dartdocDirectiveInfo, element,
-        includeSummary: true);
-    if (documentation is DocumentationWithSummary) {
-      return this[key] = documentation;
+  /// Cache the data associated with the top-level [element], and return the
+  /// [key] used for the element. This does not cache any data associated with
+  /// any other elements, including children of the [element].
+  String? cacheTopLevelElement(
+      DartdocDirectiveInfo dartdocDirectiveInfo, Element element) {
+    var key = element.name;
+    if (key == null) {
+      return null;
     }
-    return this[key] = DocumentationCache._emptyDocs;
+    cacheElement(dartdocDirectiveInfo, key, element);
+    return key;
   }
 }

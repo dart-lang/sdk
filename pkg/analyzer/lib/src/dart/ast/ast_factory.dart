@@ -155,6 +155,7 @@ class AstFactoryImpl extends AstFactory {
           Comment? comment,
           List<Annotation>? metadata,
           Token? abstractKeyword,
+          Token? macroKeyword,
           Token classKeyword,
           SimpleIdentifier name,
           TypeParameterList? typeParameters,
@@ -168,6 +169,7 @@ class AstFactoryImpl extends AstFactory {
           comment as CommentImpl?,
           metadata,
           abstractKeyword,
+          macroKeyword,
           classKeyword,
           name as SimpleIdentifierImpl,
           typeParameters as TypeParameterListImpl?,
@@ -187,6 +189,7 @@ class AstFactoryImpl extends AstFactory {
           TypeParameterList? typeParameters,
           Token equals,
           Token? abstractKeyword,
+          Token? macroKeyword,
           NamedType superclass,
           WithClause withClause,
           ImplementsClause? implementsClause,
@@ -199,6 +202,7 @@ class AstFactoryImpl extends AstFactory {
           typeParameters as TypeParameterListImpl?,
           equals,
           abstractKeyword,
+          macroKeyword,
           superclass as NamedTypeImpl,
           withClause as WithClauseImpl,
           implementsClause as ImplementsClauseImpl?,
@@ -381,7 +385,11 @@ class AstFactoryImpl extends AstFactory {
   EnumConstantDeclarationImpl enumConstantDeclaration(Comment? comment,
           List<Annotation>? metadata, SimpleIdentifier name) =>
       EnumConstantDeclarationImpl(
-          comment as CommentImpl?, metadata, name as SimpleIdentifierImpl);
+        documentationComment: comment as CommentImpl?,
+        metadata: metadata,
+        name: name as SimpleIdentifierImpl,
+        arguments: null,
+      );
 
   @Deprecated('Use enumDeclaration2() instead')
   @override
@@ -1326,14 +1334,6 @@ class AstFactoryImpl extends AstFactory {
   @override
   TypeLiteralImpl typeLiteral({required NamedType typeName}) =>
       TypeLiteralImpl(typeName as NamedTypeImpl);
-
-  @Deprecated('Use namedType() instead')
-  @override
-  NamedTypeImpl typeName(Identifier name, TypeArgumentList? typeArguments,
-          {Token? question}) =>
-      NamedTypeImpl(
-          name as IdentifierImpl, typeArguments as TypeArgumentListImpl?,
-          question: question);
 
   @override
   TypeParameterImpl typeParameter(

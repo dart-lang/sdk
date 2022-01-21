@@ -956,6 +956,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       Element? element;
       if (grandparent is ConstructorReferenceNode) {
         element = grandparent.staticElement;
+      } else if (grandparent is InstanceCreationExpression) {
+        element = grandparent.constructorName.staticElement;
       } else if (grandparent is MethodInvocation) {
         element = grandparent.methodName.staticElement;
       }

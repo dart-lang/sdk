@@ -375,8 +375,6 @@ class LinterContextImpl implements LinterContext {
     );
 
     computeConstants(
-      typeProvider,
-      typeSystem,
       declaredVariables,
       dependencies,
       libraryElement.featureSet,
@@ -483,8 +481,6 @@ class LinterContextImpl implements LinterContext {
     var dependenciesFinder = ConstantExpressionsDependenciesFinder();
     node.accept(dependenciesFinder);
     computeConstants(
-      typeProvider,
-      typeSystem,
       declaredVariables,
       dependenciesFinder.dependencies.toList(),
       libraryElement.featureSet,

@@ -1,0 +1,51 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class S1 extends core::Object {
+  field core::int s1;
+  field core::int s2;
+  constructor •(core::int s1, [core::int s2 = #C1]) → self::S1
+    : self::S1::s1 = s1, self::S1::s2 = s2, super core::Object::•()
+    ;
+}
+class C1 extends self::S1 {
+  field core::int i1;
+  field core::int i2;
+  constructor •(core::int i1, core::int s1, core::int x, [core::int s2 = #C1]) → self::C1
+    : self::C1::i1 = i1, self::C1::i2 = x, super self::S1::•(s1, s2)
+    ;
+}
+class S2 extends core::Object {
+  constructor •({core::String one = #C2, core::bool two = #C3, core::int three = #C4, core::double four = #C5, core::num five = #C6, core::List<core::String> six = #C8}) → self::S2
+    : super core::Object::•()
+    ;
+}
+class C21 extends self::S2 {
+  constructor •({dynamic foo = #C9, core::String one = #C2, dynamic bar = #C9, dynamic baz = #C9, core::int three = #C4, core::num five = #C6}) → self::C21
+    : super self::S2::•(one: one, three: three, five: five)
+    ;
+}
+class C22 extends self::S2 {
+  constructor •({dynamic foo = #C9, core::List<core::String> six = #C8, dynamic bar = #C9, dynamic baz = #C9, core::double four = #C5, core::bool two = #C3}) → self::C22
+    : super self::S2::•(six: six, four: four, two: two)
+    ;
+}
+class C23 extends self::S2 {
+  constructor •({core::int three = #C4, dynamic foo = #C9, core::String one = #C2, core::double four = #C5, dynamic bar = #C9, core::bool two = #C3, dynamic baz = #C9}) → self::C23
+    : super self::S2::•(three: three, one: one, four: four, two: two)
+    ;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 42
+  #C2 = "1"
+  #C3 = false
+  #C4 = 3
+  #C5 = 4.0
+  #C6 = 3.14
+  #C7 = "six"
+  #C8 = <core::String>[#C7]
+  #C9 = null
+}

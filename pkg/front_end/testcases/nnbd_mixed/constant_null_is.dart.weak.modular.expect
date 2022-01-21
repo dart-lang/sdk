@@ -1,0 +1,144 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "constant_null_is_lib.dart" as con;
+
+import "dart:async";
+import "org-dartlang-testcase:///constant_null_is_lib.dart";
+
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::bool field;
+  const constructor constructor1(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class::T%, super core::Object::•()
+    ;
+  const constructor constructor2(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class::T?, super core::Object::•()
+    ;
+  const constructor constructor3(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class<self::Class::T%>, super core::Object::•()
+    ;
+  const constructor constructor4(dynamic value) → self::Class<self::Class::T%>
+    : self::Class::field = value is{ForNonNullableByDefault} self::Class<self::Class::T%>?, super core::Object::•()
+    ;
+}
+static final field core::bool isWeakMode = #C1 is{ForNonNullableByDefault} core::List<core::Object>;
+static const field core::bool c0 = #C2;
+static const field core::bool c1 = #C3;
+static const field core::bool c2 = #C2;
+static const field core::bool c3 = #C2;
+static const field core::bool c4 = #C3;
+static const field core::bool c5 = #C2;
+static const field core::bool c6 = #C3;
+static const field core::bool c7 = #C2;
+static const field core::bool c8 = #C2;
+static const field core::bool c9 = #C2;
+static const field core::bool c10 = #C3;
+static const field core::bool c11 = #C2;
+static const field core::bool c12 = #C2;
+static const field self::Class<core::int> e1 = #C4;
+static const field self::Class<core::List<core::int>> e2 = #C5;
+static const field self::Class<Null> e3 = #C6;
+static const field self::Class<core::int> e4 = #C7;
+static const field self::Class<core::int?> e5 = #C8;
+static const field self::Class<Null> e6 = #C6;
+static const field self::Class<core::int> e7 = #C4;
+static const field self::Class<core::int?> e8 = #C9;
+static const field self::Class<Null> e9 = #C10;
+static const field self::Class<core::int> e10 = #C7;
+static const field self::Class<core::int?> e11 = #C8;
+static const field self::Class<Null> e12 = #C6;
+static method main() → dynamic {
+  self::expect(null is{ForNonNullableByDefault} core::int?, #C2, "null is int?");
+  self::expect(null is{ForNonNullableByDefault} core::int, #C3, "null is int");
+  self::expect(null is{ForNonNullableByDefault} Null, #C2, "null is Null");
+  self::expect(null is{ForNonNullableByDefault} Never?, #C2, "null is Never?");
+  self::expect(null is{ForNonNullableByDefault} Never, #C3, "null is Never");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int?>, #C2, "null is FutureOr<int?>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int>, #C3, "null is FutureOr<int>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<core::int>?, #C2, "null is FutureOr<int>?");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<Null>, #C2, "null is FutureOr<Null>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<Null>?, #C2, "null is FutureOr<Null>?");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<Never>, #C3, "null is FutureOr<Never>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<Never?>, #C2, "null is FutureOr<Never?>");
+  self::expect(null is{ForNonNullableByDefault} FutureOr<Never>?, #C2, "null is FutureOr<Never>?");
+  self::expect(new self::Class::constructor1<core::int>(null).{self::Class::field}{core::bool}, #C4.{self::Class::field}{core::bool}, "Class<int>.constructor1(null).field");
+  self::expect(true, new self::Class::constructor1<core::int?>(null).{self::Class::field}{core::bool}, "new Class<int?>.constructor1(null).field");
+  self::expect(self::isWeakMode, #C5.{self::Class::field}{core::bool}, "const Class<List<int>>.constructor1(<Null>[null]).field");
+  self::expect(new self::Class::constructor1<Null>(null).{self::Class::field}{core::bool}, #C6.{self::Class::field}{core::bool}, "Class<Null>.constructor1(null).field");
+  self::expect(new self::Class::constructor2<core::int>(null).{self::Class::field}{core::bool}, #C7.{self::Class::field}{core::bool}, "Class<int>.constructor2(null).field");
+  self::expect(true, new self::Class::constructor2<core::int?>(null).{self::Class::field}{core::bool}, "new Class<int?>.constructor2(null).field");
+  self::expect(new self::Class::constructor2<core::int?>(null).{self::Class::field}{core::bool}, #C8.{self::Class::field}{core::bool}, "Class<int?>.constructor2(null).field");
+  self::expect(new self::Class::constructor2<Null>(null).{self::Class::field}{core::bool}, #C6.{self::Class::field}{core::bool}, "Class<Null>.constructor2(null).field");
+  self::expect(new self::Class::constructor3<core::int>(null).{self::Class::field}{core::bool}, #C4.{self::Class::field}{core::bool}, "Class<int>.constructor3(null).field");
+  self::expect(new self::Class::constructor3<core::int?>(null).{self::Class::field}{core::bool}, #C9.{self::Class::field}{core::bool}, "Class<int?>.constructor3(null).field");
+  self::expect(new self::Class::constructor3<core::int?>(null).{self::Class::field}{core::bool}, #C9.{self::Class::field}{core::bool}, "Class<int?>.constructor3(null).field");
+  self::expect(new self::Class::constructor3<Null>(null).{self::Class::field}{core::bool}, #C10.{self::Class::field}{core::bool}, "Class<Null>.constructor3(null).field");
+  self::expect(new self::Class::constructor4<core::int>(null).{self::Class::field}{core::bool}, #C7.{self::Class::field}{core::bool}, "Class<int>.constructor4(null).field");
+  self::expect(new self::Class::constructor4<core::int?>(null).{self::Class::field}{core::bool}, #C8.{self::Class::field}{core::bool}, "Class<int?>.constructor4(null).field");
+  self::expect(new self::Class::constructor4<Null>(null).{self::Class::field}{core::bool}, #C6.{self::Class::field}{core::bool}, "Class<Null>.constructor4(null).field");
+  con::test();
+}
+static method expect(dynamic expected, dynamic actual, core::String message) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual} for ${message}";
+}
+
+library;
+import self as con;
+import "constant_null_is.dart" as self;
+import "dart:core" as core;
+
+import "dart:async";
+import "org-dartlang-testcase:///constant_null_is.dart";
+
+static const field core::bool* d0 = #C3;
+static const field core::bool* d1 = #C2;
+static const field self::Class<core::int*>* d4 = #C4;
+static const field self::Class<Null>* d5 = #C6;
+static const field self::Class<core::int*>* d6 = #C7;
+static const field self::Class<Null>* d7 = #C6;
+static const field self::Class<core::int*>* d8 = #C4;
+static const field self::Class<Null>* d9 = #C10;
+static const field self::Class<core::int*>* d10 = #C7;
+static const field self::Class<Null>* d11 = #C6;
+static method test() → dynamic {
+  self::expect(null is core::int*, #C3, "null is int (opt-out)");
+  self::expect(null is Null, #C2, "null is Null");
+  self::expect(new self::Class::constructor1<core::int*>(null).{self::Class::field}{core::bool*}, #C4.{self::Class::field}{core::bool*}, "Class<int>.constructor1(null).field (opt-out)");
+  self::expect(new self::Class::constructor1<Null>(null).{self::Class::field}{core::bool*}, #C6.{self::Class::field}{core::bool*}, "Class<Null>.constructor1(null).field (opt-out)");
+  self::expect(new self::Class::constructor2<core::int*>(null).{self::Class::field}{core::bool*}, #C7.{self::Class::field}{core::bool*}, "Class<int>.constructor2(null).field (opt-out)");
+  self::expect(new self::Class::constructor2<Null>(null).{self::Class::field}{core::bool*}, #C6.{self::Class::field}{core::bool*}, "Class<Null>.constructor2(null).field (opt-out)");
+  self::expect(new self::Class::constructor3<core::int*>(null).{self::Class::field}{core::bool*}, #C4.{self::Class::field}{core::bool*}, "Class<int>.constructor3(null).field (opt-out)");
+  self::expect(new self::Class::constructor3<Null>(null).{self::Class::field}{core::bool*}, #C10.{self::Class::field}{core::bool*}, "Class<Null>.constructor3(null).field (opt-out)");
+  self::expect(new self::Class::constructor4<core::int*>(null).{self::Class::field}{core::bool*}, #C7.{self::Class::field}{core::bool*}, "Class<int>.constructor4(null).field (opt-out)");
+  self::expect(new self::Class::constructor4<Null>(null).{self::Class::field}{core::bool*}, #C6.{self::Class::field}{core::bool*}, "Class<Null>.constructor4(null).field (opt-out)");
+}
+
+constants  {
+  #C1 = <Null>[]
+  #C2 = true
+  #C3 = false
+  #C4 = self::Class<core::int*> {field:#C3}
+  #C5 = self::Class<core::List<core::int*>*> {field:#C2}
+  #C6 = self::Class<Null> {field:#C2}
+  #C7 = self::Class<core::int*> {field:#C2}
+  #C8 = self::Class<core::int?> {field:#C2}
+  #C9 = self::Class<core::int?> {field:#C3}
+  #C10 = self::Class<Null> {field:#C3}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constant_null_is.dart:
+- Class.constructor1 (from org-dartlang-testcase:///constant_null_is.dart:39:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Class.constructor2 (from org-dartlang-testcase:///constant_null_is.dart:40:9)
+- Class.constructor3 (from org-dartlang-testcase:///constant_null_is.dart:41:9)
+- Class.constructor4 (from org-dartlang-testcase:///constant_null_is.dart:42:9)
+
+org-dartlang-testcase:///constant_null_is_lib.dart:
+- Class.constructor1 (from org-dartlang-testcase:///constant_null_is.dart:39:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Class.constructor2 (from org-dartlang-testcase:///constant_null_is.dart:40:9)
+- Class.constructor3 (from org-dartlang-testcase:///constant_null_is.dart:41:9)
+- Class.constructor4 (from org-dartlang-testcase:///constant_null_is.dart:42:9)

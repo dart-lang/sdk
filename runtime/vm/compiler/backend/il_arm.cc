@@ -4139,7 +4139,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      ASSERT(TargetCPUFeatures::can_divide());
       if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ cmp(right, compiler::Operand(0));
@@ -4161,7 +4160,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      ASSERT(TargetCPUFeatures::can_divide());
       if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ cmp(right, compiler::Operand(0));
@@ -6229,7 +6227,6 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label* deopt =
       compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
 
-  ASSERT(TargetCPUFeatures::can_divide());
   const Register left = locs()->in(0).reg();
   const Register right = locs()->in(1).reg();
   ASSERT(locs()->out(0).IsPairLocation());

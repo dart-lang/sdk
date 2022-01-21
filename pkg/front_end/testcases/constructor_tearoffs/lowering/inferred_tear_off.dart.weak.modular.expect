@@ -1,0 +1,62 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<unrelated T extends core::Object? = dynamic> = self::A;
+typedef G<unrelated T extends core::num> = self::B<dynamic>;
+class A extends core::Object {
+  field core::int field1 = 0;
+  constructor •(core::int field1) → self::A
+    : self::A::field1 = field1, super core::Object::•()
+    ;
+  constructor named(core::int field1) → self::A
+    : self::A::field1 = field1, super core::Object::•()
+    ;
+  static method _#new#tearOff(core::int field1) → self::A
+    return new self::A::•(field1);
+  static method _#named#tearOff(core::int field1) → self::A
+    return new self::A::named(field1);
+}
+class B<T extends core::Object? = dynamic> extends core::Object implements self::A {
+  field core::int field1;
+  covariant-by-class field self::B::T% field2;
+  constructor •(core::int field1, self::B::T% field2) → self::B<self::B::T%>
+    : self::B::field1 = field1, self::B::field2 = field2, super core::Object::•()
+    ;
+  constructor named(core::int field1, self::B::T% field2) → self::B<self::B::T%>
+    : self::B::field1 = field1, self::B::field2 = field2, super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>(core::int field1, self::B::_#new#tearOff::T% field2) → self::B<self::B::_#new#tearOff::T%>
+    return new self::B::•<self::B::_#new#tearOff::T%>(field1, field2);
+  static method _#named#tearOff<T extends core::Object? = dynamic>(core::int field1, self::B::_#named#tearOff::T% field2) → self::B<self::B::_#named#tearOff::T%>
+    return new self::B::named<self::B::_#named#tearOff::T%>(field1, field2);
+}
+static field (core::int) → self::A A_new = #C1;
+static field <T extends core::Object? = dynamic>(core::int, T%) → self::B<T%> B_new = #C2;
+static field <unrelated T extends core::Object? = dynamic>(core::int) → self::A F_new = #C3;
+static field <unrelated T extends core::num>(core::int, dynamic) → self::B<dynamic> G_new = #C4;
+static field (core::int) → self::A A_named = #C5;
+static field (core::int, core::int) → self::B<core::int> B_named = #C7;
+static field <unrelated T extends core::Object? = dynamic>(core::int) → self::A F_named = #C8;
+static field (core::int, dynamic) → self::B<dynamic> G_named = #C9;
+static method main() → dynamic {}
+static method _#F#new#tearOff<unrelated T extends core::Object? = dynamic>(core::int field1) → self::A
+  return new self::A::•(field1);
+static method _#F#named#tearOff<unrelated T extends core::Object? = dynamic>(core::int field1) → self::A
+  return new self::A::named(field1);
+static method _#G#new#tearOff<unrelated T extends core::num>(core::int field1, dynamic field2) → self::B<dynamic>
+  return new self::B::•<dynamic>(field1, field2);
+static method _#G#named#tearOff<unrelated T extends core::num>(core::int field1, dynamic field2) → self::B<dynamic>
+  return new self::B::named<dynamic>(field1, field2);
+
+constants  {
+  #C1 = static-tearoff self::A::_#new#tearOff
+  #C2 = static-tearoff self::B::_#new#tearOff
+  #C3 = static-tearoff self::_#F#new#tearOff
+  #C4 = static-tearoff self::_#G#new#tearOff
+  #C5 = static-tearoff self::A::_#named#tearOff
+  #C6 = static-tearoff self::B::_#named#tearOff
+  #C7 = instantiation #C6 <core::int*>
+  #C8 = static-tearoff self::_#F#named#tearOff
+  #C9 = instantiation #C6 <dynamic>
+}

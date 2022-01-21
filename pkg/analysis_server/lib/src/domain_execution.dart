@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/file_system/file_system.dart';
 
 /// Instances of the class [ExecutionDomainHandler] implement a [RequestHandler]
@@ -68,7 +69,8 @@ class ExecutionDomainHandler implements RequestHandler {
   }
 
   @override
-  Response? handleRequest(Request request) {
+  Response? handleRequest(
+      Request request, CancellationToken cancellationToken) {
     try {
       var requestName = request.method;
       if (requestName == EXECUTION_REQUEST_CREATE_CONTEXT) {

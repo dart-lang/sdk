@@ -640,10 +640,8 @@ class FragmentEmitter {
       this._nativeEmitter,
       this._closedWorld,
       this._codegenWorld)
-      : _holderFinalizer = _options.features.newHolders.isEnabled
-            ? DeferredHolderExpressionFinalizerImpl(_closedWorld.commonElements)
-            : LegacyDeferredHolderExpressionFinalizerImpl(
-                _closedWorld.commonElements) {
+      : _holderFinalizer =
+            DeferredHolderExpressionFinalizerImpl(_closedWorld.commonElements) {
     _recipeEncoder = RecipeEncoderImpl(
         _closedWorld,
         _options.disableRtiOptimization
@@ -1942,7 +1940,8 @@ class FragmentEmitter {
   js.Block emitTypeRules(Fragment fragment) {
     List<js.Statement> statements = [];
 
-    ClassEntity jsObjectClass = _commonElements.jsJavaScriptObjectClass;
+    ClassEntity legacyJsObjectClass =
+        _commonElements.jsLegacyJavaScriptObjectClass;
 
     Map<ClassTypeData, List<ClassTypeData>> nativeRedirections =
         _nativeEmitter.typeRedirections;
@@ -1960,10 +1959,11 @@ class FragmentEmitter {
         erasedTypes[element] = targetType.typeArguments.length;
       }
 
-      bool isInterop = _classHierarchy.isSubclassOf(element, jsObjectClass);
+      bool isInterop =
+          _classHierarchy.isSubclassOf(element, legacyJsObjectClass);
 
-      if (isInterop && element != jsObjectClass) {
-        ruleset.addRedirection(element, jsObjectClass);
+      if (isInterop && element != legacyJsObjectClass) {
+        ruleset.addRedirection(element, legacyJsObjectClass);
       } else {
         Iterable<TypeCheck> checks = typeData.classChecks?.checks ?? const [];
         Iterable<InterfaceType> supertypes = isInterop

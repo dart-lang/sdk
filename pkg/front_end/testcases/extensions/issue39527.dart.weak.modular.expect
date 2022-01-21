@@ -1,0 +1,39 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int* value = 0;
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension1 on self::C* {
+  operator [] = self::Extension1|[];
+  operator []= = self::Extension1|[]=;
+  operator - = self::Extension1|-;
+}
+static method Extension1|[](lowered final self::C* #this, core::int* index) → self::C*
+  return let final self::C* #t1 = #this in block {
+    #t1.{self::C::value} = #t1.{self::C::value}{core::int*}.{core::num::+}(index.{core::num::+}(1){(core::num*) →* core::int*}){(core::num*) →* core::int*};
+  } =>#t1;
+static method Extension1|[]=(lowered final self::C* #this, core::int* index, self::C* other) → void
+  return #this.{self::C::value} = #this.{self::C::value}{core::int*}.{core::num::+}(other.{self::C::value}{core::int*}.{core::num::+}(index){(core::num*) →* core::int*}.{core::num::+}(1){(core::num*) →* core::int*}){(core::num*) →* core::int*};
+static method Extension1|-(lowered final self::C* #this, core::int* val) → self::C*
+  return #this;
+static method main() → dynamic {
+  self::C* c = new self::C::•();
+  let final self::C* #t2 = c in let final core::int* #t3 = 42 in let final self::C* #t4 = self::Extension1|-(self::Extension1|[](#t2, #t3), 1) in let final void #t5 = self::Extension1|[]=(#t2, #t3, #t4) in #t4;
+  let final self::C* #t6 = c in let final core::int* #t7 = 42 in self::Extension1|[]=(#t6, #t7, self::Extension1|-(self::Extension1|[](#t6, #t7), 1));
+  self::Extension1|[]=(c, 42, self::Extension1|-(self::Extension1|[](c, 42), 1));
+}

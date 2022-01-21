@@ -41,3 +41,14 @@ Additionally, they are categorized into "safe" and "unsafe" forms: "safe" pragma
 | Pragma | Meaning |
 | --- | --- |
 | `vm:testing.unsafe.trace-entrypoints-fn` | [Observing which flow-graph-level entry-point was used when a function was called](compiler/frontend/testing_trace_entrypoints_pragma.md) |
+
+## Flutter toString transformer pragmas
+
+These pragmas are useful to exclude certain toString methods from toString transformation,
+which is enabled with `--delete-tostring-package-uri` option in kernel compilers and
+used by Flutter to remove certain toString methods in release mode to reduce size.
+
+| Pragma | Meaning |
+| --- | --- |
+| `flutter:keep-to-string` | Avoid transforming the annotated toString method. |
+| `flutter:keep-to-string-in-subtypes` | Avoid transforming toString methods in all subtypes of the annotated class. |

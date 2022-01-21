@@ -220,10 +220,18 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
 class QemuConfig {
   static const all = <Architecture, QemuConfig>{
+    Architecture.ia32:
+        QemuConfig('qemu-i386', ['-L', '/usr/lib/i386-linux-gnu/']),
+    Architecture.x64:
+        QemuConfig('qemu-x86_64', ['-L', '/usr/lib/x86_64-linux-gnu/']),
     Architecture.arm:
         QemuConfig('qemu-arm', ['-L', '/usr/arm-linux-gnueabihf/']),
     Architecture.arm64:
         QemuConfig('qemu-aarch64', ['-L', '/usr/aarch64-linux-gnu/']),
+    Architecture.riscv32:
+        QemuConfig('qemu-riscv32', ['-L', '/usr/riscv32-linux-gnu/']),
+    Architecture.riscv64:
+        QemuConfig('qemu-riscv64', ['-L', '/usr/riscv64-linux-gnu/']),
   };
 
   final String executable;
@@ -253,6 +261,8 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       case Architecture.armv6:
       case Architecture.simarm64:
       case Architecture.simarm64c:
+      case Architecture.simriscv32:
+      case Architecture.simriscv64:
         multiplier *= 4;
         break;
     }

@@ -471,7 +471,6 @@ class FlowGraphCompiler : public ValueObject {
 
   static bool SupportsUnboxedDoubles();
   static bool SupportsUnboxedSimd128();
-  static bool SupportsHardwareDivision();
   static bool CanConvertInt64ToDouble();
 
   // Accessors.
@@ -613,12 +612,6 @@ class FlowGraphCompiler : public ValueObject {
                           Representation dst_type,
                           const compiler::ffi::NativeLocation& src,
                           TemporaryRegisterAllocator* temp);
-
-  // Emits a Dart const to a native location.
-  void EmitMoveConst(const compiler::ffi::NativeLocation& dst,
-                     Location src,
-                     Representation src_type,
-                     TemporaryRegisterAllocator* temp);
 
   bool CheckAssertAssignableTypeTestingABILocations(
       const LocationSummary& locs);

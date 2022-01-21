@@ -1,0 +1,10 @@
+abstract class I {
+  void foo();
+}
+enum E1 implements I { one, two; void foo() {} }
+enum E2 implements I { one, two }
+enum E3 implements I? { one, two; void foo() {} }
+enum E4 { one, two; void foo() {} }
+bar(I i) {}
+test(E1 e1, E2 e2, E3 e3, E4 e4) {}
+main() {}

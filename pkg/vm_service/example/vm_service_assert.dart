@@ -230,6 +230,7 @@ String assertFrameKind(String obj) {
 }
 
 String assertSourceReportKind(String obj) {
+  if (obj == "BranchCoverage") return obj;
   if (obj == "Coverage") return obj;
   if (obj == "PossibleBreakpoints") return obj;
   throw "invalid SourceReportKind: $obj";

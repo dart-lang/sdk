@@ -454,8 +454,15 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     if (name != null) {
       writeWord(name);
     }
+    List<String> flags = [];
+    if (library.isUnsupported) {
+      flags.add('isUnsupported');
+    }
     if (library.isNonNullableByDefault) {
-      writeWord("/*isNonNullableByDefault*/");
+      flags.add('isNonNullableByDefault');
+    }
+    if (flags.isNotEmpty) {
+      writeWord('/*${flags.join(',')}*/');
     }
     endLine(';');
 
@@ -1294,6 +1301,7 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     writeAnnotationList(node.annotations);
     writeIndentation();
     writeModifier(node.isAbstract, 'abstract');
+    writeModifier(node.isMacro, 'macro');
     writeWord('class');
     writeWord(getClassName(node));
     writeTypeParameterList(node.typeParameters);

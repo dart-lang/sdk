@@ -6,6 +6,8 @@
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
 
+dart2js/flutter_issue94561/main: SemiFuzzFailure
+dart2js/flutter_issue94561/main.no_link: SemiFuzzFailure
 dart2js/late_fields: SemiFuzzFailure
 dart2js/late_from_dill/main: SemiFuzzFailure
 dart2js/late_statics: SemiFuzzFailure
@@ -13,6 +15,7 @@ static_field_lowering/opt_in: SemiFuzzFailure
 
 constructor_tearoffs/call_instantiation: TypeCheckError
 constructor_tearoffs/lowering/invalid_redirect: VerificationError
+enhanced_enums/simple_mixins: RuntimeError
 extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
 extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
 extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.

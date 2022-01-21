@@ -87,30 +87,6 @@ void NativeCallPattern::set_native_function(NativeFunction func) const {
 // Decodes a load sequence ending at 'end' (the last instruction of the load
 // sequence is the instruction before the one at end).  Returns a pointer to
 // the first instruction in the sequence.  Returns the register being loaded
-// and the loaded object in the output parameters 'reg' and 'obj'
-// respectively.
-uword InstructionPattern::DecodeLoadObject(uword end,
-                                           const ObjectPool& object_pool,
-                                           Register* reg,
-                                           Object* obj) {
-  uword start = 0;
-  Instr* instr = Instr::At(end - Instr::kInstrSize);
-  if ((instr->InstructionBits() & 0xfff00000) == 0xe5900000) {
-    // ldr reg, [reg, #+offset]
-    intptr_t index = 0;
-    start = DecodeLoadWordFromPool(end, reg, &index);
-    *obj = object_pool.ObjectAt(index);
-  } else {
-    intptr_t value = 0;
-    start = DecodeLoadWordImmediate(end, reg, &value);
-    *obj = static_cast<ObjectPtr>(value);
-  }
-  return start;
-}
-
-// Decodes a load sequence ending at 'end' (the last instruction of the load
-// sequence is the instruction before the one at end).  Returns a pointer to
-// the first instruction in the sequence.  Returns the register being loaded
 // and the loaded immediate value in the output parameters 'reg' and 'value'
 // respectively.
 uword InstructionPattern::DecodeLoadWordImmediate(uword end,

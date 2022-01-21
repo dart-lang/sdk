@@ -99,9 +99,6 @@ class ConstantEvaluator {
   /// The library containing the expression(s) that will be evaluated.
   final LibraryElementImpl _library;
 
-  /// Initialize a newly created evaluator to evaluate expressions in the given
-  /// [source]. The [typeProvider] is the type provider used to access known
-  /// types.
   ConstantEvaluator(this._source, this._library);
 
   EvaluationResult evaluate(Expression expression) {

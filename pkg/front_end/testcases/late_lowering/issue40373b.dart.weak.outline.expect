@@ -10,14 +10,14 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     ;
   static get s() → dynamic;
-  static set s(dynamic #t1) → void;
+  static set s(dynamic s#param) → void;
   get v() → dynamic;
-  set v(dynamic #t2) → void;
+  set v(dynamic v#param) → void;
 }
 static field dynamic _#g;
 static field core::bool _#g#isSet;
 static get g() → dynamic;
-static set g(dynamic #t3) → void;
+static set g(dynamic g#param) → void;
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic

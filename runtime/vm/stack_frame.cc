@@ -205,13 +205,18 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // helper functions to the raw object interface.
   NoSafepointScope no_safepoint;
   Code code;
-  CompressedStackMaps maps;
+
+  CompressedStackMaps::RawPayloadHandle maps;
+  CompressedStackMaps::RawPayloadHandle global_table;
+
   uword code_start;
 
   if (FLAG_precompiled_mode) {
-    maps = ReversePc::FindCompressedStackMaps(isolate_group(), pc(),
-                                              /*is_return_address=*/true,
-                                              &code_start);
+    const UntaggedCompressedStackMaps::Payload* global_table_payload;
+    maps = ReversePc::FindStackMap(isolate_group(), pc(),
+                                   /*is_return_address=*/true, &code_start,
+                                   &global_table_payload);
+    global_table = global_table_payload;
   } else {
     ObjectPtr pc_marker = *(reinterpret_cast<ObjectPtr*>(
         fp() + (runtime_frame_layout.code_from_fp * kWordSize)));
@@ -221,8 +226,12 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     if (pc_marker->IsHeapObject() && (pc_marker->GetClassId() == kCodeCid)) {
       code ^= pc_marker;
       code_start = code.PayloadStart();
+      ASSERT(code.compressed_stackmaps() != CompressedStackMaps::null());
       maps = code.compressed_stackmaps();
-      ASSERT(!maps.IsNull());
+      if (maps.UsesGlobalTable()) {
+        global_table =
+            isolate_group()->object_store()->canonicalized_stack_map_entries();
+      }
     } else {
       ASSERT(pc_marker == Object::null());
     }
@@ -231,11 +240,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   if (!maps.IsNull()) {
     // Optimized frames have a stack map. We need to visit the frame based
     // on the stack map.
-    CompressedStackMaps global_table;
-
-    global_table =
-        isolate_group()->object_store()->canonicalized_stack_map_entries();
-    CompressedStackMaps::Iterator it(maps, global_table);
+    CompressedStackMaps::Iterator<CompressedStackMaps::RawPayloadHandle> it(
+        maps, global_table);
     const uint32_t pc_offset = pc() - code_start;
     if (it.Find(pc_offset)) {
       ObjectPtr* first = reinterpret_cast<ObjectPtr*>(sp());

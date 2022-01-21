@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart" as a;
+
+static const field core::Map<core::int*, core::String*>* map = #C3;
+static const field core::Set<core::int*>* set = #C6;
+static const field core::List<core::int*>* list = #C7;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 1
+  #C2 = "a"
+  #C3 = <core::int*, core::String*>{#C1:#C2)
+  #C4 = 2
+  #C5 = 3
+  #C6 = <core::int*>{#C4, #C5}
+  #C7 = <core::int*>[#C5, #C4]
+}

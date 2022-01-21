@@ -105,16 +105,16 @@ static ArrayPtr Eval(Dart_Handle lib, const char* expr) {
 }
 
 static ArrayPtr EvalF(Dart_Handle lib, const char* fmt, ...) {
-  va_list args;
-  va_start(args, fmt);
-  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, args);
-  va_end(args);
+  va_list messure_args;
+  va_start(messure_args, fmt);
+  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, messure_args);
+  va_end(messure_args);
 
   char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
-  va_list args2;
-  va_start(args2, fmt);
-  Utils::VSNPrint(buffer, (len + 1), fmt, args2);
-  va_end(args2);
+  va_list print_args;
+  va_start(print_args, fmt);
+  Utils::VSNPrint(buffer, (len + 1), fmt, print_args);
+  va_end(print_args);
 
   return Eval(lib, buffer);
 }

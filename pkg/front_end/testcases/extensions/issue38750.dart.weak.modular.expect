@@ -1,0 +1,118 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/issue38750.dart:13:5: Error: Member not found: 'C._staticFoo'.
+//   C._staticFoo();
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/issue38750.dart:12:5: Error: The method '_foo' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named '_foo'.
+//   c._foo();
+//     ^^^^
+//
+// pkg/front_end/testcases/extensions/issue38750.dart:16:5: Error: The method '_bar' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named '_bar'.
+//   c._bar();
+//     ^^^^
+//
+import self as self;
+import "issue38750_lib1.dart" as iss;
+
+import "org-dartlang-testcase:///issue38750_lib1.dart";
+import "org-dartlang-testcase:///issue38750_lib2.dart";
+
+static method main() → dynamic {}
+static method errors() → dynamic {
+  iss::C* c = new iss::C::•();
+  invalid-expression "pkg/front_end/testcases/extensions/issue38750.dart:12:5: Error: The method '_foo' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
+Try correcting the name to the name of an existing method, or defining a method named '_foo'.
+  c._foo();
+    ^^^^" in c{<unresolved>}._foo();
+  invalid-expression "pkg/front_end/testcases/extensions/issue38750.dart:13:5: Error: Member not found: 'C._staticFoo'.
+  C._staticFoo();
+    ^^^^^^^^^^";
+  c.{iss::C::foo}(){() →* dynamic};
+  iss::C::staticFoo();
+  invalid-expression "pkg/front_end/testcases/extensions/issue38750.dart:16:5: Error: The method '_bar' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
+Try correcting the name to the name of an existing method, or defining a method named '_bar'.
+  c._bar();
+    ^^^^" in c{<unresolved>}._bar();
+}
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → iss::C*
+    : super core::Object::•()
+    ;
+  method foo() → dynamic
+    return this.{iss::C::_foo}(){() →* dynamic};
+  method _foo() → dynamic {
+    try {
+      throw "producing a stack trace";
+    }
+    on dynamic catch(final dynamic e, final core::StackTrace* s) {
+      core::print(s);
+    }
+  }
+  static method _staticFoo() → dynamic {
+    core::print("_staticFoo");
+  }
+  static method staticFoo() → dynamic
+    return iss::C::_staticFoo();
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension ext on iss::C* {
+  method _bar = iss::ext|_bar;
+  tearoff _bar = iss::ext|get#_bar;
+}
+static method ext|_bar(lowered final iss::C* #this) → dynamic {
+  try {
+    throw "producing a stack trace";
+  }
+  on dynamic catch(final dynamic e, final core::StackTrace* s) {
+    core::print(s);
+  }
+}
+static method ext|get#_bar(lowered final iss::C* #this) → () →* dynamic
+  return () → dynamic => iss::ext|_bar(#this);
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/issue38750_lib2.dart:9:5: Error: The method '_bar' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named '_bar'.
+//   c._bar();
+//     ^^^^
+//
+import self as self2;
+import "issue38750_lib1.dart" as iss;
+
+import "org-dartlang-testcase:///issue38750_lib1.dart";
+
+static method errors() → dynamic {
+  iss::C* c = new iss::C::•();
+  invalid-expression "pkg/front_end/testcases/extensions/issue38750_lib2.dart:9:5: Error: The method '_bar' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/extensions/issue38750_lib1.dart'.
+Try correcting the name to the name of an existing method, or defining a method named '_bar'.
+  c._bar();
+    ^^^^" in c{<unresolved>}._bar();
+}

@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "const_lib.dart" as con;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///const_lib.dart";
+
+static const field con::B* crossModule = #C3;
+static method main() → dynamic {
+  self::expect(2.71, #C3.{con::A::d}{core::double*});
+  self::expect("default", #C3.{con::A::s}{core::String*});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = 2.71
+  #C2 = "default"
+  #C3 = con::B {d:#C1, s:#C2}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main.dart:
+- B. (from org-dartlang-testcase:///const_lib.dart:16:9)
+- _B&A&M. (from org-dartlang-testcase:///const_lib.dart:15:7)
+- A. (from org-dartlang-testcase:///const_lib.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

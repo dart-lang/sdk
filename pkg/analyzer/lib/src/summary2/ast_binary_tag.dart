@@ -45,6 +45,7 @@ class Tag {
   static const int GenericFunctionType = 21;
   static const int HideCombinator = 48;
   static const int IfElement = 63;
+  static const int ImplicitCallReference = 104;
   static const int IndexExpression = 98;
   static const int InstanceCreationExpression = 25;
   static const int IntegerLiteralNegative = 73;

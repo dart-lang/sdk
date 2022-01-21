@@ -16,6 +16,7 @@ part of dart.core;
 /// is discouraged in library code since it doesn't give users a precise
 /// type they can catch. It may be reasonable to use instances of this
 /// class in tests or during development.
+@pragma('flutter:keep-to-string-in-subtypes')
 abstract class Exception {
   factory Exception([var message]) => _Exception(message);
 }

@@ -7,11 +7,8 @@ import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, Location;
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
@@ -27,13 +24,6 @@ Comparator<CompletionSuggestion> completionComparator = (a, b) {
   }
   return b.relevance.compareTo(a.relevance);
 };
-
-/// A marker used in place of `null` when a function has no return type.
-final NamedType NO_RETURN_TYPE = astFactory.namedType(
-  name: astFactory.simpleIdentifier(
-    StringToken(TokenType.IDENTIFIER, '', 0),
-  ),
-);
 
 /// Add default argument list text and ranges based on the given
 /// [requiredParams] and [namedParams].

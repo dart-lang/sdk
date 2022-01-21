@@ -1,0 +1,330 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:34:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     f1a(0); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:46:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     f2a(0); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:47:8: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'call'.
+// Try changing type arguments so that they conform to the bounds.
+//     f2a<String>(); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:65:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     f3a(0); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:66:8: Error: Expected 0 type arguments.
+//     f3a<String>(); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:85:8: Error: Too few positional arguments: 1 required, 0 given.
+//     f3c(); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:86:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     f3c(0, 0); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:87:8: Error: Expected 0 type arguments.
+//     f3c<String>(0); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:107:8: Error: Too few positional arguments: 2 required, 0 given.
+//     f3e(); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:108:8: Error: Too few positional arguments: 2 required, 1 given.
+//     f3e(0); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:109:8: Error: Expected 0 type arguments.
+//     f3e<String>(0, ''); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:130:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     f4a(0); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:131:8: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'call'.
+// Try changing type arguments so that they conform to the bounds.
+//     f4a<String>(); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:152:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     f5a(0); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:153:8: Error: Expected 2 type arguments.
+//     f5a<String>(); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:154:8: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'call'.
+// Try changing type arguments so that they conform to the bounds.
+//     f5a<String, String>(); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:155:8: Error: Type argument 'num' doesn't conform to the bound 'String' of the type variable 'Y' on 'call'.
+// Try changing type arguments so that they conform to the bounds.
+//     f5a<num, num>(); // error
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef DA1 = self::A;
+typedef DA2<unrelated X extends core::num> = self::A;
+typedef DB1 = self::B<core::String>;
+typedef DB2<X extends core::num> = self::B<X>;
+typedef DB3<X extends core::num, unrelated Y extends core::String> = self::B<X>;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff() → self::A
+    return new self::A::•();
+}
+class B<X extends core::Object? = dynamic> extends core::Object {
+  field core::int field1;
+  field core::String field2;
+  constructor _(core::int field1, core::String field2) → self::B<self::B::X%>
+    : self::B::field1 = field1, self::B::field2 = field2, super core::Object::•()
+    ;
+  constructor •() → self::B<self::B::X%>
+    : this self::B::_(0, "")
+    ;
+  constructor foo(core::int field1) → self::B<self::B::X%>
+    : self::B::field1 = field1, self::B::field2 = "", super core::Object::•()
+    ;
+  static method _#_#tearOff<X extends core::Object? = dynamic>(core::int field1, core::String field2) → self::B<self::B::_#_#tearOff::X%>
+    return new self::B::_<self::B::_#_#tearOff::X%>(field1, field2);
+  static method _#new#tearOff<X extends core::Object? = dynamic>() → self::B<self::B::_#new#tearOff::X%>
+    return new self::B::•<self::B::_#new#tearOff::X%>();
+  static method _#foo#tearOff<X extends core::Object? = dynamic>(core::int field1) → self::B<self::B::_#foo#tearOff::X%>
+    return new self::B::foo<self::B::_#foo#tearOff::X%>(field1);
+  static factory bar<X extends core::Object? = dynamic>(core::int i, core::String j) → self::B<self::B::bar::X%>
+    return new self::B::_<self::B::bar::X%>(i, j);
+  static method _#bar#tearOff<X extends core::Object? = dynamic>(core::int i, core::String j) → self::B<self::B::_#bar#tearOff::X%>
+    return self::B::bar<self::B::_#bar#tearOff::X%>(i, j);
+}
+static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static method main() → dynamic {
+  () → self::A f1a = #C1;
+  self::A c1a = f1a(){() → self::A};
+  self::expect(true, c1a is{ForNonNullableByDefault} self::A);
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:34:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    f1a(0); // error
+       ^" in f1a{<inapplicable>}.(0);
+  };
+  dynamic f1b = #C1;
+  dynamic c1b = f1b{dynamic}.call();
+  self::expect(true, c1b is{ForNonNullableByDefault} self::A);
+  self::throws(() → dynamic => f1b{dynamic}.call(0));
+  <unrelated X extends core::num>() → self::A f2a = #C2;
+  self::A c2a = f2a<core::num>(){() → self::A};
+  self::expect(true, c2a is{ForNonNullableByDefault} self::A);
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:46:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    f2a(0); // error
+       ^" in f2a{<inapplicable>}.<core::num>(0);
+    f2a<core::String>(){() → self::A};
+  };
+  dynamic f2b = #C2;
+  dynamic c2b = f2b{dynamic}.call();
+  self::expect(true, c2b is{ForNonNullableByDefault} self::A);
+  dynamic c2c = f2b{dynamic}.call<core::int>();
+  self::expect(true, c2c is{ForNonNullableByDefault} self::A);
+  self::throws(() → dynamic => f2b{dynamic}.call(0));
+  self::throws(() → dynamic => f2b{dynamic}.call<core::String>());
+  () → self::B<core::String> f3a = #C4;
+  self::B<core::String> c3a = f3a(){() → self::B<core::String>};
+  self::expect(true, c3a is{ForNonNullableByDefault} self::B<core::String>);
+  self::expect(false, c3a is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(0, c3a.{self::B::field1}{core::int});
+  self::expect("", c3a.{self::B::field2}{core::String});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:65:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    f3a(0); // error
+       ^" in f3a{<inapplicable>}.(0);
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:66:8: Error: Expected 0 type arguments.
+    f3a<String>(); // error
+       ^" in f3a{<inapplicable>}.<core::String>();
+  };
+  dynamic f3b = #C4;
+  dynamic c3b = f3b{dynamic}.call();
+  self::expect(true, c3b is{ForNonNullableByDefault} self::B<core::String>);
+  self::expect(false, c3b is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(0, c3a.{self::B::field1}{core::int});
+  self::expect("", c3a.{self::B::field2}{core::String});
+  self::throws(() → dynamic => f3b{dynamic}.call(0));
+  self::throws(() → dynamic => f3b{dynamic}.call<core::String>());
+  (core::int) → self::B<core::String> f3c = #C6;
+  self::B<core::String> c3c = f3c(42){(core::int) → self::B<core::String>};
+  self::expect(true, c3c is{ForNonNullableByDefault} self::B<core::String>);
+  self::expect(false, c3c is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(42, c3c.{self::B::field1}{core::int});
+  self::expect("", c3c.{self::B::field2}{core::String});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:85:8: Error: Too few positional arguments: 1 required, 0 given.
+    f3c(); // error
+       ^" in f3c{<inapplicable>}.();
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:86:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+Try removing the extra positional arguments.
+    f3c(0, 0); // error
+       ^" in f3c{<inapplicable>}.(0, 0);
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:87:8: Error: Expected 0 type arguments.
+    f3c<String>(0); // error
+       ^" in f3c{<inapplicable>}.<core::String>(0);
+  };
+  dynamic f3d = #C6;
+  dynamic c3d = f3d{dynamic}.call(42);
+  self::expect(true, c3d is{ForNonNullableByDefault} self::B<core::String>);
+  self::expect(false, c3d is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(42, c3d{dynamic}.field1);
+  self::expect("", c3d{dynamic}.field2);
+  self::throws(() → dynamic => f3d{dynamic}.call());
+  self::throws(() → dynamic => f3d{dynamic}.call(0, 0));
+  self::throws(() → dynamic => f3d{dynamic}.call<core::String>(0));
+  (core::int, core::String) → self::B<core::String> f3e = #C8;
+  self::B<core::String> c3e = f3e(42, "foo"){(core::int, core::String) → self::B<core::String>};
+  self::expect(true, c3e is{ForNonNullableByDefault} self::B<core::String>);
+  self::expect(false, c3e is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(42, c3e.{self::B::field1}{core::int});
+  self::expect("foo", c3e.{self::B::field2}{core::String});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:107:8: Error: Too few positional arguments: 2 required, 0 given.
+    f3e(); // error
+       ^" in f3e{<inapplicable>}.();
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:108:8: Error: Too few positional arguments: 2 required, 1 given.
+    f3e(0); // error
+       ^" in f3e{<inapplicable>}.(0);
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:109:8: Error: Expected 0 type arguments.
+    f3e<String>(0, ''); // error
+       ^" in f3e{<inapplicable>}.<core::String>(0, "");
+  };
+  dynamic f3f = #C8;
+  dynamic c3f = f3f{dynamic}.call(42, "foo");
+  self::expect(true, c3f is{ForNonNullableByDefault} self::B<core::String>);
+  self::expect(false, c3f is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(42, c3f{dynamic}.field1);
+  self::expect("foo", c3f{dynamic}.field2);
+  self::throws(() → dynamic => c3f{dynamic}.call());
+  self::throws(() → dynamic => c3f{dynamic}.call(0));
+  self::throws(() → dynamic => c3f{dynamic}.call<core::String>(0));
+  <X extends core::num>() → self::B<X> f4a = #C9;
+  self::B<core::num> c4a = f4a<core::num>(){() → self::B<core::num>};
+  self::expect(true, c4a is{ForNonNullableByDefault} self::B<core::num>);
+  self::expect(false, c4a is{ForNonNullableByDefault} self::B<core::int>);
+  self::B<core::int> c4b = f4a<core::int>(){() → self::B<core::int>};
+  self::expect(true, c4b is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(false, c4b is{ForNonNullableByDefault} self::B<core::double>);
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:130:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    f4a(0); // error
+       ^" in f4a{<inapplicable>}.<core::num>(0);
+    f4a<core::String>(){() → self::B<core::String>};
+  };
+  dynamic f4b = #C9;
+  dynamic c4c = f4b{dynamic}.call();
+  self::expect(true, c4c is{ForNonNullableByDefault} self::B<core::num>);
+  self::expect(false, c4c is{ForNonNullableByDefault} self::B<core::int>);
+  dynamic c4d = f4b{dynamic}.call<core::int>();
+  self::expect(true, c4d is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(false, c4d is{ForNonNullableByDefault} self::B<core::double>);
+  self::throws(() → dynamic => f4b{dynamic}.call(0));
+  self::throws(() → dynamic => f4b{dynamic}.call<core::String>());
+  <X extends core::num, unrelated Y extends core::String>() → self::B<X> f5a = #C10;
+  self::B<core::num> c5a = f5a<core::num, core::String>(){() → self::B<core::num>};
+  self::expect(true, c5a is{ForNonNullableByDefault} self::B<core::num>);
+  self::expect(false, c5a is{ForNonNullableByDefault} self::B<core::int>);
+  self::B<core::int> c5b = f5a<core::int, core::String>(){() → self::B<core::int>};
+  self::expect(true, c5b is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(false, c5b is{ForNonNullableByDefault} self::B<core::double>);
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:152:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    f5a(0); // error
+       ^" in f5a{<inapplicable>}.<core::num, core::String>(0);
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/typedef_tear_off.dart:153:8: Error: Expected 2 type arguments.
+    f5a<String>(); // error
+       ^" in f5a{<inapplicable>}.<core::String>();
+    f5a<core::String, core::String>(){() → self::B<core::String>};
+    f5a<core::num, core::num>(){() → self::B<core::num>};
+  };
+  dynamic f5b = #C10;
+  dynamic c5c = f5b{dynamic}.call();
+  self::expect(true, c5c is{ForNonNullableByDefault} self::B<core::num>);
+  self::expect(false, c5c is{ForNonNullableByDefault} self::B<core::int>);
+  dynamic c5d = f5b{dynamic}.call<core::int, core::String>();
+  self::expect(true, c5d is{ForNonNullableByDefault} self::B<core::int>);
+  self::expect(false, c5d is{ForNonNullableByDefault} self::B<core::double>);
+  self::throws(() → dynamic => f5b{dynamic}.call(0));
+  self::throws(() → dynamic => f5b{dynamic}.call<core::String>());
+  self::throws(() → dynamic => f5b{dynamic}.call<core::String, core::String>());
+  self::throws(() → dynamic => f5b{dynamic}.call<core::num, core::num>());
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C11}) → dynamic {
+  try {
+    f(){() → dynamic};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Thrown: ${e}");
+    return;
+  }
+  if(!self::inSoundMode && inSoundModeOnly) {
+    return;
+  }
+  throw "Expected exception";
+}
+static method _#DA2#new#tearOff<unrelated X extends core::num>() → self::A
+  return new self::A::•();
+static method _#DB2#_#tearOff<X extends core::num>(core::int field1, core::String field2) → self::B<self::_#DB2#_#tearOff::X>
+  return new self::B::_<self::_#DB2#_#tearOff::X>(field1, field2);
+static method _#DB2#new#tearOff<X extends core::num>() → self::B<self::_#DB2#new#tearOff::X>
+  return new self::B::•<self::_#DB2#new#tearOff::X>();
+static method _#DB2#foo#tearOff<X extends core::num>(core::int field1) → self::B<self::_#DB2#foo#tearOff::X>
+  return new self::B::foo<self::_#DB2#foo#tearOff::X>(field1);
+static method _#DB2#bar#tearOff<X extends core::num>(core::int i, core::String j) → self::B<self::_#DB2#bar#tearOff::X>
+  return self::B::bar<self::_#DB2#bar#tearOff::X>(i, j);
+static method _#DB3#_#tearOff<X extends core::num, unrelated Y extends core::String>(core::int field1, core::String field2) → self::B<self::_#DB3#_#tearOff::X>
+  return new self::B::_<self::_#DB3#_#tearOff::X>(field1, field2);
+static method _#DB3#new#tearOff<X extends core::num, unrelated Y extends core::String>() → self::B<self::_#DB3#new#tearOff::X>
+  return new self::B::•<self::_#DB3#new#tearOff::X>();
+static method _#DB3#foo#tearOff<X extends core::num, unrelated Y extends core::String>(core::int field1) → self::B<self::_#DB3#foo#tearOff::X>
+  return new self::B::foo<self::_#DB3#foo#tearOff::X>(field1);
+static method _#DB3#bar#tearOff<X extends core::num, unrelated Y extends core::String>(core::int i, core::String j) → self::B<self::_#DB3#bar#tearOff::X>
+  return self::B::bar<self::_#DB3#bar#tearOff::X>(i, j);
+
+constants  {
+  #C1 = static-tearoff self::A::_#new#tearOff
+  #C2 = static-tearoff self::_#DA2#new#tearOff
+  #C3 = static-tearoff self::B::_#new#tearOff
+  #C4 = instantiation #C3 <core::String*>
+  #C5 = static-tearoff self::B::_#foo#tearOff
+  #C6 = instantiation #C5 <core::String*>
+  #C7 = static-tearoff self::B::_#bar#tearOff
+  #C8 = instantiation #C7 <core::String*>
+  #C9 = static-tearoff self::_#DB2#new#tearOff
+  #C10 = static-tearoff self::_#DB3#new#tearOff
+  #C11 = false
+}

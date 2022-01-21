@@ -7,12 +7,8 @@ import 'dart:convert';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:meta/meta.dart';
-
-@Deprecated('Use createMockSdk() instead')
-const String sdkRoot = '/sdk';
 
 final MockSdkLibrary _LIB_ASYNC = MockSdkLibrary('async', [
   MockSdkLibraryUnit(
@@ -70,6 +66,9 @@ abstract class Completer<T> {
 }
 
 abstract class Timer {
+  factory Timer(Duration duration, void Function() callback) {
+    throw 0;
+  }
   static void run(void callback()) {}
 }
 ''',
@@ -837,6 +836,9 @@ class AbiSpecificIntegerMapping {
   const AbiSpecificIntegerMapping(this.mapping);
 }
 
+abstract class Finalizable {
+  factory Finalizable._() => throw UnsupportedError("");
+}
 ''',
   )
 ]);
@@ -1142,8 +1144,9 @@ abstract class FileSystemEntity {
       throw 0;
 }
 
-enum ProcessStartMode {
-  normal,
+class ProcessStartMode {
+  static const normal = const ProcessStartMode._internal(0);
+  const ProcessStartMode._internal(int mode);
 }
 
 abstract class Process {
@@ -1300,51 +1303,6 @@ void createMockSdk({
           'packages': <String, Object>{},
         }),
       );
-}
-
-@Deprecated('Use createMockSdk() and FolderBasedDartSdk instead.')
-class MockSdk extends FolderBasedDartSdk {
-  /// Optional [additionalLibraries] should have unique URIs, and paths in
-  /// their units are relative (will be put into `sdkRoot/lib`).
-  factory MockSdk({
-    required MemoryResourceProvider resourceProvider,
-    List<MockSdkLibrary> additionalLibraries = const [],
-  }) {
-    var sdkDirectory = resourceProvider.getFolder(
-      resourceProvider.convertPath(sdkRoot),
-    );
-    createMockSdk(
-      resourceProvider: resourceProvider,
-      root: sdkDirectory,
-      additionalLibraries: additionalLibraries,
-    );
-    return MockSdk._(resourceProvider, sdkDirectory);
-  }
-
-  /// Initialize a newly created SDK to represent the Dart SDK installed in the
-  /// [sdkDirectory].
-  MockSdk._(ResourceProvider resourceProvider, Folder sdkDirectory)
-      : super(resourceProvider, sdkDirectory);
-
-  @override
-  MemoryResourceProvider get resourceProvider {
-    return super.resourceProvider as MemoryResourceProvider;
-  }
-
-  @override
-  List<SdkLibraryImpl> get sdkLibraries {
-    return super.sdkLibraries.map((library) {
-      var pathContext = resourceProvider.pathContext;
-      var path = library.path;
-      if (pathContext.isAbsolute(path)) {
-        return library;
-      }
-      return SdkLibraryImpl(library.shortName)
-        ..path = pathContext.join(directory.path, 'lib', path)
-        ..category = library.category
-        ..documented = library.isDocumented;
-    }).toList();
-  }
 }
 
 class MockSdkLibrary implements SdkLibrary {

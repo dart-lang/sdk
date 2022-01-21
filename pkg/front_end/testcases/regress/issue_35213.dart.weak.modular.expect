@@ -1,0 +1,15 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35213.dart:5:9: Error: Expected ',' before this.
+// f(int a int b) { }
+//         ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method f(core::int* a, core::int* b) → dynamic {}
+static method main() → dynamic {
+  self::f(2, 3);
+}

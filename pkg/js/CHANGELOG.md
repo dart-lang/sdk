@@ -1,3 +1,7 @@
+## 0.6.4
+
+* Includes `@staticInterop` to allow interop with native types from `dart:html`.
+
 ## 0.6.3
 
 * Stable release for null safety.

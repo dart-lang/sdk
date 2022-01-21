@@ -89,56 +89,50 @@ Future<void> asyncTest(f()) {
   return f().then(asyncSuccess);
 }
 
-bool _pass(dynamic object) => true;
-
-/// Calls [f] and verifies that it throws a `T`.
+/// Verifies that the asyncronous [result] throws a [T].
 ///
-/// The optional [check] function can provide additional validation that the
-/// correct object is being thrown. For example, to check the content of the
-/// thrown object you could write this:
+/// Fails if [result] completes with a value, or it completes with
+/// an error which is not a [T].
 ///
-///     asyncExpectThrows<MyException>(myThrowingFunction,
-///          (e) => e.myMessage.contains("WARNING"));
-///
-/// If `f` fails an expectation (i.e., throws an [ExpectException]), that
-/// exception is not caught by [asyncExpectThrows]. The test is still considered
-/// failing.
-void asyncExpectThrows<T>(Future<void> f(),
-    [bool check(T error) = _pass, String reason = ""]) {
-  var type = "";
-  if (T != dynamic && T != Object) type = "<$T>";
+/// Returns the accepted thrown object.
+/// For example, to check the content of the thrown object,
+/// you could write this:
+/// ```
+/// var e = await asyncExpectThrows<MyException>(asyncExpression)
+/// Expect.isTrue(e.myMessage.contains("WARNING"));
+/// ```
+/// If `result` completes with an [ExpectException] error from another
+/// failed test expectation, that error cannot be caught and accepted.
+Future<T> asyncExpectThrows<T extends Object>(Future<void> result,
+    [String reason = ""]) {
   // Handle null being passed in from legacy code while also avoiding producing
   // an unnecessary null check warning here.
   if ((reason as dynamic) == null) reason = "";
+
+  var type = "";
+  if (T != dynamic && T != Object) type = "<$T>";
   var header = "asyncExpectThrows$type(${reason}):";
 
+  if ((result as dynamic) == null) {
+    Expect.testError("$header result Future must not be null.");
+  }
   // TODO(rnystrom): It might useful to validate that T is not bound to
   // ExpectException since that won't work.
 
-  if (f is! Function()) {
-    // Only throws from executing the function body should count as throwing.
-    // The failure to even call `f` should throw outside the try/catch.
-    Expect.testError("$header Function not callable with zero arguments.");
-  }
-
-  var result = f();
-  if (result is! Future) {
-    Expect.testError("$header Function did not return a Future.");
-  }
-
   asyncStart();
-  result.then<Null>((_) {
+  return result.then<T>((_) {
     throw ExpectException("$header Did not throw.");
-  }).catchError((error, stack) {
+  }, onError: (error, stack) {
     // A test failure doesn't count as throwing.
     if (error is ExpectException) throw error;
 
-    if (error is! T || (check != null && !check(error))) {
+    if (error is! T) {
       // Throws something unexpected.
       throw ExpectException(
           "$header Unexpected '${Error.safeToString(error)}'\n$stack");
     }
 
     asyncEnd();
+    return error;
   });
 }

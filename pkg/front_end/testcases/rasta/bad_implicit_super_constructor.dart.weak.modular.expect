@@ -1,0 +1,51 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+//   const B();
+//         ^
+//
+// pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:6:10: Error: 'x' isn't an instance field of this class.
+//   A(this.x);
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •(dynamic x) → self::A*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:6:10: Error: 'x' isn't an instance field of this class.
+  A(this.x);
+         ^"
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B*
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+  const B();
+        ^"
+    ;
+}
+static method main() → dynamic {
+  new self::B::•();
+  invalid-expression "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:10:9: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+  const B();
+        ^";
+}
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///bad_implicit_super_constructor.dart:
+- B. (from org-dartlang-testcase:///bad_implicit_super_constructor.dart:10:9)

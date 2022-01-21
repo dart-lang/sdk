@@ -1,0 +1,117 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract get getterFromGetter() → core::num*;
+  abstract set setterFromSetter(core::num* value) → void;
+  abstract set getterFromSetter(core::num* value) → void;
+  abstract get setterFromGetter() → core::num*;
+  abstract get getterFromGetterWithSetterConflict() → core::num*;
+  abstract set getterFromGetterWithSetterConflict(dynamic num) → void;
+  abstract get setterFromSetterWithGetterConflict() → core::num*;
+  abstract set setterFromSetterWithGetterConflict(dynamic num) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+  abstract get getterFromGetter() → core::int*;
+  abstract set setterFromSetter(core::int* value) → void;
+  abstract get setterFromGetter() → core::int*;
+  abstract get setterFromSetterWithGetterConflict() → core::int*;
+  abstract set getterFromGetterWithSetterConflict(core::int* value) → void;
+  abstract set getterFromSetter(core::int* value) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class C extends self::A {
+  synthetic constructor •() → self::C*
+    : super self::A::•()
+    ;
+  abstract get getterFromGetter() → core::num*;
+  abstract set setterFromSetter(core::num* value) → void;
+  abstract get getterFromSetter() → core::num*;
+  abstract set setterFromGetter(core::num* value) → void;
+  abstract get getterFromGetterWithSetterConflict() → core::num*;
+  abstract set setterFromSetterWithGetterConflict(dynamic value) → void;
+}
+abstract class D extends self::A implements self::B {
+  synthetic constructor •() → self::D*
+    : super self::A::•()
+    ;
+  abstract get getterFromGetter() → core::int*;
+  abstract set setterFromSetter(core::num* value) → void;
+  abstract get getterFromSetter() → core::num*;
+  abstract set setterFromGetter(core::int* value) → void;
+  abstract get getterFromGetterWithSetterConflict() → core::num*;
+  abstract set setterFromSetterWithGetterConflict(dynamic value) → void;
+  abstract member-signature get setterFromGetter() → core::int*; -> self::B::setterFromGetter
+  abstract member-signature get setterFromSetterWithGetterConflict() → core::int*; -> self::B::setterFromSetterWithGetterConflict
+}
+abstract class E extends core::Object implements self::A {
+  synthetic constructor •() → self::E*
+    : super core::Object::•()
+    ;
+  abstract get getterFromGetter() → core::num*;
+  abstract set setterFromSetter(core::num* value) → void;
+  abstract get getterFromSetter() → core::num*;
+  abstract set setterFromGetter(core::num* value) → void;
+  abstract get getterFromGetterWithSetterConflict() → core::num*;
+  abstract set setterFromSetterWithGetterConflict(dynamic value) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class F extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::F*
+    : super core::Object::•()
+    ;
+  abstract get getterFromGetter() → core::int*;
+  abstract set setterFromSetter(core::num* value) → void;
+  abstract get getterFromSetter() → core::num*;
+  abstract set setterFromGetter(core::int* value) → void;
+  abstract get getterFromGetterWithSetterConflict() → core::num*;
+  abstract set setterFromSetterWithGetterConflict(dynamic value) → void;
+  abstract member-signature get setterFromGetter() → core::int*; -> self::B::setterFromGetter
+  abstract member-signature get setterFromSetterWithGetterConflict() → core::int*; -> self::B::setterFromSetterWithGetterConflict
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

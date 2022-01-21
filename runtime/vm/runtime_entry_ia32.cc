@@ -37,6 +37,9 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ call(EAX);
     __ movl(compiler::Assembler::VMTagAddress(),
             compiler::Immediate(VMTag::kDartTagId));
+    // These registers must be preserved by runtime functions, otherwise
+    // we'd need to restore them here.
+    COMPILE_ASSERT(IsCalleeSavedRegister(THR));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

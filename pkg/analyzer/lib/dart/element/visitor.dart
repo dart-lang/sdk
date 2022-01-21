@@ -169,6 +169,10 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitVariableElement(element);
 
   @override
+  R? visitSuperFormalParameterElement(SuperFormalParameterElement element) =>
+      visitParameterElement(element);
+
+  @override
   R? visitTopLevelVariableElement(TopLevelVariableElement element) =>
       visitPropertyInducingElement(element);
 
@@ -306,6 +310,12 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  R? visitSuperFormalParameterElement(SuperFormalParameterElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitTopLevelVariableElement(TopLevelVariableElement element) {
     element.visitChildren(this);
     return null;
@@ -391,6 +401,10 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R? visitPropertyAccessorElement(PropertyAccessorElement element) => null;
 
   @override
+  R? visitSuperFormalParameterElement(SuperFormalParameterElement element) =>
+      null;
+
+  @override
   R? visitTopLevelVariableElement(TopLevelVariableElement element) => null;
 
   @override
@@ -468,6 +482,10 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitPropertyAccessorElement(PropertyAccessorElement element) =>
+      _throw(element);
+
+  @override
+  R? visitSuperFormalParameterElement(SuperFormalParameterElement element) =>
       _throw(element);
 
   @override

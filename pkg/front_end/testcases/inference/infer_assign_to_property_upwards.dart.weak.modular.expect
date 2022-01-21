@@ -1,0 +1,88 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Test1 extends core::Object {
+  field core::int* prop = null;
+  synthetic constructor •() → self::Test1*
+    : super core::Object::•()
+    ;
+  static method test(self::Test1* t) → void {
+    core::int* v1 = t.{self::Test1::prop} = self::getInt();
+    core::int* v4 = let final self::Test1* #t1 = t in let final core::int* #t2 = #t1.{self::Test1::prop}{core::int*} in #t2 == null ?{core::int*} #t1.{self::Test1::prop} = self::getInt() : #t2;
+    core::int* v7 = let final self::Test1* #t3 = t in #t3.{self::Test1::prop} = #t3.{self::Test1::prop}{core::int*}.{core::num::+}(self::getInt()){(core::num*) →* core::int*};
+    core::int* v10 = let final self::Test1* #t4 = t in #t4.{self::Test1::prop} = #t4.{self::Test1::prop}{core::int*}.{core::num::+}(1){(core::num*) →* core::int*};
+    core::int* v11 = let final self::Test1* #t5 = t in let final core::int* #t6 = #t5.{self::Test1::prop}{core::int*} in let final core::int* #t7 = #t5.{self::Test1::prop} = #t6.{core::num::+}(1){(core::num*) →* core::int*} in #t6;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Test2 extends core::Object {
+  field core::num* prop = null;
+  synthetic constructor •() → self::Test2*
+    : super core::Object::•()
+    ;
+  static method test(self::Test2* t) → void {
+    core::int* v1 = t.{self::Test2::prop} = self::getInt();
+    core::num* v2 = t.{self::Test2::prop} = self::getNum();
+    core::double* v3 = t.{self::Test2::prop} = self::getDouble();
+    core::num* v4 = let final self::Test2* #t8 = t in let final core::num* #t9 = #t8.{self::Test2::prop}{core::num*} in #t9 == null ?{core::num*} #t8.{self::Test2::prop} = self::getInt() : #t9;
+    core::num* v5 = let final self::Test2* #t10 = t in let final core::num* #t11 = #t10.{self::Test2::prop}{core::num*} in #t11 == null ?{core::num*} #t10.{self::Test2::prop} = self::getNum() : #t11;
+    core::num* v6 = let final self::Test2* #t12 = t in let final core::num* #t13 = #t12.{self::Test2::prop}{core::num*} in #t13 == null ?{core::num*} #t12.{self::Test2::prop} = self::getDouble() : #t13;
+    core::num* v7 = let final self::Test2* #t14 = t in #t14.{self::Test2::prop} = #t14.{self::Test2::prop}{core::num*}.{core::num::+}(self::getInt()){(core::num*) →* core::num*};
+    core::num* v8 = let final self::Test2* #t15 = t in #t15.{self::Test2::prop} = #t15.{self::Test2::prop}{core::num*}.{core::num::+}(self::getNum()){(core::num*) →* core::num*};
+    core::num* v9 = let final self::Test2* #t16 = t in #t16.{self::Test2::prop} = #t16.{self::Test2::prop}{core::num*}.{core::num::+}(self::getDouble()){(core::num*) →* core::num*};
+    core::num* v10 = let final self::Test2* #t17 = t in #t17.{self::Test2::prop} = #t17.{self::Test2::prop}{core::num*}.{core::num::+}(1){(core::num*) →* core::num*};
+    core::num* v11 = let final self::Test2* #t18 = t in let final core::num* #t19 = #t18.{self::Test2::prop}{core::num*} in let final core::num* #t20 = #t18.{self::Test2::prop} = #t19.{core::num::+}(1){(core::num*) →* core::num*} in #t19;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Test3 extends core::Object {
+  field core::double* prop = null;
+  synthetic constructor •() → self::Test3*
+    : super core::Object::•()
+    ;
+  static method test3(self::Test3* t) → void {
+    core::double* v3 = t.{self::Test3::prop} = self::getDouble();
+    core::double* v6 = let final self::Test3* #t21 = t in let final core::double* #t22 = #t21.{self::Test3::prop}{core::double*} in #t22 == null ?{core::double*} #t21.{self::Test3::prop} = self::getDouble() : #t22;
+    core::double* v7 = let final self::Test3* #t23 = t in #t23.{self::Test3::prop} = #t23.{self::Test3::prop}{core::double*}.{core::double::+}(self::getInt()){(core::num*) →* core::double*};
+    core::double* v8 = let final self::Test3* #t24 = t in #t24.{self::Test3::prop} = #t24.{self::Test3::prop}{core::double*}.{core::double::+}(self::getNum()){(core::num*) →* core::double*};
+    core::double* v9 = let final self::Test3* #t25 = t in #t25.{self::Test3::prop} = #t25.{self::Test3::prop}{core::double*}.{core::double::+}(self::getDouble()){(core::num*) →* core::double*};
+    core::double* v10 = let final self::Test3* #t26 = t in #t26.{self::Test3::prop} = #t26.{self::Test3::prop}{core::double*}.{core::double::+}(1){(core::num*) →* core::double*};
+    core::double* v11 = let final self::Test3* #t27 = t in let final core::double* #t28 = #t27.{self::Test3::prop}{core::double*} in let final core::double* #t29 = #t27.{self::Test3::prop} = #t28.{core::double::+}(1){(core::num*) →* core::double*} in #t28;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method getInt() → core::int*
+  return 0;
+static method getNum() → core::num*
+  return 0;
+static method getDouble() → core::double*
+  return 0.0;
+static method main() → dynamic {}

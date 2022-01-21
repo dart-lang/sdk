@@ -93,11 +93,21 @@ dev_dependencies:
     file.deleteSync();
   }
 
-  void dispose() {
+  Future<void> dispose() async {
     _process?.kill();
+    await _process?.exitCode;
     _process = null;
-    if (dir.existsSync()) {
-      dir.deleteSync(recursive: true);
+    int deleteAttempts = 5;
+    while (dir.existsSync()) {
+      try {
+        dir.deleteSync(recursive: true);
+      } catch (e) {
+        if ((--deleteAttempts) <= 0) {
+          rethrow;
+        }
+        await Future.delayed(Duration(milliseconds: 500));
+        print('Got $e while deleting $dir. Trying again...');
+      }
     }
   }
 
@@ -135,7 +145,8 @@ dev_dependencies:
           ...arguments,
         ],
         workingDirectory: workingDir ?? dir.path,
-        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'});
+        environment: {if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true'})
+      ..then((p) => _process = p);
   }
 
   String _sdkRootPath;

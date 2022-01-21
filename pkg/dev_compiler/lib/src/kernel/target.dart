@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
+import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
@@ -19,34 +20,6 @@ import 'package:kernel/transformations/track_widget_constructor_locations.dart';
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
 
-/// Boolean environment variables that indicate which libraries are available in
-/// dev compiler.
-// TODO(jmesserly): provide an option to compile without dart:html & friends?
-const sdkLibraryEnvironmentDefines = {
-  'dart.isVM': 'false',
-  'dart.library.async': 'true',
-  'dart.library.core': 'true',
-  'dart.library.collection': 'true',
-  'dart.library.convert': 'true',
-  // TODO(jmesserly): this is not really supported in dart4web other than
-  // `debugger()`
-  'dart.library.developer': 'true',
-  'dart.library.io': 'false',
-  'dart.library.isolate': 'false',
-  'dart.library.js': 'true',
-  'dart.library.js_util': 'true',
-  'dart.library.math': 'true',
-  'dart.library.mirrors': 'false',
-  'dart.library.typed_data': 'true',
-  'dart.library.indexed_db': 'true',
-  'dart.library.html': 'true',
-  'dart.library.html_common': 'true',
-  'dart.library.svg': 'true',
-  'dart.library.ui': 'false',
-  'dart.library.web_audio': 'true',
-  'dart.library.web_gl': 'true',
-};
-
 /// A kernel [Target] to configure the Dart Front End for dartdevc.
 class DevCompilerTarget extends Target {
   DevCompilerTarget(this.flags);
@@ -57,10 +30,6 @@ class DevCompilerTarget extends Target {
   WidgetCreatorTracker? _widgetTracker;
 
   Map<String, Class>? _nativeClasses;
-
-  @override
-  Map<String, String> updateEnvironmentDefines(Map<String, String> map) =>
-      map..addAll(sdkLibraryEnvironmentDefines);
 
   @override
   bool get enableSuperMixins => true;
@@ -188,6 +157,7 @@ class DevCompilerTarget extends Target {
       ChangedStructureNotifier? changedStructureNotifier}) {
     _nativeClasses ??= JsInteropChecks.getNativeClasses(component);
     var jsUtilOptimizer = JsUtilOptimizer(coreTypes, hierarchy);
+    var staticInteropClassEraser = StaticInteropClassEraser(coreTypes);
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
       JsInteropChecks(
@@ -196,6 +166,7 @@ class DevCompilerTarget extends Target {
               _nativeClasses!)
           .visitLibrary(library);
       jsUtilOptimizer.visitLibrary(library);
+      staticInteropClassEraser.visitLibrary(library);
     }
   }
 

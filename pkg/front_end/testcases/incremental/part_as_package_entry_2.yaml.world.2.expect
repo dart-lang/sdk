@@ -1,9 +1,4 @@
 main = lib::main;
-//
-// Problems in component:
-//
-// org-dartlang-test:///main.dart: Warning: Interpreting this as package URI, 'package:foo/main.dart'.
-//
 library from "package:foo/lib.dart" as lib {
 
   part main.dart;

@@ -814,6 +814,7 @@ class ParserProxy extends analyzer.Parser {
         null,
         null,
         null,
+        null,
         Token(Keyword.CLASS, 0),
         astFactory.simpleIdentifier(
             fasta.StringToken.fromString(TokenType.IDENTIFIER, className, 6)),

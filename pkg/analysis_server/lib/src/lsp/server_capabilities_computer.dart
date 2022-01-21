@@ -537,30 +537,43 @@ class ServerCapabilitiesComputer {
       ..removeAll(registrationsToRemove)
       ..addAll(registrationsToAdd);
 
+    Future<void>? unregistrationRequest;
     if (registrationsToRemove.isNotEmpty) {
       final unregistrations = registrationsToRemove
           .map((r) => Unregistration(id: r.id, method: r.method))
           .toList();
-      await _server.sendRequest(Method.client_unregisterCapability,
+      // It's important not to await this request here, as we must ensure
+      // we cannot re-enter this method until we have sent both the unregister
+      // and register requests to the client atomically.
+      // https://github.com/dart-lang/sdk/issues/47851#issuecomment-988093109
+      unregistrationRequest = _server.sendRequest(
+          Method.client_unregisterCapability,
           UnregistrationParams(unregisterations: unregistrations));
     }
 
+    Future<void>? registrationRequest;
     // Only send the registration request if we have at least one (since
     // otherwise we don't know that the client supports registerCapability).
     if (registrationsToAdd.isNotEmpty) {
-      final registrationResponse = await _server.sendRequest(
-        Method.client_registerCapability,
-        RegistrationParams(registrations: registrationsToAdd),
-      );
-
-      final error = registrationResponse.error;
-      if (error != null) {
-        _server.logErrorToClient(
-          'Failed to register capabilities with client: '
-          '(${error.code}) '
-          '${error.message}',
-        );
-      }
+      registrationRequest = _server
+          .sendRequest(Method.client_registerCapability,
+              RegistrationParams(registrations: registrationsToAdd))
+          .then((registrationResponse) {
+        final error = registrationResponse.error;
+        if (error != null) {
+          _server.logErrorToClient(
+            'Failed to register capabilities with client: '
+            '(${error.code}) '
+            '${error.message}',
+          );
+        }
+      });
     }
+
+    // Only after we have sent both unregistration + registration events may
+    // we await them, knowing another "thread" could not have executed this
+    // method between them.
+    await unregistrationRequest;
+    await registrationRequest;
   }
 }

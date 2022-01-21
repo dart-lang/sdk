@@ -101,8 +101,10 @@ Future<void> main(List<String> args) async {
 
     kernelTarget.setEntryPoints(c.options.inputs);
     dillTarget.buildOutlines();
-    await kernelTarget.buildOutlines();
-    await kernelTarget.buildComponent();
+    BuildResult buildResult = await kernelTarget.buildOutlines();
+    buildResult = await kernelTarget.buildComponent(
+        macroApplications: buildResult.macroApplications);
+    buildResult.macroApplications?.macroExecutor.close();
   });
 
   print("Done in ${stopwatch.elapsedMilliseconds} ms. "
@@ -137,9 +139,11 @@ class SourceLoaderTest extends SourceLoader {
       DeclarationBuilder? declarationBuilder,
       ModifierBuilder member,
       Scope scope,
-      Uri fileUri) {
+      Uri fileUri,
+      {Scope? formalParameterScope}) {
     return new BodyBuilderTest.forOutlineExpression(
-        library, declarationBuilder, member, scope, fileUri);
+        library, declarationBuilder, member, scope, fileUri,
+        formalParameterScope: formalParameterScope);
   }
 
   @override
@@ -220,9 +224,11 @@ class BodyBuilderTest extends BodyBuilder {
       DeclarationBuilder? declarationBuilder,
       ModifierBuilder member,
       Scope scope,
-      Uri fileUri)
+      Uri fileUri,
+      {Scope? formalParameterScope})
       : super.forOutlineExpression(
-            library, declarationBuilder, member, scope, fileUri);
+            library, declarationBuilder, member, scope, fileUri,
+            formalParameterScope: formalParameterScope);
 
   @override
   Expression buildConstructorInvocation(

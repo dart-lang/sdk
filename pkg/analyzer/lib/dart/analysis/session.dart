@@ -37,69 +37,30 @@ abstract class AnalysisSession {
   /// a result state indicating the nature of the problem.
   Future<SomeErrorsResult> getErrors(String path);
 
-  /// Return a future that will complete with information about the errors
-  /// contained in the file with the given absolute, normalized [path].
-  ///
-  /// If the file cannot be analyzed by this session, then the result will have
-  /// a result state indicating the nature of the problem.
-  @Deprecated('Use getErrors() instead')
-  Future<SomeErrorsResult> getErrors2(String path);
-
   /// Return information about the file at the given absolute, normalized
   /// [path].
   SomeFileResult getFile(String path);
 
-  /// Return information about the file at the given absolute, normalized
-  /// [path].
-  @Deprecated('Use getFile() instead')
-  SomeFileResult getFile2(String path);
-
   /// Return a future that will complete with information about the library
   /// element representing the library with the given [uri].
   Future<SomeLibraryElementResult> getLibraryByUri(String uri);
-
-  /// Return a future that will complete with information about the library
-  /// element representing the library with the given [uri].
-  @Deprecated('Use getLibraryByUri() instead')
-  Future<SomeLibraryElementResult> getLibraryByUri2(String uri);
 
   /// Return information about the results of parsing units of the library file
   /// with the given absolute, normalized [path].
   SomeParsedLibraryResult getParsedLibrary(String path);
 
   /// Return information about the results of parsing units of the library file
-  /// with the given absolute, normalized [path].
-  @Deprecated('Use getParsedLibrary() instead')
-  SomeParsedLibraryResult getParsedLibrary2(String path);
-
-  /// Return information about the results of parsing units of the library file
   /// with the given library [element].
   SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element);
-
-  /// Return information about the results of parsing units of the library file
-  /// with the given library [element].
-  @Deprecated('Use getParsedLibraryByElement() instead')
-  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element);
 
   /// Return information about the results of parsing the file with the given
   /// absolute, normalized [path].
   SomeParsedUnitResult getParsedUnit(String path);
 
-  /// Return information about the results of parsing the file with the given
-  /// absolute, normalized [path].
-  @Deprecated('Use getParsedUnit() instead')
-  SomeParsedUnitResult getParsedUnit2(String path);
-
   /// Return a future that will complete with information about the results of
   /// resolving all of the files in the library with the given absolute,
   /// normalized [path].
   Future<SomeResolvedLibraryResult> getResolvedLibrary(String path);
-
-  /// Return a future that will complete with information about the results of
-  /// resolving all of the files in the library with the given absolute,
-  /// normalized [path].
-  @Deprecated('Use getResolvedLibrary() instead')
-  Future<SomeResolvedLibraryResult> getResolvedLibrary2(String path);
 
   /// Return a future that will complete with information about the results of
   /// resolving all of the files in the library with the library [element].
@@ -109,32 +70,13 @@ abstract class AnalysisSession {
       LibraryElement element);
 
   /// Return a future that will complete with information about the results of
-  /// resolving all of the files in the library with the library [element].
-  ///
-  /// Throw [ArgumentError] if the [element] was not produced by this session.
-  @Deprecated('Use getResolvedLibraryByElement() instead')
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
-      LibraryElement element);
-
-  /// Return a future that will complete with information about the results of
   /// resolving the file with the given absolute, normalized [path].
   Future<SomeResolvedUnitResult> getResolvedUnit(String path);
-
-  /// Return a future that will complete with information about the results of
-  /// resolving the file with the given absolute, normalized [path].
-  @Deprecated('Use getResolvedUnit() instead')
-  Future<SomeResolvedUnitResult> getResolvedUnit2(String path);
 
   /// Return a future that will complete with information about the results of
   /// building the element model for the file with the given absolute,
   /// normalized [path].
   Future<SomeUnitElementResult> getUnitElement(String path);
-
-  /// Return a future that will complete with information about the results of
-  /// building the element model for the file with the given absolute,
-  /// normalized [path].
-  @Deprecated('Use getUnitElement() instead')
-  Future<SomeUnitElementResult> getUnitElement2(String path);
 }
 
 /// The exception thrown by an [AnalysisSession] if a result is requested that

@@ -1,0 +1,21 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/top_level_map_literal_error.dart:7:9: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+// var c = {...a, ...b};
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static field core::Set<core::int> a = block {
+  final core::Set<core::int> #t1 = col::LinkedHashSet::•<core::int>();
+  #t1.{core::Set::add}{Invariant}(0){(core::int) → core::bool};
+} =>#t1;
+static field core::Map<core::int, core::int> b = <core::int, core::int>{0: 1};
+static field Never c = invalid-expression "pkg/front_end/testcases/general/top_level_map_literal_error.dart:7:9: Error: Both Iterable and Map spread elements encountered in ambiguous literal.
+var c = {...a, ...b};
+        ^";
+static method main() → dynamic {}

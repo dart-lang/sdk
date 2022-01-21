@@ -341,11 +341,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     nonPackageFeatureSet = featureSet;
   }
 
-  @deprecated
-  set enabledExperiments(List<String> enabledExperiments) {
-    _contextFeatures = ExperimentStatus.fromStrings(enabledExperiments);
-  }
-
   @override
   List<ErrorProcessor> get errorProcessors =>
       _errorProcessors ??= const <ErrorProcessor>[];
@@ -391,6 +386,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(implicitCasts);
       buffer.addBool(implicitDynamic);
       buffer.addBool(propagateLinterExceptions);
+      buffer.addBool(strictCasts);
       buffer.addBool(strictInference);
       buffer.addBool(strictRawTypes);
       buffer.addBool(useFastaParser);

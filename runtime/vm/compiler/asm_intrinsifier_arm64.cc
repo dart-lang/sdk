@@ -15,10 +15,12 @@ namespace dart {
 namespace compiler {
 
 // When entering intrinsics code:
+// PP: Caller's ObjectPool in JIT / global ObjectPool in AOT
+// CODE_REG: Callee's Code in JIT / not passed in AOT
 // R4: Arguments descriptor
 // LR: Return address
-// The R4 register can be destroyed only if there is no slow-path, i.e.
-// if the intrinsified method always executes a return.
+// The R4 and CODE_REG registers can be destroyed only if there is no slow-path,
+// i.e. if the intrinsified method always executes a return.
 // The FP register should not be modified, because it is used by the profiler.
 // The PP and THR registers (see constants_arm64.h) must be preserved.
 
@@ -51,9 +53,8 @@ void AsmIntrinsifier::GrowableArray_Allocate(Assembler* assembler,
       R1);
 
   // Set the length field in the growable array object to 0.
-  __ LoadImmediate(R1, 0);
   __ StoreCompressedIntoObjectNoBarrier(
-      R0, FieldAddress(R0, target::GrowableObjectArray::length_offset()), R1);
+      R0, FieldAddress(R0, target::GrowableObjectArray::length_offset()), ZR);
   __ ret();  // Returns the newly allocated object in R0.
 
   __ Bind(normal_ir_body);
@@ -1578,21 +1579,37 @@ void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
+// Keep in sync with Instance::IdentityHashCode.
+// Note int and double never reach here because they override _identityHashCode.
+// Special cases are also not needed for null or bool because they were pre-set
+// during VM isolate finalization.
 void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
-  __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  __ ldr(R0, FieldAddress(R0, target::String::hash_offset(), kFourBytes),
+  Label not_yet_computed;
+  __ ldr(R0, Address(SP, 0 * target::kWordSize));  // Object.
+  __ ldr(R0,
+         FieldAddress(R0,
+                      target::Object::tags_offset() +
+                          target::UntaggedObject::kHashTagPos / kBitsPerByte,
+                      kFourBytes),
          kUnsignedFourBytes);
+  __ cbz(&not_yet_computed, R0);
   __ SmiTag(R0);
   __ ret();
-}
 
-void AsmIntrinsifier::Object_setHashIfNotSetYet(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  __ ldp(/*Value=*/R1, /*Object=*/R0, Address(SP, 0, Address::PairOffset));
-  // R0: Untagged address of header word (ldxr/stxr do not support offsets).
+  __ Bind(&not_yet_computed);
+  __ LoadFromOffset(R1, THR, target::Thread::random_offset());
+  __ AndImmediate(R2, R1, 0xffffffff);  // state_lo
+  __ LsrImmediate(R3, R1, 32);          // state_hi
+  __ LoadImmediate(R1, 0xffffda61);     // A
+  __ mul(R1, R1, R2);
+  __ add(R1, R1, Operand(R3));  // new_state = (A * state_lo) + state_hi
+  __ StoreToOffset(R1, THR, target::Thread::random_offset());
+  __ AndImmediate(R1, R1, 0x3fffffff);
+  __ cbz(&not_yet_computed, R1);
+
+  __ ldr(R0, Address(SP, 0 * target::kWordSize));  // Object.
   __ sub(R0, R0, Operand(kHeapObjectTag));
-  __ SmiUntag(R1);
   __ LslImmediate(R3, R1, target::UntaggedObject::kHashTagPos);
 
   Label retry, already_set_in_r4;

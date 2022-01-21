@@ -38,8 +38,11 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ CallCFunction(RAX);
     __ movq(compiler::Assembler::VMTagAddress(),
             compiler::Immediate(VMTag::kDartTagId));
-    ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << THR)) != 0);
-    ASSERT((CallingConventions::kCalleeSaveCpuRegisters & (1 << PP)) != 0);
+    // These registers must be preserved by runtime functions, otherwise
+    // we'd need to restore them here.
+    ASSERT(IsCalleeSavedRegister(THR));
+    ASSERT(IsCalleeSavedRegister(PP));
+    ASSERT(IsCalleeSavedRegister(CODE_REG));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

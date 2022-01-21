@@ -1,0 +1,37 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/redirecting_initializer_arguments_test.dart:12:46: Error: The argument type 'String' can't be assigned to the parameter type 'T'.
+//   Foo.from(String _init) : this._internal(x: _init);
+//                                              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends core::Object* = dynamic> extends core::Object {
+  covariant-by-class field self::Foo::T* x;
+  constructor from(core::String* _init) → self::Foo<self::Foo::T*>*
+    : this self::Foo::_internal(x: invalid-expression "pkg/front_end/testcases/general/redirecting_initializer_arguments_test.dart:12:46: Error: The argument type 'String' can't be assigned to the parameter type 'T'.
+  Foo.from(String _init) : this._internal(x: _init);
+                                             ^" in _init as{TypeError} Never)
+    ;
+  constructor _internal({self::Foo::T* x = #C1}) → self::Foo<self::Foo::T*>*
+    : self::Foo::x = x, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → void {}
+
+constants  {
+  #C1 = null
+}

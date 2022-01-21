@@ -9,8 +9,9 @@ import 'dart:typed_data';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
-import 'package:watcher/watcher.dart';
+import 'package:watcher/watcher.dart' hide Watcher;
 
 /// An in-memory implementation of [ResourceProvider].
 /// Use `/` as a path separator.
@@ -22,9 +23,20 @@ class MemoryResourceProvider implements ResourceProvider {
 
   final pathos.Context _pathContext;
 
-  MemoryResourceProvider(
-      {pathos.Context? context, @deprecated bool isWindows = false})
-      : _pathContext = context ??= pathos.style == pathos.Style.windows
+  /// An artificial delay that's waited when initializing watchers.
+  ///
+  /// This allows mirroring how the real fs watcher works, where events may be
+  /// lost between creating the watcher and its `ready` event firing.
+  ///
+  /// Like the real file watcher, the `ready` event also requires a listener
+  /// to be attached before it will fire.
+  @visibleForTesting
+  final Duration? delayWatcherInitialization;
+
+  MemoryResourceProvider({
+    pathos.Context? context,
+    this.delayWatcherInitialization,
+  }) : _pathContext = context ??= pathos.style == pathos.Style.windows
             // On Windows, ensure that the current drive matches
             // the drive inserted by MemoryResourceProvider.convertPath
             // so that packages are mapped to the correct drive
@@ -106,20 +118,6 @@ class MemoryResourceProvider implements ResourceProvider {
     return _MemoryFolder(this, path);
   }
 
-  @Deprecated('Not used by clients')
-  @override
-  Future<List<int>> getModificationTimes(List<Source> sources) async {
-    return sources.map((source) {
-      String path = source.fullName;
-      var file = getFile(path);
-      try {
-        return file.modificationStamp;
-      } on FileSystemException {
-        return -1;
-      }
-    }).toList();
-  }
-
   @override
   Resource getResource(String path) {
     _ensureAbsoluteAndNormalized(path);
@@ -146,17 +144,6 @@ class MemoryResourceProvider implements ResourceProvider {
       timeStamp: nextStamp++,
     );
     _notifyWatchers(path, ChangeType.MODIFY);
-  }
-
-  /// Create a resource representing a dummy link (that is, a File object which
-  /// appears in its parent directory, but whose `exists` property is false)
-  @Deprecated('Not used by clients')
-  File newDummyLink(String path) {
-    _ensureAbsoluteAndNormalized(path);
-    newFolder(pathContext.dirname(path));
-    _MemoryDummyLink link = _MemoryDummyLink(this, path);
-    _notifyWatchers(path, ChangeType.ADD);
-    return link;
   }
 
   File newFile(
@@ -200,18 +187,6 @@ class MemoryResourceProvider implements ResourceProvider {
     _ensureAbsoluteAndNormalized(path);
     _ensureAbsoluteAndNormalized(target);
     _pathToLinkedPath[path] = target;
-  }
-
-  @Deprecated('Not used by clients')
-  File updateFile(String path, String content, [int? stamp]) {
-    _ensureAbsoluteAndNormalized(path);
-    newFolder(pathContext.dirname(path));
-    _pathToData[path] = _FileData(
-      bytes: utf8.encode(content) as Uint8List,
-      timeStamp: stamp ?? nextStamp++,
-    );
-    _notifyWatchers(path, ChangeType.MODIFY);
-    return _MemoryFile(this, path);
   }
 
   /// Write a representation of the file system on the given [sink].
@@ -358,81 +333,6 @@ class _FileData extends _ResourceData {
 class _FolderData extends _ResourceData {
   /// Names (not paths) of direct children.
   final List<String> childNames = [];
-}
-
-/// An in-memory implementation of [File] which acts like a symbolic link to a
-/// non-existent file.
-class _MemoryDummyLink extends _MemoryResource implements File {
-  _MemoryDummyLink(MemoryResourceProvider provider, String path)
-      : super(provider, path);
-
-  @override
-  Stream<WatchEvent> get changes {
-    throw FileSystemException(path, "File does not exist");
-  }
-
-  @override
-  bool get exists => false;
-
-  @override
-  int get lengthSync {
-    throw FileSystemException(path, 'File could not be read');
-  }
-
-  @override
-  int get modificationStamp {
-    throw FileSystemException(path, "File does not exist");
-  }
-
-  @override
-  File copyTo(Folder parentFolder) {
-    throw FileSystemException(path, 'File could not be copied');
-  }
-
-  @override
-  Source createSource([Uri? uri]) {
-    throw FileSystemException(path, 'File could not be read');
-  }
-
-  @override
-  void delete() {
-    throw FileSystemException(path, 'File could not be deleted');
-  }
-
-  @override
-  bool isOrContains(String path) {
-    return path == this.path;
-  }
-
-  @override
-  Uint8List readAsBytesSync() {
-    throw FileSystemException(path, 'File could not be read');
-  }
-
-  @override
-  String readAsStringSync() {
-    throw FileSystemException(path, 'File could not be read');
-  }
-
-  @override
-  File renameSync(String newPath) {
-    throw FileSystemException(path, 'File could not be renamed');
-  }
-
-  @override
-  File resolveSymbolicLinksSync() {
-    return throw FileSystemException(path, "File does not exist");
-  }
-
-  @override
-  void writeAsBytesSync(List<int> bytes) {
-    throw FileSystemException(path, 'File could not be written');
-  }
-
-  @override
-  void writeAsStringSync(String content) {
-    throw FileSystemException(path, 'File could not be written');
-  }
 }
 
 /// An in-memory implementation of [File].
@@ -680,34 +580,10 @@ abstract class _MemoryResource implements Resource {
 
   _MemoryResource(this.provider, this.path);
 
-  Stream<WatchEvent> get changes {
-    StreamController<WatchEvent> streamController =
-        StreamController<WatchEvent>();
-    if (!provider._pathToWatchers.containsKey(path)) {
-      provider._pathToWatchers[path] = <StreamController<WatchEvent>>[];
-    }
-    provider._pathToWatchers[path]!.add(streamController);
-    streamController.done.then((_) {
-      provider._pathToWatchers[path]!.remove(streamController);
-      if (provider._pathToWatchers[path]!.isEmpty) {
-        provider._pathToWatchers.remove(path);
-      }
-    });
-    return streamController.stream;
-  }
+  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   int get hashCode => path.hashCode;
-
-  @Deprecated('Use parent2 instead')
-  @override
-  Folder? get parent {
-    String parentPath = provider.pathContext.dirname(path);
-    if (parentPath == path) {
-      return null;
-    }
-    return provider.getFolder(parentPath);
-  }
 
   @override
   Folder get parent2 {
@@ -731,6 +607,50 @@ abstract class _MemoryResource implements Resource {
 
   @override
   Uri toUri() => provider.pathContext.toUri(path);
+
+  /// Watch for changes to the files inside this folder (and in any nested
+  /// folders, including folders reachable via links).
+  ///
+  /// If [provider.delayWatcherInitialization] is not `null`, this method will
+  /// wait for this amount of time before it starts capturing/streaming events
+  /// to simulate the delay that occurs when initializing a real file system
+  /// watcher.
+  @override
+  ResourceWatcher watch() {
+    final streamController = StreamController<WatchEvent>();
+    final ready = Completer<void>();
+
+    /// A helper that sets up the watcher that may be called synchronously
+    /// or delayed, depending on the value of
+    /// [provider.delayWatcherInitialization].
+    void setupWatcher() {
+      var watchers = provider._pathToWatchers[path] ??= [];
+      watchers.add(streamController);
+      streamController.done.then((_) {
+        watchers.remove(streamController);
+        if (watchers.isEmpty) {
+          provider._pathToWatchers.remove(path);
+        }
+      });
+      ready.complete();
+    }
+
+    final delayWatcherInitialization = provider.delayWatcherInitialization;
+    if (delayWatcherInitialization != null) {
+      // Wrap this inside onListen so that (like the real watcher) it will only
+      // fire after a listener is attached.
+      streamController.onListen = () {
+        Future<void>.delayed(delayWatcherInitialization, () {
+          streamController.onListen = null;
+          setupWatcher();
+        });
+      };
+    } else {
+      setupWatcher();
+    }
+
+    return ResourceWatcher(streamController.stream, ready.future);
+  }
 }
 
 class _ResourceData {}

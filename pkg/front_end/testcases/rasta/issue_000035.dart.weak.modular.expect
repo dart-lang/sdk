@@ -1,0 +1,48 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/issue_000035.dart:5:10: Error: The non-ASCII character 'æ' (U+00E6) can't be used in identifiers, only in strings and comments.
+// Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).
+// class C {æøC();}
+//          ^
+//
+// pkg/front_end/testcases/rasta/issue_000035.dart:5:11: Error: The non-ASCII character 'ø' (U+00F8) can't be used in identifiers, only in strings and comments.
+// Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).
+// class C {æøC();}
+//           ^
+//
+// pkg/front_end/testcases/rasta/issue_000035.dart:5:7: Error: The non-abstract class 'C' is missing implementations for these members:
+//  - C.æøC
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+//
+// class C {æøC();}
+//       ^
+// pkg/front_end/testcases/rasta/issue_000035.dart:5:10: Context: 'C.æøC' is defined here.
+// class C {æøC();}
+//          ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  abstract method æøC() → dynamic;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

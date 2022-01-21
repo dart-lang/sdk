@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 // Dart debug symbol information stored by DDC.
 //
 // The data format below stores descriptions of dart code objects and their
@@ -90,94 +88,110 @@ class ModuleSymbols implements SymbolTableElement {
   static const SemanticVersion current = SemanticVersion(0, 0, 1);
 
   /// Semantic version of the format.
-  String version;
+  final String version;
 
   /// Module name as used in the module metadata
-  String moduleName;
+  final String moduleName;
 
   /// All dart libraries included in the module.
   ///
   /// Note here and below that imported elements are not included in
   /// the current module but can be referenced by their ids.
-  List<LibrarySymbol> libraries;
+  final List<LibrarySymbol> libraries;
 
   /// All dart scripts included in the module.
-  List<Script> scripts;
+  final List<Script> scripts;
 
   /// All dart classes included in the module.
-  List<ClassSymbol> classes;
+  final List<ClassSymbol> classes;
 
   /// All dart function types included in the module.
-  List<FunctionTypeSymbol> functionTypes;
+  final List<FunctionTypeSymbol> functionTypes;
 
   /// All dart function types included in the module.
-  List<FunctionSymbol> functions;
+  final List<FunctionSymbol> functions;
 
   /// All dart scopes included in the module.
   ///
   /// Does not include scopes listed in other fields,
   /// such as libraries, classes, and functions.
-  List<ScopeSymbol> scopes;
+  final List<ScopeSymbol> scopes;
 
-  /// All dart variables included in the module.
+  /// All Dart variables included in the module.
   List<VariableSymbol> variables;
+
   ModuleSymbols({
-    this.version,
-    this.moduleName,
-    this.libraries,
-    this.scripts,
-    this.classes,
-    this.functionTypes,
-    this.functions,
-    this.scopes,
-    this.variables,
-  });
-  ModuleSymbols.fromJson(Map<String, dynamic> json) {
-    version = _createValue(json['version'], ifNull: current.version);
+    String? version,
+    required this.moduleName,
+    List<LibrarySymbol>? libraries,
+    List<Script>? scripts,
+    List<ClassSymbol>? classes,
+    List<FunctionTypeSymbol>? functionTypes,
+    List<FunctionSymbol>? functions,
+    List<ScopeSymbol>? scopes,
+    List<VariableSymbol>? variables,
+  })  : version = version ??= current.version,
+        libraries = libraries ?? [],
+        scripts = scripts ?? [],
+        classes = classes ?? [],
+        functionTypes = functionTypes ?? [],
+        functions = functions ?? [],
+        scopes = scopes ?? [],
+        variables = variables ?? [];
+
+  ModuleSymbols.fromJson(Map<String, dynamic> json)
+      : version = _readAndValidateVersionFromJson(json['version']),
+        moduleName = _createValue(json['moduleName']),
+        libraries =
+            _createObjectList(json['libraries'], LibrarySymbol.fromJson),
+        scripts = _createObjectList(json['scripts'], Script.fromJson),
+        classes = _createObjectList(json['classes'], ClassSymbol.fromJson),
+        functionTypes = _createObjectList(
+            json['functionTypes'], FunctionTypeSymbol.fromJson),
+        functions =
+            _createObjectList(json['functions'], FunctionSymbol.fromJson),
+        scopes = _createObjectList(json['scopes'], ScopeSymbol.fromJson),
+        variables =
+            _createObjectList(json['variables'], VariableSymbol.fromJson);
+
+  @override
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{
+      'version': version,
+      'moduleName': moduleName,
+    };
+    _setObjectListIfNotNullOrEmpty(json, 'libraries', libraries);
+    _setObjectListIfNotNullOrEmpty(json, 'scripts', scripts);
+    _setObjectListIfNotNullOrEmpty(json, 'classes', classes);
+    _setObjectListIfNotNullOrEmpty(json, 'functionTypes', functionTypes);
+    _setObjectListIfNotNullOrEmpty(json, 'functions', functions);
+    _setObjectListIfNotNullOrEmpty(json, 'scopes', scopes);
+    _setObjectListIfNotNullOrEmpty(json, 'variables', variables);
+    return json;
+  }
+
+  static String _readAndValidateVersionFromJson(dynamic json) {
+    if (json == null) return current.version;
+    var version = _createValue<String>(json);
     if (!current.isCompatibleWith(version)) {
       throw Exception('Unsupported version $version. '
           'Current version: ${current.version}');
     }
-    moduleName = _createValue(json['moduleName']);
-    libraries = _createObjectList(
-        json['libraries'], (json) => LibrarySymbol.fromJson(json));
-    scripts =
-        _createObjectList(json['scripts'], (json) => Script.fromJson(json));
-    classes = _createObjectList(
-        json['classes'], (json) => ClassSymbol.fromJson(json));
-    functionTypes = _createObjectList(
-        json['functionTypes'], (json) => FunctionTypeSymbol.fromJson(json));
-    functions = _createObjectList(
-        json['functions'], (json) => FunctionSymbol.fromJson(json));
-    scopes =
-        _createObjectList(json['scopes'], (json) => ScopeSymbol.fromJson(json));
-    variables = _createObjectList(
-        json['variables'], (json) => VariableSymbol.fromJson(json));
-  }
-  @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    _setValueIfNotNull(json, 'version', version);
-    _setValueIfNotNull(json, 'moduleName', moduleName);
-    _setObjectListIfNotNull(json, 'libraries', libraries);
-    _setObjectListIfNotNull(json, 'scripts', scripts);
-    _setObjectListIfNotNull(json, 'classes', classes);
-    _setObjectListIfNotNull(json, 'functionTypes', functionTypes);
-    _setObjectListIfNotNull(json, 'functions', functions);
-    _setObjectListIfNotNull(json, 'scopes', scopes);
-    _setObjectListIfNotNull(json, 'variables', variables);
-    return json;
+    return version;
   }
 }
 
 class Symbol implements SymbolTableElement {
   /// Local id (such as JS name) for the symbol.
   ///
-  /// Used to map from dart objects to JS objects inside a scope.
-  String localId;
+  /// Used to map from Dart objects to JS objects inside a scope.
+  final String localId;
 
   /// Enclosing scope of the symbol.
-  String scopeId;
+  final String? scopeId;
+
+  /// Source location of the symbol.
+  final SourceLocation? location;
 
   /// Unique Id, shared with JS representation (if any).
   ///
@@ -186,20 +200,20 @@ class Symbol implements SymbolTableElement {
   /// Where scope refers to a Library, Class, Function, or Scope.
   String get id => scopeId == null ? localId : '$scopeId|$localId';
 
-  /// Source location of the symbol.
-  SourceLocation location;
-  Symbol({this.localId, this.scopeId, this.location});
-  Symbol.fromJson(Map<String, dynamic> json) {
-    localId = _createValue(json['localId']);
-    scopeId = _createValue(json['scopeId']);
-    location = _createObject(
-        json['location'], (json) => SourceLocation.fromJson(json));
-  }
+  Symbol({required this.localId, this.scopeId, this.location});
+
+  Symbol.fromJson(Map<String, dynamic> json)
+      : localId = _createValue(json['localId']),
+        scopeId = _createValue(json['scopeId']),
+        location =
+            _createNullableObject(json['location'], SourceLocation.fromJson);
+
   @override
   Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    _setValueIfNotNull(json, 'localId', localId);
-    _setValueIfNotNull(json, 'scopeId', scopeId);
+    final json = <String, dynamic>{
+      'localId': localId,
+      if (scopeId != null) 'scopeId': scopeId,
+    };
     _setObjectIfNotNull(json, 'location', location);
     return json;
   }
@@ -210,6 +224,7 @@ abstract class TypeSymbol {
 }
 
 enum VariableSymbolKind { global, local, property, field, formal, none }
+
 VariableSymbolKind parseVariableSymbolKind(String value) {
   return VariableSymbolKind.values.singleWhere((e) => value == '$e',
       orElse: () {
@@ -218,189 +233,210 @@ VariableSymbolKind parseVariableSymbolKind(String value) {
 }
 
 class VariableSymbol extends Symbol {
-  /// Variable name
-  String name;
+  /// Name of the variable in Dart source code.
+  final String name;
 
   /// Symbol kind.
-  VariableSymbolKind kind;
+  final VariableSymbolKind kind;
 
-  /// The declared type of this symbol.
-  String typeId;
+  /// The declared type of this symbol in Dart source code.
+  // TODO(nshahan) Only nullable until we design how to identify types from
+  // other modules.
+  final String? typeId;
 
-  /// Is this variable const?
-  bool isConst;
+  /// True if this variable const.
+  final bool isConst;
 
-  /// Is this variable final?
-  bool isFinal;
+  /// True if this variable final.
+  final bool isFinal;
 
-  /// Is this variable static?
-  bool isStatic;
+  /// True if this variable static.
+  final bool isStatic;
 
   /// Property getter, if any.
-  String getterId;
+  final String? getterId;
 
   /// Property setter, if any.
-  String setterId;
+  final String? setterId;
+
   VariableSymbol({
-    this.name,
-    this.kind,
-    this.isConst,
-    this.isFinal,
-    this.isStatic,
-    this.typeId,
-    String localId,
-    String scopeId,
-    SourceLocation location,
-  }) : super(localId: localId, scopeId: scopeId, location: location);
-  VariableSymbol.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
-    name = _createValue(json['name']);
-    kind = _createValue(json['kind'],
-        parse: parseVariableSymbolKind, ifNull: VariableSymbolKind.none);
-    isConst = _createValue(json['isConst']);
-    isFinal = _createValue(json['isFinal']);
-    isStatic = _createValue(json['isStatic']);
-    typeId = _createValue(json['typeId']);
-    setterId = _createValue(json['setterId']);
-    getterId = _createValue(json['getterId']);
-  }
+    required this.name,
+    required this.kind,
+    required this.typeId,
+    bool? isConst,
+    bool? isFinal,
+    bool? isStatic,
+    this.getterId,
+    this.setterId,
+    required String localId,
+    required String scopeId,
+    required SourceLocation location,
+  })  : isConst = isConst ?? false,
+        isFinal = isFinal ?? false,
+        isStatic = isStatic ?? false,
+        super(localId: localId, scopeId: scopeId, location: location);
+
+  VariableSymbol.fromJson(Map<String, dynamic> json)
+      : name = _createValue(json['name']),
+        kind = _createValue(json['kind'],
+            parse: parseVariableSymbolKind, ifNull: VariableSymbolKind.none),
+        typeId = _createValue(json['typeId']),
+        isConst = _createValue(json['isConst']),
+        isFinal = _createValue(json['isFinal']),
+        isStatic = _createValue(json['isStatic']),
+        getterId = _createValue(json['getterId']),
+        setterId = _createValue(json['setterId']),
+        super.fromJson(json);
+
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    _setValueIfNotNull(json, 'name', name);
-    _setValueIfNotNull(json, 'kind', kind.toString());
-    _setValueIfNotNull(json, 'isConst', isConst);
-    _setValueIfNotNull(json, 'isFinal', isFinal);
-    _setValueIfNotNull(json, 'isStatic', isStatic);
-    _setValueIfNotNull(json, 'typeId', typeId);
-    _setValueIfNotNull(json, 'setterId', setterId);
-    _setValueIfNotNull(json, 'getterId', getterId);
-    return json;
-  }
+  Map<String, dynamic> toJson() => {
+        ...super.toJson(),
+        'name': name,
+        'kind': kind.toString(),
+        if (typeId != null) 'typeId': typeId,
+        'isConst': isConst,
+        'isFinal': isFinal,
+        'isStatic': isStatic,
+        if (getterId != null) 'getterId': getterId,
+        if (setterId != null) 'setterId': setterId,
+      };
 }
 
 class ClassSymbol extends ScopeSymbol implements TypeSymbol {
-  /// The name of this class.
-  String name;
+  /// The name of this class in Dart source code.
+  final String name;
 
-  /// Is this an abstract class?
-  bool isAbstract;
+  /// True if this class is abstract.
+  final bool isAbstract;
 
-  /// Is this a const class?
-  bool isConst;
+  /// True if this class is const.
+  final bool isConst;
 
   /// The superclass of this class, if any.
-  String superClassId;
+  final String? superClassId;
 
   /// A list of interface types for this class.
-  List<String> interfaceIds;
+  final List<String> interfaceIds;
 
-  /// Mapping of type parameter dart names to JS names.
-  Map<String, String> typeParameters;
+  /// Mapping of type parameter Dart names to JS names.
+  final Map<String, String> typeParameters;
 
   /// Library that contains this class.
-  String get libraryId => scopeId;
+  String get libraryId => scopeId!;
 
   /// Fields in this class.
   ///
   /// Including static fields, methods, and properties.
   List<String> get fieldIds => variableIds;
 
-  /// A list of functions in this class.
+  /// Functions in this class.
   ///
   /// Includes all static functions, methods, getters,
   /// and setters in the current class.
   ///
   /// Does not include functions from superclasses.
   List<String> get functionIds => scopeIds;
+
   ClassSymbol({
-    this.name,
-    this.isAbstract,
-    this.isConst,
+    required this.name,
+    bool? isAbstract,
+    bool? isConst,
     this.superClassId,
-    this.interfaceIds,
-    this.typeParameters,
-    String localId,
-    String scopeId,
-    SourceLocation location,
-    List<String> variableIds,
-    List<String> scopeIds,
-  }) : super(
+    List<String>? interfaceIds,
+    Map<String, String>? typeParameters,
+    required String localId,
+    required String scopeId,
+    required SourceLocation location,
+    List<String>? variableIds,
+    List<String>? scopeIds,
+  })  : isAbstract = isAbstract ?? false,
+        isConst = isConst ?? false,
+        interfaceIds = interfaceIds ?? [],
+        typeParameters = typeParameters ?? {},
+        super(
             localId: localId,
             scopeId: scopeId,
             variableIds: variableIds,
             scopeIds: scopeIds,
             location: location);
-  ClassSymbol.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
-    name = _createValue(json['name']);
-    isAbstract = _createValue(json['isAbstract']);
-    isConst = _createValue(json['isConst']);
-    superClassId = _createValue(json['superClassId']);
-    interfaceIds = _createValueList(json['interfaceIds']);
-    typeParameters = _createValueMap(json['typeParameters']);
-  }
+
+  ClassSymbol.fromJson(Map<String, dynamic> json)
+      : name = _createValue(json['name']),
+        isAbstract = _createValue(json['isAbstract']),
+        isConst = _createValue(json['isConst']),
+        superClassId = _createValue(json['superClassId']),
+        interfaceIds = _createValueList(json['interfaceIds']),
+        typeParameters = _createValueMap(json['typeParameters']),
+        super.fromJson(json);
+
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    _setValueIfNotNull(json, 'name', name);
-    _setValueIfNotNull(json, 'isAbstract', isAbstract);
-    _setValueIfNotNull(json, 'isConst', isConst);
-    _setValueIfNotNull(json, 'superClassId', superClassId);
-    _setValueIfNotNull(json, 'interfaceIds', interfaceIds);
-    _setValueIfNotNull(json, 'typeParameters', typeParameters);
-    return json;
-  }
+  Map<String, dynamic> toJson() => {
+        ...super.toJson(),
+        'name': name,
+        'isAbstract': isAbstract,
+        'isConst': isConst,
+        if (superClassId != null) 'superClassId': superClassId,
+        if (interfaceIds.isNotEmpty) 'interfaceIds': interfaceIds,
+        if (typeParameters.isNotEmpty) 'typeParameters': typeParameters,
+      };
 }
 
 class FunctionTypeSymbol extends Symbol implements TypeSymbol {
   /// Mapping of dart type parameter names to JS names.
-  Map<String, String> typeParameters;
+  final Map<String, String> typeParameters;
 
   /// Types for positional parameters for this function.
-  List<String> parameterTypeIds;
+  final List<String> parameterTypeIds;
 
   /// Types for optional positional parameters for this function.
-  List<String> optionalParameterTypeIds;
+  final List<String> optionalParameterTypeIds;
 
   /// Names and types for named parameters for this function.
-  Map<String, String> namedParameterTypeIds;
+  final Map<String, String> namedParameterTypeIds;
 
-  /// A return type for this function.
-  String returnTypeId;
+  /// The return type for this function.
+  final String returnTypeId;
+
   FunctionTypeSymbol({
-    this.typeParameters,
-    this.parameterTypeIds,
-    this.optionalParameterTypeIds,
-    this.namedParameterTypeIds,
-    this.returnTypeId,
-    String localId,
-    String scopeId,
-    SourceLocation location,
-  }) : super(localId: localId, scopeId: scopeId, location: location);
+    Map<String, String>? typeParameters,
+    List<String>? parameterTypeIds,
+    List<String>? optionalParameterTypeIds,
+    Map<String, String>? namedParameterTypeIds,
+    required this.returnTypeId,
+    required String localId,
+    required String scopeId,
+    required SourceLocation location,
+  })  : typeParameters = typeParameters ?? {},
+        parameterTypeIds = parameterTypeIds ?? [],
+        optionalParameterTypeIds = optionalParameterTypeIds ?? [],
+        namedParameterTypeIds = namedParameterTypeIds ?? {},
+        super(localId: localId, scopeId: scopeId, location: location);
+
   FunctionTypeSymbol.fromJson(Map<String, dynamic> json)
-      : super.fromJson(json) {
-    parameterTypeIds = _createValueList(json['parameterTypeIds']);
-    optionalParameterTypeIds =
-        _createValueList(json['optionalParameterTypeIds']);
-    typeParameters = _createValueMap(json['typeParameters']);
-    namedParameterTypeIds = _createValueMap(json['namedParameterTypeIds']);
-    returnTypeId = _createValue(json['returnTypeId']);
-  }
+      : parameterTypeIds = _createValueList(json['parameterTypeIds']),
+        optionalParameterTypeIds =
+            _createValueList(json['optionalParameterTypeIds']),
+        typeParameters = _createValueMap(json['typeParameters']),
+        namedParameterTypeIds = _createValueMap(json['namedParameterTypeIds']),
+        returnTypeId = _createValue(json['returnTypeId']),
+        super.fromJson(json);
+
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    _setValueIfNotNull(json, 'typeParameters', typeParameters);
-    _setValueIfNotNull(json, 'parameterTypeIds', parameterTypeIds);
-    _setValueIfNotNull(
-        json, 'optionalParameterTypeIds', optionalParameterTypeIds);
-    _setValueIfNotNull(json, 'namedParameterTypeIds', namedParameterTypeIds);
-    _setValueIfNotNull(json, 'returnTypeId', returnTypeId);
-    return json;
-  }
+  Map<String, dynamic> toJson() => {
+        ...super.toJson(),
+        if (typeParameters.isNotEmpty) 'typeParameters': typeParameters,
+        if (parameterTypeIds.isNotEmpty) 'parameterTypeIds': parameterTypeIds,
+        if (optionalParameterTypeIds.isNotEmpty)
+          'optionalParameterTypeIds': optionalParameterTypeIds,
+        if (namedParameterTypeIds.isNotEmpty)
+          'namedParameterTypeIds': namedParameterTypeIds,
+        'returnTypeId': returnTypeId,
+      };
 }
 
 class FunctionSymbol extends ScopeSymbol {
   /// The name of this function.
-  String name;
+  final String name;
 
   /// Unique Id, shared with JS representation (if any).
   ///
@@ -410,232 +446,238 @@ class FunctionSymbol extends ScopeSymbol {
   /// Where scope refers to a Library, Class, Function, or Scope.
   /// String id;
   /// Declared type of this function.
-  String typeId;
+  // TODO(nshahan) Only nullable because unused at this time.
+  final String? typeId;
 
-  /// Is this function static?
-  bool isStatic;
+  /// True if this function is static.
+  final bool isStatic;
 
-  /// Is this function const?
-  bool isConst;
+  /// True if this function is const.
+  final bool isConst;
+
   FunctionSymbol({
-    this.name,
-    this.typeId,
-    this.isStatic,
-    this.isConst,
-    String localId,
-    String scopeId,
-    List<String> variableIds,
-    List<String> scopeIds,
-    SourceLocation location,
-  }) : super(
+    required this.name,
+    required this.typeId,
+    bool? isStatic,
+    bool? isConst,
+    required String localId,
+    required String scopeId,
+    List<String>? variableIds,
+    List<String>? scopeIds,
+    required SourceLocation location,
+  })  : isStatic = isStatic ?? false,
+        isConst = isConst ?? false,
+        super(
           localId: localId,
           scopeId: scopeId,
           variableIds: variableIds,
           scopeIds: scopeIds,
           location: location,
         );
-  FunctionSymbol.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
-    name = _createValue(json['name']);
-    typeId = _createValue(json['typeId']);
-    isStatic = _createValue(json['isStatic']);
-    isConst = _createValue(json['isConst']);
-  }
+
+  FunctionSymbol.fromJson(Map<String, dynamic> json)
+      : name = _createValue(json['name']),
+        typeId = _createValue(json['typeId']),
+        isStatic = _createValue(json['isStatic']),
+        isConst = _createValue(json['isConst']),
+        super.fromJson(json);
+
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    _setValueIfNotNull(json, 'name', name);
-    _setValueIfNotNull(json, 'typeId', typeId);
-    _setValueIfNotNull(json, 'isStatic', isStatic);
-    _setValueIfNotNull(json, 'isConst', isConst);
-    return json;
-  }
+  Map<String, dynamic> toJson() => {
+        ...super.toJson(),
+        'name': name,
+        if (typeId != null) 'typeId': typeId,
+        'isStatic': isStatic,
+        'isConst': isConst,
+      };
 }
 
 class LibrarySymbol extends ScopeSymbol {
   /// The name of this library.
-  String name;
+  final String name;
 
-  /// Unique Id.
-  ///
-  /// Currently the debugger can find the library uri from JS location
-  /// using source maps and module metadata.
-  ///
-  /// Can be same as library uri.
-  /// String id;
   /// The uri of this library.
-  String uri;
+  final String uri;
 
   /// A list of the imports for this library.
-  List<LibrarySymbolDependency> dependencies;
+  final List<LibrarySymbolDependency> dependencies;
 
   /// A list of the scripts which constitute this library.
-  List<String> scriptIds;
+  final List<String> scriptIds;
+
   LibrarySymbol({
-    this.name,
-    this.uri,
-    this.dependencies,
-    this.scriptIds,
-    List<String> variableIds,
-    List<String> scopeIds,
-  }) : super(
+    String? name,
+    required this.uri,
+    List<LibrarySymbolDependency>? dependencies,
+    required this.scriptIds,
+    List<String>? variableIds,
+    List<String>? scopeIds,
+  })  : name = name ?? '',
+        dependencies = dependencies ?? [],
+        super(
           localId: uri,
           variableIds: variableIds,
           scopeIds: scopeIds,
         );
 
-  LibrarySymbol.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
-    name = _createValue(json['name'], ifNull: '');
-    uri = _createValue(json['uri']);
-    scriptIds = _createValueList(json['scriptIds']);
-    dependencies = _createObjectList(
-        json['dependencies'], (json) => LibrarySymbolDependency.fromJson(json));
-  }
+  LibrarySymbol.fromJson(Map<String, dynamic> json)
+      : name = _createValue(json['name'], ifNull: ''),
+        uri = _createValue(json['uri']),
+        scriptIds = _createValueList(json['scriptIds']),
+        dependencies = _createObjectList(
+            json['dependencies'], LibrarySymbolDependency.fromJson),
+        super.fromJson(json);
+
   @override
   Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    _setValueIfNotNull(json, 'name', name);
-    _setValueIfNotNull(json, 'uri', uri);
-    _setValueIfNotNull(json, 'scriptIds', scriptIds);
-    _setObjectListIfNotNull(json, 'dependencies', dependencies);
+    final json = {
+      ...super.toJson(),
+      if (name.isNotEmpty) 'name': name,
+      'uri': uri,
+      if (scriptIds.isNotEmpty) 'scriptIds': scriptIds,
+    };
+    _setObjectListIfNotNullOrEmpty(json, 'dependencies', dependencies);
     return json;
   }
 }
 
 class LibrarySymbolDependency implements SymbolTableElement {
-  /// Is this dependency an import (rather than an export)?
-  bool isImport;
+  /// True if this dependency an import, false if an an export.
+  final bool isImport;
 
-  /// Is this dependency deferred?
-  bool isDeferred;
+  /// True if this dependency is deferred.
+  final bool isDeferred;
 
   /// The prefix of an 'as' import, or null.
-  String prefix;
+  final String? prefix;
 
   /// The library being imported or exported.
-  String targetId;
+  final String targetId;
+
   LibrarySymbolDependency({
-    this.isImport,
-    this.isDeferred,
+    required this.isImport,
+    bool? isDeferred,
     this.prefix,
-    this.targetId,
-  });
-  LibrarySymbolDependency.fromJson(Map<String, dynamic> json) {
-    isImport = _createValue(json['isImport']);
-    isDeferred = _createValue(json['isDeferred']);
-    prefix = _createValue(json['prefix']);
-    targetId = _createValue(json['targetId']);
-  }
+    required this.targetId,
+  }) : isDeferred = isDeferred ?? false;
+
+  LibrarySymbolDependency.fromJson(Map<String, dynamic> json)
+      : isImport = _createValue(json['isImport']),
+        isDeferred = _createValue(json['isDeferred']),
+        prefix = _createValue(json['prefix']),
+        targetId = _createValue(json['targetId']);
+
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    _setValueIfNotNull(json, 'isImport', isImport);
-    _setValueIfNotNull(json, 'isDeferred', isDeferred);
-    _setValueIfNotNull(json, 'prefix', prefix);
-    _setValueIfNotNull(json, 'targetId', targetId);
-    return json;
-  }
+  Map<String, dynamic> toJson() => {
+        'isImport': isImport,
+        'isDeferred': isDeferred,
+        if (prefix != null) 'prefix': prefix,
+        'targetId': targetId,
+      };
 }
 
 class Script implements SymbolTableElement {
   /// The uri from which this script was loaded.
-  String uri;
+  final String uri;
 
   /// Unique Id.
   ///
   /// This can be just an integer. The mapping from JS to dart script
   /// happens using the source map. The id is only used for references
   /// in other elements.
-  String localId;
+  final String localId;
 
-  String libraryId;
+  final String libraryId;
 
   String get id => '$libraryId|$localId';
 
   Script({
-    this.uri,
-    this.localId,
-    this.libraryId,
+    required this.uri,
+    required this.localId,
+    required this.libraryId,
   });
-  Script.fromJson(Map<String, dynamic> json) {
-    uri = _createValue(json['uri']);
-    localId = _createValue(json['localId']);
-    libraryId = _createValue(json['libraryId']);
-  }
-  @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    _setValueIfNotNull(json, 'uri', uri);
-    _setValueIfNotNull(json, 'localId', localId);
-    _setValueIfNotNull(json, 'libraryId', libraryId);
 
-    return json;
-  }
+  Script.fromJson(Map<String, dynamic> json)
+      : uri = _createValue(json['uri']),
+        localId = _createValue(json['localId']),
+        libraryId = _createValue(json['libraryId']);
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'uri': uri,
+        'localId': localId,
+        'libraryId': libraryId,
+      };
 }
 
 class ScopeSymbol extends Symbol {
   /// A list of the top-level variables in this scope.
-  List<String> variableIds;
+  final List<String> variableIds;
 
   /// Enclosed scopes.
   ///
   /// Includes all top classes, functions, inner scopes.
-  List<String> scopeIds;
+  final List<String> scopeIds;
+
   ScopeSymbol({
-    this.variableIds,
-    this.scopeIds,
-    String localId,
-    String scopeId,
-    SourceLocation location,
-  }) : super(
+    List<String>? variableIds,
+    List<String>? scopeIds,
+    required String localId,
+    String? scopeId,
+    SourceLocation? location,
+  })  : variableIds = variableIds ?? [],
+        scopeIds = scopeIds ?? [],
+        super(
           localId: localId,
           scopeId: scopeId,
           location: location,
         );
-  ScopeSymbol.fromJson(Map<String, dynamic> json) : super.fromJson(json) {
-    variableIds = _createValueList(json['variableIds']);
-    scopeIds = _createValueList(json['scopeIds']);
-  }
+
+  ScopeSymbol.fromJson(Map<String, dynamic> json)
+      : variableIds = _createValueList(json['variableIds']),
+        scopeIds = _createValueList(json['scopeIds']),
+        super.fromJson(json);
+
   @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    _setValueIfNotNull(json, 'variableIds', variableIds);
-    _setValueIfNotNull(json, 'scopeIds', scopeIds);
-    return json;
-  }
+  Map<String, dynamic> toJson() => {
+        ...super.toJson(),
+        if (variableIds.isNotEmpty) 'variableIds': variableIds,
+        if (scopeIds.isNotEmpty) 'scopeIds': scopeIds,
+      };
 }
 
 class SourceLocation implements SymbolTableElement {
   /// The script containing the source location.
-  String scriptId;
+  final String scriptId;
 
   /// The first token of the location.
-  int tokenPos;
+  final int tokenPos;
 
   /// The last token of the location if this is a range.
-  int endTokenPos;
+  final int? endTokenPos;
+
   SourceLocation({
-    this.scriptId,
-    this.tokenPos,
+    required this.scriptId,
+    required this.tokenPos,
     this.endTokenPos,
   });
-  SourceLocation.fromJson(Map<String, dynamic> json) {
-    scriptId = _createValue(json['scriptId']);
-    tokenPos = _createValue(json['tokenPos']);
-    endTokenPos = _createValue(json['endTokenPos']);
-  }
+
+  SourceLocation.fromJson(Map<String, dynamic> json)
+      : scriptId = _createValue(json['scriptId']),
+        tokenPos = _createValue(json['tokenPos']),
+        endTokenPos = _createValue(json['endTokenPos']);
+
   @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-    _setValueIfNotNull(json, 'scriptId', scriptId);
-    _setValueIfNotNull(json, 'tokenPos', tokenPos);
-    _setValueIfNotNull(json, 'endTokenPos', endTokenPos);
-    return json;
-  }
+  Map<String, dynamic> toJson() => {
+        'scriptId': scriptId,
+        'tokenPos': tokenPos,
+        if (endTokenPos != null) 'endTokenPos': endTokenPos,
+      };
 }
 
 List<T> _createObjectList<T>(
     dynamic json, T Function(Map<String, dynamic>) creator) {
-  if (json == null) return null;
+  if (json == null) return <T>[];
   if (json is List) {
     return json.map((e) => _createObject(e, creator)).toList();
   }
@@ -643,16 +685,19 @@ List<T> _createObjectList<T>(
 }
 
 T _createObject<T>(dynamic json, T Function(Map<String, dynamic>) creator) {
-  if (json == null) return null;
   if (json is Map<String, dynamic>) {
     return creator(json);
   }
   throw ArgumentError('Not a map: $json');
 }
 
+T? _createNullableObject<T>(
+        dynamic json, T Function(Map<String, dynamic>) creator) =>
+    json == null ? null : _createObject(json, creator);
+
 List<T> _createValueList<T>(dynamic json,
-    {T ifNull, T Function(String) parse}) {
-  if (json == null) return null;
+    {T? ifNull, T Function(String)? parse}) {
+  if (json == null) return <T>[];
   if (json is List) {
     return json
         .map((e) => _createValue<T>(e, ifNull: ifNull, parse: parse))
@@ -662,12 +707,12 @@ List<T> _createValueList<T>(dynamic json,
 }
 
 Map<String, T> _createValueMap<T>(dynamic json) {
-  if (json == null) return null;
+  if (json == null) return <String, T>{};
   return Map<String, T>.from(json as Map<String, dynamic>);
 }
 
-T _createValue<T>(dynamic json, {T ifNull, T Function(String) parse}) {
-  if (json == null) return ifNull;
+T _createValue<T>(dynamic json, {T? ifNull, T Function(String)? parse}) {
+  if (json == null && ifNull is T) return ifNull;
   if (json is T) {
     return json;
   }
@@ -677,19 +722,14 @@ T _createValue<T>(dynamic json, {T ifNull, T Function(String) parse}) {
   throw ArgumentError('Cannot parse $json as $T');
 }
 
-void _setObjectListIfNotNull<T extends SymbolTableElement>(
-    Map<String, dynamic> json, String key, List<T> values) {
-  if (values == null) return;
-  json[key] = values.map((e) => e?.toJson()).toList();
+void _setObjectListIfNotNullOrEmpty<T extends SymbolTableElement>(
+    Map<String, dynamic> json, String key, List<T>? values) {
+  if (values == null || values.isEmpty) return;
+  json[key] = values.map((e) => e.toJson()).toList();
 }
 
 void _setObjectIfNotNull<T extends SymbolTableElement>(
-    Map<String, dynamic> json, String key, T value) {
+    Map<String, dynamic> json, String key, T? value) {
   if (value == null) return;
-  json[key] = value?.toJson();
-}
-
-void _setValueIfNotNull<T>(Map<String, dynamic> json, String key, T value) {
-  if (value == null) return;
-  json[key] = value;
+  json[key] = value.toJson();
 }

@@ -1133,4 +1133,47 @@ DART_EXPORT uint64_t SizeOfStruct3BytesPackedInt() {
   return sizeof(Struct3BytesPackedIntCopy);
 }
 
+// Define ssize_t for Windows as intptr_t.
+#if defined(_WIN32)
+typedef intptr_t ssize_t;
+#endif
+
+#define DEFINE_SIZE_OF_AND_SIGN_OF(type_modifier, type, type2)                 \
+  DART_EXPORT uint64_t FfiSizeOf_##type_modifier##_##type##_##type2() {        \
+    return sizeof(type_modifier type type2);                                   \
+  }                                                                            \
+                                                                               \
+  DART_EXPORT uint64_t FfiSignOf_##type_modifier##_##type##_##type2() {        \
+    return std::numeric_limits<type_modifier type type2>::is_signed;           \
+  }
+
+#define TYPES(F)                                                               \
+  F(, char, )             /* NOLINT */                                         \
+  F(signed, char, )       /* NOLINT */                                         \
+  F(unsigned, char, )     /* NOLINT */                                         \
+  F(, short, )            /* NOLINT */                                         \
+  F(unsigned, short, )    /* NOLINT */                                         \
+  F(, int, )              /* NOLINT */                                         \
+  F(unsigned, int, )      /* NOLINT */                                         \
+  F(, long, )             /* NOLINT */                                         \
+  F(unsigned, long, )     /* NOLINT */                                         \
+  F(, long, long)         /* NOLINT */                                         \
+  F(unsigned, long, long) /* NOLINT */                                         \
+  F(, intptr_t, )         /* NOLINT */                                         \
+  F(, uintptr_t, )        /* NOLINT */                                         \
+  F(, size_t, )           /* NOLINT */                                         \
+  F(, wchar_t, )          /* NOLINT */
+
+TYPES(DEFINE_SIZE_OF_AND_SIGN_OF)
+
+#undef DEFINE_SIZE_OF_AND_SIGN_OF
+#undef TYPES
+
+DART_EXPORT int64_t WCharMinValue() {
+  return WCHAR_MIN;
+}
+DART_EXPORT int64_t WCharMaxValue() {
+  return WCHAR_MAX;
+}
+
 }  // namespace dart

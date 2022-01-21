@@ -122,11 +122,11 @@ import 'util/textual_outline.dart' show textualOutline;
 
 import 'hybrid_file_system.dart' show HybridFileSystem;
 
-import 'kernel/class_hierarchy_builder.dart' show ClassHierarchyBuilder;
+import 'kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 
 import 'kernel/internal_ast.dart' show VariableDeclarationImpl;
 
-import 'kernel/kernel_target.dart' show KernelTarget;
+import 'kernel/kernel_target.dart' show BuildResult, KernelTarget;
 
 import 'library_graph.dart' show LibraryGraph;
 
@@ -351,13 +351,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Technically, it's the combination of
       // `currentKernelTarget.loader.libraries` and
       // `_dillLoadedData.loader.libraries`.
-      Component? componentWithDill = await currentKernelTarget.buildOutlines();
+      BuildResult buildResult = await currentKernelTarget.buildOutlines();
+      Component? componentWithDill = buildResult.component;
 
       if (!outlineOnly) {
         // Checkpoint: Build the actual bodies.
-        componentWithDill =
-            await currentKernelTarget.buildComponent(verify: c.options.verify);
+        buildResult = await currentKernelTarget.buildComponent(
+            macroApplications: buildResult.macroApplications,
+            verify: c.options.verify);
+        componentWithDill = buildResult.component;
       }
+      buildResult.macroApplications?.macroExecutor.close();
       hierarchy ??= currentKernelTarget.loader.hierarchy;
       if (currentKernelTarget.classHierarchyChanges != null) {
         hierarchy.applyTreeChanges(
@@ -465,26 +469,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     Set<Library> newDillLibraryBuilders = new Set<Library>();
     _userBuilders ??= <Uri, LibraryBuilder>{};
     Map<LibraryBuilder, List<LibraryBuilder>>? convertedLibraries;
-    for (LibraryBuilder builder
-        in nextGoodKernelTarget.loader.libraryBuilders) {
-      if (builder is SourceLibraryBuilder) {
-        DillLibraryBuilder dillBuilder =
-            _dillLoadedData!.loader.appendLibrary(builder.library);
-        nextGoodKernelTarget.loader.registerLibraryBuilder(
-            // TODO(johnniwinther): Why do we need to create
-            //  [DillLibraryBuilder]s for the patch library file uris?
-            dillBuilder,
-            builder.isPatch ? builder.fileUri : null);
-        _userBuilders![builder.importUri] = dillBuilder;
-        newDillLibraryBuilders.add(builder.library);
-        changed = true;
-        if (experimentalInvalidation != null) {
-          convertedLibraries ??=
-              new Map<LibraryBuilder, List<LibraryBuilder>>();
-          convertedLibraries[builder] = [dillBuilder];
-        }
+    for (SourceLibraryBuilder builder
+        in nextGoodKernelTarget.loader.sourceLibraryBuilders) {
+      DillLibraryBuilder dillBuilder =
+          _dillLoadedData!.loader.appendLibrary(builder.library);
+      nextGoodKernelTarget.loader.registerLibraryBuilder(dillBuilder);
+      _userBuilders![builder.importUri] = dillBuilder;
+      newDillLibraryBuilders.add(builder.library);
+      changed = true;
+      if (experimentalInvalidation != null) {
+        convertedLibraries ??= new Map<LibraryBuilder, List<LibraryBuilder>>();
+        convertedLibraries[builder] = [dillBuilder];
       }
     }
+    nextGoodKernelTarget.loader.clearSourceLibraryBuilders();
     if (changed) {
       // We suppress finalization errors because they have already been
       // reported.
@@ -527,7 +525,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
     nextGoodKernelTarget.loader.buildersCreatedWithReferences.clear();
-    nextGoodKernelTarget.loader.builderHierarchy.clear();
+    nextGoodKernelTarget.loader.hierarchyBuilder.clear();
+    nextGoodKernelTarget.loader.membersBuilder.clear();
     nextGoodKernelTarget.loader.referenceFromIndex = null;
     convertedLibraries = null;
     experimentalInvalidation = null;
@@ -537,6 +536,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   bool _checkEquivalentScopes(
       SourceLoader sourceLoader, DillLoader dillLoader) {
+    // TODO(johnniwinther): Use [SourceLoader.sourceLibraryBuilders] here.
+    // Currently this causes a failure in incremental_dartino_suite.dart.
     for (LibraryBuilder sourceLibraryBuilder in sourceLoader.libraryBuilders) {
       if (sourceLibraryBuilder is SourceLibraryBuilder) {
         Uri uri = sourceLibraryBuilder.importUri;
@@ -703,7 +704,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     updateNeededDillLibrariesWithHierarchy(
-        neededDillLibraries, hierarchy, target.loader.builderHierarchy);
+        neededDillLibraries, hierarchy, target.loader.hierarchyBuilder);
 
     return neededDillLibraries;
   }
@@ -759,9 +760,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         new Map<LibraryBuilder, List<LibraryBuilder>>.identity();
     if (experimentalInvalidation != null) {
       for (LibraryBuilder library in experimentalInvalidation.rebuildBodies) {
-        LibraryBuilder newBuilder = currentKernelTarget.loader.read(
-            library.importUri, -1,
-            accessorUri: currentKernelTarget.loader.firstUri,
+        LibraryBuilder newBuilder = currentKernelTarget.loader.readAsEntryPoint(
+            library.importUri,
             fileUri: library.fileUri,
             referencesFrom: library.library);
         List<LibraryBuilder> builders = [newBuilder];
@@ -1666,9 +1666,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     assert(_dillLoadedData != null && lastGoodKernelTarget != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder libraryBuilder = lastGoodKernelTarget!.loader.read(
-          libraryUri, -1,
-          accessorUri: lastGoodKernelTarget.loader.firstUri);
+      LibraryBuilder libraryBuilder =
+          lastGoodKernelTarget!.loader.readAsEntryPoint(libraryUri);
       _ticker.logMs("Loaded library $libraryUri");
 
       Class? cls;
@@ -1733,14 +1732,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
-        libraryUri,
-        debugExprUri,
-        /*packageUri*/ null,
-        new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
-        lastGoodKernelTarget.loader,
-        null,
+        importUri: libraryUri,
+        fileUri: debugExprUri,
+        packageLanguageVersion:
+            new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
+        loader: lastGoodKernelTarget.loader,
         scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder,
+        isUnsupported: libraryBuilder.isUnsupported,
       );
       _ticker.logMs("Created debug library");
 
@@ -2297,9 +2296,10 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
 }
 
 class _InitializationFromComponent extends _InitializationStrategy {
-  Component componentToInitializeFrom;
+  Component? _componentToInitializeFrom;
 
-  _InitializationFromComponent(this.componentToInitializeFrom);
+  _InitializationFromComponent(Component componentToInitializeFrom)
+      : _componentToInitializeFrom = componentToInitializeFrom;
 
   @override
   Future<int> initialize(
@@ -2310,6 +2310,11 @@ class _InitializationFromComponent extends _InitializationStrategy {
       _ComponentProblems componentProblems,
       IncrementalSerializer? incrementalSerializer,
       RecorderForTesting? recorderForTesting) {
+    Component? componentToInitializeFrom = _componentToInitializeFrom;
+    _componentToInitializeFrom = null;
+    if (componentToInitializeFrom == null) {
+      throw const InitializeFromComponentError("Initialized twice.");
+    }
     dillLoadedData.ticker.logMs("About to initializeFromComponent");
 
     Component component = data.component = new Component(
@@ -2585,9 +2590,11 @@ class _ComponentProblems {
       for (String jsonString in problemsAsJson) {
         DiagnosticMessageFromJson message =
             new DiagnosticMessageFromJson.fromJson(jsonString);
-        assert(message.uri != null ||
-            (message.involvedFiles != null &&
-                message.involvedFiles!.isNotEmpty));
+        assert(
+            message.uri != null ||
+                (message.involvedFiles != null &&
+                    message.involvedFiles!.isNotEmpty),
+            jsonString);
         if (message.uri != null) {
           List<DiagnosticMessageFromJson> messages =
               _remainingComponentProblems[message.uri!] ??=

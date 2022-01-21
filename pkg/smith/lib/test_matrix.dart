@@ -52,9 +52,13 @@ class TestMatrix {
       }
     });
 
-    var builderConfigurations = <Map>[...?json["builder_configurations"]];
+    var builderConfigurations = [
+      ...?(json["builder_configurations"] as List<Object?>?)
+          ?.cast<Map<Object?, Object?>>()
+    ];
     var builders = parseBuilders(builderConfigurations, configurations);
-    var branches = <String>[...?json["branches"]];
+    var branchesValue = json["branches"] as List?;
+    var branches = [...?branchesValue?.cast<String>()];
 
     // Check that each configuration is tested on at most one builder.
     var testedOn = <Configuration, Builder>{};

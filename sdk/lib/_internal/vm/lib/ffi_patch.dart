@@ -37,6 +37,8 @@ int get _intPtrSize => (const [
       8, // linuxArm64,
       4, // linuxIA32,
       8, // linuxX64,
+      4, // linuxRiscv32,
+      8, // linuxRiscv64,
       8, // macosArm64,
       8, // macosX64,
       8, // windowsArm64,
@@ -236,6 +238,15 @@ class Abi {
   factory Abi.current() => values[_abi()];
 }
 
+@pragma("vm:entry-point")
+class _FfiAbiSpecificMapping {
+  /// Indexed by [_abi].
+  @pragma("vm:entry-point")
+  final List<Object> nativeTypes;
+
+  const _FfiAbiSpecificMapping(this.nativeTypes);
+}
+
 /// Copies data byte-wise from [source] to [target].
 ///
 /// [source] and [target] should either be [Pointer] or [TypedData].
@@ -284,41 +295,53 @@ void _memCopy(Object target, int targetOffsetInBytes, Object source,
 // allocating a Pointer with in elementAt/offsetBy. Allocating these pointers
 // and GCing new spaces takes a lot of the benchmark time. The next speedup is
 // getting rid of these allocations by inlining these functions.
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_loadInt8")
 external int _loadInt8(Object typedDataBase, int offsetInBytes);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_loadInt16")
 external int _loadInt16(Object typedDataBase, int offsetInBytes);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_loadInt32")
 external int _loadInt32(Object typedDataBase, int offsetInBytes);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_loadInt64")
 external int _loadInt64(Object typedDataBase, int offsetInBytes);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_loadUint8")
 external int _loadUint8(Object typedDataBase, int offsetInBytes);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_loadUint16")
 external int _loadUint16(Object typedDataBase, int offsetInBytes);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_loadUint32")
 external int _loadUint32(Object typedDataBase, int offsetInBytes);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_loadUint64")
 external int _loadUint64(Object typedDataBase, int offsetInBytes);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_loadIntPtr")
-external int _loadIntPtr(Object typedDataBase, int offsetInBytes);
+external int _loadAbiSpecificInt<T extends AbiSpecificInteger>(
+    Object typedDataBase, int offsetInBytes);
+
+@pragma("vm:recognized", "other")
+external int _loadAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
+    Object typedDataBase, int index);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_loadFloat")
@@ -341,41 +364,53 @@ external double _loadDoubleUnaligned(Object typedDataBase, int offsetInBytes);
 external Pointer<S> _loadPointer<S extends NativeType>(
     Object typedDataBase, int offsetInBytes);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_storeInt8")
 external void _storeInt8(Object typedDataBase, int offsetInBytes, int value);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_storeInt16")
 external void _storeInt16(Object typedDataBase, int offsetInBytes, int value);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_storeInt32")
 external void _storeInt32(Object typedDataBase, int offsetInBytes, int value);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_storeInt64")
 external void _storeInt64(Object typedDataBase, int offsetInBytes, int value);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_storeUint8")
 external void _storeUint8(Object typedDataBase, int offsetInBytes, int value);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_storeUint16")
 external void _storeUint16(Object typedDataBase, int offsetInBytes, int value);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_storeUint32")
 external void _storeUint32(Object typedDataBase, int offsetInBytes, int value);
 
+@pragma("vm:entry-point")
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_storeUint64")
 external void _storeUint64(Object typedDataBase, int offsetInBytes, int value);
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_storeIntPtr")
-external void _storeIntPtr(Object typedDataBase, int offsetInBytes, int value);
+external int _storeAbiSpecificInt<T extends AbiSpecificInteger>(
+    Object typedDataBase, int offsetInBytes, int value);
+
+@pragma("vm:recognized", "other")
+external int _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
+    Object typedDataBase, int index, int value);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_storeFloat")
@@ -434,9 +469,6 @@ Pointer<Uint32> _elementAtUint32(Pointer<Uint32> pointer, int index) =>
 
 Pointer<Uint64> _elementAtUint64(Pointer<Uint64> pointer, int index) =>
     Pointer.fromAddress(pointer.address + 8 * index);
-
-Pointer<IntPtr> _elementAtIntPtr(Pointer<IntPtr> pointer, int index) =>
-    Pointer.fromAddress(pointer.address + _intPtrSize * index);
 
 Pointer<Float> _elementAtFloat(Pointer<Float> pointer, int index) =>
     Pointer.fromAddress(pointer.address + 4 * index);
@@ -655,21 +687,6 @@ extension Uint64Pointer on Pointer<Uint64> {
   }
 }
 
-extension IntPtrPointer on Pointer<IntPtr> {
-  @patch
-  int get value => _loadIntPtr(this, 0);
-
-  @patch
-  set value(int value) => _storeIntPtr(this, 0, value);
-
-  @patch
-  int operator [](int index) => _loadIntPtr(this, _intPtrSize * index);
-
-  @patch
-  operator []=(int index, int value) =>
-      _storeIntPtr(this, _intPtrSize * index, value);
-}
-
 extension FloatPointer on Pointer<Float> {
   @patch
   double get value => _loadFloat(this, 0);
@@ -842,20 +859,6 @@ extension Uint64Array on Array<Uint64> {
   }
 }
 
-extension IntPtrArray on Array<IntPtr> {
-  @patch
-  int operator [](int index) {
-    _checkIndex(index);
-    return _loadIntPtr(_typedDataBase, _intPtrSize * index);
-  }
-
-  @patch
-  operator []=(int index, int value) {
-    _checkIndex(index);
-    return _storeIntPtr(_typedDataBase, _intPtrSize * index, value);
-  }
-}
-
 extension FloatArray on Array<Float> {
   @patch
   double operator [](int index) {
@@ -923,7 +926,15 @@ extension StructPointer<T extends Struct> on Pointer<T> {
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
   @patch
+  set ref(T value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE";
+
+  @patch
   T operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  void operator []=(int index, T value) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
@@ -933,7 +944,34 @@ extension UnionPointer<T extends Union> on Pointer<T> {
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 
   @patch
+  set ref(T value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE";
+
+  @patch
   T operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  void operator []=(int index, T value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+}
+
+extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
+    on Pointer<T> {
+  @patch
+  int get value =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  void set value(int value) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  int operator [](int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  void operator []=(int index, int value) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
@@ -969,6 +1007,20 @@ extension UnionArray<T extends Union> on Array<T> {
   @patch
   T operator [](int index) {
     throw ArgumentError("T ($T) should be a subtype of Union at compile-time.");
+  }
+}
+
+extension AbiSpecificIntegerArray on Array<AbiSpecificInteger> {
+  @patch
+  int operator [](int index) {
+    throw ArgumentError(
+        "Receiver should be a subtype of AbiSpecificInteger at compile-time.");
+  }
+
+  @patch
+  void operator []=(int index, int value) {
+    throw ArgumentError(
+        "Receiver should be a subtype of AbiSpecificInteger at compile-time.");
   }
 }
 

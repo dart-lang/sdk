@@ -285,7 +285,9 @@ class RunningProcess {
               executable = '/usr/bin/sample';
             } else if (io.Platform.isWindows) {
               var isX64 = command.executable.contains("X64") ||
-                  command.executable.contains("SIMARM64");
+                  command.executable.contains("SIMARM64") ||
+                  command.executable.contains("SIMARM64C") ||
+                  command.executable.contains("SIMRISCV64");
               if (configuration.windowsSdkPath != null) {
                 executable = configuration.windowsSdkPath +
                     "\\Debuggers\\${isX64 ? 'x64' : 'x86'}\\cdb.exe";

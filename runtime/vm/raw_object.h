@@ -1864,22 +1864,6 @@ class UntaggedInstructionsSection : public UntaggedObject {
   friend class Image;
 };
 
-class UntaggedInstructionsTable : public UntaggedObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(InstructionsTable);
-
-  POINTER_FIELD(ArrayPtr, descriptors)
-  VISIT_FROM(descriptors)
-  VISIT_TO(descriptors)
-
-  intptr_t length_;
-  uword start_pc_;
-  uword end_pc_;
-
-  // Variable length data follows here.
-  uint32_t* data() { OPEN_ARRAY_START(uint32_t, uint32_t); }
-  const uint32_t* data() const { OPEN_ARRAY_START(uint32_t, uint32_t); }
-};
-
 class UntaggedPcDescriptors : public UntaggedObject {
  public:
 // The macro argument V is passed two arguments, the raw name of the enum value
@@ -2002,73 +1986,151 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(CompressedStackMaps);
   VISIT_NOTHING();
 
-  // The most significant bits are the length of the encoded payload, in bytes.
-  // The low bits determine the expected payload contents, as described below.
-  uint32_t flags_and_size_;
+ public:
+  // Note: AOT snapshots pack these structures without any padding in between
+  // so payload structure should not have any alignment requirements.
+  // alignas(1) is here to trigger a compiler error if we violate this.
+  struct alignas(1) Payload {
+    using FlagsAndSizeHeader = uint32_t;
 
-  // Variable length data follows here. The contents of the payload depend on
-  // the type of CompressedStackMaps (CSM) being represented. There are three
-  // major types of CSM:
-  //
-  // 1) GlobalTableBit = false, UsesTableBit = false: CSMs that include all
-  //    information about the stack maps. The payload for these contain tightly
-  //    packed entries with the following information:
-  //
-  //   * A header containing the following three pieces of information:
-  //     * An unsigned integer representing the PC offset as a delta from the
-  //       PC offset of the previous entry (from 0 for the first entry).
-  //     * An unsigned integer representing the number of bits used for
-  //       spill slot entries.
-  //     * An unsigned integer representing the number of bits used for other
-  //       entries.
-  //   * The body containing the bits for the stack map. The length of the body
-  //     in bits is the sum of the spill slot and non-spill slot bit counts.
-  //
-  // 2) GlobalTableBit = false, UsesTableBit = true: CSMs where the majority of
-  //    the stack map information has been offloaded and canonicalized into a
-  //    global table. The payload contains tightly packed entries with the
-  //    following information:
-  //
-  //   * A header containing just an unsigned integer representing the PC offset
-  //     delta as described above.
-  //   * The body is just an unsigned integer containing the offset into the
-  //     payload for the global table.
-  //
-  // 3) GlobalTableBit = true, UsesTableBit = false: A CSM implementing the
-  //    global table. Here, the payload contains tightly packed entries with
-  //    the following information:
-  //
-  //   * A header containing the following two pieces of information:
-  //     * An unsigned integer representing the number of bits used for
-  //       spill slot entries.
-  //     * An unsigned integer representing the number of bits used for other
-  //       entries.
-  //   * The body containing the bits for the stack map. The length of the body
-  //     in bits is the sum of the spill slot and non-spill slot bit counts.
-  //
-  // In all types of CSM, each unsigned integer is LEB128 encoded, as generally
-  // they tend to fit in a single byte or two. Thus, entry headers are not a
-  // fixed length, and currently there is no random access of entries.  In
-  // addition, PC offsets are currently encoded as deltas, which also inhibits
-  // random access without accessing previous entries. That means to find an
-  // entry for a given PC offset, a linear search must be done where the payload
-  // is decoded up to the entry whose PC offset is >= the given PC.
+    // The most significant bits are the length of the encoded payload, in
+    // bytes (excluding the header itself). The low bits determine the
+    // expected payload contents, as described below.
+    DART_FORCE_INLINE FlagsAndSizeHeader flags_and_size() const {
+      // Note: |this| does not necessarily satisfy alignment requirements
+      // of uint32_t so we should use bit_cast.
+      return bit_copy<FlagsAndSizeHeader, Payload>(*this);
+    }
 
-  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
-  const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+    DART_FORCE_INLINE void set_flags_and_size(FlagsAndSizeHeader value) {
+      // Note: |this| does not necessarily satisfy alignment requirements
+      // of uint32_t hence the byte copy below.
+      memcpy(reinterpret_cast<void*>(this), &value, sizeof(value));  // NOLINT
+    }
 
-  class GlobalTableBit : public BitField<uint32_t, bool, 0, 1> {};
-  class UsesTableBit
-      : public BitField<uint32_t, bool, GlobalTableBit::kNextBit, 1> {};
-  class SizeField : public BitField<uint32_t,
-                                    uint32_t,
-                                    UsesTableBit::kNextBit,
-                                    sizeof(flags_and_size_) * kBitsPerByte -
-                                        UsesTableBit::kNextBit> {};
+    // Variable length data follows here. The contents of the payload depend on
+    // the type of CompressedStackMaps (CSM) being represented. There are three
+    // major types of CSM:
+    //
+    // 1) GlobalTableBit = false, UsesTableBit = false: CSMs that include all
+    //    information about the stack maps. The payload for these contain
+    //    tightly packed entries with the following information:
+    //
+    //   * A header containing the following three pieces of information:
+    //     * An unsigned integer representing the PC offset as a delta from the
+    //       PC offset of the previous entry (from 0 for the first entry).
+    //     * An unsigned integer representing the number of bits used for
+    //       spill slot entries.
+    //     * An unsigned integer representing the number of bits used for other
+    //       entries.
+    //   * The body containing the bits for the stack map. The length of
+    //     the body in bits is the sum of the spill slot and non-spill slot
+    //     bit counts.
+    //
+    // 2) GlobalTableBit = false, UsesTableBit = true: CSMs where the majority
+    //    of the stack map information has been offloaded and canonicalized into
+    //    a global table. The payload contains tightly packed entries with the
+    //    following information:
+    //
+    //   * A header containing just an unsigned integer representing the PC
+    //     offset delta as described above.
+    //   * The body is just an unsigned integer containing the offset into the
+    //     payload for the global table.
+    //
+    // 3) GlobalTableBit = true, UsesTableBit = false: A CSM implementing the
+    //    global table. Here, the payload contains tightly packed entries with
+    //    the following information:
+    //
+    //   * A header containing the following two pieces of information:
+    //     * An unsigned integer representing the number of bits used for
+    //       spill slot entries.
+    //     * An unsigned integer representing the number of bits used for other
+    //       entries.
+    //   * The body containing the bits for the stack map. The length of the
+    //     body in bits is the sum of the spill slot and non-spill slot bit
+    //     counts.
+    //
+    // In all types of CSM, each unsigned integer is LEB128 encoded, as
+    // generally they tend to fit in a single byte or two. Thus, entry headers
+    // are not a fixed length, and currently there is no random access of
+    // entries.  In addition, PC offsets are currently encoded as deltas, which
+    // also inhibits random access without accessing previous entries. That
+    // means to find an entry for a given PC offset, a linear search must be
+    // done where the payload is decoded up to the entry whose PC offset
+    // is greater or equal to the given PC.
+
+    uint8_t* data() {
+      return reinterpret_cast<uint8_t*>(this) + sizeof(FlagsAndSizeHeader);
+    }
+
+    const uint8_t* data() const {
+      return reinterpret_cast<const uint8_t*>(this) +
+             sizeof(FlagsAndSizeHeader);
+    }
+  };
+
+ private:
+  // We are using OPEN_ARRAY_START rather than embedding Payload directly into
+  // the UntaggedCompressedStackMaps as a field because that would introduce a
+  // padding at the end of UntaggedCompressedStackMaps - so we would not be
+  // able to use sizeof(UntaggedCompressedStackMaps) as the size of the header
+  // anyway.
+  Payload* payload() { OPEN_ARRAY_START(Payload, uint8_t); }
+  const Payload* payload() const { OPEN_ARRAY_START(Payload, uint8_t); }
+
+  class GlobalTableBit
+      : public BitField<Payload::FlagsAndSizeHeader, bool, 0, 1> {};
+  class UsesTableBit : public BitField<Payload::FlagsAndSizeHeader,
+                                       bool,
+                                       GlobalTableBit::kNextBit,
+                                       1> {};
+  class SizeField
+      : public BitField<Payload::FlagsAndSizeHeader,
+                        Payload::FlagsAndSizeHeader,
+                        UsesTableBit::kNextBit,
+                        sizeof(Payload::FlagsAndSizeHeader) * kBitsPerByte -
+                            UsesTableBit::kNextBit> {};
 
   friend class Object;
   friend class ImageWriter;
   friend class StackMapEntry;
+};
+
+class UntaggedInstructionsTable : public UntaggedObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(InstructionsTable);
+
+  POINTER_FIELD(ArrayPtr, code_objects)
+  VISIT_FROM(code_objects)
+  VISIT_TO(code_objects)
+
+  struct DataEntry {
+    uint32_t pc_offset;
+    uint32_t stack_map_offset;
+  };
+  static_assert(sizeof(DataEntry) == sizeof(uint32_t) * 2);
+
+  struct Data {
+    uint32_t canonical_stack_map_entries_offset;
+    uint32_t length;
+    uint32_t first_entry_with_code;
+    uint32_t padding;
+
+    const DataEntry* entries() const { OPEN_ARRAY_START(DataEntry, uint32_t); }
+
+    const UntaggedCompressedStackMaps::Payload* StackMapAt(
+        intptr_t offset) const {
+      return reinterpret_cast<UntaggedCompressedStackMaps::Payload*>(
+          reinterpret_cast<uword>(this) + offset);
+    }
+  };
+  static_assert(sizeof(Data) == sizeof(uint32_t) * 4);
+
+  intptr_t length_;
+  const Data* rodata_;
+  uword start_pc_;
+  uword end_pc_;
+
+  friend class Deserializer;
 };
 
 class UntaggedLocalVarDescriptors : public UntaggedObject {
@@ -3244,10 +3306,14 @@ class UntaggedUserTag : public UntaggedInstance {
   // Isolate unique tag.
   uword tag_;
 
+  // Should CPU samples with this tag be streamed?
+  bool streamable_;
+
   friend class Object;
 
  public:
   uword tag() const { return tag_; }
+  bool streamable() const { return streamable_; }
 };
 
 class UntaggedFutureOr : public UntaggedInstance {

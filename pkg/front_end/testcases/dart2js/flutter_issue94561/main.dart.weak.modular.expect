@@ -1,0 +1,28 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dart2js/flutter_issue94561/main.dart:8:9: Error: Setter not found: 'a'.
+//   MyInt.a = 42;
+//         ^
+//
+// pkg/front_end/testcases/dart2js/flutter_issue94561/main.dart:10:9: Error: Setter not found: 'b'.
+//   MyInt.b = 87;
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/dart2js/flutter_issue94561/main.dart:8:9: Error: Setter not found: 'a'.
+  MyInt.a = 42;
+        ^";
+  core::print(mai::_#MyInt|a);
+  invalid-expression "pkg/front_end/testcases/dart2js/flutter_issue94561/main.dart:10:9: Error: Setter not found: 'b'.
+  MyInt.b = 87;
+        ^";
+  core::print(mai::_#MyInt|b);
+}

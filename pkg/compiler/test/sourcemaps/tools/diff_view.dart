@@ -866,12 +866,12 @@ Future<CodeLinesResult> computeCodeLines(
 
 /// Visitor that computes a map from [js.Node]s to all attached source
 /// locations.
-class SourceLocationCollector extends js.BaseVisitor {
+class SourceLocationCollector extends js.BaseVisitorVoid {
   Map<js.Node, List<SourceLocation>> sourceLocations =
       <js.Node, List<SourceLocation>>{};
 
   @override
-  visitNode(js.Node node) {
+  void visitNode(js.Node node) {
     SourceInformation sourceInformation = node.sourceInformation;
     if (sourceInformation != null) {
       sourceLocations[node] = sourceInformation.sourceLocations;

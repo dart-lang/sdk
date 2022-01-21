@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.54.0';
+const String vmServiceVersion = '3.56.0';
 
 /// @optional
 const String optional = 'optional';
@@ -245,6 +245,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'setVMName': const ['Success'],
   'setVMTimelineFlags': const ['Success'],
   'streamCancel': const ['Success'],
+  'streamCpuSamplesWithUserTag': const ['Success'],
   'streamListen': const ['Success'],
 };
 
@@ -1205,6 +1206,15 @@ abstract class VmServiceInterface {
   /// See [Success].
   Future<Success> streamCancel(String streamId);
 
+  /// The `streamCpuSamplesWithUserTag` RPC allows for clients to specify which
+  /// CPU samples collected by the profiler should be sent over the `Profiler`
+  /// stream. When called, the VM will stream `CpuSamples` events containing
+  /// `CpuSample`'s collected while a user tag contained in `userTags` was
+  /// active.
+  ///
+  /// See [Success].
+  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags);
+
   /// The `streamListen` RPC subscribes to a stream in the VM. Once subscribed,
   /// the client will begin receiving events from the stream.
   ///
@@ -1639,6 +1649,11 @@ class VmServerConnection {
           }
           await existing.cancel();
           response = Success();
+          break;
+        case 'streamCpuSamplesWithUserTag':
+          response = await _serviceImplementation.streamCpuSamplesWithUserTag(
+            List<String>.from(params!['userTags'] ?? []),
+          );
           break;
         case 'streamListen':
           var id = params!['streamId'];
@@ -2167,6 +2182,10 @@ class VmService implements VmServiceInterface {
   @override
   Future<Success> streamCancel(String streamId) =>
       _call('streamCancel', {'streamId': streamId});
+
+  @override
+  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>
+      _call('streamCpuSamplesWithUserTag', {'userTags': userTags});
 
   @override
   Future<Success> streamListen(String streamId) =>
@@ -2757,6 +2776,9 @@ class SourceReportKind {
 
   /// Used to request a list of token positions of possible breakpoints.
   static const String kPossibleBreakpoints = 'PossibleBreakpoints';
+
+  /// Used to request branch coverage information.
+  static const String kBranchCoverage = 'BranchCoverage';
 }
 
 /// An `ExceptionPauseMode` indicates how the isolate pauses when an exception
@@ -7398,10 +7420,22 @@ class SourceLocation extends Response {
   @optional
   int? endTokenPos;
 
+  /// The line associated with this location. Only provided for non-synthetic
+  /// token positions.
+  @optional
+  int? line;
+
+  /// The column associated with this location. Only provided for non-synthetic
+  /// token positions.
+  @optional
+  int? column;
+
   SourceLocation({
     required this.script,
     required this.tokenPos,
     this.endTokenPos,
+    this.line,
+    this.column,
   });
 
   SourceLocation._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
@@ -7409,6 +7443,8 @@ class SourceLocation extends Response {
         createServiceObject(json['script'], const ['ScriptRef']) as ScriptRef?;
     tokenPos = json['tokenPos'] ?? -1;
     endTokenPos = json['endTokenPos'];
+    line = json['line'];
+    column = json['column'];
   }
 
   @override
@@ -7423,6 +7459,8 @@ class SourceLocation extends Response {
       'tokenPos': tokenPos,
     });
     _setIfNotNull(json, 'endTokenPos', endTokenPos);
+    _setIfNotNull(json, 'line', line);
+    _setIfNotNull(json, 'column', column);
     return json;
   }
 
@@ -7559,6 +7597,11 @@ class SourceReportRange {
   @optional
   List<int>? possibleBreakpoints;
 
+  /// Branch coverage information for this range.  Provided only when the
+  /// BranchCoverage report has been requested and the range has been compiled.
+  @optional
+  SourceReportCoverage? branchCoverage;
+
   SourceReportRange({
     required this.scriptIndex,
     required this.startPos,
@@ -7567,6 +7610,7 @@ class SourceReportRange {
     this.error,
     this.coverage,
     this.possibleBreakpoints,
+    this.branchCoverage,
   });
 
   SourceReportRange._fromJson(Map<String, dynamic> json) {
@@ -7580,6 +7624,9 @@ class SourceReportRange {
     possibleBreakpoints = json['possibleBreakpoints'] == null
         ? null
         : List<int>.from(json['possibleBreakpoints']);
+    branchCoverage = createServiceObject(
+            json['branchCoverage'], const ['SourceReportCoverage'])
+        as SourceReportCoverage?;
   }
 
   Map<String, dynamic> toJson() {
@@ -7594,6 +7641,7 @@ class SourceReportRange {
     _setIfNotNull(json, 'coverage', coverage?.toJson());
     _setIfNotNull(json, 'possibleBreakpoints',
         possibleBreakpoints?.map((f) => f).toList());
+    _setIfNotNull(json, 'branchCoverage', branchCoverage?.toJson());
     return json;
   }
 

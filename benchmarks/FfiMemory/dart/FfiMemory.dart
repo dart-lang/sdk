@@ -73,6 +73,12 @@ void doStoreUint64(Pointer<Uint64> pointer, int length) {
   }
 }
 
+void doStoreUintPtr(Pointer<UintPtr> pointer, int length) {
+  for (int i = 0; i < length; i++) {
+    pointer[i] = 1;
+  }
+}
+
 void doStoreFloat(Pointer<Float> pointer, int length) {
   for (int i = 0; i < length; i++) {
     pointer[i] = 1.0;
@@ -167,6 +173,14 @@ int doLoadInt64(Pointer<Int64> pointer, int length) {
 }
 
 int doLoadUint64(Pointer<Uint64> pointer, int length) {
+  int x = 0;
+  for (int i = 0; i < length; i++) {
+    x += pointer[i];
+  }
+  return x;
+}
+
+int doLoadUintPtr(Pointer<UintPtr> pointer, int length) {
   int x = 0;
   for (int i = 0; i < length; i++) {
     x += pointer[i];
@@ -452,6 +466,25 @@ class PointerUint64 extends BenchmarkBase {
   }
 }
 
+class PointerUintPtr extends BenchmarkBase {
+  Pointer<UintPtr> pointer = nullptr;
+  PointerUintPtr() : super('FfiMemory.PointerUintPtr');
+
+  @override
+  void setup() => pointer = calloc(N);
+  @override
+  void teardown() => calloc.free(pointer);
+
+  @override
+  void run() {
+    doStoreUintPtr(pointer, N);
+    final int x = doLoadUintPtr(pointer, N);
+    if (x != N) {
+      throw Exception('$name: Unexpected result: $x');
+    }
+  }
+}
+
 class PointerFloat extends BenchmarkBase {
   Pointer<Float> pointer = nullptr;
   PointerFloat() : super('FfiMemory.PointerFloat');
@@ -555,6 +588,7 @@ void main() {
     () => PointerInt64(),
     () => PointerInt64Mint(),
     () => PointerUint64(),
+    () => PointerUintPtr(),
     () => PointerFloat(),
     () => PointerDouble(),
     () => PointerPointer(),

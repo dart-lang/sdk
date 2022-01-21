@@ -288,7 +288,8 @@ backface-visibility
 -webkit-column-break-inside
 -webkit-column-count
 column-fill
--webkit-column-gap
+column-gap
+-webkit-column-gap alias_for=column-gap
 -webkit-column-rule
 -webkit-column-rule-color
 -webkit-column-rule-style
@@ -321,6 +322,7 @@ flex-wrap
 justify-content
 -webkit-justify-content alias_for=justify-content
 -webkit-font-size-delta
+gap
 grid-auto-columns
 grid-auto-flow
 grid-auto-rows
@@ -387,6 +389,7 @@ perspective-origin
 -webkit-perspective-origin-x
 -webkit-perspective-origin-y
 -webkit-print-color-adjust
+row-gap
 -webkit-rtl-ordering
 -webkit-ruby-position
 -webkit-text-combine

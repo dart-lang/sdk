@@ -1299,12 +1299,15 @@ BlockEntryInstr* Instruction::GetBlock() {
   // TODO(fschneider): Implement a faster way to get the block of an
   // instruction.
   Instruction* result = previous();
-  ASSERT(result != nullptr);
-  while (!result->IsBlockEntry()) {
+  while ((result != nullptr) && !result->IsBlockEntry()) {
     result = result->previous();
-    ASSERT(result != nullptr);
   }
-  return result->AsBlockEntry();
+  // InlineExitCollector::RemoveUnreachableExits may call
+  // Instruction::GetBlock on instructions which are not properly linked
+  // to the flow graph (as collected exits may belong to unreachable
+  // fragments), so this code should gracefully handle the absence of
+  // BlockEntry.
+  return (result != nullptr) ? result->AsBlockEntry() : nullptr;
 }
 
 void ForwardInstructionIterator::RemoveCurrentFromGraph() {
@@ -4260,7 +4263,6 @@ void LoadFieldInstr::EmitNativeCodeForInitializerCall(
     stub = object_store->init_instance_field_stub();
   } else if (field.is_late()) {
     if (!field.has_nontrivial_initializer()) {
-      // Common stub calls runtime which will throw an exception.
       stub = object_store->init_instance_field_stub();
     } else {
       // Stubs for late field initialization call initializer
@@ -5674,7 +5676,7 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
 
   if (is_smi.IsLinked()) {
     compiler::Label done;
-    __ Jump(&done);
+    __ Jump(&done, compiler::Assembler::kNearJump);
     __ Bind(&is_smi);
     EmitSmiConversion(compiler);
     __ Bind(&done);
@@ -6372,7 +6374,8 @@ void NativeCallInstr::SetupNative() {
   set_native_c_function(native_function);
 }
 
-#if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64)
+#if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64) &&                \
+    !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 
 LocationSummary* BitCastInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   UNREACHABLE();
@@ -6382,7 +6385,8 @@ void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
-#endif  // !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64)
+#endif  // !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64) &&         \
+        // !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx < TargetAddressIndex()) {
@@ -6502,7 +6506,10 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
 
       ConstantTemporaryAllocator temp_alloc(temp);
       if (origin.IsConstant()) {
-        compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
+        // Can't occur because we currently don't inline FFI trampolines (see
+        // http://dartbug.com/45055), which means all incomming arguments
+        // originate from parameters and thus are non-constant.
+        UNREACHABLE();
       } else {
         compiler->EmitMoveToNative(def_target, origin, origin_rep, &temp_alloc);
       }

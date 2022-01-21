@@ -519,7 +519,7 @@ typedef MyAlias = void Function();
   "label": "MyAlias",
   "declaringLibraryUri": "package:test/a.dart",
   "element": {
-    "kind": "FUNCTION_TYPE_ALIAS",
+    "kind": "TYPE_ALIAS",
     "name": "MyAlias",
     "location": {
       "file": ${jsonOfPath(path)},

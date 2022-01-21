@@ -4,8 +4,9 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
-import '../builder/member_builder.dart';
+
 import '../source/source_library_builder.dart';
+import '../source/source_member_builder.dart';
 import 'kernel_helper.dart';
 
 const String _tearOffNamePrefix = '_#';

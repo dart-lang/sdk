@@ -1,0 +1,30 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Const extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Const
+    : super core::Object::•()
+    ;
+}
+class BuildAssert extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::bool condition, [core::Object? message]) → self::BuildAssert
+    : assert(condition, message), super core::Object::•()
+    ;
+}
+static const field self::BuildAssert _assert1 = const self::BuildAssert::•(false);
+static const field self::BuildAssert _assert2 = const self::BuildAssert::•(false, null);
+static const field self::BuildAssert _assert3 = const self::BuildAssert::•(false, "foo");
+static const field self::BuildAssert _assert4 = const self::BuildAssert::•(false, 0);
+static const field self::BuildAssert _assert5 = const self::BuildAssert::•(false, const <dynamic, dynamic>{});
+static const field self::BuildAssert _assert6 = const self::BuildAssert::•(false, #_symbol);
+static const field self::BuildAssert _assert7 = const self::BuildAssert::•(false, const self::Const::•());
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: MapLiteral @ org-dartlang-testcase:///issue47994a.dart:18:37 -> MapConstant(const <dynamic, dynamic>{})
+Evaluated: SymbolLiteral @ org-dartlang-testcase:///issue47994a.dart:19:37 -> SymbolConstant(#_symbol)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47994a.dart:20:43 -> InstanceConstant(const Const{})
+Extra constant evaluation: evaluated: 12, effectively constant: 3

@@ -556,4 +556,103 @@ void main() {
       [F]
     ]
   ]);
+
+  testTransitiveDependencies(graphData: {
+    A: [B],
+    B: [A],
+  }, of: {
+    A
+  }, expected: {
+    A,
+    B,
+  });
+
+  testTransitiveDependencies(graphData: {}, of: {
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+  }, expected: {});
+
+  {
+    String MAIN = "MAIN";
+    String DARTFFI = "DARTFFI";
+    testTransitiveDependencies(graphData: {
+      MAIN: [DARTFFI],
+    }, of: {
+      DARTFFI
+    }, expected: {
+      MAIN,
+    });
+  }
+
+  testTransitiveDependencies(graphData: {
+    A: [B],
+    B: [C],
+    C: [B, D],
+    D: [C],
+    E: [A],
+    F: [B],
+  }, of: {
+    A
+  }, expected: {
+    A,
+    E
+  });
+
+  {
+    String MAIN = "MAIN";
+    String TARGET = "TARGET";
+
+    testTransitiveDependencies(graphData: {
+      MAIN: [A, E],
+      A: [B],
+      B: [A, C],
+      C: [TARGET],
+      D: [],
+      E: [D],
+    }, of: {
+      TARGET,
+    }, expected: {
+      C,
+      B,
+      A,
+      MAIN,
+    });
+
+    testTransitiveDependencies(graphData: {
+      MAIN: [A, E],
+      A: [B],
+      B: [A, C],
+      C: [],
+      D: [],
+      E: [D],
+    }, of: {
+      TARGET,
+    }, expected: {});
+
+    testTransitiveDependencies(graphData: {
+      MAIN: [A, C, E, TARGET],
+      A: [B],
+      B: [A, C],
+      C: [],
+      D: [],
+      E: [D],
+    }, of: {
+      TARGET,
+    }, expected: {
+      MAIN,
+    });
+  }
+}
+
+void testTransitiveDependencies(
+    {required Set<String> of,
+    required Set<String> expected,
+    required Map<String, List<String>> graphData}) {
+  Graph<String> graph = new TestGraph(graphData);
+  Set<String> actual = calculateTransitiveDependenciesOf(graph, of);
+  Expect.setEquals(expected, actual);
 }

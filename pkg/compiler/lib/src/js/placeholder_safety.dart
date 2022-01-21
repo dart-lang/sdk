@@ -63,7 +63,12 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   @override
   int visitNode(js.Node node) {
     safe = false;
-    super.visitNode(node);
+    node.visitChildren(this);
+    return UNKNOWN_VALUE;
+  }
+
+  @override
+  int visitComment(js.Comment node) {
     return UNKNOWN_VALUE;
   }
 
@@ -184,6 +189,23 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
     // Be conservative with unrecognized LHS expressions.
     safe = false;
     return leftToRight();
+  }
+
+  @override
+  int visitVariableInitialization(js.VariableInitialization node) {
+    js.Expression left = node.declaration;
+    js.Expression right = node.value;
+
+    visit(left);
+    if (left is js.InterpolatedNode) {
+      // A bare interpolated expression should not be the LHS of an initialized
+      // variable declaration.
+      safe = false;
+    }
+    if (right != null) {
+      return visit(right);
+    }
+    return UNKNOWN_VALUE;
   }
 
   @override

@@ -265,7 +265,6 @@ class PageSpaceController {
                                  int64_t start,
                                  int64_t end);
   void EvaluateAfterLoading(SpaceUsage after);
-  void HintFreed(intptr_t size);
 
   void set_last_usage(SpaceUsage current) { last_usage_ = current; }
 
@@ -359,7 +358,6 @@ class PageSpace {
   void EvaluateAfterLoading() {
     page_space_controller_.EvaluateAfterLoading(usage_);
   }
-  void HintFreed(intptr_t size) { page_space_controller_.HintFreed(size); }
 
   int64_t UsedInWords() const { return usage_.used_in_words; }
   int64_t CapacityInWords() const {

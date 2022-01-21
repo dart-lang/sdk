@@ -49,7 +49,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, use_vfp, true, "Use vfp instructions if supported");
 DEFINE_FLAG(bool, use_neon, true, "Use neon instructions if supported");
 DEFINE_FLAG(bool,
             use_integer_division,
@@ -104,7 +103,6 @@ const char* CPU::Id() {
 }
 
 bool HostCPUFeatures::integer_division_supported_ = false;
-bool HostCPUFeatures::vfp_supported_ = false;
 bool HostCPUFeatures::neon_supported_ = false;
 bool HostCPUFeatures::hardfp_supported_ = false;
 const char* HostCPUFeatures::hardware_ = NULL;
@@ -121,7 +119,6 @@ void HostCPUFeatures::Init() {
   hardware_ = "";
   // When the VM is targetted to ARMv7, pretend that the CPU is ARMv7 even if
   // the CPU is actually AArch64.
-  vfp_supported_ = FLAG_use_vfp;
   integer_division_supported_ = FLAG_use_integer_division;
   neon_supported_ = FLAG_use_neon;
   hardfp_supported_ = false;
@@ -150,15 +147,6 @@ void HostCPUFeatures::Init() {
     FATAL("Unrecognized ARM CPU architecture.");
 #endif
   }
-
-#if defined(DART_RUN_IN_QEMU_ARMv7)
-  vfp_supported_ = true;
-#else
-  // Has floating point unit.
-  vfp_supported_ =
-      (CpuInfo::FieldContains(kCpuInfoFeatures, "vfp") || is_arm64) &&
-      FLAG_use_vfp;
-#endif
 
   // Has integer division.
   // Special cases:
@@ -198,7 +186,7 @@ void HostCPUFeatures::Init() {
   }
   neon_supported_ =
       (CpuInfo::FieldContains(kCpuInfoFeatures, "neon") || is_arm64) &&
-      FLAG_use_vfp && FLAG_use_neon;
+      FLAG_use_neon;
 
 // Use the cross-compiler's predefined macros to determine whether we should
 // use the hard or soft float ABI.
@@ -232,8 +220,7 @@ void HostCPUFeatures::Init() {
   hardware_ = CpuInfo::GetCpuModel();
 
   integer_division_supported_ = FLAG_use_integer_division;
-  vfp_supported_ = FLAG_use_vfp;
-  neon_supported_ = FLAG_use_vfp && FLAG_use_neon;
+  neon_supported_ = FLAG_use_neon;
   hardfp_supported_ = FLAG_sim_use_hardfp;
 #if defined(DEBUG)
   initialized_ = true;

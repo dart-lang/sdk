@@ -20,10 +20,10 @@ DECLARE_FLAG(bool, precompiled_mode);
 namespace compiler {
 
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches)
+                     intptr_t far_branch_level)
     : AssemblerBase(object_pool_builder), constant_pool_allowed_(false) {
   // Far branching mode is only needed and implemented for ARM.
-  ASSERT(!use_far_branches);
+  ASSERT(far_branch_level == 0);
 
   generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
     call(Address(THR,
@@ -184,7 +184,7 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
   }
 }
 
-void Assembler::ExitFullSafepoint() {
+void Assembler::ExitFullSafepoint(bool ignore_unwind_in_progress) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
   Label done, slow_path;
@@ -209,7 +209,14 @@ void Assembler::ExitFullSafepoint() {
   }
 
   Bind(&slow_path);
-  movq(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  if (ignore_unwind_in_progress) {
+    movq(TMP,
+         Address(THR,
+                 target::Thread::
+                     exit_safepoint_ignore_unwind_in_progress_stub_offset()));
+  } else {
+    movq(TMP, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  }
   movq(TMP, FieldAddress(TMP, target::Code::entry_point_offset()));
 
   // Use call instead of CallCFunction to avoid having to clean up shadow space
@@ -220,10 +227,13 @@ void Assembler::ExitFullSafepoint() {
   Bind(&done);
 }
 
-void Assembler::TransitionNativeToGenerated(bool leave_safepoint) {
+void Assembler::TransitionNativeToGenerated(bool leave_safepoint,
+                                            bool ignore_unwind_in_progress) {
   if (leave_safepoint) {
-    ExitFullSafepoint();
+    ExitFullSafepoint(ignore_unwind_in_progress);
   } else {
+    // flag only makes sense if we are leaving safepoint
+    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     movq(TMP, Address(THR, target::Thread::safepoint_state_offset()));
@@ -1376,6 +1386,17 @@ void Assembler::MoveImmediate(const Address& dst, const Immediate& imm) {
   } else {
     LoadImmediate(TMP, imm);
     movq(dst, TMP);
+  }
+}
+
+void Assembler::LoadDImmediate(FpuRegister dst, double immediate) {
+  int64_t bits = bit_cast<int64_t>(immediate);
+  if (bits == 0) {
+    xorps(dst, dst);
+  } else {
+    intptr_t index = FindImmediate(bits);
+    LoadUnboxedDouble(
+        dst, PP, target::ObjectPool::element_offset(index) - kHeapObjectTag);
   }
 }
 

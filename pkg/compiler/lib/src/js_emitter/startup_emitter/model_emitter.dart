@@ -64,7 +64,6 @@ import '../../js_backend/deferred_holder_expression.dart'
         DeferredHolderParameter,
         DeferredHolderResource,
         DeferredHolderResourceKind,
-        LegacyDeferredHolderExpressionFinalizerImpl,
         mainResourceName;
 import '../../js_backend/type_reference.dart'
     show
@@ -558,6 +557,9 @@ var ${startupMetricsGlobal} =
     js.Program program = js.Program([
       if (isFirst) buildGeneratedBy(),
       if (isFirst) buildDeferredInitializerGlobal(),
+      if (_options.experimentalTrackAllocations)
+        js.js.statement("var allocations = #deferredGlobal['allocations']",
+            {'deferredGlobal': deferredInitializersGlobal}),
       js.js.statement('$deferredInitializersGlobal.current = #', code)
     ]);
 

@@ -10,6 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -113,9 +114,9 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   /// Creates a project [projectPath].
-  void createProject({Map<String, String>? packageRoots}) {
+  Future<void> createProject({Map<String, String>? packageRoots}) async {
     newFolder(projectPath);
-    setRoots(included: [projectPath], excluded: []);
+    await setRoots(included: [projectPath], excluded: []);
   }
 
   void doAllDeclarationsTrackerWork() {
@@ -145,7 +146,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   /// Validates that the given [request] is handled successfully.
   Response handleSuccessfulRequest(Request request, {RequestHandler? handler}) {
     handler ??= this.handler;
-    var response = handler.handleRequest(request)!;
+    var response = handler.handleRequest(request, NotCancelableToken())!;
     expect(response, isResponseSuccess(request.id));
     return response;
   }
@@ -174,20 +175,25 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     handleSuccessfulRequest(request);
   }
 
-  void setRoots({
+  Future<Response> setRoots({
     required List<String> included,
     required List<String> excluded,
-  }) {
-    var includedConverted = included.map(convertPath).toList();
-    var excludedConverted = excluded.map(convertPath).toList();
+    bool validateSuccessResponse = true,
+  }) async {
     var request = AnalysisSetAnalysisRootsParams(
-        includedConverted, excludedConverted,
-        packageRoots: {}).toRequest('0');
-    handleSuccessfulRequest(request, handler: analysisHandler);
+      included.map(convertPath).toList(),
+      excluded.map(convertPath).toList(),
+      packageRoots: {},
+    ).toRequest('0');
+    var response = await waitResponse(request);
+    if (validateSuccessResponse) {
+      expect(response, isResponseSuccess(request.id));
+    }
+    return response;
   }
 
   @mustCallSuper
-  void setUp() {
+  void setUp() async {
     serverChannel = MockServerChannel();
     projectPath = convertPath('/project');
     testFolder = convertPath('/project/bin');

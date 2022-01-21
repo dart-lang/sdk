@@ -1,0 +1,126 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the class 'List<int>'.
+//  - 'List' is from 'dart:core'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
+//   return x.invalidProperty;
+//            ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:54:12: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+//   return x[0.1];
+//            ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:9:24: Error: Constant evaluation error:
+// const firstException = firstExceptionFn();
+//                        ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:12:12: Context: Unhandled core exception: Bad state: No element
+//   return x.first;
+//            ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:15:23: Error: Constant evaluation error:
+// const lastException = lastExceptionFn();
+//                       ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:18:12: Context: Unhandled core exception: Bad state: No element
+//   return x.last;
+//            ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:21:25: Error: Constant evaluation error:
+// const singleException = singleExceptionFn();
+//                         ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:24:12: Context: Unhandled core exception: Bad state: No element
+//   return x.single;
+//            ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:27:30: Error: Constant evaluation error:
+// const singleExceptionMulti = singleExceptionMultiFn();
+//                              ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:30:12: Context: Unhandled core exception: Bad state: Too many elements
+//   return x.single;
+//            ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:39:31: Error: Constant evaluation error:
+// const getWithIndexException = getWithIndexExceptionFn();
+//                               ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:42:11: Context: Unhandled core exception: RangeError: Index out of range: index should be less than 1: 1
+//   return x[1];
+//           ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:45:32: Error: Constant evaluation error:
+// const getWithIndexException2 = getWithIndexExceptionFn2();
+//                                ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:48:11: Context: Unhandled core exception: RangeError: Index out of range: index must not be negative: -1
+//   return x[-1];
+//           ^
+//
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:57:31: Error: Constant evaluation error:
+// const constListAddException = constListAddExceptionFn();
+//                               ^
+// pkg/front_end/testcases/const_functions/const_functions_list_error.dart:60:5: Context: Unhandled core exception: Unsupported operation: add
+//   x.add(3);
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+static const field core::int firstException = invalid-expression "Unhandled core exception: Bad state: No element";
+static const field core::int lastException = invalid-expression "Unhandled core exception: Bad state: No element";
+static const field core::int singleException = invalid-expression "Unhandled core exception: Bad state: No element";
+static const field core::int singleExceptionMulti = invalid-expression "Unhandled core exception: Bad state: Too many elements";
+static const field core::int invalidProperty = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the class 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
+  return x.invalidProperty;
+           ^^^^^^^^^^^^^^^";
+static const field core::int getWithIndexException = invalid-expression "Unhandled core exception: RangeError: Index out of range: index should be less than 1: 1";
+static const field core::int getWithIndexException2 = invalid-expression "Unhandled core exception: RangeError: Index out of range: index must not be negative: -1";
+static const field core::int getWithIndexException3 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:54:12: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+  return x[0.1];
+           ^";
+static const field core::List<core::int> constListAddException = invalid-expression "Unhandled core exception: Unsupported operation: add";
+static method firstExceptionFn() → core::int {
+  return #C1.{core::Iterable::first}{core::int};
+}
+static method lastExceptionFn() → core::int {
+  return #C1.{core::Iterable::last}{core::int};
+}
+static method singleExceptionFn() → core::int {
+  return #C1.{core::Iterable::single}{core::int};
+}
+static method singleExceptionMultiFn() → core::int {
+  return #C4.{core::Iterable::single}{core::int};
+}
+static method invalidPropertyFn() → core::int {
+  return invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:36:12: Error: The getter 'invalidProperty' isn't defined for the class 'List<int>'.
+ - 'List' is from 'dart:core'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
+  return x.invalidProperty;
+           ^^^^^^^^^^^^^^^" in #C4{<unresolved>}.invalidProperty as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+}
+static method getWithIndexExceptionFn() → core::int {
+  return #C5.{core::List::[]}(1){(core::int) → core::int};
+}
+static method getWithIndexExceptionFn2() → core::int {
+  return #C5.{core::List::[]}(1.{core::int::unary-}(){() → core::int}){(core::int) → core::int};
+}
+static method getWithIndexExceptionFn3() → core::int {
+  return #C5.{core::List::[]}(invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:54:12: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+  return x[0.1];
+           ^" in 0.1 as{TypeError,ForNonNullableByDefault} core::int){(core::int) → core::int};
+}
+static method constListAddExceptionFn() → core::List<core::int> {
+  #C4.{core::List::add}(3){(core::int) → void};
+  return #C4;
+}
+static method main() → void {}
+
+constants  {
+  #C1 = <core::int*>[]
+  #C2 = 1
+  #C3 = 2
+  #C4 = <core::int*>[#C2, #C3]
+  #C5 = <core::int*>[#C2]
+}

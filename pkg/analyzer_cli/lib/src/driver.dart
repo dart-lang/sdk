@@ -17,8 +17,6 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/interner.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
@@ -94,8 +92,6 @@ class Driver implements CommandLineStarter {
     }
     _isStarted = true;
     var startTime = DateTime.now().millisecondsSinceEpoch;
-
-    StringUtilities.INTERNER = MappedInterner();
 
     linter.registerLintRules();
 

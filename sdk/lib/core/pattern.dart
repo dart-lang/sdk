@@ -20,15 +20,38 @@ abstract class Pattern {
   /// and then from the end of the previous match (but always
   /// at least one position later than the *start* of the previous
   /// match, in case the pattern matches an empty substring).
+  /// ```dart
+  /// RegExp exp = RegExp(r'(\w+)');
+  /// var str = 'Dash is a bird';
+  /// Iterable<Match> matches = exp.allMatches(str, 8);
+  /// for (final Match m in matches) {
+  ///   String match = m[0]!;
+  ///   print(match);
+  /// }
+  /// ```
+  /// The output of the example is:
+  /// ```
+  /// a
+  /// bird
+  /// ```
   Iterable<Match> allMatches(String string, [int start = 0]);
 
   /// Matches this pattern against the start of `string`.
   ///
   /// Returns a match if the pattern matches a substring of [string]
   /// starting at [start], and `null` if the pattern doesn't match
-  /// a that point.
+  /// at that point.
   ///
   /// The [start] must be non-negative and no greater than `string.length`.
+  /// ```dart
+  /// final string = 'Dash is a bird';
+  ///
+  /// var regExp = RegExp(r'bird');
+  /// var match = regExp.matchAsPrefix(string, 10); // Match found.
+  ///
+  /// regExp = RegExp(r'bird');
+  /// match = regExp.matchAsPrefix(string); // null
+  /// ```
   Match? matchAsPrefix(String string, [int start = 0]);
 }
 
@@ -41,10 +64,10 @@ abstract class Pattern {
 /// The following example finds all matches of a [RegExp] in a [String]
 /// and iterates through the returned iterable of `Match` objects.
 /// ```dart
-/// RegExp exp = RegExp(r"(\w+)");
-/// String str = "Parse my string";
-/// Iterable<Match> matches = exp.allMatches(str);
-/// for (Match m in matches) {
+/// final regExp = RegExp(r'(\w+)');
+/// const string = 'Parse my string';
+/// final matches = regExp.allMatches(string);
+/// for (final m in matches) {
 ///   String match = m[0]!;
 ///   print(match);
 /// }
@@ -72,6 +95,17 @@ abstract class Match {
   ///
   /// The result may be `null` if the pattern didn't assign a value to it
   /// as part of this match.
+  /// ```dart import:convert
+  ///
+  /// final string = '[00:13.37] This is a chat message.';
+  /// final regExp = RegExp(r'^\[\s*(\d+):(\d+)\.(\d+)\]\s*(.*)$');
+  /// final match = regExp.firstMatch(string)!;
+  /// final message = jsonEncode(match[0]!); // '[00:13.37] This is a chat message.'
+  /// final hours = jsonEncode(match[1]!); // '00'
+  /// final minutes = jsonEncode(match[2]!); // '13'
+  /// final seconds = jsonEncode(match[3]!); // '37'
+  /// final text = jsonEncode(match[4]!); // 'This is a chat message.'
+  /// ```
   String? group(int group);
 
   /// The string matched by the given [group].
@@ -85,6 +119,14 @@ abstract class Match {
   ///
   /// The list contains the strings returned by [group] for each index in
   /// [groupIndices].
+  /// ```dart import:convert
+  ///
+  /// final string = '[00:13.37] This is a chat message.';
+  /// final regExp = RegExp(r'^\[\s*(\d+):(\d+)\.(\d+)\]\s*(.*)$');
+  /// final match = regExp.firstMatch(string)!;
+  /// final message = jsonEncode(match.groups([1, 2, 3, 4]));
+  /// // ['00','13','37','This is a chat message.']
+  /// ```
   List<String?> groups(List<int> groupIndices);
 
   /// Returns the number of captured groups in the match.

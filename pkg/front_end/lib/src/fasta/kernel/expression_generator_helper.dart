@@ -55,7 +55,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression toValue(Object? node);
 
-  Member? lookupInstanceMember(Name name, {bool isSetter, bool isSuper});
+  Member? lookupSuperMember(Name name, {bool isSetter});
 
   bool get enableExtensionTypesInLibrary;
 

@@ -1,0 +1,45 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef Alias<T extends core::num> = self::Class<T>;
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[self::Class::redirect]/*isLegacy*/;
+  constructor •() → self::Class<self::Class::T%>
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#new#tearOff::T%>
+    return new self::Class::•<self::Class::_#new#tearOff::T%>();
+  static factory fact<T extends core::Object? = dynamic>() → self::Class<self::Class::fact::T%>
+    ;
+  static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#fact#tearOff::T%>
+    return self::Class::fact<self::Class::_#fact#tearOff::T%>();
+  static factory redirect<T extends core::Object? = dynamic>() → self::Class<self::Class::redirect::T%>
+    return new self::Class::•<self::Class::redirect::T%>();
+  static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::Class<self::Class::_#redirect#tearOff::T%>
+    return new self::Class::•<self::Class::_#redirect#tearOff::T%>();
+}
+static const field <T extends core::Object? = dynamic>() → self::Class<T%> a = self::Class::_#new#tearOff;
+static const field <T extends core::Object? = dynamic>() → self::Class<T%> b = self::Class::_#fact#tearOff;
+static const field <T extends core::Object? = dynamic>() → self::Class<T%> c = self::Class::_#redirect#tearOff;
+static const field <T extends core::num>() → self::Class<T> d = self::_#Alias#new#tearOff;
+static const field <T extends core::num>() → self::Class<T> e = self::_#Alias#fact#tearOff;
+static const field <T extends core::num>() → self::Class<T> f = self::_#Alias#redirect#tearOff;
+static method main() → dynamic
+  ;
+static method _#Alias#new#tearOff<T extends core::num>() → self::Class<self::_#Alias#new#tearOff::T>
+  return new self::Class::•<self::_#Alias#new#tearOff::T>();
+static method _#Alias#fact#tearOff<T extends core::num>() → self::Class<self::_#Alias#fact#tearOff::T>
+  return self::Class::fact<self::_#Alias#fact#tearOff::T>();
+static method _#Alias#redirect#tearOff<T extends core::num>() → self::Class<self::_#Alias#redirect#tearOff::T>
+  return self::Class::_#redirect#tearOff<self::_#Alias#redirect#tearOff::T>();
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:7:7 -> ConstructorTearOffConstant(Class.redirect)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:13:11 -> StaticTearOffConstant(Class._#new#tearOff)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:14:11 -> StaticTearOffConstant(Class._#fact#tearOff)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:15:11 -> StaticTearOffConstant(Class._#redirect#tearOff)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:16:11 -> StaticTearOffConstant(_#Alias#new#tearOff)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:17:11 -> StaticTearOffConstant(_#Alias#fact#tearOff)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///constructor_tearoff.dart:18:11 -> StaticTearOffConstant(_#Alias#redirect#tearOff)
+Extra constant evaluation: evaluated: 15, effectively constant: 7

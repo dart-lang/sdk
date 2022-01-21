@@ -16,7 +16,8 @@ import 'common.dart';
 abstract class NativeTypeCfe {
   factory NativeTypeCfe(FfiTransformer transformer, DartType dartType,
       {List<int>? arrayDimensions,
-      Map<Class, NativeTypeCfe> compoundCache = const {}}) {
+      Map<Class, NativeTypeCfe> compoundCache = const {},
+      alreadyInAbiSpecificType = false}) {
     if (transformer.isPrimitiveType(dartType)) {
       final clazz = (dartType as InterfaceType).classNode;
       final nativeType = transformer.getType(clazz)!;
@@ -48,16 +49,50 @@ abstract class NativeTypeCfe {
       }
       return ArrayNativeTypeCfe.multi(elementCfeType, arrayDimensions);
     }
+    if (transformer.isAbiSpecificIntegerSubtype(dartType)) {
+      final clazz = (dartType as InterfaceType).classNode;
+      final mappingConstants =
+          transformer.getAbiSpecificIntegerMappingAnnotations(clazz);
+      if (alreadyInAbiSpecificType || mappingConstants.length != 1) {
+        // Unsupported mapping.
+        return AbiSpecificNativeTypeCfe({}, clazz);
+      }
+      final mapping =
+          Map.fromEntries(mappingConstants.first.entries.map((e) => MapEntry(
+              transformer.constantAbis[e.key]!,
+              NativeTypeCfe(
+                transformer,
+                (e.value as InstanceConstant).classNode.getThisType(
+                    transformer.coreTypes, Nullability.nonNullable),
+                alreadyInAbiSpecificType: true,
+              ))));
+      for (final value in mapping.values) {
+        if (value is! PrimitiveNativeTypeCfe ||
+            !nativeIntTypesFixedSize.contains(value.nativeType)) {
+          // Unsupported mapping.
+          return AbiSpecificNativeTypeCfe({}, clazz);
+        }
+      }
+      return AbiSpecificNativeTypeCfe(mapping, clazz);
+    }
     throw "Invalid type $dartType";
   }
 
   /// The size in bytes per [Abi].
   Map<Abi, int?> get size;
 
+  /// The size in bytes for [Abi].
+  int? getSizeFor(Abi abi);
+
   /// The alignment inside structs in bytes per [Abi].
   ///
   /// This is not the alignment on stack, this is only calculated in the VM.
   Map<Abi, int?> get alignment;
+
+  /// The alignment inside structs in bytes for [Abi].
+  ///
+  /// This is not the alignment on stack, this is only calculated in the VM.
+  int? getAlignmentFor(Abi abi);
 
   /// Generates a Constant representing the type which is consumed by the VM.
   ///
@@ -93,6 +128,9 @@ class InvalidNativeTypeCfe implements NativeTypeCfe {
   Map<Abi, int?> get alignment => throw reason;
 
   @override
+  int? getAlignmentFor(Abi abi) => throw reason;
+
+  @override
   Constant generateConstant(FfiTransformer transformer) => throw reason;
 
   @override
@@ -116,6 +154,9 @@ class InvalidNativeTypeCfe implements NativeTypeCfe {
 
   @override
   Map<Abi, int?> get size => throw reason;
+
+  @override
+  int? getSizeFor(Abi abi) => throw reason;
 }
 
 class PrimitiveNativeTypeCfe implements NativeTypeCfe {
@@ -135,10 +176,23 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
   }
 
   @override
+  int? getSizeFor(Abi abi) {
+    final int size = nativeTypeSizes[nativeType]!;
+    if (size == WORD_SIZE) {
+      return wordSize[abi];
+    }
+    return size;
+  }
+
+  @override
   Map<Abi, int> get alignment => {
         for (var abi in Abi.values)
-          abi: nonSizeAlignment[abi]![nativeType] ?? size[abi]!
+          abi: nonSizeAlignment[abi]![nativeType] ?? getSizeFor(abi)!
       };
+
+  @override
+  int? getAlignmentFor(Abi abi) =>
+      nonSizeAlignment[abi]![nativeType] ?? getSizeFor(abi)!;
 
   @override
   Constant generateConstant(FfiTransformer transformer) =>
@@ -213,7 +267,13 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
   Map<Abi, int?> get size => wordSize;
 
   @override
+  int? getSizeFor(Abi abi) => wordSize[abi];
+
+  @override
   Map<Abi, int?> get alignment => wordSize;
+
+  @override
+  int? getAlignmentFor(Abi abi) => wordSize[abi];
 
   @override
   Constant generateConstant(FfiTransformer transformer) => TypeLiteralConstant(
@@ -225,7 +285,7 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
   /// Sample output for `Pointer<Int8> get x =>`:
   ///
   /// ```
-  /// _fromAddress<Int8>(_loadIntPtr(_typedDataBase, offset));
+  /// _fromAddress<Int8>(_loadAbiSpecificInt<IntPtr>(_typedDataBase, offset));
   /// ```
   @override
   ReturnStatement generateGetterStatement(
@@ -237,14 +297,13 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
       ReturnStatement(StaticInvocation(
           transformer.fromAddressInternal,
           Arguments([
-            StaticInvocation(
-                transformer.loadMethods[NativeType.kIntptr]!,
-                Arguments([
-                  transformer.getCompoundTypedDataBaseField(
-                      ThisExpression(), fileOffset),
-                  transformer.runtimeBranchOnLayout(offsets)
-                ]))
-              ..fileOffset = fileOffset
+            transformer.abiSpecificLoadOrStoreExpression(
+              transformer.intptrNativeTypeCfe,
+              typedDataBase: transformer.getCompoundTypedDataBaseField(
+                  ThisExpression(), fileOffset),
+              offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
+              fileOffset: fileOffset,
+            ),
           ], types: [
             (dartType as InterfaceType).typeArguments.single
           ]))
@@ -253,7 +312,11 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
   /// Sample output for `set x(Pointer<Int8> #v) =>`:
   ///
   /// ```
-  /// _storeIntPtr(_typedDataBase, offset, (#v as Pointer<Int8>).address);
+  /// _storeAbiSpecificInt<IntPtr>(
+  ///   _typedDataBase,
+  ///   offset,
+  ///   (#v as Pointer<Int8>).address,
+  /// );
   /// ```
   @override
   ReturnStatement generateSetterStatement(
@@ -263,19 +326,22 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
           bool unalignedAccess,
           VariableDeclaration argument,
           FfiTransformer transformer) =>
-      ReturnStatement(StaticInvocation(
-          transformer.storeMethods[NativeType.kIntptr]!,
-          Arguments([
-            transformer.getCompoundTypedDataBaseField(
-                ThisExpression(), fileOffset),
-            transformer.runtimeBranchOnLayout(offsets),
-            InstanceGet(InstanceAccessKind.Instance, VariableGet(argument),
-                transformer.addressGetter.name,
-                interfaceTarget: transformer.addressGetter,
-                resultType: transformer.addressGetter.getterType)
-              ..fileOffset = fileOffset
-          ]))
-        ..fileOffset = fileOffset);
+      ReturnStatement(
+        transformer.abiSpecificLoadOrStoreExpression(
+          transformer.intptrNativeTypeCfe,
+          typedDataBase: transformer.getCompoundTypedDataBaseField(
+              ThisExpression(), fileOffset),
+          offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
+          value: InstanceGet(
+            InstanceAccessKind.Instance,
+            VariableGet(argument),
+            transformer.addressGetter.name,
+            interfaceTarget: transformer.addressGetter,
+            resultType: transformer.addressGetter.getterType,
+          )..fileOffset = fileOffset,
+          fileOffset: fileOffset,
+        ),
+      );
 }
 
 /// The layout of a `Struct` or `Union` in one [Abi].
@@ -308,8 +374,14 @@ abstract class CompoundNativeTypeCfe implements NativeTypeCfe {
       layout.map((abi, layout) => MapEntry(abi, layout.size));
 
   @override
+  int? getSizeFor(Abi abi) => layout[abi]?.size;
+
+  @override
   Map<Abi, int?> get alignment =>
       layout.map((abi, layout) => MapEntry(abi, layout.alignment));
+
+  @override
+  int? getAlignmentFor(Abi abi) => layout[abi]?.alignment;
 
   @override
   Constant generateConstant(FfiTransformer transformer) =>
@@ -397,8 +469,8 @@ class StructNativeTypeCfe extends CompoundNativeTypeCfe {
     final offsets = <int?>[];
     int? structAlignment = 1;
     for (int i = 0; i < types.length; i++) {
-      final int? size = types[i].size[abi];
-      int? alignment = types[i].alignment[abi];
+      final int? size = types[i].getSizeFor(abi);
+      int? alignment = types[i].getAlignmentFor(abi);
       if (packing != null) {
         alignment = min(packing, alignment);
       }
@@ -432,8 +504,8 @@ class UnionNativeTypeCfe extends CompoundNativeTypeCfe {
     int? unionSize = 1;
     int? unionAlignment = 1;
     for (int i = 0; i < types.length; i++) {
-      final int? size = types[i].size[abi];
-      int? alignment = types[i].alignment[abi];
+      final int? size = types[i].getSizeFor(abi);
+      int? alignment = types[i].getAlignmentFor(abi);
       unionSize = max(unionSize, size);
       unionAlignment = max(unionAlignment, alignment);
     }
@@ -484,7 +556,13 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
       elementType.size.map((abi, size) => MapEntry(abi, size * length));
 
   @override
+  int? getSizeFor(Abi abi) => elementType.getSizeFor(abi) * length;
+
+  @override
   Map<Abi, int?> get alignment => elementType.alignment;
+
+  @override
+  int? getAlignmentFor(Abi abi) => elementType.getAlignmentFor(abi);
 
   // Note that we flatten multi dimensional arrays.
   @override
@@ -555,6 +633,72 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
             transformer.runtimeBranchOnLayout(size),
           ]))
         ..fileOffset = fileOffset);
+}
+
+class AbiSpecificNativeTypeCfe implements NativeTypeCfe {
+  final Map<Abi, NativeTypeCfe> abiSpecificTypes;
+
+  final Class clazz;
+
+  AbiSpecificNativeTypeCfe(this.abiSpecificTypes, this.clazz);
+
+  @override
+  Map<Abi, int?> get size => abiSpecificTypes.map(
+      (abi, nativeTypeCfe) => MapEntry(abi, nativeTypeCfe.getSizeFor(abi)));
+
+  @override
+  int? getSizeFor(Abi abi) => abiSpecificTypes[abi]?.getSizeFor(abi);
+
+  @override
+  Map<Abi, int?> get alignment => abiSpecificTypes
+      .map((abi, nativeTypeCfe) => MapEntry(abi, nativeTypeCfe.alignment[abi]));
+
+  @override
+  int? getAlignmentFor(Abi abi) => abiSpecificTypes[abi]?.getAlignmentFor(abi);
+
+  @override
+  Constant generateConstant(FfiTransformer transformer) =>
+      TypeLiteralConstant(InterfaceType(clazz, Nullability.nonNullable));
+
+  @override
+  ReturnStatement generateGetterStatement(
+    DartType dartType,
+    int fileOffset,
+    Map<Abi, int?> offsets,
+    bool unalignedAccess,
+    FfiTransformer transformer,
+  ) {
+    return ReturnStatement(
+      transformer.abiSpecificLoadOrStoreExpression(
+        this,
+        typedDataBase: transformer.getCompoundTypedDataBaseField(
+            ThisExpression(), fileOffset),
+        offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
+        fileOffset: fileOffset,
+      ),
+    );
+  }
+
+  @override
+  ReturnStatement generateSetterStatement(
+    DartType dartType,
+    int fileOffset,
+    Map<Abi, int?> offsets,
+    bool unalignedAccess,
+    VariableDeclaration argument,
+    FfiTransformer transformer,
+  ) {
+    return ReturnStatement(
+      transformer.abiSpecificLoadOrStoreExpression(
+        this,
+        typedDataBase: transformer.getCompoundTypedDataBaseField(
+            ThisExpression(), fileOffset),
+        offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
+        value: VariableGet(argument),
+        fileOffset: fileOffset,
+      ),
+    );
+  }
 }
 
 extension on int? {

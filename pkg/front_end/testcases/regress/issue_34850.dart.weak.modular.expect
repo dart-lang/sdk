@@ -1,0 +1,69 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:5:1: Error: Expected a declaration, but got '<'.
+// <foo<
+// ^
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:7:1: Error: Expected '>' after this.
+// int f1() {
+// ^^^
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:12:8: Error: Expected '>' after this.
+// Future<List<int>> f2() async => null;
+//        ^^^^
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:12:1: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// Future<List<int>> f2() async => null;
+// ^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:12:19: Error: Expected '{' before this.
+// Future<List<int>> f2() async => null;
+//                   ^^
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:14:13: Error: Expected a type, but got '>>'.
+// Future<List<>> f3() async {
+//             ^^
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:5:2: Error: Type 'foo' not found.
+// <foo<
+//  ^^^
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:5:2: Error: Expected 0 type arguments.
+// <foo<
+//  ^
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:11:1: Error: Type 'foo' not found.
+// foo
+// ^^^
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:14:1: Error: 'Future' isn't a type.
+// Future<List<>> f3() async {
+// ^^^^^^
+// pkg/front_end/testcases/regress/issue_34850.dart:12:1: Context: This isn't a type.
+// Future<List<int>> f2() async => null;
+// ^^^^^^
+//
+// pkg/front_end/testcases/regress/issue_34850.dart:14:1: Error: Expected 0 type arguments.
+// Future<List<>> f3() async {
+// ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method f1() → invalid-type {
+  return null;
+}
+static method Future<List extends core::Object* = dynamic>() → invalid-type {}
+static method f2() → dynamic async 
+  return null;
+static method f3() → invalid-type async {
+  return null;
+}
+static method main() → dynamic async {
+  core::print(self::f1());
+  core::print(await self::f2());
+  core::print(await self::f3());
+}

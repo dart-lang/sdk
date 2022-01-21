@@ -55,9 +55,9 @@ Widget build(BuildContext context) {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
   }
 
   void subscribeForLabels() {

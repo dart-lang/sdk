@@ -10,6 +10,7 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -119,12 +120,11 @@ abstract class AbstractClient {
 
   /// Create a project at [projectPath].
   @mustCallSuper
-  void createProject({Map<String, String>? packageRoots}) {
+  Future<void> createProject({Map<String, String>? packageRoots}) async {
     newFolder(projectPath);
-    var request = AnalysisSetAnalysisRootsParams([projectPath], [],
-            packageRoots: packageRoots)
-        .toRequest('0');
-    handleSuccessfulRequest(request, handler: analysisHandler);
+
+    await setRoots(
+        included: [projectPath], excluded: [], packageRoots: packageRoots);
   }
 
   void expect(actual, matcher, {String reason});
@@ -132,7 +132,7 @@ abstract class AbstractClient {
   /// Validate that the given [request] is handled successfully.
   Response handleSuccessfulRequest(Request request, {RequestHandler? handler}) {
     handler ??= analysisHandler;
-    var response = handler.handleRequest(request)!;
+    var response = handler.handleRequest(request, NotCancelableToken())!;
     expect(response, isResponseSuccess(request.id));
     return response;
   }
@@ -142,6 +142,19 @@ abstract class AbstractClient {
   Folder newFolder(String path);
 
   void processNotification(Notification notification);
+
+  Future<Response> setRoots({
+    required List<String> included,
+    required List<String> excluded,
+    Map<String, String>? packageRoots,
+  }) async {
+    var request = AnalysisSetAnalysisRootsParams(included, excluded,
+            packageRoots: packageRoots)
+        .toRequest('0');
+    var response = await waitResponse(request);
+    expect(response, isResponseSuccess(request.id));
+    return response;
+  }
 
   /// Returns a [Future] that completes when the server's analysis is complete.
   Future waitForTasksFinished() => server.onAnalysisComplete;

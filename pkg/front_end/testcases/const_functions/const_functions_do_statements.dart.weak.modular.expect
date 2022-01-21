@@ -1,0 +1,59 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = #C1;
+static const field core::int var2 = #C2;
+static const field core::int var3 = #C3;
+static const field core::int var4 = #C4;
+static method fn() → core::int {
+  core::int x = 0;
+  do {
+    x = x.{core::num::+}(1){(core::num) → core::int};
+  }
+  while (x.{core::num::<}(2){(core::num) → core::bool})
+  return x;
+}
+static method fn2(core::int a) → core::int {
+  core::int x = 0;
+  core::int b = 0;
+  #L1:
+  do {
+    if(x.{core::num::>}(5){(core::num) → core::bool})
+      break #L1;
+    x = x.{core::num::+}(a){(core::num) → core::int};
+    b = b.{core::num::+}(1){(core::num) → core::int};
+  }
+  while (b.{core::num::<}(2){(core::num) → core::bool})
+  return x;
+}
+static method fn3() → core::int {
+  core::int x = 0;
+  core::int b = 0;
+  do
+    #L2:
+    {
+      x = x.{core::num::+}(1){(core::num) → core::int};
+      if(x.{core::num::%}(2){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 1)
+        break #L2;
+      b = b.{core::num::+}(x){(core::num) → core::int};
+    }
+  while (x.{core::num::<}(5){(core::num) → core::bool})
+  return b;
+}
+static method main() → void {
+  exp::Expect::equals(#C1, 2);
+  exp::Expect::equals(#C2, 4);
+  exp::Expect::equals(#C3, 10);
+  exp::Expect::equals(#C4, 6);
+}
+
+constants  {
+  #C1 = 2
+  #C2 = 4
+  #C3 = 10
+  #C4 = 6
+}

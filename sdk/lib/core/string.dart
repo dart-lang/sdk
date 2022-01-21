@@ -8,7 +8,7 @@ part of dart.core;
 ///
 /// Strings are mainly used to represent text. A character may be represented by
 /// multiple code points, each code point consisting of one or two code
-/// units. For example the Papua New Guinea flag character requires four code
+/// units. For example, the Papua New Guinea flag character requires four code
 /// units to represent two code points, but should be treated like a single
 /// character: "🇵🇬". Platforms that do not support the flag character may show
 /// the letters "PG" instead. If the code points are swapped, it instead becomes
@@ -35,41 +35,49 @@ part of dart.core;
 /// Strings are immutable. Although you cannot change a string, you can perform
 /// an operation on a string which creates a new string:
 /// ```dart
-/// var string = 'Dart is fun';
-/// var newString = string.substring(0, 5);
+/// const string = 'Dart is fun';
+/// print(string.substring(0, 4)); // 'Dart'
 /// ```
 /// You can use the plus (`+`) operator to concatenate strings:
 /// ```dart
-/// 'Dart ' + 'is ' + 'fun!'; // 'Dart is fun!'
+/// const string = 'Dart ' + 'is ' + 'fun!';
+/// print(string); // 'Dart is fun!'
 /// ```
 /// Adjacent string literals are concatenated automatically:
 /// ```dart
-/// 'Dart ' 'is ' 'fun!';    // 'Dart is fun!'
+/// const string = 'Dart ' 'is ' 'fun!';
+/// print(string); // 'Dart is fun!'
 /// ```
 /// You can use `${}` to interpolate the value of Dart expressions
 /// within strings. The curly braces can be omitted when evaluating identifiers:
 /// ```dart
-/// var string = 'dartlang';
-/// '$string has ${string.length} letters'; // 'dartlang has 8 letters'
+/// const string = 'dartlang';
+/// print('$string has ${string.length} letters'); // dartlang has 8 letters
 /// ```
 /// A string is represented by a sequence of Unicode UTF-16 code units
 /// accessible through the [codeUnitAt] or the [codeUnits] members:
 /// ```dart
-/// var string = 'Dart';
-/// string.codeUnitAt(0); // 68
-/// string.codeUnits;     // [68, 97, 114, 116]
+/// const string = 'Dart';
+/// final firstCodeUnit = string.codeUnitAt(0);
+/// print(firstCodeUnit); // 68, aka U+0044, the code point for 'D'.
+/// final allCodeUnits = string.codeUnits;
+/// print(allCodeUnits); // [68, 97, 114, 116]
 /// ```
-/// The string representation of code units is accessible through the index
-/// operator:
+/// A string representation of the individual code units is accessible through
+/// the index operator:
 /// ```dart
-/// string[0];            // 'D'
+/// const string = 'Dart';
+/// final charAtIndex = string[0];
+/// print(charAtIndex); // 'D'
 /// ```
 /// The characters of a string are encoded in UTF-16. Decoding UTF-16, which
 /// combines surrogate pairs, yields Unicode code points. Following a similar
-/// terminology to Go, we use the name 'rune' for an integer representing a
+/// terminology to Go, Dart uses the name 'rune' for an integer representing a
 /// Unicode code point. Use the [runes] property to get the runes of a string:
 /// ```dart
-/// string.runes.toList(); // [68, 97, 114, 116]
+/// const string = 'Dart';
+/// final runes = string.runes.toList();
+/// print(runes); // [68, 97, 114, 116]
 /// ```
 /// For a character outside the Basic Multilingual Plane (plane 0) that is
 /// composed of a surrogate pair, [runes] combines the pair and returns a
@@ -78,34 +86,38 @@ part of dart.core;
 /// pair: `0xD834` and `0xDD1E`. Using [codeUnits] returns the surrogate pair,
 /// and using `runes` returns their combined value:
 /// ```dart
-/// var clef = '\u{1D11E}';
-/// clef.codeUnits;         // [0xD834, 0xDD1E]
-/// clef.runes.toList();    // [0x1D11E]
+/// const clef = '\u{1D11E}';
+/// for (final item in clef.codeUnits) {
+///   print(item.toRadixString(16));
+///   // d834
+///   // dd1e
+/// }
+/// for (final item in clef.runes) {
+///   print(item.toRadixString(16)); // 1d11e
+/// }
 /// ```
 /// The `String` class cannot be extended or implemented. Attempting to do so
 /// yields a compile-time error.
 ///
 /// ## Other resources
 ///
-/// See [StringBuffer] to efficiently build a string incrementally. See
-/// [RegExp] to work with regular expressions.
-///
-/// Also see:
-///
+/// * [StringBuffer] to efficiently build a string incrementally.
+/// * [RegExp] to work with regular expressions.
 /// * [Strings and regular expressions](https://dart.dev/guides/libraries/library-tour#strings-and-regular-expressions)
 @pragma('vm:entry-point')
 abstract class String implements Comparable<String>, Pattern {
   /// Allocates a new string containing the specified [charCodes].
   ///
-  /// The [charCodes] can be both UTF-16 code units or runes.
+  /// The [charCodes] can be both UTF-16 code units and runes.
   /// If a char-code value is 16-bit, it is used as a code unit:
   /// ```dart
-  /// String.fromCharCodes([68]); // 'D'
+  /// final string = String.fromCharCodes([68]);
+  /// print(string); // D
   /// ```
   /// If a char-code value is greater than 16-bits, it is decomposed into a
   /// surrogate pair:
   /// ```dart
-  /// var clef = String.fromCharCodes([0x1D11E]);
+  /// final clef = String.fromCharCodes([0x1D11E]);
   /// clef.codeUnitAt(0); // 0xD834
   /// clef.codeUnitAt(1); // 0xDD1E
   /// ```
@@ -224,7 +236,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// a positive value if `this` is ordered after `other`,
   /// or zero if `this` and `other` are equivalent.
   ///
-  /// The ordering is the same as the ordering of the code points at the first
+  /// The ordering is the same as the ordering of the code units at the first
   /// position where the two strings differ.
   /// If one string is a prefix of the other,
   /// then the shorter string is ordered before the longer string.
@@ -232,28 +244,39 @@ abstract class String implements Comparable<String>, Pattern {
   /// regard to the ordering.
   /// Ordering does not check for Unicode equivalence.
   /// The comparison is case sensitive.
+  /// ```dart
+  /// var relation = 'Dart'.compareTo('Go');
+  /// print(relation); // < 0
+  /// relation = 'Go'.compareTo('Forward');
+  /// print(relation); // > 0
+  /// relation = 'Forward'.compareTo('Forward');
+  /// print(relation); // 0
+  /// ```
   int compareTo(String other);
 
   /// Whether this string ends with [other].
   ///
   /// For example:
   /// ```dart
-  /// 'Dart'.endsWith('t'); // true
+  /// const string = 'Dart is open source';
+  /// print(string.endsWith('urce')); // true
   /// ```
   bool endsWith(String other);
 
   /// Whether this string starts with a match of [pattern].
   ///
   /// ```dart
-  /// var string = 'Dart';
-  /// string.startsWith('D');                       // true
-  /// string.startsWith(RegExp(r'[A-Z][a-z]')); // true
+  /// const string = 'Dart is open source';
+  /// print(string.startsWith('Dar')); // true
+  /// print(string.startsWith(RegExp(r'[A-Z][a-z]'))); // true
   /// ```
   /// If [index] is provided, this method checks if the substring starting
   /// at that index starts with a match of [pattern]:
   /// ```dart
-  /// string.startsWith('art', 1);                  // true
-  /// string.startsWith(RegExp(r'\w{3}'));      // true
+  /// const string = 'Dart';
+  /// print(string.startsWith('art', 0)); // false
+  /// print(string.startsWith('art', 1)); // true
+  /// print(string.startsWith(RegExp(r'\w{3}'), 2)); // false
   /// ```
   /// [index] must not be negative or greater than [length].
   ///
@@ -262,21 +285,23 @@ abstract class String implements Comparable<String>, Pattern {
   /// The pattern works on the string as a whole, and does not extract
   /// a substring starting at [index] first:
   /// ```dart
-  /// string.startsWith(RegExp(r'^art'), 1);    // false
-  /// string.startsWith(RegExp(r'art'), 1);     // true
+  /// const string = 'Dart';
+  /// print(string.startsWith(RegExp(r'^art'), 1)); // false
+  /// print(string.startsWith(RegExp(r'art'), 1)); // true
   /// ```
   bool startsWith(Pattern pattern, [int index = 0]);
 
   /// Returns the position of the first match of [pattern] in this string,
   /// starting at [start], inclusive:
   /// ```dart
-  /// var string = 'Dartisans';
-  /// string.indexOf('art');                     // 1
-  /// string.indexOf(RegExp(r'[A-Z][a-z]')); // 0
+  /// const string = 'Dartisans';
+  /// print(string.indexOf('art')); // 1
+  /// print(string.indexOf(RegExp(r'[A-Z][a-z]'))); // 0
   /// ```
   /// Returns -1 if no match is found:
   /// ```dart
-  /// string.indexOf(RegExp(r'dart'));       // -1
+  /// const string = 'Dartisans';
+  /// string.indexOf(RegExp(r'dart')); // -1
   /// ```
   /// The [start] must be non-negative and not greater than [length].
   int indexOf(Pattern pattern, [int start = 0]);
@@ -285,13 +310,14 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// Finds a match of pattern by searching backward starting at [start]:
   /// ```dart
-  /// var string = 'Dartisans';
-  /// string.lastIndexOf('a');                    // 6
-  /// string.lastIndexOf(RegExp(r'a(r|n)'));      // 6
+  /// const string = 'Dartisans';
+  /// print(string.lastIndexOf('a')); // 6
+  /// print(string.lastIndexOf(RegExp(r'a(r|n)'))); // 6
   /// ```
   /// Returns -1 if [pattern] could not be found in this string.
   /// ```dart
-  /// string.lastIndexOf(RegExp(r'DART'));        // -1
+  /// const string = 'Dartisans';
+  /// print(string.lastIndexOf(RegExp(r'DART'))); // -1
   /// ```
   /// If [start] is omitted, search starts from the end of the string.
   /// If supplied, [start] must be non-negative and not greater than [length].
@@ -307,17 +333,17 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// Example:
   /// ```dart
-  /// 'dart' + 'lang'; // 'dartlang'
+  /// const string = 'dart' + 'lang'; // 'dartlang'
   /// ```
   String operator +(String other);
 
-  /// The substring of this string from [start],inclusive, to [end], exclusive.
+  /// The substring of this string from [start], inclusive, to [end], exclusive.
   ///
   /// Example:
   /// ```dart
-  /// var string = 'dartlang';
-  /// string.substring(1);    // 'artlang'
-  /// string.substring(1, 4); // 'art'
+  /// const string = 'dartlang';
+  /// var result = string.substring(1); // 'artlang'
+  /// result = string.substring(1, 4); // 'art'
   /// ```
   ///
   /// Both [start] and [end] must be non-negative and no greater than [length], and
@@ -329,13 +355,14 @@ abstract class String implements Comparable<String>, Pattern {
   /// If the string contains leading or trailing whitespace, a new string with no
   /// leading and no trailing whitespace is returned:
   /// ```dart
-  /// '\tDart is fun\n'.trim(); // 'Dart is fun'
+  /// final trimmed = '\tDart is fun\n'.trim();
+  /// print(trimmed); // 'Dart is fun'
   /// ```
   /// Otherwise, the original string itself is returned:
   /// ```dart
-  /// var str1 = 'Dart';
-  /// var str2 = str1.trim();
-  /// identical(str1, str2);    // true
+  /// const string1 = 'Dart';
+  /// final string2 = string1.trim(); // 'Dart'
+  /// print(identical(string1, string2)); // true
   /// ```
   /// Whitespace is defined by the Unicode White_Space property (as defined in
   /// version 6.2 or later) and the BOM character, 0xFEFF.
@@ -364,11 +391,19 @@ abstract class String implements Comparable<String>, Pattern {
   /// The string without any leading whitespace.
   ///
   /// As [trim], but only removes leading whitespace.
+  /// ```dart
+  /// final string = ' Dart '.trimLeft();
+  /// print(string); // 'Dart '
+  /// ```
   String trimLeft();
 
   /// The string without any trailing whitespace.
   ///
   /// As [trim], but only removes trailing whitespace.
+  /// ```dart
+  /// final string = ' Dart '.trimRight();
+  /// print(string); // ' Dart'
+  /// ```
   String trimRight();
 
   /// Creates a new string by concatenating this string with itself a number
@@ -377,6 +412,11 @@ abstract class String implements Comparable<String>, Pattern {
   /// The result of `str * n` is equivalent to
   /// `str + str + ...`(n times)`... + str`.
   ///
+  /// ```dart
+  /// const string = 'Dart';
+  /// final multiplied = string * 3;
+  /// print(multiplied); // 'DartDartDart'
+  /// ```
   /// Returns an empty string if [times] is zero or negative.
   String operator *(int times);
 
@@ -385,6 +425,14 @@ abstract class String implements Comparable<String>, Pattern {
   /// Returns a new string that prepends [padding] onto this string
   /// one time for each position the length is less than [width].
   ///
+  /// ```dart
+  /// const string = 'D';
+  /// print(string.padLeft(4)); // '   D'
+  /// print(string.padLeft(2, 'x')); // 'xD'
+  /// print(string.padLeft(4, 'y')); // 'yyyD'
+  /// print(string.padLeft(4, '>>')); // '>>>>>>D'
+  /// ```
+  ///
   /// If [width] is already smaller than or equal to `this.length`,
   /// no padding is added. A negative `width` is treated as zero.
   ///
@@ -393,7 +441,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// padding is a longer string representing a single character, like
   /// `"&nbsp;"` or `"\u{10002}`".
   /// In that case, the user should make sure that `this.length` is
-  /// the correct measure of the strings length.
+  /// the correct measure of the string's length.
   String padLeft(int width, [String padding = ' ']);
 
   /// Pads this string on the right if it is shorter than [width].
@@ -401,6 +449,14 @@ abstract class String implements Comparable<String>, Pattern {
   /// Returns a new string that appends [padding] after this string
   /// one time for each position the length is less than [width].
   ///
+  /// ```dart
+  /// const string = 'D';
+  /// print(string.padRight(4)); // 'D    '
+  /// print(string.padRight(2, 'x')); // 'Dx'
+  /// print(string.padRight(4, 'y')); // 'Dyyy'
+  /// print(string.padRight(4, '>>')); // 'D>>>>>>'
+  /// ```
+  ///
   /// If [width] is already smaller than or equal to `this.length`,
   /// no padding is added. A negative `width` is treated as zero.
   ///
@@ -409,22 +465,23 @@ abstract class String implements Comparable<String>, Pattern {
   /// padding is a longer string representing a single character, like
   /// `"&nbsp;"` or `"\u{10002}`".
   /// In that case, the user should make sure that `this.length` is
-  /// the correct measure of the strings length.
+  /// the correct measure of the string's length.
   String padRight(int width, [String padding = ' ']);
 
   /// Whether this string contains a match of [other].
   ///
   /// Example:
   /// ```dart
-  /// var string = 'Dart strings';
-  /// string.contains('D');                     // true
-  /// string.contains(RegExp(r'[A-Z]'));    // true
+  /// const string = 'Dart strings';
+  /// final containsD = string.contains('D'); // true
+  /// final containsUpperCase = string.contains(RegExp(r'[A-Z]')); // true
   /// ```
   /// If [startIndex] is provided, this method matches only at or after that
   /// index:
   /// ```dart
-  /// string.contains('D', 1);                  // false
-  /// string.contains(RegExp(r'[A-Z]'), 1); // false
+  /// const string = 'Dart strings';
+  /// final containsD = string.contains(RegExp('D'), 0); // true
+  /// final caseSensitive = string.contains(RegExp(r'[A-Z]'), 1); // false
   /// ```
   /// The [startIndex] must not be negative or greater than [length].
   bool contains(Pattern other, [int startIndex = 0]);
@@ -437,11 +494,20 @@ abstract class String implements Comparable<String>, Pattern {
   /// Example:
   /// ```dart
   /// '0.0001'.replaceFirst(RegExp(r'0'), ''); // '.0001'
-  /// '0.0001'.replaceFirst(RegExp(r'0'), '7', 1); // '0.7001'
+  /// '0.0001'.replaceFirst(RegExp(r'0'), '7', 1);  // '0.7001'
   /// ```
   String replaceFirst(Pattern from, String to, [int startIndex = 0]);
 
   /// Replace the first occurrence of [from] in this string.
+  ///
+  /// ```dart
+  /// const string = 'Dart is fun';
+  /// print(string.replaceFirstMapped(
+  ///     'fun', (m) => 'open source')); // Dart is open source
+  ///
+  /// print(string.replaceFirstMapped(
+  ///     RegExp(r'\w(\w*)'), (m) => '<${m[0]}-${m[1]}>')); // <Dart-art> is fun
+  /// ```
   ///
   /// Returns a new string, which is this string
   /// except that the first match of [from], starting from [startIndex],
@@ -460,7 +526,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// 'resume'.replaceAll(RegExp(r'e'), 'é'); // 'résumé'
   /// ```
   /// Notice that the [replace] string is not interpreted. If the replacement
-  /// depends on the match (for example on a [RegExp]'s capture groups), use
+  /// depends on the match (for example, on a [RegExp]'s capture groups), use
   /// the [replaceAllMapped] method instead.
   String replaceAll(Pattern from, String replace);
 
@@ -479,11 +545,12 @@ abstract class String implements Comparable<String>, Pattern {
   /// The function defined below converts each word in a string to simplified
   /// 'pig latin' using [replaceAllMapped]:
   /// ```dart
-  /// pigLatin(String words) => words.replaceAllMapped(
+  /// String pigLatin(String words) => words.replaceAllMapped(
   ///     RegExp(r'\b(\w*?)([aeiou]\w*)', caseSensitive: false),
   ///     (Match m) => "${m[2]}${m[1]}${m[1]!.isEmpty ? 'way' : 'ay'}");
   ///
-  ///     pigLatin('I have a secret now!'); // 'Iway avehay away ecretsay ownay!'
+  /// final result = pigLatin('I have a secret now!');
+  /// print(result); // 'Iway avehay away ecretsay ownay!'
   /// ```
   String replaceAllMapped(Pattern from, String Function(Match match) replace);
 
@@ -492,6 +559,12 @@ abstract class String implements Comparable<String>, Pattern {
   /// Creates a new string equivalent to:
   /// ```dart
   /// this.substring(0, start) + replacement + this.substring(end)
+  /// ```
+  /// Example:
+  /// ```dart
+  /// const string = 'Dart is fun';
+  /// final result = string.replaceRange(8, null, 'open source');
+  /// print(result); // Dart is open source
   /// ```
   /// The [start] and [end] indices must specify a valid range of this string.
   /// That is `0 <= start <= end <= this.length`.
@@ -505,8 +578,9 @@ abstract class String implements Comparable<String>, Pattern {
   /// and returns the list of the substrings between the matches,
   /// before the first match, and after the last match.
   /// ```dart
-  /// var string = "Hello world!";
-  /// string.split(" ");                      // ["Hello", "world!"];
+  /// const string = 'Hello world!';
+  /// final splitted = string.split(' ');
+  /// print(splitted); // [Hello, world!];
   /// ```
   /// If the pattern doesn't match this string at all,
   /// the result is always a list containing only the original string.
@@ -525,22 +599,22 @@ abstract class String implements Comparable<String>, Pattern {
   /// then the empty substring between the two matches is not
   /// included in the result.
   /// ```dart
-  /// var string = "abba";
-  /// var re = RegExp(r"b*");
+  /// const string = 'abba';
+  /// final re = RegExp(r'b*');
   /// // re.allMatches(string) will find four matches:
   /// // * empty match before first "a".
   /// // * match of "bb"
   /// // * empty match after "bb", before second "a"
   /// // * empty match after second "a".
-  /// print(string.split(re));  // ["a", "a"]
+  /// print(string.split(re)); // [a, a]
   /// ```
   ///
   /// A non-empty match at the start or end of the string, or after another
   /// match, is not treated specially, and will introduce empty substrings
   /// in the result:
   /// ```dart
-  /// var string = "abbaa";
-  /// string.split("a"); // ["", "bb", "", ""]
+  /// const string = 'abbaa';
+  /// final splitted = string.split('a'); // ['', 'bb', '', '']
   /// ```
   ///
   /// If this string is the empty string, the result is an empty list
@@ -549,34 +623,40 @@ abstract class String implements Comparable<String>, Pattern {
   /// (It is still a list containing the original empty string `[""]`
   /// if the pattern doesn't match).
   /// ```dart
-  /// var string = "";
-  /// string.split("");                       // []
-  /// string.split("a");                      // [""]
+  /// const string = '';
+  /// print(string.split('')); // []
+  /// print(string.split('a')); // []
   /// ```
   ///
   /// Splitting with an empty pattern splits the string into single-code unit
   /// strings.
   /// ```dart
-  /// var string = "Pub";
-  /// string.split("");                       // ["P", "u", "b"]
+  /// const string = 'Pub';
+  /// print(string.split('')); // [P, u, b]
   ///
   /// // Same as:
-  /// [for (var unit in string.codeUnits)
-  ///     String.fromCharCode(unit)];         // ["P", "u", "b"]
+  /// var codeUnitStrings = [
+  ///   for (final unit in string.codeUnits) String.fromCharCode(unit)
+  /// ];
+  /// print(codeUnitStrings); // [P, u, b]
   /// ```
   ///
   /// Splitting happens at UTF-16 code unit boundaries,
   /// and not at rune (Unicode code point) boundaries:
   /// ```dart
   /// // String made up of two code units, but one rune.
-  /// var string = '\u{1D11E}';
-  /// string.split('');  // ["\ud834", "\udd1e"] - 2 unpaired surrogate values
+  /// const string = '\u{1D11E}';
+  /// final splitted = string.split('');
+  /// print(splitted); // ['\ud834', '\udd1e'] - 2 unpaired surrogate values
   /// ```
   /// To get a list of strings containing the individual runes of a string,
   /// you should not use split.
   /// You can instead get a string for each rune as follows:
   /// ```dart
-  /// [for (var run in string.runes) String.fromCharCode(rune)]
+  /// const string = '\u{1F642}';
+  /// for (final rune in string.runes) {
+  ///   print(String.fromCharCode(rune));
+  /// }
   /// ```
   List<String> split(Pattern pattern);
 
@@ -600,9 +680,10 @@ abstract class String implements Comparable<String>, Pattern {
   ///
   /// Then all the converted parts are concatenated into the resulting string.
   /// ```dart
-  /// 'Eats shoots leaves'.splitMapJoin((RegExp(r'shoots')),
-  ///     onMatch:    (m) => '${m[0]}',  // (or no onMatch at all)
-  ///     onNonMatch: (n) => '*'); // Result: "*shoots*"
+  /// final result = 'Eats shoots leaves'.splitMapJoin(RegExp(r'shoots'),
+  ///     onMatch: (m) => '${m[0]}', // (or no onMatch at all)
+  ///     onNonMatch: (n) => '*');
+  /// print(result); // *shoots*
   /// ```
   String splitMapJoin(Pattern pattern,
       {String Function(Match)? onMatch, String Function(String)? onNonMatch});
@@ -622,7 +703,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// If the string is already in all lower case, this method returns `this`.
   /// ```dart
   /// 'ALPHABET'.toLowerCase(); // 'alphabet'
-  /// 'abc'.toLowerCase();      // 'abc'
+  /// 'abc'.toLowerCase(); // 'abc'
   /// ```
   /// This function uses the language independent Unicode mapping and thus only
   /// works in some languages.
@@ -634,7 +715,7 @@ abstract class String implements Comparable<String>, Pattern {
   /// If the string is already in all upper case, this method returns `this`.
   /// ```dart
   /// 'alphabet'.toUpperCase(); // 'ALPHABET'
-  /// 'ABC'.toUpperCase();      // 'ABC'
+  /// 'ABC'.toUpperCase(); // 'ABC'
   /// ```
   /// This function uses the language independent Unicode mapping and thus only
   /// works in some languages.
@@ -706,7 +787,7 @@ class RuneIterator implements BidirectionalIterator<int> {
   ///
   /// When created, there is no [current] value.
   /// A [moveNext] will use the rune starting at [index] the current value,
-  /// and a [movePrevious] will use the rune ending just before [index] as the
+  /// and a [movePrevious] will use the rune ending just before [index] as
   /// the current value.
   ///
   /// The [index] position must not be in the middle of a surrogate pair.

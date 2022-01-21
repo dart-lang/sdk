@@ -51,10 +51,17 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('aot',
       help: 'Run compiler in AOT mode (enables whole-program transformations)',
       defaultsTo: false)
+  ..addFlag('support-mirrors',
+      help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
+          'supported when --aot and --minimal-kernel are not used.',
+      defaultsTo: null)
   ..addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
       defaultsTo: false)
+  ..addFlag('rta',
+      help: 'Use rapid type analysis for faster compilation in AOT mode.',
+      defaultsTo: true)
   ..addFlag('tree-shake-write-only-fields',
       help: 'Enable tree shaking of fields which are only written in AOT mode.',
       defaultsTo: true)
@@ -484,6 +491,18 @@ class FrontendCompiler implements CompilerInterface {
       }
     }
 
+    if (options['support-mirrors'] == true) {
+      if (options['aot']) {
+        print('Error: --support-mirrors option cannot be used with --aot');
+        return false;
+      }
+      if (options['minimal-kernel']) {
+        print('Error: --support-mirrors option cannot be used with '
+            '--minimal-kernel');
+        return false;
+      }
+    }
+
     if (options['incremental']) {
       if (options['from-dill'] != null) {
         print('Error: --from-dill option cannot be used with --incremental');
@@ -502,6 +521,8 @@ class FrontendCompiler implements CompilerInterface {
       options['target'],
       trackWidgetCreation: options['track-widget-creation'],
       nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+      supportMirrors: options['support-mirrors'] ??
+          !(options['aot'] || options['minimal-kernel']),
     );
     if (compilerOptions.target == null) {
       print('Failed to create front-end target ${options['target']}.');
@@ -555,6 +576,7 @@ class FrontendCompiler implements CompilerInterface {
           deleteToStringPackageUris: options['delete-tostring-package-uri'],
           aot: options['aot'],
           useGlobalTypeFlowAnalysis: options['tfa'],
+          useRapidTypeAnalysis: options['rta'],
           environmentDefines: environmentDefines,
           enableAsserts: options['enable-asserts'],
           useProtobufTreeShakerV2: options['protobuf-tree-shaker-v2'],

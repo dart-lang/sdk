@@ -39,7 +39,45 @@ class Keep extends core::Object {
   method toString() → core::String
     return "I am a Keep";
 }
+@#C16
+class Base1 extends core::Object {
+  synthetic constructor •() → self::Base1
+    : super core::Object::•()
+    ;
+}
+class Base2 extends self::Base1 {
+  synthetic constructor •() → self::Base2
+    : super self::Base1::•()
+    ;
+}
+abstract class _Base3&Object&Base2 extends core::Object implements self::Base2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Base3&Object&Base2
+    : super core::Object::•()
+    ;
+}
+class Base3 extends self::_Base3&Object&Base2 {
+  synthetic constructor •() → self::Base3
+    : super self::_Base3&Object&Base2::•()
+    ;
+}
+class KeepInherited extends core::Object implements self::Base3 {
+  synthetic constructor •() → self::KeepInherited
+    : super core::Object::•()
+    ;
+  @#C1
+  method toString() → core::String
+    return "Heir";
+}
+class MyException extends core::Object implements core::Exception {
+  synthetic constructor •() → self::MyException
+    : super core::Object::•()
+    ;
+  @#C1
+  method toString() → core::String
+    return "A very detailed message";
+}
 static const field core::pragma keepToString = #C14;
+static const field core::pragma keepToStringInSubtypes = #C16;
 static method toString() → core::String
   return "I am static";
 static method main() → void {
@@ -47,6 +85,8 @@ static method main() → void {
   core::print(foo.{self::IFoo::toString}(){() → core::String});
   core::print(new self::Keep::•().{self::Keep::toString}(){() → core::String});
   core::print(#C7.{self::FooEnum::toString}(){() → core::String});
+  core::print(new self::KeepInherited::•().{self::KeepInherited::toString}(){() → core::String});
+  core::print(new self::MyException::•().{self::MyException::toString}(){() → core::String});
 }
 constants  {
   #C1 = core::_Override {}
@@ -63,4 +103,6 @@ constants  {
   #C12 = "flutter:keep-to-string"
   #C13 = null
   #C14 = core::pragma {name:#C12, options:#C13}
+  #C15 = "flutter:keep-to-string-in-subtypes"
+  #C16 = core::pragma {name:#C15, options:#C13}
 }

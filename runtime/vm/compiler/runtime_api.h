@@ -19,7 +19,9 @@
 // in compiler::target namespace.
 
 #include "platform/globals.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
+
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/bss_relocs.h"
@@ -178,6 +180,9 @@ inline const Object& ToObject(const Function& handle) {
 // Note: the given hash value does not necessarily match Object.get:hashCode,
 // or canonical hash.
 intptr_t ObjectHash(const Object& obj);
+
+// Prints the given object into a C string.
+const char* ObjectToCString(const Object& obj);
 
 // If the given object represents a Dart integer returns true and sets [value]
 // to the value of the integer.
@@ -889,10 +894,14 @@ class CodeSourceMap : public AllStatic {
 
 class CompressedStackMaps : public AllStatic {
  public:
-  static word HeaderSize();
+  static word HeaderSize() { return ObjectHeaderSize() + PayloadHeaderSize(); }
   static word InstanceSize();
   static word InstanceSize(word payload_size);
   FINAL_CLASS();
+
+ private:
+  static word ObjectHeaderSize();
+  static word PayloadHeaderSize();
 };
 
 class LocalVarDescriptors : public AllStatic {
@@ -1059,6 +1068,15 @@ class MonomorphicSmiableCall : public AllStatic {
   FINAL_CLASS();
 };
 
+class TsanUtils : public AllStatic {
+ public:
+  static word setjmp_function_offset();
+  static word setjmp_buffer_offset();
+  static word exception_pc_offset();
+  static word exception_sp_offset();
+  static word exception_fp_offset();
+};
+
 class Thread : public AllStatic {
  public:
   static word api_top_scope_offset();
@@ -1122,6 +1140,8 @@ class Thread : public AllStatic {
 
   static word callback_code_offset();
   static word callback_stack_return_offset();
+  static word tsan_utils_offset();
+  static word jump_to_frame_entry_point_offset();
 
   static word AllocateArray_entry_point_offset();
   static word write_barrier_code_offset();
@@ -1159,6 +1179,7 @@ class Thread : public AllStatic {
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();
   static word exit_safepoint_stub_offset();
+  static word exit_safepoint_ignore_unwind_in_progress_stub_offset();
   static word call_native_through_safepoint_stub_offset();
   static word call_native_through_safepoint_entry_point_offset();
 
@@ -1178,6 +1199,8 @@ class Thread : public AllStatic {
   static word name##_address_offset();
   THREAD_XMM_CONSTANT_LIST(DECLARE_CONSTANT_OFFSET_GETTER)
 #undef DECLARE_CONSTANT_OFFSET_GETTER
+
+  static word random_offset();
 
   static word OffsetFromThread(const dart::Object& object);
   static intptr_t OffsetFromThread(const dart::RuntimeEntry* runtime_entry);

@@ -1,0 +1,84 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Const extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Const
+    : super core::Object::•()
+    ;
+}
+class Class extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::Object? message) → self::Class
+    : assert(false, message), super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::expect(null, self::test(() → void {
+    assert(false);
+  }));
+  self::expect(null, self::test(() → void {
+    assert(false, null);
+  }));
+  self::expect("foo", self::test(() → void {
+    assert(false, "foo");
+  }));
+  self::expect(0, self::test(() → void {
+    assert(false, 0);
+  }));
+  self::expect(#C1, self::test(() → void {
+    assert(false, #C1);
+  }));
+  self::expect(#C2, self::test(() → void {
+    assert(false, #C2);
+  }));
+  self::expect(#C3, self::test(() → void {
+    assert(false, #C3);
+  }));
+  self::expect(null, self::test(() → void {
+    new self::Class::•(null);
+  }));
+  self::expect("foo", self::test(() → void {
+    new self::Class::•("foo");
+  }));
+  self::expect(0, self::test(() → void {
+    new self::Class::•(0);
+  }));
+  self::expect(#C1, self::test(() → void {
+    new self::Class::•(#C1);
+  }));
+  self::expect(#C2, self::test(() → void {
+    new self::Class::•(#C2);
+  }));
+  self::expect(#C3, self::test(() → void {
+    new self::Class::•(#C3);
+  }));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method test(() → void f) → core::Object? {
+  try {
+    f(){() → void};
+  }
+  on core::AssertionError catch(final core::AssertionError e) {
+    core::print(e);
+    return e.{core::AssertionError::message}{core::Object?};
+  }
+  on core::Object catch(final core::Object e) {
+    throw "Unexpected exception ${e} (${e.{core::Object::runtimeType}{core::Type}}";
+  }
+  throw "Missing exception";
+}
+
+constants  {
+  #C1 = <dynamic, dynamic>{)
+  #C2 = #org-dartlang-testcase:///issue47994b.dart::_symbol
+  #C3 = self::Const {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue47994b.dart:
+- Const. (from org-dartlang-testcase:///issue47994b.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

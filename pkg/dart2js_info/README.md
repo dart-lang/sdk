@@ -92,7 +92,11 @@ The following tools are a available today:
     dependency between functions and fields in your program. Currently it only
     supports the `some_path` query, which shows a dependency path from one
     function to another.
-    
+
+  * [`common`][common]: a tool that reports the common elements of two info
+    files. Commonality is determined by the element's name, file path, and URI
+    but not code size.
+
   * [`diff`][diff]: a tool that diffs two info files and reports which
     program elements have been added, removed, or changed size. This also
     tells which elements are no longer deferred or have become deferred.
@@ -159,6 +163,44 @@ a fully qualified element name, which includes the library and class name
 
 If the name of a function your are looking for is unique enough, it might be
 sufficient to just write that name as your regular expression.
+
+### Common tool
+
+This command-line tool shows common elements between two info files. It can be
+run as follows:
+
+```console
+$ pub global activate dart2js_info # only needed once
+$ dart2js_info common old.js.info.data new.js.info.data
+```
+
+The tool gives a breakdown of the common elements between the two info files,
+reporting code size discrepancies if they exist.
+Here's an example output snippet:
+
+```
+COMMON ELEMENTS (455 common elements, 70334 bytes -> 70460 bytes)
+========================================================================
+dart:_foreign_helper::: 141 bytes
+dart:_foreign_helper::JS_CONST: 141 bytes
+dart:_foreign_helper::JS_CONST.code: 0 bytes
+dart:_interceptors::: 4052 -> 7968 bytes
+dart:_interceptors::ArrayIterator: 805 bytes
+dart:_interceptors::ArrayIterator.ArrayIterator: 0 bytes
+dart:_interceptors::ArrayIterator._current: 91 bytes
+dart:_interceptors::ArrayIterator._index: 0 bytes
+dart:_interceptors::ArrayIterator._iterable: 0 bytes
+dart:_interceptors::ArrayIterator._length: 0 bytes
+dart:_interceptors::ArrayIterator.current: 0 bytes
+dart:_interceptors::ArrayIterator.moveNext: 406 bytes
+dart:_interceptors::Interceptor: 198 bytes
+dart:_interceptors::Interceptor.toString: 104 -> 182 bytes
+
+```
+
+Common elements are sorted by name by default but can be sorted by size with
+the `--order-by-size` flag. Additionally, the tool can be restricted to
+just packages with the `--packages-only` flag.
 
 ### Diff tool
 
@@ -502,17 +544,18 @@ $ dart2js_info coverage_analysis main.dart.info.data main.dart.coverage.json
 This package is developed in [github][repo].  Please file feature requests and
 bugs at the [issue tracker][tracker].
 
-[repo]: https://github.com/dart-lang/dart2js_info/
-[tracker]: https://github.com/dart-lang/dart2js_info/issues
-[code_deps]: https://github.com/dart-lang/dart2js_info/blob/master/bin/code_deps.dart
-[diff]: https://github.com/dart-lang/dart2js_info/blob/master/bin/diff.dart
-[library_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/library_size_split.dart
-[deferred_check]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_check.dart
-[deferred_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_size.dart
-[deferred_layout]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_layout.dart
-[coverage_server]: https://github.com/dart-lang/dart2js_info/blob/master/bin/coverage_log_server.dart
-[coverage_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
-[function_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
-[AllInfo]: http://dart-lang.github.io/dart2js_info/doc/api/dart2js_info.info/AllInfo-class.html
-[convert]: https://github.com/dart-lang/dart2js_info/blob/master/bin/convert.dart
-[show]: https://github.com/dart-lang/dart2js_info/blob/master/bin/text_print.dart
+[AllInfo]: https://pub.dev/documentation/dart2js_info/latest/dart2js_info.info/AllInfo-class.html
+[code_deps]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/code_deps.dart
+[common]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/common_command.dart
+[convert]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/convert.dart
+[coverage_server]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/coverage_log_server.dart
+[coverage_analysis]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/live_code_size_analysis.dart
+[deferred_check]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/deferred_library_check.dart
+[deferred_layout]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/deferred_library_layout.dart
+[deferred_size]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/deferred_library_size.dart
+[diff]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/diff.dart
+[function_size]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/function_size_analysis.dart
+[library_size]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/library_size_split.dart
+[repo]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/
+[show]: https://github.com/dart-lang/sdk/tree/main/pkg/dart2js_info/bin/src/text_print.dart
+[tracker]: https://github.com/dart-lang/sdk/issues

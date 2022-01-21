@@ -164,7 +164,7 @@ class DynamicType extends DartType {
 
 @notNull
 bool _isJsObject(obj) =>
-    JS('!', '# === #', getReifiedType(obj), typeRep<JavaScriptObject>());
+    JS('!', '# === #', getReifiedType(obj), typeRep<LegacyJavaScriptObject>());
 
 /// Asserts that [f] is a native JS functions and returns it if so.
 ///
@@ -1503,16 +1503,17 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
     }
 
     // Even though lazy and anonymous JS types are natural subtypes of
-    // JavaScriptObject, JS types should be treated as mutual subtypes of each
-    // other. This allows users to be able to interface with both extension
-    // types on JavaScriptObject and package:js using the same object.
+    // LegacyJavaScriptObject, JS types should be treated as mutual subtypes of
+    // each other. This allows users to be able to interface with both extension
+    // types on LegacyJavaScriptObject and package:js using the same object.
     //
     // Therefore, the following relationships hold true:
     //
-    // JavaScriptObject <: package:js types
-    // package:js types <: JavaScriptObject
+    // LegacyJavaScriptObject <: package:js types
+    // package:js types <: LegacyJavaScriptObject
 
-    if (_isInterfaceSubtype(t1, typeRep<JavaScriptObject>(), strictMode) &&
+    if (_isInterfaceSubtype(
+            t1, typeRep<LegacyJavaScriptObject>(), strictMode) &&
         // TODO: Since package:js types are instances of PackageJSType and
         // we don't have a mechanism to determine if *some* package:js type
         // implements t2. This will possibly require keeping a map of these
@@ -1522,7 +1523,8 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
       return true;
     }
 
-    if (_isInterfaceSubtype(typeRep<JavaScriptObject>(), t2, strictMode) &&
+    if (_isInterfaceSubtype(
+            typeRep<LegacyJavaScriptObject>(), t2, strictMode) &&
         _isInterfaceSubtype(t1, _pkgJSTypeForSubtyping, strictMode)) {
       return true;
     }

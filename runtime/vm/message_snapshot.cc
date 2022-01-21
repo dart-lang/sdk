@@ -2133,6 +2133,19 @@ class TransferableTypedDataMessageDeserializationCluster
           reinterpret_cast<uint8_t*>(finalizable_data.data), length));
     }
   }
+
+  void ReadNodesApi(ApiMessageDeserializer* d) {
+    intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      Dart_CObject* data = d->Allocate(Dart_CObject_kTypedData);
+      data->value.as_typed_data.length = d->ReadUnsigned();
+      data->value.as_typed_data.type = Dart_TypedData_kUint8;
+      FinalizableData finalizable_data = d->finalizable_data()->Get();
+      data->value.as_typed_data.values =
+          reinterpret_cast<uint8_t*>(finalizable_data.data);
+      d->AssignRef(data);
+    }
+  }
 };
 
 class Simd128MessageSerializationCluster : public MessageSerializationCluster {

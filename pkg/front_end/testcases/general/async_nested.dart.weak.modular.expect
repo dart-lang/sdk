@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class Node extends core::Object {
+  final field core::List<self::Node*>* nested;
+  final field core::String* name;
+  constructor •(core::String* name, [core::List<self::Node*>* nested = #C1]) → self::Node*
+    : self::Node::name = name, self::Node::nested = nested, super core::Object::•() {}
+  method toString() → core::String*
+    return "<${this.{self::Node::name}{core::String*}}:[${let final core::List<self::Node*>* #t1 = this.{self::Node::nested}{core::List<self::Node*>*} in #t1 == null ?{core::String*} null : #t1.{core::Iterable::join}(", "){([core::String*]) →* core::String*}}]>";
+  method toSimpleString() → dynamic {
+    core::Iterable<dynamic>* tmp = let final core::List<self::Node*>* #t2 = this.{self::Node::nested}{core::List<self::Node*>*} in #t2 == null ?{core::Iterable<dynamic>*} null : #t2.{core::Iterable::map}<dynamic>((self::Node* child) → dynamic => child.{self::Node::toSimpleString}(){() →* dynamic}){((self::Node*) →* dynamic) →* core::Iterable<dynamic>*};
+    return "${this.{self::Node::name}{core::String*}} ${let final core::Iterable<dynamic>* #t3 = tmp in #t3 == null ?{core::String*} null : #t3.{core::Iterable::join}(" "){([core::String*]) →* core::String*}}".{core::String::trim}(){() →* core::String*};
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → void async {
+  core::String* expected = "1 2 3 4 5 6 7 8 9 10";
+  self::Node* node = new self::Node::•("1", <self::Node*>[new self::Node::•("2", <self::Node*>[]), await asy::Future::value<self::Node*>(new self::Node::•("3", <self::Node*>[await asy::Future::value<self::Node*>(new self::Node::•("4", <self::Node*>[new self::Node::•("5", <self::Node*>[await asy::Future::value<self::Node*>(new self::Node::•("6", <self::Node*>[await asy::Future::value<self::Node*>(new self::Node::•("7", <self::Node*>[]))])), await asy::Future::value<self::Node*>(new self::Node::•("8", <self::Node*>[])), await asy::Future::value<self::Node*>(new self::Node::•("9", <self::Node*>[]))])]))])), await asy::Future::value<self::Node*>(new self::Node::•("10", <self::Node*>[]))]);
+  core::String* actual = node.{self::Node::toSimpleString}(){() →* dynamic} as{TypeError,ForDynamic} core::String*;
+  core::print(actual);
+  if(!(actual =={core::String::==}{(core::Object*) →* core::bool*} expected)) {
+    throw "Expected '${expected}' but got '${actual}'";
+  }
+}
+
+constants  {
+  #C1 = null
+}

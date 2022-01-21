@@ -1,0 +1,60 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/constant_null_check.dart:9:17: Error: Constant evaluation error:
+// const int? d = c!;
+//                 ^
+// pkg/front_end/testcases/nnbd/constant_null_check.dart:9:17: Context: Constant expression must be non-null.
+// const int? d = c!;
+//                 ^
+// pkg/front_end/testcases/nnbd/constant_null_check.dart:9:12: Context: While analyzing:
+// const int? d = c!;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/constant_null_check.dart:17:23: Error: Constant evaluation error:
+// const Class f = const Class(c);
+//                       ^
+// pkg/front_end/testcases/nnbd/constant_null_check.dart:13:30: Context: Constant expression must be non-null.
+//   const Class(int? x) : y = x!;
+//                              ^
+// pkg/front_end/testcases/nnbd/constant_null_check.dart:17:13: Context: While analyzing:
+// const Class f = const Class(c);
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object /*hasConstConstructor*/  {
+  final field core::int y;
+  const constructor •(core::int? x) → self::Class
+    : self::Class::y = x!, super core::Object::•()
+    ;
+}
+static const field core::int? a = #C1;
+static const field core::int b = #C1;
+static const field core::int? c = #C2;
+static const field core::int? d = invalid-expression "Constant expression must be non-null.";
+static const field self::Class e = #C3;
+static const field self::Class f = invalid-expression "Constant expression must be non-null.";
+static method main() → dynamic {
+  self::expect(42, #C1);
+  self::expect(42, #C1);
+  self::expect(42, #C3.{self::Class::y}{core::int});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = 42
+  #C2 = null
+  #C3 = self::Class {y:#C1}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///constant_null_check.dart:
+- Class. (from org-dartlang-testcase:///constant_null_check.dart:13:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

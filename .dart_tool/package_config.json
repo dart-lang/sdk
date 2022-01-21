@@ -1,6 +1,6 @@
 {
   "copyright": [
-    "Copyright (c) 2021, the Dart project authors. Please see the AUTHORS ",
+    "Copyright (c) 2022, the Dart project authors. Please see the AUTHORS ",
     "file for details. All rights reserved. Use of this source code is ",
     "governed by a BSD-style license that can be found in the LICENSE file."
   ],
@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-11-15T17:34:02.415038",
+  "generated": "2022-01-12T18:16:46.198227",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -250,7 +250,7 @@
       "name": "dartdoc",
       "rootUri": "../third_party/pkg/dartdoc",
       "packageUri": "lib/",
-      "languageVersion": "2.11"
+      "languageVersion": "2.14"
     },
     {
       "name": "dds",
@@ -259,10 +259,16 @@
       "languageVersion": "2.13"
     },
     {
+      "name": "dds_service_extensions",
+      "rootUri": "../pkg/dds_service_extensions",
+      "packageUri": "lib/",
+      "languageVersion": "2.13"
+    },
+    {
       "name": "dev_compiler",
       "rootUri": "../pkg/dev_compiler",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.15"
     },
     {
       "name": "devtools_server",
@@ -310,7 +316,7 @@
       "name": "fixnum",
       "rootUri": "../third_party/pkg/fixnum",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.12"
     },
     {
       "name": "front_end",
@@ -381,7 +387,7 @@
       "name": "js",
       "rootUri": "../pkg/js",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.16"
     },
     {
       "name": "js_ast",
@@ -629,7 +635,7 @@
       "name": "source_span",
       "rootUri": "../third_party/pkg/source_span",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "sourcemap_testing",
@@ -760,7 +766,7 @@
       "name": "vm",
       "rootUri": "../pkg/vm",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.15"
     },
     {
       "name": "vm_service",
@@ -778,7 +784,7 @@
       "name": "watcher",
       "rootUri": "../third_party/pkg/watcher",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "web_components",

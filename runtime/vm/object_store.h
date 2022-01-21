@@ -47,6 +47,8 @@ class ObjectPointerVisitor;
   LAZY_CORE(Class, list_class)                                                 \
   LAZY_CORE(Type, non_nullable_list_rare_type)                                 \
   LAZY_CORE(Type, non_nullable_map_rare_type)                                  \
+  LAZY_CORE(Field, enum_index_field)                                           \
+  LAZY_CORE(Field, enum_name_field)                                            \
   LAZY_CORE(Function, _object_equals_function)                                 \
   LAZY_CORE(Function, _object_hash_code_function)                              \
   LAZY_CORE(Function, _object_to_string_function)                              \
@@ -308,6 +310,7 @@ class ObjectPointerVisitor;
 #define ISOLATE_OBJECT_STORE_FIELD_LIST(R_, RW)                                \
   RW(UnhandledException, preallocated_unhandled_exception)                     \
   RW(StackTrace, preallocated_stack_trace)                                     \
+  RW(UnwindError, preallocated_unwind_error)                                   \
   RW(Array, dart_args_1)                                                       \
   RW(Array, dart_args_2)                                                       \
   R_(GrowableObjectArray, resume_capabilities)                                 \

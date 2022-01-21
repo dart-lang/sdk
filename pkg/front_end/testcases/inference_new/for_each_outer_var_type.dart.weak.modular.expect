@@ -1,0 +1,84 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:10: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
+// Try changing the type of the variable.
+//   for (i in iterable) {}
+//          ^
+//
+// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:16: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
+//  - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
+// Try changing the type of the variable.
+//   await for (i in stream) {}
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+static method f<T extends core::Object* = dynamic>() → self::f::T*
+  return null;
+static method test() → dynamic async {
+  core::Iterable<self::A*>* iterable;
+  asy::Stream<self::A*>* stream;
+  self::A* a;
+  self::B* b;
+  core::int* i;
+  for (final self::A* #t1 in iterable) {
+    a = #t1;
+  }
+  await for (final self::A* #t2 in stream) {
+    a = #t2;
+  }
+  for (final self::A* #t3 in iterable) {
+    b = #t3 as{TypeError} self::B*;
+  }
+  await for (final self::A* #t4 in stream) {
+    b = #t4 as{TypeError} self::B*;
+  }
+  for (final self::A* #t5 in iterable) {
+    i = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:10: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
+ - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
+Try changing the type of the variable.
+  for (i in iterable) {}
+         ^" in #t5 as{TypeError} core::int*;
+  }
+  await for (final self::A* #t6 in stream) {
+    i = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:16: Error: A value of type 'A' can't be assigned to a variable of type 'int'.
+ - 'A' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
+Try changing the type of the variable.
+  await for (i in stream) {}
+               ^" in #t6 as{TypeError} core::int*;
+  }
+  for (final self::A* #t7 in self::f<core::Iterable<self::A*>*>()) {
+    a = #t7;
+  }
+  await for (final self::A* #t8 in self::f<asy::Stream<self::A*>*>()) {
+    a = #t8;
+  }
+}
+static method main() → dynamic {}

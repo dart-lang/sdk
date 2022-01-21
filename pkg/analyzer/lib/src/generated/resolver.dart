@@ -60,6 +60,7 @@ import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
+import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
@@ -472,7 +473,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   void checkForBodyMayCompleteNormally({
-    required DartType? returnType,
     required FunctionBody body,
     required AstNode errorNode,
   }) {
@@ -481,6 +481,12 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       return;
     }
 
+    // TODO(scheglov) encapsulate
+    var bodyContext = BodyInferenceContext.of(body);
+    if (bodyContext == null) {
+      return null;
+    }
+    var returnType = bodyContext.contextType;
     if (returnType == null) {
       return;
     }
@@ -490,23 +496,58 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
         return;
       }
 
-      if (typeSystem.isPotentiallyNonNullable(returnType)) {
-        if (errorNode is ConstructorDeclaration) {
-          errorReporter.reportErrorForName(
-            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-            errorNode,
-          );
-        } else if (errorNode is BlockFunctionBody) {
-          errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-            errorNode.block.leftBracket,
-          );
-        } else {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-            errorNode,
-          );
+      if (body.isAsynchronous) {
+        // Check whether the return type is legal. If not, return rather than
+        // reporting a second error.
+
+        // This is the same check as [ReturnTypeVerifier._isLegalReturnType].
+        // TODO(srawlins): When this check is moved into the resolution stage,
+        // use the result of that check to determine whether this check should
+        // be done.
+        var lowerBound = typeProvider.futureElement.instantiate(
+          typeArguments: [NeverTypeImpl.instance],
+          nullabilitySuffix: NullabilitySuffix.star,
+        );
+        var imposedType = bodyContext.imposedType;
+        if (imposedType != null &&
+            !typeSystem.isSubtypeOf(lowerBound, imposedType)) {
+          // [imposedType] is an illegal return type for an asynchronous
+          // non-generator function; do not report an additional error here.
+          return;
         }
+      }
+
+      ErrorCode errorCode;
+      if (typeSystem.isPotentiallyNonNullable(returnType)) {
+        errorCode = CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY;
+      } else {
+        var returnTypeBase = typeSystem.futureOrBase(returnType);
+        if (returnTypeBase.isVoid ||
+            returnTypeBase.isDynamic ||
+            returnTypeBase.isDartCoreNull) {
+          return;
+        } else {
+          errorCode = HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
+        }
+      }
+      if (errorNode is ConstructorDeclaration) {
+        errorReporter.reportErrorForName(
+          errorCode,
+          errorNode,
+          arguments: [returnType],
+        );
+      } else if (errorNode is BlockFunctionBody) {
+        errorReporter.reportErrorForToken(
+          errorCode,
+          errorNode.block.leftBracket,
+          [returnType],
+        );
+      } else {
+        errorReporter.reportErrorForNode(
+          errorCode,
+          errorNode,
+          [returnType],
+        );
       }
     }
   }
@@ -1253,7 +1294,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   @override
   void visitCommentReference(CommentReference node) {
     //
-    // We do not visit the identifier because it needs to be visited in the
+    // We do not visit the expression because it needs to be visited in the
     // context of the reference.
     //
     node.accept(elementResolver);
@@ -1342,9 +1383,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     }
 
     if (node.factoryKeyword != null) {
-      var bodyContext = BodyInferenceContext.of(node.body);
       checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
         body: node.body,
         errorNode: node,
       );
@@ -1573,12 +1612,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     }
 
     if (!node.isSetter) {
-      // TODO(scheglov) encapsulate
-      var bodyContext = BodyInferenceContext.of(
-        node.functionExpression.body,
-      );
       checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
         body: node.functionExpression.body,
         errorNode: node.name,
       );
@@ -1804,10 +1838,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     }
 
     if (!node.isSetter) {
-      // TODO(scheglov) encapsulate
-      var bodyContext = BodyInferenceContext.of(node.body);
       checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
         body: node.body,
         errorNode: node.name,
       );
@@ -2294,21 +2325,14 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   /// will be invoked using those arguments, compute the list of parameters that
   /// correspond to the list of arguments.
   ///
-  /// An error will be reported to [onError] if any of the arguments cannot be
-  /// matched to a parameter. onError will be provided the node of the first
-  /// argument that is not matched. onError can be null to ignore the error.
-  ///
   /// Returns the parameters that correspond to the arguments. If no parameter
   /// matched an argument, that position will be `null` in the list.
-  static List<ParameterElement?> resolveArgumentsToParameters(
-      ArgumentList argumentList,
-      List<ParameterElement> parameters,
-      void Function(ErrorCode errorCode, AstNode node,
-              [List<Object> arguments])?
-          onError) {
-    if (parameters.isEmpty && argumentList.arguments.isEmpty) {
-      return const <ParameterElement>[];
-    }
+  static List<ParameterElement?> resolveArgumentsToParameters({
+    required ArgumentList argumentList,
+    required List<ParameterElement> parameters,
+    ErrorReporter? errorReporter,
+    ConstructorDeclaration? enclosingConstructor,
+  }) {
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
     List<ParameterElement> unnamedParameters = <ParameterElement>[];
@@ -2334,32 +2358,11 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     List<ParameterElement?> resolvedParameters =
         List<ParameterElement?>.filled(argumentCount, null);
     int positionalArgumentCount = 0;
-    HashSet<String>? usedNames;
     bool noBlankArguments = true;
     Expression? firstUnresolvedArgument;
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments[i];
-      if (argument is NamedExpressionImpl) {
-        var nameNode = argument.name.label;
-        String name = nameNode.name;
-        var element = namedParameters != null ? namedParameters[name] : null;
-        if (element == null) {
-          if (onError != null) {
-            onError(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, nameNode,
-                [name]);
-          }
-        } else {
-          resolvedParameters[i] = element;
-          nameNode.staticElement = element;
-        }
-        usedNames ??= HashSet<String>();
-        if (!usedNames.add(name)) {
-          if (onError != null) {
-            onError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode,
-                [name]);
-          }
-        }
-      } else {
+      if (argument is! NamedExpressionImpl) {
         if (argument is SimpleIdentifier && argument.name.isEmpty) {
           noBlankArguments = false;
         }
@@ -2371,11 +2374,46 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
         }
       }
     }
-    if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
-      if (onError != null) {
-        onError(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
-            argumentList, [requiredParameterCount, positionalArgumentCount]);
+
+    Set<String>? usedNames;
+    if (enclosingConstructor != null) {
+      var result = verifySuperFormalParameters(
+        constructor: enclosingConstructor,
+        hasExplicitPositionalArguments: positionalArgumentCount != 0,
+        errorReporter: errorReporter,
+      );
+      positionalArgumentCount += result.positionalArgumentCount;
+      if (result.namedArgumentNames.isNotEmpty) {
+        usedNames = result.namedArgumentNames.toSet();
       }
+    }
+
+    for (int i = 0; i < argumentCount; i++) {
+      Expression argument = arguments[i];
+      if (argument is NamedExpressionImpl) {
+        var nameNode = argument.name.label;
+        String name = nameNode.name;
+        var element = namedParameters != null ? namedParameters[name] : null;
+        if (element == null) {
+          errorReporter?.reportErrorForNode(
+              CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, nameNode, [name]);
+        } else {
+          resolvedParameters[i] = element;
+          nameNode.staticElement = element;
+        }
+        usedNames ??= <String>{};
+        if (!usedNames.add(name)) {
+          errorReporter?.reportErrorForNode(
+              CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, [name]);
+        }
+      }
+    }
+
+    if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
+      errorReporter?.reportErrorForNode(
+          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS,
+          argumentList,
+          [requiredParameterCount, positionalArgumentCount]);
     } else if (positionalArgumentCount > unnamedParameterCount &&
         noBlankArguments) {
       ErrorCode errorCode;
@@ -2387,8 +2425,8 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       } else {
         errorCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
-      if (onError != null) {
-        onError(errorCode, firstUnresolvedArgument!,
+      if (firstUnresolvedArgument != null) {
+        errorReporter?.reportErrorForNode(errorCode, firstUnresolvedArgument,
             [unnamedParameterCount, positionalArgumentCount]);
       }
     }

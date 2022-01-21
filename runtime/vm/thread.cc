@@ -15,6 +15,7 @@
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/os_thread.h"
 #include "vm/profiler.h"
 #include "vm/runtime_entry.h"
@@ -48,6 +49,8 @@ Thread::~Thread() {
     delete api_reusable_scope_;
     api_reusable_scope_ = NULL;
   }
+
+  DO_IF_TSAN(delete tsan_utils_);
 }
 
 #if defined(DEBUG)
@@ -86,6 +89,7 @@ Thread::Thread(bool is_vm_isolate)
       api_top_scope_(NULL),
       double_truncate_round_supported_(
           TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
+      tsan_utils_(DO_IF_TSAN(new TsanUtils()) DO_IF_NOT_TSAN(nullptr)),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
       thread_lock_(),
@@ -114,8 +118,7 @@ Thread::Thread(bool is_vm_isolate)
   CACHED_CONSTANTS_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_X64)
+#if !defined(TARGET_ARCH_IA32)
   for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
     write_barrier_wrappers_entry_points_[i] = 0;
   }
@@ -190,8 +193,7 @@ void Thread::InitVMConstants() {
   CACHED_CONSTANTS_LIST(INIT_VALUE)
 #undef INIT_VALUE
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_X64)
+#if !defined(TARGET_ARCH_IA32)
   for (intptr_t i = 0; i < kNumberOfDartAvailableCpuRegs; ++i) {
     write_barrier_wrappers_entry_points_[i] =
         StubCode::WriteBarrierWrappers().EntryPoint() +
@@ -723,12 +725,28 @@ void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
                                      ValidationPolicy::kDontValidateFrames,
                                      this, cross_thread_policy);
   RestoreWriteBarrierInvariantVisitor visitor(isolate_group(), this, op);
+  ObjectStore* object_store = isolate_group()->object_store();
   bool scan_next_dart_frame = false;
   for (StackFrame* frame = frames_iterator.NextFrame(); frame != NULL;
        frame = frames_iterator.NextFrame()) {
     if (frame->IsExitFrame()) {
       scan_next_dart_frame = true;
-    } else if (frame->IsDartFrame(/*validate=*/false)) {
+    } else if (frame->IsEntryFrame()) {
+      /* Continue searching. */
+    } else if (frame->IsStubFrame()) {
+      const uword pc = frame->pc();
+      if (Code::ContainsInstructionAt(
+              object_store->init_late_static_field_stub(), pc) ||
+          Code::ContainsInstructionAt(
+              object_store->init_late_final_static_field_stub(), pc) ||
+          Code::ContainsInstructionAt(
+              object_store->init_late_instance_field_stub(), pc) ||
+          Code::ContainsInstructionAt(
+              object_store->init_late_final_instance_field_stub(), pc)) {
+        scan_next_dart_frame = true;
+      }
+    } else {
+      ASSERT(frame->IsDartFrame(/*validate=*/false));
       if (scan_next_dart_frame) {
         frame->VisitObjectPointers(&visitor);
       }

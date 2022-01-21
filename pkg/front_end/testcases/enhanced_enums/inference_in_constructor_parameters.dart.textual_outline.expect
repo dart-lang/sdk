@@ -1,0 +1,5 @@
+X foo<X>(X x) => x;
+enum E1 { bar(foo); const E1(int Function(int) f); }
+enum E2<X> { bar(foo); const E2(X f); }
+enum E3<X extends num, Y extends String, Z extends Function(X, Y)> { element }
+main() {}

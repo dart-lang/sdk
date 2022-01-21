@@ -15,20 +15,8 @@ import 'package:analyzer/src/generated/source.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisResult {
-  /// The absolute and normalized path of the file that was analyzed.
-  @Deprecated('Use FileResult.path instead')
-  String get path;
-
   /// Return the session used to compute this result.
   AnalysisSession get session;
-
-  /// The state of the results.
-  @Deprecated('Check for specific Result subtypes instead')
-  ResultState get state;
-
-  /// The absolute URI of the file that was analyzed.
-  @Deprecated('Use FileResult.uri instead')
-  Uri get uri;
 }
 
 /// An analysis result that includes the errors computed during analysis.
@@ -87,11 +75,9 @@ abstract class FileResult implements SomeFileResult, AnalysisResult {
   LineInfo get lineInfo;
 
   /// The absolute and normalized path of the file that was analyzed.
-  @override
   String get path;
 
   /// The absolute URI of the file that was analyzed.
-  @override
   Uri get uri;
 }
 
@@ -254,31 +240,6 @@ abstract class ResolvedUnitResult
   CompilationUnit get unit;
 }
 
-/// An indication of whether an analysis result is valid, and if not why.
-@Deprecated('Check for specific Result subtypes instead')
-enum ResultState {
-  /// An indication that analysis could not be performed because the path
-  /// represents a file of a type that cannot be analyzed.
-  INVALID_FILE_TYPE,
-
-  /// An indication that analysis could not be performed because the path does
-  /// not represent a file. It might represent something else, such as a
-  /// directory, or it might not represent anything.
-  @Deprecated("Check 'get exists' flag instead")
-  NOT_A_FILE,
-
-  /// An indication that analysis could not be performed because the path does
-  /// not represent the corresponding URI.
-  ///
-  /// This usually happens in Bazel workspaces, when a URI is resolved to
-  /// a generated file, but there is also a writable file to which this URI
-  /// would be resolved, if there were no generated file.
-  NOT_FILE_OF_URI,
-
-  /// An indication that analysis completed normally and the results are valid.
-  VALID
-}
-
 /// The result of computing all of the errors contained in a single file, both
 /// syntactic and semantic.
 ///
@@ -353,18 +314,6 @@ abstract class SomeUnitElementResult {}
 abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
   /// The element of the file.
   CompilationUnitElement get element;
-
-  /// The signature of the library containing the [element]. This is the same
-  /// signature returned by the method [AnalysisSession.getUnitElementSignature]
-  /// when given the path to the compilation unit represented by the [element].
-  ///
-  /// The signature is based on the APIs of the files of the library (including
-  /// the file itself), and the transitive closure of files imported and
-  /// exported by the library. If the signature of a file has not changed, then
-  /// there have been no changes that would cause any files that depend on it
-  /// to need to be re-analyzed.
-  @Deprecated('This field is not used by clients and will be removed')
-  String get signature;
 }
 
 /// The type of [InvalidResult] returned when something is wrong, but we

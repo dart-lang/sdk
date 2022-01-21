@@ -321,7 +321,6 @@ class DartDocTest {
     options.target = target;
     options.omitPlatform = true;
     options.onDiagnostic = (DiagnosticMessage message) {
-      if (message.codeName == "InferredPackageUri") return;
       _print(message.plainTextFormatted.first);
       if (message.severity == Severity.error) {
         errors = true;
@@ -800,9 +799,8 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
     assert(dillTargetForTesting != null && kernelTargetForTesting != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder libraryBuilder = kernelTargetForTesting!.loader.read(
-          libraryUri, -1,
-          accessorUri: kernelTargetForTesting!.loader.firstUri);
+      LibraryBuilder libraryBuilder =
+          kernelTargetForTesting!.loader.readAsEntryPoint(libraryUri);
 
       kernelTargetForTesting!.loader.resetSeenMessages();
 
@@ -826,14 +824,14 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
   SourceLibraryBuilder createDartDocTestLibrary(
       SourceLoader loader, LibraryBuilder libraryBuilder) {
     SourceLibraryBuilder dartDocTestLibrary = new SourceLibraryBuilder(
-      dartDocTestUri,
-      dartDocTestUri,
-      /*packageUri*/ null,
-      new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
-      loader,
-      null,
+      importUri: dartDocTestUri,
+      fileUri: dartDocTestUri,
+      packageLanguageVersion:
+          new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
+      loader: loader,
       scope: libraryBuilder.scope.createNestedScope("dartdoctest"),
       nameOrigin: libraryBuilder,
+      isUnsupported: false,
     );
 
     if (libraryBuilder is DillLibraryBuilder) {
@@ -899,14 +897,14 @@ class DocTestSourceLoader extends SourceLoader {
 
   @override
   SourceLibraryBuilder createLibraryBuilder(
-      Uri uri,
-      Uri fileUri,
+      {required Uri importUri,
+      required Uri fileUri,
       Uri? packageUri,
-      LanguageVersion packageLanguageVersion,
+      required LanguageVersion packageLanguageVersion,
       SourceLibraryBuilder? origin,
       kernel.Library? referencesFrom,
-      bool? referenceIsPartOwner) {
-    if (uri == DocTestIncrementalCompiler.dartDocTestUri) {
+      bool? referenceIsPartOwner}) {
+    if (importUri == DocTestIncrementalCompiler.dartDocTestUri) {
       HybridFileSystem hfs = target.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;
       fs
@@ -915,7 +913,13 @@ class DocTestSourceLoader extends SourceLoader {
       return compiler.createDartDocTestLibrary(
           this, compiler._dartDocTestLibraryBuilder!);
     }
-    return super.createLibraryBuilder(uri, fileUri, packageUri,
-        packageLanguageVersion, origin, referencesFrom, referenceIsPartOwner);
+    return super.createLibraryBuilder(
+        importUri: importUri,
+        fileUri: fileUri,
+        packageUri: packageUri,
+        packageLanguageVersion: packageLanguageVersion,
+        origin: origin,
+        referencesFrom: referencesFrom,
+        referenceIsPartOwner: referenceIsPartOwner);
   }
 }

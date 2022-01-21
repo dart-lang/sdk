@@ -51,6 +51,7 @@ FutureOr f;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
+    await analysisFinished;
 
     var result = await sendEditGetFixes(pathname, text.indexOf('FutureOr f'));
     expect(result.fixes, isEmpty);

@@ -21,12 +21,12 @@ void main() {
 @reflectiveTest
 class SetPriorityFilesTest extends AbstractAnalysisTest {
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
     server.handlers = [
       AnalysisDomainHandler(server),
     ];
-    createProject();
+    await createProject();
   }
 
   Future<void> test_fileDoesNotExist() async {

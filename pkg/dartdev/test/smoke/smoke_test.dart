@@ -51,6 +51,24 @@ void main() {
         }
       });
 
+      test('dart run --enable-vm-service smoke.dart with used port', () async {
+        final server = await HttpServer.bind(InternetAddress.anyIPv4, 0);
+        final result = await Process.run(
+          Platform.executable,
+          [
+            'run',
+            '--enable-vm-service=${server.port}',
+            script,
+          ],
+        );
+        expect(
+          result.stderr,
+          'Could not start VM service: localhost:${server.port} is already in use.\n',
+        );
+        expect(result.stdout, isEmpty);
+        server.close();
+      });
+
       // This test verifies that an error isn't thrown when a valid experiment
       // is passed.
       // Experiments are lists here:

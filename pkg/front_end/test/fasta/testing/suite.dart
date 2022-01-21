@@ -5,91 +5,63 @@
 library fasta.testing.suite;
 
 import 'dart:convert' show jsonDecode, utf8;
-
 import 'dart:io' show Directory, File, Platform;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show LanguageVersionToken, Token;
-
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show LibraryInfo;
 import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
-
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show
         CompilerOptions,
         DiagnosticMessage,
         parseExperimentalArguments,
         parseExperimentalFlags;
-
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, ErrorReporter, EvaluationMode;
-
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show
         AllowedExperimentalFlags,
         ExperimentalFlag,
         defaultAllowedExperimentalFlags,
         isExperimentEnabled;
-
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
-
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
-
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
-
+import 'package:front_end/src/base/command_line_options.dart';
+import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
-
-import 'package:front_end/src/base/command_line_options.dart';
-
-import 'package:front_end/src/base/nnbd_mode.dart' show NnbdMode;
-
 import 'package:front_end/src/fasta/builder/library_builder.dart'
     show LibraryBuilder;
-
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
-
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
-
-import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
-    show ClassHierarchyNode;
-
-import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart'
     show ClassHierarchyBuilder;
-
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart'
+    show ClassHierarchyNode;
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
-    show KernelTarget;
-
+    show BuildResult, KernelTarget;
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
-
-import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
-
-import 'package:front_end/src/fasta/ticker.dart' show Ticker;
-
-import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
-
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
-
+import 'package:front_end/src/fasta/messages.dart' show LocatedMessage;
+import 'package:front_end/src/fasta/ticker.dart' show Ticker;
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 import 'package:front_end/src/fasta/util/parser_ast.dart'
     show ParserAstVisitor, getAST;
-
 import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
-
 import 'package:kernel/ast.dart'
     show
         AwaitExpression,
@@ -111,24 +83,16 @@ import 'package:kernel/ast.dart'
         Version,
         Visitor,
         VisitorVoidMixin;
-
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
-
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-
 import 'package:kernel/core_types.dart' show CoreTypes;
-
 import 'package:kernel/kernel.dart'
     show RecursiveResultVisitor, loadComponentFromBytes;
-
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
-
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
-
 import 'package:kernel/target/targets.dart'
     show
-        ConstantsBackend,
         DiagnosticReporter,
         NoneConstantsBackend,
         NoneTarget,
@@ -137,10 +101,8 @@ import 'package:kernel/target/targets.dart'
         TestTargetFlags,
         TestTargetMixin,
         TestTargetWrapper;
-
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, TypeEnvironment;
-
 import 'package:testing/testing.dart'
     show
         Chain,
@@ -151,11 +113,9 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription,
         StdioProcess;
-
 import 'package:vm/target/vm.dart' show VmTarget;
 
 import '../../testing_utils.dart' show checkEnvironment;
-
 import '../../utils/kernel_chain.dart'
     show
         ComponentResult,
@@ -165,13 +125,12 @@ import '../../utils/kernel_chain.dart'
         Print,
         TypeCheck,
         WriteDill;
-
 import '../../utils/validating_instrumentation.dart'
     show ValidatingInstrumentation;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
-const String ENABLE_FULL_COMPILE = " full compile ";
+const String COMPILATION_MODE = " compilation mode ";
 
 const String UPDATE_EXPECTATIONS = "updateExpectations";
 const String UPDATE_COMMENTS = "updateComments";
@@ -378,55 +337,61 @@ class FastaContext extends ChainContext with MatchContext {
       this.skipVm,
       this.semiFuzz,
       bool kernelTextSerialization,
-      bool fullCompile,
+      CompileMode compileMode,
       this.verify,
       this.soundNullSafety)
       : steps = <Step>[
-          new Outline(fullCompile, updateComments: updateComments),
+          new Outline(compileMode, updateComments: updateComments),
           const Print(),
-          new Verify(fullCompile)
+          new Verify(compileMode)
         ] {
-    String fullPrefix;
-    String outlinePrefix;
+    String prefix;
+    String infix;
     if (soundNullSafety) {
-      fullPrefix = '.strong';
-      outlinePrefix = '.strong.outline';
+      prefix = '.strong';
     } else {
-      fullPrefix = '.weak';
-      outlinePrefix = '.weak.outline';
+      prefix = '.weak';
+    }
+    switch (compileMode) {
+      case CompileMode.outline:
+        infix = '.outline';
+        break;
+      case CompileMode.modular:
+        infix = '.modular';
+        break;
+      case CompileMode.full:
+        infix = '';
+        break;
     }
 
-    if (!fullCompile) {
-      // If not doing a full compile this is the only expect file so we run the
-      // extra constant evaluation now. If we do a full compilation, we'll do
-      // if after the transformation. That also ensures we don't get the same
-      // 'extra constant evaluation' output twice (in .transformed and not).
+    if (compileMode == CompileMode.outline) {
+      // If doing an outline compile, this is the only expect file so we run the
+      // extra constant evaluation now. If we do a full or modular compilation,
+      // we'll do if after the transformation. That also ensures we don't get
+      // the same 'extra constant evaluation' output twice (in .transformed and
+      // not).
       steps.add(const StressConstantEvaluatorStep());
     }
     if (!ignoreExpectations) {
-      steps.add(new MatchExpectation(
-          fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
-          serializeFirst: false,
-          isLastMatchStep: false));
-      steps.add(new MatchExpectation(
-          fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
-          serializeFirst: true,
-          isLastMatchStep: true));
+      steps.add(new MatchExpectation("$prefix$infix.expect",
+          serializeFirst: false, isLastMatchStep: false));
+      steps.add(new MatchExpectation("$prefix$infix.expect",
+          serializeFirst: true, isLastMatchStep: true));
     }
     steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
     if (kernelTextSerialization) {
       steps.add(const KernelTextSerialization());
     }
-    if (fullCompile) {
+    if (compileMode == CompileMode.full) {
       steps.add(const Transform());
-      steps.add(const Verify(true));
+      steps.add(const Verify(CompileMode.full));
       steps.add(const StressConstantEvaluatorStep());
       if (!ignoreExpectations) {
-        steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
+        steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
             serializeFirst: false, isLastMatchStep: updateExpectations));
         if (!updateExpectations) {
-          steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
+          steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
               serializeFirst: true, isLastMatchStep: true));
         }
       }
@@ -767,7 +732,7 @@ class FastaContext extends ChainContext with MatchContext {
       "verify",
       KERNEL_TEXT_SERIALIZATION,
       "platformBinaries",
-      ENABLE_FULL_COMPILE,
+      COMPILATION_MODE,
     };
     checkEnvironment(environment, knownEnvironmentKeys);
 
@@ -815,7 +780,7 @@ class FastaContext extends ChainContext with MatchContext {
         skipVm,
         semiFuzz,
         kernelTextSerialization,
-        environment.containsKey(ENABLE_FULL_COMPILE),
+        compileModeFromName(environment[COMPILATION_MODE]),
         verify,
         soundNullSafety));
   }
@@ -895,12 +860,12 @@ class StressConstantEvaluatorStep
   Future<Result<ComponentResult>> run(
       ComponentResult result, FastaContext context) {
     KernelTarget target = result.sourceTarget;
-    ConstantsBackend constantsBackend = target.backendTarget.constantsBackend;
     TypeEnvironment environment =
         new TypeEnvironment(target.loader.coreTypes, target.loader.hierarchy);
     StressConstantEvaluatorVisitor stressConstantEvaluatorVisitor =
         new StressConstantEvaluatorVisitor(
-      constantsBackend,
+      target.backendTarget,
+      result.component,
       result.options.environmentDefines,
       target.isExperimentEnabledGlobally(ExperimentalFlag.tripleShift),
       environment,
@@ -931,7 +896,8 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
   List<String> output = [];
 
   StressConstantEvaluatorVisitor(
-      ConstantsBackend backend,
+      Target target,
+      Component component,
       Map<String, String>? environmentDefines,
       bool enableTripleShift,
       TypeEnvironment typeEnvironment,
@@ -939,12 +905,22 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
       bool errorOnUnevaluatedConstant,
       EvaluationMode evaluationMode) {
     constantEvaluator = new ConstantEvaluator(
-        backend, environmentDefines, typeEnvironment, this,
+        target.dartLibrarySupport,
+        target.constantsBackend,
+        component,
+        environmentDefines,
+        typeEnvironment,
+        this,
         enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
         evaluationMode: evaluationMode);
     constantEvaluatorWithEmptyEnvironment = new ConstantEvaluator(
-        backend, {}, typeEnvironment, this,
+        target.dartLibrarySupport,
+        target.constantsBackend,
+        component,
+        {},
+        typeEnvironment,
+        this,
         enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
         evaluationMode: evaluationMode);
@@ -984,7 +960,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
         }
       }
       if (!evaluate) return node;
-      if (constantEvaluator.environmentDefines != null) {
+      if (constantEvaluator.hasEnvironment) {
         throw "Unexpected UnevaluatedConstant "
             "when the environment is not null.";
       }
@@ -1004,7 +980,7 @@ class StressConstantEvaluatorVisitor extends RecursiveResultVisitor<Node>
     bool evaluatedWithEmptyEnvironment = false;
     if (x is UnevaluatedConstant && x.expression is! InvalidExpression) {
       // try with an environment
-      if (constantEvaluator.environmentDefines != null) {
+      if (constantEvaluator.hasEnvironment) {
         throw "Unexpected UnevaluatedConstant (with an InvalidExpression in "
             "it) when the environment is not null.";
       }
@@ -1754,6 +1730,8 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
     forceConstructorTearOffLoweringForTesting:
         folderOptions.forceConstructorTearOffLowering,
     enableNullSafety: context.soundNullSafety,
+    supportedDartLibraries: {'_supported.by.target'},
+    unsupportedDartLibraries: {'unsupported.by.target'},
   );
   Target target;
   switch (folderOptions.target) {
@@ -1777,13 +1755,15 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
 }
 
 Set<Uri> createUserLibrariesImportUriSet(
-    Component component, UriTranslator uriTranslator) {
+    Component component, UriTranslator uriTranslator,
+    {Set<Library> excludedLibraries: const {}}) {
   Set<Uri> knownUris =
       component.libraries.map((Library library) => library.importUri).toSet();
   Set<Uri> userLibraries = component.libraries
       .where((Library library) =>
           library.importUri.scheme != 'dart' &&
-          library.importUri.scheme != 'package')
+          library.importUri.scheme != 'package' &&
+          !excludedLibraries.contains(library))
       .map((Library library) => library.importUri)
       .toSet();
   // Mark custom "dart:" libraries defined in the test-specific libraries.json
@@ -1797,19 +1777,47 @@ Set<Uri> createUserLibrariesImportUriSet(
   return userLibraries.intersection(knownUris);
 }
 
-class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
-  final bool fullCompile;
+enum CompileMode {
+  /// Compiles only the outline of the test and its linked dependencies.
+  outline,
 
-  const Outline(this.fullCompile, {this.updateComments: false});
+  /// Fully compiles the test but compiles only the outline of its linked
+  /// dependencies.
+  ///
+  /// This mimics how modular compilation is performed with dartdevc.
+  modular,
+
+  /// Fully compiles the test and its linked dependencies.
+  full,
+}
+
+CompileMode compileModeFromName(String? name) {
+  for (CompileMode mode in CompileMode.values) {
+    if (name == mode.name) {
+      return mode;
+    }
+  }
+  return CompileMode.outline;
+}
+
+class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
+  final CompileMode compileMode;
+
+  const Outline(this.compileMode, {this.updateComments: false});
 
   final bool updateComments;
 
   @override
   String get name {
-    return fullCompile ? "compile" : "outline";
+    switch (compileMode) {
+      case CompileMode.outline:
+        return "outline";
+      case CompileMode.modular:
+        return "modular";
+      case CompileMode.full:
+        return "compile";
+    }
   }
-
-  bool get isCompiler => fullCompile;
 
   @override
   Future<Result<ComponentResult>> run(
@@ -1838,13 +1846,17 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
         if (compilationSetup.testOptions.errors != null) {
           compilationSetup.errors.addAll(compilationSetup.testOptions.errors!);
         }
-        Component p = (await sourceTarget.buildOutlines())!;
-        if (fullCompile) {
-          p = (await sourceTarget.buildComponent(
+        BuildResult buildResult = await sourceTarget.buildOutlines();
+        Component p = buildResult.component!;
+        if (compileMode == CompileMode.full) {
+          buildResult = await sourceTarget.buildComponent(
+              macroApplications: buildResult.macroApplications,
               verify: compilationSetup.folderOptions.noVerify
                   ? false
-                  : context.verify))!;
+                  : context.verify);
+          p = buildResult.component!;
         }
+        buildResult.macroApplications?.macroExecutor.close();
 
         // To avoid possible crash in mixin transformation in the transformation
         // of the user of this linked dependency we have to transform this too.
@@ -1885,6 +1897,13 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       if (description.uri.pathSegments.last.endsWith(".no_link.dart")) {
         alsoAppend = null;
       }
+
+      Set<Library>? excludedLibraries;
+      if (compileMode == CompileMode.modular) {
+        excludedLibraries = alsoAppend?.libraries.toSet();
+      }
+      excludedLibraries ??= const {};
+
       KernelTarget sourceTarget = await outlineInitialization(context,
           description, compilationSetup.options, <Uri>[description.uri],
           alsoAppend: alsoAppend);
@@ -1892,19 +1911,24 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           new ValidatingInstrumentation();
       await instrumentation.loadExpectations(description.uri);
       sourceTarget.loader.instrumentation = instrumentation;
-      Component p = (await sourceTarget.buildOutlines())!;
-      Set<Uri> userLibraries =
-          createUserLibrariesImportUriSet(p, sourceTarget.uriTranslator);
-      if (fullCompile) {
-        p = (await sourceTarget.buildComponent(
+      BuildResult buildResult = await sourceTarget.buildOutlines();
+      Component p = buildResult.component!;
+      Set<Uri> userLibraries = createUserLibrariesImportUriSet(
+          p, sourceTarget.uriTranslator,
+          excludedLibraries: excludedLibraries);
+      if (compileMode != CompileMode.outline) {
+        buildResult = await sourceTarget.buildComponent(
+            macroApplications: buildResult.macroApplications,
             verify: compilationSetup.folderOptions.noVerify
                 ? false
-                : context.verify))!;
+                : context.verify);
+        p = buildResult.component!;
         instrumentation.finish();
         if (instrumentation.hasProblems) {
           if (updateComments) {
             await instrumentation.fixSource(description.uri, false);
           } else {
+            buildResult.macroApplications?.macroExecutor.close();
             return new Result<ComponentResult>(
                 new ComponentResult(description, p, userLibraries,
                     compilationSetup, sourceTarget),
@@ -1915,6 +1939,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           }
         }
       }
+      buildResult.macroApplications?.macroExecutor.close();
       return pass(new ComponentResult(
           description, p, userLibraries, compilationSetup, sourceTarget));
     });
@@ -1998,9 +2023,9 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
 }
 
 class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
-  final bool fullCompile;
+  final CompileMode compileMode;
 
-  const Verify(this.fullCompile);
+  const Verify(this.compileMode);
 
   @override
   String get name => "verify";
@@ -2031,7 +2056,7 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
       compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(
           component, result.options.target,
-          isOutline: !fullCompile, skipPlatform: true);
+          isOutline: compileMode == CompileMode.outline, skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {
         return pass(result);
@@ -2148,7 +2173,7 @@ class MatchHierarchy
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri.scheme == "file");
     KernelTarget target = result.sourceTarget;
-    ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
+    ClassHierarchyBuilder hierarchy = target.loader.hierarchyBuilder;
     StringBuffer sb = new StringBuffer();
     for (ClassHierarchyNode node in hierarchy.nodes.values) {
       sb.writeln(node);

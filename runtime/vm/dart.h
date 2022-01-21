@@ -36,6 +36,7 @@ class Dart : public AllStatic {
                     Dart_IsolateShutdownCallback shutdown,
                     Dart_IsolateCleanupCallback cleanup,
                     Dart_IsolateGroupCleanupCallback cleanup_group,
+                    Dart_ThreadStartCallback thread_start,
                     Dart_ThreadExitCallback thread_exit,
                     Dart_FileOpenCallback file_open,
                     Dart_FileReadCallback file_read,
@@ -119,6 +120,12 @@ class Dart : public AllStatic {
                               Snapshot::Kind kind);
   static Snapshot::Kind vm_snapshot_kind() { return vm_snapshot_kind_; }
 
+  static Dart_ThreadStartCallback thread_start_callback() {
+    return thread_start_callback_;
+  }
+  static void set_thread_start_callback(Dart_ThreadStartCallback cback) {
+    thread_start_callback_ = cback;
+  }
   static Dart_ThreadExitCallback thread_exit_callback() {
     return thread_exit_callback_;
   }
@@ -176,6 +183,7 @@ class Dart : public AllStatic {
                         Dart_IsolateShutdownCallback shutdown,
                         Dart_IsolateCleanupCallback cleanup,
                         Dart_IsolateGroupCleanupCallback cleanup_group,
+                        Dart_ThreadStartCallback thread_start,
                         Dart_ThreadExitCallback thread_exit,
                         Dart_FileOpenCallback file_open,
                         Dart_FileReadCallback file_read,
@@ -199,6 +207,7 @@ class Dart : public AllStatic {
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
   static Snapshot::Kind vm_snapshot_kind_;
+  static Dart_ThreadStartCallback thread_start_callback_;
   static Dart_ThreadExitCallback thread_exit_callback_;
   static Dart_FileOpenCallback file_open_callback_;
   static Dart_FileReadCallback file_read_callback_;

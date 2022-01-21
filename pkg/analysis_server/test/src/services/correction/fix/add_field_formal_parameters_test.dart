@@ -19,7 +19,7 @@ class AddFieldFormalParametersTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_FIELD_FORMAL_PARAMETERS;
 
-  Future<void> test_flutter() async {
+  Future<void> test_flutter_nullable() async {
     writeTestPackageConfig(
       flutter: true,
     );
@@ -30,22 +30,53 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   final int a;
   final int b;
-  final int c;
+  final int? c;
+  final int d;
 
   MyWidget({required Key key, required this.a}) : super(key: key);
 }
 ''');
-    // TODO(brianwilkerson) The result should include `required` for the new
-    //  parameters, but I'm omitting them to match the current behavior.
     await assertHasFix('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
   final int a;
   final int b;
-  final int c;
+  final int? c;
+  final int d;
 
-  MyWidget({required Key key, required this.a, this.b, this.c}) : super(key: key);
+  MyWidget({required Key key, required this.a, required this.b, this.c, required this.d}) : super(key: key);
+}
+''');
+  }
+
+  Future<void> test_flutter_potentiallyNullable() async {
+    writeTestPackageConfig(
+      flutter: true,
+    );
+
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget<T> extends StatelessWidget {
+  final int a;
+  final int b;
+  final T c;
+  final int d;
+
+  MyWidget({required Key key, required this.a}) : super(key: key);
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget<T> extends StatelessWidget {
+  final int a;
+  final int b;
+  final T c;
+  final int d;
+
+  MyWidget({required Key key, required this.a, required this.b, required this.c, required this.d}) : super(key: key);
 }
 ''');
   }

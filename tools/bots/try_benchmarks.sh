@@ -296,7 +296,7 @@ EOF
       out/ReleaseX64/kernel-service.dart.snapshot \
       out/ReleaseX64/run_vm_tests \
       third_party/d8/linux/x64 \
-      third_party/firefox_jsshell/linux/ \
+      third_party/firefox_jsshell/ \
       out/ReleaseX64/dart_precompiled_runtime \
       out/ReleaseX64/gen/utils/dartdevc/kernel/ \
       out/ReleaseX64/ddc_outline.dill \
@@ -333,9 +333,9 @@ EOF
     out/ReleaseX64/dart-sdk/bin/dart2js --sound-null-safety --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
-    LD_LIBRARY_PATH=third_party/firefox_jsshell/linux/jsshell/ third_party/firefox_jsshell/linux/jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
+    LD_LIBRARY_PATH=third_party/firefox_jsshell/ third_party/firefox_jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
     out/ReleaseX64/dart-sdk/bin/dart2js --sound-null-safety --packages=.packages --out=out.js -m hello.dart
-    LD_LIBRARY_PATH=third_party/firefox_jsshell/linux/jsshell/ third_party/firefox_jsshell/linux/jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
+    LD_LIBRARY_PATH=third_party/firefox_jsshell/ third_party/firefox_jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
     out/ReleaseX64/dart-sdk/bin/dart2js --benchmarking-production --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/x64/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseX64/dart-sdk/bin/dart2js --sound-null-safety --benchmarking-production --packages=.packages --out=out.js -m hello.dart

@@ -43,6 +43,7 @@ class ConstantInitializersResolver {
       for (var unit in _library.units) {
         _unitElement = unit as CompilationUnitElementImpl;
         unit.classes.forEach(_resolveClassFields);
+        unit.enums.forEach(_resolveClassFields);
         unit.extensions.forEach(_resolveExtensionFields);
         unit.mixins.forEach(_resolveClassFields);
 
@@ -74,9 +75,9 @@ class ConstantInitializersResolver {
 
   void _resolveVariable(PropertyInducingElement element) {
     element as PropertyInducingElementImpl;
-    if (element.isSynthetic) return;
 
-    var variable = linker.getLinkingNode(element) as VariableDeclaration;
+    var variable = linker.getLinkingNode(element);
+    if (variable is! VariableDeclaration) return;
     if (variable.initializer == null) return;
 
     var declarationList = variable.parent as VariableDeclarationList;
@@ -93,8 +94,7 @@ class ConstantInitializersResolver {
 
     if (declarationList.isConst ||
         declarationList.isFinal && _enclosingClassHasConstConstructor) {
-      var astResolver =
-          AstResolver(linker, _unitElement, _scope, variable.initializer!);
+      var astResolver = AstResolver(linker, _unitElement, _scope);
       astResolver.resolveExpression(() => variable.initializer!,
           contextType: contextType);
     }
@@ -141,7 +141,8 @@ class _BaseConstructor {
 class _ConstructorInferenceNode extends _InferenceNode {
   final _InferenceWalker _walker;
   final ConstructorElement _constructor;
-  final List<_FieldFormalParameterWithField> _parameters = [];
+  final List<_FieldFormalParameter> _fieldParameters = [];
+  final List<_SuperFormalParameter> _superParameters = [];
 
   /// If this node is a constructor of a mixin application, this field
   /// is the corresponding constructor of the superclass.
@@ -156,8 +157,17 @@ class _ConstructorInferenceNode extends _InferenceNode {
         if (parameter.hasImplicitType) {
           var field = parameter.field;
           if (field != null) {
-            _parameters.add(
-              _FieldFormalParameterWithField(parameter, field),
+            _fieldParameters.add(
+              _FieldFormalParameter(parameter, field),
+            );
+          }
+        }
+      } else if (parameter is SuperFormalParameterElementImpl) {
+        if (parameter.hasImplicitType) {
+          var superParameter = parameter.superConstructorParameter;
+          if (superParameter != null) {
+            _superParameters.add(
+              _SuperFormalParameter(parameter, superParameter),
             );
           }
         }
@@ -187,10 +197,12 @@ class _ConstructorInferenceNode extends _InferenceNode {
 
   @override
   List<_InferenceNode> computeDependencies() {
-    var dependencies = _parameters
-        .map((e) => _walker.getNode(e.field))
-        .whereNotNull()
-        .toList();
+    var dependencies = [
+      ..._fieldParameters.map((e) => _walker.getNode(e.field)).whereNotNull(),
+      ..._superParameters
+          .map((e) => _walker.getNode(e.superParameter))
+          .whereNotNull(),
+    ];
 
     dependencies.addIfNotNull(
       _walker.getNode(_baseConstructor?.element),
@@ -201,9 +213,11 @@ class _ConstructorInferenceNode extends _InferenceNode {
 
   @override
   void evaluate() {
-    for (var parameterWithField in _parameters) {
-      var parameter = parameterWithField.parameter;
-      parameter.type = parameterWithField.field.type;
+    for (var fieldParameter in _fieldParameters) {
+      fieldParameter.parameter.type = fieldParameter.field.type;
+    }
+    for (var superParameter in _superParameters) {
+      superParameter.parameter.type = superParameter.superParameter.type;
     }
 
     // We have inferred formal parameter types of the base constructor.
@@ -241,20 +255,22 @@ class _ConstructorInferenceNode extends _InferenceNode {
 
   @override
   void markCircular(List<_InferenceNode> cycle) {
-    for (var parameterWithField in _parameters) {
-      var parameter = parameterWithField.parameter;
-      parameter.type = DynamicTypeImpl.instance;
+    for (var fieldParameter in _fieldParameters) {
+      fieldParameter.parameter.type = DynamicTypeImpl.instance;
+    }
+    for (var superParameter in _superParameters) {
+      superParameter.parameter.type = DynamicTypeImpl.instance;
     }
     isEvaluated = true;
   }
 }
 
 /// A field formal parameter with a non-nullable field.
-class _FieldFormalParameterWithField {
+class _FieldFormalParameter {
   final FieldFormalParameterElementImpl parameter;
   final FieldElement field;
 
-  _FieldFormalParameterWithField(this.parameter, this.field);
+  _FieldFormalParameter(this.parameter, this.field);
 }
 
 class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
@@ -274,7 +290,7 @@ class _InferenceDependenciesCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.staticElement;
+    var element = node.staticElement?.declaration;
     if (element is PropertyAccessorElement && element.isGetter) {
       _set.add(element.variable);
     }
@@ -335,6 +351,7 @@ class _InitializerInference {
         _unitElement = unit as CompilationUnitElementImpl;
         unit.classes.forEach(_addClassConstructorFieldFormals);
         unit.classes.forEach(_addClassElementFields);
+        unit.enums.forEach(_addClassElementFields);
         unit.extensions.forEach(_addExtensionElementFields);
         unit.mixins.forEach(_addClassElementFields);
 
@@ -374,6 +391,7 @@ class _InitializerInference {
   }
 
   void _addVariableNode(PropertyInducingElement element) {
+    element as PropertyInducingElementImpl;
     if (element.isSynthetic) return;
 
     var node = _linker.getLinkingNode(element) as VariableDeclaration;
@@ -386,10 +404,10 @@ class _InitializerInference {
       var inferenceNode =
           _VariableInferenceNode(_walker, _unitElement, _scope, element, node);
       _walker._nodes[element] = inferenceNode;
-      (element as PropertyInducingElementImpl).typeInference =
+      element.typeInference =
           _PropertyInducingElementTypeInference(inferenceNode);
     } else {
-      (element as PropertyInducingElementImpl).type = DynamicTypeImpl.instance;
+      element.type = DynamicTypeImpl.instance;
     }
   }
 }
@@ -408,12 +426,20 @@ class _PropertyInducingElementTypeInference
   }
 }
 
+/// A super formal parameter with a non-nullable super-constructor parameter.
+class _SuperFormalParameter {
+  final SuperFormalParameterElementImpl parameter;
+  final ParameterElement superParameter;
+
+  _SuperFormalParameter(this.parameter, this.superParameter);
+}
+
 class _VariableInferenceNode extends _InferenceNode {
   final _InferenceWalker _walker;
   final CompilationUnitElementImpl _unitElement;
   final TypeSystemImpl _typeSystem;
   final Scope _scope;
-  final PropertyInducingElement _element;
+  final PropertyInducingElementImpl _element;
   final VariableDeclaration _node;
 
   @override
@@ -432,13 +458,9 @@ class _VariableInferenceNode extends _InferenceNode {
     return _node.name.name;
   }
 
-  PropertyInducingElementImpl get _elementImpl {
-    return _node.declaredElement as PropertyInducingElementImpl;
-  }
-
   @override
   List<_InferenceNode> computeDependencies() {
-    if (_elementImpl.hasTypeInferred) {
+    if (_element.hasTypeInferred) {
       return const <_InferenceNode>[];
     }
 
@@ -456,7 +478,7 @@ class _VariableInferenceNode extends _InferenceNode {
 
   @override
   void evaluate() {
-    if (_elementImpl.hasTypeInferred) {
+    if (_element.hasTypeInferred) {
       return;
     }
 
@@ -464,23 +486,23 @@ class _VariableInferenceNode extends _InferenceNode {
 
     var initializerType = _node.initializer!.typeOrThrow;
     initializerType = _refineType(initializerType);
-    _elementImpl.type = initializerType;
-    _elementImpl.hasTypeInferred = true;
+    _element.type = initializerType;
+    _element.hasTypeInferred = true;
 
     isEvaluated = true;
   }
 
   @override
   void markCircular(List<_InferenceNode> cycle) {
-    _elementImpl.type = DynamicTypeImpl.instance;
-    _elementImpl.hasTypeInferred = true;
+    _element.type = DynamicTypeImpl.instance;
+    _element.hasTypeInferred = true;
 
     var cycleNames = <String>{};
     for (var inferenceNode in cycle) {
       cycleNames.add(inferenceNode.displayName);
     }
 
-    _elementImpl.typeInferenceError = TopLevelInferenceError(
+    _element.typeInferenceError = TopLevelInferenceError(
       kind: TopLevelInferenceErrorKind.dependencyCycle,
       arguments: cycleNames.toList(),
     );
@@ -507,8 +529,7 @@ class _VariableInferenceNode extends _InferenceNode {
     var enclosingElement = _element.enclosingElement;
     var enclosingClassElement =
         enclosingElement is ClassElement ? enclosingElement : null;
-    var astResolver = AstResolver(
-        _walker._linker, _unitElement, _scope, _node.initializer!,
+    var astResolver = AstResolver(_walker._linker, _unitElement, _scope,
         enclosingClassElement: enclosingClassElement);
     astResolver.resolveExpression(() => _node.initializer!,
         buildElements: forDependencies);

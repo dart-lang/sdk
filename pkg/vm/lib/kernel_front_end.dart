@@ -77,6 +77,10 @@ void declareCompilerOptions(ArgParser args) {
       help:
           'Produce kernel file for AOT compilation (enables global transformations).',
       defaultsTo: false);
+  args.addFlag('support-mirrors',
+      help: 'Whether dart:mirrors is supported. By default dart:mirrors is '
+          'supported when --aot and --minimal-kernel are not used.',
+      defaultsTo: null);
   args.addOption('depfile', help: 'Path to output Ninja depfile');
   args.addOption('from-dill',
       help: 'Read existing dill file instead of compiling from sources',
@@ -100,6 +104,9 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('tfa',
       help:
           'Enable global type flow analysis and related transformations in AOT mode.',
+      defaultsTo: true);
+  args.addFlag('rta',
+      help: 'Use rapid type analysis for faster compilation in AOT mode.',
       defaultsTo: true);
   args.addFlag('tree-shake-write-only-fields',
       help: 'Enable tree shaking of fields which are only written in AOT mode.',
@@ -181,6 +188,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final List<String>? fileSystemRoots = options['filesystem-root'];
   final bool aot = options['aot'];
   final bool tfa = options['tfa'];
+  final bool rta = options['rta'];
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
   final bool enableAsserts = options['enable-asserts'];
@@ -189,6 +197,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
+  final bool? supportMirrors = options['support-mirrors'];
 
   final bool minimalKernel = options['minimal-kernel'];
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
@@ -207,6 +216,18 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     if (splitOutputByPackages) {
       print(
           'Error: --split-output-by-packages option cannot be used with --aot');
+      return badUsageExitCode;
+    }
+  }
+
+  if (supportMirrors == true) {
+    if (aot) {
+      print('Error: --support-mirrors option cannot be used with --aot');
+      return badUsageExitCode;
+    }
+    if (minimalKernel) {
+      print('Error: --support-mirrors option cannot be used with '
+          '--minimal-kernel');
       return badUsageExitCode;
     }
   }
@@ -254,11 +275,10 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     await autoDetectNullSafetyMode(mainUri, compilerOptions);
   }
 
-  compilerOptions.target = createFrontEndTarget(
-    targetName,
-    trackWidgetCreation: options['track-widget-creation'],
-    nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
-  );
+  compilerOptions.target = createFrontEndTarget(targetName,
+      trackWidgetCreation: options['track-widget-creation'],
+      nullSafety: compilerOptions.nnbdMode == NnbdMode.Strong,
+      supportMirrors: supportMirrors ?? !(aot || minimalKernel));
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
     return badUsageExitCode;
@@ -269,6 +289,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       aot: aot,
       useGlobalTypeFlowAnalysis: tfa,
+      useRapidTypeAnalysis: rta,
       environmentDefines: environmentDefines,
       enableAsserts: enableAsserts,
       useProtobufTreeShakerV2: useProtobufTreeShakerV2,
@@ -337,6 +358,7 @@ Future<KernelCompilationResults> compileToKernel(
     List<String> deleteToStringPackageUris: const <String>[],
     bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
+    bool useRapidTypeAnalysis: true,
     required Map<String, String> environmentDefines,
     bool enableAsserts: true,
     bool useProtobufTreeShakerV2: false,
@@ -376,7 +398,8 @@ Future<KernelCompilationResults> compileToKernel(
     await runGlobalTransformations(target, component, useGlobalTypeFlowAnalysis,
         enableAsserts, useProtobufTreeShakerV2, errorDetector,
         minimalKernel: minimalKernel,
-        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields);
+        treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
+        useRapidTypeAnalysis: useRapidTypeAnalysis);
 
     if (minimalKernel) {
       // compiledSources is component.uriToSource.keys.
@@ -433,7 +456,9 @@ Future runGlobalTransformations(
     bool useProtobufTreeShakerV2,
     ErrorDetector errorDetector,
     {bool minimalKernel: false,
-    bool treeShakeWriteOnlyFields: false}) async {
+    bool treeShakeWriteOnlyFields: false,
+    bool useRapidTypeAnalysis: true}) async {
+  assert(!target.flags.supportMirrors);
   if (errorDetector.hasCompilationErrors) return;
 
   final coreTypes = new CoreTypes(component);
@@ -454,7 +479,8 @@ Future runGlobalTransformations(
     globalTypeFlow.transformComponent(target, coreTypes, component,
         treeShakeSignatures: !minimalKernel,
         treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
-        treeShakeProtobufs: useProtobufTreeShakerV2);
+        treeShakeProtobufs: useProtobufTreeShakerV2,
+        useRapidTypeAnalysis: useRapidTypeAnalysis);
   } else {
     devirtualization.transformComponent(coreTypes, component);
     no_dynamic_invocations_annotator.transformComponent(component);
@@ -576,12 +602,16 @@ Future<void> autoDetectNullSafetyMode(
 
 /// Create front-end target with given name.
 Target? createFrontEndTarget(String targetName,
-    {bool trackWidgetCreation = false, bool nullSafety = false}) {
+    {bool trackWidgetCreation = false,
+    bool nullSafety = false,
+    bool supportMirrors = true}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
   final TargetFlags targetFlags = new TargetFlags(
-      trackWidgetCreation: trackWidgetCreation, enableNullSafety: nullSafety);
+      trackWidgetCreation: trackWidgetCreation,
+      enableNullSafety: nullSafety,
+      supportMirrors: supportMirrors);
   return getTarget(targetName, targetFlags);
 }
 

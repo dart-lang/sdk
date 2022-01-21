@@ -197,40 +197,25 @@ struct simd128_value_t {
 #if defined(_M_X64) || defined(__x86_64__)
 #define HOST_ARCH_X64 1
 #define ARCH_IS_64_BIT 1
-#define kFpuRegisterSize 16
-typedef simd128_value_t fpu_register_t;
 #elif defined(_M_IX86) || defined(__i386__)
 #define HOST_ARCH_IA32 1
 #define ARCH_IS_32_BIT 1
-#define kFpuRegisterSize 16
-typedef simd128_value_t fpu_register_t;
 #elif defined(__ARMEL__)
 #define HOST_ARCH_ARM 1
 #define ARCH_IS_32_BIT 1
-#define kFpuRegisterSize 16
-// Mark the fact that we have defined simd_value_t.
-#define SIMD_VALUE_T_
-typedef struct {
-  union {
-    uint32_t u;
-    float f;
-  } data_[4];
-} simd_value_t;
-typedef simd_value_t fpu_register_t;
-#define simd_value_safe_load(addr) (*reinterpret_cast<simd_value_t*>(addr))
-#define simd_value_safe_store(addr, value)                                     \
-  do {                                                                         \
-    reinterpret_cast<simd_value_t*>(addr)->data_[0] = value.data_[0];          \
-    reinterpret_cast<simd_value_t*>(addr)->data_[1] = value.data_[1];          \
-    reinterpret_cast<simd_value_t*>(addr)->data_[2] = value.data_[2];          \
-    reinterpret_cast<simd_value_t*>(addr)->data_[3] = value.data_[3];          \
-  } while (0)
-
 #elif defined(__aarch64__)
 #define HOST_ARCH_ARM64 1
 #define ARCH_IS_64_BIT 1
-#define kFpuRegisterSize 16
-typedef simd128_value_t fpu_register_t;
+#elif defined(__riscv)
+#if __SIZEOF_POINTER__ == 4
+#define HOST_ARCH_RISCV32 1
+#define ARCH_IS_32_BIT 1
+#elif __SIZEOF_POINTER__ == 8
+#define HOST_ARCH_RISCV64 1
+#define ARCH_IS_64_BIT 1
+#else
+#error Unknown XLEN
+#endif
 #else
 #error Architecture was not detected as supported by Dart.
 #endif
@@ -311,7 +296,8 @@ typedef simd128_value_t fpu_register_t;
 #endif
 
 #if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_X64) &&                  \
-    !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_ARM64)
+    !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_ARM64) &&               \
+    !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
 // No target architecture specified pick the one matching the host architecture.
 #if defined(HOST_ARCH_ARM)
 #define TARGET_ARCH_ARM 1
@@ -321,14 +307,20 @@ typedef simd128_value_t fpu_register_t;
 #define TARGET_ARCH_IA32 1
 #elif defined(HOST_ARCH_ARM64)
 #define TARGET_ARCH_ARM64 1
+#elif defined(HOST_ARCH_RISCV32)
+#define TARGET_ARCH_RISCV32 1
+#elif defined(HOST_ARCH_RISCV64)
+#define TARGET_ARCH_RISCV64 1
 #else
 #error Automatic target architecture detection failed.
 #endif
 #endif
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM) ||                   \
+    defined(TARGET_ARCH_RISCV32)
 #define TARGET_ARCH_IS_32_BIT 1
-#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                \
+    defined(TARGET_ARCH_RISCV64)
 #define TARGET_ARCH_IS_64_BIT 1
 #else
 #error Automatic target architecture detection failed.
@@ -340,11 +332,13 @@ typedef simd128_value_t fpu_register_t;
 
 // Verify that host and target architectures match, we cannot
 // have a 64 bit Dart VM generating 32 bit code or vice-versa.
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                  \
+    defined(TARGET_ARCH_RISCV64)
 #if !defined(ARCH_IS_64_BIT) && !defined(FFI_UNIT_TESTS)
 #error Mismatched Host/Target architectures.
 #endif  // !defined(ARCH_IS_64_BIT) && !defined(FFI_UNIT_TESTS)
-#elif defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+#elif defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM) ||                 \
+    defined(TARGET_ARCH_RISCV32)
 #if defined(HOST_ARCH_X64) && defined(TARGET_ARCH_ARM)
 // This is simarm_x64, which is the only case where host/target architecture
 // mismatch is allowed. Unless, we're running FFI unit tests.
@@ -370,12 +364,18 @@ typedef simd128_value_t fpu_register_t;
 #define USING_SIMULATOR 1
 #endif
 #endif
-
 #elif defined(TARGET_ARCH_ARM64)
 #if !defined(HOST_ARCH_ARM64)
 #define USING_SIMULATOR 1
 #endif
-
+#elif defined(TARGET_ARCH_RISCV32)
+#if !defined(HOST_ARCH_RISCV32)
+#define USING_SIMULATOR 1
+#endif
+#elif defined(TARGET_ARCH_RISCV64)
+#if !defined(HOST_ARCH_RISCV64)
+#define USING_SIMULATOR 1
+#endif
 #else
 #error Unknown architecture.
 #endif
@@ -653,7 +653,7 @@ static inline void USE(T&&) {}
 // gcc enough that it can no longer see that you have cast one pointer
 // type to another thus avoiding the warning.
 template <class D, class S>
-inline D bit_cast(const S& source) {
+DART_FORCE_INLINE D bit_cast(const S& source) {
   static_assert(sizeof(D) == sizeof(S),
                 "Source and destination must have the same size");
 
@@ -669,7 +669,7 @@ inline D bit_cast(const S& source) {
 // obscure details in the C++ standard that make reinterpret_cast
 // virtually useless.
 template <class D, class S>
-inline D bit_copy(const S& source) {
+DART_FORCE_INLINE D bit_copy(const S& source) {
   D destination;
   // This use of memcpy is safe: source and destination cannot overlap.
   memcpy(&destination, reinterpret_cast<const void*>(&source),

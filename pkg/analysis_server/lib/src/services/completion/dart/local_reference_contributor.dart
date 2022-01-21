@@ -25,7 +25,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
   late MemberSuggestionBuilder memberBuilder;
 
   /// The kind of suggestion to make.
-  CompletionSuggestionKind? classMemberSuggestionKind;
+  late CompletionSuggestionKind classMemberSuggestionKind;
 
   /// The [_VisibilityTracker] tracks the set of elements already added in the
   /// completion list, this object helps prevents suggesting elements that have
@@ -213,7 +213,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     var classElt = declaration.declaredElement;
     if (classElt != null && visibilityTracker._isVisible(classElt)) {
       if (opType.includeTypeNameSuggestions) {
-        builder.suggestClass(classElt, kind: _defaultKind);
+        builder.suggestClass(classElt);
       }
 
       // Generate the suggestions for the constructors. We are required to loop
@@ -234,7 +234,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
     var declaredElement = declaration.declaredElement;
     if (declaredElement != null && opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaredElement, kind: _defaultKind);
+      builder.suggestClass(declaredElement);
     }
   }
 
@@ -249,7 +249,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     if (declaredElement != null &&
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaredElement, kind: _defaultKind);
+      builder.suggestClass(declaredElement);
       for (var enumConstant in declaration.constants) {
         if (!enumConstant.isSynthetic) {
           var constantElement = enumConstant.declaredElement;
@@ -314,8 +314,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       if (declaredElement is FunctionElement) {
         builder.suggestTopLevelFunction(declaredElement, kind: _defaultKind);
       } else if (declaredElement is PropertyAccessorElement) {
-        builder.suggestTopLevelPropertyAccessor(declaredElement,
-            kind: _defaultKind);
+        builder.suggestTopLevelPropertyAccessor(declaredElement);
       }
     }
   }
@@ -324,7 +323,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     var declaredElement = declaration.declaredElement;
     if (declaredElement != null && opType.includeTypeNameSuggestions) {
-      builder.suggestTypeAlias(declaredElement, kind: _defaultKind);
+      builder.suggestTypeAlias(declaredElement);
     }
   }
 
@@ -333,7 +332,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     var declaredElement = declaration.declaredElement;
     if (declaredElement is TypeAliasElement &&
         opType.includeTypeNameSuggestions) {
-      builder.suggestTypeAlias(declaredElement, kind: _defaultKind);
+      builder.suggestTypeAlias(declaredElement);
     }
   }
 
@@ -385,7 +384,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         declaredElement != null &&
         visibilityTracker._isVisible(declaredElement) &&
         opType.includeTypeNameSuggestions) {
-      builder.suggestClass(declaredElement, kind: _defaultKind);
+      builder.suggestClass(declaredElement);
     }
   }
 

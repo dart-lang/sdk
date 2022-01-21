@@ -76,6 +76,24 @@ DartType? _writeType(AstNode node) {
   return null;
 }
 
+extension ConstructorDeclarationExtension on ConstructorDeclaration {
+  bool get isNonRedirectingGenerative {
+    // Must be generative.
+    if (externalKeyword != null || factoryKeyword != null) {
+      return false;
+    }
+
+    // Must be non-redirecting.
+    for (var initializer in initializers) {
+      if (initializer is RedirectingConstructorInvocation) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
+
 extension ExpressionExtension on Expression {
   /// Return the static type of this expression.
   ///
@@ -104,6 +122,14 @@ extension FormalParameterExtension on FormalParameter {
     return self;
   }
 
+  FormalParameterList get parentFormalParameterList {
+    var parent = this.parent;
+    if (parent is DefaultFormalParameter) {
+      parent = parent.parent;
+    }
+    return parent as FormalParameterList;
+  }
+
   AstNode get typeOrSelf {
     var self = this;
     if (self is SimpleFormalParameter) {
@@ -118,12 +144,12 @@ extension FormalParameterExtension on FormalParameter {
 
 /// TODO(scheglov) https://github.com/dart-lang/sdk/issues/43608
 extension IdentifierExtension on Identifier {
-  Element? get writeElement {
-    return _writeElement(this);
-  }
-
   Element? get readElement {
     return _readElement(this);
+  }
+
+  Element? get writeElement {
+    return _writeElement(this);
   }
 
   Element? get writeOrReadElement {

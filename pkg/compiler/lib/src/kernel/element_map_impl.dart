@@ -468,7 +468,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     }
 
     /// This path is needed for synthetically injected superclasses like
-    /// `Interceptor` and `JavaScriptObject`.
+    /// `Interceptor` and `LegacyJavaScriptObject`.
     KClassEnv env = classes.getEnv(superClass);
     ConstructorEntity constructor = env.lookupConstructor(this, target.name);
     if (constructor != null) {
@@ -812,14 +812,15 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   Dart2jsConstantEvaluator get constantEvaluator {
-    return _constantEvaluator ??= Dart2jsConstantEvaluator(typeEnvironment,
-        (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
+    return _constantEvaluator ??=
+        Dart2jsConstantEvaluator(env.mainComponent, typeEnvironment,
+            (ir.LocatedMessage message, List<ir.LocatedMessage> context) {
       reportLocatedMessage(reporter, message, context);
     },
-        environment: _environment.toMap(),
-        evaluationMode: options.useLegacySubtyping
-            ? ir.EvaluationMode.weak
-            : ir.EvaluationMode.strong);
+            environment: _environment.toMap(),
+            evaluationMode: options.useLegacySubtyping
+                ? ir.EvaluationMode.weak
+                : ir.EvaluationMode.strong);
   }
 
   @override

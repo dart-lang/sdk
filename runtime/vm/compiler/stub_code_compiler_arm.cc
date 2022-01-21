@@ -161,13 +161,6 @@ void StubCodeCompiler::GenerateSharedStubGeneric(
     intptr_t self_code_stub_offset_from_thread,
     bool allow_return,
     std::function<void()> perform_runtime_call) {
-  // If the target CPU does not support VFP the caller should always use the
-  // non-FPU stub.
-  if (save_fpu_registers && !TargetCPUFeatures::vfp_supported()) {
-    __ Breakpoint();
-    return;
-  }
-
   // We want the saved registers to appear like part of the caller's frame, so
   // we push them before calling EnterStubFrame.
   RegisterSet all_registers;
@@ -325,7 +318,8 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+static void GenerateExitSafepointStubCommon(Assembler* assembler,
+                                            uword runtime_entry_offset) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
@@ -339,12 +333,24 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ LoadImmediate(R0, target::Thread::vm_execution_state());
   __ str(R0, Address(THR, target::Thread::execution_state_offset()));
 
-  __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ ldr(R0, Address(THR, runtime_entry_offset));
   __ blx(R0);
   RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR), 0));
 
   __ PopRegisters(all_registers);
   __ Ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  GenerateExitSafepointStubCommon(
+      assembler, kExitSafepointRuntimeEntry.OffsetFromThread());
+}
+
+void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub(
+    Assembler* assembler) {
+  GenerateExitSafepointStubCommon(
+      assembler,
+      kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
 }
 
 // Call a native function within a safepoint.
@@ -825,7 +831,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     }
   }
 
-  if (TargetCPUFeatures::vfp_supported()) {
     ASSERT(kFpuRegisterSize == 4 * target::kWordSize);
     if (kNumberOfDRegisters > 16) {
       __ vstmd(DB_W, SP, D16, kNumberOfDRegisters - 16);
@@ -833,9 +838,6 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     } else {
       __ vstmd(DB_W, SP, D0, kNumberOfDRegisters);
     }
-  } else {
-    __ AddImmediate(SP, -kNumberOfFpuRegisters * kFpuRegisterSize);
-  }
 
   __ mov(R0, Operand(SP));  // Pass address of saved registers block.
   bool is_lazy =
@@ -2907,14 +2909,20 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #endif
   Label exit_through_non_ffi;
   Register tmp1 = R0, tmp2 = R1;
-  // Check if we exited generated from FFI. If so do transition.
+  // Check if we exited generated from FFI. If so do transition - this is needed
+  // because normally runtime calls transition back to generated via destructor
+  // of TransititionGeneratedToVM/Native that is part of runtime boilerplate
+  // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
+  // have this boilerplate, don't have this stack resource, have to transition
+  // explicitly.
   __ LoadFromOffset(tmp1, THR,
                     compiler::target::Thread::exit_through_ffi_offset());
   __ LoadImmediate(tmp2, target::Thread::exit_through_ffi());
   __ cmp(tmp1, Operand(tmp2));
   __ b(&exit_through_non_ffi, NE);
   __ TransitionNativeToGenerated(tmp1, tmp2,
-                                 /*leave_safepoint=*/true);
+                                 /*leave_safepoint=*/true,
+                                 /*ignore_unwind_in_progress=*/true);
   __ Bind(&exit_through_non_ffi);
 
   // Set the tag.

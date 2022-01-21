@@ -23,6 +23,7 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
       AnalyzerOptions.errors: EmptyProducer(),
       AnalyzerOptions.exclude: EmptyProducer(),
       AnalyzerOptions.language: MapProducer({
+        AnalyzerOptions.strictCasts: EmptyProducer(),
         AnalyzerOptions.strictInference: EmptyProducer(),
         AnalyzerOptions.strictRawTypes: EmptyProducer(),
       }),

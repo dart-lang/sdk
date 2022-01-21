@@ -108,8 +108,8 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   }
 
   @override
-  void createProject({Map<String, String>? packageRoots}) {
-    super.createProject(packageRoots: packageRoots);
+  Future<void> createProject({Map<String, String>? packageRoots}) async {
+    await super.createProject(packageRoots: packageRoots);
     if (supportsAvailableSuggestions) {
       var request = CompletionSetSubscriptionsParams(
           [CompletionService.AVAILABLE_SUGGESTION_SETS]).toRequest('0');
@@ -128,6 +128,20 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
     assertValidId(completionId);
     await _getResultsCompleter(completionId).future;
     return suggestions;
+  }
+
+  Future<List<CompletionSuggestion>> getSuggestions2() async {
+    await waitForTasksFinished();
+
+    var request = CompletionGetSuggestions2Params(
+      testFilePath,
+      completionOffset,
+      1 << 16,
+      timeout: 60 * 1000,
+    ).toRequest('0');
+    var response = await waitResponse(request);
+    var result = CompletionGetSuggestions2Result.fromResponse(response);
+    return result.suggestions;
   }
 
   @override

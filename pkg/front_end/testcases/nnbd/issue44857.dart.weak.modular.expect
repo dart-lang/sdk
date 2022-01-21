@@ -1,0 +1,13 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F = (<T extends Never = dynamic>(T) → void) → Never;
+static method main() → void {
+  core::print("Are ${#C1}, ${#C1} identical?");
+  core::print(core::identical(#C1, #C1));
+}
+
+constants  {
+  #C1 = TypeLiteralConstant((<T extends Never* = dynamic>(Never*) →* void) →* Never*)
+}

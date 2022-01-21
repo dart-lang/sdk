@@ -26,6 +26,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/ffi/call.h"
 #include "vm/compiler/ffi/callback.h"
+#include "vm/compiler/ffi/marshaller.h"
 #include "vm/compiler/jit/compiler.h"
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -43,7 +44,7 @@ DEFINE_NATIVE_ENTRY(Ffi_address, 0, 1) {
 
 #define DEFINE_NATIVE_ENTRY_LOAD(type)                                         \
   DEFINE_NATIVE_ENTRY(Ffi_load##type, 0, 2) { UNREACHABLE(); }
-CLASS_LIST_FFI_NUMERIC(DEFINE_NATIVE_ENTRY_LOAD)
+CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_LOAD)
 #undef DEFINE_NATIVE_ENTRY_LOAD
 
 DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
@@ -56,7 +57,7 @@ DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
 
 #define DEFINE_NATIVE_ENTRY_STORE(type)                                        \
   DEFINE_NATIVE_ENTRY(Ffi_store##type, 0, 3) { UNREACHABLE(); }
-CLASS_LIST_FFI_NUMERIC(DEFINE_NATIVE_ENTRY_STORE)
+CLASS_LIST_FFI_NUMERIC_FIXED_SIZE(DEFINE_NATIVE_ENTRY_STORE)
 #undef DEFINE_NATIVE_ENTRY_STORE
 
 DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
@@ -97,6 +98,15 @@ DEFINE_NATIVE_ENTRY(Ffi_nativeCallbackFunction, 1, 2) {
   ASSERT(func.IsImplicitClosureFunction());
   func = func.parent_function();
   ASSERT(func.is_static());
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  compiler::ffi::NativeFunctionTypeFromFunctionType(zone, native_signature,
+                                                    &error);
+  if (error != nullptr) {
+    Exceptions::ThrowCompileTimeError(LanguageError::Handle(
+        zone, LanguageError::New(String::Handle(zone, String::New(error)))));
+  }
 
   // We are returning an object which is not an Instance here. This is only OK
   // because we know that the result will be passed directly to

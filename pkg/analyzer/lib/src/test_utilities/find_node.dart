@@ -27,6 +27,10 @@ class FindNode {
     return result;
   }
 
+  AdjacentStrings adjacentStrings(String search) {
+    return _node(search, (n) => n is AdjacentStrings);
+  }
+
   Annotation annotation(String search) {
     return _node(search, (n) => n is Annotation);
   }
@@ -35,8 +39,16 @@ class FindNode {
     return _node(search, (n) => true);
   }
 
+  ArgumentList argumentList(String search) {
+    return _node(search, (n) => n is ArgumentList);
+  }
+
   AsExpression as_(String search) {
     return _node(search, (n) => n is AsExpression);
+  }
+
+  AssertStatement assertStatement(String search) {
+    return _node(search, (n) => n is AssertStatement);
   }
 
   AssignmentExpression assignment(String search) {
@@ -53,6 +65,10 @@ class FindNode {
 
   Block block(String search) {
     return _node(search, (n) => n is Block);
+  }
+
+  BlockFunctionBody blockFunctionBody(String search) {
+    return _node(search, (n) => n is BlockFunctionBody);
   }
 
   BooleanLiteral booleanLiteral(String search) {
@@ -83,6 +99,10 @@ class FindNode {
     return _node(search, (n) => n is CollectionElement);
   }
 
+  Comment comment(String search) {
+    return _node(search, (n) => n is Comment);
+  }
+
   CommentReference commentReference(String search) {
     return _node(search, (n) => n is CommentReference);
   }
@@ -109,6 +129,10 @@ class FindNode {
 
   ContinueStatement continueStatement(String search) {
     return _node(search, (n) => n is ContinueStatement);
+  }
+
+  DeclaredIdentifier declaredIdentifier(String search) {
+    return _node(search, (n) => n is DeclaredIdentifier);
   }
 
   DefaultFormalParameter defaultParameter(String search) {
@@ -139,8 +163,16 @@ class FindNode {
     return _node(search, (n) => n is Expression);
   }
 
+  ExpressionFunctionBody expressionFunctionBody(String search) {
+    return _node(search, (n) => n is ExpressionFunctionBody);
+  }
+
   ExpressionStatement expressionStatement(String search) {
     return _node(search, (n) => n is ExpressionStatement);
+  }
+
+  ExtendsClause extendsClause(String search) {
+    return _node(search, (n) => n is ExtendsClause);
   }
 
   ExtensionDeclaration extensionDeclaration(String search) {
@@ -159,6 +191,26 @@ class FindNode {
     return _node(search, (n) => n is FieldFormalParameter);
   }
 
+  ForEachPartsWithDeclaration forEachPartsWithDeclaration(String search) {
+    return _node(search, (n) => n is ForEachPartsWithDeclaration);
+  }
+
+  ForEachPartsWithIdentifier forEachPartsWithIdentifier(String search) {
+    return _node(search, (n) => n is ForEachPartsWithIdentifier);
+  }
+
+  FormalParameterList formalParameterList(String search) {
+    return _node(search, (n) => n is FormalParameterList);
+  }
+
+  ForPartsWithDeclarations forPartsWithDeclarations(String search) {
+    return _node(search, (n) => n is ForPartsWithDeclarations);
+  }
+
+  ForPartsWithExpression forPartsWithExpression(String search) {
+    return _node(search, (n) => n is ForPartsWithExpression);
+  }
+
   ForStatement forStatement(String search) {
     return _node(search, (n) => n is ForStatement);
   }
@@ -169,6 +221,10 @@ class FindNode {
 
   FunctionDeclaration functionDeclaration(String search) {
     return _node(search, (n) => n is FunctionDeclaration);
+  }
+
+  FunctionDeclarationStatement functionDeclarationStatement(String search) {
+    return _node(search, (n) => n is FunctionDeclarationStatement);
   }
 
   FunctionExpression functionExpression(String search) {
@@ -199,12 +255,20 @@ class FindNode {
     return _node(search, (n) => n is GenericTypeAlias);
   }
 
+  HideCombinator hideCombinator(String search) {
+    return _node(search, (n) => n is HideCombinator);
+  }
+
   IfElement ifElement(String search) {
     return _node(search, (n) => n is IfElement);
   }
 
   IfStatement ifStatement(String search) {
     return _node(search, (n) => n is IfStatement);
+  }
+
+  ImplementsClause implementsClause(String search) {
+    return _node(search, (n) => n is ImplementsClause);
   }
 
   ImplicitCallReference implicitCallReference(String search) {
@@ -227,6 +291,10 @@ class FindNode {
     return _node(search, (n) => n is IntegerLiteral);
   }
 
+  InterpolationExpression interpolationExpression(String search) {
+    return _node(search, (n) => n is InterpolationExpression);
+  }
+
   IsExpression isExpression(String search) {
     return _node(search, (n) => n is IsExpression);
   }
@@ -235,12 +303,24 @@ class FindNode {
     return _node(search, (n) => n is Label);
   }
 
+  LabeledStatement labeledStatement(String search) {
+    return _node(search, (n) => n is LabeledStatement);
+  }
+
   LibraryDirective library(String search) {
     return _node(search, (n) => n is LibraryDirective);
   }
 
+  LibraryIdentifier libraryIdentifier(String search) {
+    return _node(search, (n) => n is LibraryIdentifier);
+  }
+
   ListLiteral listLiteral(String search) {
     return _node(search, (n) => n is ListLiteral);
+  }
+
+  MapLiteralEntry mapLiteralEntry(String search) {
+    return _node(search, (n) => n is MapLiteralEntry);
   }
 
   MethodDeclaration methodDeclaration(String search) {
@@ -265,6 +345,14 @@ class FindNode {
 
   NamedType namedType(String search) {
     return _node(search, (n) => n is NamedType);
+  }
+
+  NativeClause nativeClause(String search) {
+    return _node(search, (n) => n is NativeClause);
+  }
+
+  NativeFunctionBody nativeFunctionBody(String search) {
+    return _node(search, (n) => n is NativeFunctionBody);
   }
 
   NullLiteral nullLiteral(String search) {
@@ -312,16 +400,33 @@ class FindNode {
     return _node(search, (n) => n is PropertyAccess);
   }
 
+  RedirectingConstructorInvocation redirectingConstructorInvocation(
+      String search) {
+    return _node(search, (n) => n is RedirectingConstructorInvocation);
+  }
+
   RethrowExpression rethrow_(String search) {
     return _node(search, (n) => n is RethrowExpression);
+  }
+
+  ReturnStatement returnStatement(String search) {
+    return _node(search, (n) => n is ReturnStatement);
   }
 
   SetOrMapLiteral setOrMapLiteral(String search) {
     return _node(search, (n) => n is SetOrMapLiteral);
   }
 
+  ShowCombinator showCombinator(String search) {
+    return _node(search, (n) => n is ShowCombinator);
+  }
+
   SimpleIdentifier simple(String search) {
     return _node(search, (_) => true);
+  }
+
+  SimpleFormalParameter simpleFormalParameter(String search) {
+    return _node(search, (n) => n is SimpleFormalParameter);
   }
 
   SimpleFormalParameter simpleParameter(String search) {
@@ -350,6 +455,14 @@ class FindNode {
 
   SuperFormalParameter superFormalParameter(String search) {
     return _node(search, (n) => n is SuperFormalParameter);
+  }
+
+  SwitchCase switchCase(String search) {
+    return _node(search, (n) => n is SwitchCase);
+  }
+
+  SwitchDefault switchDefault(String search) {
+    return _node(search, (n) => n is SwitchDefault);
   }
 
   SwitchStatement switchStatement(String search) {
@@ -385,8 +498,16 @@ class FindNode {
     throw StateError('$name');
   }
 
+  TryStatement tryStatement(String search) {
+    return _node(search, (n) => n is TryStatement);
+  }
+
   TypeAnnotation typeAnnotation(String search) {
     return _node(search, (n) => n is TypeAnnotation);
+  }
+
+  TypeArgumentList typeArgumentList(String search) {
+    return _node(search, (n) => n is TypeArgumentList);
   }
 
   TypedLiteral typedLiteral(String search) {
@@ -401,6 +522,10 @@ class FindNode {
     return _node(search, (n) => n is TypeParameter);
   }
 
+  TypeParameterList typeParameterList(String search) {
+    return _node(search, (n) => n is TypeParameterList);
+  }
+
   VariableDeclaration variableDeclaration(String search) {
     return _node(search, (n) => n is VariableDeclaration);
   }
@@ -409,8 +534,20 @@ class FindNode {
     return _node(search, (n) => n is VariableDeclarationList);
   }
 
+  VariableDeclarationStatement variableDeclarationStatement(String search) {
+    return _node(search, (n) => n is VariableDeclarationStatement);
+  }
+
   WhileStatement whileStatement(String search) {
     return _node(search, (n) => n is WhileStatement);
+  }
+
+  WithClause withClause(String search) {
+    return _node(search, (n) => n is WithClause);
+  }
+
+  YieldStatement yieldStatement(String search) {
+    return _node(search, (n) => n is YieldStatement);
   }
 
   T _node<T>(String search, bool Function(AstNode) predicate) {
@@ -425,7 +562,7 @@ class FindNode {
     var result = node.thisOrAncestorMatching(predicate);
     if (result == null) {
       throw StateError(
-          'The node for |$search| had no matching ancestor in:\n$content');
+          'The node for |$search| had no matching ancestor in:\n$content\n$unit');
     }
     return result as T;
   }

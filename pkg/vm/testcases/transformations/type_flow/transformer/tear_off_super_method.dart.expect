@@ -16,6 +16,8 @@ class B extends self::A {
 [@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2] [@vm.unboxing-info.metadata=()->i]  method foo() → core::int
     return _in::unsafeCast<core::int>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] 1.{core::num::+}(_in::unsafeCast<core::num>([@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=int? (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult(){dynamic}.foo())){(core::num) → core::num});
 }
+class C extends core::Object implements self::A {
+}
 abstract class Base extends core::Object {
   synthetic constructor •() → self::Base
     : super core::Object::•()

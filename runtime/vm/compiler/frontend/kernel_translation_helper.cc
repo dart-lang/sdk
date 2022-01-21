@@ -740,6 +740,13 @@ FunctionPtr TranslationHelper::LookupDynamicFunction(const Class& klass,
 
 Type& TranslationHelper::GetDeclarationType(const Class& klass) {
   ASSERT(!klass.IsNull());
+  // Forward expression evaluation class to a real class when
+  // creating types.
+  if (GetExpressionEvaluationClass().ptr() == klass.ptr()) {
+    ASSERT(GetExpressionEvaluationRealClass().ptr() != klass.ptr());
+    return GetDeclarationType(GetExpressionEvaluationRealClass());
+  }
+  ASSERT(klass.id() != kIllegalCid);
   // Note that if cls is _Closure, the returned type will be _Closure,
   // and not the signature type.
   Type& type = Type::ZoneHandle(Z);
@@ -3556,6 +3563,14 @@ void TypeTranslator::LoadAndSetupBounds(
 
 const Type& TypeTranslator::ReceiverType(const Class& klass) {
   ASSERT(!klass.IsNull());
+  // Forward expression evaluation class to a real class when
+  // creating types.
+  if (translation_helper_.GetExpressionEvaluationClass().ptr() == klass.ptr()) {
+    ASSERT(translation_helper_.GetExpressionEvaluationRealClass().ptr() !=
+           klass.ptr());
+    return ReceiverType(translation_helper_.GetExpressionEvaluationRealClass());
+  }
+  ASSERT(klass.id() != kIllegalCid);
   // Note that if klass is _Closure, the returned type will be _Closure,
   // and not the signature type.
   Type& type = Type::ZoneHandle(Z);
@@ -3636,10 +3651,7 @@ void TypeTranslator::SetupUnboxingInfoMetadata(const Function& function,
   const auto unboxing_info =
       unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
 
-  // TODO(dartbug.com/32292): accept unboxed parameters and return value
-  // when FLAG_use_table_dispatch == false.
-  if (FLAG_precompiled_mode && unboxing_info != nullptr &&
-      FLAG_use_table_dispatch) {
+  if (FLAG_precompiled_mode && unboxing_info != nullptr) {
     for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
       SetupUnboxingInfoOfParameter(function, i, unboxing_info);
     }
@@ -3655,10 +3667,7 @@ void TypeTranslator::SetupUnboxingInfoMetadataForFieldAccessors(
   const auto unboxing_info =
       unboxing_info_metadata_helper_.GetUnboxingInfoMetadata(kernel_offset);
 
-  // TODO(dartbug.com/32292): accept unboxed parameters and return value
-  // when FLAG_use_table_dispatch == false.
-  if (FLAG_precompiled_mode && unboxing_info != nullptr &&
-      FLAG_use_table_dispatch) {
+  if (FLAG_precompiled_mode && unboxing_info != nullptr) {
     if (field_accessor.IsImplicitSetterFunction()) {
       for (intptr_t i = 0; i < unboxing_info->unboxed_args_info.length(); i++) {
         SetupUnboxingInfoOfParameter(field_accessor, i, unboxing_info);

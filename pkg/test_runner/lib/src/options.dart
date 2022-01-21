@@ -143,8 +143,8 @@ none:             No runtime, compile only.''',
 Allowed values are:
 all
 ia32, x64
-arm, armv6, arm64,
-simarm, simarmv6, simarm64, arm_x64''',
+arm, arm64, simarm, simarm64, arm_x64
+riscv32, riscv64, simriscv32, simriscv64''',
         abbr: 'a',
         values: ['all', ...Architecture.names],
         defaultsTo: Architecture.x64.name,
@@ -338,7 +338,10 @@ has been specified on the command line.''',
         hide: true),
     _Option.bool('print_passing_stdout',
         'Print the stdout of passing, as well as failing, tests.',
-        hide: true)
+        hide: true),
+    _Option('service_response_sizes_directory',
+        'Log VM service response sizes in CSV files in the provided directory',
+        hide: true),
   ];
 
   /// For printing out reproducing command lines, we don't want to add these
@@ -775,8 +778,13 @@ has been specified on the command line.''',
               data['test_server_cross_origin_port'] as int,
           testDriverErrorPort: data["test_driver_error_port"] as int,
           localIP: data["local_ip"] as String,
-          sharedOptions: sharedOptions,
+          sharedOptions: <String>[
+            ...sharedOptions,
+            "-Dtest_runner.configuration=${innerConfiguration.name}"
+          ],
           packages: data["packages"] as String,
+          serviceResponseSizesDirectory:
+              data['service_response_sizes_directory'] as String,
           suiteDirectory: data["suite_dir"] as String,
           outputDirectory: data["output_directory"] as String,
           reproducingArguments:
@@ -896,7 +904,7 @@ has been specified on the command line.''',
       }
 
       var excludeSuites = configuration['exclude_suite'] != null
-          ? configuration['exclude_suite'].split(',')
+          ? (configuration['exclude_suite'] as String).split(',')
           : [];
       for (var exclude in excludeSuites) {
         if ((selectors as List).contains(exclude)) {

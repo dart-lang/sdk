@@ -95,6 +95,8 @@ Dart_Handle Api::true_handle_ = NULL;
 Dart_Handle Api::false_handle_ = NULL;
 Dart_Handle Api::null_handle_ = NULL;
 Dart_Handle Api::empty_string_handle_ = NULL;
+Dart_Handle Api::no_callbacks_error_handle_ = NULL;
+Dart_Handle Api::unwind_in_progress_error_handle_ = NULL;
 
 const char* CanonicalFunction(const char* func) {
   if (strncmp(func, "dart::", 6) == 0) {
@@ -478,23 +480,6 @@ Dart_Handle Api::NewArgumentError(const char* format, ...) {
   return Api::NewHandle(T, error.ptr());
 }
 
-Dart_Handle Api::AcquiredError(IsolateGroup* isolate_group) {
-  ApiState* state = isolate_group->api_state();
-  ASSERT(state != NULL);
-  PersistentHandle* acquired_error_handle = state->AcquiredError();
-  return reinterpret_cast<Dart_Handle>(acquired_error_handle);
-}
-
-Dart_Handle Api::UnwindInProgressError() {
-  Thread* T = Thread::Current();
-  CHECK_API_SCOPE(T);
-  TransitionToVM transition(T);
-  HANDLESCOPE(T);
-  const String& message = String::Handle(
-      Z, String::New("No api calls are allowed while unwind is in progress"));
-  return Api::NewHandle(T, UnwindError::New(message));
-}
-
 bool Api::IsValid(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   Thread* thread = Thread::Current();
@@ -551,6 +536,14 @@ void Api::InitHandles() {
 
   ASSERT(empty_string_handle_ == NULL);
   empty_string_handle_ = InitNewReadOnlyApiHandle(Symbols::Empty().ptr());
+
+  ASSERT(no_callbacks_error_handle_ == NULL);
+  no_callbacks_error_handle_ =
+      InitNewReadOnlyApiHandle(Object::no_callbacks_error().ptr());
+
+  ASSERT(unwind_in_progress_error_handle_ == NULL);
+  unwind_in_progress_error_handle_ =
+      InitNewReadOnlyApiHandle(Object::unwind_in_progress_error().ptr());
 }
 
 void Api::Cleanup() {
@@ -558,6 +551,8 @@ void Api::Cleanup() {
   false_handle_ = NULL;
   null_handle_ = NULL;
   empty_string_handle_ = NULL;
+  no_callbacks_error_handle_ = NULL;
+  unwind_in_progress_error_handle_ = NULL;
 }
 
 bool Api::StringGetPeerHelper(NativeArguments* arguments,
@@ -1156,9 +1151,9 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsActivePersistentHandle(object));
-  PersistentHandle* ref = PersistentHandle::Cast(object);
-  ASSERT(!state->IsProtectedHandle(ref));
-  if (!state->IsProtectedHandle(ref)) {
+  ASSERT(!Api::IsProtectedHandle(object));
+  if (!Api::IsProtectedHandle(object)) {
+    PersistentHandle* ref = PersistentHandle::Cast(object);
     state->FreePersistentHandle(ref);
   }
 }
@@ -1211,14 +1206,15 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
         "Invalid Dart_InitializeParams version.");
   }
 
-  return Dart::Init(
-      params->vm_snapshot_data, params->vm_snapshot_instructions,
-      params->create_group, params->initialize_isolate,
-      params->shutdown_isolate, params->cleanup_isolate, params->cleanup_group,
-      params->thread_exit, params->file_open, params->file_read,
-      params->file_write, params->file_close, params->entropy_source,
-      params->get_service_assets, params->start_kernel_isolate,
-      params->code_observer, params->post_task, params->post_task_data);
+  return Dart::Init(params->vm_snapshot_data, params->vm_snapshot_instructions,
+                    params->create_group, params->initialize_isolate,
+                    params->shutdown_isolate, params->cleanup_isolate,
+                    params->cleanup_group, params->thread_start,
+                    params->thread_exit, params->file_open, params->file_read,
+                    params->file_write, params->file_close,
+                    params->entropy_source, params->get_service_assets,
+                    params->start_kernel_isolate, params->code_observer,
+                    params->post_task, params->post_task_data);
 }
 
 DART_EXPORT char* Dart_Cleanup() {
@@ -1814,17 +1810,6 @@ DART_EXPORT Dart_Handle Dart_GetStickyError() {
   }
   TransitionNativeToVM transition(T);
   return Api::NewHandle(T, I->sticky_error());
-}
-
-DART_EXPORT void Dart_HintFreed(intptr_t size) {
-  if (size < 0) {
-    FATAL1("%s requires a non-negative size", CURRENT_FUNC);
-  }
-  Thread* T = Thread::Current();
-  CHECK_ISOLATE(T->isolate());
-  API_TIMELINE_BEGIN_END(T);
-  TransitionNativeToVM transition(T);
-  T->heap()->HintFreed(size);
 }
 
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
@@ -6076,7 +6061,7 @@ Dart_CompileToKernel(const char* script_uri,
   result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, 0, NULL,
       incremental_compile, snapshot_compile, package_config, NULL, NULL,
-      verbosity);
+      FLAG_sound_null_safety, verbosity);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     Dart_KernelCompilationResult accept_result =
         KernelIsolate::AcceptCompilation();
@@ -6087,6 +6072,34 @@ Dart_CompileToKernel(const char* script_uri,
           accept_result.error);
     }
   }
+#endif
+  return result;
+}
+
+DART_EXPORT Dart_KernelCompilationResult
+Dart_CompileToKernelWithGivenNullsafety(
+    const char* script_uri,
+    const uint8_t* platform_kernel,
+    intptr_t platform_kernel_size,
+    bool snapshot_compile,
+    const char* package_config,
+    bool null_safety,
+    Dart_KernelCompilationVerbosityLevel verbosity) {
+  API_TIMELINE_DURATION(Thread::Current());
+
+  Dart_KernelCompilationResult result = {};
+#if defined(DART_PRECOMPILED_RUNTIME)
+  result.status = Dart_KernelCompilationStatus_Unknown;
+  result.error = Utils::StrDup("Dart_CompileToKernel is unsupported.");
+#else
+  intptr_t null_safety_option =
+      null_safety ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
+  result = KernelIsolate::CompileToKernel(
+      script_uri, platform_kernel, platform_kernel_size,
+      /*source_files_count=*/0, /*source_files=*/nullptr,
+      /*incremental_compile=*/false, snapshot_compile, package_config,
+      /*multiroot_filepaths=*/nullptr, /*multiroot_scheme=*/nullptr,
+      null_safety_option, verbosity);
 #endif
   return result;
 }

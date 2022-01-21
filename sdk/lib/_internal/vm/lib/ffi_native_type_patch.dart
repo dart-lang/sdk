@@ -57,10 +57,6 @@ class Uint64 extends _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-class IntPtr extends _NativeInteger {}
-
-@patch
-@pragma("vm:entry-point")
 class Float extends _NativeDouble {}
 
 @patch

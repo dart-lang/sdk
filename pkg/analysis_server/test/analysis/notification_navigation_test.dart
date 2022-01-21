@@ -182,9 +182,9 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
   }
 
   Future<void> test_afterAnalysis() async {
@@ -1168,6 +1168,62 @@ class B extends A {
     await prepareNavigation();
     assertHasRegionString('super');
     assertHasTarget('A {');
+  }
+
+  Future<void> test_superFormalParameter_requiredNamed() async {
+    addTestFile('''
+class A {
+  A({required int a}); // 0
+}
+class B extends A {
+  B({required super.a}); // 1
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('a}); // 1', 'a}); // 0');
+  }
+
+  Future<void> test_superFormalParameter_requiredPositional() async {
+    addTestFile('''
+class A {
+  A(int a); // 0
+}
+class B extends A {
+  B(super.a); // 1
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('super.a', 'a); // 0');
+    assertHasRegionTarget('a); // 1', 'a); // 0');
+  }
+
+  Future<void>
+      test_superFormalParameter_requiredPositional_functionTyped() async {
+    addTestFile('''
+class A {
+  A(Object a); // 0
+}
+class B extends A {
+  B(int super.a<T>(T b)); // 1
+}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('a<T>', 'a); // 0');
+    assertHasRegion('int ');
+    assertHasRegionTarget('T>', 'T>');
+    assertHasRegionTarget('T b', 'T>');
+    assertHasRegionTarget('b))', 'b))');
+  }
+
+  Future<void> test_superFormalParameter_requiredPositional_unresolved() async {
+    addTestFile('''
+class A {}
+class B extends A {
+  B(super.a); // 1
+}
+''');
+    await prepareNavigation();
+    assertNoRegionAt('a); // 1');
   }
 
   Future<void> test_targetElement() async {

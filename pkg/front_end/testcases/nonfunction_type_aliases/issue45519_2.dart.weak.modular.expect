@@ -1,0 +1,115 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:21:5: Error: Inferred type argument 'C<Object?> Function(C<Never>)' doesn't conform to the bound 'C<X> Function(C<X>)' of the type variable 'X' on 'A'.
+//  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   A.foo(); // Error.
+//     ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:16:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef A<X extends G<C<X>>> = C<X>;
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:23:3: Error: Inferred type argument 'D<Object?> Function(D<Never>)' doesn't conform to the bound 'D<X> Function(D<X>)' of the type variable 'X' on 'B'.
+//  - 'D' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   B(); // Error.
+//   ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:17:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef B<X extends G<D<X>>> = D<X>;
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:20:3: Error: Inferred type argument 'C<Object?> Function(C<Never>)' doesn't conform to the bound 'C<X> Function(C<X>)' of the type variable 'X' on 'A'.
+//  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   A(); // Error.
+//   ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:16:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef A<X extends G<C<X>>> = C<X>;
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:22:5: Error: Inferred type argument 'C<Object?> Function(C<Never>)' doesn't conform to the bound 'C<X> Function(C<X>)' of the type variable 'X' on 'A'.
+//  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   A.bar(); // Error.
+//     ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:16:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef A<X extends G<C<X>>> = C<X>;
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:24:5: Error: Inferred type argument 'D<Object?> Function(D<Never>)' doesn't conform to the bound 'D<X> Function(D<X>)' of the type variable 'X' on 'B'.
+//  - 'D' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   B.foo(); // Error.
+//     ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:17:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef B<X extends G<D<X>>> = D<X>;
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:25:5: Error: Inferred type argument 'D<Object?> Function(D<Never>)' doesn't conform to the bound 'D<X> Function(D<X>)' of the type variable 'X' on 'B'.
+//  - 'D' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart'.
+//  - 'Object' is from 'dart:core'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   B.bar(); // Error.
+//     ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519_2.dart:17:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef B<X extends G<D<X>>> = D<X>;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef G<invariant X extends core::Object? = dynamic> = (X%) → X%;
+typedef A<X extends (self::C<X>) → self::C<X> = (self::C<dynamic>) → self::C<dynamic>> = self::C<X>;
+typedef B<X extends (self::D<X>) → self::D<X> = (self::D<dynamic>) → self::D<dynamic>> = self::D<X>;
+class C<X extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor foo() → self::C<self::C::X%>
+    : super core::Object::•() {}
+  static factory •<X extends core::Object? = dynamic>() → self::C<self::C::•::X%>
+    return new self::C::foo<self::C::•::X%>();
+  static factory bar<X extends core::Object? = dynamic>() → self::C<self::C::bar::X%>
+    return self::C::•<self::C::bar::X%>();
+}
+class D<X extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
+  constructor •() → self::D<self::D::X%>
+    : super core::Object::•()
+    ;
+  static factory foo<X extends core::Object? = dynamic>() → self::D<self::D::foo::X%>
+    return new self::D::•<self::D::foo::X%>();
+  static factory bar<X extends core::Object? = dynamic>() → self::D<self::D::bar::X%>
+    return new self::D::•<self::D::bar::X%>();
+}
+static method test() → dynamic {
+  self::C::•<(self::C<Never>) → self::C<core::Object?>>();
+  new self::C::foo<(self::C<Never>) → self::C<core::Object?>>();
+  self::C::•<(self::C<Never>) → self::C<core::Object?>>();
+  new self::D::•<(self::D<Never>) → self::D<core::Object?>>();
+  self::D::foo<(self::D<Never>) → self::D<core::Object?>>();
+  new self::D::•<(self::D<Never>) → self::D<core::Object?>>();
+}
+static method main() → dynamic {}
+static method _#A#new#tearOff<X extends (self::C<self::_#A#new#tearOff::X>) → self::C<self::_#A#new#tearOff::X> = (self::C<dynamic>) → self::C<dynamic>>() → self::C<self::_#A#new#tearOff::X>
+  return self::C::•<self::_#A#new#tearOff::X>();
+static method _#A#foo#tearOff<X extends (self::C<self::_#A#foo#tearOff::X>) → self::C<self::_#A#foo#tearOff::X> = (self::C<dynamic>) → self::C<dynamic>>() → self::C<self::_#A#foo#tearOff::X>
+  return new self::C::foo<self::_#A#foo#tearOff::X>();
+static method _#A#bar#tearOff<X extends (self::C<self::_#A#bar#tearOff::X>) → self::C<self::_#A#bar#tearOff::X> = (self::C<dynamic>) → self::C<dynamic>>() → self::C<self::_#A#bar#tearOff::X>
+  return self::C::bar<self::_#A#bar#tearOff::X>();
+static method _#B#new#tearOff<X extends (self::D<self::_#B#new#tearOff::X>) → self::D<self::_#B#new#tearOff::X> = (self::D<dynamic>) → self::D<dynamic>>() → self::D<self::_#B#new#tearOff::X>
+  return new self::D::•<self::_#B#new#tearOff::X>();
+static method _#B#foo#tearOff<X extends (self::D<self::_#B#foo#tearOff::X>) → self::D<self::_#B#foo#tearOff::X> = (self::D<dynamic>) → self::D<dynamic>>() → self::D<self::_#B#foo#tearOff::X>
+  return self::D::foo<self::_#B#foo#tearOff::X>();
+static method _#B#bar#tearOff<X extends (self::D<self::_#B#bar#tearOff::X>) → self::D<self::_#B#bar#tearOff::X> = (self::D<dynamic>) → self::D<dynamic>>() → self::D<self::_#B#bar#tearOff::X>
+  return self::D::bar<self::_#B#bar#tearOff::X>();
+
+constants  {
+  #C1 = constructor-tearoff self::C::bar
+  #C2 = constructor-tearoff self::D::bar
+}

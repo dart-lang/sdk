@@ -1,0 +1,55 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/macro_class.dart:8:7: Error: This requires the 'macros' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.17 or higher, and running 'pub get'.
+// macro class Class1 {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/macro_class.dart:9:16: Error: This requires the 'macros' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.17 or higher, and running 'pub get'.
+// abstract macro class Class2 {}
+//                ^^^^^
+//
+// pkg/front_end/testcases/general/macro_class.dart:10:7: Error: This requires the 'macros' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.17 or higher, and running 'pub get'.
+// macro class Class3 = Super with Mixin;
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/macro_class.dart:11:16: Error: This requires the 'macros' language feature to be enabled.
+// Try updating your pubspec.yaml to set the minimum SDK constraint to 2.17 or higher, and running 'pub get'.
+// abstract macro class Class4 = Super with Mixin;
+//                ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    : super core::Object::•()
+    ;
+}
+abstract class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    : super core::Object::•()
+    ;
+}
+class Class3 = self::Super with self::Mixin {
+  synthetic constructor •() → self::Class3
+    : super self::Super::•()
+    ;
+}
+abstract class Class4 = self::Super with self::Mixin {
+  synthetic constructor •() → self::Class4
+    : super self::Super::•()
+    ;
+}
+static method main() → dynamic {}

@@ -1,0 +1,18 @@
+{
+  "_none": {
+    "include": [
+      {
+        "path": "subfolder/sub_libraries.json",
+        "target": "subtarget"
+      }
+    ],
+    "libraries": {
+      "extra": {
+        "patches": [
+          "extra_patch_lib.dart"
+        ],
+        "uri": "extra_lib.dart"
+      }
+    }
+  }
+}

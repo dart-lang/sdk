@@ -17,6 +17,7 @@ void main() {
 class GetDiagnosticsTest extends AbstractAnalysisServerIntegrationTest {
   Future<void> test_getDiagnostics() async {
     standardAnalysisSetup();
+    await analysisFinished;
 
     var result = await sendDiagnosticGetDiagnostics();
 

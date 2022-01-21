@@ -1,0 +1,18 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/generic_methods_inference_error.dart:13:11: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+//           1.0);
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method f() → void {
+  core::List<core::String*>* y;
+  core::Iterable<core::String*>* x = y.{core::Iterable::map}<core::String*>((core::String* z) → core::String* => invalid-expression "pkg/front_end/testcases/inference/generic_methods_inference_error.dart:13:11: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
+          1.0);
+          ^" in 1.0 as{TypeError} core::String*){((core::String*) →* core::String*) →* core::Iterable<core::String*>*};
+}
+static method main() → dynamic {}

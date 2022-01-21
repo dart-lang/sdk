@@ -305,6 +305,33 @@ void f() {
     );
   }
 
+  Future<void> test_params_multipleNamed_retrigger() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, {bool b = true, bool a}) {
+      foo('s',^);
+    }
+    ''';
+
+    final expectedLabel = 'foo(String s, {bool b = true, bool a})';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation(label: 'String s'),
+        ParameterInformation(label: 'bool b = true'),
+        ParameterInformation(label: 'bool a'),
+      ],
+    );
+  }
+
   Future<void> test_params_multipleOptional() async {
     final content = '''
     /// Does foo.

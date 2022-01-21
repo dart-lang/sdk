@@ -368,6 +368,12 @@ final testCases = [
           passUint8Struct1ByteBool, false),
       passUint8Struct1ByteBoolAfterCallback),
   CallbackTest.withCheck(
+      "PassWCharStructInlineArrayIntUintPtrx2LongUnsigned",
+      Pointer.fromFunction<
+              PassWCharStructInlineArrayIntUintPtrx2LongUnsignedType>(
+          passWCharStructInlineArrayIntUintPtrx2LongUnsigned, 0),
+      passWCharStructInlineArrayIntUintPtrx2LongUnsignedAfterCallback),
+  CallbackTest.withCheck(
       "ReturnStruct1ByteInt",
       Pointer.fromFunction<ReturnStruct1ByteIntType>(returnStruct1ByteInt),
       returnStruct1ByteIntAfterCallback),
@@ -8151,6 +8157,88 @@ void passUint8Struct1ByteBoolAfterCallback() {
   print("after callback result = $result");
 
   Expect.equals(1 % 2 != 0, result);
+}
+
+typedef PassWCharStructInlineArrayIntUintPtrx2LongUnsignedType = WChar Function(
+    WChar, StructInlineArrayInt, UintPtr, UintPtr, Long, UnsignedLong);
+
+// Global variables to be able to test inputs after callback returned.
+int passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a0 = 0;
+StructInlineArrayInt passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1 =
+    Pointer<StructInlineArrayInt>.fromAddress(0).ref;
+int passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a2 = 0;
+int passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a3 = 0;
+int passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a4 = 0;
+int passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a5 = 0;
+
+// Result variable also global, so we can delete it after the callback.
+int passWCharStructInlineArrayIntUintPtrx2LongUnsignedResult = 0;
+
+int passWCharStructInlineArrayIntUintPtrx2LongUnsignedCalculateResult() {
+  int result = 0;
+
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a0;
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1.a0[0];
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1.a0[1];
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1.a0[2];
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1.a0[3];
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1.a0[4];
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1.a0[5];
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1.a0[6];
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1.a0[7];
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1.a0[8];
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1.a0[9];
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a2;
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a3;
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a4;
+  result += passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a5;
+
+  passWCharStructInlineArrayIntUintPtrx2LongUnsignedResult = result;
+
+  return result;
+}
+
+/// Returning a wchar.
+int passWCharStructInlineArrayIntUintPtrx2LongUnsigned(
+    int a0, StructInlineArrayInt a1, int a2, int a3, int a4, int a5) {
+  print(
+      "passWCharStructInlineArrayIntUintPtrx2LongUnsigned(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5})");
+
+  // In legacy mode, possibly return null.
+  if (a0 == 84) {
+    print("returning null!");
+    return null;
+  }
+
+  // In both nnbd and legacy mode, possibly throw.
+  if (a0 == 42 || a0 == 84) {
+    print("throwing!");
+    throw Exception(
+        "PassWCharStructInlineArrayIntUintPtrx2LongUnsigned throwing on purpose!");
+  }
+
+  passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a0 = a0;
+  passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a1 = a1;
+  passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a2 = a2;
+  passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a3 = a3;
+  passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a4 = a4;
+  passWCharStructInlineArrayIntUintPtrx2LongUnsigned_a5 = a5;
+
+  final result =
+      passWCharStructInlineArrayIntUintPtrx2LongUnsignedCalculateResult();
+
+  print("result = $result");
+
+  return result;
+}
+
+void passWCharStructInlineArrayIntUintPtrx2LongUnsignedAfterCallback() {
+  final result =
+      passWCharStructInlineArrayIntUintPtrx2LongUnsignedCalculateResult();
+
+  print("after callback result = $result");
+
+  Expect.equals(120, result);
 }
 
 typedef ReturnStruct1ByteIntType = Struct1ByteInt Function(Int8);

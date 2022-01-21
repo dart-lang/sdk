@@ -15,6 +15,13 @@ namespace dart {
 namespace compiler {
 #define __ assembler->
 
+#if defined(PRODUCT)
+#define EXPECT_DISASSEMBLY(expected)
+#else
+#define EXPECT_DISASSEMBLY(expected)                                           \
+  EXPECT_STREQ(expected, test->RelativeDisassembly())
+#endif
+
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
   __ add(R0, ZR, Operand(ZR));
   __ add(R0, R0, Operand(42));
@@ -24,6 +31,10 @@ ASSEMBLER_TEST_GENERATE(Simple, assembler) {
 ASSEMBLER_TEST_RUN(Simple, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "add r0, zr, zr\n"
+      "add r0, r0, #0x2a\n"
+      "ret\n");
 }
 
 // Move wide immediate tests.
@@ -36,6 +47,9 @@ ASSEMBLER_TEST_GENERATE(Movz0, assembler) {
 ASSEMBLER_TEST_RUN(Movz0, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Movz1, assembler) {
@@ -47,6 +61,10 @@ ASSEMBLER_TEST_GENERATE(Movz1, assembler) {
 ASSEMBLER_TEST_RUN(Movz1, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42LL << 16, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r0, #0x2a lsl 16\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Movz2, assembler) {
@@ -57,6 +75,9 @@ ASSEMBLER_TEST_GENERATE(Movz2, assembler) {
 ASSEMBLER_TEST_RUN(Movz2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42LL << 32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a lsl 32\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Movz3, assembler) {
@@ -67,6 +88,9 @@ ASSEMBLER_TEST_GENERATE(Movz3, assembler) {
 ASSEMBLER_TEST_RUN(Movz3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42LL << 48, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a lsl 48\n"
+      "ret\n");
 }
 
 // movn
@@ -78,6 +102,9 @@ ASSEMBLER_TEST_GENERATE(Movn0, assembler) {
 ASSEMBLER_TEST_RUN(Movn0, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(~42LL, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Movn1, assembler) {
@@ -88,6 +115,9 @@ ASSEMBLER_TEST_GENERATE(Movn1, assembler) {
 ASSEMBLER_TEST_RUN(Movn1, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(~(42LL << 16), EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r0, #0x2a lsl 16\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Movn2, assembler) {
@@ -98,6 +128,9 @@ ASSEMBLER_TEST_GENERATE(Movn2, assembler) {
 ASSEMBLER_TEST_RUN(Movn2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(~(42LL << 32), EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r0, #0x2a lsl 32\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Movn3, assembler) {
@@ -108,6 +141,9 @@ ASSEMBLER_TEST_GENERATE(Movn3, assembler) {
 ASSEMBLER_TEST_RUN(Movn3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(~(42LL << 48), EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r0, #0x2a lsl 48\n"
+      "ret\n");
 }
 
 // movk
@@ -121,6 +157,10 @@ ASSEMBLER_TEST_RUN(Movk0, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42LL | (1LL << 48),
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x1 lsl 48\n"
+      "movk r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Movk1, assembler) {
@@ -133,6 +173,10 @@ ASSEMBLER_TEST_RUN(Movk1, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ((42LL << 16) | 1,
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x1\n"
+      "movk r0, #0x2a lsl 16\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Movk2, assembler) {
@@ -145,6 +189,10 @@ ASSEMBLER_TEST_RUN(Movk2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ((42LL << 32) | 1,
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x1\n"
+      "movk r0, #0x2a lsl 32\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Movk3, assembler) {
@@ -157,6 +205,10 @@ ASSEMBLER_TEST_RUN(Movk3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ((42LL << 48) | 1,
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x1\n"
+      "movk r0, #0x2a lsl 48\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(MovzBig, assembler) {
@@ -167,6 +219,9 @@ ASSEMBLER_TEST_GENERATE(MovzBig, assembler) {
 ASSEMBLER_TEST_RUN(MovzBig, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x8000, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x8000\n"
+      "ret\n");
 }
 
 // add tests.
@@ -180,6 +235,11 @@ ASSEMBLER_TEST_GENERATE(AddReg, assembler) {
 ASSEMBLER_TEST_RUN(AddReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x14\n"
+      "movz r1, #0x16\n"
+      "add r0, r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AddLSLReg, assembler) {
@@ -192,6 +252,11 @@ ASSEMBLER_TEST_GENERATE(AddLSLReg, assembler) {
 ASSEMBLER_TEST_RUN(AddLSLReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x14\n"
+      "movz r1, #0xb\n"
+      "add r0, r0, r1 lsl #1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AddLSRReg, assembler) {
@@ -204,6 +269,11 @@ ASSEMBLER_TEST_GENERATE(AddLSRReg, assembler) {
 ASSEMBLER_TEST_RUN(AddLSRReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x14\n"
+      "movz r1, #0x2c\n"
+      "add r0, r0, r1 lsr #1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AddASRReg, assembler) {
@@ -216,6 +286,11 @@ ASSEMBLER_TEST_GENERATE(AddASRReg, assembler) {
 ASSEMBLER_TEST_RUN(AddASRReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x14\n"
+      "movz r1, #0x2c\n"
+      "add r0, r0, r1 asr #1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AddASRNegReg, assembler) {
@@ -229,6 +304,12 @@ ASSEMBLER_TEST_GENERATE(AddASRNegReg, assembler) {
 ASSEMBLER_TEST_RUN(AddASRNegReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2b\n"
+      "movn r1, #0x0\n"
+      "add r1, zr, r1 lsl #3\n"
+      "add r0, r0, r1 asr #3\n"
+      "ret\n");
 }
 
 // TODO(zra): test other sign extension modes.
@@ -243,6 +324,12 @@ ASSEMBLER_TEST_GENERATE(AddExtReg, assembler) {
 ASSEMBLER_TEST_RUN(AddExtReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2b\n"
+      "movz r1, #0xffff\n"
+      "movk r1, #0xffff lsl 16\n"
+      "add r0, r0, r1 sxtw\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
@@ -258,6 +345,14 @@ ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
 ASSEMBLER_TEST_RUN(AddCarryInOut, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r2, #0x0\n"
+      "movz r1, #0x1\n"
+      "movz r0, #0x0\n"
+      "adds ip0, r2, r1\n"
+      "adcs ip0, r2, r0\n"
+      "adc r0, r0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
@@ -272,6 +367,13 @@ ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
 ASSEMBLER_TEST_RUN(SubCarryInOut, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x1\n"
+      "movz r0, #0x0\n"
+      "subs ip0, r0, r1\n"
+      "sbcs ip0, r0, r0\n"
+      "sbc r0, r0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
@@ -288,6 +390,15 @@ ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
 ASSEMBLER_TEST_RUN(Overflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x0\n"
+      "movz r1, #0x1\n"
+      "movn r2, #0x0\n"
+      "mov r3, 0x7fffffffffffffff\n"
+      "adds ip0, r2, r1\n"
+      "adcs ip0, r3, r0\n"
+      "csinc r0, r0, r0, vs\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(WordAddCarryInOut, assembler) {
@@ -303,6 +414,14 @@ ASSEMBLER_TEST_GENERATE(WordAddCarryInOut, assembler) {
 ASSEMBLER_TEST_RUN(WordAddCarryInOut, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r2, #0x0\n"
+      "movz r1, #0x1\n"
+      "movz r0, #0x0\n"
+      "addws ip0, r2, r1\n"
+      "adcws ip0, r2, r0\n"
+      "adcw r0, r0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(WordSubCarryInOut, assembler) {
@@ -317,6 +436,13 @@ ASSEMBLER_TEST_GENERATE(WordSubCarryInOut, assembler) {
 ASSEMBLER_TEST_RUN(WordSubCarryInOut, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x0FFFFFFFF, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x1\n"
+      "movz r0, #0x0\n"
+      "subws ip0, r0, r1\n"
+      "sbcws ip0, r0, r0\n"
+      "sbcw r0, r0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(WordOverflow, assembler) {
@@ -333,6 +459,15 @@ ASSEMBLER_TEST_GENERATE(WordOverflow, assembler) {
 ASSEMBLER_TEST_RUN(WordOverflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x0\n"
+      "movz r1, #0x1\n"
+      "mov r2, 0xffffffff\n"
+      "mov r3, 0x7fffffff\n"
+      "addws ip0, r2, r1\n"
+      "adcws ip0, r3, r0\n"
+      "csinc r0, r0, r0, vs\n"
+      "ret\n");
 }
 
 // Loads and Stores.
@@ -353,6 +488,16 @@ ASSEMBLER_TEST_GENERATE(SimpleLoadStore, assembler) {
 ASSEMBLER_TEST_RUN(SimpleLoadStore, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "sub csp, csp, #0x10\n"
+      "movz r0, #0x2b\n"
+      "movz r1, #0x2a\n"
+      "str r1, [r15, #-8]!\n"
+      "ldr r0, [r15], #8 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SimpleLoadStoreHeapTag, assembler) {
@@ -369,6 +514,16 @@ ASSEMBLER_TEST_GENERATE(SimpleLoadStoreHeapTag, assembler) {
 ASSEMBLER_TEST_RUN(SimpleLoadStoreHeapTag, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r0, #0x2b\n"
+      "movz r1, #0x2a\n"
+      "add r2, r15, #0x1\n"
+      "str r1, [r2, #-1]\n"
+      "ldr r0, [r2, #-1]\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadStoreLargeIndex, assembler) {
@@ -392,6 +547,17 @@ ASSEMBLER_TEST_GENERATE(LoadStoreLargeIndex, assembler) {
 ASSEMBLER_TEST_RUN(LoadStoreLargeIndex, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "sub csp, csp, #0x100\n"
+      "movz r0, #0x2b\n"
+      "movz r1, #0x2a\n"
+      "str r1, [r15, #-256]!\n"
+      "ldr r0, [r15], #248 !\n"
+      "add r15, r15, #0x8\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadStoreLargeOffset, assembler) {
@@ -410,6 +576,18 @@ ASSEMBLER_TEST_GENERATE(LoadStoreLargeOffset, assembler) {
 ASSEMBLER_TEST_RUN(LoadStoreLargeOffset, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r0, #0x2b\n"
+      "movz r1, #0x2a\n"
+      "sub r15, r15, #0x1000\n"
+      "and csp, r15, 0xfffffffffffffff0\n"
+      "str r1, [r15, #4096]\n"
+      "add r15, r15, #0x1000\n"
+      "ldr r0, [r15]\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadStoreExtReg, assembler) {
@@ -432,6 +610,20 @@ ASSEMBLER_TEST_GENERATE(LoadStoreExtReg, assembler) {
 ASSEMBLER_TEST_RUN(LoadStoreExtReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r0, #0x2b\n"
+      "movz r1, #0x2a\n"
+      "movz r2, #0xfff8\n"
+      "movk r2, #0xffff lsl 16\n"
+      "str r1, [r15, r2 sxtw]\n"
+      "sub r15, r15, #0x8\n"
+      "and csp, r15, 0xfffffffffffffff0\n"
+      "ldr r0, [r15]\n"
+      "add r15, r15, #0x8\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
@@ -452,6 +644,19 @@ ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
 ASSEMBLER_TEST_RUN(LoadStoreScaledReg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r0, #0x2b\n"
+      "movz r1, #0x2a\n"
+      "movz r2, #0xa\n"
+      "sub r15, r15, #0x50\n"
+      "and csp, r15, 0xfffffffffffffff0\n"
+      "str r1, [r15, r2 uxtx scaled]\n"
+      "ldr r0, [r15, r2 uxtx scaled]\n"
+      "add r15, r15, #0x50\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadSigned32Bit, assembler) {
@@ -471,6 +676,16 @@ ASSEMBLER_TEST_GENERATE(LoadSigned32Bit, assembler) {
 ASSEMBLER_TEST_RUN(LoadSigned32Bit, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "sub csp, csp, #0x10\n"
+      "mov r1, 0xffffffff\n"
+      "strw r1, [r15, #-4]!\n"
+      "ldrsw r0, [r15]\n"
+      "ldrsw r1, [r15], #4 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SimpleLoadStorePair, assembler) {
@@ -491,6 +706,17 @@ ASSEMBLER_TEST_GENERATE(SimpleLoadStorePair, assembler) {
 ASSEMBLER_TEST_RUN(SimpleLoadStorePair, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "sub csp, csp, #0x10\n"
+      "movz r2, #0x2b\n"
+      "movz r3, #0x2a\n"
+      "stp r2, r3, [r15, #-16]!\n"
+      "ldp r0, r1, [r15], #16 !\n"
+      "sub r0, r0, r1\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadStorePairOffset, assembler) {
@@ -510,6 +736,19 @@ ASSEMBLER_TEST_GENERATE(LoadStorePairOffset, assembler) {
 ASSEMBLER_TEST_RUN(LoadStorePairOffset, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r2, #0x2b\n"
+      "movz r3, #0x2a\n"
+      "sub r15, r15, #0x20\n"
+      "and csp, r15, 0xfffffffffffffff0\n"
+      "stp r2, r3, [r15, #16]\n"
+      "ldp r0, r1, [r15, #16]\n"
+      "add r15, r15, #0x20\n"
+      "sub r0, r0, r1\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PushRegisterPair, assembler) {
@@ -527,6 +766,16 @@ ASSEMBLER_TEST_RUN(PushRegisterPair, test) {
   EXPECT(test != NULL);
   typedef int (*PushRegisterPair)() DART_UNUSED;
   EXPECT_EQ(12, EXECUTE_TEST_CODE_INT64(PushRegisterPair, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r2, #0xc\n"
+      "movz r3, #0x15\n"
+      "stp r2, r3, [r15, #-16]!\n"
+      "ldr r0, [r15], #8 !\n"
+      "ldr r1, [r15], #8 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PushRegisterPairReversed, assembler) {
@@ -545,6 +794,16 @@ ASSEMBLER_TEST_RUN(PushRegisterPairReversed, test) {
   typedef int (*PushRegisterPairReversed)() DART_UNUSED;
   EXPECT_EQ(12,
             EXECUTE_TEST_CODE_INT64(PushRegisterPairReversed, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r3, #0xc\n"
+      "movz r2, #0x15\n"
+      "stp r3, r2, [r15, #-16]!\n"
+      "ldr r0, [r15], #8 !\n"
+      "ldr r1, [r15], #8 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PopRegisterPair, assembler) {
@@ -562,6 +821,16 @@ ASSEMBLER_TEST_RUN(PopRegisterPair, test) {
   EXPECT(test != NULL);
   typedef int (*PopRegisterPair)() DART_UNUSED;
   EXPECT_EQ(12, EXECUTE_TEST_CODE_INT64(PopRegisterPair, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r2, #0xc\n"
+      "movz r3, #0x15\n"
+      "str r3, [r15, #-8]!\n"
+      "str r2, [r15, #-8]!\n"
+      "ldp r0, r1, [r15], #16 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PopRegisterPairReversed, assembler) {
@@ -580,6 +849,16 @@ ASSEMBLER_TEST_RUN(PopRegisterPairReversed, test) {
   typedef int (*PopRegisterPairReversed)() DART_UNUSED;
   EXPECT_EQ(12,
             EXECUTE_TEST_CODE_INT64(PopRegisterPairReversed, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r3, #0xc\n"
+      "movz r2, #0x15\n"
+      "str r3, [r15, #-8]!\n"
+      "str r2, [r15, #-8]!\n"
+      "ldp r1, r0, [r15], #16 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
@@ -602,6 +881,19 @@ ASSEMBLER_TEST_RUN(Semaphore, test) {
   EXPECT(test != NULL);
   typedef intptr_t (*Semaphore)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Semaphore, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r0, #0x28\n"
+      "movz r1, #0x2a\n"
+      "str r0, [r15, #-8]!\n"
+      "ldxr r0, r15\n"
+      "stxr ip0, r1, r15\n"
+      "cmp ip0, #0x0\n"
+      "bne -12\n"
+      "ldr r0, [r15], #8 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
@@ -622,6 +914,19 @@ ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
   EXPECT(test != NULL);
   typedef intptr_t (*FailedSemaphore)() DART_UNUSED;
   EXPECT_EQ(41, EXECUTE_TEST_CODE_INT64(FailedSemaphore, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r0, #0x28\n"
+      "movz r1, #0x2a\n"
+      "str r0, [r15, #-8]!\n"
+      "ldxr r0, r15\n"
+      "clrex\n"
+      "stxr ip0, r1, r15\n"
+      "ldr r0, [r15], #8 !\n"
+      "add r0, r0, ip0\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Semaphore32, assembler) {
@@ -653,6 +958,21 @@ ASSEMBLER_TEST_RUN(Semaphore32, test) {
   // is unchanged at 40.
   EXPECT_EQ(42 + (DART_INT64_C(40) << 32),
             EXECUTE_TEST_CODE_INT64(Semaphore32, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r0, #0x28\n"
+      "add r0, r0, r0 lsl #32\n"
+      "str r0, [r15, #-8]!\n"
+      "movz r0, #0x28\n"
+      "movz r1, #0x2a\n"
+      "ldxrw r0, r15\n"
+      "stxrw ip0, r1, r15\n"
+      "cmp ip0, #0x0\n"
+      "bne -12\n"
+      "ldr r0, [r15], #8 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FailedSemaphore32, assembler) {
@@ -680,6 +1000,21 @@ ASSEMBLER_TEST_RUN(FailedSemaphore32, test) {
   // unchanged at 40.
   EXPECT_EQ(41 + (DART_INT64_C(40) << 32),
             EXECUTE_TEST_CODE_INT64(FailedSemaphore32, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz r0, #0x28\n"
+      "add r0, r0, r0 lsl #32\n"
+      "str r0, [r15, #-8]!\n"
+      "movz r0, #0x28\n"
+      "movz r1, #0x2a\n"
+      "ldxrw r0, r15\n"
+      "clrex\n"
+      "stxrw ip0, r1, r15\n"
+      "ldr r0, [r15], #8 !\n"
+      "add r0, r0, ip0\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadAcquireStoreRelease, assembler) {
@@ -736,6 +1071,68 @@ ASSEMBLER_TEST_RUN(LoadAcquireStoreRelease, test) {
   typedef intptr_t (*LoadAcquireStoreRelease)() DART_UNUSED;
   EXPECT_EQ(0x42,
             EXECUTE_TEST_CODE_INT64(LoadAcquireStoreRelease, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "stp fp, lr, [r15, #-16]!\n"
+      "mov fp, r15\n"
+      "movz ip0, #0x7788\n"
+      "movk ip0, #0x5566 lsl 16\n"
+      "movk ip0, #0x3344 lsl 32\n"
+      "movk ip0, #0x1122 lsl 48\n"
+      "str ip0, [r15, #-8]!\n"
+      "ldar r1, r15\n"
+      "movz ip1, #0x7788\n"
+      "movk ip1, #0x5566 lsl 16\n"
+      "movk ip1, #0x3344 lsl 32\n"
+      "movk ip1, #0x1122 lsl 48\n"
+      "cmp r1, ip1\n"
+      "bne +164\n"
+      "add r15, r15, #0x8\n"
+      "movz ip0, #0x7788\n"
+      "movk ip0, #0x5566 lsl 16\n"
+      "movk ip0, #0x3344 lsl 32\n"
+      "movk ip0, #0x1122 lsl 48\n"
+      "str ip0, [r15, #-8]!\n"
+      "ldarw r1, r15\n"
+      "movz ip1, #0x7788\n"
+      "movk ip1, #0x5566 lsl 16\n"
+      "cmp r1, ip1\n"
+      "bne +120\n"
+      "add r15, r15, #0x8\n"
+      "movz ip0, #0x0\n"
+      "str ip0, [r15, #-8]!\n"
+      "movz r1, #0x7788\n"
+      "movk r1, #0x5566 lsl 16\n"
+      "movk r1, #0x3344 lsl 32\n"
+      "movk r1, #0x1122 lsl 48\n"
+      "stlr r1, r15\n"
+      "ldr r1, [r15], #8 !\n"
+      "movz ip1, #0x7788\n"
+      "movk ip1, #0x5566 lsl 16\n"
+      "movk ip1, #0x3344 lsl 32\n"
+      "movk ip1, #0x1122 lsl 48\n"
+      "cmp r1, ip1\n"
+      "bne +60\n"
+      "movz ip0, #0x0\n"
+      "str ip0, [r15, #-8]!\n"
+      "movz r1, #0x7788\n"
+      "movk r1, #0x5566 lsl 16\n"
+      "movk r1, #0x3344 lsl 32\n"
+      "movk r1, #0x1122 lsl 48\n"
+      "stlrw r1, r15\n"
+      "ldr r1, [r15], #8 !\n"
+      "movz ip1, #0x7788\n"
+      "movk ip1, #0x5566 lsl 16\n"
+      "cmp r1, ip1\n"
+      "bne +12\n"
+      "movz r0, #0x42\n"
+      "b +8\n"
+      "movz r0, #0x84\n"
+      "mov r15, fp\n"
+      "ldp fp, lr, [r15], #16 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 // Logical register operations.
@@ -749,6 +1146,11 @@ ASSEMBLER_TEST_GENERATE(AndRegs, assembler) {
 ASSEMBLER_TEST_RUN(AndRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2b\n"
+      "movz r2, #0x2a\n"
+      "and r0, r1, r2\n"
+      "ret\n");
 }
 
 constexpr uint64_t kU64MinusOne = 0xffffffffffffffffull;
@@ -1108,6 +1510,123 @@ FOR_EACH_LSL_32_TEST_CONFIG(LSL_32_IMMEDIATE_TEST)
 #undef FOR_EACH_LSR_32_TESTS_LIST
 #undef FOR_EACH_ASR_32_TESTS_LIST
 
+ASSEMBLER_TEST_GENERATE(LslImmediate, assembler) {
+  __ LslImmediate(R0, R0, 1);
+  __ LslImmediate(R0, R0, 2);
+  __ LslImmediate(R0, R0, 3);
+  __ LslImmediate(R0, R0, 4);
+  __ LslImmediate(R0, R0, 60);
+  __ LslImmediate(R0, R0, 61);
+  __ LslImmediate(R0, R0, 62);
+  __ LslImmediate(R0, R0, 63);
+  __ LslImmediate(R0, R0, 1, kFourBytes);
+  __ LslImmediate(R0, R0, 2, kFourBytes);
+  __ LslImmediate(R0, R0, 3, kFourBytes);
+  __ LslImmediate(R0, R0, 4, kFourBytes);
+  __ LslImmediate(R0, R0, 28, kFourBytes);
+  __ LslImmediate(R0, R0, 29, kFourBytes);
+  __ LslImmediate(R0, R0, 30, kFourBytes);
+  __ LslImmediate(R0, R0, 31, kFourBytes);
+}
+
+ASSEMBLER_TEST_RUN(LslImmediate, test) {
+  EXPECT_DISASSEMBLY(
+      "lsl r0, r0, #1\n"
+      "lsl r0, r0, #2\n"
+      "lsl r0, r0, #3\n"
+      "lsl r0, r0, #4\n"
+      "lsl r0, r0, #60\n"
+      "lsl r0, r0, #61\n"
+      "lsl r0, r0, #62\n"
+      "lsl r0, r0, #63\n"
+      "lslw r0, r0, #1\n"
+      "lslw r0, r0, #2\n"
+      "lslw r0, r0, #3\n"
+      "lslw r0, r0, #4\n"
+      "lslw r0, r0, #28\n"
+      "lslw r0, r0, #29\n"
+      "lslw r0, r0, #30\n"
+      "lslw r0, r0, #31\n");
+}
+
+ASSEMBLER_TEST_GENERATE(LsrImmediate, assembler) {
+  __ LsrImmediate(R0, R0, 1);
+  __ LsrImmediate(R0, R0, 2);
+  __ LsrImmediate(R0, R0, 3);
+  __ LsrImmediate(R0, R0, 4);
+  __ LsrImmediate(R0, R0, 60);
+  __ LsrImmediate(R0, R0, 61);
+  __ LsrImmediate(R0, R0, 62);
+  __ LsrImmediate(R0, R0, 63);
+  __ LsrImmediate(R0, R0, 1, kFourBytes);
+  __ LsrImmediate(R0, R0, 2, kFourBytes);
+  __ LsrImmediate(R0, R0, 3, kFourBytes);
+  __ LsrImmediate(R0, R0, 4, kFourBytes);
+  __ LsrImmediate(R0, R0, 28, kFourBytes);
+  __ LsrImmediate(R0, R0, 29, kFourBytes);
+  __ LsrImmediate(R0, R0, 30, kFourBytes);
+  __ LsrImmediate(R0, R0, 31, kFourBytes);
+}
+
+ASSEMBLER_TEST_RUN(LsrImmediate, test) {
+  EXPECT_DISASSEMBLY(
+      "lsr r0, r0, #1\n"
+      "lsr r0, r0, #2\n"
+      "lsr r0, r0, #3\n"
+      "lsr r0, r0, #4\n"
+      "lsr r0, r0, #60\n"
+      "lsr r0, r0, #61\n"
+      "lsr r0, r0, #62\n"
+      "lsr r0, r0, #63\n"
+      "lsrw r0, r0, #1\n"
+      "lsrw r0, r0, #2\n"
+      "lsrw r0, r0, #3\n"
+      "lsrw r0, r0, #4\n"
+      "lsrw r0, r0, #28\n"
+      "lsrw r0, r0, #29\n"
+      "lsrw r0, r0, #30\n"
+      "lsrw r0, r0, #31\n");
+}
+
+ASSEMBLER_TEST_GENERATE(AsrImmediate, assembler) {
+  __ AsrImmediate(R0, R0, 1);
+  __ AsrImmediate(R0, R0, 2);
+  __ AsrImmediate(R0, R0, 3);
+  __ AsrImmediate(R0, R0, 4);
+  __ AsrImmediate(R0, R0, 60);
+  __ AsrImmediate(R0, R0, 61);
+  __ AsrImmediate(R0, R0, 62);
+  __ AsrImmediate(R0, R0, 63);
+  __ AsrImmediate(R0, R0, 1, kFourBytes);
+  __ AsrImmediate(R0, R0, 2, kFourBytes);
+  __ AsrImmediate(R0, R0, 3, kFourBytes);
+  __ AsrImmediate(R0, R0, 4, kFourBytes);
+  __ AsrImmediate(R0, R0, 28, kFourBytes);
+  __ AsrImmediate(R0, R0, 29, kFourBytes);
+  __ AsrImmediate(R0, R0, 30, kFourBytes);
+  __ AsrImmediate(R0, R0, 31, kFourBytes);
+}
+
+ASSEMBLER_TEST_RUN(AsrImmediate, test) {
+  EXPECT_DISASSEMBLY(
+      "asr r0, r0, #1\n"
+      "asr r0, r0, #2\n"
+      "asr r0, r0, #3\n"
+      "asr r0, r0, #4\n"
+      "asr r0, r0, #60\n"
+      "asr r0, r0, #61\n"
+      "asr r0, r0, #62\n"
+      "asr r0, r0, #63\n"
+      "asrw r0, r0, #1\n"
+      "asrw r0, r0, #2\n"
+      "asrw r0, r0, #3\n"
+      "asrw r0, r0, #4\n"
+      "asrw r0, r0, #28\n"
+      "asrw r0, r0, #29\n"
+      "asrw r0, r0, #30\n"
+      "asrw r0, r0, #31\n");
+}
+
 ASSEMBLER_TEST_GENERATE(AndShiftRegs, assembler) {
   __ movz(R1, Immediate(42), 0);
   __ movz(R2, Immediate(21), 0);
@@ -1118,6 +1637,11 @@ ASSEMBLER_TEST_GENERATE(AndShiftRegs, assembler) {
 ASSEMBLER_TEST_RUN(AndShiftRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2a\n"
+      "movz r2, #0x15\n"
+      "and r0, r1, r2 lsl #1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(BicRegs, assembler) {
@@ -1130,6 +1654,11 @@ ASSEMBLER_TEST_GENERATE(BicRegs, assembler) {
 ASSEMBLER_TEST_RUN(BicRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2a\n"
+      "movz r2, #0x5\n"
+      "bic r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(OrrRegs, assembler) {
@@ -1142,6 +1671,11 @@ ASSEMBLER_TEST_GENERATE(OrrRegs, assembler) {
 ASSEMBLER_TEST_RUN(OrrRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x20\n"
+      "movz r2, #0xa\n"
+      "orr r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(OrnRegs, assembler) {
@@ -1155,6 +1689,12 @@ ASSEMBLER_TEST_GENERATE(OrnRegs, assembler) {
 ASSEMBLER_TEST_RUN(OrnRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x20\n"
+      "movn r2, #0x0\n"
+      "movk r2, #0xffd5\n"
+      "orn r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(EorRegs, assembler) {
@@ -1167,6 +1707,11 @@ ASSEMBLER_TEST_GENERATE(EorRegs, assembler) {
 ASSEMBLER_TEST_RUN(EorRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0xffd5\n"
+      "movz r2, #0xffff\n"
+      "eor r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(EonRegs, assembler) {
@@ -1179,6 +1724,11 @@ ASSEMBLER_TEST_GENERATE(EonRegs, assembler) {
 ASSEMBLER_TEST_RUN(EonRegs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0xffd5\n"
+      "movn r2, #0xffff\n"
+      "eon r0, r1, r2\n"
+      "ret\n");
 }
 
 // Logical immediate operations.
@@ -1191,6 +1741,10 @@ ASSEMBLER_TEST_GENERATE(AndImm, assembler) {
 ASSEMBLER_TEST_RUN(AndImm, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2a\n"
+      "and r0, r1, 0xaaaaaaaaaaaaaaaa\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AndImmCsp, assembler) {
@@ -1207,6 +1761,14 @@ ASSEMBLER_TEST_GENERATE(AndImmCsp, assembler) {
 ASSEMBLER_TEST_RUN(AndImmCsp, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov ip0, csp\n"
+      "sub ip1, csp, #0x1f\n"
+      "and csp, ip1, 0xfffffffffffffff0\n"
+      "mov r0, csp\n"
+      "sub r0, ip0, r0\n"
+      "mov csp, ip0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AndOneImm, assembler) {
@@ -1218,6 +1780,10 @@ ASSEMBLER_TEST_GENERATE(AndOneImm, assembler) {
 ASSEMBLER_TEST_RUN(AndOneImm, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2b\n"
+      "and r0, r1, 0x1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(OrrImm, assembler) {
@@ -1233,6 +1799,14 @@ ASSEMBLER_TEST_GENERATE(OrrImm, assembler) {
 ASSEMBLER_TEST_RUN(OrrImm, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x0\n"
+      "movz r2, #0x3f\n"
+      "movz r3, #0xa\n"
+      "orr r1, r1, 0x20002000200020\n"
+      "orr r1, r1, r3\n"
+      "and r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(EorImm, assembler) {
@@ -1247,6 +1821,13 @@ ASSEMBLER_TEST_GENERATE(EorImm, assembler) {
 ASSEMBLER_TEST_RUN(EorImm, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r0, #0x0\n"
+      "movk r0, #0xffd5\n"
+      "movz r1, #0x3f\n"
+      "eor r0, r0, 0x3f3f3f3f3f3f3f3f\n"
+      "and r0, r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Clz, assembler) {
@@ -1277,6 +1858,26 @@ ASSEMBLER_TEST_GENERATE(Clz, assembler) {
 ASSEMBLER_TEST_RUN(Clz, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "clz r1, zr\n"
+      "cmp r1, #0x40\n"
+      "bne +60\n"
+      "movz r2, #0x2a\n"
+      "clz r2, r2\n"
+      "cmp r2, #0x3a\n"
+      "bne +44\n"
+      "movn r0, #0x0\n"
+      "clz r1, r0\n"
+      "cmp r1, #0x0\n"
+      "bne +28\n"
+      "add r0, zr, r0 lsr #3\n"
+      "clz r1, r0\n"
+      "cmp r1, #0x3\n"
+      "bne +12\n"
+      "mov r0, zr\n"
+      "ret\n"
+      "movz r0, #0x1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Clzw, assembler) {
@@ -1315,6 +1916,34 @@ ASSEMBLER_TEST_GENERATE(Clzw, assembler) {
 ASSEMBLER_TEST_RUN(Clzw, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "clzw r1, zr\n"
+      "cmp r1, #0x20\n"
+      "bne +92\n"
+      "movz r2, #0x2a\n"
+      "clzw r2, r2\n"
+      "cmp r2, #0x1a\n"
+      "bne +76\n"
+      "movn r0, #0x0\n"
+      "clzw r1, r0\n"
+      "cmp r1, #0x0\n"
+      "bne +60\n"
+      "add r0, zr, r0 lsr #35\n"
+      "clzw r1, r0\n"
+      "cmp r1, #0x3\n"
+      "bne +44\n"
+      "mov r0, 0xffffffff0fffffff\n"
+      "clzw r1, r0\n"
+      "cmp r1, #0x4\n"
+      "bne +28\n"
+      "mov r0, 0xffffffff\n"
+      "clzw r1, r0\n"
+      "cmp r1, #0x0\n"
+      "bne +12\n"
+      "mov r0, zr\n"
+      "ret\n"
+      "movz r0, #0x1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Rbit, assembler) {
@@ -1328,6 +1957,10 @@ ASSEMBLER_TEST_RUN(Rbit, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   const int64_t expected = 0xa800000000000000;
   EXPECT_EQ(expected, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x15\n"
+      "rbit r0, r0\n"
+      "ret\n");
 }
 
 // Comparisons, branching.
@@ -1343,6 +1976,11 @@ ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
 ASSEMBLER_TEST_RUN(BranchALForward, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "b +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(BranchALBackwards, assembler) {
@@ -1364,6 +2002,15 @@ ASSEMBLER_TEST_GENERATE(BranchALBackwards, assembler) {
 ASSEMBLER_TEST_RUN(BranchALBackwards, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "b +16\n"
+      "movz r0, #0x0\n"
+      "ret\n"
+      "movz r0, #0x0\n"
+      "b -8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CmpEqBranch, assembler) {
@@ -1383,6 +2030,14 @@ ASSEMBLER_TEST_GENERATE(CmpEqBranch, assembler) {
 ASSEMBLER_TEST_RUN(CmpEqBranch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r1, #0xea\n"
+      "movz r2, #0xea\n"
+      "cmp r1, r2\n"
+      "beq +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CmpEqBranchNotTaken, assembler) {
@@ -1402,6 +2057,14 @@ ASSEMBLER_TEST_GENERATE(CmpEqBranchNotTaken, assembler) {
 ASSEMBLER_TEST_RUN(CmpEqBranchNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x0\n"
+      "movz r1, #0xe9\n"
+      "movz r2, #0xea\n"
+      "cmp r1, r2\n"
+      "beq +8\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CmpEq1Branch, assembler) {
@@ -1420,6 +2083,13 @@ ASSEMBLER_TEST_GENERATE(CmpEq1Branch, assembler) {
 ASSEMBLER_TEST_RUN(CmpEq1Branch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r1, #0x1\n"
+      "cmp r1, #0x1\n"
+      "beq +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CmnEq1Branch, assembler) {
@@ -1438,6 +2108,13 @@ ASSEMBLER_TEST_GENERATE(CmnEq1Branch, assembler) {
 ASSEMBLER_TEST_RUN(CmnEq1Branch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movn r1, #0x0\n"
+      "cmn r1, #0x1\n"
+      "beq +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CmpLtBranch, assembler) {
@@ -1457,6 +2134,14 @@ ASSEMBLER_TEST_GENERATE(CmpLtBranch, assembler) {
 ASSEMBLER_TEST_RUN(CmpLtBranch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r1, #0xe9\n"
+      "movz r2, #0xea\n"
+      "cmp r1, r2\n"
+      "blt +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CmpLtBranchNotTaken, assembler) {
@@ -1476,6 +2161,14 @@ ASSEMBLER_TEST_GENERATE(CmpLtBranchNotTaken, assembler) {
 ASSEMBLER_TEST_RUN(CmpLtBranchNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x0\n"
+      "movz r1, #0xeb\n"
+      "movz r2, #0xea\n"
+      "cmp r1, r2\n"
+      "blt +8\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CmpBranchIfZero, assembler) {
@@ -1493,6 +2186,12 @@ ASSEMBLER_TEST_GENERATE(CmpBranchIfZero, assembler) {
 ASSEMBLER_TEST_RUN(CmpBranchIfZero, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r1, #0x0\n"
+      "cbz r1, +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CmpBranchIfZeroNotTaken, assembler) {
@@ -1510,6 +2209,12 @@ ASSEMBLER_TEST_GENERATE(CmpBranchIfZeroNotTaken, assembler) {
 ASSEMBLER_TEST_RUN(CmpBranchIfZeroNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x0\n"
+      "movz r1, #0x1\n"
+      "cbz r1, +8\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CmpBranchIfNotZero, assembler) {
@@ -1527,6 +2232,12 @@ ASSEMBLER_TEST_GENERATE(CmpBranchIfNotZero, assembler) {
 ASSEMBLER_TEST_RUN(CmpBranchIfNotZero, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r1, #0x1\n"
+      "cbnz r1, +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CmpBranchIfNotZeroNotTaken, assembler) {
@@ -1544,6 +2255,12 @@ ASSEMBLER_TEST_GENERATE(CmpBranchIfNotZeroNotTaken, assembler) {
 ASSEMBLER_TEST_RUN(CmpBranchIfNotZeroNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x0\n"
+      "movz r1, #0x0\n"
+      "cbnz r1, +8\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 static const int64_t kBits5And35 = (1 << 5) | (1ll << 35);
@@ -1568,6 +2285,15 @@ ASSEMBLER_TEST_GENERATE(TstBranchIfZero, assembler) {
 ASSEMBLER_TEST_RUN(TstBranchIfZero, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movn r1, #0x8 lsl 32\n"
+      "movk r1, #0xffdf\n"
+      "tbzw r1, #5, +8\n"
+      "movz r0, #0x0\n"
+      "tbz r1, #35, +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TstBranchIfZeroNotTaken, assembler) {
@@ -1585,6 +2311,13 @@ ASSEMBLER_TEST_GENERATE(TstBranchIfZeroNotTaken, assembler) {
 ASSEMBLER_TEST_RUN(TstBranchIfZeroNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x0\n"
+      "movz r1, #0x20\n"
+      "movk r1, #0x8 lsl 32\n"
+      "tbzw r1, #5, +8\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TstBranchIfNotZero, assembler) {
@@ -1607,6 +2340,15 @@ ASSEMBLER_TEST_GENERATE(TstBranchIfNotZero, assembler) {
 ASSEMBLER_TEST_RUN(TstBranchIfNotZero, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r1, #0x20\n"
+      "movk r1, #0x8 lsl 32\n"
+      "tbnzw r1, #5, +8\n"
+      "movz r0, #0x0\n"
+      "tbnz r1, #35, +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TstBranchIfNotZeroNotTaken, assembler) {
@@ -1624,6 +2366,13 @@ ASSEMBLER_TEST_GENERATE(TstBranchIfNotZeroNotTaken, assembler) {
 ASSEMBLER_TEST_RUN(TstBranchIfNotZeroNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x0\n"
+      "movn r1, #0x8 lsl 32\n"
+      "movk r1, #0xffdf\n"
+      "tbnzw r1, #5, +8\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TstBranchIfZeroFar, assembler) {
@@ -1689,6 +2438,20 @@ ASSEMBLER_TEST_GENERATE(FcmpEqBranch, assembler) {
 ASSEMBLER_TEST_RUN(FcmpEqBranch, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x4000 lsl 32\n"
+      "movk ip0, #0x406d lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "movz ip0, #0x4000 lsl 32\n"
+      "movk ip0, #0x406d lsl 48\n"
+      "fmovdr v2, ip0\n"
+      "fcmpd v1, v2\n"
+      "beq +12\n"
+      "movz ip0, #0x0\n"
+      "fmovdr v0, ip0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TstBranchIfZeroFar1, assembler) {
@@ -1782,6 +2545,20 @@ ASSEMBLER_TEST_GENERATE(FcmpEqBranchNotTaken, assembler) {
 ASSEMBLER_TEST_RUN(FcmpEqBranchNotTaken, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x0\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x2000 lsl 32\n"
+      "movk ip0, #0x406d lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "movz ip0, #0x4000 lsl 32\n"
+      "movk ip0, #0x406d lsl 48\n"
+      "fmovdr v2, ip0\n"
+      "fcmpd v1, v2\n"
+      "beq +12\n"
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FcmpLtBranch, assembler) {
@@ -1820,6 +2597,20 @@ ASSEMBLER_TEST_GENERATE(FcmpLtBranchNotTaken, assembler) {
 ASSEMBLER_TEST_RUN(FcmpLtBranchNotTaken, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x0\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x6000 lsl 32\n"
+      "movk ip0, #0x406d lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "movz ip0, #0x4000 lsl 32\n"
+      "movk ip0, #0x406d lsl 48\n"
+      "fmovdr v2, ip0\n"
+      "fcmpd v1, v2\n"
+      "blt +12\n"
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FcmpzGtBranch, assembler) {
@@ -1840,6 +2631,21 @@ ASSEMBLER_TEST_GENERATE(FcmpzGtBranch, assembler) {
 ASSEMBLER_TEST_RUN(FcmpzGtBranch, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x6000 lsl 32\n"
+      "movk ip0, #0x406d lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x2000 lsl 32\n"
+      "movk ip0, #0x406d lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fcmpd v1, #0.0\n"
+      "bgt +16\n"
+      "movz ip0, #0x0\n"
+      "fmovdr v0, ip0\n"
+      "ret\n"
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AndsBranch, assembler) {
@@ -1859,6 +2665,14 @@ ASSEMBLER_TEST_GENERATE(AndsBranch, assembler) {
 ASSEMBLER_TEST_RUN(AndsBranch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r1, #0x2\n"
+      "movz r2, #0x1\n"
+      "ands r3, r1, r2\n"
+      "beq +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AndsBranchNotTaken, assembler) {
@@ -1878,6 +2692,14 @@ ASSEMBLER_TEST_GENERATE(AndsBranchNotTaken, assembler) {
 ASSEMBLER_TEST_RUN(AndsBranchNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x0\n"
+      "movz r1, #0x2\n"
+      "movz r2, #0x2\n"
+      "ands r3, r1, r2\n"
+      "beq +8\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(BicsBranch, assembler) {
@@ -1897,6 +2719,14 @@ ASSEMBLER_TEST_GENERATE(BicsBranch, assembler) {
 ASSEMBLER_TEST_RUN(BicsBranch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r1, #0x2\n"
+      "movz r2, #0x2\n"
+      "bics r3, r1, r2\n"
+      "beq +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(BicsBranchNotTaken, assembler) {
@@ -1916,6 +2746,14 @@ ASSEMBLER_TEST_GENERATE(BicsBranchNotTaken, assembler) {
 ASSEMBLER_TEST_RUN(BicsBranchNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x0\n"
+      "movz r1, #0x2\n"
+      "movz r2, #0x1\n"
+      "bics r3, r1, r2\n"
+      "beq +8\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AndisBranch, assembler) {
@@ -1934,6 +2772,13 @@ ASSEMBLER_TEST_GENERATE(AndisBranch, assembler) {
 ASSEMBLER_TEST_RUN(AndisBranch, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r1, #0x2\n"
+      "ands r3, r1, 0x1\n"
+      "beq +8\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AndisBranchNotTaken, assembler) {
@@ -1952,6 +2797,13 @@ ASSEMBLER_TEST_GENERATE(AndisBranchNotTaken, assembler) {
 ASSEMBLER_TEST_RUN(AndisBranchNotTaken, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x0\n"
+      "movz r1, #0x2\n"
+      "ands r3, r1, 0x2\n"
+      "beq +8\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 // Address of PC-rel offset, br, blr.
@@ -2005,6 +2857,12 @@ ASSEMBLER_TEST_RUN(Udiv, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(3, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x1b\n"
+      "movz r1, #0x9\n"
+      "udiv r2, r0, r1\n"
+      "mov r0, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
@@ -2020,6 +2878,13 @@ ASSEMBLER_TEST_RUN(Sdiv, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-3, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x1b\n"
+      "movz r1, #0x9\n"
+      "neg r1, r1\n"
+      "sdiv r2, r0, r1\n"
+      "mov r0, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
@@ -2034,6 +2899,12 @@ ASSEMBLER_TEST_RUN(Udiv_zero, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x1b\n"
+      "movz r1, #0x0\n"
+      "udiv r2, r0, r1\n"
+      "mov r0, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
@@ -2048,6 +2919,12 @@ ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x1b\n"
+      "movz r1, #0x0\n"
+      "sdiv r2, r0, r1\n"
+      "mov r0, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
@@ -2062,6 +2939,12 @@ ASSEMBLER_TEST_RUN(Udiv_corner, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x8000 lsl 48\n"
+      "movn r1, #0x0\n"
+      "udiv r2, r0, r1\n"
+      "mov r0, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
@@ -2077,6 +2960,12 @@ ASSEMBLER_TEST_RUN(Sdiv_corner, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(static_cast<int64_t>(0x8000000000000000),
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r3, #0x8000 lsl 48\n"
+      "movn r1, #0x0\n"
+      "sdiv r2, r3, r1\n"
+      "mov r0, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Lslv, assembler) {
@@ -2089,6 +2978,11 @@ ASSEMBLER_TEST_GENERATE(Lslv, assembler) {
 ASSEMBLER_TEST_RUN(Lslv, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x15\n"
+      "movz r2, #0x1\n"
+      "lsl r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Lsrv, assembler) {
@@ -2101,6 +2995,11 @@ ASSEMBLER_TEST_GENERATE(Lsrv, assembler) {
 ASSEMBLER_TEST_RUN(Lsrv, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x54\n"
+      "movz r2, #0x1\n"
+      "lsr r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LShiftingV, assembler) {
@@ -2114,6 +3013,12 @@ ASSEMBLER_TEST_GENERATE(LShiftingV, assembler) {
 ASSEMBLER_TEST_RUN(LShiftingV, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x1\n"
+      "movz r2, #0x3f\n"
+      "lsl r1, r1, r2\n"
+      "lsr r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(RShiftingV, assembler) {
@@ -2127,6 +3032,12 @@ ASSEMBLER_TEST_GENERATE(RShiftingV, assembler) {
 ASSEMBLER_TEST_RUN(RShiftingV, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x1\n"
+      "movz r2, #0x3f\n"
+      "lsl r1, r1, r2\n"
+      "asr r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Mult_pos, assembler) {
@@ -2139,6 +3050,11 @@ ASSEMBLER_TEST_GENERATE(Mult_pos, assembler) {
 ASSEMBLER_TEST_RUN(Mult_pos, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x6\n"
+      "movz r2, #0x7\n"
+      "mul r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Mult_neg, assembler) {
@@ -2152,6 +3068,12 @@ ASSEMBLER_TEST_GENERATE(Mult_neg, assembler) {
 ASSEMBLER_TEST_RUN(Mult_neg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x6\n"
+      "movz r2, #0x7\n"
+      "neg r2, r2\n"
+      "mul r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Smulh_pos, assembler) {
@@ -2164,6 +3086,11 @@ ASSEMBLER_TEST_GENERATE(Smulh_pos, assembler) {
 ASSEMBLER_TEST_RUN(Smulh_pos, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x6\n"
+      "movz r2, #0x7\n"
+      "smulh r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Smulh_neg, assembler) {
@@ -2177,6 +3104,12 @@ ASSEMBLER_TEST_GENERATE(Smulh_neg, assembler) {
 ASSEMBLER_TEST_RUN(Smulh_neg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x6\n"
+      "movz r2, #0x7\n"
+      "neg r2, r2\n"
+      "smulh r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Umulh, assembler) {
@@ -2190,6 +3123,11 @@ ASSEMBLER_TEST_RUN(Umulh, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(static_cast<int64_t>(0x6fff900000000),
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0xffff lsl 48\n"
+      "movz r2, #0x7 lsl 48\n"
+      "umulh r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Umaddl, assembler) {
@@ -2203,6 +3141,12 @@ ASSEMBLER_TEST_GENERATE(Umaddl, assembler) {
 ASSEMBLER_TEST_RUN(Umaddl, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x700000001, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r1, #0x0\n"
+      "movz r2, #0x7\n"
+      "movz r3, #0x8\n"
+      "umaddl r0, r1, r2, r3\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Smaddl, assembler) {
@@ -2216,6 +3160,12 @@ ASSEMBLER_TEST_GENERATE(Smaddl, assembler) {
 ASSEMBLER_TEST_RUN(Smaddl, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(6, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r1, #0x1\n"
+      "movz r2, #0x7\n"
+      "movz r3, #0x14\n"
+      "smaddl r0, r1, r2, r3\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Smaddl2, assembler) {
@@ -2228,6 +3178,11 @@ ASSEMBLER_TEST_GENERATE(Smaddl2, assembler) {
 ASSEMBLER_TEST_RUN(Smaddl2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r1, #0x1\n"
+      "movn r2, #0x0\n"
+      "smull r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Smaddl3, assembler) {
@@ -2241,6 +3196,11 @@ ASSEMBLER_TEST_RUN(Smaddl3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xffffl * 0xffffl,
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0xffff\n"
+      "movz r2, #0xffff\n"
+      "smull r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SmaddlOverflow, assembler) {
@@ -2261,6 +3221,17 @@ ASSEMBLER_TEST_GENERATE(SmaddlOverflow, assembler) {
 ASSEMBLER_TEST_RUN(SmaddlOverflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0xffff\n"
+      "add r1, r1, #0x4\n"
+      "movz r2, #0x7fff\n"
+      "smull r0, r1, r2\n"
+      "asr r3, r0, #31\n"
+      "cmp r3, r0 asr #63\n"
+      "bne +8\n"
+      "ret\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SmaddlOverflow2, assembler) {
@@ -2281,6 +3252,17 @@ ASSEMBLER_TEST_GENERATE(SmaddlOverflow2, assembler) {
 ASSEMBLER_TEST_RUN(SmaddlOverflow2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0xffff\n"
+      "movn r2, #0xffff\n"
+      "sub r2, r2, #0x3\n"
+      "smull r0, r1, r2\n"
+      "asr r3, r0, #31\n"
+      "cmp r3, r0 asr #63\n"
+      "bne +8\n"
+      "ret\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SmaddlOverflow3, assembler) {
@@ -2300,12 +3282,24 @@ ASSEMBLER_TEST_GENERATE(SmaddlOverflow3, assembler) {
 ASSEMBLER_TEST_RUN(SmaddlOverflow3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x7fff\n"
+      "movk r1, #0x100 lsl 16\n"
+      "movz r2, #0x7fff\n"
+      "movk r2, #0x100 lsl 16\n"
+      "smull r0, r1, r2\n"
+      "asr r3, r0, #31\n"
+      "cmp r3, r0 asr #63\n"
+      "bne +8\n"
+      "ret\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(NegNoOverflow, assembler) {
   Label return_ltuae;
   __ LoadImmediate(R1, 0x7fffffff);
-  __ negsw(R0, R1);  // X0 = W1*W2, alias of smaddl.
+  __ negsw(R0, R1);
   __ sxtw(R0, R0);
   __ b(&return_ltuae, VS);  // Branch on overflow set.
   __ ret();
@@ -2317,12 +3311,20 @@ ASSEMBLER_TEST_GENERATE(NegNoOverflow, assembler) {
 ASSEMBLER_TEST_RUN(NegNoOverflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x7fffffff, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r1, 0x7fffffff\n"
+      "negws r0, r1\n"
+      "sxtw r0, r0\n"
+      "bvs +8\n"
+      "ret\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(NegNoOverflow2, assembler) {
   Label return_ltuae;
   __ LoadImmediate(R1, 0x7123);
-  __ negsw(R0, R1);  // X0 = W1*W2, alias of smaddl.
+  __ negsw(R0, R1);
   __ sxtw(R0, R0);
   __ b(&return_ltuae, VS);  // Branch on overflow set.
   __ ret();
@@ -2334,6 +3336,14 @@ ASSEMBLER_TEST_GENERATE(NegNoOverflow2, assembler) {
 ASSEMBLER_TEST_RUN(NegNoOverflow2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x7123, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x7123\n"
+      "negws r0, r1\n"
+      "sxtw r0, r0\n"
+      "bvs +8\n"
+      "ret\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(NegOverflow, assembler) {
@@ -2351,6 +3361,14 @@ ASSEMBLER_TEST_GENERATE(NegOverflow, assembler) {
 ASSEMBLER_TEST_RUN(NegOverflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r1, 0xffffffff80000000\n"
+      "negws r0, r1\n"
+      "sxtw r0, r0\n"
+      "bvs +8\n"
+      "ret\n"
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 // Loading immediate values without the object pool.
@@ -2362,6 +3380,9 @@ ASSEMBLER_TEST_GENERATE(LoadImmediateSmall, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediateSmall, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediateMed, assembler) {
@@ -2372,6 +3393,10 @@ ASSEMBLER_TEST_GENERATE(LoadImmediateMed, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediateMed, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xf1234123, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x4123\n"
+      "movk r0, #0xf123 lsl 16\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediateMed2, assembler) {
@@ -2383,6 +3408,11 @@ ASSEMBLER_TEST_RUN(LoadImmediateMed2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x4321f1234123,
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x4123\n"
+      "movk r0, #0xf123 lsl 16\n"
+      "movk r0, #0x4321 lsl 32\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediateLarge, assembler) {
@@ -2394,6 +3424,12 @@ ASSEMBLER_TEST_RUN(LoadImmediateLarge, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(static_cast<int64_t>(0x9287436598237465),
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x7465\n"
+      "movk r0, #0x9823 lsl 16\n"
+      "movk r0, #0x4365 lsl 32\n"
+      "movk r0, #0x9287 lsl 48\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediateSmallNeg, assembler) {
@@ -2404,6 +3440,9 @@ ASSEMBLER_TEST_GENERATE(LoadImmediateSmallNeg, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediateSmallNeg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r0, #0x29\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg, assembler) {
@@ -2414,6 +3453,11 @@ ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediateMedNeg, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x1212341234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r0, #0x12 lsl 32\n"
+      "movk r0, #0xedcb lsl 16\n"
+      "movk r0, #0xedcc\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg2, assembler) {
@@ -2424,6 +3468,11 @@ ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg2, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediateMedNeg2, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x1212340000, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r0, #0x12 lsl 32\n"
+      "movk r0, #0xedcc lsl 16\n"
+      "movk r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg3, assembler) {
@@ -2434,6 +3483,10 @@ ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg3, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediateMedNeg3, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x1200001234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r0, #0x12 lsl 32\n"
+      "movk r0, #0xedcc\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg4, assembler) {
@@ -2444,6 +3497,10 @@ ASSEMBLER_TEST_GENERATE(LoadImmediateMedNeg4, assembler) {
 ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x12341234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r0, #0x1234 lsl 16\n"
+      "movk r0, #0xedcc\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnaligned, assembler) {
@@ -2467,6 +3524,10 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
       static_cast<int16_t>(static_cast<uint16_t>(0xCDAB)),
       EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadHalfWordUnaligned, test->entry(),
                                       reinterpret_cast<intptr_t>(&buffer[1])));
+  EXPECT_DISASSEMBLY(
+      "ldrsh r1, [r0]\n"
+      "mov r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadHalfWordUnsignedUnaligned, assembler) {
@@ -2488,6 +3549,10 @@ ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
   EXPECT_EQ(0xCDAB, EXECUTE_TEST_CODE_INTPTR_INTPTR(
                         LoadHalfWordUnsignedUnaligned, test->entry(),
                         reinterpret_cast<intptr_t>(&buffer[1])));
+  EXPECT_DISASSEMBLY(
+      "ldrh r1, [r0]\n"
+      "mov r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
@@ -2517,6 +3582,11 @@ ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
   EXPECT_EQ(0xCD, buffer[1]);
   EXPECT_EQ(0xAB, buffer[2]);
   EXPECT_EQ(0, buffer[3]);
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0xabcd\n"
+      "strh r1, [r0]\n"
+      "mov r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LoadWordUnaligned, assembler) {
@@ -2546,6 +3616,10 @@ ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
       static_cast<int32_t>(0xDEBC9A78),
       EXECUTE_TEST_CODE_INT32_INTPTR(LoadWordUnaligned, test->entry(),
                                      reinterpret_cast<intptr_t>(&buffer[3])));
+  EXPECT_DISASSEMBLY(
+      "ldrw r1, [r0]\n"
+      "mov r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(StoreWordUnaligned, assembler) {
@@ -2591,6 +3665,13 @@ ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
   EXPECT_EQ(0x56, buffer[4]);
   EXPECT_EQ(0x34, buffer[5]);
   EXPECT_EQ(0x12, buffer[6]);
+
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x5678\n"
+      "movk r1, #0x1234 lsl 16\n"
+      "strw r1, [r0]\n"
+      "mov r0, r1\n"
+      "ret\n");
 }
 
 static void EnterTestFrame(Assembler* assembler) {
@@ -2758,6 +3839,12 @@ ASSEMBLER_TEST_GENERATE(CSelTrue, assembler) {
 ASSEMBLER_TEST_RUN(CSelTrue, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2a\n"
+      "movz r2, #0x4d2\n"
+      "cmp r1, r2\n"
+      "csel r0, r1, r2, lt\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CSelFalse, assembler) {
@@ -2771,6 +3858,12 @@ ASSEMBLER_TEST_GENERATE(CSelFalse, assembler) {
 ASSEMBLER_TEST_RUN(CSelFalse, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2a\n"
+      "movz r2, #0x4d2\n"
+      "cmp r1, r2\n"
+      "csel r0, r1, r2, ge\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CsincFalse, assembler) {
@@ -2797,6 +3890,12 @@ ASSEMBLER_TEST_GENERATE(CsincTrue, assembler) {
 ASSEMBLER_TEST_RUN(CsincTrue, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2a\n"
+      "movz r2, #0x4d2\n"
+      "cmp r1, r2\n"
+      "cinc r0, r2, ge\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CsinvFalse, assembler) {
@@ -2810,6 +3909,12 @@ ASSEMBLER_TEST_GENERATE(CsinvFalse, assembler) {
 ASSEMBLER_TEST_RUN(CsinvFalse, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(~42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2a\n"
+      "movz r2, #0x4d2\n"
+      "cmp r1, r2\n"
+      "csinv r0, r2, r1, ge\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CsinvTrue, assembler) {
@@ -2823,6 +3928,12 @@ ASSEMBLER_TEST_GENERATE(CsinvTrue, assembler) {
 ASSEMBLER_TEST_RUN(CsinvTrue, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2a\n"
+      "movz r2, #0x4d2\n"
+      "cmp r1, r2\n"
+      "csinv r0, r2, r1, lt\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CsnegFalse, assembler) {
@@ -2836,6 +3947,12 @@ ASSEMBLER_TEST_GENERATE(CsnegFalse, assembler) {
 ASSEMBLER_TEST_RUN(CsnegFalse, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2a\n"
+      "movz r2, #0x4d2\n"
+      "cmp r1, r2\n"
+      "csneg r0, r2, r1, ge\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CsnegTrue, assembler) {
@@ -2849,6 +3966,12 @@ ASSEMBLER_TEST_GENERATE(CsnegTrue, assembler) {
 ASSEMBLER_TEST_RUN(CsnegTrue, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x2a\n"
+      "movz r2, #0x4d2\n"
+      "cmp r1, r2\n"
+      "csneg r0, r2, r1, lt\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Ubfx, assembler) {
@@ -2861,6 +3984,12 @@ ASSEMBLER_TEST_GENERATE(Ubfx, assembler) {
 ASSEMBLER_TEST_RUN(Ubfx, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x81, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x819\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "ubfm r0, r1, #4, #11\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Sbfx, assembler) {
@@ -2873,6 +4002,12 @@ ASSEMBLER_TEST_GENERATE(Sbfx, assembler) {
 ASSEMBLER_TEST_RUN(Sbfx, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x7f, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x819\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "sbfm r0, r1, #4, #11\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Bfi, assembler) {
@@ -2885,6 +4020,12 @@ ASSEMBLER_TEST_GENERATE(Bfi, assembler) {
 ASSEMBLER_TEST_RUN(Bfi, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x5a5b9a5a, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x819\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "bfm r0, r1, #52, #4\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Ubfiz, assembler) {
@@ -2898,6 +4039,13 @@ ASSEMBLER_TEST_GENERATE(Ubfiz, assembler) {
 ASSEMBLER_TEST_RUN(Ubfiz, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x7e2491fe, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x48ff\n"
+      "movk r1, #0xff12 lsl 16\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "ubfm r0, r1, #63, #29\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Bfxil, assembler) {
@@ -2910,6 +4058,12 @@ ASSEMBLER_TEST_GENERATE(Bfxil, assembler) {
 ASSEMBLER_TEST_RUN(Bfxil, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x5a5a5a81, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x819\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "bfm r0, r1, #4, #11\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Sbfiz, assembler) {
@@ -2922,6 +4076,12 @@ ASSEMBLER_TEST_GENERATE(Sbfiz, assembler) {
 ASSEMBLER_TEST_RUN(Sbfiz, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-0x7e70, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x819\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "sbfm r0, r1, #60, #11\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Sxtb, assembler) {
@@ -2938,6 +4098,17 @@ ASSEMBLER_TEST_GENERATE(Sxtb, assembler) {
 ASSEMBLER_TEST_RUN(Sxtb, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x29, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0xff\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "sxtb r0, r1\n"
+      "movz r2, #0x2a\n"
+      "movz r1, #0x5a5a\n"
+      "movk r1, #0x5a5a lsl 16\n"
+      "sxtb r1, r2\n"
+      "add r0, r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Sxth, assembler) {
@@ -2954,6 +4125,18 @@ ASSEMBLER_TEST_GENERATE(Sxth, assembler) {
 ASSEMBLER_TEST_RUN(Sxth, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x29, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r1, 0xffff\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "sxth r0, r1\n"
+      "movz r2, #0x2a\n"
+      "movk r2, #0x1 lsl 16\n"
+      "movz r1, #0x5a5a\n"
+      "movk r1, #0x5a5a lsl 16\n"
+      "sxth r1, r2\n"
+      "add r0, r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Sxtw, assembler) {
@@ -2970,6 +4153,18 @@ ASSEMBLER_TEST_GENERATE(Sxtw, assembler) {
 ASSEMBLER_TEST_RUN(Sxtw, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0x29, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r1, 0xffffffff\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "sxtw r0, r1\n"
+      "movz r2, #0x2a\n"
+      "movk r2, #0x1 lsl 32\n"
+      "movz r1, #0x5a5a\n"
+      "movk r1, #0x5a5a lsl 16\n"
+      "sxtw r1, r2\n"
+      "add r0, r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Uxtw, assembler) {
@@ -2987,6 +4182,18 @@ ASSEMBLER_TEST_RUN(Uxtw, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xffffffffll + 42,
             EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r1, 0xffffffff\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "ubfm r0, r1, #0, #31\n"
+      "movz r2, #0x2a\n"
+      "movk r2, #0x1 lsl 32\n"
+      "movz r1, #0x5a5a\n"
+      "movk r1, #0x5a5a lsl 16\n"
+      "ubfm r1, r2, #0, #31\n"
+      "add r0, r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Uxtb, assembler) {
@@ -3003,6 +4210,17 @@ ASSEMBLER_TEST_GENERATE(Uxtb, assembler) {
 ASSEMBLER_TEST_RUN(Uxtb, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xff + 0x2a, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r1, #0x0\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "uxtb r0, r1\n"
+      "movz r2, #0x12a\n"
+      "movz r1, #0x5a5a\n"
+      "movk r1, #0x5a5a lsl 16\n"
+      "uxtb r1, r2\n"
+      "add r0, r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Uxth, assembler) {
@@ -3019,6 +4237,18 @@ ASSEMBLER_TEST_GENERATE(Uxth, assembler) {
 ASSEMBLER_TEST_RUN(Uxth, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xffff + 0x2a, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movn r1, #0x0\n"
+      "movz r0, #0x5a5a\n"
+      "movk r0, #0x5a5a lsl 16\n"
+      "uxth r0, r1\n"
+      "movz r2, #0x2a\n"
+      "movk r2, #0x1 lsl 16\n"
+      "movz r1, #0x5a5a\n"
+      "movk r1, #0x5a5a lsl 16\n"
+      "uxth r1, r2\n"
+      "add r0, r0, r1\n"
+      "ret\n");
 }
 
 // Floating point move immediate, to/from integer register.
@@ -3030,6 +4260,9 @@ ASSEMBLER_TEST_GENERATE(Fmovdi, assembler) {
 ASSEMBLER_TEST_RUN(Fmovdi, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(1.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v0, 1.000000\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fmovdi2, assembler) {
@@ -3042,6 +4275,13 @@ ASSEMBLER_TEST_RUN(Fmovdi2, test) {
   EXPECT_FLOAT_EQ(123412983.1324524315,
                   EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()),
                   0.0001f);
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0xa19c\n"
+      "movk ip0, #0xdc87 lsl 16\n"
+      "movk ip0, #0x6c87 lsl 32\n"
+      "movk ip0, #0x419d lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fmovrd, assembler) {
@@ -3054,6 +4294,10 @@ ASSEMBLER_TEST_RUN(Fmovrd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   const int64_t one = bit_cast<int64_t, double>(1.0);
   EXPECT_EQ(one, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v1, 1.000000\n"
+      "fmovrd r0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fmovdr, assembler) {
@@ -3066,6 +4310,11 @@ ASSEMBLER_TEST_GENERATE(Fmovdr, assembler) {
 ASSEMBLER_TEST_RUN(Fmovdr, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(1.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v1, 1.000000\n"
+      "fmovrd r1, v1\n"
+      "fmovdr v0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fmovrs, assembler) {
@@ -3080,6 +4329,11 @@ ASSEMBLER_TEST_RUN(Fmovrs, test) {
   int64_t result = EXECUTE_TEST_CODE_INT64(Int64Return, test->entry());
   const uint32_t one = bit_cast<uint32_t, float>(1.0f);
   EXPECT_EQ(one, static_cast<uint32_t>(result));
+  EXPECT_DISASSEMBLY(
+      "fmovd v2, 1.000000\n"
+      "fcvtsd v1, v2\n"
+      "fmovrsw r0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fmovsr, assembler) {
@@ -3094,6 +4348,11 @@ ASSEMBLER_TEST_RUN(Fmovsr, test) {
   int64_t result = EXECUTE_TEST_CODE_INT64(Int64Return, test->entry());
   const uint32_t one = bit_cast<uint32_t, float>(1.0f);
   EXPECT_EQ(one, static_cast<uint32_t>(result));
+  EXPECT_DISASSEMBLY(
+      "mov r2, 0x3f800000\n"
+      "fmovsrw v1, r2\n"
+      "fmovrsw r0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdPrePostIndex, assembler) {
@@ -3112,6 +4371,16 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdPrePostIndex, assembler) {
 ASSEMBLER_TEST_RUN(FldrdFstrdPrePostIndex, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "sub csp, csp, #0x10\n"
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fstrd v1, [r15, #-8]!\n"
+      "fldrd v0, [r15], #8 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FldrsFstrsPrePostIndex, assembler) {
@@ -3132,6 +4401,18 @@ ASSEMBLER_TEST_GENERATE(FldrsFstrsPrePostIndex, assembler) {
 ASSEMBLER_TEST_RUN(FldrsFstrsPrePostIndex, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "sub csp, csp, #0x10\n"
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fcvtsd v2, v1\n"
+      "fstrs v2, [r15, #-8]!\n"
+      "fldrs v3, [r15], #8 !\n"
+      "fcvtds v0, v3\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FldrqFstrqPrePostIndex, assembler) {
@@ -3159,6 +4440,24 @@ ASSEMBLER_TEST_GENERATE(FldrqFstrqPrePostIndex, assembler) {
 ASSEMBLER_TEST_RUN(FldrqFstrqPrePostIndex, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "sub csp, csp, #0x10\n"
+      "fmovd v1, 21.000000\n"
+      "fmovd v2, 21.000000\n"
+      "movz r1, #0x2a\n"
+      "str r1, [r15, #-8]!\n"
+      "fstrd v1, [r15, #-8]!\n"
+      "fstrd v2, [r15, #-8]!\n"
+      "fldrq v3, [r15], #16 !\n"
+      "ldr r0, [r15], #8 !\n"
+      "fstrq v3, [r15, #-16]!\n"
+      "fldrd v0, [r15], #8 !\n"
+      "fldrd v1, [r15], #8 !\n"
+      "faddd v0, v0, v1\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtzsxd, assembler) {
@@ -3170,6 +4469,12 @@ ASSEMBLER_TEST_GENERATE(Fcvtzsxd, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtzsxd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4000 lsl 32\n"
+      "movk ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtzs r0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtzswd, assembler) {
@@ -3182,6 +4487,13 @@ ASSEMBLER_TEST_GENERATE(Fcvtzswd, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtzswd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4000 lsl 32\n"
+      "movk ip0, #0xc045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtzsw r0, v0\n"
+      "sxtw r0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtzsxd_overflow, assembler) {
@@ -3204,6 +4516,14 @@ ASSEMBLER_TEST_GENERATE(Fcvtzsxd_overflow_negative, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtzsxd_overflow_negative, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMinInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x8c40\n"
+      "movk ip0, #0x78b5 lsl 16\n"
+      "movk ip0, #0xaf1d lsl 32\n"
+      "movk ip0, #0xc415 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtzs r0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtzswd_overflow, assembler) {
@@ -3215,6 +4535,13 @@ ASSEMBLER_TEST_GENERATE(Fcvtzswd_overflow, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtzswd_overflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x2000 lsl 16\n"
+      "movk ip0, #0xa05f lsl 32\n"
+      "movk ip0, #0x4202 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtzsw r0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtzswd_overflow_negative, assembler) {
@@ -3227,6 +4554,14 @@ ASSEMBLER_TEST_GENERATE(Fcvtzswd_overflow_negative, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtzswd_overflow_negative, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMinInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x2000 lsl 16\n"
+      "movk ip0, #0xa05f lsl 32\n"
+      "movk ip0, #0xc202 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtzsw r0, v0\n"
+      "sxtw r0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtpsxd, assembler) {
@@ -3238,6 +4573,12 @@ ASSEMBLER_TEST_GENERATE(Fcvtpsxd, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtpsxd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(43, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4000 lsl 32\n"
+      "movk ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtps r0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtpswd, assembler) {
@@ -3250,6 +4591,13 @@ ASSEMBLER_TEST_GENERATE(Fcvtpswd, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtpswd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4000 lsl 32\n"
+      "movk ip0, #0xc045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtpsw r0, v0\n"
+      "sxtw r0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtpsxd_overflow, assembler) {
@@ -3261,6 +4609,14 @@ ASSEMBLER_TEST_GENERATE(Fcvtpsxd_overflow, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtpsxd_overflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMaxInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x8c40\n"
+      "movk ip0, #0x78b5 lsl 16\n"
+      "movk ip0, #0xaf1d lsl 32\n"
+      "movk ip0, #0x4415 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtps r0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtpsxd_overflow_negative, assembler) {
@@ -3272,6 +4628,14 @@ ASSEMBLER_TEST_GENERATE(Fcvtpsxd_overflow_negative, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtpsxd_overflow_negative, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMinInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x8c40\n"
+      "movk ip0, #0x78b5 lsl 16\n"
+      "movk ip0, #0xaf1d lsl 32\n"
+      "movk ip0, #0xc415 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtps r0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtpswd_overflow, assembler) {
@@ -3283,6 +4647,13 @@ ASSEMBLER_TEST_GENERATE(Fcvtpswd_overflow, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtpswd_overflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x2000 lsl 16\n"
+      "movk ip0, #0xa05f lsl 32\n"
+      "movk ip0, #0x4202 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtpsw r0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtpswd_overflow_negative, assembler) {
@@ -3295,6 +4666,14 @@ ASSEMBLER_TEST_GENERATE(Fcvtpswd_overflow_negative, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtpswd_overflow_negative, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMinInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x2000 lsl 16\n"
+      "movk ip0, #0xa05f lsl 32\n"
+      "movk ip0, #0xc202 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtpsw r0, v0\n"
+      "sxtw r0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtmsxd, assembler) {
@@ -3306,6 +4685,12 @@ ASSEMBLER_TEST_GENERATE(Fcvtmsxd, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtmsxd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4000 lsl 32\n"
+      "movk ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtms r0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtmswd, assembler) {
@@ -3318,6 +4703,13 @@ ASSEMBLER_TEST_GENERATE(Fcvtmswd, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtmswd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-43, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4000 lsl 32\n"
+      "movk ip0, #0xc045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtmsw r0, v0\n"
+      "sxtw r0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtmsxd_overflow, assembler) {
@@ -3329,6 +4721,14 @@ ASSEMBLER_TEST_GENERATE(Fcvtmsxd_overflow, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtmsxd_overflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMaxInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x8c40\n"
+      "movk ip0, #0x78b5 lsl 16\n"
+      "movk ip0, #0xaf1d lsl 32\n"
+      "movk ip0, #0x4415 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtms r0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtmsxd_overflow_negative, assembler) {
@@ -3340,6 +4740,14 @@ ASSEMBLER_TEST_GENERATE(Fcvtmsxd_overflow_negative, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtmsxd_overflow_negative, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMinInt64, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x8c40\n"
+      "movk ip0, #0x78b5 lsl 16\n"
+      "movk ip0, #0xaf1d lsl 32\n"
+      "movk ip0, #0xc415 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtms r0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtmswd_overflow, assembler) {
@@ -3351,6 +4759,13 @@ ASSEMBLER_TEST_GENERATE(Fcvtmswd_overflow, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtmswd_overflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x2000 lsl 16\n"
+      "movk ip0, #0xa05f lsl 32\n"
+      "movk ip0, #0x4202 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtmsw r0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fcvtmswd_overflow_negative, assembler) {
@@ -3363,6 +4778,14 @@ ASSEMBLER_TEST_GENERATE(Fcvtmswd_overflow_negative, assembler) {
 ASSEMBLER_TEST_RUN(Fcvtmswd_overflow_negative, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(kMinInt32, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x2000 lsl 16\n"
+      "movk ip0, #0xa05f lsl 32\n"
+      "movk ip0, #0xc202 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtmsw r0, v0\n"
+      "sxtw r0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Scvtfdx, assembler) {
@@ -3374,6 +4797,10 @@ ASSEMBLER_TEST_GENERATE(Scvtfdx, assembler) {
 ASSEMBLER_TEST_RUN(Scvtfdx, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "scvtfd v0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Scvtfdw, assembler) {
@@ -3386,6 +4813,12 @@ ASSEMBLER_TEST_GENERATE(Scvtfdw, assembler) {
 ASSEMBLER_TEST_RUN(Scvtfdw, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movk r0, #0x1111 lsl 32\n"
+      "movk r0, #0x1111 lsl 48\n"
+      "scvtfdw v0, r0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FabsdPos, assembler) {
@@ -3397,6 +4830,11 @@ ASSEMBLER_TEST_GENERATE(FabsdPos, assembler) {
 ASSEMBLER_TEST_RUN(FabsdPos, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fabsd v0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FabsdNeg, assembler) {
@@ -3408,6 +4846,11 @@ ASSEMBLER_TEST_GENERATE(FabsdNeg, assembler) {
 ASSEMBLER_TEST_RUN(FabsdNeg, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0xc045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fabsd v0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FnegdPos, assembler) {
@@ -3419,6 +4862,11 @@ ASSEMBLER_TEST_GENERATE(FnegdPos, assembler) {
 ASSEMBLER_TEST_RUN(FnegdPos, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(-42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fnegd v0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FnegdNeg, assembler) {
@@ -3430,6 +4878,11 @@ ASSEMBLER_TEST_GENERATE(FnegdNeg, assembler) {
 ASSEMBLER_TEST_RUN(FnegdNeg, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0xc045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fnegd v0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fsqrtd, assembler) {
@@ -3441,6 +4894,11 @@ ASSEMBLER_TEST_GENERATE(Fsqrtd, assembler) {
 ASSEMBLER_TEST_RUN(Fsqrtd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(8.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4050 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fsqrtd v0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fmuld, assembler) {
@@ -3453,6 +4911,12 @@ ASSEMBLER_TEST_GENERATE(Fmuld, assembler) {
 ASSEMBLER_TEST_RUN(Fmuld, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4055 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fmovd v2, 0.500000\n"
+      "fmuld v0, v1, v2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fdivd, assembler) {
@@ -3465,6 +4929,12 @@ ASSEMBLER_TEST_GENERATE(Fdivd, assembler) {
 ASSEMBLER_TEST_RUN(Fdivd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4055 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fmovd v2, 2.000000\n"
+      "fdivd v0, v1, v2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Faddd, assembler) {
@@ -3477,6 +4947,13 @@ ASSEMBLER_TEST_GENERATE(Faddd, assembler) {
 ASSEMBLER_TEST_RUN(Faddd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0xc000 lsl 32\n"
+      "movk ip0, #0x4044 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fmovd v2, 0.500000\n"
+      "faddd v0, v1, v2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Fsubd, assembler) {
@@ -3489,6 +4966,13 @@ ASSEMBLER_TEST_GENERATE(Fsubd, assembler) {
 ASSEMBLER_TEST_RUN(Fsubd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4000 lsl 32\n"
+      "movk ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fmovd v2, 0.500000\n"
+      "fsubd v0, v1, v2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdHeapTag, assembler) {
@@ -3507,6 +4991,21 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdHeapTag, assembler) {
 ASSEMBLER_TEST_RUN(FldrdFstrdHeapTag, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz ip0, #0x8000 lsl 32\n"
+      "movk ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "sub r15, r15, #0x8\n"
+      "add r2, r15, #0x1\n"
+      "fstrd v1, [r2, #-1]\n"
+      "fldrd v0, [r2, #-1]\n"
+      "add r15, r15, #0x8\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeIndex, assembler) {
@@ -3530,6 +5029,20 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeIndex, assembler) {
 ASSEMBLER_TEST_RUN(FldrdFstrdLargeIndex, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "sub csp, csp, #0x100\n"
+      "movz ip0, #0x8000 lsl 32\n"
+      "movk ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fstrd v1, [r15, #-256]!\n"
+      "fldrd v0, [r15], #248 !\n"
+      "add r15, r15, #0x8\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeOffset, assembler) {
@@ -3548,6 +5061,21 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeOffset, assembler) {
 ASSEMBLER_TEST_RUN(FldrdFstrdLargeOffset, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz ip0, #0x8000 lsl 32\n"
+      "movk ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "sub r15, r15, #0x1000\n"
+      "and csp, r15, 0xfffffffffffffff0\n"
+      "fstrd v1, [r15, #4096]\n"
+      "add r15, r15, #0x1000\n"
+      "fldrd v0, [r15]\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdExtReg, assembler) {
@@ -3570,6 +5098,23 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdExtReg, assembler) {
 ASSEMBLER_TEST_RUN(FldrdFstrdExtReg, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz ip0, #0x8000 lsl 32\n"
+      "movk ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "movz r2, #0xfff8\n"
+      "movk r2, #0xffff lsl 16\n"
+      "fstrd v1, [r15, r2 sxtw]\n"
+      "sub r15, r15, #0x8\n"
+      "and csp, r15, 0xfffffffffffffff0\n"
+      "fldrd v0, [r15]\n"
+      "add r15, r15, #0x8\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdScaledReg, assembler) {
@@ -3590,6 +5135,22 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdScaledReg, assembler) {
 ASSEMBLER_TEST_RUN(FldrdFstrdScaledReg, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz ip0, #0x8000 lsl 32\n"
+      "movk ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "movz r2, #0xa\n"
+      "sub r15, r15, #0x50\n"
+      "and csp, r15, 0xfffffffffffffff0\n"
+      "fstrd v1, [r15, r2 uxtx scaled]\n"
+      "fldrd v0, [r15, r2 uxtx scaled]\n"
+      "add r15, r15, #0x50\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(VinswVmovrs, assembler) {
@@ -3618,6 +5179,23 @@ ASSEMBLER_TEST_RUN(VinswVmovrs, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(174, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r1, #0x2b\n"
+      "movz r2, #0x2c\n"
+      "movz r3, #0x2d\n"
+      "vinss v0[0], r0\n"
+      "vinss v0[1], r1\n"
+      "vinss v0[2], r2\n"
+      "vinss v0[3], r3\n"
+      "vmovrs r4, v0[0]\n"
+      "vmovrs r5, v0[1]\n"
+      "vmovrs r6, v0[2]\n"
+      "vmovrs r7, v0[3]\n"
+      "add r0, r4, r5\n"
+      "add r0, r0, r6\n"
+      "add r0, r0, r7\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(VinsxVmovrd, assembler) {
@@ -3638,6 +5216,15 @@ ASSEMBLER_TEST_RUN(VinsxVmovrd, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(85, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x2a\n"
+      "movz r1, #0x2b\n"
+      "vinsd v0[0], r0\n"
+      "vinsd v0[1], r1\n"
+      "vmovrd r2, v0[0]\n"
+      "vmovrd r3, v0[1]\n"
+      "add r0, r2, r3\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vnot, assembler) {
@@ -3664,6 +5251,22 @@ ASSEMBLER_TEST_RUN(Vnot, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r0, 0xfffffffe\n"
+      "mov r1, 0xffffffff\n"
+      "vinss v1[0], r1\n"
+      "vinss v1[1], r0\n"
+      "vinss v1[2], r1\n"
+      "vinss v1[3], r0\n"
+      "vnot v0, v1\n"
+      "vmovrs r2, v0[0]\n"
+      "vmovrs r3, v0[1]\n"
+      "vmovrs r4, v0[2]\n"
+      "vmovrs r5, v0[3]\n"
+      "add r0, r2, r3\n"
+      "add r0, r0, r4\n"
+      "add r0, r0, r5\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vabss, assembler) {
@@ -3692,6 +5295,21 @@ ASSEMBLER_TEST_GENERATE(Vabss, assembler) {
 ASSEMBLER_TEST_RUN(Vabss, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v1, 21.000000\n"
+      "fmovd v2, -21.000000\n"
+      "fcvtsd v1, v1\n"
+      "fcvtsd v2, v2\n"
+      "veor v3, v3, v3\n"
+      "vinss v3[1], v1[0]\n"
+      "vinss v3[3], v2[0]\n"
+      "vabss v4, v3\n"
+      "vinss v5[0], v4[1]\n"
+      "vinss v6[0], v4[3]\n"
+      "fcvtds v5, v5\n"
+      "fcvtds v6, v6\n"
+      "faddd v0, v5, v6\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vabsd, assembler) {
@@ -3713,6 +5331,16 @@ ASSEMBLER_TEST_GENERATE(Vabsd, assembler) {
 ASSEMBLER_TEST_RUN(Vabsd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v1, 21.000000\n"
+      "fmovd v2, -21.000000\n"
+      "vinsd v3[0], v1[0]\n"
+      "vinsd v3[1], v2[0]\n"
+      "vabsd v4, v3\n"
+      "vinsd v5[0], v4[0]\n"
+      "vinsd v6[0], v4[1]\n"
+      "faddd v0, v5, v6\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vnegs, assembler) {
@@ -3740,6 +5368,23 @@ ASSEMBLER_TEST_GENERATE(Vnegs, assembler) {
 ASSEMBLER_TEST_RUN(Vnegs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "movz ip0, #0xc055 lsl 48\n"
+      "fmovdr v2, ip0\n"
+      "fcvtsd v1, v1\n"
+      "fcvtsd v2, v2\n"
+      "veor v3, v3, v3\n"
+      "vinss v3[1], v1[0]\n"
+      "vinss v3[3], v2[0]\n"
+      "vnegs v4, v3\n"
+      "vinss v5[0], v4[1]\n"
+      "vinss v6[0], v4[3]\n"
+      "fcvtds v5, v5\n"
+      "fcvtds v6, v6\n"
+      "faddd v0, v5, v6\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vnegd, assembler) {
@@ -3761,6 +5406,19 @@ ASSEMBLER_TEST_GENERATE(Vnegd, assembler) {
 ASSEMBLER_TEST_RUN(Vnegd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      ""
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "movz ip0, #0xc055 lsl 48\n"
+      "fmovdr v2, ip0\n"
+      "vinsd v3[0], v1[0]\n"
+      "vinsd v3[1], v2[0]\n"
+      "vnegd v4, v3\n"
+      "vinsd v5[0], v4[0]\n"
+      "vinsd v6[0], v4[1]\n"
+      "faddd v0, v5, v6\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vadds, assembler) {
@@ -3800,6 +5458,33 @@ ASSEMBLER_TEST_GENERATE(Vadds, assembler) {
 ASSEMBLER_TEST_RUN(Vadds, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(12.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x0\n"
+      "fmovdr v0, ip0\n"
+      "fmovd v1, 1.000000\n"
+      "fmovd v2, 2.000000\n"
+      "fmovd v3, 3.000000\n"
+      "fcvtsd v0, v0\n"
+      "fcvtsd v1, v1\n"
+      "fcvtsd v2, v2\n"
+      "fcvtsd v3, v3\n"
+      "vinss v4[0], v0[0]\n"
+      "vinss v4[1], v1[0]\n"
+      "vinss v4[2], v2[0]\n"
+      "vinss v4[3], v3[0]\n"
+      "vadds v5, v4, v4\n"
+      "vinss v0[0], v5[0]\n"
+      "vinss v1[0], v5[1]\n"
+      "vinss v2[0], v5[2]\n"
+      "vinss v3[0], v5[3]\n"
+      "fcvtds v0, v0\n"
+      "fcvtds v1, v1\n"
+      "fcvtds v2, v2\n"
+      "fcvtds v3, v3\n"
+      "faddd v0, v0, v1\n"
+      "faddd v0, v0, v2\n"
+      "faddd v0, v0, v3\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vsubs, assembler) {
@@ -3840,6 +5525,36 @@ ASSEMBLER_TEST_GENERATE(Vsubs, assembler) {
 ASSEMBLER_TEST_RUN(Vsubs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(-6.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      ""
+      "movz ip0, #0x0\n"
+      "fmovdr v0, ip0\n"
+      "fmovd v1, 1.000000\n"
+      "fmovd v2, 2.000000\n"
+      "fmovd v3, 3.000000\n"
+      "movz ip0, #0x0\n"
+      "fmovdr v5, ip0\n"
+      "fcvtsd v0, v0\n"
+      "fcvtsd v1, v1\n"
+      "fcvtsd v2, v2\n"
+      "fcvtsd v3, v3\n"
+      "vinss v4[0], v0[0]\n"
+      "vinss v4[1], v1[0]\n"
+      "vinss v4[2], v2[0]\n"
+      "vinss v4[3], v3[0]\n"
+      "vsubs v5, v5, v4\n"
+      "vinss v0[0], v5[0]\n"
+      "vinss v1[0], v5[1]\n"
+      "vinss v2[0], v5[2]\n"
+      "vinss v3[0], v5[3]\n"
+      "fcvtds v0, v0\n"
+      "fcvtds v1, v1\n"
+      "fcvtds v2, v2\n"
+      "fcvtds v3, v3\n"
+      "faddd v0, v0, v1\n"
+      "faddd v0, v0, v2\n"
+      "faddd v0, v0, v3\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vmuls, assembler) {
@@ -3879,6 +5594,34 @@ ASSEMBLER_TEST_GENERATE(Vmuls, assembler) {
 ASSEMBLER_TEST_RUN(Vmuls, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(14.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      ""
+      "movz ip0, #0x0\n"
+      "fmovdr v0, ip0\n"
+      "fmovd v1, 1.000000\n"
+      "fmovd v2, 2.000000\n"
+      "fmovd v3, 3.000000\n"
+      "fcvtsd v0, v0\n"
+      "fcvtsd v1, v1\n"
+      "fcvtsd v2, v2\n"
+      "fcvtsd v3, v3\n"
+      "vinss v4[0], v0[0]\n"
+      "vinss v4[1], v1[0]\n"
+      "vinss v4[2], v2[0]\n"
+      "vinss v4[3], v3[0]\n"
+      "vmuls v5, v4, v4\n"
+      "vinss v0[0], v5[0]\n"
+      "vinss v1[0], v5[1]\n"
+      "vinss v2[0], v5[2]\n"
+      "vinss v3[0], v5[3]\n"
+      "fcvtds v0, v0\n"
+      "fcvtds v1, v1\n"
+      "fcvtds v2, v2\n"
+      "fcvtds v3, v3\n"
+      "faddd v0, v0, v1\n"
+      "faddd v0, v0, v2\n"
+      "faddd v0, v0, v3\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vdivs, assembler) {
@@ -3918,6 +5661,34 @@ ASSEMBLER_TEST_GENERATE(Vdivs, assembler) {
 ASSEMBLER_TEST_RUN(Vdivs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(4.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      ""
+      "movz ip0, #0x0\n"
+      "fmovdr v0, ip0\n"
+      "fmovd v1, 1.000000\n"
+      "fmovd v2, 2.000000\n"
+      "fmovd v3, 3.000000\n"
+      "fcvtsd v0, v0\n"
+      "fcvtsd v1, v1\n"
+      "fcvtsd v2, v2\n"
+      "fcvtsd v3, v3\n"
+      "vinss v4[0], v0[0]\n"
+      "vinss v4[1], v1[0]\n"
+      "vinss v4[2], v2[0]\n"
+      "vinss v4[3], v3[0]\n"
+      "vdivs v5, v4, v4\n"
+      "vinss v0[0], v5[0]\n"
+      "vinss v1[0], v5[1]\n"
+      "vinss v2[0], v5[2]\n"
+      "vinss v3[0], v5[3]\n"
+      "fcvtds v0, v0\n"
+      "fcvtds v1, v1\n"
+      "fcvtds v2, v2\n"
+      "fcvtds v3, v3\n"
+      "faddd v0, v1, v1\n"
+      "faddd v0, v0, v2\n"
+      "faddd v0, v0, v3\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vaddd, assembler) {
@@ -3939,6 +5710,17 @@ ASSEMBLER_TEST_GENERATE(Vaddd, assembler) {
 ASSEMBLER_TEST_RUN(Vaddd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(10.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      ""
+      "fmovd v0, 2.000000\n"
+      "fmovd v1, 3.000000\n"
+      "vinsd v4[0], v0[0]\n"
+      "vinsd v4[1], v1[0]\n"
+      "vaddd v5, v4, v4\n"
+      "vinsd v0[0], v5[0]\n"
+      "vinsd v1[0], v5[1]\n"
+      "faddd v0, v0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vsubd, assembler) {
@@ -3961,6 +5743,18 @@ ASSEMBLER_TEST_GENERATE(Vsubd, assembler) {
 ASSEMBLER_TEST_RUN(Vsubd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(-5.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v0, 2.000000\n"
+      "fmovd v1, 3.000000\n"
+      "movz ip0, #0x0\n"
+      "fmovdr v5, ip0\n"
+      "vinsd v4[0], v0[0]\n"
+      "vinsd v4[1], v1[0]\n"
+      "vsubd v5, v5, v4\n"
+      "vinsd v0[0], v5[0]\n"
+      "vinsd v1[0], v5[1]\n"
+      "faddd v0, v0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vmuld, assembler) {
@@ -3982,6 +5776,17 @@ ASSEMBLER_TEST_GENERATE(Vmuld, assembler) {
 ASSEMBLER_TEST_RUN(Vmuld, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(13.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      ""
+      "fmovd v0, 2.000000\n"
+      "fmovd v1, 3.000000\n"
+      "vinsd v4[0], v0[0]\n"
+      "vinsd v4[1], v1[0]\n"
+      "vmuld v5, v4, v4\n"
+      "vinsd v0[0], v5[0]\n"
+      "vinsd v1[0], v5[1]\n"
+      "faddd v0, v0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vdivd, assembler) {
@@ -4003,6 +5808,16 @@ ASSEMBLER_TEST_GENERATE(Vdivd, assembler) {
 ASSEMBLER_TEST_RUN(Vdivd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(2.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v0, 2.000000\n"
+      "fmovd v1, 3.000000\n"
+      "vinsd v4[0], v0[0]\n"
+      "vinsd v4[1], v1[0]\n"
+      "vdivd v5, v4, v4\n"
+      "vinsd v0[0], v5[0]\n"
+      "vinsd v1[0], v5[1]\n"
+      "faddd v0, v0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vdupd, assembler) {
@@ -4028,6 +5843,19 @@ ASSEMBLER_TEST_GENERATE(Vdupd, assembler) {
 ASSEMBLER_TEST_RUN(Vdupd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      ""
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "fmovd v0, 21.000000\n"
+      "vdupd v1, v0[0]\n"
+      "sub csp, csp, #0x10\n"
+      "fstrq v1, [r15, #-16]!\n"
+      "fldrd v2, [r15], #8 !\n"
+      "fldrd v3, [r15], #8 !\n"
+      "faddd v0, v2, v3\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vdups, assembler) {
@@ -4063,6 +5891,28 @@ ASSEMBLER_TEST_GENERATE(Vdups, assembler) {
 ASSEMBLER_TEST_RUN(Vdups, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(84.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      ""
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "fmovd v0, 21.000000\n"
+      "fcvtsd v0, v0\n"
+      "vdups v1, v0[0]\n"
+      "sub csp, csp, #0x10\n"
+      "fstrq v1, [r15, #-16]!\n"
+      "fldrs v3, [r15], #4 !\n"
+      "fldrs v2, [r15], #4 !\n"
+      "fldrs v1, [r15], #4 !\n"
+      "fldrs v0, [r15], #4 !\n"
+      "fcvtds v0, v0\n"
+      "fcvtds v1, v1\n"
+      "fcvtds v2, v2\n"
+      "fcvtds v3, v3\n"
+      "faddd v0, v1, v1\n"
+      "faddd v0, v0, v2\n"
+      "faddd v0, v0, v3\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vinsd, assembler) {
@@ -4088,6 +5938,20 @@ ASSEMBLER_TEST_GENERATE(Vinsd, assembler) {
 ASSEMBLER_TEST_RUN(Vinsd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      ""
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v5, ip0\n"
+      "vinsd v1[1], v5[0]\n"
+      "sub csp, csp, #0x10\n"
+      "fstrq v1, [r15, #-16]!\n"
+      "fldrd v2, [r15], #8 !\n"
+      "fldrd v3, [r15], #8 !\n"
+      "fmovdd v0, v3\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vinss, assembler) {
@@ -4131,6 +5995,33 @@ ASSEMBLER_TEST_GENERATE(Vinss, assembler) {
 ASSEMBLER_TEST_RUN(Vinss, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "fmovd v0, 21.000000\n"
+      "fcvtsd v0, v0\n"
+      "vinss v1[3], v0[0]\n"
+      "vinss v1[1], v0[0]\n"
+      "movz ip0, #0x0\n"
+      "fmovdr v0, ip0\n"
+      "fcvtsd v0, v0\n"
+      "vinss v1[2], v0[0]\n"
+      "vinss v1[0], v0[0]\n"
+      "sub csp, csp, #0x10\n"
+      "fstrq v1, [r15, #-16]!\n"
+      "fldrs v3, [r15], #4 !\n"
+      "fldrs v2, [r15], #4 !\n"
+      "fldrs v1, [r15], #4 !\n"
+      "fldrs v0, [r15], #4 !\n"
+      "fcvtds v0, v0\n"
+      "fcvtds v1, v1\n"
+      "fcvtds v2, v2\n"
+      "fcvtds v3, v3\n"
+      "faddd v0, v0, v1\n"
+      "faddd v0, v0, v2\n"
+      "faddd v0, v0, v3\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vand, assembler) {
@@ -4166,6 +6057,26 @@ ASSEMBLER_TEST_GENERATE(Vand, assembler) {
 ASSEMBLER_TEST_RUN(Vand, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v1, 21.000000\n"
+      "mov r0, 0xffffffff\n"
+      "fmovdr v0, r0\n"
+      "vinss v0[2], v0[0]\n"
+      "fcvtsd v1, v1\n"
+      "vdups v1, v1[0]\n"
+      "vand v2, v1, v0\n"
+      "vinss v3[0], v2[0]\n"
+      "vinss v4[0], v2[1]\n"
+      "vinss v5[0], v2[2]\n"
+      "vinss v6[0], v2[3]\n"
+      "fcvtds v3, v3\n"
+      "fcvtds v4, v4\n"
+      "fcvtds v5, v5\n"
+      "fcvtds v6, v6\n"
+      "vaddd v0, v3, v4\n"
+      "vaddd v0, v0, v5\n"
+      "vaddd v0, v0, v6\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vorr, assembler) {
@@ -4202,6 +6113,27 @@ ASSEMBLER_TEST_GENERATE(Vorr, assembler) {
 ASSEMBLER_TEST_RUN(Vorr, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v1, 10.500000\n"
+      "fcvtsd v1, v1\n"
+      "fmovdd v0, v1\n"
+      "vinss v0[2], v0[0]\n"
+      "veor v1, v1, v1\n"
+      "vinss v1[1], v0[0]\n"
+      "vinss v1[3], v0[0]\n"
+      "vorr v2, v1, v0\n"
+      "vinss v3[0], v2[0]\n"
+      "vinss v4[0], v2[1]\n"
+      "vinss v5[0], v2[2]\n"
+      "vinss v6[0], v2[3]\n"
+      "fcvtds v3, v3\n"
+      "fcvtds v4, v4\n"
+      "fcvtds v5, v5\n"
+      "fcvtds v6, v6\n"
+      "vaddd v0, v3, v4\n"
+      "vaddd v0, v0, v5\n"
+      "vaddd v0, v0, v6\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Veor, assembler) {
@@ -4234,6 +6166,26 @@ ASSEMBLER_TEST_GENERATE(Veor, assembler) {
 ASSEMBLER_TEST_RUN(Veor, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "mov r1, 0xffffffff\n"
+      "movn r2, #0x15\n"
+      "vinss v1[0], r1\n"
+      "vinss v1[1], r2\n"
+      "vinss v1[2], r1\n"
+      "vinss v1[3], r2\n"
+      "vinss v2[0], r1\n"
+      "vinss v2[1], r1\n"
+      "vinss v2[2], r1\n"
+      "vinss v2[3], r1\n"
+      "veor v0, v1, v2\n"
+      "vmovrs r3, v0[0]\n"
+      "vmovrs r4, v0[1]\n"
+      "vmovrs r5, v0[2]\n"
+      "vmovrs r6, v0[3]\n"
+      "add r0, r3, r4\n"
+      "add r0, r0, r5\n"
+      "add r0, r0, r6\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vaddw, assembler) {
@@ -4257,6 +6209,19 @@ ASSEMBLER_TEST_GENERATE(Vaddw, assembler) {
 ASSEMBLER_TEST_RUN(Vaddw, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(168, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r4, #0x15\n"
+      "vdups v1, r4\n"
+      "vdups v2, r4\n"
+      "vaddw v0, v1, v2\n"
+      "vmovrs r0, v0[0]\n"
+      "vmovrs r1, v0[1]\n"
+      "vmovrs r2, v0[2]\n"
+      "vmovrs r3, v0[3]\n"
+      "add r0, r0, r1\n"
+      "add r0, r0, r2\n"
+      "add r0, r0, r3\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vsubw, assembler) {
@@ -4281,6 +6246,20 @@ ASSEMBLER_TEST_GENERATE(Vsubw, assembler) {
 ASSEMBLER_TEST_RUN(Vsubw, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(84, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r4, #0x1f\n"
+      "movz r5, #0xa\n"
+      "vdups v1, r4\n"
+      "vdups v2, r5\n"
+      "vsubw v0, v1, v2\n"
+      "vmovrs r0, v0[0]\n"
+      "vmovrs r1, v0[1]\n"
+      "vmovrs r2, v0[2]\n"
+      "vmovrs r3, v0[3]\n"
+      "add r0, r0, r1\n"
+      "add r0, r0, r2\n"
+      "add r0, r0, r3\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vaddx, assembler) {
@@ -4300,6 +6279,15 @@ ASSEMBLER_TEST_GENERATE(Vaddx, assembler) {
 ASSEMBLER_TEST_RUN(Vaddx, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(84, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r4, #0x15\n"
+      "vdupd v1, r4\n"
+      "vdupd v2, r4\n"
+      "vaddx v0, v1, v2\n"
+      "vmovrd r0, v0[0]\n"
+      "vmovrd r1, v0[1]\n"
+      "add r0, r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vsubx, assembler) {
@@ -4320,6 +6308,16 @@ ASSEMBLER_TEST_GENERATE(Vsubx, assembler) {
 ASSEMBLER_TEST_RUN(Vsubx, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r4, #0x1f\n"
+      "movz r5, #0xa\n"
+      "vdupd v1, r4\n"
+      "vdupd v2, r5\n"
+      "vsubx v0, v1, v2\n"
+      "vmovrd r0, v0[0]\n"
+      "vmovrd r1, v0[1]\n"
+      "add r0, r0, r1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vceqs, assembler) {
@@ -4351,6 +6349,27 @@ ASSEMBLER_TEST_GENERATE(Vceqs, assembler) {
 ASSEMBLER_TEST_RUN(Vceqs, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xfffffffe, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0xc045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fcvtsd v0, v0\n"
+      "fcvtsd v1, v1\n"
+      "vdups v2, v0[0]\n"
+      "vinss v3[0], v0[0]\n"
+      "vinss v3[1], v1[0]\n"
+      "vinss v3[2], v0[0]\n"
+      "vinss v3[3], v1[0]\n"
+      "vceqs v4, v2, v3\n"
+      "vmovrs r1, v4[0]\n"
+      "vmovrs r2, v4[1]\n"
+      "vmovrs r3, v4[2]\n"
+      "vmovrs r4, v4[3]\n"
+      "addw r0, r1, r2\n"
+      "addw r0, r0, r3\n"
+      "addw r0, r0, r4\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vceqd, assembler) {
@@ -4373,6 +6392,19 @@ ASSEMBLER_TEST_GENERATE(Vceqd, assembler) {
 ASSEMBLER_TEST_RUN(Vceqd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0xc045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "vdupd v2, v0[0]\n"
+      "vinsd v3[0], v0[0]\n"
+      "vinsd v3[1], v1[0]\n"
+      "vceqd v4, v2, v3\n"
+      "vmovrd r1, v4[0]\n"
+      "vmovrd r2, v4[1]\n"
+      "add r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vcgts, assembler) {
@@ -4404,6 +6436,27 @@ ASSEMBLER_TEST_GENERATE(Vcgts, assembler) {
 ASSEMBLER_TEST_RUN(Vcgts, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xfffffffe, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0xc045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fcvtsd v0, v0\n"
+      "fcvtsd v1, v1\n"
+      "vdups v2, v0[0]\n"
+      "vinss v3[0], v0[0]\n"
+      "vinss v3[1], v1[0]\n"
+      "vinss v3[2], v0[0]\n"
+      "vinss v3[3], v1[0]\n"
+      "vcgts v4, v2, v3\n"
+      "vmovrs r1, v4[0]\n"
+      "vmovrs r2, v4[1]\n"
+      "vmovrs r3, v4[2]\n"
+      "vmovrs r4, v4[3]\n"
+      "addw r0, r1, r2\n"
+      "addw r0, r0, r3\n"
+      "addw r0, r0, r4\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vcgtd, assembler) {
@@ -4426,6 +6479,19 @@ ASSEMBLER_TEST_GENERATE(Vcgtd, assembler) {
 ASSEMBLER_TEST_RUN(Vcgtd, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0xc045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "vdupd v2, v0[0]\n"
+      "vinsd v3[0], v0[0]\n"
+      "vinsd v3[1], v1[0]\n"
+      "vcgtd v4, v2, v3\n"
+      "vmovrd r1, v4[0]\n"
+      "vmovrd r2, v4[1]\n"
+      "add r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vcges, assembler) {
@@ -4457,6 +6523,28 @@ ASSEMBLER_TEST_GENERATE(Vcges, assembler) {
 ASSEMBLER_TEST_RUN(Vcges, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(0xfffffffe, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x8000 lsl 32\n"
+      "movk ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fcvtsd v0, v0\n"
+      "fcvtsd v1, v1\n"
+      "vdups v2, v0[0]\n"
+      "vinss v3[0], v0[0]\n"
+      "vinss v3[1], v1[0]\n"
+      "vinss v3[2], v0[0]\n"
+      "vinss v3[3], v1[0]\n"
+      "vcges v4, v2, v3\n"
+      "vmovrs r1, v4[0]\n"
+      "vmovrs r2, v4[1]\n"
+      "vmovrs r3, v4[2]\n"
+      "vmovrs r4, v4[3]\n"
+      "addw r0, r1, r2\n"
+      "addw r0, r0, r3\n"
+      "addw r0, r0, r4\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vcged, assembler) {
@@ -4479,6 +6567,20 @@ ASSEMBLER_TEST_GENERATE(Vcged, assembler) {
 ASSEMBLER_TEST_RUN(Vcged, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
   EXPECT_EQ(-1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4045 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x8000 lsl 32\n"
+      "movk ip0, #0x4045 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "vdupd v2, v0[0]\n"
+      "vinsd v3[0], v0[0]\n"
+      "vinsd v3[1], v1[0]\n"
+      "vcged v4, v2, v3\n"
+      "vmovrd r1, v4[0]\n"
+      "vmovrd r2, v4[1]\n"
+      "add r0, r1, r2\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vmaxs, assembler) {
@@ -4515,6 +6617,29 @@ ASSEMBLER_TEST_GENERATE(Vmaxs, assembler) {
 ASSEMBLER_TEST_RUN(Vmaxs, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v0, 10.500000\n"
+      "fmovd v1, 10.000000\n"
+      "fcvtsd v0, v0\n"
+      "fcvtsd v1, v1\n"
+      "vdups v2, v0[0]\n"
+      "vinss v3[0], v0[0]\n"
+      "vinss v3[1], v1[0]\n"
+      "vinss v3[2], v0[0]\n"
+      "vinss v3[3], v1[0]\n"
+      "vmaxs v4, v2, v3\n"
+      "vinss v0[0], v4[0]\n"
+      "vinss v1[0], v4[1]\n"
+      "vinss v2[0], v4[2]\n"
+      "vinss v3[0], v4[3]\n"
+      "fcvtds v0, v0\n"
+      "fcvtds v1, v1\n"
+      "fcvtds v2, v2\n"
+      "fcvtds v3, v3\n"
+      "faddd v0, v0, v1\n"
+      "faddd v0, v0, v2\n"
+      "faddd v0, v0, v3\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vmaxd, assembler) {
@@ -4537,6 +6662,19 @@ ASSEMBLER_TEST_GENERATE(Vmaxd, assembler) {
 ASSEMBLER_TEST_RUN(Vmaxd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v0, 21.000000\n"
+      "movz ip0, #0x8000 lsl 32\n"
+      "movk ip0, #0x4034 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "vdupd v2, v0[0]\n"
+      "vinsd v3[0], v0[0]\n"
+      "vinsd v3[1], v1[0]\n"
+      "vmaxd v4, v2, v3\n"
+      "vinsd v0[0], v4[0]\n"
+      "vinsd v1[0], v4[1]\n"
+      "faddd v0, v0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vmins, assembler) {
@@ -4573,6 +6711,29 @@ ASSEMBLER_TEST_GENERATE(Vmins, assembler) {
 ASSEMBLER_TEST_RUN(Vmins, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v0, 10.500000\n"
+      "fmovd v1, 11.000000\n"
+      "fcvtsd v0, v0\n"
+      "fcvtsd v1, v1\n"
+      "vdups v2, v0[0]\n"
+      "vinss v3[0], v0[0]\n"
+      "vinss v3[1], v1[0]\n"
+      "vinss v3[2], v0[0]\n"
+      "vinss v3[3], v1[0]\n"
+      "vmins v4, v2, v3\n"
+      "vinss v0[0], v4[0]\n"
+      "vinss v1[0], v4[1]\n"
+      "vinss v2[0], v4[2]\n"
+      "vinss v3[0], v4[3]\n"
+      "fcvtds v0, v0\n"
+      "fcvtds v1, v1\n"
+      "fcvtds v2, v2\n"
+      "fcvtds v3, v3\n"
+      "faddd v0, v0, v1\n"
+      "faddd v0, v0, v2\n"
+      "faddd v0, v0, v3\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vmind, assembler) {
@@ -4595,6 +6756,19 @@ ASSEMBLER_TEST_GENERATE(Vmind, assembler) {
 ASSEMBLER_TEST_RUN(Vmind, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "fmovd v0, 21.000000\n"
+      "movz ip0, #0x8000 lsl 32\n"
+      "movk ip0, #0x4035 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "vdupd v2, v0[0]\n"
+      "vinsd v3[0], v0[0]\n"
+      "vinsd v3[1], v1[0]\n"
+      "vmind v4, v2, v3\n"
+      "vinsd v0[0], v4[0]\n"
+      "vinsd v1[0], v4[1]\n"
+      "faddd v0, v0, v1\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vsqrts, assembler) {
@@ -4623,6 +6797,24 @@ ASSEMBLER_TEST_GENERATE(Vsqrts, assembler) {
 ASSEMBLER_TEST_RUN(Vsqrts, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(15.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4050 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x8000 lsl 32\n"
+      "movk ip0, #0x4048 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fcvtsd v0, v0\n"
+      "fcvtsd v1, v1\n"
+      "veor v3, v3, v3\n"
+      "vinss v3[1], v0[0]\n"
+      "vinss v3[3], v1[0]\n"
+      "vsqrts v4, v3\n"
+      "vinss v5[0], v4[1]\n"
+      "vinss v6[0], v4[3]\n"
+      "fcvtds v5, v5\n"
+      "fcvtds v6, v6\n"
+      "faddd v0, v5, v6\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vsqrtd, assembler) {
@@ -4644,6 +6836,19 @@ ASSEMBLER_TEST_GENERATE(Vsqrtd, assembler) {
 ASSEMBLER_TEST_RUN(Vsqrtd, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   EXPECT_EQ(15.0, EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x4050 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "movz ip0, #0x8000 lsl 32\n"
+      "movk ip0, #0x4048 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "vinsd v3[0], v0[0]\n"
+      "vinsd v3[1], v1[0]\n"
+      "vsqrtd v4, v3\n"
+      "vinsd v5[0], v4[0]\n"
+      "vinsd v6[0], v4[1]\n"
+      "faddd v0, v5, v6\n"
+      "ret\n");
 }
 
 // This is the same function as in the Simulator.
@@ -4700,6 +6905,18 @@ ASSEMBLER_TEST_RUN(Vrecpes, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   float res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(arm_recip_estimate(147.0), res, 0.0001);
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x6000 lsl 32\n"
+      "movk ip0, #0x4062 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fcvtsd v1, v1\n"
+      "vinss v2[0], v1[0]\n"
+      "vinss v2[1], v1[0]\n"
+      "vinss v2[2], v1[0]\n"
+      "vinss v2[3], v1[0]\n"
+      "vrecpes v0, v2\n"
+      "fcvtds v0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vrecpss, assembler) {
@@ -4720,6 +6937,14 @@ ASSEMBLER_TEST_RUN(Vrecpss, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(2.0 - 10.0 * 5.0, res, 0.0001);
+  EXPECT_DISASSEMBLY(
+      "fmovd v1, 5.000000\n"
+      "fmovd v2, 10.000000\n"
+      "fcvtsd v1, v1\n"
+      "fcvtsd v2, v2\n"
+      "vrecpss v0, v1, v2\n"
+      "fcvtds v0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(VRecps, assembler) {
@@ -4750,6 +6975,31 @@ ASSEMBLER_TEST_RUN(VRecps, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(42.0, res, 0.0001);
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x8618\n"
+      "movk ip0, #0x1861 lsl 16\n"
+      "movk ip0, #0x6186 lsl 32\n"
+      "movk ip0, #0x3fb8 lsl 48\n"
+      "fmovdr v0, ip0\n"
+      "fcvtsd v0, v0\n"
+      "vdups v1, v0[0]\n"
+      "vrecpes v2, v1\n"
+      "vrecpss v31, v1, v2\n"
+      "vmuls v2, v2, v31\n"
+      "vrecpss v31, v1, v2\n"
+      "vmuls v2, v2, v31\n"
+      "vinss v0[0], v2[0]\n"
+      "vinss v1[0], v2[1]\n"
+      "vinss v2[0], v2[2]\n"
+      "vinss v3[0], v2[3]\n"
+      "fcvtds v0, v0\n"
+      "fcvtds v1, v1\n"
+      "fcvtds v2, v2\n"
+      "fcvtds v3, v3\n"
+      "faddd v0, v0, v1\n"
+      "faddd v0, v0, v2\n"
+      "faddd v0, v0, v3\n"
+      "ret\n");
 }
 
 static float arm_reciprocal_sqrt_estimate(float a) {
@@ -4821,6 +7071,14 @@ ASSEMBLER_TEST_RUN(Vrsqrtes, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(arm_reciprocal_sqrt_estimate(147.0), res, 0.0001);
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0x6000 lsl 32\n"
+      "movk ip0, #0x4062 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fcvtsd v1, v1\n"
+      "vrsqrtes v0, v1\n"
+      "fcvtds v0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Vrsqrtss, assembler) {
@@ -4841,6 +7099,14 @@ ASSEMBLER_TEST_RUN(Vrsqrtss, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ((3.0 - 10.0 * 5.0) / 2.0, res, 0.0001);
+  EXPECT_DISASSEMBLY(
+      "fmovd v1, 5.000000\n"
+      "fmovd v2, 10.000000\n"
+      "fcvtsd v1, v1\n"
+      "fcvtsd v2, v2\n"
+      "vrsqrts v0, v1, v2\n"
+      "fcvtds v0, v0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(ReciprocalSqrt, assembler) {
@@ -4858,6 +7124,20 @@ ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
   typedef double (*DoubleReturn)() DART_UNUSED;
   double res = EXECUTE_TEST_CODE_DOUBLE(DoubleReturn, test->entry());
   EXPECT_FLOAT_EQ(1.0 / sqrt(147000.0), res, 0.0001);
+  EXPECT_DISASSEMBLY(
+      "movz ip0, #0xf1c0 lsl 32\n"
+      "movk ip0, #0x4101 lsl 48\n"
+      "fmovdr v1, ip0\n"
+      "fcvtsd v1, v1\n"
+      "vrsqrtes v0, v1\n"
+      "vmuls v31, v0, v0\n"
+      "vrsqrts v31, v1, v31\n"
+      "vmuls v0, v0, v31\n"
+      "vmuls v31, v0, v0\n"
+      "vrsqrts v31, v1, v31\n"
+      "vmuls v0, v0, v31\n"
+      "fcvtds v0, v0\n"
+      "ret\n");
 }
 
 // Called from assembler_test.cc.
@@ -4919,6 +7199,9 @@ ASSEMBLER_TEST_RUN(AndImmediate32Negative, test) {
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
   EXPECT_EQ(0,
             EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+  EXPECT_DISASSEMBLY(
+      "andw r0, r0, 0xfffffe00\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(OrImmediate32Negative, assembler) {
@@ -4934,6 +7217,9 @@ ASSEMBLER_TEST_RUN(OrImmediate32Negative, test) {
             EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
   EXPECT_EQ(0xfffffe2a,
             EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+  EXPECT_DISASSEMBLY(
+      "orrw r0, r0, 0xfffffe00\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(XorImmediate32Negative, assembler) {
@@ -4949,6 +7235,9 @@ ASSEMBLER_TEST_RUN(XorImmediate32Negative, test) {
             EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
   EXPECT_EQ(0xfffffe2a,
             EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+  EXPECT_DISASSEMBLY(
+      "eorw r0, r0, 0xfffffe00\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestImmediate32Negative, assembler) {
@@ -4969,6 +7258,13 @@ ASSEMBLER_TEST_RUN(TestImmediate32Negative, test) {
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 0));
   EXPECT_EQ(0,
             EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), 42));
+  EXPECT_DISASSEMBLY(
+      "tstw r0, 0xfffffe00\n"
+      "beq +12\n"
+      "movz r0, #0x1\n"
+      "ret\n"
+      "movz r0, #0x0\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CompareImmediate32Negative, assembler) {
@@ -4990,6 +7286,13 @@ ASSEMBLER_TEST_RUN(CompareImmediate32Negative, test) {
             EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -512));
   EXPECT_EQ(0,
             EXECUTE_TEST_CODE_INTPTR_INTPTR(IntPtrReturn, test->entry(), -511));
+  EXPECT_DISASSEMBLY(
+      "cmnw r0, #0x200\n"
+      "blt +12\n"
+      "movz r0, #0x0\n"
+      "ret\n"
+      "movz r0, #0x1\n"
+      "ret\n");
 }
 
 #if !defined(USING_THREAD_SANITIZER)
@@ -5014,6 +7317,20 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire, test) {
   typedef intptr_t (*StoreReleaseLoadAcquire)(intptr_t) DART_UNUSED;
   EXPECT_EQ(123, EXECUTE_TEST_CODE_INTPTR_INTPTR(StoreReleaseLoadAcquire,
                                                  test->entry(), 123));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "str r1, [r15, #-8]!\n"
+      "movz r1, #0x0\n"
+      "str r1, [r15, #-8]!\n"
+      "mov r1, r0\n"
+      "movz r0, #0x0\n"
+      "stlr r1, r15\n"
+      "ldar r0, r15\n"
+      "ldr r1, [r15], #8 !\n"
+      "ldr r1, [r15], #8 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
@@ -5037,6 +7354,24 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
   typedef intptr_t (*StoreReleaseLoadAcquire1024)(intptr_t) DART_UNUSED;
   EXPECT_EQ(123, EXECUTE_TEST_CODE_INTPTR_INTPTR(StoreReleaseLoadAcquire1024,
                                                  test->entry(), 123));
+  EXPECT_DISASSEMBLY(
+      "mov r15, csp\n"
+      "sub csp, csp, #0x1000\n"
+      "str r1, [r15, #-8]!\n"
+      "movz r1, #0x0\n"
+      "str r1, [r15, #-8]!\n"
+      "mov r1, r0\n"
+      "movz r0, #0x0\n"
+      "sub r15, r15, #0x2000\n"
+      "add ip0, r15, #0x400\n"
+      "stlr r1, ip0\n"
+      "add ip1, r15, #0x400\n"
+      "ldar r0, ip1\n"
+      "add r15, r15, #0x2000\n"
+      "ldr r1, [r15], #8 !\n"
+      "ldr r1, [r15], #8 !\n"
+      "mov csp, r15\n"
+      "ret\n");
 }
 #endif
 

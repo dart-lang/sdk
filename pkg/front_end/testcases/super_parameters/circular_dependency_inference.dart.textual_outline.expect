@@ -1,0 +1,28 @@
+B1 f1() => throw 42;
+class A1 {
+  var foo = f1();
+  A1(this.foo);
+}
+class B1 extends A1 {
+  B1(super.foo) : super();
+}
+class A2 {
+  var foo = B2.new;
+  A2(this.foo);
+}
+class B2 extends A2 {
+  B2(super.foo) : super();
+}
+class A3 {
+  var foo = C3.new;
+  A3();
+  A3.initializeFoo(this.foo);
+}
+class B3 extends A3 {
+  var bar = A3.initializeFoo;
+  B3(this.bar) : super();
+}
+class C3 extends B3 {
+  C3(super.bar) : super();
+}
+main() {}

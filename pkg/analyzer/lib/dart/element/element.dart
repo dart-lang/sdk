@@ -46,7 +46,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart' show Namespace;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
@@ -727,7 +726,9 @@ abstract class Element implements AnalysisTarget {
   /// Return either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`, or `null` if there is no such
   /// element.
-  E? thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate);
+  E? thisOrAncestorMatching<E extends Element>(
+    bool Function(Element) predicate,
+  );
 
   /// Return either this element or the most immediate ancestor of this element
   /// that has the given type, or `null` if there is no such element.
@@ -1048,6 +1049,8 @@ abstract class ElementVisitor<R> {
   R? visitPrefixElement(PrefixElement element);
 
   R? visitPropertyAccessorElement(PropertyAccessorElement element);
+
+  R? visitSuperFormalParameterElement(SuperFormalParameterElement element);
 
   R? visitTopLevelVariableElement(TopLevelVariableElement element);
 
@@ -1574,6 +1577,9 @@ abstract class ParameterElement
   /// parameter.
   bool get isRequiredPositional;
 
+  /// Return `true` if this parameter is a super formal parameter.
+  bool get isSuperFormal;
+
   @override
   String get name;
 
@@ -1728,6 +1734,19 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
   /// Return a list containing the names that are to be made visible in the
   /// importing library if they are defined in the imported library.
   List<String> get shownNames;
+}
+
+/// A super formal parameter defined within a constructor element.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class SuperFormalParameterElement implements ParameterElement {
+  /// The associated super-constructor parameter, from the super-constructor
+  /// that is referenced by the implicit or explicit super-constructor
+  /// invocation.
+  ///
+  /// Can be `null` for erroneous code - not existing super-constructor,
+  /// no corresponding parameter in the super-constructor.
+  ParameterElement? get superConstructorParameter;
 }
 
 /// A top-level variable.

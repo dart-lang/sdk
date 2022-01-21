@@ -1,11 +1,15 @@
 import "conditional_import.dart"
     if (dart.library.io) "dart:io"
     if (dart.library.html) "dart:html" as a;
-import "conditional_import.dart" if (dart.library.foo) "dart:foo" as b;
+import "conditional_import.dart"
+    if (dart.library.html) "dart:html"
+    if (dart.library.io) "dart:io" as b;
+import "conditional_import.dart" if (dart.library.foo) "dart:foo" as c;
 
 class HttpRequest {}
 
 testA(a.HttpRequest request) {}
 testB(b.HttpRequest request) {}
+testC(c.HttpRequest request) {}
 void main() {}
 expect(expected, actual) {}

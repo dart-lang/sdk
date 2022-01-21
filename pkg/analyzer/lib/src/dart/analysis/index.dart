@@ -596,6 +596,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
           return;
         }
       }
+    } else if (expression is PropertyAccess) {
+      // Nothing to do?
     } else {
       throw UnimplementedError('Unhandled CommentReference expression type: '
           '${expression.runtimeType}');
@@ -661,6 +663,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitExtendsClause(ExtendsClause node) {
     recordSuperType(node.superclass2, IndexRelationKind.IS_EXTENDED_BY);
+  }
+
+  @override
+  visitFieldFormalParameter(FieldFormalParameter node) {
+    var element = node.declaredElement;
+    if (element is FieldFormalParameterElement) {
+      var field = element.field;
+      if (field != null) {
+        recordRelation(
+            field, IndexRelationKind.IS_WRITTEN_BY, node.identifier, true);
+      }
+    }
+
+    return super.visitFieldFormalParameter(node);
   }
 
   @override
@@ -831,6 +847,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
           element, IndexRelationKind.IS_INVOKED_BY, offset, 0, true);
     }
     node.argumentList.accept(this);
+  }
+
+  @override
+  visitSuperFormalParameter(SuperFormalParameter node) {
+    var element = node.declaredElement;
+    if (element is SuperFormalParameterElementImpl) {
+      var superParameter = element.superConstructorParameter;
+      if (superParameter != null) {
+        recordRelation(superParameter, IndexRelationKind.IS_REFERENCED_BY,
+            node.identifier, true);
+      }
+    }
+
+    return super.visitSuperFormalParameter(node);
   }
 
   @override

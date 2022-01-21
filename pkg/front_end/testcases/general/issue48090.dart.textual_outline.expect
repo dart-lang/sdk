@@ -1,0 +1,4 @@
+import 'dart:isolate';
+
+void main() {}
+void test() {}

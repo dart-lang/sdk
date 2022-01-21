@@ -18,6 +18,17 @@ main() {
 @reflectiveTest
 class ConflictingTypeVariableAndMemberClassTest
     extends PubPackageResolutionTest {
+  test_constructor() async {
+    await assertErrorsInCode(r'''
+class A<T> {
+  A.T();
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS, 8,
+          1),
+    ]);
+  }
+
   test_field() async {
     await assertErrorsInCode(r'''
 class A<T> {

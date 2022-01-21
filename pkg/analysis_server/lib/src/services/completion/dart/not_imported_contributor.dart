@@ -4,28 +4,29 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/lint/pub.dart';
-import 'package:analyzer/src/workspace/pub.dart';
-import 'package:collection/collection.dart';
+import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 
 /// A contributor of suggestions from not yet imported libraries.
 class NotImportedContributor extends DartCompletionContributor {
   final CompletionBudget budget;
-  final Map<protocol.CompletionSuggestion, Uri> notImportedSuggestions;
+  final NotImportedSuggestions additionalData;
+
+  /// When a library is imported with combinators, we cannot skip it, there
+  /// might be elements that were excluded, but should be suggested. So, here
+  /// we record elements that are already imported.
+  final Set<Element> _importedElements = Set.identity();
 
   NotImportedContributor(
     DartCompletionRequest request,
     SuggestionBuilder builder,
     this.budget,
-    this.notImportedSuggestions,
+    this.additionalData,
   ) : super(request, builder);
 
   @override
@@ -33,12 +34,29 @@ class NotImportedContributor extends DartCompletionContributor {
     var analysisDriver = request.analysisContext.driver;
 
     var fsState = analysisDriver.fsState;
-    var filter = _buildFilter(fsState);
+    var filter = FileStateFilter(
+      fsState.getFileForPath(request.path),
+    );
 
     try {
       await analysisDriver.discoverAvailableFiles().timeout(budget.left);
     } on TimeoutException {
+      additionalData.isIncomplete = true;
       return;
+    }
+
+    var importedLibraries = Set<LibraryElement>.identity();
+    for (var import in request.libraryElement.imports) {
+      var importedLibrary = import.importedLibrary;
+      if (importedLibrary != null) {
+        if (import.combinators.isEmpty) {
+          importedLibraries.add(importedLibrary);
+        } else {
+          _importedElements.addAll(
+            import.namespace.definedNames.values,
+          );
+        }
+      }
     }
 
     // Use single instance to track getter / setter pairs.
@@ -47,6 +65,7 @@ class NotImportedContributor extends DartCompletionContributor {
     var knownFiles = fsState.knownFiles.toList();
     for (var file in knownFiles) {
       if (budget.isEmpty) {
+        additionalData.isIncomplete = true;
         return;
       }
 
@@ -55,16 +74,17 @@ class NotImportedContributor extends DartCompletionContributor {
       }
 
       var element = analysisDriver.getLibraryByFile(file);
-      if (element == null) {
+      if (element == null || importedLibraries.contains(element)) {
         continue;
       }
 
       var exportNamespace = element.exportNamespace;
       var exportElements = exportNamespace.definedNames.values.toList();
 
+      builder.isNotImportedLibrary = true;
       builder.laterReplacesEarlier = false;
       builder.suggestionAdded = (suggestion) {
-        notImportedSuggestions[suggestion] = file.uri;
+        additionalData.set.add(suggestion);
       };
 
       if (request.includeIdentifiers) {
@@ -74,119 +94,19 @@ class NotImportedContributor extends DartCompletionContributor {
       extensionContributor.addExtensions(
         exportElements.whereType<ExtensionElement>().toList(),
       );
-    }
 
-    builder.laterReplacesEarlier = true;
-    builder.suggestionAdded = null;
-  }
-
-  _Filter _buildFilter(FileSystemState fsState) {
-    var file = fsState.getFileForPath(request.path);
-    var workspacePackage = file.workspacePackage;
-    if (workspacePackage is PubWorkspacePackage) {
-      return _PubFilter(workspacePackage, file.path);
-    } else {
-      return _AnyFilter();
+      builder.isNotImportedLibrary = false;
+      builder.laterReplacesEarlier = true;
+      builder.suggestionAdded = null;
     }
   }
 
   void _buildSuggestions(List<Element> elements) {
     var visitor = LibraryElementSuggestionBuilder(request, builder);
     for (var element in elements) {
-      element.accept(visitor);
-    }
-  }
-}
-
-class _AnyFilter implements _Filter {
-  @override
-  bool shouldInclude(FileState file) => true;
-}
-
-abstract class _Filter {
-  bool shouldInclude(FileState file);
-}
-
-class _PubFilter implements _Filter {
-  final PubWorkspacePackage targetPackage;
-  final String? targetPackageName;
-  final bool targetInLib;
-  final Set<String> dependencies;
-
-  factory _PubFilter(PubWorkspacePackage package, String path) {
-    var inLib = package.workspace.provider
-        .getFolder(package.root)
-        .getChildAssumingFolder('lib')
-        .contains(path);
-
-    var dependencies = <String>{};
-    var pubspec = package.pubspec;
-    if (pubspec != null) {
-      dependencies.addAll(pubspec.dependencies.names);
-      if (!inLib) {
-        dependencies.addAll(pubspec.devDependencies.names);
+      if (!_importedElements.contains(element)) {
+        element.accept(visitor);
       }
-    }
-
-    return _PubFilter._(
-      targetPackage: package,
-      targetPackageName: pubspec?.name?.value.text,
-      targetInLib: inLib,
-      dependencies: dependencies,
-    );
-  }
-
-  _PubFilter._({
-    required this.targetPackage,
-    required this.targetPackageName,
-    required this.targetInLib,
-    required this.dependencies,
-  });
-
-  @override
-  bool shouldInclude(FileState file) {
-    var uri = file.uriProperties;
-    if (uri.isDart) {
-      return true;
-    }
-
-    // Normally only package URIs are available.
-    // But outside of lib/ we allow any files of this package.
-    var packageName = uri.packageName;
-    if (packageName == null) {
-      if (targetInLib) {
-        return false;
-      } else {
-        var filePackage = file.workspacePackage;
-        return filePackage is PubWorkspacePackage &&
-            filePackage.root == targetPackage.root;
-      }
-    }
-
-    // Any `package:` library from the same package.
-    if (packageName == targetPackageName) {
-      return true;
-    }
-
-    // If not the same package, must be public.
-    if (uri.isSrc) {
-      return false;
-    }
-
-    return dependencies.contains(packageName);
-  }
-}
-
-extension on PSDependencyList? {
-  List<String> get names {
-    final self = this;
-    if (self == null) {
-      return const [];
-    } else {
-      return self
-          .map((dependency) => dependency.name?.text)
-          .whereNotNull()
-          .toList();
     }
   }
 }

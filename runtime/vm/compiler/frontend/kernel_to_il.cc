@@ -402,19 +402,6 @@ Fragment FlowGraphBuilder::FfiCall(
   return body;
 }
 
-Fragment FlowGraphBuilder::ThrowException(TokenPosition position) {
-  Fragment instructions;
-  Value* exception = Pop();
-  instructions += Fragment(new (Z) ThrowInstr(InstructionSource(position),
-                                              GetNextDeoptId(), exception))
-                      .closed();
-  // Use its side effect of leaving a constant on the stack (does not change
-  // the graph).
-  NullConstant();
-
-  return instructions;
-}
-
 Fragment FlowGraphBuilder::RethrowException(TokenPosition position,
                                             int catch_try_index) {
   Fragment instructions;
@@ -846,7 +833,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadUint16:
     case MethodRecognizer::kFfiLoadUint32:
     case MethodRecognizer::kFfiLoadUint64:
-    case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
     case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
@@ -860,7 +846,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiStoreUint16:
     case MethodRecognizer::kFfiStoreUint32:
     case MethodRecognizer::kFfiStoreUint64:
-    case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
     case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:
@@ -940,8 +925,9 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kDoubleFloorToInt:
       if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
 #if defined(TARGET_ARCH_X64)
-      return CompilerState::Current().is_aot();
-#elif defined(TARGET_ARCH_ARM64)
+      return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
+#elif defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||            \
+    defined(TARGET_ARCH_RISCV64)
       return true;
 #else
       return false;
@@ -1365,7 +1351,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiLoadUint16:
     case MethodRecognizer::kFfiLoadUint32:
     case MethodRecognizer::kFfiLoadUint64:
-    case MethodRecognizer::kFfiLoadIntPtr:
     case MethodRecognizer::kFfiLoadFloat:
     case MethodRecognizer::kFfiLoadFloatUnaligned:
     case MethodRecognizer::kFfiLoadDouble:
@@ -1444,7 +1429,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiStoreUint16:
     case MethodRecognizer::kFfiStoreUint32:
     case MethodRecognizer::kFfiStoreUint64:
-    case MethodRecognizer::kFfiStoreIntPtr:
     case MethodRecognizer::kFfiStoreFloat:
     case MethodRecognizer::kFfiStoreFloatUnaligned:
     case MethodRecognizer::kFfiStoreDouble:
@@ -4491,6 +4475,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   const char* error = nullptr;
   const auto marshaller_ptr =
       compiler::ffi::CallMarshaller::FromFunction(Z, function, &error);
+  // AbiSpecific integers can be incomplete causing us to not know the calling
+  // convention. However, this is caught in asFunction in both JIT/AOT.
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;
@@ -4642,6 +4628,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   const char* error = nullptr;
   const auto marshaller_ptr =
       compiler::ffi::CallbackMarshaller::FromFunction(Z, function, &error);
+  // AbiSpecific integers can be incomplete causing us to not know the calling
+  // convention. However, this is caught fromFunction in both JIT/AOT.
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;

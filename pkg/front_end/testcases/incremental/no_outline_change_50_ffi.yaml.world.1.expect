@@ -40,6 +40,10 @@ additionalExports = (ffi::nullptr,
   ffi::sizeOf,
   ffi::Dart_NativeMessageHandler,
   ffi::Abi,
+  ffi::AbiSpecificInteger,
+  ffi::AbiSpecificIntegerArray,
+  ffi::AbiSpecificIntegerMapping,
+  ffi::AbiSpecificIntegerPointer,
   ffi::Allocator,
   ffi::AllocatorAlloc,
   ffi::Array,
@@ -47,6 +51,7 @@ additionalExports = (ffi::nullptr,
   ffi::Bool,
   ffi::BoolArray,
   ffi::BoolPointer,
+  ffi::Char,
   ffi::DartRepresentationOf,
   ffi::Dart_CObject,
   ffi::Double,
@@ -59,6 +64,7 @@ additionalExports = (ffi::nullptr,
   ffi::FloatArray,
   ffi::FloatPointer,
   ffi::Handle,
+  ffi::Int,
   ffi::Int16,
   ffi::Int16Array,
   ffi::Int16Pointer,
@@ -72,8 +78,8 @@ additionalExports = (ffi::nullptr,
   ffi::Int8Array,
   ffi::Int8Pointer,
   ffi::IntPtr,
-  ffi::IntPtrArray,
-  ffi::IntPtrPointer,
+  ffi::Long,
+  ffi::LongLong,
   ffi::NativeApi,
   ffi::NativeFunction,
   ffi::NativeFunctionPointer,
@@ -84,6 +90,9 @@ additionalExports = (ffi::nullptr,
   ffi::Pointer,
   ffi::PointerArray,
   ffi::PointerPointer,
+  ffi::Short,
+  ffi::SignedChar,
+  ffi::Size,
   ffi::Struct,
   ffi::StructArray,
   ffi::StructPointer,
@@ -99,11 +108,18 @@ additionalExports = (ffi::nullptr,
   ffi::Uint8,
   ffi::Uint8Array,
   ffi::Uint8Pointer,
+  ffi::UintPtr,
   ffi::Union,
   ffi::UnionArray,
   ffi::UnionPointer,
+  ffi::UnsignedChar,
+  ffi::UnsignedInt,
+  ffi::UnsignedLong,
+  ffi::UnsignedLongLong,
+  ffi::UnsignedShort,
   ffi::Unsized,
-  ffi::Void)
+  ffi::Void,
+  ffi::WChar)
 
   export "org-dartlang-test:///lib3.dart";
 
@@ -114,6 +130,10 @@ additionalExports = (ffi::nullptr,
   ffi::sizeOf,
   ffi::Dart_NativeMessageHandler,
   ffi::Abi,
+  ffi::AbiSpecificInteger,
+  ffi::AbiSpecificIntegerArray,
+  ffi::AbiSpecificIntegerMapping,
+  ffi::AbiSpecificIntegerPointer,
   ffi::Allocator,
   ffi::AllocatorAlloc,
   ffi::Array,
@@ -121,6 +141,7 @@ additionalExports = (ffi::nullptr,
   ffi::Bool,
   ffi::BoolArray,
   ffi::BoolPointer,
+  ffi::Char,
   ffi::DartRepresentationOf,
   ffi::Dart_CObject,
   ffi::Double,
@@ -133,6 +154,7 @@ additionalExports = (ffi::nullptr,
   ffi::FloatArray,
   ffi::FloatPointer,
   ffi::Handle,
+  ffi::Int,
   ffi::Int16,
   ffi::Int16Array,
   ffi::Int16Pointer,
@@ -146,8 +168,8 @@ additionalExports = (ffi::nullptr,
   ffi::Int8Array,
   ffi::Int8Pointer,
   ffi::IntPtr,
-  ffi::IntPtrArray,
-  ffi::IntPtrPointer,
+  ffi::Long,
+  ffi::LongLong,
   ffi::NativeApi,
   ffi::NativeFunction,
   ffi::NativeFunctionPointer,
@@ -158,6 +180,9 @@ additionalExports = (ffi::nullptr,
   ffi::Pointer,
   ffi::PointerArray,
   ffi::PointerPointer,
+  ffi::Short,
+  ffi::SignedChar,
+  ffi::Size,
   ffi::Struct,
   ffi::StructArray,
   ffi::StructPointer,
@@ -173,11 +198,18 @@ additionalExports = (ffi::nullptr,
   ffi::Uint8,
   ffi::Uint8Array,
   ffi::Uint8Pointer,
+  ffi::UintPtr,
   ffi::Union,
   ffi::UnionArray,
   ffi::UnionPointer,
+  ffi::UnsignedChar,
+  ffi::UnsignedInt,
+  ffi::UnsignedLong,
+  ffi::UnsignedLongLong,
+  ffi::UnsignedShort,
   ffi::Unsized,
-  ffi::Void)
+  ffi::Void,
+  ffi::WChar)
 
   export "dart:ffi";
 
@@ -230,26 +262,26 @@ constants  {
   #C7 = dart.core::pragma {name:#C1, options:#C6}
   #C8 = dart.ffi::Uint8 {}
   #C9 = 0
-  #C10 = <dart.core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
+  #C10 = <dart.core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
   #C11 = 1
-  #C12 = <dart.core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
+  #C12 = <dart.core::int*>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
   #C13 = dart.ffi::Uint64 {}
   #C14 = 8
   #C15 = 4
-  #C16 = <dart.core::int*>[#C14, #C14, #C15, #C14, #C14, #C14, #C15, #C14, #C14, #C14, #C14, #C15, #C14, #C14, #C14, #C14, #C14, #C14]
+  #C16 = <dart.core::int*>[#C14, #C14, #C15, #C14, #C14, #C14, #C15, #C14, #C14, #C14, #C14, #C15, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
   #C17 = "vm:prefer-inline"
   #C18 = dart.core::pragma {name:#C17, options:#C5}
   #C19 = 16
   #C20 = 12
-  #C21 = <dart.core::int*>[#C19, #C19, #C20, #C19, #C19, #C19, #C20, #C19, #C19, #C19, #C19, #C20, #C19, #C19, #C19, #C19, #C19, #C19]
+  #C21 = <dart.core::int*>[#C19, #C19, #C20, #C19, #C19, #C19, #C20, #C19, #C19, #C19, #C19, #C20, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19]
   #C22 = TypeLiteralConstant(lib::Y)
   #C23 = <dart.core::Type>[#C22, #C22, #C2]
   #C24 = dart.ffi::_FfiStructLayout {fieldTypes:#C23, packing:#C5}
   #C25 = dart.core::pragma {name:#C1, options:#C24}
   #C26 = 32
   #C27 = 24
-  #C28 = <dart.core::int*>[#C26, #C26, #C27, #C26, #C26, #C26, #C27, #C26, #C26, #C26, #C26, #C27, #C26, #C26, #C26, #C26, #C26, #C26]
+  #C28 = <dart.core::int*>[#C26, #C26, #C27, #C26, #C26, #C26, #C27, #C26, #C26, #C26, #C26, #C27, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26]
   #C29 = 40
   #C30 = 28
-  #C31 = <dart.core::int*>[#C29, #C29, #C30, #C29, #C29, #C29, #C30, #C29, #C29, #C29, #C29, #C30, #C29, #C29, #C29, #C29, #C29, #C29]
+  #C31 = <dart.core::int*>[#C29, #C29, #C30, #C29, #C29, #C29, #C30, #C29, #C29, #C29, #C29, #C30, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29]
 }

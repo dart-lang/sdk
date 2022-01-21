@@ -80,9 +80,9 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     server.handlers = [
       SearchDomainHandler(server),
     ];

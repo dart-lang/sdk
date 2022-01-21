@@ -29,6 +29,9 @@ enum CpuInfoMethod {
   // Use system calls.
   kCpuInfoSystem,
 
+  // Don't query anything.
+  kCpuInfoNone,
+
   // Use whatever the default is for a particular OS:
   // Linux, Windows -> CpuId,
   // Android, MacOS -> System.

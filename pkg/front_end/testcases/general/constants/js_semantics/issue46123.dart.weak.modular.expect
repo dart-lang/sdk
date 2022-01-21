@@ -1,0 +1,39 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/js_semantics/issue46123.dart:13:17: Error: Constant evaluation error:
+// test() => const ParallaxOptions();
+//                 ^
+// pkg/front_end/testcases/general/constants/js_semantics/issue46123.dart:13:17: Context: External factory constructors can't be evaluated in constant expressions.
+// test() => const ParallaxOptions();
+//                 ^
+//
+import self as self;
+import "package:js/js.dart" as js;
+import "dart:core" as core;
+
+import "package:js/js.dart";
+
+@#C2
+@#C3
+class ParallaxOptions extends core::Object {
+  external static factory •() → self::ParallaxOptions;
+  static method _#new#tearOff() → self::ParallaxOptions
+    return self::ParallaxOptions::•();
+}
+static method test() → dynamic
+  return invalid-expression "External factory constructors can't be evaluated in constant expressions.";
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+  #C2 = js::JS {name:#C1}
+  #C3 = js::_Anonymous {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue46123.dart:
+- JS. (from org-dartlang-testcase-sdk:///pkg/js/lib/js.dart:21:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart:25:9)

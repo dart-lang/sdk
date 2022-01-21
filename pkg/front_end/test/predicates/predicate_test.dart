@@ -78,24 +78,19 @@ class PredicateDataComputer extends DataComputer<Features> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Library library,
+  void computeLibraryData(TestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    new PredicateDataExtractor(compilerResult, actualMap)
+    new PredicateDataExtractor(testResultData.compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeMemberData(
-      TestConfig config,
-      InternalCompilerResult compilerResult,
-      Member member,
+  void computeMemberData(TestResultData testResultData, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    member.accept(new PredicateDataExtractor(compilerResult, actualMap));
+    member.accept(
+        new PredicateDataExtractor(testResultData.compilerResult, actualMap));
   }
 
   @override

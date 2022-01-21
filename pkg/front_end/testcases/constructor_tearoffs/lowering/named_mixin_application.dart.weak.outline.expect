@@ -10,7 +10,7 @@ abstract class Interface extends core::Object {
 class Class<T extends core::Object? = dynamic> extends core::Object implements self::Interface {
   field core::int field;
   static final field dynamic _redirecting# = <dynamic>[self::Class::redirectingFactory]/*isLegacy*/;
-  constructor •([core::int field]) → self::Class<self::Class::T%>
+  constructor •([core::int field = 0]) → self::Class<self::Class::T%>
     ;
   constructor named(core::int field) → self::Class<self::Class::T%>
     ;
@@ -34,7 +34,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object implements s
 abstract class Mixin<S extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
 }
 class NamedMixinApplication<T extends core::Object? = dynamic, S extends core::Object? = dynamic> = self::Class<self::NamedMixinApplication::T%> with self::Mixin<self::NamedMixinApplication::S%> {
-  synthetic constructor •([core::int field]) → self::NamedMixinApplication<self::NamedMixinApplication::T%, self::NamedMixinApplication::S%>
+  synthetic constructor •([core::int field = 0]) → self::NamedMixinApplication<self::NamedMixinApplication::T%, self::NamedMixinApplication::S%>
     : super self::Class::•(field)
     ;
   synthetic constructor named(core::int field) → self::NamedMixinApplication<self::NamedMixinApplication::T%, self::NamedMixinApplication::S%>
@@ -51,7 +51,7 @@ class NamedMixinApplication<T extends core::Object? = dynamic, S extends core::O
     return new self::NamedMixinApplication::redirectingGenerative<self::NamedMixinApplication::_#redirectingGenerative#tearOff::T%, self::NamedMixinApplication::_#redirectingGenerative#tearOff::S%>(field);
 }
 abstract class AbstractNamedMixinApplication<T extends core::Object? = dynamic, S extends core::Object? = dynamic> = self::Class<self::AbstractNamedMixinApplication::T%> with self::Mixin<self::AbstractNamedMixinApplication::S%> {
-  synthetic constructor •([core::int field]) → self::AbstractNamedMixinApplication<self::AbstractNamedMixinApplication::T%, self::AbstractNamedMixinApplication::S%>
+  synthetic constructor •([core::int field = 0]) → self::AbstractNamedMixinApplication<self::AbstractNamedMixinApplication::T%, self::AbstractNamedMixinApplication::S%>
     : super self::Class::•(field)
     ;
   synthetic constructor named(core::int field) → self::AbstractNamedMixinApplication<self::AbstractNamedMixinApplication::T%, self::AbstractNamedMixinApplication::S%>

@@ -17,21 +17,21 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     ;
   static get lateStaticField1() → core::int?
     return self::Class::_#lateStaticField1#isSet ?{core::int?} self::Class::_#lateStaticField1 : throw new _in::LateError::fieldNI("lateStaticField1");
-  static set lateStaticField1(core::int? #t1) → void
+  static set lateStaticField1(core::int? lateStaticField1#param) → void
     if(self::Class::_#lateStaticField1#isSet)
       throw new _in::LateError::fieldAI("lateStaticField1");
     else {
       self::Class::_#lateStaticField1#isSet = true;
-      self::Class::_#lateStaticField1 = #t1;
+      self::Class::_#lateStaticField1 = lateStaticField1#param;
     }
   static get lateStaticField2() → core::int?
     return self::Class::_#lateStaticField2#isSet ?{core::int?} self::Class::_#lateStaticField2 : throw new _in::LateError::fieldNI("lateStaticField2");
-  static set lateStaticField2(core::int? #t2) → void
+  static set lateStaticField2(core::int? lateStaticField2#param) → void
     if(self::Class::_#lateStaticField2#isSet)
       throw new _in::LateError::fieldAI("lateStaticField2");
     else {
       self::Class::_#lateStaticField2#isSet = true;
-      self::Class::_#lateStaticField2 = #t2;
+      self::Class::_#lateStaticField2 = lateStaticField2#param;
     }
   static method staticMethod() → dynamic {
     self::throws(() → core::int? => self::Class::lateStaticField2, "Read value from uninitialized Class.lateStaticField2");
@@ -41,21 +41,21 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   }
   get lateInstanceField() → core::int?
     return this.{self::Class::_#Class#lateInstanceField#isSet}{core::bool} ?{core::int?} this.{self::Class::_#Class#lateInstanceField}{core::int?} : throw new _in::LateError::fieldNI("lateInstanceField");
-  set lateInstanceField(core::int? #t3) → void
+  set lateInstanceField(core::int? lateInstanceField#param) → void
     if(this.{self::Class::_#Class#lateInstanceField#isSet}{core::bool})
       throw new _in::LateError::fieldAI("lateInstanceField");
     else {
       this.{self::Class::_#Class#lateInstanceField#isSet} = true;
-      this.{self::Class::_#Class#lateInstanceField} = #t3;
+      this.{self::Class::_#Class#lateInstanceField} = lateInstanceField#param;
     }
   get lateGenericInstanceField() → self::Class::T?
     return this.{self::Class::_#Class#lateGenericInstanceField#isSet}{core::bool} ?{self::Class::T?} this.{self::Class::_#Class#lateGenericInstanceField}{self::Class::T?} : throw new _in::LateError::fieldNI("lateGenericInstanceField");
-  set lateGenericInstanceField(self::Class::T? #t4) → void
+  set lateGenericInstanceField(self::Class::T? lateGenericInstanceField#param) → void
     if(this.{self::Class::_#Class#lateGenericInstanceField#isSet}{core::bool})
       throw new _in::LateError::fieldAI("lateGenericInstanceField");
     else {
       this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
-      this.{self::Class::_#Class#lateGenericInstanceField} = #t4;
+      this.{self::Class::_#Class#lateGenericInstanceField} = lateGenericInstanceField#param;
     }
   method instanceMethod(covariant-by-class self::Class::T% value) → dynamic {
     self::throws(() → core::int? => this.{self::Class::lateInstanceField}{core::int?}, "Read value from uninitialized Class.lateInstanceField");
@@ -87,30 +87,30 @@ static field core::int? _#Extension|lateExtensionField2 = null;
 static field core::bool _#Extension|lateExtensionField2#isSet = false;
 static get lateTopLevelField() → core::int?
   return self::_#lateTopLevelField#isSet ?{core::int?} self::_#lateTopLevelField : throw new _in::LateError::fieldNI("lateTopLevelField");
-static set lateTopLevelField(core::int? #t5) → void
+static set lateTopLevelField(core::int? lateTopLevelField#param) → void
   if(self::_#lateTopLevelField#isSet)
     throw new _in::LateError::fieldAI("lateTopLevelField");
   else {
     self::_#lateTopLevelField#isSet = true;
-    self::_#lateTopLevelField = #t5;
+    self::_#lateTopLevelField = lateTopLevelField#param;
   }
 static get Extension|lateExtensionField1() → core::int?
   return self::_#Extension|lateExtensionField1#isSet ?{core::int?} self::_#Extension|lateExtensionField1 : throw new _in::LateError::fieldNI("lateExtensionField1");
-static set Extension|lateExtensionField1(core::int? #t6) → void
+static set Extension|lateExtensionField1(core::int? Extension|lateExtensionField1#param) → void
   if(self::_#Extension|lateExtensionField1#isSet)
     throw new _in::LateError::fieldAI("lateExtensionField1");
   else {
     self::_#Extension|lateExtensionField1#isSet = true;
-    self::_#Extension|lateExtensionField1 = #t6;
+    self::_#Extension|lateExtensionField1 = Extension|lateExtensionField1#param;
   }
 static get Extension|lateExtensionField2() → core::int?
   return self::_#Extension|lateExtensionField2#isSet ?{core::int?} self::_#Extension|lateExtensionField2 : throw new _in::LateError::fieldNI("lateExtensionField2");
-static set Extension|lateExtensionField2(core::int? #t7) → void
+static set Extension|lateExtensionField2(core::int? Extension|lateExtensionField2#param) → void
   if(self::_#Extension|lateExtensionField2#isSet)
     throw new _in::LateError::fieldAI("lateExtensionField2");
   else {
     self::_#Extension|lateExtensionField2#isSet = true;
-    self::_#Extension|lateExtensionField2 = #t7;
+    self::_#Extension|lateExtensionField2 = Extension|lateExtensionField2#param;
   }
 static method Extension|staticMethod() → dynamic {
   self::throws(() → core::int? => self::Extension|lateExtensionField2, "Read value from uninitialized Class.lateExtensionField2");

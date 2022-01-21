@@ -242,7 +242,7 @@ class _StringTable {
     }
   }
 
-  static String _decodeWtf8(Uint8List _bytes, int start, int end) {
+  static String _decodeWtf8(Uint8List bytes, int start, int end) {
     // WTF-8 decoder that trusts its input, meaning that the correctness of
     // the code depends on the bytes from start to end being valid and
     // complete WTF-8. Instead of masking off the control bits from every
@@ -252,28 +252,28 @@ class _StringTable {
     int i = start;
     int j = 0;
     while (i < end) {
-      int byte = _bytes[i++];
+      int byte = bytes[i++];
       if (byte < 0x80) {
         // ASCII.
         charCodes[j++] = byte;
       } else if (byte < 0xE0) {
         // Two-byte sequence (11-bit unicode value).
-        int byte2 = _bytes[i++];
+        int byte2 = bytes[i++];
         int value = (byte << 6) ^ byte2 ^ 0x3080;
         assert(value >= 0x80 && value < 0x800);
         charCodes[j++] = value;
       } else if (byte < 0xF0) {
         // Three-byte sequence (16-bit unicode value).
-        int byte2 = _bytes[i++];
-        int byte3 = _bytes[i++];
+        int byte2 = bytes[i++];
+        int byte3 = bytes[i++];
         int value = (byte << 12) ^ (byte2 << 6) ^ byte3 ^ 0xE2080;
         assert(value >= 0x800 && value < 0x10000);
         charCodes[j++] = value;
       } else {
         // Four-byte sequence (non-BMP unicode value).
-        int byte2 = _bytes[i++];
-        int byte3 = _bytes[i++];
-        int byte4 = _bytes[i++];
+        int byte2 = bytes[i++];
+        int byte3 = bytes[i++];
+        int byte4 = bytes[i++];
         int value =
             (byte << 18) ^ (byte2 << 12) ^ (byte3 << 6) ^ byte4 ^ 0x3C82080;
         assert(value >= 0x10000 && value < 0x110000);

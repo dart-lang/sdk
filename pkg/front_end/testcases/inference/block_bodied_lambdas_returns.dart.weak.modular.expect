@@ -1,0 +1,99 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:35:7: Warning: Must explicitly return a value from a non-void function.
+//       return;
+//       ^
+//
+// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:65:7: Warning: Must explicitly return a value from a non-void function.
+//       return;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  () →* Null a = () → Null {};
+  () →* Null b = () → Null {
+    return;
+  };
+  () →* Null c = () → Null {
+    return null;
+  };
+  () →* core::int* d = () → core::int* {
+    return 0;
+  };
+  (core::bool*) →* Null e = (core::bool* b) → Null {
+    if(b) {
+      return;
+    }
+    else {
+      return;
+    }
+  };
+  (core::bool*) →* Null f = (core::bool* b) → Null {
+    if(b) {
+      return;
+    }
+    else {
+      return null;
+    }
+  };
+  (core::bool*) →* core::int* g = (core::bool* b) → core::int* {
+    if(b) {
+      return null;
+    }
+    else {
+      return 0;
+    }
+  };
+  (core::bool*) →* Null h = (core::bool* b) → Null {
+    if(b) {
+      return null;
+    }
+    else {
+      return;
+    }
+  };
+  (core::bool*) →* Null i = (core::bool* b) → Null {
+    if(b) {
+      return null;
+    }
+    else {
+      return null;
+    }
+  };
+  (core::bool*) →* core::int* j = (core::bool* b) → core::int* {
+    if(b) {
+      return null;
+    }
+    else {
+      return 0;
+    }
+  };
+  (core::bool*) →* core::int* k = (core::bool* b) → core::int* {
+    if(b) {
+      return 0;
+    }
+    else {
+      return null;
+    }
+  };
+  (core::bool*) →* core::int* l = (core::bool* b) → core::int* {
+    if(b) {
+      return 0;
+    }
+    else {
+      return null;
+    }
+  };
+  (core::bool*) →* core::int* m = (core::bool* b) → core::int* {
+    if(b) {
+      return 0;
+    }
+    else {
+      return 0;
+    }
+  };
+}

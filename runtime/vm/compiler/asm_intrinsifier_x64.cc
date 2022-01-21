@@ -15,10 +15,12 @@ namespace dart {
 namespace compiler {
 
 // When entering intrinsics code:
+// PP: Caller's ObjectPool in JIT / global ObjectPool in AOT
+// CODE_REG: Callee's Code in JIT / not passed in AOT
 // R10: Arguments descriptor
 // TOS: Return address
-// The R10 registers can be destroyed only if there is no slow-path, i.e.
-// if the intrinsified method always executes a return.
+// The R10 and CODE_REG registers can be destroyed only if there is no
+// slow-path, i.e. if the intrinsified method always executes a return.
 // The RBP register should not be modified, because it is used by the profiler.
 // The PP and THR registers (see constants_x64.h) must be preserved.
 
@@ -1452,21 +1454,35 @@ void AsmIntrinsifier::FunctionType_equality(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
+// Keep in sync with Instance::IdentityHashCode.
+// Note int and double never reach here because they override _identityHashCode.
+// Special cases are also not needed for null or bool because they were pre-set
+// during VM isolate finalization.
 void AsmIntrinsifier::Object_getHash(Assembler* assembler,
                                      Label* normal_ir_body) {
+  Label not_yet_computed;
   __ movq(RAX, Address(RSP, +1 * target::kWordSize));  // Object.
-  __ movl(RAX, FieldAddress(RAX, target::String::hash_offset()));
+  __ movl(RAX, FieldAddress(RAX, target::Object::tags_offset() +
+                                     target::UntaggedObject::kHashTagPos /
+                                         kBitsPerByte));
+  __ cmpl(RAX, Immediate(0));
+  __ j(EQUAL, &not_yet_computed, Assembler::kNearJump);
   __ SmiTag(RAX);
   __ ret();
-}
 
-void AsmIntrinsifier::Object_setHashIfNotSetYet(Assembler* assembler,
-                                                Label* normal_ir_body) {
-  ASSERT(target::String::hash_offset() == 4);
+  __ Bind(&not_yet_computed);
+  __ movq(RCX, Address(THR, target::Thread::random_offset()));
+  __ movq(RBX, RCX);
+  __ andq(RCX, Immediate(0xffffffff));   // state_lo
+  __ shrq(RBX, Immediate(32));           // state_hi
+  __ imulq(RCX, Immediate(0xffffda61));  // A
+  __ addq(RCX, RBX);                     // new_state = (A* state_lo) + state_hi
+  __ movq(Address(THR, target::Thread::random_offset()), RCX);
+  __ andq(RCX, Immediate(0x3fffffff));
+  __ cmpl(RCX, Immediate(0));
+  __ j(EQUAL, &not_yet_computed);
 
-  __ movq(RBX, Address(RSP, +2 * target::kWordSize));  // Object.
-  __ movq(RCX, Address(RSP, +1 * target::kWordSize));  // Value.
-  __ SmiUntag(RCX);
+  __ movq(RBX, Address(RSP, +1 * target::kWordSize));  // Object.
   __ MoveRegister(RDX, RCX);
   __ shlq(RDX, Immediate(32));
 

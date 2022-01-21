@@ -123,6 +123,8 @@ const VRegister VTMP = V31;
 // Architecture independent aliases.
 typedef VRegister FpuRegister;
 const FpuRegister FpuTMP = VTMP;
+const int kFpuRegisterSize = 16;
+typedef simd128_value_t fpu_register_t;
 const int kNumberOfFpuRegisters = kNumberOfVRegisters;
 const FpuRegister kNoFpuRegister = kNoVRegister;
 

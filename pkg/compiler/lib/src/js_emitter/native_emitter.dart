@@ -94,6 +94,7 @@ class NativeEmitter {
 
     Class objectClass = null;
     Class jsInterceptorClass = null;
+    Class jsJavaScriptObjectClass = null;
 
     void walk(Class cls) {
       if (cls.element == _commonElements.objectClass) {
@@ -103,6 +104,11 @@ class NativeEmitter {
       if (cls.element == _commonElements.jsInterceptorClass) {
         jsInterceptorClass = cls;
         return;
+      }
+      // Native classes may inherit either `Interceptor` e.g. `JSBool` or
+      // `JavaScriptObject` e.g. `dart:html` classes.
+      if (cls.element == _commonElements.jsJavaScriptObjectClass) {
+        jsJavaScriptObjectClass = cls;
       }
       if (seen.contains(cls)) return;
       seen.add(cls);
@@ -215,6 +221,9 @@ class NativeEmitter {
     // by getNativeInterceptor and custom elements.
     if (_nativeCodegenEnqueuer.hasInstantiatedNativeClasses) {
       fillNativeInfo(jsInterceptorClass);
+      if (jsJavaScriptObjectClass != null) {
+        fillNativeInfo(jsJavaScriptObjectClass);
+      }
       for (Class cls in classes) {
         if (!cls.isNative || neededClasses.contains(cls)) {
           fillNativeInfo(cls);

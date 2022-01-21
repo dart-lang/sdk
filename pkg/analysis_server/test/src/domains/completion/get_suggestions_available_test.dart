@@ -78,7 +78,7 @@ class GetSuggestionAvailableTest extends GetSuggestionsBase {
     // Force the server to rebuild all contexts, as happens when the file watcher
     // fails on Windows.
     // https://github.com/dart-lang/sdk/issues/44650
-    server.contextManager.refresh();
+    await server.contextManager.refresh();
 
     // Give it time to process the newly scheduled files.
     await pumpEventQueue(times: 5000);

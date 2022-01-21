@@ -4,6 +4,7 @@
 
 library front_end.compiler_options;
 
+import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
@@ -17,6 +18,7 @@ import 'package:kernel/target/targets.dart' show Target;
 
 import '../base/nnbd_mode.dart';
 
+import '../fasta/kernel/macro.dart';
 import 'experimental_flags.dart'
     show
         AllowedExperimentalFlags,
@@ -108,6 +110,18 @@ class CompilerOptions {
   /// [packagesFileUri], the packages file is located using the actual physical
   /// file system.  TODO(paulberry): fix this.
   FileSystem fileSystem = StandardFileSystem.instance;
+
+  /// Function that creates a [MacroExecutor] if supported.
+  ///
+  /// This is an experimental feature.
+  Future<MacroExecutor> Function() macroExecutorProvider =
+      () async => throw 'Macro execution is not supported.';
+
+  /// Map from [MacroClass] to [Uri] for the precompiled dill that contains
+  /// the macro code.
+  ///
+  /// This is an experimental feature.
+  Map<MacroClass, Uri>? precompiledMacroUris;
 
   /// Whether to generate code for the SDK.
   ///

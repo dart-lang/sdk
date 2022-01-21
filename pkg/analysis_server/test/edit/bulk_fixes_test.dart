@@ -52,11 +52,11 @@ class BulkFixesTest extends AbstractAnalysisTest {
   }
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
     registerLintRules();
     handler = EditDomainHandler(server);
-    createProject();
+    await createProject();
   }
 
   Future<void> test_annotateOverrides_excludedFile() async {

@@ -413,6 +413,9 @@ class Range : public ZoneAllocated {
   // [0, +inf]
   bool IsPositive() const;
 
+  // [-inf, -1]
+  bool IsNegative() const;
+
   // [-inf, val].
   bool OnlyLessThanOrEqualTo(int64_t val) const;
 
@@ -559,6 +562,9 @@ class RangeUtils : public AllStatic {
 
   static bool IsPositive(Range* range) {
     return !Range::IsUnknown(range) && range->IsPositive();
+  }
+  static bool IsNegative(Range* range) {
+    return !Range::IsUnknown(range) && range->IsNegative();
   }
 
   static bool Overlaps(Range* range, intptr_t min, intptr_t max) {

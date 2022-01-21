@@ -1,0 +1,53 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "foo_lib.dart" as foo;
+
+import "org-dartlang-testcase:///foo_lib.dart";
+
+static const field core::Set<foo::Foo> foo = #C2;
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+import self as foo;
+import "dart:core" as core;
+import "bar_lib.dart" as bar;
+additionalExports = (bar::Bar)
+
+import "org-dartlang-testcase:///bar_lib.dart";
+export "org-dartlang-testcase:///bar_lib.dart";
+
+abstract class Foo extends core::Object /*hasConstConstructor*/  {
+  static final field dynamic _redirecting# = <dynamic>[#C3]/*isLegacy*/;
+  const constructor •() → foo::Foo
+    : super core::Object::•()
+    ;
+  static factory bar() → foo::Foo
+    return new bar::Bar::•<dynamic>();
+}
+
+library /*isNonNullableByDefault*/;
+import self as bar;
+import "dart:core" as core;
+import "foo_lib.dart" as foo;
+
+import "org-dartlang-testcase:///foo_lib.dart";
+
+class Bar<T extends core::Object? = dynamic> extends foo::Foo /*hasConstConstructor*/  {
+  const constructor •() → bar::Bar<bar::Bar::T%>
+    : super foo::Foo::•()
+    ;
+}
+
+constants  {
+  #C1 = bar::Bar<dynamic> {}
+  #C2 = <foo::Foo*>{#C1}
+  #C3 = constructor-tearoff foo::Foo::bar
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///main.dart:
+- Bar. (from org-dartlang-testcase:///bar_lib.dart:8:9)
+- Foo. (from org-dartlang-testcase:///foo_lib.dart:10:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

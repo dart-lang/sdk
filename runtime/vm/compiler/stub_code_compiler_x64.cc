@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <setjmp.h>
+
 #include "vm/compiler/runtime_api.h"
 #include "vm/globals.h"
 
@@ -58,6 +60,102 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(Assembler* assembler,
   __ Bind(&done);
 }
 
+// In TSAN mode the runtime will throw an exception using an intermediary
+// longjmp() call to unwind the C frames in a way that TSAN can understand.
+//
+// This wrapper will setup a [jmp_buf] on the stack and initialize it to be a
+// target for a possible longjmp(). In the exceptional case we'll forward
+// control of execution to the usual JumpToFrame stub.
+//
+// In non-TSAN mode this will do nothing and the runtime will call the
+// JumpToFrame stub directly.
+//
+// The callback [fun] may be invoked with a modified [RSP] due to allocating
+// a [jmp_buf] allocating structure on the stack (as well as the saved old
+// [Thread::tsan_utils_->setjmp_buffer_]).
+static void WithExceptionCatchingTrampoline(Assembler* assembler,
+                                            std::function<void()> fun) {
+#if defined(USING_THREAD_SANITIZER)
+  const Register kTsanUtilsReg = RAX;
+
+  // Reserve space for arguments and align frame before entering C++ world.
+  const intptr_t kJumpBufferSize = sizeof(jmp_buf);
+  // Save & Restore the volatile CPU registers across the setjmp() call.
+  const RegisterSet volatile_registers(
+      CallingConventions::kVolatileCpuRegisters & ~(1 << RAX),
+      /*fpu_registers=*/0);
+
+  const Register kSavedRspReg = R12;
+  COMPILE_ASSERT(IsCalleeSavedRegister(kSavedRspReg));
+  // We rely on THR being preserved across the setjmp() call.
+  COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+
+  Label do_native_call;
+
+  // Save old jmp_buf.
+  __ movq(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+  __ pushq(Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
+
+  // Allocate jmp_buf struct on stack & remember pointer to it on the
+  // [Thread::tsan_utils_->setjmp_buffer] (which exceptions.cc will longjmp()
+  // to)
+  __ AddImmediate(RSP, Immediate(-kJumpBufferSize));
+  __ movq(Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()),
+          RSP);
+
+  // Call setjmp() with a pointer to the allocated jmp_buf struct.
+  __ MoveRegister(CallingConventions::kArg1Reg, RSP);
+  __ PushRegisters(volatile_registers);
+  if (OS::ActivationFrameAlignment() > 1) {
+    __ MoveRegister(kSavedRspReg, RSP);
+    __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
+  __ movq(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+  __ CallCFunction(
+      Address(kTsanUtilsReg, target::TsanUtils::setjmp_function_offset()),
+      /*restore_rsp=*/true);
+  if (OS::ActivationFrameAlignment() > 1) {
+    __ MoveRegister(RSP, kSavedRspReg);
+  }
+  __ PopRegisters(volatile_registers);
+
+  // We are the target of a longjmp() iff setjmp() returns non-0.
+  __ CompareImmediate(RAX, 0);
+  __ BranchIf(EQUAL, &do_native_call);
+
+  // We are the target of a longjmp: Cleanup the stack and tail-call the
+  // JumpToFrame stub which will take care of unwinding the stack and hand
+  // execution to the catch entry.
+  __ AddImmediate(RSP, Immediate(kJumpBufferSize));
+  __ movq(kTsanUtilsReg, Address(THR, target::Thread::tsan_utils_offset()));
+  __ popq(Address(kTsanUtilsReg, target::TsanUtils::setjmp_buffer_offset()));
+
+  __ movq(CallingConventions::kArg1Reg,
+          Address(kTsanUtilsReg, target::TsanUtils::exception_pc_offset()));
+  __ movq(CallingConventions::kArg2Reg,
+          Address(kTsanUtilsReg, target::TsanUtils::exception_sp_offset()));
+  __ movq(CallingConventions::kArg3Reg,
+          Address(kTsanUtilsReg, target::TsanUtils::exception_fp_offset()));
+  __ MoveRegister(CallingConventions::kArg4Reg, THR);
+  __ jmp(Address(THR, target::Thread::jump_to_frame_entry_point_offset()));
+
+  // We leave the created [jump_buf] structure on the stack as well as the
+  // pushed old [Thread::tsan_utils_->setjmp_buffer_].
+  __ Bind(&do_native_call);
+  __ MoveRegister(kSavedRspReg, RSP);
+#endif  // defined(USING_THREAD_SANITIZER)
+
+  fun();
+
+#if defined(USING_THREAD_SANITIZER)
+  __ MoveRegister(RSP, kSavedRspReg);
+  __ AddImmediate(RSP, Immediate(kJumpBufferSize));
+  const Register kTsanUtilsReg2 = kSavedRspReg;
+  __ movq(kTsanUtilsReg2, Address(THR, target::Thread::tsan_utils_offset()));
+  __ popq(Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
+#endif  // defined(USING_THREAD_SANITIZER)
+}
+
 // Input parameters:
 //   RSP : points to return address.
 //   RSP + 8 : address of last argument in argument array.
@@ -99,51 +197,54 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Mark that the thread is executing VM code.
   __ movq(Assembler::VMTagAddress(), RBX);
 
-  // Reserve space for arguments and align frame before entering C++ world.
-  __ subq(RSP, Immediate(target::NativeArguments::StructSize()));
-  if (OS::ActivationFrameAlignment() > 1) {
-    __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
-  }
+  WithExceptionCatchingTrampoline(assembler, [&]() {
+    // Reserve space for arguments and align frame before entering C++ world.
+    __ subq(RSP, Immediate(target::NativeArguments::StructSize()));
+    if (OS::ActivationFrameAlignment() > 1) {
+      __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+    }
 
-  // Pass target::NativeArguments structure by value and call runtime.
-  __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
-  // There are no runtime calls to closures, so we do not need to set the tag
-  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
-  __ movq(Address(RSP, argc_tag_offset),
-          R10);  // Set argc in target::NativeArguments.
-  // Compute argv.
-  __ leaq(RAX,
-          Address(RBP, R10, TIMES_8,
-                  target::frame_layout.param_end_from_fp * target::kWordSize));
-  __ movq(Address(RSP, argv_offset),
-          RAX);  // Set argv in target::NativeArguments.
-  __ addq(RAX,
-          Immediate(1 * target::kWordSize));  // Retval is next to 1st argument.
-  __ movq(Address(RSP, retval_offset),
-          RAX);  // Set retval in target::NativeArguments.
+    // Pass target::NativeArguments structure by value and call runtime.
+    __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
+    // There are no runtime calls to closures, so we do not need to set the tag
+    // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+    __ movq(Address(RSP, argc_tag_offset),
+            R10);  // Set argc in target::NativeArguments.
+    // Compute argv.
+    __ leaq(RAX, Address(RBP, R10, TIMES_8,
+                         target::frame_layout.param_end_from_fp *
+                             target::kWordSize));
+    __ movq(Address(RSP, argv_offset),
+            RAX);  // Set argv in target::NativeArguments.
+    __ addq(
+        RAX,
+        Immediate(1 * target::kWordSize));  // Retval is next to 1st argument.
+    __ movq(Address(RSP, retval_offset),
+            RAX);  // Set retval in target::NativeArguments.
 #if defined(DART_TARGET_OS_WINDOWS)
-  ASSERT(target::NativeArguments::StructSize() >
-         CallingConventions::kRegisterTransferLimit);
-  __ movq(CallingConventions::kArg1Reg, RSP);
+    ASSERT(target::NativeArguments::StructSize() >
+           CallingConventions::kRegisterTransferLimit);
+    __ movq(CallingConventions::kArg1Reg, RSP);
 #endif
-  __ CallCFunction(RBX);
+    __ CallCFunction(RBX);
 
-  // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+    // Mark that the thread is executing Dart code.
+    __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
-  // Mark that the thread has not exited generated Dart code.
-  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
-          Immediate(0));
+    // Mark that the thread has not exited generated Dart code.
+    __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+            Immediate(0));
 
-  // Reset exit frame information in Isolate's mutator thread structure.
-  __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
-          Immediate(0));
+    // Reset exit frame information in Isolate's mutator thread structure.
+    __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
+            Immediate(0));
 
-  // Restore the global object pool after returning from runtime (old space is
-  // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode) {
-    __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
-  }
+    // Restore the global object pool after returning from runtime (old space is
+    // moving, so the GOP could have been relocated).
+    if (FLAG_precompiled_mode) {
+      __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
+    }
+  });
 
   __ LeaveStubFrame();
 
@@ -234,7 +335,8 @@ void StubCodeCompiler::GenerateEnterSafepointStub(Assembler* assembler) {
   __ ret();
 }
 
-void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+static void GenerateExitSafepointStubCommon(Assembler* assembler,
+                                            uword runtime_entry_offset) {
   RegisterSet all_registers;
   all_registers.AddAllGeneralRegisters();
   __ PushRegisters(all_registers);
@@ -248,12 +350,24 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ movq(Address(THR, target::Thread::execution_state_offset()),
           Immediate(target::Thread::vm_execution_state()));
 
-  __ movq(RAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ movq(RAX, Address(THR, runtime_entry_offset));
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
   __ PopRegisters(all_registers);
   __ ret();
+}
+
+void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
+  GenerateExitSafepointStubCommon(
+      assembler, kExitSafepointRuntimeEntry.OffsetFromThread());
+}
+
+void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub(
+    Assembler* assembler) {
+  GenerateExitSafepointStubCommon(
+      assembler,
+      kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
 }
 
 // Calls native code within a safepoint.
@@ -565,7 +679,7 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
 // Input parameters:
 //   RSP : points to return address.
 //   RSP + 8 : address of return value.
-//   RAX : address of first argument in argument array.
+//   R13 : address of first argument in argument array.
 //   RBX : address of the native function to call.
 //   R10 : argc_tag including number of arguments and function kind.
 static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
@@ -605,49 +719,51 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // Mark that the thread is executing native code.
   __ movq(Assembler::VMTagAddress(), RBX);
 
-  // Reserve space for the native arguments structure passed on the stack (the
-  // outgoing pointer parameter to the native arguments structure is passed in
-  // RDI) and align frame before entering the C++ world.
-  __ subq(RSP, Immediate(target::NativeArguments::StructSize()));
-  if (OS::ActivationFrameAlignment() > 1) {
-    __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
-  }
+  WithExceptionCatchingTrampoline(assembler, [&]() {
+    // Reserve space for the native arguments structure passed on the stack (the
+    // outgoing pointer parameter to the native arguments structure is passed in
+    // RDI) and align frame before entering the C++ world.
+    __ subq(RSP, Immediate(target::NativeArguments::StructSize()));
+    if (OS::ActivationFrameAlignment() > 1) {
+      __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+    }
 
-  // Pass target::NativeArguments structure by value and call native function.
-  __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
-  __ movq(Address(RSP, argc_tag_offset),
-          R10);  // Set argc in target::NativeArguments.
-  __ movq(Address(RSP, argv_offset),
-          RAX);  // Set argv in target::NativeArguments.
-  __ leaq(RAX,
-          Address(RBP, 2 * target::kWordSize));  // Compute return value addr.
-  __ movq(Address(RSP, retval_offset),
-          RAX);  // Set retval in target::NativeArguments.
+    // Pass target::NativeArguments structure by value and call native function.
+    __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
+    __ movq(Address(RSP, argc_tag_offset),
+            R10);  // Set argc in target::NativeArguments.
+    __ movq(Address(RSP, argv_offset),
+            R13);  // Set argv in target::NativeArguments.
+    __ leaq(RAX,
+            Address(RBP, 2 * target::kWordSize));  // Compute return value addr.
+    __ movq(Address(RSP, retval_offset),
+            RAX);  // Set retval in target::NativeArguments.
 
-  // Pass the pointer to the target::NativeArguments.
-  __ movq(CallingConventions::kArg1Reg, RSP);
-  // Pass pointer to function entrypoint.
-  __ movq(CallingConventions::kArg2Reg, RBX);
+    // Pass the pointer to the target::NativeArguments.
+    __ movq(CallingConventions::kArg1Reg, RSP);
+    // Pass pointer to function entrypoint.
+    __ movq(CallingConventions::kArg2Reg, RBX);
 
-  __ movq(RAX, wrapper_address);
-  __ CallCFunction(RAX);
+    __ movq(RAX, wrapper_address);
+    __ CallCFunction(RAX);
 
-  // Mark that the thread is executing Dart code.
-  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
+    // Mark that the thread is executing Dart code.
+    __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
-  // Mark that the thread has not exited generated Dart code.
-  __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
-          Immediate(0));
+    // Mark that the thread has not exited generated Dart code.
+    __ movq(Address(THR, target::Thread::exit_through_ffi_offset()),
+            Immediate(0));
 
-  // Reset exit frame information in Isolate's mutator thread structure.
-  __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
-          Immediate(0));
+    // Reset exit frame information in Isolate's mutator thread structure.
+    __ movq(Address(THR, target::Thread::top_exit_frame_info_offset()),
+            Immediate(0));
 
-  // Restore the global object pool after returning from runtime (old space is
-  // moving, so the GOP could have been relocated).
-  if (FLAG_precompiled_mode) {
-    __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
-  }
+    // Restore the global object pool after returning from runtime (old space is
+    // moving, so the GOP could have been relocated).
+    if (FLAG_precompiled_mode) {
+      __ movq(PP, Address(THR, target::Thread::global_object_pool_offset()));
+    }
+  });
 
   __ LeaveStubFrame();
   __ ret();
@@ -3037,12 +3153,18 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
 #error Unimplemented
 #endif
   Label exit_through_non_ffi;
-  // Check if we exited generated from FFI. If so do transition.
+  // Check if we exited generated from FFI. If so do transition - this is needed
+  // because normally runtime calls transition back to generated via destructor
+  // of TransititionGeneratedToVM/Native that is part of runtime boilerplate
+  // code (see DEFINE_RUNTIME_ENTRY_IMPL in runtime_entry.h). Ffi calls don't
+  // have this boilerplate, don't have this stack resource, have to transition
+  // explicitly.
   __ cmpq(compiler::Address(
               THR, compiler::target::Thread::exit_through_ffi_offset()),
           compiler::Immediate(target::Thread::exit_through_ffi()));
   __ j(NOT_EQUAL, &exit_through_non_ffi, compiler::Assembler::kNearJump);
-  __ TransitionNativeToGenerated(/*leave_safepoint=*/true);
+  __ TransitionNativeToGenerated(/*leave_safepoint=*/true,
+                                 /*ignore_unwind_in_progress=*/true);
   __ Bind(&exit_through_non_ffi);
 
   // Set the tag.

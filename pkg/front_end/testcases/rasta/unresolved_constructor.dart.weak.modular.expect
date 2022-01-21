@@ -1,0 +1,41 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/unresolved_constructor.dart:10:10: Error: Too few positional arguments: 2 required, 0 given.
+//   new Foo();
+//          ^
+// pkg/front_end/testcases/rasta/unresolved_constructor.dart:6:3: Context: Found this candidate, but the arguments don't match.
+//   Foo(x, y);
+//   ^^^
+//
+// pkg/front_end/testcases/rasta/unresolved_constructor.dart:11:11: Error: Couldn't find constructor 'Foo.notHere'.
+//   new Foo.notHere();
+//           ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •(dynamic x, dynamic y) → self::Foo*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/rasta/unresolved_constructor.dart:10:10: Error: Too few positional arguments: 2 required, 0 given.
+  new Foo();
+         ^";
+  invalid-expression "pkg/front_end/testcases/rasta/unresolved_constructor.dart:11:11: Error: Couldn't find constructor 'Foo.notHere'.
+  new Foo.notHere();
+          ^^^^^^^";
+}

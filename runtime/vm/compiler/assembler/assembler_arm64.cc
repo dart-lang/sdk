@@ -26,9 +26,9 @@ DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 namespace compiler {
 
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
-                     bool use_far_branches)
+                     intptr_t far_branch_level)
     : AssemblerBase(object_pool_builder),
-      use_far_branches_(use_far_branches),
+      use_far_branches_(far_branch_level != 0),
       constant_pool_allowed_(false) {
   generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
     Call(Address(THR,
@@ -433,22 +433,6 @@ void Assembler::LoadWordFromPoolIndex(Register dst,
     }
     ldr(dst, Address(pp, dst));
   }
-}
-
-void Assembler::LoadWordFromPoolIndexFixed(Register dst, intptr_t index) {
-  ASSERT(constant_pool_allowed());
-  ASSERT(dst != PP);
-  Operand op;
-  // PP is _un_tagged on ARM64.
-  const uint32_t offset = target::ObjectPool::element_offset(index);
-  const uint32_t upper20 = offset & 0xfffff000;
-  const uint32_t lower12 = offset & 0x00000fff;
-  const Operand::OperandType ot =
-      Operand::CanHold(upper20, kXRegSizeInBits, &op);
-  ASSERT(ot == Operand::Immediate);
-  ASSERT(Address::CanHoldOffset(lower12));
-  add(dst, PP, op);
-  ldr(dst, Address(dst, lower12));
 }
 
 void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
@@ -1568,10 +1552,8 @@ void Assembler::SetupGlobalPoolAndDispatchTable() {
   ASSERT(FLAG_precompiled_mode);
   ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
   sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
-  if (FLAG_use_table_dispatch) {
-    ldr(DISPATCH_TABLE_REG,
-        Address(THR, target::Thread::dispatch_table_array_offset()));
-  }
+  ldr(DISPATCH_TABLE_REG,
+      Address(THR, target::Thread::dispatch_table_array_offset()));
 }
 
 void Assembler::CheckCodePointer() {
@@ -1753,7 +1735,8 @@ void Assembler::TransitionGeneratedToNative(Register destination,
   }
 }
 
-void Assembler::ExitFullSafepoint(Register state) {
+void Assembler::ExitFullSafepoint(Register state,
+                                  bool ignore_unwind_in_progress) {
   // We generate the same number of instructions whether or not the slow-path is
   // forced, for consistency with EnterFullSafepoint.
   Register addr = TMP2;
@@ -1780,7 +1763,14 @@ void Assembler::ExitFullSafepoint(Register state) {
   }
 
   Bind(&slow_path);
-  ldr(addr, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  if (ignore_unwind_in_progress) {
+    ldr(addr,
+        Address(THR,
+                target::Thread::
+                    exit_safepoint_ignore_unwind_in_progress_stub_offset()));
+  } else {
+    ldr(addr, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  }
   ldr(addr, FieldAddress(addr, target::Code::entry_point_offset()));
   blr(addr);
 
@@ -1788,10 +1778,13 @@ void Assembler::ExitFullSafepoint(Register state) {
 }
 
 void Assembler::TransitionNativeToGenerated(Register state,
-                                            bool exit_safepoint) {
+                                            bool exit_safepoint,
+                                            bool ignore_unwind_in_progress) {
   if (exit_safepoint) {
-    ExitFullSafepoint(state);
+    ExitFullSafepoint(state, ignore_unwind_in_progress);
   } else {
+    // flag only makes sense if we are leaving safepoint
+    ASSERT(!ignore_unwind_in_progress);
 #if defined(DEBUG)
     // Ensure we've already left the safepoint.
     ASSERT(target::Thread::full_safepoint_state_acquired() != 0);

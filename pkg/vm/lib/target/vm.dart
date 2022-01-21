@@ -18,7 +18,8 @@ import 'package:kernel/type_environment.dart';
 import '../transformations/call_site_annotator.dart' as callSiteAnnotator;
 import '../transformations/lowering.dart' as lowering
     show transformLibraries, transformProcedure;
-import '../transformations/ffi/common.dart' as ffiHelper show importsFfi;
+import '../transformations/ffi/common.dart' as ffiHelper
+    show calculateTransitiveImportsOfDartFfiIfUsed;
 import '../transformations/ffi/definitions.dart' as transformFfiDefinitions
     show transformLibraries;
 import '../transformations/ffi/native.dart' as transformFfiNative
@@ -154,7 +155,9 @@ class VmTarget extends Target {
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
     logger?.call("Transformed mixin applications");
 
-    if (!ffiHelper.importsFfi(component, libraries)) {
+    List<Library>? transitiveImportingDartFfi = ffiHelper
+        .calculateTransitiveImportsOfDartFfiIfUsed(component, libraries);
+    if (transitiveImportingDartFfi == null) {
       logger?.call("Skipped ffi transformation");
     } else {
       // Transform @FfiNative(..) functions into FFI native call functions.
@@ -163,21 +166,19 @@ class VmTarget extends Target {
       // Transform arguments that extend NativeFieldWrapperClass1 to Pointer if
       // the native function expects Pointer (to avoid Handle overhead).
       transformFfiNative.transformLibraries(component, coreTypes, hierarchy,
-          libraries, diagnosticReporter, referenceFromIndex);
+          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi natives");
 
-      // TODO(jensj/dacoharkes): We can probably limit the transformations to
-      // libraries that transitivley depend on dart:ffi.
       transformFfiDefinitions.transformLibraries(
           component,
           coreTypes,
           hierarchy,
-          libraries,
+          transitiveImportingDartFfi,
           diagnosticReporter,
           referenceFromIndex,
           changedStructureNotifier);
       transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
-          libraries, diagnosticReporter, referenceFromIndex);
+          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       logger?.call("Transformed ffi annotations");
     }
 
@@ -500,18 +501,11 @@ class VmTarget extends Target {
     // TODO(alexmarkov): Call this from the front-end in order to have
     //  the same defines when compiling platform.
     map['dart.isVM'] = 'true';
-    // TODO(dartbug.com/36460): Derive dart.library.* definitions from platform.
-    for (String library in extraRequiredLibraries) {
-      Uri libraryUri = Uri.parse(library);
-      if (libraryUri.scheme == 'dart') {
-        final path = libraryUri.path;
-        if (!path.startsWith('_')) {
-          map['dart.library.${path}'] = 'true';
-        }
-      }
-    }
-    // dart:core is not mentioned in Target.extraRequiredLibraries.
-    map['dart.library.core'] = 'true';
     return map;
   }
+
+  @override
+  DartLibrarySupport get dartLibrarySupport => flags.supportMirrors
+      ? const DefaultDartLibrarySupport()
+      : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
 }

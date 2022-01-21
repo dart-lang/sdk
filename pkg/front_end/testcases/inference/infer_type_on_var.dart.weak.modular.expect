@@ -1,0 +1,18 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_type_on_var.dart:10:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   x = /*error:INVALID_ASSIGNMENT*/ "hi";
+//                                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test1() → dynamic {
+  core::int* x = 3;
+  x = invalid-expression "pkg/front_end/testcases/inference/infer_type_on_var.dart:10:36: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                   ^" in "hi" as{TypeError} core::int*;
+}
+static method main() → dynamic {}

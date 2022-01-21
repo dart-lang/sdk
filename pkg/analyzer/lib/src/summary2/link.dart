@@ -17,6 +17,7 @@ import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/simply_bounded.dart';
+import 'package:analyzer/src/summary2/super_constructor_resolver.dart';
 import 'package:analyzer/src/summary2/top_level_inference.dart';
 import 'package:analyzer/src/summary2/type_alias.dart';
 import 'package:analyzer/src/summary2/types_builder.dart';
@@ -87,8 +88,9 @@ class Linker {
   void _buildOutlines() {
     _computeLibraryScopes();
     _createTypeSystem();
-    _buildEnumChildren();
     _resolveTypes();
+    _buildEnumChildren();
+    SuperConstructorResolver(this).perform();
     _performTopLevelInference();
     _resolveConstructors();
     _resolveConstantInitializers();

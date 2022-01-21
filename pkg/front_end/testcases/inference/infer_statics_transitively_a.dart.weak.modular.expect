@@ -1,0 +1,51 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "infer_statics_transitively_b.dart" as inf;
+import "infer_statics_transitively.dart" as test;
+
+import "org-dartlang-testcase:///infer_statics_transitively.dart";
+import "org-dartlang-testcase:///infer_statics_transitively_b.dart";
+
+class A extends core::Object {
+  static final field core::int* a2 = inf::b1;
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static final field core::int* a1 = test::m2;
+static method main() → dynamic {}
+
+library test;
+import self as test;
+import "dart:core" as core;
+import "infer_statics_transitively_a.dart" as self;
+
+import "org-dartlang-testcase:///infer_statics_transitively_a.dart";
+
+static final field core::int* m1 = self::a1;
+static final field core::int* m2 = self::A::a2;
+static method foo() → dynamic {
+  core::int* i;
+  i = test::m1;
+}
+static method main() → dynamic {}
+
+library;
+import self as inf;
+import "dart:core" as core;
+
+static final field core::int* b1 = 2;
+static method main() → dynamic {
+  inf::b1;
+}

@@ -51,7 +51,6 @@
   ARRAY(Context, variable_offset)                                              \
   ARRAY(ContextScope, element_offset)                                          \
   ARRAY(ExceptionHandlers, element_offset)                                     \
-  ARRAY(InstructionsTable, element_offset)                                     \
   ARRAY(ObjectPool, element_offset)                                            \
   ARRAY(OneByteString, element_offset)                                         \
   ARRAY(TypeArguments, type_at_offset)                                         \
@@ -61,7 +60,6 @@
   ARRAY_SIZEOF(Context, InstanceSize, variable_offset)                         \
   ARRAY_SIZEOF(ContextScope, InstanceSize, element_offset)                     \
   ARRAY_SIZEOF(ExceptionHandlers, InstanceSize, element_offset)                \
-  ARRAY_SIZEOF(InstructionsTable, InstanceSize, element_offset)                \
   ARRAY_SIZEOF(ObjectPool, InstanceSize, element_offset)                       \
   ARRAY_SIZEOF(OneByteString, InstanceSize, element_offset)                    \
   ARRAY_SIZEOF(TypeArguments, InstanceSize, type_at_offset)                    \
@@ -225,6 +223,7 @@
   FIELD(Thread, enter_safepoint_stub_offset)                                   \
   FIELD(Thread, execution_state_offset)                                        \
   FIELD(Thread, exit_safepoint_stub_offset)                                    \
+  FIELD(Thread, exit_safepoint_ignore_unwind_in_progress_stub_offset)          \
   FIELD(Thread, call_native_through_safepoint_stub_offset)                     \
   FIELD(Thread, call_native_through_safepoint_entry_point_offset)              \
   FIELD(Thread, fix_allocation_stub_code_offset)                               \
@@ -286,6 +285,14 @@
   FIELD(Thread, heap_base_offset)                                              \
   FIELD(Thread, callback_code_offset)                                          \
   FIELD(Thread, callback_stack_return_offset)                                  \
+  FIELD(Thread, random_offset)                                                 \
+  FIELD(Thread, jump_to_frame_entry_point_offset)                              \
+  FIELD(Thread, tsan_utils_offset)                                             \
+  FIELD(TsanUtils, setjmp_function_offset)                                     \
+  FIELD(TsanUtils, setjmp_buffer_offset)                                       \
+  FIELD(TsanUtils, exception_pc_offset)                                        \
+  FIELD(TsanUtils, exception_sp_offset)                                        \
+  FIELD(TsanUtils, exception_fp_offset)                                        \
   FIELD(TimelineStream, enabled_offset)                                        \
   FIELD(TwoByteString, data_offset)                                            \
   FIELD(Type, arguments_offset)                                                \
@@ -328,10 +335,10 @@
   RANGE(Code, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,       \
         CodeEntryKind::kMonomorphicUnchecked,                                  \
         [](CodeEntryKind value) { return true; })                              \
-  ONLY_IN_ARM_ARM64_X64(RANGE(                                                 \
-      Thread, write_barrier_wrappers_thread_offset, Register, 0,               \
-      kNumberOfCpuRegisters - 1,                                               \
-      [](Register reg) { return (kDartAvailableCpuRegs & (1 << reg)) != 0; })) \
+  NOT_IN_IA32(RANGE(Thread, write_barrier_wrappers_thread_offset, Register, 0, \
+                    kNumberOfCpuRegisters - 1, [](Register reg) {              \
+                      return (kDartAvailableCpuRegs & (1 << reg)) != 0;        \
+                    }))                                                        \
                                                                                \
   SIZEOF(AbstractType, InstanceSize, UntaggedAbstractType)                     \
   SIZEOF(ApiError, InstanceSize, UntaggedApiError)                             \
@@ -342,7 +349,9 @@
   SIZEOF(Closure, InstanceSize, UntaggedClosure)                               \
   SIZEOF(ClosureData, InstanceSize, UntaggedClosureData)                       \
   SIZEOF(CodeSourceMap, HeaderSize, UntaggedCodeSourceMap)                     \
-  SIZEOF(CompressedStackMaps, HeaderSize, UntaggedCompressedStackMaps)         \
+  SIZEOF(CompressedStackMaps, ObjectHeaderSize, UntaggedCompressedStackMaps)   \
+  SIZEOF(CompressedStackMaps, PayloadHeaderSize,                               \
+         UntaggedCompressedStackMaps::Payload::FlagsAndSizeHeader)             \
   SIZEOF(Context, header_size, UntaggedContext)                                \
   SIZEOF(Double, InstanceSize, UntaggedDouble)                                 \
   SIZEOF(DynamicLibrary, InstanceSize, UntaggedDynamicLibrary)                 \
@@ -362,6 +371,7 @@
   SIZEOF(Instructions, UnalignedHeaderSize, UntaggedInstructions)              \
   SIZEOF(InstructionsSection, UnalignedHeaderSize,                             \
          UntaggedInstructionsSection)                                          \
+  SIZEOF(InstructionsTable, InstanceSize, UntaggedInstructionsTable)           \
   SIZEOF(Int32x4, InstanceSize, UntaggedInt32x4)                               \
   SIZEOF(Integer, InstanceSize, UntaggedInteger)                               \
   SIZEOF(KernelProgramInfo, InstanceSize, UntaggedKernelProgramInfo)           \

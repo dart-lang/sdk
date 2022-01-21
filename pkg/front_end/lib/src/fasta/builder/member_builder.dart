@@ -5,19 +5,9 @@
 library fasta.member_builder;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
 
-import '../../base/common.dart';
-
-import '../kernel/class_hierarchy_builder.dart';
-import '../kernel/kernel_helper.dart';
+import '../kernel/hierarchy/class_member.dart';
 import '../modifier.dart';
-import '../problems.dart' show unsupported;
-import '../source/source_library_builder.dart';
-import '../type_inference/type_inference_engine.dart'
-    show InferenceDataForTesting;
-import '../util/helpers.dart' show DelayedActionPerformer;
-
 import 'builder.dart';
 import 'class_builder.dart';
 import 'declaration_builder.dart';
@@ -77,12 +67,6 @@ abstract class MemberBuilder implements ModifierBuilder {
   /// setter of a field.
   bool get isConflictingSetter;
 
-  void buildOutlineExpressions(
-      SourceLibraryBuilder library,
-      CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes);
-
   /// Returns the [ClassMember]s for the non-setter members created for this
   /// member builder.
   ///
@@ -100,6 +84,9 @@ abstract class MemberBuilder implements ModifierBuilder {
 
 abstract class MemberBuilderImpl extends ModifierBuilderImpl
     implements MemberBuilder {
+  @override
+  String get name;
+
   /// For top-level members, the parent is set correctly during
   /// construction. However, for class members, the parent is initially the
   /// library and updated later.
@@ -107,18 +94,29 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   Builder? parent;
 
   @override
-  String get name;
-
-  @override
   final Uri fileUri;
 
-  MemberDataForTesting? dataForTesting;
-
   MemberBuilderImpl(this.parent, int charOffset, [Uri? fileUri])
-      : dataForTesting =
-            retainDataForTesting ? new MemberDataForTesting() : null,
-        this.fileUri = (fileUri ?? parent?.fileUri)!,
+      : this.fileUri = (fileUri ?? parent?.fileUri)!,
         super(parent, charOffset);
+
+  /// The builder for the enclosing class, if any.
+  ClassBuilder? get classBuilder =>
+      parent is ClassBuilder ? parent as ClassBuilder : null;
+
+  @override
+  LibraryBuilder get library {
+    if (parent is LibraryBuilder) {
+      LibraryBuilder library = parent as LibraryBuilder;
+      return library.partOfLibrary ?? library;
+    } else if (parent is ExtensionBuilder) {
+      ExtensionBuilder extension = parent as ExtensionBuilder;
+      return extension.library;
+    } else {
+      ClassBuilder cls = parent as ClassBuilder;
+      return cls.library;
+    }
+  }
 
   @override
   bool get isDeclarationInstanceMember => isDeclarationMember && !isStatic;
@@ -144,98 +142,17 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   @override
   bool get isNative => false;
 
-  bool get isRedirectingGenerativeConstructor => false;
-
   @override
   bool get isExternal => (modifiers & externalMask) != 0;
 
   @override
   bool get isAbstract => (modifiers & abstractMask) != 0;
 
-  bool? _isConflictingSetter;
-
   @override
-  bool get isConflictingSetter {
-    return _isConflictingSetter ??= false;
-  }
-
-  void set isConflictingSetter(bool value) {
-    assert(_isConflictingSetter == null,
-        '$this.isConflictingSetter has already been fixed.');
-    _isConflictingSetter = value;
-  }
-
-  @override
-  LibraryBuilder get library {
-    if (parent is LibraryBuilder) {
-      LibraryBuilder library = parent as LibraryBuilder;
-      return library.partOfLibrary ?? library;
-    } else if (parent is ExtensionBuilder) {
-      ExtensionBuilder extension = parent as ExtensionBuilder;
-      return extension.library;
-    } else {
-      ClassBuilder cls = parent as ClassBuilder;
-      return cls.library;
-    }
-  }
-
-  // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
-  @override
-  ProcedureKind? get kind => unsupported("kind", charOffset, fileUri);
-
-  @override
-  void buildOutlineExpressions(
-      SourceLibraryBuilder library,
-      CoreTypes coreTypes,
-      List<DelayedActionPerformer> delayedActionPerformers,
-      List<SynthesizedFunctionNode> synthesizedFunctionNodes) {}
-
-  /// Builds the core AST structures for this member as needed for the outline.
-  void buildMembers(
-      SourceLibraryBuilder library, void Function(Member, BuiltMemberKind) f);
+  bool get isConflictingSetter => false;
 
   @override
   String get fullNameForErrors => name;
-
-  @override
-  StringBuffer printOn(StringBuffer buffer) {
-    if (isClassMember) {
-      buffer.write(classBuilder!.name);
-      buffer.write('.');
-    }
-    buffer.write(name);
-    return buffer;
-  }
-
-  /// The builder for the enclosing class or extension, if any.
-  DeclarationBuilder? get declarationBuilder =>
-      parent is DeclarationBuilder ? parent as DeclarationBuilder : null;
-
-  /// The builder for the enclosing class, if any.
-  ClassBuilder? get classBuilder =>
-      parent is ClassBuilder ? parent as ClassBuilder : null;
-}
-
-enum BuiltMemberKind {
-  Constructor,
-  RedirectingFactory,
-  Field,
-  Method,
-  ExtensionField,
-  ExtensionMethod,
-  ExtensionGetter,
-  ExtensionSetter,
-  ExtensionOperator,
-  ExtensionTearOff,
-  LateIsSetField,
-  LateGetter,
-  LateSetter,
-}
-
-class MemberDataForTesting {
-  final InferenceDataForTesting inferenceData = new InferenceDataForTesting();
-
-  MemberBuilder? patchForTesting;
 }
 
 /// Base class for implementing [ClassMember] for a [MemberBuilder].
@@ -317,14 +234,4 @@ abstract class BuilderClassMember implements ClassMember {
 
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
-}
-
-/// If the name of [member] is private, update it to use the library reference
-/// of [libraryBuilder].
-// TODO(johnniwinther): Avoid having to update private names by setting
-// the correct library reference when creating parts.
-void updatePrivateMemberName(Member member, LibraryBuilder libraryBuilder) {
-  if (member.name.isPrivate) {
-    member.name = new Name(member.name.text, libraryBuilder.library);
-  }
 }

@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:dds/dds.dart';
 import 'package:dds/src/utils/mutex.dart';
-import 'package:dds/vm_service_extensions.dart';
+import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
@@ -74,6 +74,7 @@ void main() {
       );
       expect(dds.isRunning, true);
       final service = await vmServiceConnectUri(dds.wsUri.toString());
+      final otherService = await vmServiceConnectUri(dds.wsUri.toString());
 
       // Ensure we're caching results for samples under the 'Testing' UserTag.
       final availableCaches = await service.getAvailableCachedCpuSamples();
@@ -85,13 +86,18 @@ void main() {
         final vm = await service.getVM();
         if (vm.isolates!.isNotEmpty) {
           isolate = vm.isolates!.first;
-          isolate = await service.getIsolate(isolate.id!);
-          if ((isolate as Isolate).runnable!) {
-            break;
+          try {
+            isolate = await service.getIsolate(isolate.id!);
+            if ((isolate as Isolate).runnable!) {
+              break;
+            }
+          } on SentinelException {
+            // ignore
           }
         }
         await Future.delayed(const Duration(seconds: 1));
       }
+      expect(isolate, isNotNull);
 
       final completer = Completer<void>();
       int i = 0;
@@ -117,9 +123,11 @@ void main() {
                 // Ensure the number of CPU samples in the CpuSample event is
                 // is consistent with the number of samples in the cache.
                 expect(event.cpuSamples, isNotNull);
-                count += event.cpuSamples!.samples!
+                final sampleCount = event.cpuSamples!.samples!
                     .where((e) => e.userTag == kUserTag)
                     .length;
+                expect(sampleCount, event.cpuSamples!.samples!.length);
+                count += sampleCount;
                 final cache = await service.getCachedCpuSamples(
                   isolate.id!,
                   availableCaches.cacheNames.first,
@@ -134,6 +142,11 @@ void main() {
         },
       );
       await service.streamListen(EventStreams.kProfiler);
+      await service.streamCpuSamplesWithUserTag(['Testing']);
+      // Have another client register for samples from another UserTag. The
+      // main client should not see any samples with the 'Baz' tag.
+      await otherService.streamListen(EventStreams.kProfiler);
+      await otherService.streamCpuSamplesWithUserTag(['Testing', 'Baz']);
       await service.resume(isolate.id!);
       await completer.future;
     },

@@ -166,6 +166,7 @@ class TestingServers {
       server.addHandler('/$prefixBuildDir', fileHandler);
       server.addHandler('/$prefixDartDir', fileHandler);
       server.addHandler('/packages', fileHandler);
+      server.addHandler('/upload', _handleUploadRequest);
       _serverList.add(httpServer);
       return server;
     });
@@ -237,6 +238,23 @@ class TestingServers {
     });
   }
 
+  void _handleUploadRequest(HttpRequest request) async {
+    try {
+      var builder = await request.fold(BytesBuilder(), (var b, var d) {
+        b.add(d);
+        return b;
+      });
+      var data = builder.takeBytes();
+      DebugLogger.info(
+          'Uploaded data: ${String.fromCharCodes(data as Iterable<int>)}');
+      request.response.headers.set("Access-Control-Allow-Origin", "*");
+      request.response.close();
+    } catch (e) {
+      DebugLogger.warning(
+          'HttpServer: error while processing upload request', e);
+    }
+  }
+
   Uri _getFileUriFromRequestUri(Uri request) {
     // Go to the top of the file to see an explanation of the URL path scheme.
     var pathSegments = request.normalizePath().pathSegments;
@@ -283,6 +301,7 @@ class TestingServers {
     <html>
     <head>
       <title>${request.uri.path}</title>
+      <meta charset="utf-8">
     </head>
     <body>
       <code>

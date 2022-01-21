@@ -161,17 +161,17 @@ class LinkMock extends FileSystemEntity implements Link {
 }
 
 Future<Socket> socketConnect(dynamic host, int port,
-    {dynamic sourceAddress, Duration? timeout}) {
+    {dynamic sourceAddress, int sourcePort = 0, Duration? timeout}) async {
   throw "";
 }
 
 Future<ConnectionTask<Socket>> socketStartConnect(dynamic host, int port,
-    {dynamic sourceAddress}) {
+    {dynamic sourceAddress, int sourcePort = 0}) async {
   throw "";
 }
 
 Future<ServerSocket> serverSocketBind(dynamic address, int port,
-    {int backlog: 0, bool v6Only: false, bool shared: false}) {
+    {int backlog: 0, bool v6Only: false, bool shared: false}) async {
   throw "";
 }
 
@@ -217,9 +217,9 @@ Future<Null> ioOverridesRunTest() async {
       Expect.identical(
           _mockFileSystemEvent, new Directory("directory").watch());
       Expect.isTrue(new Link("link") is LinkMock);
-      asyncExpectThrows(() async => await Socket.connect(null, 0));
-      asyncExpectThrows(() async => await Socket.startConnect(null, 0));
-      asyncExpectThrows(() async => await ServerSocket.bind(null, 0));
+      asyncExpectThrows(Socket.connect(null, 0));
+      asyncExpectThrows(Socket.startConnect(null, 0));
+      asyncExpectThrows(ServerSocket.bind(null, 0));
       Expect.isTrue(stdin is StdinMock);
       Expect.identical(stdout, stdoutMock);
       Expect.identical(stderr, stderrMock);

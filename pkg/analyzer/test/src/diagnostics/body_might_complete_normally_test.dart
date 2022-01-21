@@ -222,16 +222,6 @@ main() {
 ''');
   }
 
-  test_functionExpression_nullable_blockBody() async {
-    await assertNoErrorsInCode(r'''
-main() {
-  int? Function() foo = () {
-  };
-  foo;
-}
-''');
-  }
-
   test_generativeConstructor_blockBody() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -346,14 +336,6 @@ class A {
     await assertNoErrorsInCode(r'''
 class A {
   int foo() => throw 0;
-}
-''');
-  }
-
-  test_method_nullable_blockBody() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  int? foo() {}
 }
 ''');
   }

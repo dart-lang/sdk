@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → void {
+  function f({core::int* x = #C1}) → core::int*
+    return null;
+  new mai::Registry::•().{mai::DynamicDispatchRegistry::register}(f){(({x: core::int*}) →* core::int*) →* ({x: core::int*}) →* core::int*};
+}
+
+constants  {
+  #C1 = null
+}

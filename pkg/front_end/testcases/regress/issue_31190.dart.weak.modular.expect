@@ -1,0 +1,41 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_31190.dart:6:3: Error: Can't use type arguments with type variable 'T'.
+// Try removing the type arguments.
+//   T<U> v;
+//   ^
+//
+// pkg/front_end/testcases/regress/issue_31190.dart:6:5: Error: Type 'U' not found.
+//   T<U> v;
+//     ^
+//
+// pkg/front_end/testcases/regress/issue_31190.dart:6:5: Error: 'U' isn't a type.
+//   T<U> v;
+//     ^
+//
+// pkg/front_end/testcases/regress/issue_31190.dart:6:3: Error: Expected 0 type arguments.
+//   T<U> v;
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Typed<T extends core::Object* = dynamic> extends core::Object {
+  field invalid-type v = null;
+  synthetic constructor •() → self::Typed<self::Typed::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

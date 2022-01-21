@@ -228,6 +228,8 @@ class VMService extends MessageRouter {
 
   final devfs = DevFS();
 
+  final _profilerUserTagSubscriptions = <String>{};
+
   Uri? get ddsUri => _ddsUri;
   Uri? _ddsUri;
 
@@ -300,7 +302,7 @@ class VMService extends MessageRouter {
         _vmCancelStream(streamId);
       }
     }
-
+    _cleanupUnusedUserTagSubscriptions();
     for (final service in client.services.keys) {
       _eventMessageHandler(
           'Service',
@@ -336,10 +338,35 @@ class VMService extends MessageRouter {
     }
   }
 
+  void _profilerEventMessageHandler(Client client, Response event) {
+    final eventJson = event.decodeJson() as Map<String, dynamic>;
+    final eventData = eventJson['params']!['event']!;
+    if (eventData['kind']! != 'CpuSamples') {
+      client.post(event);
+      return;
+    }
+    final cpuSamplesEvent = eventData['cpuSamples']!;
+    final updatedSamples = cpuSamplesEvent['samples']!
+        .where(
+          (s) => client.profilerUserTagFilters.contains(s['userTag']),
+        )
+        .toList();
+    if (updatedSamples.isEmpty) {
+      return;
+    }
+    cpuSamplesEvent['samples'] = updatedSamples;
+    cpuSamplesEvent['sampleCount'] = updatedSamples.length;
+    client.post(Response.json(eventJson));
+  }
+
   void _eventMessageHandler(String streamId, Response event) {
     for (final client in clients) {
       if (client.sendEvents && client.streams.contains(streamId)) {
-        client.post(event);
+        if (streamId == 'Profiler') {
+          _profilerEventMessageHandler(client, event);
+        } else {
+          client.post(event);
+        }
       }
     }
   }
@@ -522,7 +549,9 @@ class VMService extends MessageRouter {
       return encodeRpcError(message, kStreamAlreadySubscribed);
     }
     if (!_isAnyClientSubscribed(streamId)) {
-      if (!serviceStreams.contains(streamId) && !_vmListenStream(streamId)) {
+      final includePrivates = message.params['_includePrivateMembers'] == true;
+      if (!serviceStreams.contains(streamId) &&
+          !_vmListenStream(streamId, includePrivates)) {
         return encodeRpcError(message, kInvalidParams,
             details: "streamListen: invalid 'streamId' parameter: ${streamId}");
       }
@@ -665,6 +694,57 @@ class VMService extends MessageRouter {
     return encodeResult(message, protocols);
   }
 
+  void _cleanupUnusedUserTagSubscriptions() {
+    final unsubscribeableTags = <String>[];
+    for (final subscribedTag in _profilerUserTagSubscriptions) {
+      bool hasSubscriber = false;
+      for (final c in clients) {
+        if (c.profilerUserTagFilters.contains(subscribedTag)) {
+          hasSubscriber = true;
+          break;
+        }
+      }
+      if (!hasSubscriber) {
+        unsubscribeableTags.add(subscribedTag);
+      }
+    }
+    if (unsubscribeableTags.isNotEmpty) {
+      _profilerUserTagSubscriptions.removeAll(unsubscribeableTags);
+      _removeUserTagsFromStreamableSampleList(unsubscribeableTags);
+    }
+  }
+
+  Future<String> _streamCpuSamplesWithUserTag(Message message) async {
+    if (!message.params.containsKey('userTags')) {
+      return encodeRpcError(message, kInvalidParams,
+          details: "Missing required parameter 'userTags'.");
+    }
+
+    // TODO(bkonyi): handle "subscribe all" case.
+    final client = message.client!;
+    final tags = message.params['userTags']!.cast<String>().toSet();
+    final newTags = tags.difference(_profilerUserTagSubscriptions);
+
+    // Clear the previously set user tag subscriptions for the client and
+    // update with the new list of user tags.
+    client.profilerUserTagFilters.clear();
+    _profilerUserTagSubscriptions.addAll(tags);
+    client.profilerUserTagFilters.addAll(tags);
+
+    // If any previously unseen user tag is provided, let the VM know that
+    // samples with that user tag should be streamed on the Profiler stream.
+    if (newTags.isNotEmpty) {
+      _addUserTagsToStreamableSampleList(newTags.toList());
+    }
+
+    // Some user tags may no longer be of any interest to the existing clients.
+    // Check that all user tags have at least one client interested in them,
+    // otherwise notify the VM that we're no longer interested in samples with
+    // those user tags.
+    _cleanupUnusedUserTagSubscriptions();
+    return encodeSuccess(message);
+  }
+
   Future<Response?> routeRequest(VMService _, Message message) async {
     final response = await _routeRequestImpl(message);
     if (response == null) {
@@ -694,6 +774,9 @@ class VMService extends MessageRouter {
       }
       if (message.method == 'getSupportedProtocols') {
         return await _getSupportedProtocols(message);
+      }
+      if (message.method == 'streamCpuSamplesWithUserTag') {
+        return await _streamCpuSamplesWithUserTag(message);
       }
       if (devfs.shouldHandleMessage(message)) {
         return await devfs.handleMessage(message);
@@ -750,7 +833,7 @@ external void _onServerAddressChange(String? address);
 
 /// Subscribe to a service stream.
 @pragma("vm:external-name", "VMService_ListenStream")
-external bool _vmListenStream(String streamId);
+external bool _vmListenStream(String streamId, bool include_privates);
 
 /// Cancel a subscription to a service stream.
 @pragma("vm:external-name", "VMService_CancelStream")
@@ -759,3 +842,9 @@ external void _vmCancelStream(String streamId);
 /// Get the bytes to the tar archive.
 @pragma("vm:external-name", "VMService_RequestAssets")
 external Uint8List _requestAssets();
+
+@pragma("vm:external-name", "VMService_AddUserTagsToStreamableSampleList")
+external void _addUserTagsToStreamableSampleList(List<String> userTags);
+
+@pragma("vm:external-name", "VMService_RemoveUserTagsFromStreamableSampleList")
+external void _removeUserTagsFromStreamableSampleList(List<String> userTags);

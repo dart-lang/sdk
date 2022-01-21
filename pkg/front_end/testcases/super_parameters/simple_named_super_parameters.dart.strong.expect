@@ -1,0 +1,68 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:15:22: Error: Duplicated named argument 'foo'.
+//   C1({required super.foo}) : super(foo: foo); // Error.
+//                      ^^^
+//
+// pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:25:37: Error: No named parameter with the name 'baz'.
+//   B2() : super(foo: 42, bar: "bar", baz: false); // Error.
+//                                     ^^^
+//
+// pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:29:35: Error: Required named parameter 'bar' must be provided.
+//   C2({required super.foo}) : super(); // Error.
+//                                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  final field core::int foo;
+  constructor •({required core::int foo = #C1}) → self::A1
+    : self::A1::foo = foo, super core::Object::•()
+    ;
+}
+class B1 extends self::A1 {
+  constructor •({required core::int foo = #C1}) → self::B1
+    : super self::A1::•(foo: foo)
+    ;
+}
+class C1 extends self::A1 {
+  constructor •({required core::int foo = #C1}) → self::C1
+    : super self::A1::•(foo: invalid-expression "pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:15:22: Error: Duplicated named argument 'foo'.
+  C1({required super.foo}) : super(foo: foo); // Error.
+                     ^^^" in block {
+      foo;
+    } =>foo)
+    ;
+}
+class A2 extends core::Object {
+  final field core::int foo;
+  final field core::String bar;
+  constructor •({required core::int foo = #C1, required core::String bar = #C1}) → self::A2
+    : self::A2::foo = foo, self::A2::bar = bar, super core::Object::•()
+    ;
+}
+class B2 extends self::A2 {
+  constructor •() → self::B2
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:25:37: Error: No named parameter with the name 'baz'.
+  B2() : super(foo: 42, bar: \"bar\", baz: false); // Error.
+                                    ^^^"
+    ;
+}
+class C2 extends self::A2 {
+  constructor •({required core::int foo = #C1}) → self::C2
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/super_parameters/simple_named_super_parameters.dart:29:35: Error: Required named parameter 'bar' must be provided.
+  C2({required super.foo}) : super(); // Error.
+                                  ^"
+    ;
+  constructor other({required core::int foo = #C1}) → self::C2
+    : super self::A2::•(bar: "bar", foo: foo)
+    ;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

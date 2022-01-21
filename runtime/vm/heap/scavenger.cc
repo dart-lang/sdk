@@ -165,21 +165,25 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       return;
     }
 
+    // Explicit ifdefs because the compiler does not eliminate the unused
+    // relaxed load.
+#if defined(DEBUG)
     // Validate 'this' is a typed data view.
     const uword view_header = ReadHeaderRelaxed(view);
     ASSERT(!IsForwarding(view_header) || view->IsOldObject());
     ASSERT(IsTypedDataViewClassId(view->GetClassIdMayBeSmi()));
 
-    // Validate that the backing store is not a forwarding word.
+    // Validate that the backing store is not a forwarding word. There is a data
+    // race reader the backing store's header unless there is only one worker.
     TypedDataBasePtr td = view->untag()->typed_data();
     ASSERT(td->IsHeapObject());
-    const uword td_header = ReadHeaderRelaxed(td);
-    ASSERT(!IsForwarding(td_header) || td->IsOldObject());
-
     if (!parallel) {
-      // When there is only one worker, there is no data race.
+      const uword td_header = ReadHeaderRelaxed(td);
+      ASSERT(!IsForwarding(td_header) || td->IsOldObject());
+
       ASSERT_EQUAL(IsExternalTypedDataClassId(td->GetClassId()), is_external);
     }
+#endif
 
     // If we have external typed data we can simply return since the backing
     // store lives in C-heap and will not move.
@@ -188,9 +192,11 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     }
 
     // Now we update the inner pointer.
+#if defined(DEBUG)
     if (!parallel) {
       ASSERT(IsTypedDataClassId(td->GetClassId()));
     }
+#endif
     view->untag()->RecomputeDataFieldForInternalTypedData();
   }
 

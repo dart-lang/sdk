@@ -12,7 +12,7 @@ import "../source/source_class_builder.dart";
 
 import "../problems.dart" show unhandled;
 
-import 'class_hierarchy_builder.dart';
+import 'hierarchy/class_member.dart';
 import 'combined_member_signature.dart';
 
 class ForwardingNode {
@@ -49,7 +49,7 @@ class ForwardingNode {
     SourceClassBuilder classBuilder = _combinedMemberSignature.classBuilder;
     ClassMember canonicalMember = _combinedMemberSignature.canonicalMember!;
     Member interfaceMember =
-        canonicalMember.getMember(_combinedMemberSignature.hierarchy);
+        canonicalMember.getMember(_combinedMemberSignature.membersBuilder);
 
     bool needMixinStub =
         classBuilder.isMixinApplication && _mixedInMember != null;
@@ -83,7 +83,8 @@ class ForwardingNode {
             needsTypeOrCovarianceUpdate) ||
         needMixinStub;
     bool needsSuperImpl = _superClassMember != null &&
-        _superClassMember!.getCovariance(_combinedMemberSignature.hierarchy) !=
+        _superClassMember!
+                .getCovariance(_combinedMemberSignature.membersBuilder) !=
             _combinedMemberSignature.combinedMemberSignatureCovariance;
     if (stubNeeded) {
       Procedure stub = _combinedMemberSignature.createMemberFromSignature(
@@ -114,8 +115,8 @@ class ForwardingNode {
           }
         } else {
           stubKind = ProcedureStubKind.AbstractMixinStub;
-          finalTarget =
-              _mixedInMember!.getMember(_combinedMemberSignature.hierarchy);
+          finalTarget = _mixedInMember!
+              .getMember(_combinedMemberSignature.membersBuilder);
         }
 
         stub.stubKind = stubKind;
@@ -159,7 +160,7 @@ class ForwardingNode {
     }
     Procedure procedure = function.parent as Procedure;
     Member superTarget =
-        _superClassMember!.getMember(_combinedMemberSignature.hierarchy);
+        _superClassMember!.getMember(_combinedMemberSignature.membersBuilder);
     if (superTarget is Procedure && superTarget.isForwardingStub) {
       Procedure superProcedure = superTarget;
       superTarget = superProcedure.concreteForwardingStubTarget!;

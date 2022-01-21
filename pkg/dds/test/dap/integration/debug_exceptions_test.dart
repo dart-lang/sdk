@@ -70,6 +70,25 @@ main() {
         exceptionPauseMode: 'All',
       );
     });
+
+    test('parses line/column information from stack traces', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleThrowingProgram);
+      final exceptionLine = lineWith(testFile, 'throw');
+      final outputEvents = await client.collectOutput(file: testFile);
+
+      // Find the output event for the top of the printed stack trace.
+      // It should look something like:
+      // #0      main (file:///var/folders/[...]/app3JZLvu/test_file.dart:2:5)
+      final mainStackFrameEvent = outputEvents
+          .firstWhere((event) => event.output.startsWith('#0      main'));
+
+      // Expect that there is metadata attached that matches the file/location we
+      // expect.
+      expect(mainStackFrameEvent.source?.path, testFile.path);
+      expect(mainStackFrameEvent.line, exceptionLine);
+      expect(mainStackFrameEvent.column, 5);
+    });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }

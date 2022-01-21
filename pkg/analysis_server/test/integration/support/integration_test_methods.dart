@@ -64,6 +64,26 @@ abstract class IntegrationTestMixin {
     return null;
   }
 
+  /// Requests cancellation of a request sent by the client by id. This is
+  /// provided on a best-effort basis and there is no guarantee the server will
+  /// be able to cancel any specific request. The server will still always
+  /// produce a response to the request even in the case of cancellation, but
+  /// clients should discard any results of any cancelled request because they
+  /// may be incomplete or inaccurate. This request always completes without
+  /// error regardless of whether the request is successfully cancelled.
+  ///
+  /// Parameters
+  ///
+  /// id: String
+  ///
+  ///   The id of the request that should be cancelled.
+  Future sendServerCancelRequest(String id) async {
+    var params = ServerCancelRequestParams(id).toJson();
+    var result = await server.send('server.cancelRequest', params);
+    outOfTestExpect(result, isNull);
+    return null;
+  }
+
   /// Reports that the server is running. This notification is issued once
   /// after the server has started running but before any requests are
   /// processed to let the client know that it started correctly.
@@ -1001,19 +1021,7 @@ abstract class IntegrationTestMixin {
   ///
   ///   This list contains suggestions from both imported, and not yet imported
   ///   libraries. Items from not yet imported libraries will have
-  ///   libraryUriToImportIndex set, which is an index into the
-  ///   libraryUrisToImport in this response.
-  ///
-  /// libraryUrisToImport: List<String>
-  ///
-  ///   The list of libraries with declarations that are not yet available in
-  ///   the file where completion was requested, most often because the library
-  ///   is not yet imported. The declarations still might be included into the
-  ///   suggestions, and the client should use getSuggestionDetails2 on
-  ///   selection to make the library available in the file.
-  ///
-  ///   Each item is the URI of a library, such as package:foo/bar.dart or
-  ///   file:///home/me/workspace/foo/test/bar_test.dart.
+  ///   isNotImported set to true.
   ///
   /// isIncomplete: bool
   ///
@@ -1021,8 +1029,12 @@ abstract class IntegrationTestMixin {
   ///   requested maxResults.
   Future<CompletionGetSuggestions2Result> sendCompletionGetSuggestions2(
       String file, int offset, int maxResults,
-      {int? timeout}) async {
+      {CompletionMode? completionMode,
+      int? invocationCount,
+      int? timeout}) async {
     var params = CompletionGetSuggestions2Params(file, offset, maxResults,
+            completionMode: completionMode,
+            invocationCount: invocationCount,
             timeout: timeout)
         .toJson();
     var result = await server.send('completion.getSuggestions2', params);
@@ -1124,7 +1136,7 @@ abstract class IntegrationTestMixin {
   }
 
   /// Clients must make this request when the user has selected a completion
-  /// suggestion with the libraryUriToImportIndex field set. The server will
+  /// suggestion with the isNotImported field set to true. The server will
   /// respond with the text to insert, as well as any SourceChange that needs
   /// to be applied in case the completion requires an additional import to be
   /// added. The text to insert might be different from the original suggestion

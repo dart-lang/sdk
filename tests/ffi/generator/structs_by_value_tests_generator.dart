@@ -399,7 +399,7 @@ extension on CType {
     switch (this.runtimeType) {
       case FundamentalType:
         final this_ = this as FundamentalType;
-        if (this_.isInteger) {
+        if (this_.isInteger || this_.isBool) {
           return "CHECK_EQ(${expected}, ${actual});";
         }
         assert(this_.isFloatingPoint);
@@ -426,7 +426,7 @@ for (intptr_t i = 0; i < ${this_.length}; i++){
     switch (this.runtimeType) {
       case FundamentalType:
         final this_ = this as FundamentalType;
-        if (this_.isInteger) {
+        if (this_.isInteger || this_.isBool) {
           return "CHECK_EQ(0, ${actual});";
         }
         assert(this_.isFloatingPoint);
@@ -921,6 +921,7 @@ ${headerCommon(copyrightYear: copyrightYear)}
 $dartVersion
 
 import 'dart:ffi';
+
 """;
 }
 
@@ -929,7 +930,7 @@ String compoundsPath({required bool isNnbd}) {
   return Platform.script
       .resolve(
           "../../$folder/function_structs_by_value_generated_compounds.dart")
-      .path;
+      .toFilePath();
 }
 
 Future<void> writeDartCompounds() async {
@@ -963,6 +964,7 @@ import 'dart:ffi';
 
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
+
 
 import 'dylib_utils.dart';
 
@@ -1001,7 +1003,7 @@ String callTestPath({required bool isNnbd, required bool isLeaf}) {
   return Platform.script
       .resolve(
           "../../$folder/function_structs_by_value_generated${suffix}_test.dart")
-      .path;
+      .toFilePath();
 }
 
 headerDartCallbackTest({required bool isNnbd, required int copyrightYear}) {
@@ -1022,6 +1024,7 @@ import 'dart:ffi';
 
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
+
 
 import 'callback_tests_utils.dart';
 
@@ -1067,7 +1070,7 @@ String callbackTestPath({required bool isNnbd}) {
   return Platform.script
       .resolve(
           "../../$folder/function_callbacks_structs_by_value_generated_test.dart")
-      .path;
+      .toFilePath();
 }
 
 headerC({required int copyrightYear}) {
@@ -1128,7 +1131,7 @@ Future<void> writeC() async {
 
 final ccPath = Platform.script
     .resolve("../../../runtime/bin/ffi_test/ffi_test_functions_generated.cc")
-    .path;
+    .toFilePath();
 
 void printUsage() {
   print("""

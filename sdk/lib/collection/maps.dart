@@ -125,9 +125,9 @@ abstract class MapMixin<K, V> implements Map<K, V> {
   }
 
   void addAll(Map<K, V> other) {
-    for (K key in other.keys) {
-      this[key] = other[key] as V;
-    }
+    other.forEach((K key, V value) {
+      this[key] = value;
+    });
   }
 
   bool containsValue(Object? value) {
@@ -200,7 +200,7 @@ abstract class MapMixin<K, V> implements Map<K, V> {
 /// Basic implementation of an unmodifiable [Map].
 ///
 /// This class has a basic implementation of all but two of the members of
-/// an umodifiable [Map].
+/// an unmodifiable [Map].
 /// A simple unmodifiable `Map` class can be implemented by extending this
 /// class and implementing `keys` and `operator[]`.
 ///
@@ -376,6 +376,17 @@ class MapView<K, V> implements Map<K, V> {
 /// A wrapper around a `Map` that forwards all members to the map provided in
 /// the constructor, except for operations that modify the map.
 /// Modifying operations throw instead.
+///
+/// ```dart
+/// final baseMap = <int, String>{1: 'Mars', 2: 'Mercury', 3: 'Venus'};
+/// final unmodifiableMapView = UnmodifiableMapView(baseMap);
+///
+/// // Remove an entry from the original map.
+/// baseMap.remove(3);
+/// print(unmodifiableMapView); // {1: Mars, 2: Mercury}
+///
+/// unmodifiableMapView.remove(1); // Throws.
+/// ```
 class UnmodifiableMapView<K, V> extends MapView<K, V>
     with _UnmodifiableMapMixin<K, V> {
   UnmodifiableMapView(Map<K, V> map) : super(map);

@@ -235,6 +235,15 @@ final Matcher isClosingLabel = LazyMatcher(() => MatchesJsonObject(
 /// String
 final Matcher isCompletionId = isString;
 
+/// CompletionMode
+///
+/// enum {
+///   BASIC
+///   SMART
+/// }
+final Matcher isCompletionMode =
+    MatchesEnum('CompletionMode', ['BASIC', 'SMART']);
+
 /// CompletionService
 ///
 /// enum {
@@ -296,7 +305,7 @@ final Matcher isCompletionSuggestion =
           'hasNamedParameters': isBool,
           'parameterName': isString,
           'parameterType': isString,
-          'libraryUriToImportIndex': isInt
+          'isNotImported': isBool
         }));
 
 /// CompletionSuggestionKind
@@ -375,7 +384,8 @@ final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
       'parameters': isString,
       'returnType': isString,
       'typeParameters': isString,
-      'aliasedType': isString
+      'aliasedType': isString,
+      'libraryUri': isString
     }));
 
 /// ElementDeclaration
@@ -2138,9 +2148,15 @@ final Matcher isCompletionGetSuggestionDetailsResult = LazyMatcher(() =>
 ///   "maxResults": int
 /// }
 final Matcher isCompletionGetSuggestions2Params = LazyMatcher(() =>
-    MatchesJsonObject('completion.getSuggestions2 params',
-        {'file': isFilePath, 'offset': isInt, 'maxResults': isInt},
-        optionalFields: {'timeout': isInt}));
+    MatchesJsonObject('completion.getSuggestions2 params', {
+      'file': isFilePath,
+      'offset': isInt,
+      'maxResults': isInt
+    }, optionalFields: {
+      'completionMode': isCompletionMode,
+      'invocationCount': isInt,
+      'timeout': isInt
+    }));
 
 /// completion.getSuggestions2 result
 ///
@@ -2148,7 +2164,6 @@ final Matcher isCompletionGetSuggestions2Params = LazyMatcher(() =>
 ///   "replacementOffset": int
 ///   "replacementLength": int
 ///   "suggestions": List<CompletionSuggestion>
-///   "libraryUrisToImport": List<String>
 ///   "isIncomplete": bool
 /// }
 final Matcher isCompletionGetSuggestions2Result =
@@ -2156,7 +2171,6 @@ final Matcher isCompletionGetSuggestions2Result =
           'replacementOffset': isInt,
           'replacementLength': isInt,
           'suggestions': isListOf(isCompletionSuggestion),
-          'libraryUrisToImport': isListOf(isString),
           'isIncomplete': isBool
         }));
 
@@ -3013,6 +3027,17 @@ final Matcher isSearchGetTypeHierarchyResult = LazyMatcher(() =>
 final Matcher isSearchResultsParams = LazyMatcher(() => MatchesJsonObject(
     'search.results params',
     {'id': isSearchId, 'results': isListOf(isSearchResult), 'isLast': isBool}));
+
+/// server.cancelRequest params
+///
+/// {
+///   "id": String
+/// }
+final Matcher isServerCancelRequestParams = LazyMatcher(
+    () => MatchesJsonObject('server.cancelRequest params', {'id': isString}));
+
+/// server.cancelRequest result
+final Matcher isServerCancelRequestResult = isNull;
 
 /// server.connected params
 ///

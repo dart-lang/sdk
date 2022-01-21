@@ -1,0 +1,12 @@
+Object? test(void Function() f) {}
+
+class Class {
+  const Class(Object? message) : assert(false, message);
+}
+
+class Const {
+  const Const();
+}
+
+expect(expected, actual) {}
+main() {}

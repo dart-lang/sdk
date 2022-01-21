@@ -4,10 +4,19 @@
 
 /*library: 
  compilationSequence=[
-  package:macro_builder/src/macro.dart,
-  macro_lib1.dart|macro_lib2a.dart|package:macro_builder/macro_builder.dart,
+  package:_fe_analyzer_shared/src/macros/api.dart,
+  macro_lib1.dart|macro_lib2a.dart,
   macro_lib2b.dart,
   main.dart],
+ macroClassIds=[
+  macro_lib1.dart/Macro1,
+  macro_lib2a.dart/Macro2a,
+  macro_lib2b.dart/Macro2b],
+ macroInstanceIds=[
+  macro_lib1.dart/Macro1/(),
+  macro_lib2a.dart/Macro2a/(),
+  macro_lib2a.dart/Macro2a/(),
+  macro_lib2b.dart/Macro2b/()],
  macrosAreApplied,
  macrosAreAvailable
 */
@@ -16,11 +25,11 @@ import 'macro_lib1.dart';
 import 'macro_lib2a.dart';
 import 'macro_lib2b.dart';
 
+/*member: main:appliedMacros=[
+  Macro1.new,
+  Macro2a.new,
+  Macro2b.new]*/
 @Macro1()
 @Macro2a()
 @Macro2b()
-/*member: main:appliedMacros=[
-  Macro1,
-  Macro2a,
-  Macro2b]*/
 void main() {}

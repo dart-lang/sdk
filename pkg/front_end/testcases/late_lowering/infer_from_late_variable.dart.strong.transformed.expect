@@ -9,7 +9,7 @@ static method main() → dynamic {
   lowered core::int? #local;
   function #local#get() → core::int
     return let final core::int? #t1 = #local in #t1 == null ?{core::int} throw new _in::LateError::localNI("local") : #t1{core::int};
-  function #local#set(core::int #t2) → dynamic
-    return #local = #t2;
+  function #local#set(core::int local#param) → dynamic
+    return #local = local#param;
   #local#set(self::f<core::int>(0)){(core::int) → dynamic};
 }

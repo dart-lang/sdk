@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--use_table_dispatch=false
-// VMOptions=--use_table_dispatch=true
-
 import "splay_test.dart" deferred as splay; // Some non-trivial code.
 
 main() async {

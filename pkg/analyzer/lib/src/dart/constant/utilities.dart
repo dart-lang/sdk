@@ -172,7 +172,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
       var constructor = node.constructorName.staticElement?.declaration;
-      if (constructor != null) {
+      if (constructor != null && constructor.isConst) {
         _callback(constructor);
       }
     }

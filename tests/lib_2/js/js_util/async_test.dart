@@ -44,8 +44,9 @@ main() {
   }
 
   Future<void> testRejectedPromise() async {
-    asyncExpectThrows<String>(() => js_util.promiseToFuture(rejectedPromise),
-        (String error) => error == 'rejected');
+    final String error = await asyncExpectThrows<String>(
+        js_util.promiseToFuture(rejectedPromise));
+    expect(error, equals('rejected'));
   }
 
   Future<void> testReturnResolvedPromise() async {

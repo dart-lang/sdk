@@ -16,9 +16,11 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 part 'abi.dart';
+part 'abi_specific.dart';
 part 'native_type.dart';
 part 'allocation.dart';
 part 'annotations.dart';
+part 'c_type.dart';
 part 'dynamic_library.dart';
 part 'struct.dart';
 part 'union.dart';
@@ -447,50 +449,6 @@ extension Uint64Pointer on Pointer<Uint64> {
   external Uint64List asTypedList(int length);
 }
 
-/// Extension on [Pointer] specialized for the type argument [IntPtr].
-extension IntPtrPointer on Pointer<IntPtr> {
-  /// The 32 or 64-bit two's complement integer at [address].
-  ///
-  /// On 32-bit platforms this is a 32-bit integer, and on 64-bit platforms
-  /// this is a 64-bit integer.
-  ///
-  /// On 32-bit platforms a Dart integer is truncated to 32 bits (as if by
-  /// `.toSigned(32)`) before being stored, and the 32-bit value is
-  /// sign-extended when it is loaded.
-  ///
-  /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
-  /// platforms the [address] must be 8-byte aligned.
-  external int get value;
-
-  external void set value(int value);
-
-  /// The 32 or 64-bit two's complement integer at `address + (4 or 8) * index`.
-  ///
-  /// On 32-bit platforms this is a 32-bit integer, and on 64-bit platforms
-  /// this is a 64-bit integer.
-  ///
-  /// On 32-bit platforms a Dart integer is truncated to 32 bits (as if by
-  /// `.toSigned(32)`) before being stored, and the 32-bit value is
-  /// sign-extended when it is loaded.
-  ///
-  /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
-  /// platforms the [address] must be 8-byte aligned.
-  external int operator [](int index);
-
-  /// The 32 or 64-bit two's complement integer at `address + (4 or 8) * index`.
-  ///
-  /// On 32-bit platforms this is a 32-bit integer, and on 64-bit platforms
-  /// this is a 64-bit integer.
-  ///
-  /// On 32-bit platforms a Dart integer is truncated to 32 bits (as if by
-  /// `.toSigned(32)`) before being stored, and the 32-bit value is
-  /// sign-extended when it is loaded.
-  ///
-  /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
-  /// platforms the [address] must be 8-byte aligned.
-  external void operator []=(int index, int value);
-}
-
 /// Extension on [Pointer] specialized for the type argument [Float].
 extension FloatPointer on Pointer<Float> {
   /// The float at [address].
@@ -632,13 +590,6 @@ extension Uint64Array on Array<Uint64> {
   external void operator []=(int index, int value);
 }
 
-/// Bounds checking indexing methods on [Array]s of [IntPtr].
-extension IntPtrArray on Array<IntPtr> {
-  external int operator [](int index);
-
-  external void operator []=(int index, int value);
-}
-
 /// Bounds checking indexing methods on [Array]s of [Float].
 extension FloatArray on Array<Float> {
   external double operator [](int index);
@@ -698,14 +649,20 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
 
 /// Extension on [Pointer] specialized for the type argument [Struct].
 extension StructPointer<T extends Struct> on Pointer<T> {
-  /// Creates a reference to access the fields of this struct backed by native
-  /// memory at [address].
+  /// A Dart view of the struct referenced by this pointer.
   ///
+  /// Reading [ref] creates a reference accessing the fields of this struct
+  /// backed by native memory at [address].
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
   ///
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// Assigning to [ref] copies contents of the struct into the native memory
+  /// starting at [address].
+  ///
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T get ref;
+  external set ref(T value);
 
   /// Creates a reference to access the fields of this struct backed by native
   /// memory at `address + sizeOf<T>() * index`.
@@ -713,20 +670,34 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   /// The [address] must be aligned according to the struct alignment rules of
   /// the platform.
   ///
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T operator [](int index);
+
+  /// Copies the [value] struct into native memory, starting at
+  /// `address * sizeOf<T>() * index`.
+  ///
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
+  external void operator []=(int index, T value);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Union].
 extension UnionPointer<T extends Union> on Pointer<T> {
-  /// Creates a reference to access the fields of this union backed by native
-  /// memory at [address].
+  /// A Dart view of the union referenced by this pointer.
   ///
+  /// Reading [ref] creates a reference accessing the fields of this union
+  /// backed by native memory at [address].
   /// The [address] must be aligned according to the union alignment rules of
   /// the platform.
   ///
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// Assigning to [ref] copies contents of the union into the native memory
+  /// starting at [address].
+  ///
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T get ref;
+  external set ref(T value);
 
   /// Creates a reference to access the fields of this union backed by native
   /// memory at `address + sizeOf<T>() * index`.
@@ -734,8 +705,32 @@ extension UnionPointer<T extends Union> on Pointer<T> {
   /// The [address] must be aligned according to the union alignment rules of
   /// the platform.
   ///
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T operator [](int index);
+
+  /// Copies the [value] union into native memory, starting at
+  /// `address * sizeOf<T>() * index`.
+  ///
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
+  external void operator []=(int index, T value);
+}
+
+/// Extension on [Pointer] specialized for the type argument
+/// [AbiSpecificInteger].
+extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
+    on Pointer<T> {
+  /// The integer at [address].
+  external int get value;
+
+  external void set value(int value);
+
+  /// The integer at `address + sizeOf<T>() * index`.
+  external int operator [](int index);
+
+  /// The integer at `address + sizeOf<T>() * index`.
+  external void operator []=(int index, int value);
 }
 
 /// Bounds checking indexing methods on [Array]s of [Pointer].
@@ -747,13 +742,15 @@ extension PointerArray<T extends NativeType> on Array<Pointer<T>> {
 
 /// Bounds checking indexing methods on [Array]s of [Struct].
 extension StructArray<T extends Struct> on Array<T> {
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T operator [](int index);
 }
 
 /// Bounds checking indexing methods on [Array]s of [Union].
 extension UnionArray<T extends Union> on Array<T> {
-  /// This extension method must be invoked with a compile-time constant [T].
+  /// This extension method must be invoked on a receiver of type `Pointer<T>`
+  /// where `T` is a compile-time constant type.
   external T operator [](int index);
 }
 
@@ -762,6 +759,13 @@ extension ArrayArray<T extends NativeType> on Array<Array<T>> {
   external Array<T> operator [](int index);
 
   external void operator []=(int index, Array<T> value);
+}
+
+/// Bounds checking indexing methods on [Array]s of [AbiSpecificInteger].
+extension AbiSpecificIntegerArray on Array<AbiSpecificInteger> {
+  external int operator [](int index);
+
+  external void operator []=(int index, int value);
 }
 
 /// Extension to retrieve the native `Dart_Port` from a [SendPort].

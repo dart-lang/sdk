@@ -9,6 +9,8 @@
 #error "Should not include runtime"
 #endif
 
+#include <setjmp.h>
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
@@ -149,6 +151,8 @@ class Thread;
     StubCode::LazySpecializeTypeTest().ptr(), nullptr)                         \
   V(CodePtr, enter_safepoint_stub_, StubCode::EnterSafepoint().ptr(), nullptr) \
   V(CodePtr, exit_safepoint_stub_, StubCode::ExitSafepoint().ptr(), nullptr)   \
+  V(CodePtr, exit_safepoint_ignore_unwind_in_progress_stub_,                   \
+    StubCode::ExitSafepointIgnoreUnwindInProgress().ptr(), nullptr)            \
   V(CodePtr, call_native_through_safepoint_stub_,                              \
     StubCode::CallNativeThroughSafepoint().ptr(), nullptr)
 
@@ -198,6 +202,8 @@ class Thread;
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
   V(uword, call_native_through_safepoint_entry_point_,                         \
     StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)                    \
+  V(uword, jump_to_frame_entry_point_, StubCode::JumpToFrame().EntryPoint(),   \
+    0)                                                                         \
   V(uword, slow_type_test_entry_point_, StubCode::SlowTypeTest().EntryPoint(), \
     0)
 
@@ -255,6 +261,35 @@ enum SafepointLevel {
   kGCAndDeopt,
   // Number of levels.
   kNumLevels,
+};
+
+// Accessed from generated code.
+struct TsanUtils {
+  // Used to allow unwinding runtime C frames using longjmp() when throwing
+  // exceptions. This allows triggering the normal TSAN shadow stack unwinding
+  // implementation.
+  // -> See https://dartbug.com/47472#issuecomment-948235479 for details.
+  void* setjmp_function = reinterpret_cast<void*>(&setjmp);
+  jmp_buf* setjmp_buffer = nullptr;
+  uword exception_pc = 0;
+  uword exception_sp = 0;
+  uword exception_fp = 0;
+
+  static intptr_t setjmp_function_offset() {
+    return OFFSET_OF(TsanUtils, setjmp_function);
+  }
+  static intptr_t setjmp_buffer_offset() {
+    return OFFSET_OF(TsanUtils, setjmp_buffer);
+  }
+  static intptr_t exception_pc_offset() {
+    return OFFSET_OF(TsanUtils, exception_pc);
+  }
+  static intptr_t exception_sp_offset() {
+    return OFFSET_OF(TsanUtils, exception_sp);
+  }
+  static intptr_t exception_fp_offset() {
+    return OFFSET_OF(TsanUtils, exception_fp);
+  }
 };
 
 // A VM thread; may be executing Dart code or performing helper tasks like
@@ -441,6 +476,13 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, double_truncate_round_supported_);
   }
 
+  static intptr_t tsan_utils_offset() { return OFFSET_OF(Thread, tsan_utils_); }
+
+#if defined(USING_THREAD_SANITIZER)
+  uword exit_through_ffi() const { return exit_through_ffi_; }
+  TsanUtils* tsan_utils() const { return tsan_utils_; }
+#endif  // defined(USING_THREAD_SANITIZER)
+
   // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
@@ -525,7 +567,10 @@ class Thread : public ThreadState {
 
   bool is_unwind_in_progress() const { return is_unwind_in_progress_; }
 
-  void StartUnwindError() { is_unwind_in_progress_ = true; }
+  void StartUnwindError() {
+    is_unwind_in_progress_ = true;
+    SetUnwindErrorInProgress(true);
+  }
 
 #if defined(DEBUG)
   void EnterCompiler() {
@@ -614,8 +659,7 @@ class Thread : public ThreadState {
   CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_X64)
+#if !defined(TARGET_ARCH_IA32)
   static intptr_t write_barrier_wrappers_thread_offset(Register reg) {
     ASSERT((kDartAvailableCpuRegs & (1 << reg)) != 0);
     intptr_t index = 0;
@@ -773,6 +817,9 @@ class Thread : public ThreadState {
    * - Bit 4 of the safepoint_state_ field is used to indicate that the thread
    *   is blocked at a (deopt)safepoint and has to be woken up once the
    *   (deopt)safepoint operation is complete.
+   * - Bit 6 of the safepoint_state_ field is used to indicate that the isolate
+   *   running on this thread has triggered unwind error, which requires
+   *   enforced exit on a transition from native back to generated.
    *
    * The safepoint execution state (described above) for a thread is stored in
    * in the execution_state_ field.
@@ -863,6 +910,15 @@ class Thread : public ThreadState {
   static uword SetBypassSafepoints(bool value, uword state) {
     return BypassSafepointsField::update(value, state);
   }
+  bool UnwindErrorInProgress() const {
+    return UnwindErrorInProgressField::decode(safepoint_state_);
+  }
+  void SetUnwindErrorInProgress(bool value) {
+    safepoint_state_ =
+        UnwindErrorInProgressField::update(value, safepoint_state_);
+  }
+
+  uword safepoint_state() { return safepoint_state_; }
 
   enum ExecutionState {
     kThreadInVM = 0,
@@ -990,6 +1046,7 @@ class Thread : public ThreadState {
   void InitVMConstants();
 
   Random* random() { return &thread_random_; }
+  static intptr_t random_offset() { return OFFSET_OF(Thread, thread_random_); }
 
   uint64_t* GetFfiMarshalledArguments(intptr_t size) {
     if (ffi_marshalled_arguments_size_ < size) {
@@ -1079,8 +1136,7 @@ class Thread : public ThreadState {
   LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
-    defined(TARGET_ARCH_X64)
+#if !defined(TARGET_ARCH_IA32)
   uword write_barrier_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
 #endif
 
@@ -1098,6 +1154,9 @@ class Thread : public ThreadState {
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
   uint8_t double_truncate_round_supported_;
+  ALIGN8 Random thread_random_;
+
+  TsanUtils* tsan_utils_ = nullptr;
 
   // ---- End accessed from generated code. ----
 
@@ -1135,8 +1194,6 @@ class Thread : public ThreadState {
 
   ErrorPtr sticky_error_;
 
-  Random thread_random_;
-
   intptr_t ffi_marshalled_arguments_size_ = 0;
   uint64_t* ffi_marshalled_arguments_;
 
@@ -1168,6 +1225,8 @@ class Thread : public ThreadState {
                         1> {};
   class BypassSafepointsField
       : public BitField<uword, bool, BlockedForSafepointField::kNextBit, 1> {};
+  class UnwindErrorInProgressField
+      : public BitField<uword, bool, BypassSafepointsField::kNextBit, 1> {};
 
   static uword AtSafepointBits(SafepointLevel level) {
     switch (level) {

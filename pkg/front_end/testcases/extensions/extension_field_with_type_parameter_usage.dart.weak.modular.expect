@@ -1,0 +1,79 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:6:5: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   U field1 = null;
+//     ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:7:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? field2 = () { U x = null; return null; }();
+//        ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:8:12: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   List<U>? field3 = null;
+//            ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:9:18: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   U Function(U)? field4 = null;
+//                  ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:10:30: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   List<U> Function(List<U>)? field5 = null;
+//                              ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:11:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? field6 = <E>() { E? x = null; return null; }<String>();
+//        ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:12:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int? field7 = <E>() { E? x = null; return null; }<U>();
+//        ^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_field_with_type_parameter_usage.dart:13:8: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   Type field8 = U;
+//        ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension E<U extends core::Object? = dynamic> on core::String {
+  field field1 = self::E|field1;
+  field field2 = self::E|field2;
+  field field3 = self::E|field3;
+  field field4 = self::E|field4;
+  field field5 = self::E|field5;
+  field field6 = self::E|field6;
+  field field7 = self::E|field7;
+  field field8 = self::E|field8;
+}
+static field invalid-type E|field1 = null;
+static field core::int? E|field2 = (() → Null {
+  invalid-type x = null;
+  return null;
+})(){() → Null};
+static field core::List<invalid-type>? E|field3 = null;
+static field (invalid-type) →? invalid-type E|field4 = null;
+static field (core::List<invalid-type>) →? core::List<invalid-type> E|field5 = null;
+static field core::int? E|field6 = (<E extends core::Object? = dynamic>() → Null {
+  E? x = null;
+  return null;
+})<core::String>(){() → Null};
+static field core::int? E|field7 = (<E extends core::Object? = dynamic>() → Null {
+  E? x = null;
+  return null;
+})<invalid-type>(){() → Null};
+static field core::Type E|field8 = #C1;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = TypeLiteralConstant(invalid-type)
+}

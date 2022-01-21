@@ -504,7 +504,7 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
 /// See [IdentifierContext.fieldInitializer].
 class FieldInitializerIdentifierContext extends IdentifierContext {
   const FieldInitializerIdentifierContext()
-      : super('fieldInitializer', isContinuation: true);
+      : super('fieldInitializer', inDeclaration: true, isContinuation: true);
 
   @override
   bool get allowsNewAsIdentifier => true;

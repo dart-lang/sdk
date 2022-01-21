@@ -1,0 +1,196 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:47:10: Error: Superclass has no method named '[]'.
+//     super[new Class1()];
+//          ^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:49:10: Error: Superclass has no method named '[]='.
+//     super[0] = new Class1();
+//          ^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:51:11: Error: Superclass has no setter named 'foo'.
+//     super.foo = new Class1();
+//           ^^^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:53:11: Error: Superclass has no method named 'foo'.
+//     super.foo(new Class1());
+//           ^^^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:55:11: Error: Superclass has no method named '+'.
+//     super + new Class1();
+//           ^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:20:5: Error: The operator 'unary-' isn't defined for the class 'Class1'.
+//  - 'Class1' is from 'pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart'.
+// Try correcting the operator to an existing operator, or defining a 'unary-' operator.
+//     -new Class1();
+//     ^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:22:15: Error: The operator '-' isn't defined for the class 'String'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
+//     ('' + '') - new Class1();
+//               ^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:24:12: Error: The operator '[]=' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '[]=' operator.
+//     (0 + 1)[0] = new Class1();
+//            ^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:25:8: Error: The operator '[]=' isn't defined for the class 'Class2'.
+//  - 'Class2' is from 'pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart'.
+// Try correcting the operator to an existing operator, or defining a '[]=' operator.
+//     _c2[0] = new Class1();
+//        ^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:27:12: Error: The operator '[]' isn't defined for the class 'int'.
+// Try correcting the operator to an existing operator, or defining a '[]' operator.
+//     (0 + 1)[new Class1()];
+//            ^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:29:18: Error: The getter 'foo' isn't defined for the class 'Class1'.
+//  - 'Class1' is from 'pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'foo'.
+//     new Class1().foo;
+//                  ^^^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:31:13: Error: The setter 'foo' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'foo'.
+//     (0 + 1).foo = new Class1();
+//             ^^^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:33:18: Error: The method 'foo' isn't defined for the class 'Class1'.
+//  - 'Class1' is from 'pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+//     new Class1().foo();
+//                  ^^^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:35:17: Error: The method 'call' isn't defined for the class 'Class1'.
+//  - 'Class1' is from 'pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'call'.
+//     new Class1()();
+//                 ^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:37:23: Error: 'field' isn't a function or method and can't be invoked.
+//     new Class1().field();
+//                       ^^^^...
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:39:24: Error: 'getter' isn't a function or method and can't be invoked.
+//     new Class1().getter();
+//                        ^^^^...
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:41:8: Error: 'call' isn't a function or method and can't be invoked.
+//     _c2(new Class1());
+//        ^^^^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:43:18: Error: Duplicated named argument 'a'.
+//     method(a: 0, a: new Class1());
+//                  ^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:45:18: Error: Duplicated named argument 'a'.
+//     method(a: 0, a: 1, a: new Class1());
+//                  ^
+//
+// pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:45:24: Error: Duplicated named argument 'a'.
+//     method(a: 0, a: 1, a: new Class1());
+//                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  field core::int field = 0;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor _() → self::Class1
+    : super core::Object::•()
+    ;
+  static factory •() → self::Class1
+    return new self::Class1::_();
+  get getter() → core::int
+    return 0;
+}
+class Class2 extends self::Class1 {
+  final field self::Class2 _c2;
+  constructor •(self::Class2 _c2) → self::Class2
+    : self::Class2::_c2 = _c2, super self::Class1::_() {
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:20:5: Error: The operator 'unary-' isn't defined for the class 'Class1'.
+ - 'Class1' is from 'pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart'.
+Try correcting the operator to an existing operator, or defining a 'unary-' operator.
+    -new Class1();
+    ^" in new self::Class1::_(){<unresolved>}.unary-();
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:22:15: Error: The operator '-' isn't defined for the class 'String'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
+    ('' + '') - new Class1();
+              ^" in "".{core::String::+}(""){(core::String) → core::String}{<unresolved>}.-(new self::Class1::_());
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:24:12: Error: The operator '[]=' isn't defined for the class 'int'.
+Try correcting the operator to an existing operator, or defining a '[]=' operator.
+    (0 + 1)[0] = new Class1();
+           ^" in 0.{core::num::+}(1){(core::num) → core::int}{<unresolved>}.[]=(0, new self::Class1::_());
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:25:8: Error: The operator '[]=' isn't defined for the class 'Class2'.
+ - 'Class2' is from 'pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart'.
+Try correcting the operator to an existing operator, or defining a '[]=' operator.
+    _c2[0] = new Class1();
+       ^" in this.{self::Class2::_c2}{self::Class2}{<unresolved>}.[]=(0, new self::Class1::_());
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:27:12: Error: The operator '[]' isn't defined for the class 'int'.
+Try correcting the operator to an existing operator, or defining a '[]' operator.
+    (0 + 1)[new Class1()];
+           ^" in 0.{core::num::+}(1){(core::num) → core::int}{<unresolved>}.[](new self::Class1::_());
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:29:18: Error: The getter 'foo' isn't defined for the class 'Class1'.
+ - 'Class1' is from 'pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'foo'.
+    new Class1().foo;
+                 ^^^" in new self::Class1::_(){<unresolved>}.foo;
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:31:13: Error: The setter 'foo' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'foo'.
+    (0 + 1).foo = new Class1();
+            ^^^" in 0.{core::num::+}(1){(core::num) → core::int}{<unresolved>}.foo = new self::Class1::_();
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:33:18: Error: The method 'foo' isn't defined for the class 'Class1'.
+ - 'Class1' is from 'pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'foo'.
+    new Class1().foo();
+                 ^^^" in new self::Class1::_(){<unresolved>}.foo();
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:35:17: Error: The method 'call' isn't defined for the class 'Class1'.
+ - 'Class1' is from 'pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'call'.
+    new Class1()();
+                ^" in new self::Class1::_(){<unresolved>}.call();
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:37:23: Error: 'field' isn't a function or method and can't be invoked.
+    new Class1().field();
+                      ^^^^..." in new self::Class1::_().{self::Class1::field}{core::int}{<unresolved>}.call();
+    invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:39:24: Error: 'getter' isn't a function or method and can't be invoked.
+    new Class1().getter();
+                       ^^^^..." in new self::Class1::_().{self::Class1::getter}{core::int}{<unresolved>}.call();
+    let final self::Class2 #t1 = this.{self::Class2::_c2}{self::Class2} in let final self::Class1 #t2 = new self::Class1::_() in invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:41:8: Error: 'call' isn't a function or method and can't be invoked.
+    _c2(new Class1());
+       ^^^^" in #t1.{self::Class2::call}{core::int}{<unresolved>}.call(#t2);
+    this.{self::Class2::method}(a: invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:43:18: Error: Duplicated named argument 'a'.
+    method(a: 0, a: new Class1());
+                 ^" in block {
+      0;
+    } =>new self::Class1::_()){({a: dynamic}) → dynamic};
+    this.{self::Class2::method}(a: invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:45:24: Error: Duplicated named argument 'a'.
+    method(a: 0, a: 1, a: new Class1());
+                       ^" in block {
+      invalid-expression "pkg/front_end/testcases/general/redirecting_factory_invocation_in_invalid.dart:45:18: Error: Duplicated named argument 'a'.
+    method(a: 0, a: 1, a: new Class1());
+                 ^" in block {
+        0;
+      } =>1;
+    } =>new self::Class1::_()){({a: dynamic}) → dynamic};
+    super.[](new self::Class1::_());
+    super.[]=(0, new self::Class1::_());
+    super.foo = new self::Class1::_();
+    super.foo(new self::Class1::_());
+    super.+(new self::Class1::_());
+  }
+  method method({dynamic a = #C2}) → dynamic {}
+  get call() → core::int
+    return 0;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::Class1::•
+  #C2 = null
+}

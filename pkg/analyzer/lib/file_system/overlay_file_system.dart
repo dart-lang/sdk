@@ -40,16 +40,6 @@ class OverlayResourceProvider implements ResourceProvider {
   Folder getFolder(String path) =>
       _OverlayFolder(this, baseProvider.getFolder(path));
 
-  @Deprecated('Not used by clients')
-  @override
-  Future<List<int>> getModificationTimes(List<Source> sources) async {
-    return sources.map((source) {
-      String path = source.fullName;
-      return _overlays[path]?.modificationStamp ??
-          baseProvider.getFile(path).modificationStamp;
-    }).toList();
-  }
-
   @override
   Resource getResource(String path) {
     if (hasOverlay(path)) {
@@ -133,7 +123,7 @@ class _OverlayFile extends _OverlayResource implements File {
       : super(provider, file);
 
   @override
-  Stream<WatchEvent> get changes => _file.changes;
+  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   bool get exists => provider.hasOverlay(path) || _resource.exists;
@@ -214,6 +204,9 @@ class _OverlayFile extends _OverlayResource implements File {
   }
 
   @override
+  ResourceWatcher watch() => _file.watch();
+
+  @override
   void writeAsBytesSync(List<int> bytes) {
     writeAsStringSync(String.fromCharCodes(bytes));
   }
@@ -244,7 +237,7 @@ class _OverlayFolder extends _OverlayResource implements Folder {
       : super(provider, folder);
 
   @override
-  Stream<WatchEvent> get changes => _folder.changes;
+  Stream<WatchEvent> get changes => watch().changes;
 
   @override
   bool get exists => provider._hasOverlayIn(path) || _resource.exists;
@@ -323,6 +316,9 @@ class _OverlayFolder extends _OverlayResource implements Folder {
     }
     return children.values.toList();
   }
+
+  @override
+  ResourceWatcher watch() => _folder.watch();
 }
 
 /// The base class for resources from an [OverlayResourceProvider].
@@ -353,16 +349,6 @@ abstract class _OverlayResource implements Resource {
 
   @override
   int get hashCode => path.hashCode;
-
-  @Deprecated('Use parent2 instead')
-  @override
-  Folder? get parent {
-    Folder? parent = _resource.parent;
-    if (parent == null) {
-      return null;
-    }
-    return _OverlayFolder(provider, parent);
-  }
 
   @override
   Folder get parent2 {

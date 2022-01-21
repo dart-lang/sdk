@@ -1,0 +1,39 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method test() → dynamic {
+  function f0() → core::int*
+    return 42;
+  function f1() → asy::Future<core::int*>* async 
+    return 42;
+  function f2() → core::int* {
+    return 42;
+  }
+  function f3() → asy::Future<core::int*>* async {
+    return 42;
+  }
+  function f4() → core::Iterable<core::int*>* sync* {
+    yield 42;
+  }
+  function f5() → asy::Stream<core::int*>* async* {
+    yield 42;
+  }
+  function f6() → core::num*
+    return 42;
+  function f7() → dynamic
+    return f7(){() →* dynamic};
+  function f8() → asy::Stream<core::int*>*
+    return f5(){() →* asy::Stream<core::int*>*};
+  () →* core::int* v0 = f0;
+  () →* asy::Future<core::int*>* v1 = f1;
+  () →* core::int* v2 = f2;
+  () →* asy::Future<core::int*>* v3 = f3;
+  () →* core::Iterable<core::int*>* v4 = f4;
+  () →* asy::Stream<core::int*>* v5 = f5;
+  () →* core::num* v6 = f6;
+  () →* dynamic v7 = f7;
+  () →* asy::Stream<core::int*>* v8 = f8;
+}
+static method main() → dynamic {}

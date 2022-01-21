@@ -15,6 +15,20 @@ main() {
 
 @reflectiveTest
 class EnumDriverResolutionTest extends PubPackageResolutionTest {
+  test_field() async {
+    await assertNoErrorsInCode(r'''
+enum E<T> {
+  v;
+  final foo = 42;
+}
+''');
+
+    assertElement(
+      findNode.variableDeclaration('foo ='),
+      findElement.field('foo', of: 'E'),
+    );
+  }
+
   test_inference_listLiteral() async {
     await assertNoErrorsInCode(r'''
 enum E1 {a, b}
@@ -25,18 +39,6 @@ var v = [E1.a, E2.b];
 
     var v = findElement.topVar('v');
     assertType(v.type, 'List<Enum>');
-  }
-
-  test_isConstantEvaluated() async {
-    await assertNoErrorsInCode(r'''
-enum E {
-  aaa, bbb
-}
-''');
-
-    expect(findElement.field('aaa').isConstantEvaluated, isTrue);
-    expect(findElement.field('bbb').isConstantEvaluated, isTrue);
-    expect(findElement.field('values').isConstantEvaluated, isTrue);
   }
 
   test_isEnumConstant() async {
@@ -51,5 +53,66 @@ enum E {
 
     expect(findElement.field('index').isEnumConstant, isFalse);
     expect(findElement.field('values').isEnumConstant, isFalse);
+  }
+
+  test_method() async {
+    await assertNoErrorsInCode(r'''
+enum E<T> {
+  v;
+  int foo<U>(T t, U u) => 0;
+}
+''');
+
+    assertNamedType(
+      findNode.namedType('T t'),
+      findElement.typeParameter('T'),
+      'T',
+    );
+
+    assertNamedType(
+      findNode.namedType('U u'),
+      findElement.typeParameter('U'),
+      'U',
+    );
+
+    assertSimpleFormalParameter(
+      findNode.simpleFormalParameter('T t'),
+      element: findElement.parameter('t'),
+    );
+
+    assertSimpleFormalParameter(
+      findNode.simpleFormalParameter('U u'),
+      element: findElement.parameter('u'),
+    );
+  }
+
+  test_method_toString() async {
+    await assertNoErrorsInCode(r'''
+enum E<T> {
+  v;
+  String toString() => 'E';
+}
+''');
+
+    assertElement(
+      findNode.methodDeclaration('toString'),
+      findElement.method('toString', of: 'E'),
+    );
+  }
+
+  test_value_underscore() async {
+    await assertNoErrorsInCode(r'''
+enum E { _ }
+
+void f() {
+  E._.index;
+}
+''');
+
+    assertPropertyAccess2(
+      findNode.propertyAccess('index'),
+      element: findElement.getter('index', of: 'E'),
+      type: 'int',
+    );
   }
 }

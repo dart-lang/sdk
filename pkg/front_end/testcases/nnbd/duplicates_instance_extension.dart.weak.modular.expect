@@ -1,0 +1,432 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:9:7: Error: 'instanceMethod' is already declared in this scope.
+//   int instanceMethod() => 2;
+//       ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:8:7: Context: Previous declaration of 'instanceMethod'.
+//   int instanceMethod() => 1;
+//       ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:12:11: Error: 'instanceGetter' is already declared in this scope.
+//   int get instanceGetter => 2;
+//           ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:11:11: Context: Previous declaration of 'instanceGetter'.
+//   int get instanceGetter => 1;
+//           ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:18:12: Error: 'instanceSetter' is already declared in this scope.
+//   void set instanceSetter(value) {
+//            ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:14:12: Context: Previous declaration of 'instanceSetter'.
+//   void set instanceSetter(value) {
+//            ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:22:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int instanceField = 1;
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:23:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int instanceField = 2;
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:23:7: Error: 'instanceField' is already declared in this scope.
+//   int instanceField = 2;
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:22:7: Context: Previous declaration of 'instanceField'.
+//   int instanceField = 1;
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:25:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int instanceFieldAndSetter1 = 1;
+//       ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:33:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   int instanceFieldAndSetter2 = 1;
+//       ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:35:18: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late final int instanceLateFinalFieldAndSetter1;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:43:18: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   late final int instanceLateFinalFieldAndSetter2;
+//                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:45:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int instanceDuplicateFieldAndSetter = 1;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:46:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int instanceDuplicateFieldAndSetter = 2;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:46:13: Error: 'instanceDuplicateFieldAndSetter' is already declared in this scope.
+//   final int instanceDuplicateFieldAndSetter = 2;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:45:13: Context: Previous declaration of 'instanceDuplicateFieldAndSetter'.
+//   final int instanceDuplicateFieldAndSetter = 1;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:51:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int instanceFieldAndDuplicateSetter = 1;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:56:12: Error: 'instanceFieldAndDuplicateSetter' is already declared in this scope.
+//   void set instanceFieldAndDuplicateSetter(int value) {
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:52:12: Context: Previous declaration of 'instanceFieldAndDuplicateSetter'.
+//   void set instanceFieldAndDuplicateSetter(int value) {
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:60:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int instanceDuplicateFieldAndDuplicateSetter = 1;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:61:13: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int instanceDuplicateFieldAndDuplicateSetter = 2;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:61:13: Error: 'instanceDuplicateFieldAndDuplicateSetter' is already declared in this scope.
+//   final int instanceDuplicateFieldAndDuplicateSetter = 2;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:60:13: Context: Previous declaration of 'instanceDuplicateFieldAndDuplicateSetter'.
+//   final int instanceDuplicateFieldAndDuplicateSetter = 1;
+//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:66:12: Error: 'instanceDuplicateFieldAndDuplicateSetter' is already declared in this scope.
+//   void set instanceDuplicateFieldAndDuplicateSetter(int value) {
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:62:12: Context: Previous declaration of 'instanceDuplicateFieldAndDuplicateSetter'.
+//   void set instanceDuplicateFieldAndDuplicateSetter(int value) {
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:26:12: Error: Conflicts with the implicit setter of the field 'instanceFieldAndSetter1'.
+//   void set instanceFieldAndSetter1(int value) {
+//            ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:25:7: Error: Conflicts with setter 'instanceFieldAndSetter1'.
+//   int instanceFieldAndSetter1 = 1;
+//       ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:30:12: Error: Conflicts with the implicit setter of the field 'instanceFieldAndSetter2'.
+//   void set instanceFieldAndSetter2(int value) {
+//            ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:33:7: Error: Conflicts with setter 'instanceFieldAndSetter2'.
+//   int instanceFieldAndSetter2 = 1;
+//       ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:36:12: Error: Conflicts with the implicit setter of the field 'instanceLateFinalFieldAndSetter1'.
+//   void set instanceLateFinalFieldAndSetter1(int value) {
+//            ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:35:18: Error: Conflicts with setter 'instanceLateFinalFieldAndSetter1'.
+//   late final int instanceLateFinalFieldAndSetter1;
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:40:12: Error: Conflicts with the implicit setter of the field 'instanceLateFinalFieldAndSetter2'.
+//   void set instanceLateFinalFieldAndSetter2(int value) {
+//            ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:43:18: Error: Conflicts with setter 'instanceLateFinalFieldAndSetter2'.
+//   late final int instanceLateFinalFieldAndSetter2;
+//                  ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:71:12: Error: Conflicts with member 'instanceMethodAndSetter1'.
+//   void set instanceMethodAndSetter1(int value) {
+//            ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:70:7: Error: Conflicts with setter 'instanceMethodAndSetter1'.
+//   int instanceMethodAndSetter1() => 1;
+//       ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:75:12: Error: Conflicts with member 'instanceMethodAndSetter2'.
+//   void set instanceMethodAndSetter2(int value) {
+//            ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:78:7: Error: Conflicts with setter 'instanceMethodAndSetter2'.
+//   int instanceMethodAndSetter2() => 1;
+//       ^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:83:5: Error: The method 'instanceMethod' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing method, or defining a method named 'instanceMethod'.
+//   c.instanceMethod();
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:84:6: Error: The getter 'instanceMethod' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceMethod'.
+//   (c.instanceMethod)();
+//      ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:85:5: Error: The getter 'instanceGetter' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceGetter'.
+//   c.instanceGetter;
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:86:5: Error: The setter 'instanceSetter' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceSetter'.
+//   c.instanceSetter = 0;
+//     ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:87:5: Error: The getter 'instanceField' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceField'.
+//   c.instanceField;
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:88:5: Error: The setter 'instanceField' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceField'.
+//   c.instanceField = 0;
+//     ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:89:5: Error: The getter 'instanceFieldAndSetter1' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceFieldAndSetter1'.
+//   c.instanceFieldAndSetter1;
+//     ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:90:5: Error: The setter 'instanceFieldAndSetter1' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceFieldAndSetter1'.
+//   c.instanceFieldAndSetter1 = 0;
+//     ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:91:5: Error: The getter 'instanceFieldAndSetter2' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceFieldAndSetter2'.
+//   c.instanceFieldAndSetter2;
+//     ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:92:5: Error: The setter 'instanceFieldAndSetter2' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceFieldAndSetter2'.
+//   c.instanceFieldAndSetter2 = 0;
+//     ^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:93:5: Error: The getter 'instanceLateFinalFieldAndSetter1' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceLateFinalFieldAndSetter1'.
+//   c.instanceLateFinalFieldAndSetter1;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:94:5: Error: The setter 'instanceLateFinalFieldAndSetter1' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceLateFinalFieldAndSetter1'.
+//   c.instanceLateFinalFieldAndSetter1 = 0;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:95:5: Error: The getter 'instanceLateFinalFieldAndSetter2' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceLateFinalFieldAndSetter2'.
+//   c.instanceLateFinalFieldAndSetter2;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:96:5: Error: The setter 'instanceLateFinalFieldAndSetter2' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceLateFinalFieldAndSetter2'.
+//   c.instanceLateFinalFieldAndSetter2 = 0;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:97:5: Error: The getter 'instanceDuplicateFieldAndSetter' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceDuplicateFieldAndSetter'.
+//   c.instanceDuplicateFieldAndSetter;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:98:5: Error: The getter 'instanceFieldAndDuplicateSetter' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceFieldAndDuplicateSetter'.
+//   c.instanceFieldAndDuplicateSetter;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:99:5: Error: The setter 'instanceFieldAndDuplicateSetter' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceFieldAndDuplicateSetter'.
+//   c.instanceFieldAndDuplicateSetter = 0;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:100:5: Error: The getter 'instanceDuplicateFieldAndDuplicateSetter' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceDuplicateFieldAndDuplicateSetter'.
+//   c.instanceDuplicateFieldAndDuplicateSetter;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:101:5: Error: The setter 'instanceDuplicateFieldAndDuplicateSetter' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceDuplicateFieldAndDuplicateSetter'.
+//   c.instanceDuplicateFieldAndDuplicateSetter = 0;
+//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Extension on core::int {
+  method instanceMethod = self::Extension|instanceMethod;
+  tearoff instanceMethod = self::Extension|get#instanceMethod;
+  get instanceGetter = self::Extension|get#instanceGetter;
+  field instanceField = self::Extension|instanceField;
+  field instanceFieldAndSetter1 = self::Extension|instanceFieldAndSetter1;
+  field instanceFieldAndSetter2 = self::Extension|instanceFieldAndSetter2;
+  field instanceLateFinalFieldAndSetter1 = self::Extension|instanceLateFinalFieldAndSetter1;
+  field instanceLateFinalFieldAndSetter2 = self::Extension|instanceLateFinalFieldAndSetter2;
+  field instanceDuplicateFieldAndSetter = self::Extension|instanceDuplicateFieldAndSetter;
+  field instanceFieldAndDuplicateSetter = self::Extension|instanceFieldAndDuplicateSetter;
+  field instanceDuplicateFieldAndDuplicateSetter = self::Extension|instanceDuplicateFieldAndDuplicateSetter;
+  method instanceMethodAndSetter1 = self::Extension|instanceMethodAndSetter1;
+  tearoff instanceMethodAndSetter1 = self::Extension|get#instanceMethodAndSetter1;
+  method instanceMethodAndSetter2 = self::Extension|instanceMethodAndSetter2;
+  tearoff instanceMethodAndSetter2 = self::Extension|get#instanceMethodAndSetter2;
+  set instanceSetter = self::Extension|set#instanceSetter;
+  set instanceDuplicateFieldAndSetter = self::Extension|set#instanceDuplicateFieldAndSetter;
+  set instanceFieldAndDuplicateSetter = self::Extension|set#instanceFieldAndDuplicateSetter;
+  set instanceDuplicateFieldAndDuplicateSetter = self::Extension|set#instanceDuplicateFieldAndDuplicateSetter;
+  set instanceMethodAndSetter1 = self::Extension|set#instanceMethodAndSetter1;
+  set instanceMethodAndSetter2 = self::Extension|set#instanceMethodAndSetter2;
+}
+static field dynamic result;
+static field core::int Extension|instanceField;
+static field core::int Extension|instanceFieldAndSetter1 = 1;
+static field core::int Extension|instanceFieldAndSetter2 = 1;
+late static final [setter] field core::int Extension|instanceLateFinalFieldAndSetter1;
+late static final [setter] field core::int Extension|instanceLateFinalFieldAndSetter2;
+static final field core::int Extension|instanceDuplicateFieldAndSetter;
+static final field core::int Extension|instanceFieldAndDuplicateSetter = 1;
+static final field core::int Extension|instanceDuplicateFieldAndDuplicateSetter;
+static method Extension|instanceMethod(lowered final core::int #this) → core::int
+  return 1;
+static method Extension|get#instanceMethod(lowered final core::int #this) → () → core::int
+  return () → core::int => self::Extension|instanceMethod(#this);
+static method Extension|get#instanceGetter(lowered final core::int #this) → core::int
+  return 1;
+static method Extension|set#instanceSetter(lowered final core::int #this, dynamic value) → void {
+  self::result = 1;
+}
+static method Extension|set#instanceDuplicateFieldAndSetter(lowered final core::int #this, core::int value) → void {
+  self::result = 3;
+}
+static method Extension|set#instanceFieldAndDuplicateSetter(lowered final core::int #this, core::int value) → void {
+  self::result = 2;
+}
+static method Extension|set#instanceDuplicateFieldAndDuplicateSetter(lowered final core::int #this, core::int value) → void {
+  self::result = 3;
+}
+static method Extension|instanceMethodAndSetter1(lowered final core::int #this) → core::int
+  return 1;
+static method Extension|get#instanceMethodAndSetter1(lowered final core::int #this) → () → core::int
+  return () → core::int => self::Extension|instanceMethodAndSetter1(#this);
+static method Extension|set#instanceMethodAndSetter1(lowered final core::int #this, core::int value) → void {
+  self::result = 2;
+}
+static method Extension|set#instanceMethodAndSetter2(lowered final core::int #this, core::int value) → void {
+  self::result = 2;
+}
+static method Extension|instanceMethodAndSetter2(lowered final core::int #this) → core::int
+  return 1;
+static method Extension|get#instanceMethodAndSetter2(lowered final core::int #this) → () → core::int
+  return () → core::int => self::Extension|instanceMethodAndSetter2(#this);
+static method test() → dynamic {
+  core::int c = 0;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:83:5: Error: The method 'instanceMethod' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing method, or defining a method named 'instanceMethod'.
+  c.instanceMethod();
+    ^^^^^^^^^^^^^^" in c{<unresolved>}.instanceMethod();
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:84:6: Error: The getter 'instanceMethod' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceMethod'.
+  (c.instanceMethod)();
+     ^^^^^^^^^^^^^^" in c{<unresolved>}.instanceMethod{dynamic}.call();
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:85:5: Error: The getter 'instanceGetter' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceGetter'.
+  c.instanceGetter;
+    ^^^^^^^^^^^^^^" in c{<unresolved>}.instanceGetter;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:86:5: Error: The setter 'instanceSetter' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceSetter'.
+  c.instanceSetter = 0;
+    ^^^^^^^^^^^^^^" in c{<unresolved>}.instanceSetter = 0;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:87:5: Error: The getter 'instanceField' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceField'.
+  c.instanceField;
+    ^^^^^^^^^^^^^" in c{<unresolved>}.instanceField;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:88:5: Error: The setter 'instanceField' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceField'.
+  c.instanceField = 0;
+    ^^^^^^^^^^^^^" in c{<unresolved>}.instanceField = 0;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:89:5: Error: The getter 'instanceFieldAndSetter1' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceFieldAndSetter1'.
+  c.instanceFieldAndSetter1;
+    ^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceFieldAndSetter1;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:90:5: Error: The setter 'instanceFieldAndSetter1' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceFieldAndSetter1'.
+  c.instanceFieldAndSetter1 = 0;
+    ^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceFieldAndSetter1 = 0;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:91:5: Error: The getter 'instanceFieldAndSetter2' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceFieldAndSetter2'.
+  c.instanceFieldAndSetter2;
+    ^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceFieldAndSetter2;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:92:5: Error: The setter 'instanceFieldAndSetter2' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceFieldAndSetter2'.
+  c.instanceFieldAndSetter2 = 0;
+    ^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceFieldAndSetter2 = 0;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:93:5: Error: The getter 'instanceLateFinalFieldAndSetter1' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceLateFinalFieldAndSetter1'.
+  c.instanceLateFinalFieldAndSetter1;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceLateFinalFieldAndSetter1;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:94:5: Error: The setter 'instanceLateFinalFieldAndSetter1' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceLateFinalFieldAndSetter1'.
+  c.instanceLateFinalFieldAndSetter1 = 0;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceLateFinalFieldAndSetter1 = 0;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:95:5: Error: The getter 'instanceLateFinalFieldAndSetter2' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceLateFinalFieldAndSetter2'.
+  c.instanceLateFinalFieldAndSetter2;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceLateFinalFieldAndSetter2;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:96:5: Error: The setter 'instanceLateFinalFieldAndSetter2' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceLateFinalFieldAndSetter2'.
+  c.instanceLateFinalFieldAndSetter2 = 0;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceLateFinalFieldAndSetter2 = 0;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:97:5: Error: The getter 'instanceDuplicateFieldAndSetter' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceDuplicateFieldAndSetter'.
+  c.instanceDuplicateFieldAndSetter;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceDuplicateFieldAndSetter;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:98:5: Error: The getter 'instanceFieldAndDuplicateSetter' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceFieldAndDuplicateSetter'.
+  c.instanceFieldAndDuplicateSetter;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceFieldAndDuplicateSetter;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:99:5: Error: The setter 'instanceFieldAndDuplicateSetter' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceFieldAndDuplicateSetter'.
+  c.instanceFieldAndDuplicateSetter = 0;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceFieldAndDuplicateSetter = 0;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:100:5: Error: The getter 'instanceDuplicateFieldAndDuplicateSetter' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceDuplicateFieldAndDuplicateSetter'.
+  c.instanceDuplicateFieldAndDuplicateSetter;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceDuplicateFieldAndDuplicateSetter;
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance_extension.dart:101:5: Error: The setter 'instanceDuplicateFieldAndDuplicateSetter' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceDuplicateFieldAndDuplicateSetter'.
+  c.instanceDuplicateFieldAndDuplicateSetter = 0;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceDuplicateFieldAndDuplicateSetter = 0;
+}
+static method main() → dynamic {
+  core::int c = 0;
+  self::result = null;
+  self::Extension|set#instanceDuplicateFieldAndSetter(c, 0);
+  self::expect(3, self::result);
+  self::result = null;
+  self::expect(1, self::Extension|instanceMethodAndSetter1(c));
+  self::Extension|set#instanceMethodAndSetter1(c, 0);
+  self::expect(2, self::result);
+  self::result = null;
+  self::expect(1, self::Extension|instanceMethodAndSetter2(c));
+  self::Extension|set#instanceMethodAndSetter2(c, 0);
+  self::expect(2, self::result);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f) → dynamic {
+  try {
+    f(){() → dynamic};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print(e);
+    return;
+  }
+  throw "Expected exception.";
+}

@@ -8,12 +8,6 @@
 /// conditional imports, and from `const String.fromEnvironment` and
 /// other similar constructors.
 abstract class Environment {
-  /// Return the string value of the given key.
-  ///
-  /// Note that `bool.fromEnvironment` and `int.fromEnvironment` are also
-  /// implemented in terms of `String.fromEnvironment`.
-  String valueOf(String key);
-
   /// Returns the full environment as map.
   Map<String, String> toMap();
 }

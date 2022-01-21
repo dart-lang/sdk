@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 
@@ -351,6 +350,13 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConstructorSelector(ConstructorSelector node) {
+    var other = _other as ConstructorSelector;
+    return isEqualTokens(node.period, other.period) &&
+        isEqualNodes(node.name, other.name);
+  }
+
+  @override
   bool visitContinueStatement(ContinueStatement node) {
     ContinueStatement other = _other as ContinueStatement;
     return isEqualTokens(node.continueKeyword, other.continueKeyword) &&
@@ -413,6 +419,14 @@ class AstComparator implements AstVisitor<bool> {
   bool visitEmptyStatement(EmptyStatement node) {
     EmptyStatement other = _other as EmptyStatement;
     return isEqualTokens(node.semicolon, other.semicolon);
+  }
+
+  @override
+  bool visitEnumConstantArguments(EnumConstantArguments node) {
+    var other = _other as EnumConstantArguments;
+    return isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualNodes(node.constructorSelector, other.constructorSelector) &&
+        isEqualNodes(node.argumentList, other.argumentList);
   }
 
   @override
@@ -1201,12 +1215,6 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(node.type, other.type);
   }
 
-  @Deprecated('Override visitNamedType instead')
-  @override
-  bool visitTypeName(TypeName node) {
-    throw StateError('Should not be invoked');
-  }
-
   @override
   bool visitTypeParameter(TypeParameter node) {
     TypeParameter other = _other as TypeParameter;
@@ -1920,6 +1928,11 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConstructorSelector(ConstructorSelector node) {
+    throw UnimplementedError();
+  }
+
+  @override
   bool visitContinueStatement(covariant ContinueStatementImpl node) {
     if (identical(node.label, _oldNode)) {
       node.label = _newNode as SimpleIdentifier;
@@ -1986,6 +1999,11 @@ class NodeReplacer implements AstVisitor<bool> {
 
   @override
   bool visitEmptyStatement(EmptyStatement node) => visitNode(node);
+
+  @override
+  bool visitEnumConstantArguments(EnumConstantArguments node) {
+    throw UnimplementedError();
+  }
 
   @override
   bool visitEnumConstantDeclaration(
@@ -2101,6 +2119,9 @@ class NodeReplacer implements AstVisitor<bool> {
   bool visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     if (identical(node.type, _oldNode)) {
       node.type = _newNode as TypeAnnotation;
+      return true;
+    } else if (identical(node.typeParameters, _oldNode)) {
+      node.typeParameters = _newNode as TypeParameterList;
       return true;
     } else if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterList;
@@ -2228,6 +2249,9 @@ class NodeReplacer implements AstVisitor<bool> {
     if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterList;
       return true;
+    } else if (identical(node.typeParameters, _oldNode)) {
+      node.typeParameters = _newNode as TypeParameterList;
+      return true;
     } else if (identical(node.body, _oldNode)) {
       node.body = _newNode as FunctionBody;
       return true;
@@ -2243,6 +2267,9 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.argumentList, _oldNode)) {
       node.argumentList = _newNode as ArgumentList;
+      return true;
+    } else if (identical(node.typeArguments, _oldNode)) {
+      node.typeArguments = _newNode as TypeArgumentList;
       return true;
     }
     return visitNode(node);
@@ -2286,6 +2313,9 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterList;
+      return true;
+    } else if (identical(node.typeParameters, _oldNode)) {
+      node.typeParameters = _newNode as TypeParameterList;
       return true;
     }
     return visitNormalFormalParameter(node);
@@ -2520,6 +2550,9 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterList;
       return true;
+    } else if (identical(node.typeParameters, _oldNode)) {
+      node.typeParameters = _newNode as TypeParameterList;
+      return true;
     } else if (identical(node.body, _oldNode)) {
       node.body = _newNode as FunctionBody;
       return true;
@@ -2537,6 +2570,9 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.argumentList, _oldNode)) {
       node.argumentList = _newNode as ArgumentList;
+      return true;
+    } else if (identical(node.typeArguments, _oldNode)) {
+      node.typeArguments = _newNode as TypeArgumentList;
       return true;
     }
     return visitNode(node);
@@ -2932,11 +2968,6 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
-  bool visitTypeName(covariant NamedTypeImpl node) {
-    throw StateError('Should not be invoked');
-  }
-
-  @override
   bool visitTypeParameter(covariant TypeParameterImpl node) {
     if (identical(node.name, _oldNode)) {
       node.name = _newNode as SimpleIdentifier;
@@ -3227,11 +3258,4 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
     }
     return node.end < _position;
   }
-}
-
-/// A visitor used to write a source representation of a visited AST node (and
-/// all of it's children) to a sink.
-@Deprecated('Use ToSourceVisitor')
-class ToSourceVisitor2 extends ToSourceVisitor {
-  ToSourceVisitor2(StringSink sink) : super(sink);
 }

@@ -115,7 +115,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         } else if (_dartTypes.isSubtype(
             type,
             _elementEnvironment
-                .getRawType(_commonElements.jsJavaScriptObjectClass))) {
+                .getRawType(_commonElements.jsLegacyJavaScriptObjectClass))) {
           matchingClasses.add(type.element);
         }
         // TODO(johnniwinther): Improve spec string precision to handle type

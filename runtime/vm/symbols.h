@@ -16,6 +16,7 @@ class ObjectPointerVisitor;
 
 // One-character symbols are added implicitly.
 #define PREDEFINED_SYMBOLS_LIST(V)                                             \
+  V(AbiSpecificInteger, "AbiSpecificInteger")                                  \
   V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \
   V(AllocateInvocationMirrorForClosure, "_allocateInvocationMirrorForClosure") \
@@ -109,6 +110,7 @@ class ObjectPointerVisitor;
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
   V(FallThroughError, "FallThroughError")                                      \
+  V(FfiAbiSpecificMapping, "_FfiAbiSpecificMapping")                           \
   V(FfiBool, "Bool")                                                           \
   V(FfiCallback, "_FfiCallback")                                               \
   V(FfiDouble, "Double")                                                       \
@@ -124,6 +126,7 @@ class ObjectPointerVisitor;
   V(FfiIntPtr, "IntPtr")                                                       \
   V(FfiNativeFunction, "NativeFunction")                                       \
   V(FfiNativeType, "NativeType")                                               \
+  V(FfiNativeTypes, "nativeTypes")                                             \
   V(FfiPointer, "Pointer")                                                     \
   V(FfiStructLayout, "_FfiStructLayout")                                       \
   V(FfiStructLayoutArray, "_FfiInlineArray")                                   \
@@ -290,6 +293,7 @@ class ObjectPointerVisitor;
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \
+  V(_Enum, "_Enum")                                                            \
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat32x4Array, "_ExternalFloat32x4Array")                        \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
@@ -441,7 +445,6 @@ class ObjectPointerVisitor;
   V(current_position, ":current_position")                                     \
   V(dynamic_assert_assignable_stc_check,                                       \
     ":dynamic_assert_assignable_stc_check")                                    \
-  V(identityHashCode, "identityHashCode")                                      \
   V(index_temp, ":index_temp")                                                 \
   V(is_sync, ":is_sync")                                                       \
   V(isPaused, "isPaused")                                                      \
@@ -468,6 +471,7 @@ class ObjectPointerVisitor;
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \
   V(vm_recognized, "vm:recognized")                                            \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")            \
+  V(vm_ffi_abi_specific_mapping, "vm:ffi:abi-specific-mapping")                \
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
   V(vm_unsafe_no_interrupts, "vm:unsafe:no-interrupts")                        \
   V(vm_external_name, "vm:external-name")                                      \

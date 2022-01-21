@@ -1,0 +1,74 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:24:27: Error: The parameter 'i' of the method 'Class.setter2' has type 'String', which does not match the corresponding type, 'num', in the overridden method, 'Super.setter2'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   void set setter2(String i);
+//                           ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:7:12: Context: This is the overridden method ('setter2').
+//   void set setter2(num n) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:24:27: Error: The parameter 'i' of the method 'Class.setter2' has type 'String', which does not match the corresponding type, 'int', in the overridden method, 'Interface.setter2'.
+// Change to a supertype of 'int', or, for a covariant parameter, a subtype.
+//   void set setter2(String i);
+//                           ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:16:12: Context: This is the overridden method ('setter2').
+//   void set setter2(covariant int i) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:25:24: Error: The parameter 'i' of the method 'Class.setter3' has type 'int', which does not match the corresponding type, 'num', in the overridden method, 'Super.setter3'.
+// Change to a supertype of 'num', or, for a covariant parameter, a subtype.
+//   void set setter3(int i);
+//                        ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:8:12: Context: This is the overridden method ('setter3').
+//   void set setter3(num n) {}
+//            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:22:7: Error: The implementation of 'setter2' in the non-abstract class 'Class' does not conform to its interface.
+// class Class extends Super implements Interface {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:7:24: Context: The parameter 'n' of the method 'Super.setter2' has type 'num', which does not match the corresponding type, 'String', in the overridden method, 'Class.setter2'.
+// Change to a supertype of 'String', or, for a covariant parameter, a subtype.
+//   void set setter2(num n) {}
+//                        ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/forwarding_semi_stub_setter.dart:24:12: Context: This is the overridden method ('setter2').
+//   void set setter2(String i);
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  set setter1(core::num n) → void {}
+  set setter2(core::num n) → void {}
+  set setter3(core::num n) → void {}
+  set setter4(covariant-by-declaration core::num i) → void {}
+  set setter5(covariant-by-declaration core::int i) → void {}
+}
+class Interface extends core::Object {
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  set setter1(covariant-by-declaration core::int i) → void {}
+  set setter2(covariant-by-declaration core::int i) → void {}
+  set setter4(core::int i) → void {}
+  set setter5(core::int i) → void {}
+}
+class Class extends self::Super implements self::Interface {
+  synthetic constructor •() → self::Class
+    : super self::Super::•()
+    ;
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::int) → void */ setter1(covariant-by-declaration core::num i) → void
+    return super.{self::Super::setter1} = i;
+  forwarding-stub forwarding-semi-stub set /* signature-type: (core::String) → void */ setter2(covariant-by-declaration core::num i) → void
+    return super.{self::Super::setter2} = i;
+  abstract set setter3(core::int i) → void;
+  abstract set setter4(covariant-by-declaration core::int i) → void;
+  abstract set setter5(covariant-by-declaration core::num n) → void;
+}
+static method main() → dynamic {}

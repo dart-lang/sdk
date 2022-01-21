@@ -1,0 +1,255 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:27:3: Error: Only static fields can be declared as const.
+// Try using 'final' instead of 'const', or adding the keyword 'static'.
+//   const bool initialized =
+//   ^^^^^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:22:25: Error: 'lib' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.
+// Try moving the constant from the deferred library, or removing 'deferred' from the import.
+//
+// const fromDeferredLib = lib.x;
+//                         ^^^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:14:30: Warning: Operand of null-aware operation '??' has type 'bool' which excludes null.
+// const bool nullAwareOnNull = barFromEnvOrNull ?? true;
+//                              ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+//  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
+//   const Class.method(T t) : this(-t);
+//                                  ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:123:27: Error: The parameter 'named' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// int procedure(int i, {int named}) => i;
+//                           ^^^^^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:31:9: Error: Constructor is marked 'const' so all fields must be final.
+//   const Foo(this.value,
+//         ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:27:14: Context: Field isn't final, but constructor is 'const'.
+//   const bool initialized =
+//              ^
+//
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:22:29: Error: Constant evaluation error:
+// const fromDeferredLib = lib.x;
+//                             ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:22:29: Context: 'lib' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.
+// Try moving the constant from the deferred library, or removing 'deferred' from the import.
+//
+// const fromDeferredLib = lib.x;
+//                             ^
+// pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:22:7: Context: While analyzing:
+// const fromDeferredLib = lib.x;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+import "org-dartlang-testcase:///various_lib.dart" deferred as lib;
+
+typedef F = (core::int, {named: core::int}) → core::int;
+class Foo<E extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::bool saved;
+  final field core::bool saved2;
+  field core::bool initialized = #C3;
+  final field self::Foo::E% value;
+  const constructor •(self::Foo::E% value, {core::bool saved2 = #C4, core::bool x = #C5}) → self::Foo<self::Foo::E%>
+    : self::Foo::value = value, self::Foo::saved2 = saved2, self::Foo::saved = x, super core::Object::•()
+    ;
+}
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+  operator unary-() → self::A
+    return this;
+}
+class B extends core::Object implements self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B
+    : super core::Object::•()
+    ;
+  operator unary-() → self::B
+    return this;
+}
+class C extends core::Object implements self::A /*hasConstConstructor*/  {
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+  operator unary-() → self::C
+    return this;
+}
+class Class<T extends self::A> extends core::Object /*hasConstConstructor*/  {
+  const constructor •(self::Class::T t) → self::Class<self::Class::T>
+    : super core::Object::•()
+    ;
+  const constructor redirect(dynamic t) → self::Class<self::Class::T>
+    : this self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class::T)
+    ;
+  const constructor method(self::Class::T t) → self::Class<self::Class::T>
+    : this self::Class::•(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+ - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
+  const Class.method(T t) : this(-t);
+                                 ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} Never)
+    ;
+}
+class Subclass<T extends self::A> extends self::Class<self::Subclass::T> /*hasConstConstructor*/  {
+  const constructor •(dynamic t) → self::Subclass<self::Subclass::T>
+    : super self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Subclass::T)
+    ;
+}
+class ConstClassWithF extends core::Object /*hasConstConstructor*/  {
+  final field (core::int, {named: core::int}) → core::int foo;
+  const constructor •((core::int, {named: core::int}) → core::int foo) → self::ConstClassWithF
+    : self::ConstClassWithF::foo = foo, super core::Object::•()
+    ;
+}
+static const field core::bool barFromEnv = #C6;
+static const field core::bool hasBarEnv = #C7;
+static const field core::bool? barFromEnvOrNull0 = #C10;
+static const field core::bool barFromEnvOrNull = #C11;
+static const field core::bool notBarFromEnvOrNull = #C12;
+static const field core::bool conditionalOnNull = #C14;
+static const field core::bool nullAwareOnNull = #C15;
+static const field core::bool andOnNull = #C16;
+static const field core::bool andOnNull2 = #C11;
+static const field core::bool orOnNull = #C17;
+static const field core::bool orOnNull2 = #C18;
+static const field core::bool orOnNull3 = #C8;
+static const field core::bool orOnNull4 = #C11;
+static const field core::int fromDeferredLib = invalid-expression "'lib' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.";
+static const field self::Foo<core::int> x = #C20;
+static const field core::bool? y = #C8;
+static const field core::bool z = #C13;
+static const field core::Object maybeInt = #C21;
+static const field core::bool isItInt = #C22;
+static const field core::Object maybeInt2 = #C8;
+static const field core::bool isItInt2 = #C13;
+static const field core::int? maybeInt3 = #C9;
+static const field core::bool isItInt3 = #C13;
+static const field dynamic listOfNull = #C23;
+static const field core::bool isListOfNull = #C8;
+static const field dynamic listOfInt = #C24;
+static const field core::bool isListOfInt = #C8;
+static const field core::bool isList = #C8;
+static const field dynamic setOfInt = #C25;
+static const field core::bool isSetOfInt = #C8;
+static const field dynamic mapOfInt = #C26;
+static const field core::bool isMapOfInt = #C8;
+static const field dynamic listOfListOfInt = #C27;
+static const field core::bool isListOfListOfInt = #C8;
+static const field dynamic setOfSetOfInt = #C28;
+static const field core::bool isSetOfSetOfInt = #C8;
+static const field dynamic mapOfMapOfInt1 = #C29;
+static const field dynamic mapOfMapOfInt2 = #C30;
+static const field core::bool isMapOfMapOfInt1 = #C8;
+static const field core::bool isMapOfMapOfInt2 = #C8;
+static const field core::Symbol symbolWithUnevaluatedParameter = #C31;
+static const field core::Symbol symbolWithInvalidName = #C32;
+static const field self::Class<self::B>? c0 = #C34;
+static const field self::Class<self::A>? c1 = invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+ - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
+  const Class.method(T t) : this(-t);
+                                 ^";
+static const field self::Subclass<self::B>? c2 = #C35;
+static const field self::Class<self::A>? c3 = #C36;
+static const field self::Class<self::B>? c4 = #C37;
+static const field self::Subclass<self::A>? c5 = #C38;
+static const field self::Subclass<self::B>? c6 = #C39;
+static const field core::Type f = #C40;
+static field self::ConstClassWithF constClassWithF1 = #C42;
+static const field self::ConstClassWithF constClassWithF2 = #C42;
+static const field core::bool unevaluatedBool = #C43;
+static const field core::bool notUnevaluatedBool = #C44;
+static const field core::bool? unevaluatedBoolOrNull = #C45;
+static const field core::bool unevaluatedBoolNotNull = #C46;
+static method procedure(core::int i, {core::int named = #C9}) → core::int
+  return i;
+static method main() → dynamic {
+  core::print(#C34);
+  core::print(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:100:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
+ - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
+  const Class.method(T t) : this(-t);
+                                 ^");
+  core::print(#C35);
+  core::print(#C36);
+  core::print(#C37);
+  core::print(#C38);
+  core::print(#C39);
+  core::print(#C20);
+  core::print(#C20.{self::Foo::saved}{core::bool});
+  core::print(#C20.{self::Foo::value}{core::int});
+}
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+import "dart:core" as core;
+
+static const field core::int x = #C19;
+
+constants  {
+  #C1 = "foo"
+  #C2 = "bar"
+  #C3 = eval const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2))
+  #C4 = eval const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2))
+  #C5 = eval const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2))
+  #C6 = eval const core::bool::fromEnvironment(#C2)
+  #C7 = eval const core::bool::hasEnvironment(#C2)
+  #C8 = true
+  #C9 = null
+  #C10 = eval const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9
+  #C11 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!)
+  #C12 = eval !const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!)
+  #C13 = false
+  #C14 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) ?{core::bool} #C8 : #C13
+  #C15 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) == null ?{core::bool} #C8 : const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!)
+  #C16 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) && #C8
+  #C17 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || #C8
+  #C18 = eval const core::bool::fromEnvironment(#C2, defaultValue: (const core::bool::fromEnvironment(#C2) ?{core::bool?} #C8 : #C9)!) || #C13
+  #C19 = 42
+  #C20 = eval self::Foo<core::int*>{saved:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), saved2:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), initialized:const core::bool::fromEnvironment(#C1, defaultValue: const core::bool::fromEnvironment(#C2)), value:#C19}
+  #C21 = eval const core::bool::fromEnvironment(#C1) ?{core::Object} #C19 : #C8
+  #C22 = eval (const core::bool::fromEnvironment(#C1) ?{core::Object} #C19 : #C8) is{ForNonNullableByDefault} core::int ?{core::bool} #C8 : #C13
+  #C23 = <Null>[#C9]
+  #C24 = <core::int*>[#C19]
+  #C25 = <core::int*>{#C19}
+  #C26 = <core::int*, core::int*>{#C19:#C19)
+  #C27 = <core::List<core::int*>*>[#C24]
+  #C28 = <core::Set<core::int*>*>{#C25}
+  #C29 = <core::Map<core::int*, core::int*>*, core::int*>{#C26:#C19)
+  #C30 = <core::int*, core::Map<core::int*, core::int*>*>{#C19:#C26)
+  #C31 = eval const _in::Symbol::•(const core::String::fromEnvironment(#C1))
+  #C32 = #42
+  #C33 = "x"
+  #C34 = eval const core::bool::fromEnvironment(#C33) ?{self::Class<self::B>?} #C9 : self::Class<self::B*>{(self::C{}) as{ForNonNullableByDefault} self::B*}
+  #C35 = eval const core::bool::fromEnvironment(#C33) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B*>{(self::C{}) as{ForNonNullableByDefault} self::B*}
+  #C36 = eval const core::bool::fromEnvironment(#C33) ?{self::Class<self::A>?} #C9 : self::Class<self::A*>{self::A{}}
+  #C37 = eval const core::bool::fromEnvironment(#C33) ?{self::Class<self::B>?} #C9 : self::Class<self::B*>{(self::B{}) as{ForNonNullableByDefault} self::B*}
+  #C38 = eval const core::bool::fromEnvironment(#C33) ?{self::Subclass<self::A>?} #C9 : self::Subclass<self::A*>{(self::A{}) as{ForNonNullableByDefault} self::A*}
+  #C39 = eval const core::bool::fromEnvironment(#C33) ?{self::Subclass<self::B>?} #C9 : self::Subclass<self::B*>{(self::B{}) as{ForNonNullableByDefault} self::B*}
+  #C40 = TypeLiteralConstant((core::int*, {named: core::int*}) →* core::int*)
+  #C41 = static-tearoff self::procedure
+  #C42 = self::ConstClassWithF {foo:#C41}
+  #C43 = eval const core::bool::fromEnvironment(#C1)
+  #C44 = eval !const core::bool::fromEnvironment(#C1)
+  #C45 = eval const core::bool::fromEnvironment(#C2) ?{core::bool?} const core::bool::fromEnvironment(#C1) : #C9
+  #C46 = eval (const core::bool::fromEnvironment(#C2) ?{core::bool?} const core::bool::fromEnvironment(#C1) : #C9)!
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///various.dart:
+- C. (from org-dartlang-testcase:///various.dart:92:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Class.redirect (from org-dartlang-testcase:///various.dart:99:9)
+- Class. (from org-dartlang-testcase:///various.dart:98:9)
+- A. (from org-dartlang-testcase:///various.dart:80:9)
+- Class.method (from org-dartlang-testcase:///various.dart:100:9)
+- Subclass. (from org-dartlang-testcase:///various.dart:104:9)
+- B. (from org-dartlang-testcase:///various.dart:86:9)
+- Foo. (from org-dartlang-testcase:///various.dart:31:9)
+- ConstClassWithF. (from org-dartlang-testcase:///various.dart:120:9)

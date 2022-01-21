@@ -58,8 +58,11 @@ void RuntimeEntry::CallInternal(const RuntimeEntry* runtime_entry,
     __ LoadImmediate(TMP, VMTag::kDartTagId);
     __ str(TMP,
            compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
-    COMPILE_ASSERT(IsAbiPreservedRegister(THR));
-    COMPILE_ASSERT(IsAbiPreservedRegister(PP));
+    // These registers must be preserved by runtime functions, otherwise
+    // we'd need to restore them here.
+    COMPILE_ASSERT(IsCalleeSavedRegister(THR));
+    COMPILE_ASSERT(IsCalleeSavedRegister(PP));
+    COMPILE_ASSERT(IsCalleeSavedRegister(CODE_REG));
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.

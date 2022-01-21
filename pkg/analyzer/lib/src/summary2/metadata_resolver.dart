@@ -28,7 +28,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitAnnotation(covariant AnnotationImpl node) {
     var annotationElement = node.elementAnnotation;
     if (annotationElement is ElementAnnotationImpl) {
-      var astResolver = AstResolver(_linker, _unitElement, _scope, node);
+      var astResolver = AstResolver(_linker, _unitElement, _scope);
       astResolver.resolveAnnotation(node);
       annotationElement.element = node.element;
     }
@@ -200,6 +200,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.metadata.accept(this);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    node.metadata.accept(this);
+    node.parameters?.accept(this);
   }
 
   @override

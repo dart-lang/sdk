@@ -190,7 +190,9 @@ class InvocationInferenceHelper {
       // Fix up the parameter elements based on inferred method.
       arguments.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(
-              arguments, inferred.parameters, null);
+        argumentList: arguments,
+        parameters: inferred.parameters,
+      );
       node.staticInvokeType = inferred;
     }
   }
@@ -381,7 +383,9 @@ class InvocationInferenceHelper {
     // Get the parameters that correspond to the uninstantiated generic.
     List<ParameterElement?> rawParameters =
         ResolverVisitor.resolveArgumentsToParameters(
-            argumentList, rawType.parameters, null);
+      argumentList: argumentList,
+      parameters: rawType.parameters,
+    );
 
     List<ParameterElement> params = <ParameterElement>[];
     List<DartType> argTypes = <DartType>[];
@@ -537,9 +541,9 @@ class InvocationInferenceHelper {
     FunctionType invokeType,
   ) {
     var parameters = ResolverVisitor.resolveArgumentsToParameters(
-      argumentList,
-      invokeType.parameters,
-      _errorReporter.reportErrorForNode,
+      argumentList: argumentList,
+      parameters: invokeType.parameters,
+      errorReporter: _errorReporter,
     );
     argumentList.correspondingStaticParameters = parameters;
   }

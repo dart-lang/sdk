@@ -8,6 +8,7 @@ import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -40,13 +41,13 @@ void main() {
     group('createContext/deleteContext', () {
       test('create/delete multiple contexts', () {
         var request = ExecutionCreateContextParams('/a/b.dart').toRequest('0');
-        var response = handler.handleRequest(request)!;
+        var response = handler.handleRequest(request, NotCancelableToken())!;
         expect(response, isResponseSuccess('0'));
         var result = ExecutionCreateContextResult.fromResponse(response);
         var id0 = result.id;
 
         request = ExecutionCreateContextParams('/c/d.dart').toRequest('1');
-        response = handler.handleRequest(request)!;
+        response = handler.handleRequest(request, NotCancelableToken())!;
         expect(response, isResponseSuccess('1'));
         result = ExecutionCreateContextResult.fromResponse(response);
         var id1 = result.id;
@@ -54,17 +55,17 @@ void main() {
         expect(id0 == id1, isFalse);
 
         request = ExecutionDeleteContextParams(id0).toRequest('2');
-        response = handler.handleRequest(request)!;
+        response = handler.handleRequest(request, NotCancelableToken())!;
         expect(response, isResponseSuccess('2'));
 
         request = ExecutionDeleteContextParams(id1).toRequest('3');
-        response = handler.handleRequest(request)!;
+        response = handler.handleRequest(request, NotCancelableToken())!;
         expect(response, isResponseSuccess('3'));
       });
 
       test('delete non-existent context', () {
         var request = ExecutionDeleteContextParams('13').toRequest('0');
-        var response = handler.handleRequest(request);
+        var response = handler.handleRequest(request, NotCancelableToken());
         // TODO(brianwilkerson) It isn't currently specified to be an error if a
         // client attempts to delete a context that doesn't exist. Should it be?
 //        expect(response, isResponseFailure('0'));
@@ -79,7 +80,7 @@ void main() {
 //
 //      void createExecutionContextIdForFile(String path) {
 //        Request request = new ExecutionCreateContextParams(path).toRequest('0');
-//        Response response = handler.handleRequest(request);
+//        Response response = handler.handleRequest(request, NotCancelableToken());
 //        expect(response, isResponseSuccess('0'));
 //        ExecutionCreateContextResult result =
 //            new ExecutionCreateContextResult.fromResponse(response);
@@ -102,7 +103,7 @@ void main() {
 //      tearDown(() {
 //        Request request =
 //            new ExecutionDeleteContextParams(contextId).toRequest('1');
-//        Response response = handler.handleRequest(request);
+//        Response response = handler.handleRequest(request, NotCancelableToken());
 //        expect(response, isResponseSuccess('1'));
 //      });
 //
@@ -111,7 +112,7 @@ void main() {
 //          Request request =
 //              new ExecutionMapUriParams(contextId, file: '/a/c.dart')
 //                  .toRequest('2');
-//          Response response = handler.handleRequest(request);
+//          Response response = handler.handleRequest(request, NotCancelableToken());
 //          expect(response, isResponseFailure('2'));
 //        });
 //
@@ -119,7 +120,7 @@ void main() {
 //          provider.newFolder('/a/d');
 //          Request request =
 //              new ExecutionMapUriParams(contextId, file: '/a/d').toRequest('2');
-//          Response response = handler.handleRequest(request);
+//          Response response = handler.handleRequest(request, NotCancelableToken());
 //          expect(response, isResponseFailure('2'));
 //        });
 //      });
@@ -129,7 +130,7 @@ void main() {
 //          Request request =
 //              new ExecutionMapUriParams(contextId, uri: 'foo:///a/b.dart')
 //                  .toRequest('2');
-//          Response response = handler.handleRequest(request);
+//          Response response = handler.handleRequest(request, NotCancelableToken());
 //          expect(response, isResponseFailure('2'));
 //        });
 //      });
@@ -137,20 +138,20 @@ void main() {
 //      test('invalid context id', () {
 //        Request request =
 //            new ExecutionMapUriParams('xxx', uri: '').toRequest('4');
-//        Response response = handler.handleRequest(request);
+//        Response response = handler.handleRequest(request, NotCancelableToken());
 //        expect(response, isResponseFailure('4'));
 //      });
 //
 //      test('both file and uri', () {
 //        Request request =
 //            new ExecutionMapUriParams('xxx', file: '', uri: '').toRequest('5');
-//        Response response = handler.handleRequest(request);
+//        Response response = handler.handleRequest(request, NotCancelableToken());
 //        expect(response, isResponseFailure('5'));
 //      });
 //
 //      test('neither file nor uri', () {
 //        Request request = new ExecutionMapUriParams('xxx').toRequest('6');
-//        Response response = handler.handleRequest(request);
+//        Response response = handler.handleRequest(request, NotCancelableToken());
 //        expect(response, isResponseFailure('6'));
 //      });
 //    });
@@ -162,9 +163,9 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
   late String contextId;
 
   @override
-  void setUp() {
+  Future<void> setUp() async {
     super.setUp();
-    createProject();
+    await createProject();
     handler = ExecutionDomainHandler(server);
     _createExecutionContext(testFile);
   }
@@ -237,7 +238,7 @@ void contextFunction() {
 
   void _createExecutionContext(String path) {
     var request = ExecutionCreateContextParams(path).toRequest('0');
-    var response = handler.handleRequest(request)!;
+    var response = handler.handleRequest(request, NotCancelableToken())!;
     expect(response, isResponseSuccess('0'));
     var result = ExecutionCreateContextResult.fromResponse(response);
     contextId = result.id;
@@ -245,14 +246,14 @@ void contextFunction() {
 
   void _disposeExecutionContext() {
     var request = ExecutionDeleteContextParams(contextId).toRequest('1');
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request, NotCancelableToken());
     expect(response, isResponseSuccess('1'));
   }
 
   ExecutionMapUriResult _mapUri({String? file, String? uri}) {
     var request =
         ExecutionMapUriParams(contextId, file: file, uri: uri).toRequest('2');
-    var response = handler.handleRequest(request)!;
+    var response = handler.handleRequest(request, NotCancelableToken())!;
     expect(response, isResponseSuccess('2'));
     return ExecutionMapUriResult.fromResponse(response);
   }

@@ -14,23 +14,16 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         lengthOfSpan,
         MemberKind,
         optional;
-
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
-
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValue, ParserRecovery;
-
 import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
-
 import 'package:_fe_analyzer_shared/src/util/link.dart';
-
 import 'package:kernel/ast.dart'
     show AsyncMarker, InvalidType, Nullability, ProcedureKind, Variance;
 
 import '../builder/constructor_reference_builder.dart';
-import '../builder/enum_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
@@ -41,20 +34,13 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-
 import '../combinator.dart' show CombinatorBuilder;
-
 import '../configuration.dart' show Configuration;
-
 import '../fasta_codes.dart';
-
 import '../identifiers.dart' show QualifiedName, flattenName;
-
 import '../ignored_parser_errors.dart' show isIgnoredParserError;
-
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart';
-
 import '../modifier.dart'
     show
         Const,
@@ -73,27 +59,22 @@ import '../modifier.dart'
         mixinDeclarationMask,
         requiredMask,
         staticMask;
-
 import '../operator.dart'
     show
         Operator,
         operatorFromString,
         operatorToString,
         operatorRequiredArgumentCount;
-
 import '../problems.dart' show unhandled;
-
+import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
-
 import 'source_library_builder.dart'
     show
         TypeParameterScopeBuilder,
         TypeParameterScopeKind,
         FieldInfo,
         SourceLibraryBuilder;
-
 import 'stack_listener_impl.dart';
-
 import 'value_kinds.dart';
 
 enum MethodBody {
@@ -814,7 +795,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
+  void beginClassDeclaration(
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     debugEvent("beginClassDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -827,6 +809,18 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.setCurrentClassName(name.lexeme);
     inAbstractClass = abstractToken != null;
     push(abstractToken != null ? abstractMask : 0);
+    if (macroToken != null && !libraryBuilder.enableMacrosInLibrary) {
+      // TODO(johnniwinther): We should emit a different message when the
+      // experiment is not released yet. The current message indicates that
+      // changing the sdk version can solve the problem.
+      addProblem(
+          templateExperimentNotEnabled.withArguments(
+              'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
+          macroToken.next!.charOffset,
+          macroToken.next!.length);
+      macroToken = null;
+    }
+    push(macroToken ?? NullValue.Token);
   }
 
   @override
@@ -899,7 +893,7 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token name) {
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     debugEvent("beginNamedMixinApplication");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -910,6 +904,15 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
         name.lexeme, name.charOffset, typeVariables);
     push(abstractToken != null ? abstractMask : 0);
+    if (macroToken != null && !libraryBuilder.enableMacrosInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments(
+              'macros', libraryBuilder.enableMacrosVersionInLibrary.toText()),
+          macroToken.next!.charOffset,
+          macroToken.next!.length);
+      macroToken = null;
+    }
+    push(macroToken ?? NullValue.Token);
   }
 
   @override
@@ -1042,10 +1045,26 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("endClassDeclaration");
+    assert(checkState(beginToken, [
+      /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+      /* supertype offset */ ValueKinds.Integer,
+      /* supertype */ unionOfKinds([
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.ParserRecovery,
+      ]),
+      /* macro token */ ValueKinds.TokenOrNull,
+      /* modifiers */ ValueKinds.Integer,
+      /* type variables */ ValueKinds.TypeVariableListOrNull,
+      /* name offset */ ValueKinds.Integer,
+      /* name */ ValueKinds.NameOrParserRecovery,
+      /* metadata */ ValueKinds.MetadataListOrNull,
+    ]));
+
     List<TypeBuilder>? interfaces =
         pop(NullValue.TypeBuilderList) as List<TypeBuilder>?;
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
+    Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
@@ -1122,7 +1141,8 @@ class OutlineBuilder extends StackListenerImpl {
           startCharOffset,
           nameOffset,
           endToken.charOffset,
-          supertypeOffset);
+          supertypeOffset,
+          isMacro: macroToken != null);
     }
     libraryBuilder.setCurrentClassName(null);
     popDeclarationContext(DeclarationContext.Class);
@@ -1736,6 +1756,7 @@ class OutlineBuilder extends StackListenerImpl {
         case _MethodKind.classConstructor:
         case _MethodKind.mixinConstructor:
         case _MethodKind.extensionConstructor:
+        case _MethodKind.enumConstructor:
           constructorName = libraryBuilder.computeAndValidateConstructorName(
                   name, charOffset) ??
               name as String?;
@@ -1743,6 +1764,7 @@ class OutlineBuilder extends StackListenerImpl {
         case _MethodKind.classMethod:
         case _MethodKind.mixinMethod:
         case _MethodKind.extensionMethod:
+        case _MethodKind.enumMethod:
           break;
       }
       bool isStatic = (modifiers & staticMask) != 0;
@@ -1877,12 +1899,35 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void handleNamedArgument(Token colon) {
+    debugEvent("NamedArgument");
+    pop(); // Named argument offset.
+    pop(); // Named argument name.
+  }
+
+  @override
   void endNamedMixinApplication(Token beginToken, Token classKeyword,
       Token equals, Token? implementsKeyword, Token endToken) {
     debugEvent("endNamedMixinApplication");
+    assert(checkState(beginToken, [
+      if (implementsKeyword != null)
+        /* interfaces */ ValueKinds.TypeBuilderListOrNull,
+      /* mixin application */ unionOfKinds([
+        ValueKinds.ParserRecovery,
+        ValueKinds.TypeBuilder,
+      ]),
+      /* macro token */ ValueKinds.TokenOrNull,
+      /* modifiers */ ValueKinds.Integer,
+      /* type variables */ ValueKinds.TypeVariableListOrNull,
+      /* name offset */ ValueKinds.Integer,
+      /* name */ ValueKinds.NameOrParserRecovery,
+      /* metadata */ ValueKinds.MetadataListOrNull,
+    ]));
+
     List<TypeBuilder>? interfaces =
         popIfNotNull(implementsKeyword) as List<TypeBuilder>?;
     Object? mixinApplication = pop();
+    Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
@@ -1950,7 +1995,8 @@ class OutlineBuilder extends StackListenerImpl {
           interfaces,
           startCharOffset,
           charOffset,
-          charEndOffset);
+          charEndOffset,
+          isMacro: macroToken != null);
     }
     popDeclarationContext(DeclarationContext.NamedMixinApplication);
   }
@@ -1966,7 +2012,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endArguments(int count, Token beginToken, Token endToken) {
     debugEvent("Arguments");
-    push(NullValue.Arguments);
+    push(beginToken);
   }
 
   @override
@@ -2104,6 +2150,7 @@ class OutlineBuilder extends StackListenerImpl {
           type,
           name == null ? FormalParameterBuilder.noNameSentinel : name as String,
           thisKeyword != null,
+          superKeyword != null,
           charOffset,
           initializerStart));
     }
@@ -2260,6 +2307,7 @@ class OutlineBuilder extends StackListenerImpl {
     } else {
       declarationName = '#enum';
     }
+    libraryBuilder.setCurrentClassName(declarationName);
     pushDeclarationContext(DeclarationContext.Enum);
     libraryBuilder.beginNestedDeclaration(
         TypeParameterScopeKind.enumDeclaration, declarationName);
@@ -2268,14 +2316,42 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleEnumElement(Token beginToken) {
     debugEvent("EnumElements");
-    pop(); // arguments.
-    pop(); // constructor reference.
-    // Keep on the stack the EnumConstantInfo created in handleIdentifier.
+    Token? argumentsBeginToken = pop() as Token?;
+
+    ConstructorReferenceBuilder? constructorReferenceBuilder =
+        pop() as ConstructorReferenceBuilder?;
+    Object? enumConstantInfo = pop();
+    if (enumConstantInfo is EnumConstantInfo) {
+      push(enumConstantInfo
+        ..constructorReferenceBuilder = constructorReferenceBuilder
+        ..argumentsBeginToken = argumentsBeginToken);
+    } else {
+      assert(enumConstantInfo is ParserRecovery);
+      push(enumConstantInfo);
+    }
   }
 
   @override
   void handleEnumHeader(Token enumKeyword, Token leftBrace) {
     debugEvent("EnumHeader");
+
+    // We pop more values than needed to reach typeVariables, offset and name.
+    List<TypeBuilder>? interfaces = pop() as List<TypeBuilder>?;
+    Object? mixins = pop();
+    List<TypeVariableBuilder>? typeVariables =
+        pop() as List<TypeVariableBuilder>?;
+    int charOffset = popCharOffset(); // identifier char offset.
+    Object? name = pop();
+
+    libraryBuilder.currentTypeParameterScopeBuilder.markAsEnumDeclaration(
+        name is String ? name : "<syntax-error>", charOffset, typeVariables);
+
+    push(name ?? NullValue.Name);
+    push(charOffset);
+    push(typeVariables ?? NullValue.TypeVariables);
+    push(mixins ?? NullValue.TypeBuilder);
+    push(interfaces ?? NullValue.TypeBuilderList);
+
     push(enumKeyword.charOffset); // start char offset.
     push(leftBrace.endGroup!.charOffset); // end char offset.
   }
@@ -2283,12 +2359,20 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleEnumElements(Token elementsEndToken, int elementsCount) {
     debugEvent("EnumElements");
+    push(elementsCount);
+  }
+
+  @override
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+    debugEvent("Enum");
+
+    int elementsCount = pop() as int;
     List<EnumConstantInfo?>? enumConstantInfos =
         const FixedNullableList<EnumConstantInfo>().pop(stack, elementsCount);
     int endCharOffset = popCharOffset();
     int startCharOffset = popCharOffset();
-    pop() as List<TypeBuilder>?; // interfaces.
-    pop() as List<TypeBuilder>?; // mixins.
+    List<TypeBuilder>? interfaces = pop() as List<TypeBuilder>?;
+    MixinApplicationBuilder? mixinBuilder = pop() as MixinApplicationBuilder?;
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     int charOffset = popCharOffset(); // identifier char offset.
@@ -2297,19 +2381,38 @@ class OutlineBuilder extends StackListenerImpl {
     checkEmpty(startCharOffset);
 
     if (name is! ParserRecovery) {
-      libraryBuilder.addEnum(metadata, name as String, enumConstantInfos,
-          startCharOffset, charOffset, endCharOffset);
+      if (interfaces != null) {
+        for (TypeBuilder interface in interfaces) {
+          if (interface.nullabilityBuilder.build(libraryBuilder) ==
+              Nullability.nullable) {
+            libraryBuilder.addProblem(
+                templateNullableInterfaceError
+                    .withArguments(interface.fullNameForErrors),
+                interface.charOffset ?? startCharOffset,
+                (name as String).length,
+                uri);
+          }
+        }
+      }
+
+      libraryBuilder.addEnum(
+          metadata,
+          name as String,
+          typeVariables,
+          mixinBuilder,
+          interfaces,
+          enumConstantInfos,
+          startCharOffset,
+          charOffset,
+          endCharOffset);
     } else {
       libraryBuilder
           .endNestedDeclaration(
               TypeParameterScopeKind.enumDeclaration, "<syntax-error>")
           .resolveNamedTypes(typeVariables, libraryBuilder);
     }
-  }
 
-  @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
-    debugEvent("Enum");
+    libraryBuilder.setCurrentClassName(null);
     checkEmpty(enumKeyword.charOffset);
     popDeclarationContext(DeclarationContext.Enum);
   }
@@ -2958,73 +3061,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endEnumFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
-    // TODO(cstefantsova): Call endClassFactoryMethod instead.
     debugEvent("EnumFactoryMethod");
-    MethodBody bodyKind = pop() as MethodBody;
-    if (bodyKind == MethodBody.RedirectingFactoryBody) {
-      pop(); // reference
-    }
-    pop(); // async marker
-    pop(); // formals
-    popCharOffset(); // formals char offset
-    pop(); // type variables
-    popCharOffset(); // char offset
-    pop(); // name
-    pop(); // modifiers
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    popDeclarationContext();
-    // TODO(cstefantsova): Use actual type parameters.
-    libraryBuilder
-        .endNestedDeclaration(
-            TypeParameterScopeKind.factoryMethod, "#factory_method")
-        .resolveNamedTypes([], libraryBuilder);
-    // Skip the declaration. An error as already been produced by the parser.
-
-    if (libraryBuilder.enableEnhancedEnumsInLibrary) {
-      addProblem(messageEnumDeclaresFactory, beginToken.charOffset, -1);
-    } else {
-      addProblem(
-          templateExperimentNotEnabled.withArguments('enhanced-enums',
-              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
-          beginToken.charOffset,
-          -1);
-    }
-  }
-
-  @override
-  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
-    // TODO(cstefantsova): Call endClassMethod instead.
-    debugEvent("EnumMethod");
-    MethodBody bodyKind = pop() as MethodBody;
-    if (bodyKind == MethodBody.RedirectingFactoryBody) {
-      pop(); // reference
-    }
-    pop(); // async marker
-    pop(); // formals
-    popCharOffset(); // formals char offset
-    pop(); // type variables
-    popCharOffset(); // char offset
-    pop(); // name
-    pop(); // return type
-    int modifiers = Modifier.toMask(pop() as List<Modifier>?);
-    popCharOffset(); // final or const offset
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    popDeclarationContext();
-    TypeParameterScopeKind scopeKind;
-    if ((modifiers & staticMask) != 0) {
-      scopeKind = TypeParameterScopeKind.staticMethod;
-    } else {
-      scopeKind = TypeParameterScopeKind.instanceMethod;
-    }
-    // TODO(cstefantsova): Use actual type parameters.
-    libraryBuilder
-        .endNestedDeclaration(scopeKind, "#method")
-        .resolveNamedTypes([], libraryBuilder);
-    // Skip the declaration. An error as already been produced by the parser.
-
     if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
       addProblem(
           templateExperimentNotEnabled.withArguments('enhanced-enums',
@@ -3032,6 +3069,23 @@ class OutlineBuilder extends StackListenerImpl {
           beginToken.charOffset,
           -1);
     }
+
+    _endFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
+      addProblem(
+          templateExperimentNotEnabled.withArguments('enhanced-enums',
+              libraryBuilder.enableEnhancedEnumsVersionInLibrary.toText()),
+          beginToken.charOffset,
+          -1);
+    }
+
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.enumMethod);
   }
 
   @override
@@ -3045,15 +3099,6 @@ class OutlineBuilder extends StackListenerImpl {
       int count,
       Token beginToken,
       Token endToken) {
-    // TODO(cstefantsova): Call endClassFields instead.
-    debugEvent("EnumFields");
-    popFieldInfos(count); // field infos
-    pop(); // type
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    popDeclarationContext();
-    // Skip the declaration. An error as already been produced by the parser.
-
     if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
       addProblem(
           templateExperimentNotEnabled.withArguments('enhanced-enums',
@@ -3061,35 +3106,13 @@ class OutlineBuilder extends StackListenerImpl {
           beginToken.charOffset,
           -1);
     }
+    endClassFields(abstractToken, externalToken, staticToken, covariantToken,
+        lateToken, varFinalOrConst, count, beginToken, endToken);
   }
 
   @override
   void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
-    // TODO(cstefantsova): Call endClassConstructor instead.
-    debugEvent("EnumMethod");
-    MethodBody bodyKind = pop() as MethodBody;
-    if (bodyKind == MethodBody.RedirectingFactoryBody) {
-      pop(); // reference
-    }
-    pop(); // async marker
-    pop(); // formals
-    popCharOffset(); // formals char offset
-    pop(); // type variables
-    popCharOffset(); // char offset
-    pop(); // name
-    pop(); // return type
-    pop(); // modifiers
-    popCharOffset(); // final or const offset
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    popDeclarationContext();
-    // TODO(cstefantsova): Use actual type parameters.
-    libraryBuilder
-        .endNestedDeclaration(TypeParameterScopeKind.instanceMethod, "#method")
-        .resolveNamedTypes([], libraryBuilder);
-    // Skip the declaration. An error as already been produced by the parser.
-
     if (!libraryBuilder.enableEnhancedEnumsInLibrary) {
       addProblem(
           templateExperimentNotEnabled.withArguments('enhanced-enums',
@@ -3097,6 +3120,9 @@ class OutlineBuilder extends StackListenerImpl {
           beginToken.charOffset,
           -1);
     }
+
+    _endClassMethod(getOrSet, beginToken, beginParam, beginInitializers,
+        endToken, _MethodKind.enumConstructor);
   }
 
   @override
@@ -3204,15 +3230,23 @@ class OutlineBuilder extends StackListenerImpl {
     if (mixins is ParserRecovery) {
       push(new ParserRecovery(withKeyword.charOffset));
     } else {
-      // TODO(cstefantsova): Handle enum mixins here.
-      push(mixins);
+      NamedTypeBuilder enumType = new NamedTypeBuilder(
+          "_Enum",
+          const NullabilityBuilder.omitted(),
+          /* arguments = */ null,
+          /* fileUri = */ null,
+          /* charOffset = */ null,
+          instanceTypeVariableAccess:
+              InstanceTypeVariableAccessState.Unexpected);
+      push(libraryBuilder.addMixinApplication(
+          enumType, mixins as List<TypeBuilder>, withKeyword.charOffset));
     }
   }
 
   @override
   void handleEnumNoWithClause() {
     debugEvent("EnumNoWithClause");
-    push(NullValue.TypeBuilderList);
+    push(NullValue.TypeBuilder);
   }
 
   @override
@@ -3280,4 +3314,6 @@ enum _MethodKind {
   mixinMethod,
   extensionConstructor,
   extensionMethod,
+  enumConstructor,
+  enumMethod,
 }

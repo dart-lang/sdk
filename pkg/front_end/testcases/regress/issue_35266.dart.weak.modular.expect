@@ -1,0 +1,56 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35266.dart:8:11: Error: 'B.foo' is already declared in this scope.
+//   factory B.foo() = B<T>;
+//           ^^^^^
+// pkg/front_end/testcases/regress/issue_35266.dart:7:11: Context: Previous declaration of 'B.foo'.
+//   factory B.foo() = B<T>;
+//           ^^^^^
+//
+// pkg/front_end/testcases/regress/issue_35266.dart:13:21: Error: Can't use 'B.foo' because it is declared more than once.
+//   factory C.bar() = B<K>.foo;
+//                     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class B<T extends core::Object* = dynamic> extends self::C<self::B::T*> {
+  static final field dynamic _redirecting# = <dynamic>[#C1];
+  constructor •() → self::B<self::B::T*>*
+    : super self::C::•()
+    ;
+  static factory foo<T extends core::Object* = dynamic>() → self::B<self::B::foo::T*>*
+    return new self::B::•<self::B::foo::T*>();
+}
+class C<K extends core::Object* = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C2];
+  constructor •() → self::C<self::C::K*>*
+    : super core::Object::•()
+    ;
+  static factory bar<K extends core::Object* = dynamic>() → self::C<self::C::bar::K*>*
+    return invalid-expression "pkg/front_end/testcases/regress/issue_35266.dart:13:21: Error: Can't use 'B.foo' because it is declared more than once.
+  factory C.bar() = B<K>.foo;
+                    ^";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/regress/issue_35266.dart:13:21: Error: Can't use 'B.foo' because it is declared more than once.
+  factory C.bar() = B<K>.foo;
+                    ^";
+}
+
+constants  {
+  #C1 = constructor-tearoff self::B::foo
+  #C2 = constructor-tearoff self::C::bar
+}

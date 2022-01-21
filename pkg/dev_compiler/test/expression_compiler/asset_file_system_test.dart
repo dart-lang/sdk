@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpServer;
@@ -96,8 +94,8 @@ FutureOr<Response> alwaysFailingHandler(Request request) {
 }
 
 void main() async {
-  HttpServer server;
-  AssetFileSystem fileSystem;
+  late HttpServer server;
+  late AssetFileSystem fileSystem;
   group('AssetFileSystem with a server', () {
     setUpAll(() async {
       var hostname = 'localhost';

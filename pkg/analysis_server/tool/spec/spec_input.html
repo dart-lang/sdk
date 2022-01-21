@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.32.7</version>
+  <version>1.32.8</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -134,6 +134,11 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.32.8</h4>
+<ul>
+  <li>Added <tt>server.cancelRequest</tt> to allow clients to request cancellation
+  of outstanding requests.</li>
+</ul>
 <h4>1.32.7</h4>
 <ul>
   <li><tt>HoverInformation.elementDescription</tt> may now include linebreaks to
@@ -291,6 +296,26 @@
           <ref>ServerService</ref>
         </list>
         <p>A list of the services being subscribed to.</p>
+      </field>
+    </params>
+  </request>
+  <request method="cancelRequest">
+    <p>Requests cancellation of a request sent by the client by id.
+      This is provided on a best-effort basis and there is no
+      guarantee the server will be able to cancel any specific
+      request.
+
+      The server will still always produce a response to the request
+      even in the case of cancellation, but clients should discard
+      any results of any cancelled request because they may be
+      incomplete or inaccurate.
+      
+      This request always completes without error regardless of
+      whether the request is successfully cancelled.</p>
+    <params>
+      <field name="id">
+        <ref>String</ref>
+        <p>The id of the request that should be cancelled.</p>
       </field>
     </params>
   </request>
@@ -1482,6 +1507,22 @@
           then <tt>isIncomplete</tt> is set to <tt>true</tt>.
         </p>
       </field>
+      <field name="completionMode" experimental="true" optional="true">
+        <ref>CompletionMode</ref>
+        <p>
+          The mode of code completion being invoked. If no value is provided,
+          <tt>BASIC</tt> will be assumed. <tt>BASIC</tt> is also the only
+          currently supported.
+        </p>
+      </field>
+      <field name="invocationCount" experimental="true" optional="true">
+        <ref>int</ref>
+        <p>
+          The number of times that the user has invoked code completion at
+          the same code location, counting from 1. If no value is provided,
+          1 will be assumed.
+        </p>
+      </field>
       <field name="timeout" experimental="true" optional="true">
         <ref>int</ref>
         <p>
@@ -1529,25 +1570,7 @@
         <p>
           This list contains suggestions from both imported, and not yet
           imported libraries. Items from not yet imported libraries will
-          have <tt>libraryUriToImportIndex</tt> set, which is an index into
-          the <tt>libraryUrisToImport</tt> in this response.
-        </p>
-      </field>
-      <field name="libraryUrisToImport">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          The list of libraries with declarations that are not yet available
-          in the file where completion was requested, most often because
-          the library is not yet imported. The declarations still might be
-          included into the <tt>suggestions</tt>, and the client should use
-          <tt>getSuggestionDetails2</tt> on selection to make the library
-          available in the file.
-        </p>
-        <p>
-          Each item is the URI of a library, such as <tt>package:foo/bar.dart</tt>
-          or <tt>file:///home/me/workspace/foo/test/bar_test.dart</tt>.
+          have <tt>isNotImported</tt> set to <tt>true</tt>.
         </p>
       </field>
       <field name="isIncomplete">
@@ -1658,7 +1681,7 @@
   <request method="getSuggestionDetails2" experimental="true">
     <p>
       Clients must make this request when the user has selected a completion
-      suggestion with the <tt>libraryUriToImportIndex</tt> field set.
+      suggestion with the <tt>isNotImported</tt> field set to <tt>true</tt>.
       The server will respond with the text to insert, as well as any
       <tt>SourceChange</tt> that needs to be applied in case the completion
       requires an additional import to be  added. The text to insert might be
@@ -4102,6 +4125,26 @@
         </p>
       </field>
     </object>
+  </type>
+  <type name="CompletionMode">
+    <p>
+      An enumeration of the kinds of code completion that users can invoke.
+    </p>
+    <enum>
+      <value>
+        <code>BASIC</code>
+        <p>
+          Basic code completion invocation type, and the default for this
+          enumeration.
+        </p>
+      </value>
+      <value>
+        <code>SMART</code>
+        <p>
+          Smart code completion, currently not implemented.
+        </p>
+      </value>
+    </enum>
   </type>
   <type name="RuntimeCompletionExpression">
     <p>

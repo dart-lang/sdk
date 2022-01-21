@@ -134,6 +134,10 @@ abstract class CustomSemanticTokenModifiers {
   /// of the expression would show through the simple-colorings "string" colors.
   static const interpolation = SemanticTokenModifiers('interpolation');
 
+  /// A modifier applied to instance field/getter/setter/method references and
+  /// declarations to distinguish them from top-levels.
+  static const instance = SemanticTokenModifiers('instance');
+
   /// A modifier applied to the void keyword to allow users to color it
   /// differently (for example as a type).
   static const void_ = SemanticTokenModifiers('void');
@@ -147,6 +151,7 @@ abstract class CustomSemanticTokenModifiers {
     annotation,
     control,
     importPrefix,
+    instance,
     label,
     constructor,
     escape,
