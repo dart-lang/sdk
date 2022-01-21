@@ -1364,26 +1364,42 @@ severity: $severity
       dataForTesting!.macroDeclarationData.macrosAreAvailable = true;
     }
 
-    Set<ClassBuilder> macroClasses = {macroClassBuilder};
-    Set<Uri> macroLibraries = {macroLibraryBuilder.importUri};
+    Set<ClassBuilder> macroClasses = {};
 
-    for (SourceLibraryBuilder sourceLibraryBuilder in sourceLibraryBuilders) {
-      Iterator<Builder> iterator = sourceLibraryBuilder.iterator;
+    /// Libraries containing macros that need compilation.
+    Set<Uri> macroLibraries = {};
+
+    /// Libraries containing precompiled macro classes.
+    Set<Uri> precompiledMacroLibraries = {};
+
+    Map<MacroClass, Uri> precompiledMacroUris =
+        target.context.options.precompiledMacroUris;
+
+    for (LibraryBuilder libraryBuilder in libraryBuilders) {
+      Iterator<Builder> iterator = libraryBuilder.iterator;
       while (iterator.moveNext()) {
         Builder builder = iterator.current;
-        if (builder is SourceClassBuilder && builder.isMacro) {
-          macroClasses.add(builder);
-          macroLibraries.add(builder.library.importUri);
-          if (retainDataForTesting) {
-            (dataForTesting!.macroDeclarationData
-                    .macroDeclarations[builder.library.importUri] ??= [])
-                .add(builder.name);
+        if (builder is ClassBuilder && builder.isMacro) {
+          Uri libraryUri = builder.library.importUri;
+          MacroClass macroClass = new MacroClass(libraryUri, builder.name);
+          if (!precompiledMacroUris.containsKey(macroClass)) {
+            macroClasses.add(builder);
+            macroLibraries.add(libraryUri);
+            if (retainDataForTesting) {
+              (dataForTesting!.macroDeclarationData
+                      .macroDeclarations[libraryUri] ??= [])
+                  .add(builder.name);
+            }
+          } else {
+            precompiledMacroLibraries.add(libraryUri);
           }
         }
       }
     }
 
-    bool isDillLibrary(Uri uri) => _builders[uri]?.loader != this;
+    if (macroClasses.isEmpty) {
+      return;
+    }
 
     List<List<Uri>> computeCompilationSequence(Graph<Uri> libraryGraph,
         {required bool Function(Uri) filter}) {
@@ -1418,9 +1434,39 @@ severity: $severity
       return layeredComponents;
     }
 
-    List<List<Uri>> compilationSteps = computeCompilationSequence(
-        new BuilderGraph(_builders),
-        filter: isDillLibrary);
+    Graph<Uri> graph = new BuilderGraph(_builders);
+
+    /// Libraries that are considered precompiled. These are libraries that are
+    /// either given as precompiled macro libraries, or libraries that these
+    /// depend upon.
+    // TODO(johnniwinther): Can we assume that the precompiled dills are
+    // self-contained?
+    Set<Uri> precompiledLibraries = {};
+
+    void addPrecompiledLibrary(Uri uri) {
+      if (precompiledLibraries.add(uri)) {
+        for (Uri neighbor in graph.neighborsOf(uri)) {
+          addPrecompiledLibrary(neighbor);
+        }
+      }
+    }
+
+    for (LibraryBuilder builder in _builders.values) {
+      if (builder.loader != this) {
+        addPrecompiledLibrary(builder.importUri);
+      } else if (precompiledMacroLibraries.contains(builder.importUri)) {
+        assert(
+            !macroLibraries.contains(builder.importUri),
+            "Macro library ${builder.importUri} is only partially "
+            "precompiled.");
+        addPrecompiledLibrary(builder.importUri);
+      }
+    }
+
+    bool isPrecompiledLibrary(Uri uri) => precompiledLibraries.contains(uri);
+
+    List<List<Uri>> compilationSteps =
+        computeCompilationSequence(graph, filter: isPrecompiledLibrary);
     if (retainDataForTesting) {
       dataForTesting!.macroDeclarationData.compilationSequence =
           compilationSteps;
