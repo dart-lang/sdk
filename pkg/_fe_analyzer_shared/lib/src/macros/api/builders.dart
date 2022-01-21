@@ -87,11 +87,6 @@ abstract class ClassMemberDeclarationBuilder implements DeclarationBuilder {
   void declareInClass(DeclarationCode declaration);
 }
 
-/// The api used by [Macro]s to reflect on the currently available
-/// members, superclass, and mixins for a given [ClassDeclaration]
-abstract class ClassDeclarationBuilder
-    implements ClassMemberDeclarationBuilder, ClassIntrospector {}
-
 /// The interface used by [Macro]s to resolve any [NamedStaticType] to its
 /// declaration.
 ///
@@ -117,23 +112,25 @@ abstract class ClassDefinitionBuilder implements DefinitionBuilder {
   /// Retrieve a [VariableDefinitionBuilder] for a field by [name].
   ///
   /// Throws an [ArgumentError] if there is no field by that name.
-  VariableDefinitionBuilder buildField(String name);
+  Future<VariableDefinitionBuilder> buildField(String name);
 
   /// Retrieve a [FunctionDefinitionBuilder] for a method by [name].
   ///
   /// Throws an [ArgumentError] if there is no method by that name.
-  FunctionDefinitionBuilder buildMethod(String name);
+  Future<FunctionDefinitionBuilder> buildMethod(String name);
 
   /// Retrieve a [ConstructorDefinitionBuilder] for a constructor by [name].
   ///
   /// Throws an [ArgumentError] if there is no constructor by that name.
-  ConstructorDefinitionBuilder buildConstructor(String name);
+  Future<ConstructorDefinitionBuilder> buildConstructor(String name);
 }
 
 /// The apis used by [Macro]s to define the body of a constructor
 /// or wrap the body of an existing constructor with additional statements.
 abstract class ConstructorDefinitionBuilder implements DefinitionBuilder {
-  /// Augments an existing constructor body with [body].
+  /// Augments an existing constructor body with [body] and [initializers].
+  ///
+  /// The [initializers] should not contain trailing or preceding commas.
   ///
   /// TODO: Link the library augmentations proposal to describe the semantics.
   void augment({FunctionBodyCode? body, List<Code>? initializers});
@@ -150,6 +147,9 @@ abstract class FunctionDefinitionBuilder implements DefinitionBuilder {
 /// The api used by [Macro]s to augment a top level variable or instance field.
 abstract class VariableDefinitionBuilder implements DefinitionBuilder {
   /// Augments the field.
+  ///
+  /// For [getter] and [setter] the full function declaration should be
+  /// provided, minus the `augment` keyword (which will be implicitly added).
   ///
   /// TODO: Link the library augmentations proposal to describe the semantics.
   void augment({

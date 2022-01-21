@@ -207,9 +207,10 @@ void main() {
         var bar = VariableDeclarationImpl(
           id: RemoteInstance.uniqueId,
           name: 'bar',
-          isAbstract: false,
           isExternal: true,
-          initializer: Code.fromString('Bar()'),
+          isFinal: false,
+          isLate: true,
+          initializer: ExpressionCode.fromString('Bar()'),
           type: barType,
         );
         expectSerializationEquality(bar);
@@ -219,8 +220,9 @@ void main() {
         var bar = FieldDeclarationImpl(
           id: RemoteInstance.uniqueId,
           name: 'bar',
-          isAbstract: false,
           isExternal: false,
+          isFinal: true,
+          isLate: false,
           initializer: null,
           type: barType,
           definingClass: fooType,
@@ -250,6 +252,7 @@ void main() {
           isExternal: false,
           mixins: [serializableType],
           superclass: objectType,
+          type: fooType,
           typeParameters: [zapTypeParam],
         );
         expectSerializationEquality(fooClass);
@@ -262,9 +265,14 @@ void main() {
           type: NamedTypeAnnotationImpl(
               id: RemoteInstance.uniqueId,
               isNullable: false,
+              name: 'FooOfBar',
+              typeArguments: []),
+          typeParameters: [zapTypeParam],
+          aliasedType: NamedTypeAnnotationImpl(
+              id: RemoteInstance.uniqueId,
+              isNullable: false,
               name: 'Foo',
               typeArguments: [barType]),
-          typeParameters: [zapTypeParam],
         );
         expectSerializationEquality(typeAlias);
       });

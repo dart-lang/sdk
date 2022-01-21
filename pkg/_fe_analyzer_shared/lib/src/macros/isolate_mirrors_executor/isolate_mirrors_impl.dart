@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';
 
+import '../executor_shared/builder_impls.dart';
 import '../executor_shared/introspection_impls.dart';
 import '../executor_shared/response_impls.dart';
 import '../executor_shared/protocol.dart';
@@ -97,9 +98,9 @@ Future<Response> _executeDefinitionsPhase(
         declaration is FunctionDeclarationImpl) {
       FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
           declaration,
+          request.classIntrospector.instance as ClassIntrospector,
           request.typeResolver.instance as TypeResolver,
-          request.typeDeclarationResolver.instance as TypeDeclarationResolver,
-          request.classIntrospector.instance as ClassIntrospector);
+          request.typeDeclarationResolver.instance as TypeDeclarationResolver);
       await instance.buildDefinitionForFunction(declaration, builder);
       return new Response(
           response: builder.result,
@@ -109,9 +110,9 @@ Future<Response> _executeDefinitionsPhase(
         declaration is MethodDeclarationImpl) {
       FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
           declaration,
+          request.classIntrospector.instance as ClassIntrospector,
           request.typeResolver.instance as TypeResolver,
-          request.typeDeclarationResolver.instance as TypeDeclarationResolver,
-          request.classIntrospector.instance as ClassIntrospector);
+          request.typeDeclarationResolver.instance as TypeDeclarationResolver);
       await instance.buildDefinitionForMethod(declaration, builder);
       return new SerializableResponse(
           responseType: MessageType.macroExecutionResult,

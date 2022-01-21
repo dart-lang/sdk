@@ -50,7 +50,7 @@ abstract class VariableDeclarationsMacro implements Macro {
 /// The interface for [Macro]s that can be applied to any top level variable
 /// or instance field, and wants to augment the variable definition.
 abstract class VariableDefinitionMacro implements Macro {
-  FutureOr<void> buildDefinitionForFunction(
+  FutureOr<void> buildDefinitionForVariable(
       VariableDeclaration variable, VariableDefinitionBuilder builder);
 }
 
@@ -65,7 +65,7 @@ abstract class ClassTypesMacro implements Macro {
 /// contribute new non-type declarations to the program.
 abstract class ClassDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForClass(
-      ClassDeclaration clazz, ClassDeclarationBuilder builder);
+      ClassDeclaration clazz, ClassMemberDeclarationBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any class, and wants to
@@ -85,13 +85,13 @@ abstract class FieldTypesMacro implements Macro {
 /// The interface for [Macro]s that can be applied to any field, and wants to
 /// contribute new type declarations to the program.
 abstract class FieldDeclarationsMacro implements Macro {
-  FutureOr<void> buildTypesForField(
+  FutureOr<void> buildDeclarationsForField(
       FieldDeclaration field, ClassMemberDeclarationBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any field, and wants to
 /// augment the field definition.
-abstract class FieldDefinitionsMacro implements Macro {
+abstract class FieldDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForField(
       FieldDeclaration field, VariableDefinitionBuilder builder);
 }
@@ -105,7 +105,7 @@ abstract class MethodTypesMacro implements Macro {
 
 /// The interface for [Macro]s that can be applied to any method, and wants to
 /// contribute new non-type declarations to the program.
-abstract class MethodDeclarationDeclarationsMacro implements Macro {
+abstract class MethodDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForMethod(
       MethodDeclaration method, ClassMemberDeclarationBuilder builder);
 }
@@ -121,19 +121,20 @@ abstract class MethodDefinitionMacro implements Macro {
 /// to contribute new type declarations to the program.
 abstract class ConstructorTypesMacro implements Macro {
   FutureOr<void> buildTypesForConstructor(
-      ConstructorDeclaration method, TypeBuilder builder);
+      ConstructorDeclaration constructor, TypeBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any constructors, and
 /// wants to contribute new non-type declarations to the program.
-abstract class ConstructorDeclarationDeclarationsMacro implements Macro {
+abstract class ConstructorDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForConstructor(
-      ConstructorDeclaration method, ClassMemberDeclarationBuilder builder);
+      ConstructorDeclaration constructor,
+      ClassMemberDeclarationBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any constructor, and wants
 /// to augment the function definition.
 abstract class ConstructorDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForConstructor(
-      ConstructorDeclaration method, ConstructorDefinitionBuilder builder);
+      ConstructorDeclaration constructor, ConstructorDefinitionBuilder builder);
 }

@@ -152,8 +152,9 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         name: expectString(),
         initializer: (this..moveNext()).expectNullableCode(),
-        isAbstract: (this..moveNext()).expectBool(),
         isExternal: (this..moveNext()).expectBool(),
+        isFinal: (this..moveNext()).expectBool(),
+        isLate: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
       );
 
@@ -161,8 +162,9 @@ extension DeserializerExtensions on Deserializer {
         id: id,
         name: expectString(),
         initializer: (this..moveNext()).expectNullableCode(),
-        isAbstract: (this..moveNext()).expectBool(),
         isExternal: (this..moveNext()).expectBool(),
+        isFinal: (this..moveNext()).expectBool(),
+        isLate: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
         definingClass: RemoteInstance.deserialize(this),
       );
@@ -170,6 +172,7 @@ extension DeserializerExtensions on Deserializer {
   ClassDeclaration _expectClassDeclaration(int id) => new ClassDeclarationImpl(
         id: id,
         name: expectString(),
+        type: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
         isAbstract: (this..moveNext()).expectBool(),
@@ -183,8 +186,9 @@ extension DeserializerExtensions on Deserializer {
       new TypeAliasDeclarationImpl(
         id: id,
         name: expectString(),
-        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         type: RemoteInstance.deserialize(this),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        aliasedType: RemoteInstance.deserialize(this),
       );
 
   T expectCode<T extends Code>() {

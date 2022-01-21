@@ -37,6 +37,7 @@ const String template = '''
 import 'dart:async';
 import 'dart:isolate';
 
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/execute_macro.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/response_impls.dart';
@@ -69,6 +70,10 @@ void main(_, SendPort sendPort) {
         case MessageType.instantiateMacroRequest:
           var request = new InstantiateMacroRequest.deserialize(deserializer, zoneId);
           (await _instantiateMacro(request)).serialize(serializer);
+          break;
+        case MessageType.executeDeclarationsPhaseRequest:
+          var request = new ExecuteDeclarationsPhaseRequest.deserialize(deserializer, zoneId);
+          (await _executeDeclarationsPhase(request, sendRequest)).serialize(serializer);
           break;
         case MessageType.executeDefinitionsPhaseRequest:
           var request = new ExecuteDefinitionsPhaseRequest.deserialize(deserializer, zoneId);
@@ -130,6 +135,41 @@ Future<SerializableResponse> _instantiateMacro(
   }
 }
 
+Future<SerializableResponse> _executeDeclarationsPhase(
+    ExecuteDeclarationsPhaseRequest request,
+    Future<Response> Function(Request request) sendRequest) async {
+  try {
+    Macro? instance = _macroInstances[request.macro];
+    if (instance == null) {
+      throw new StateError('Unrecognized macro instance \${request.macro}\\n'
+          'Known instances: \$_macroInstances)');
+    }
+    var classIntrospector = ClientClassIntrospector(
+        sendRequest,
+        remoteInstance: request.classIntrospector,
+        serializationZoneId: request.serializationZoneId);
+    var typeResolver = ClientTypeResolver(
+        sendRequest,
+        remoteInstance: request.typeResolver,
+        serializationZoneId: request.serializationZoneId);
+
+    var result = await executeDeclarationsMacro(
+        instance, request.declaration, classIntrospector, typeResolver);
+    return new SerializableResponse(
+        responseType: MessageType.macroExecutionResult,
+        response: result,
+        requestId: request.id,
+        serializationZoneId: request.serializationZoneId);
+  } catch (e, s) {
+    return new SerializableResponse(
+      responseType: MessageType.error,
+      error: e.toString(),
+      stackTrace: s.toString(),
+      requestId: request.id,
+      serializationZoneId: request.serializationZoneId);
+  }
+}
+
 Future<SerializableResponse> _executeDefinitionsPhase(
     ExecuteDefinitionsPhaseRequest request,
     Future<Response> Function(Request request) sendRequest) async {
@@ -152,54 +192,14 @@ Future<SerializableResponse> _executeDefinitionsPhase(
         remoteInstance: request.classIntrospector,
         serializationZoneId: request.serializationZoneId);
 
-    Declaration declaration = request.declaration;
-    if (instance is FunctionDefinitionMacro &&
-        declaration is FunctionDeclarationImpl) {
-      FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
-          declaration,
-          typeResolver,
-          typeDeclarationResolver,
-          classIntrospector);
-      await instance.buildDefinitionForFunction(declaration, builder);
-      return new SerializableResponse(
-          responseType: MessageType.macroExecutionResult,
-          response: builder.result,
-          requestId: request.id,
-          serializationZoneId: request.serializationZoneId);
-    } else if (instance is MethodDefinitionMacro
-        && declaration is MethodDeclarationImpl) {
-      FunctionDefinitionBuilderImpl builder = new FunctionDefinitionBuilderImpl(
-          declaration,
-          typeResolver,
-          typeDeclarationResolver,
-          classIntrospector);
-      await instance.buildDefinitionForMethod(declaration, builder);
-      var result = builder.result;
-      // Wrap augmentations up as a part of the class
-      if (result.augmentations.isNotEmpty) {
-        result = MacroExecutionResultImpl(
-          augmentations: [
-            DeclarationCode.fromParts([
-              'augment class ',
-              declaration.definingClass,
-              ' {\\n',
-              ...result.augmentations,
-              '\\n}',
-            ]),
-          ],
-          imports: result.imports,
-        );
-      }
-      return new SerializableResponse(
-          responseType: MessageType.macroExecutionResult,
-          response: result,
-          requestId: request.id,
-          serializationZoneId: request.serializationZoneId);
-    } else {
-      throw new UnsupportedError(
-          'Unsupported macro type, only Method and Function Definition '
-          'Macros are supported currently');
-    }
+    var result = await executeDefinitionMacro(
+        instance, request.declaration, classIntrospector, typeResolver,
+        typeDeclarationResolver);
+    return new SerializableResponse(
+        responseType: MessageType.macroExecutionResult,
+        response: result,
+        requestId: request.id,
+        serializationZoneId: request.serializationZoneId);
   } catch (e, s) {
     return new SerializableResponse(
       responseType: MessageType.error,
