@@ -1214,6 +1214,11 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
+    var migrationResolutionHooks = this.migrationResolutionHooks;
+    if (migrationResolutionHooks != null) {
+      migrationResolutionHooks.reportBinaryExpressionContext(
+          node, InferenceContext.getContext(node));
+    }
     _binaryExpressionResolver.resolve(node as BinaryExpressionImpl);
     insertGenericFunctionInstantiation(node);
   }

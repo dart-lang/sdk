@@ -277,7 +277,8 @@ class InvocationInferenceHelper {
   void recordStaticType(ExpressionImpl expression, DartType type) {
     var hooks = _migrationResolutionHooks;
     if (hooks != null) {
-      type = hooks.modifyExpressionType(expression, type);
+      type = hooks.modifyExpressionType(
+          expression, type, InferenceContext.getContext(expression));
     }
 
     expression.staticType = type;
