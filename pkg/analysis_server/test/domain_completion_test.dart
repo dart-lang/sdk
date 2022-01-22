@@ -296,6 +296,48 @@ class CompletionDomainHandlerGetSuggestions2Test
       ..suggestions.isEmpty;
   }
 
+  Future<void> test_isNotImportedFeature_prefixed_classInstanceMethod() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {
+  void foo01() {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+import 'a.dart';
+
+class B extends A {
+  void foo02() {}
+}
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var response = await _getTestCodeSuggestions('''
+import 'b.dart';
+
+void f(B b) {
+  b.foo0^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 4);
+
+    // The fact that `b.dart` is imported, and `a.dart` is not, does not affect
+    // the order of suggestions added with an expression prefix. We are not
+    // going to import anything, so this does not matter.
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo01')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('foo02')
+        ..libraryUriToImport.isNull,
+    ]);
+  }
+
   Future<void> test_notImported_dart() async {
     await _configureWithWorkspaceRoot();
 
@@ -332,6 +374,44 @@ void f() {
       ..assertIncomplete()
       ..hasReplacement(left: 4)
       ..suggestions.withElementClass.isEmpty;
+  }
+
+  Future<void> test_notImported_lowerRelevance_enumConstant() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+enum E1 {
+  foo01
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', content: '''
+enum E2 {
+  foo02
+}
+''');
+
+    await _configureWithWorkspaceRoot();
+
+    var response = await _getTestCodeSuggestions('''
+import 'b.dart';
+
+void f() {
+  foo0^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 4);
+
+    // `foo01` relevance is decreased because it is not yet imported.
+    check(response).suggestions.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('E2.foo02')
+        ..libraryUriToImport.isNull,
+      (suggestion) => suggestion
+        ..completion.isEqualTo('E1.foo01')
+        ..libraryUriToImport.isEqualTo('package:test/a.dart'),
+    ]);
   }
 
   Future<void> test_notImported_lowerRelevance_extension_getter() async {

@@ -322,22 +322,8 @@ class FeatureComputer {
   }
 
   /// Return the feature for the not-yet-imported property.
-  double isNotImportedFeature(bool isNotImported, Element element) {
-    if (isNotImported) {
-      var enclosing = element.enclosingElement;
-      // The most often case is that we suggest a class.
-      if (enclosing is CompilationUnitElement) {
-        return -1.0;
-      }
-      // But we could also suggest an extension method.
-      if (enclosing is ExtensionElement) {
-        if (!element.isStaticExtensionMember) {
-          return -1.0;
-        }
-      }
-    }
-    // The library is imported, or an unexpected element.
-    return 0.0;
+  double isNotImportedFeature(bool isNotImported) {
+    return isNotImported ? -1.0 : 0.0;
   }
 
   /// Return the value of the _keyword_ feature for the [keyword] when
@@ -1057,13 +1043,5 @@ extension on ArgumentList {
       }
     }
     return null;
-  }
-}
-
-extension on Element {
-  bool get isStaticExtensionMember {
-    final self = this;
-    return self is PropertyAccessorElement && self.isStatic ||
-        self is MethodElement && self.isStatic;
   }
 }

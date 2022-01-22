@@ -107,16 +107,6 @@ VerifyCanonicalVisitor::VerifyCanonicalVisitor(Thread* thread)
     : thread_(thread), instanceHandle_(Instance::Handle(thread->zone())) {}
 
 void VerifyCanonicalVisitor::VisitObject(ObjectPtr obj) {
-  // The caller of this function is walking heap pages using the
-  // ExclusivePageIterator - which holds the pages lock.
-  //
-  // If we allow handle verification, then any assignment to a handle will call
-  // `heap()->Contains()` for heap objects, which in return is implemented by
-  // walking pages using ExclusivePageIterator, which can cause a deadlock.
-  //
-  // Therefore we disable the handle verification here.
-  const bool old_verify_flag = FLAG_verify_handles;
-  FLAG_verify_handles = false;
   if (!IsInternalOnlyClassId(obj->GetClassId()) &&
       (obj->GetClassId() != kTypeArgumentsCid)) {
     if (obj->untag()->IsCanonical()) {
@@ -129,7 +119,6 @@ void VerifyCanonicalVisitor::VisitObject(ObjectPtr obj) {
       ASSERT(is_canonical);
     }
   }
-  FLAG_verify_handles = old_verify_flag;
 }
 #endif  // defined(DEBUG)
 

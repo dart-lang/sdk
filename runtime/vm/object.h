@@ -12134,22 +12134,6 @@ void Object::SetPtr(ObjectPtr value, intptr_t default_cid) {
     cid = kInstanceCid;
   }
   set_vtable(builtin_vtables_[cid]);
-#if defined(DEBUG)
-  if (FLAG_verify_handles && ptr_->IsHeapObject() && (ptr_ != Object::null())) {
-    Heap* isolate_heap = IsolateGroup::Current()->heap();
-    // TODO(rmacnak): Remove after rewriting StackFrame::VisitObjectPointers
-    // to not use handles.
-    if (!isolate_heap->new_space()->scavenging()) {
-      Heap* vm_isolate_heap = Dart::vm_isolate_group()->heap();
-      uword addr = UntaggedObject::ToAddr(ptr_);
-      if (!isolate_heap->Contains(addr) && !vm_isolate_heap->Contains(addr)) {
-        ASSERT(FLAG_write_protect_code);
-        addr = UntaggedObject::ToAddr(OldPage::ToWritable(ptr_));
-        ASSERT(isolate_heap->Contains(addr) || vm_isolate_heap->Contains(addr));
-      }
-    }
-  }
-#endif
 }
 
 intptr_t Field::HostOffset() const {
