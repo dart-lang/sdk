@@ -273,8 +273,8 @@ class SuggestionBuilder {
         elementKind: elementKind,
         hasDeprecated: hasDeprecated,
         isConstant: isConstant,
-        isNotImported: request.featureComputer
-            .isNotImportedFeature(isNotImportedLibrary, accessor),
+        isNotImported:
+            request.featureComputer.isNotImportedFeature(isNotImportedLibrary),
         startsWithDollar: startsWithDollar,
         superMatches: superMatches,
         inheritanceDistance: inheritanceDistance,
@@ -668,8 +668,8 @@ class SuggestionBuilder {
       hasDeprecated: hasDeprecated,
       isConstant: isConstant,
       isNoSuchMethod: isNoSuchMethod,
-      isNotImported: request.featureComputer
-          .isNotImportedFeature(isNotImportedLibrary, method),
+      isNotImported:
+          request.featureComputer.isNotImportedFeature(isNotImportedLibrary),
       startsWithDollar: startsWithDollar,
       superMatches: superMatches,
       inheritanceDistance: inheritanceDistance,
@@ -946,8 +946,8 @@ class SuggestionBuilder {
         elementKind: elementKind,
         hasDeprecated: hasDeprecated,
         isConstant: isConstant,
-        isNotImported: request.featureComputer
-            .isNotImportedFeature(isNotImportedLibrary, accessor),
+        isNotImported:
+            request.featureComputer.isNotImportedFeature(isNotImportedLibrary),
         startsWithDollar: startsWithDollar,
         superMatches: superMatches,
       );
@@ -1114,8 +1114,8 @@ class SuggestionBuilder {
       elementKind: elementKind,
       hasDeprecated: hasDeprecated,
       isConstant: isConstant,
-      isNotImported: request.featureComputer
-          .isNotImportedFeature(isNotImportedLibrary, element),
+      isNotImported:
+          request.featureComputer.isNotImportedFeature(isNotImportedLibrary),
     );
   }
 
