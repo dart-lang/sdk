@@ -274,8 +274,6 @@ class InvocationInferenceHelper {
   ///
   /// @param expression the node whose type is to be recorded
   /// @param type the static type of the node
-  ///
-  /// TODO(scheglov) this is duplication
   void recordStaticType(ExpressionImpl expression, DartType type) {
     var hooks = _migrationResolutionHooks;
     if (hooks != null) {

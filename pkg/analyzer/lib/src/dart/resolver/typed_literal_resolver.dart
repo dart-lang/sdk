@@ -676,24 +676,6 @@ class TypedLiteralResolver {
     }
   }
 
-  /// Record that the static type of the given node is the given type.
-  ///
-  /// @param expression the node whose type is to be recorded
-  /// @param type the static type of the node
-  ///
-  /// TODO(scheglov) Inline this.
-  void _recordStaticType(ExpressionImpl expression, DartType type) {
-    expression.staticType = type;
-//    if (type == null) {
-//      expression.staticType = _dynamicType;
-//    } else {
-//      expression.staticType = type;
-//      if (identical(type, NeverTypeImpl.instance)) {
-//        _flowAnalysis?.flow?.handleExit();
-//      }
-//    }
-  }
-
   void _resolveListLiteral2(ListLiteralImpl node) {
     var typeArguments = node.typeArguments?.arguments;
 
@@ -703,12 +685,9 @@ class TypedLiteralResolver {
       if (typeArguments.length == 1) {
         elementType = typeArguments[0].typeOrThrow;
       }
-      _recordStaticType(
-        node,
-        _typeProvider.listElement.instantiate(
-          typeArguments: [elementType],
-          nullabilitySuffix: _noneOrStarSuffix,
-        ),
+      node.staticType = _typeProvider.listElement.instantiate(
+        typeArguments: [elementType],
+        nullabilitySuffix: _noneOrStarSuffix,
       );
       return;
     }
@@ -721,12 +700,12 @@ class TypedLiteralResolver {
     if (inferred != listDynamicType) {
       // TODO(brianwilkerson) Determine whether we need to make the inferred
       //  type non-nullable here or whether it will already be non-nullable.
-      _recordStaticType(node, inferred!);
+      node.staticType = inferred!;
       return;
     }
 
     // If we have no type arguments and couldn't infer any, use dynamic.
-    _recordStaticType(node, listDynamicType);
+    node.staticType = listDynamicType;
   }
 
   void _resolveSetOrMapLiteral2(SetOrMapLiteralImpl node) {
@@ -739,24 +718,18 @@ class TypedLiteralResolver {
       if (typeArguments.length == 1) {
         node.becomeSet();
         var elementType = typeArguments[0].typeOrThrow;
-        _recordStaticType(
-          node,
-          _typeProvider.setElement.instantiate(
-            typeArguments: [elementType],
-            nullabilitySuffix: _noneOrStarSuffix,
-          ),
+        node.staticType = _typeProvider.setElement.instantiate(
+          typeArguments: [elementType],
+          nullabilitySuffix: _noneOrStarSuffix,
         );
         return;
       } else if (typeArguments.length == 2) {
         node.becomeMap();
         var keyType = typeArguments[0].typeOrThrow;
         var valueType = typeArguments[1].typeOrThrow;
-        _recordStaticType(
-          node,
-          _typeProvider.mapElement.instantiate(
-            typeArguments: [keyType, valueType],
-            nullabilitySuffix: _noneOrStarSuffix,
-          ),
+        node.staticType = _typeProvider.mapElement.instantiate(
+          typeArguments: [keyType, valueType],
+          nullabilitySuffix: _noneOrStarSuffix,
         );
         return;
       }
@@ -787,7 +760,7 @@ class TypedLiteralResolver {
     // TODO(brianwilkerson) Decide whether the literalType needs to be made
     //  non-nullable here or whether that will have happened in
     //  _inferSetOrMapLiteralType.
-    _recordStaticType(node, literalType);
+    node.staticType = literalType;
   }
 
   DartType _toMapType(SetOrMapLiteral node, DartType? contextType,

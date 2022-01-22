@@ -44,8 +44,8 @@ class PrefixedIdentifierResolver {
     }
 
     if (identical(node.prefix.staticType, NeverTypeImpl.instance)) {
-      _recordStaticType(identifier, NeverTypeImpl.instance);
-      _recordStaticType(node, NeverTypeImpl.instance);
+      _inferenceHelper.recordStaticType(identifier, NeverTypeImpl.instance);
+      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
       return;
     }
 
@@ -92,8 +92,8 @@ class PrefixedIdentifierResolver {
       // breaking change release.
       type = _inferenceHelper.inferTearOff(node, identifier, type);
     }
-    _recordStaticType(identifier, type);
-    _recordStaticType(node, type);
+    _inferenceHelper.recordStaticType(identifier, type);
+    _inferenceHelper.recordStaticType(node, type);
   }
 
   /// Return the type that should be recorded for a node that resolved to the given accessor.
@@ -140,16 +140,6 @@ class PrefixedIdentifierResolver {
       return false;
     }
     return true;
-  }
-
-  /// Record that the static type of the given node is the given type.
-  ///
-  /// @param expression the node whose type is to be recorded
-  /// @param type the static type of the node
-  ///
-  /// TODO(scheglov) this is duplicate
-  void _recordStaticType(ExpressionImpl expression, DartType type) {
-    _inferenceHelper.recordStaticType(expression, type);
   }
 
   /// TODO(scheglov) this is duplicate

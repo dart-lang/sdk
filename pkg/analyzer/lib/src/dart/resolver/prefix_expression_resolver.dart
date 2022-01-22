@@ -125,16 +125,6 @@ class PrefixExpressionResolver {
     }
   }
 
-  /// Record that the static type of the given node is the given type.
-  ///
-  /// @param expression the node whose type is to be recorded
-  /// @param type the static type of the node
-  ///
-  /// TODO(scheglov) this is duplicate
-  void _recordStaticType(ExpressionImpl expression, DartType type) {
-    _inferenceHelper.recordStaticType(expression, type);
-  }
-
   void _resolve1(PrefixExpressionImpl node) {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
@@ -195,7 +185,7 @@ class PrefixExpressionResolver {
   void _resolve2(PrefixExpressionImpl node) {
     TokenType operator = node.operator.type;
     if (identical(node.readType, NeverTypeImpl.instance)) {
-      _recordStaticType(node, NeverTypeImpl.instance);
+      _inferenceHelper.recordStaticType(node, NeverTypeImpl.instance);
     } else {
       // The other cases are equivalent to invoking a method.
       var staticMethodElement = node.staticElement;
@@ -216,7 +206,7 @@ class PrefixExpressionResolver {
           }
         }
       }
-      _recordStaticType(node, staticType);
+      _inferenceHelper.recordStaticType(node, staticType);
     }
     _resolver.nullShortingTermination(node);
   }
@@ -232,7 +222,7 @@ class PrefixExpressionResolver {
     _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand,
         whyNotPromoted: whyNotPromoted);
 
-    _recordStaticType(node, _typeProvider.boolType);
+    _inferenceHelper.recordStaticType(node, _typeProvider.boolType);
 
     _resolver.flowAnalysis.flow?.logicalNot_end(node, operand);
   }
