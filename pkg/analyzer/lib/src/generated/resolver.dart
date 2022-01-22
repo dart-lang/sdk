@@ -292,7 +292,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       InstanceCreationExpressionResolver(this);
 
   late final SimpleIdentifierResolver _simpleIdentifierResolver =
-      SimpleIdentifierResolver(this, flowAnalysis);
+      SimpleIdentifierResolver(this);
 
   late final PropertyElementResolver _propertyElementResolver =
       PropertyElementResolver(this);
@@ -412,7 +412,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     elementResolver = ElementResolver(this,
         migratableAstInfoProvider: _migratableAstInfoProvider);
     inferenceContext = InferenceContext._(this);
-    typeAnalyzer = StaticTypeAnalyzer(this, migrationResolutionHooks);
+    typeAnalyzer = StaticTypeAnalyzer(this);
     _functionReferenceResolver =
         FunctionReferenceResolver(this, _isNonNullableByDefault);
   }
@@ -2473,7 +2473,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
       var subexpressionToKeep =
           conditionalKnownValue ? node.thenExpression : node.elseExpression;
       subexpressionToKeep.accept(this);
-      typeAnalyzer.recordStaticType(node, subexpressionToKeep.typeOrThrow);
+      inferenceHelper.recordStaticType(node, subexpressionToKeep.typeOrThrow);
     }
   }
 
