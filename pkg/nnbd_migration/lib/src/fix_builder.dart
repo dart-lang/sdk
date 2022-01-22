@@ -331,6 +331,8 @@ class MigrationResolutionHooksImpl
   final Map<MethodInvocation, DartType Function(DartType)>
       _deferredMethodInvocationProcessing = {};
 
+  final Map<Expression, DartType?> _contextTypes = {};
+
   TypeProvider get typeProvider => _fixBuilder!.typeProvider;
 
   @override
@@ -514,8 +516,10 @@ class MigrationResolutionHooksImpl
   }
 
   @override
-  DartType modifyExpressionType(Expression node, DartType type) =>
+  DartType modifyExpressionType(
+          Expression node, DartType type, DartType? contextType) =>
       _wrapExceptions(node, () => type, () {
+        _contextTypes[node] = contextType;
         if (node is NamedExpression) {
           // Do not attempt to modify named expressions.  We should already have
           // been called for [node.expression], and we should have made the
@@ -551,6 +555,12 @@ class MigrationResolutionHooksImpl
       return postMigrationType;
     }
     return type;
+  }
+
+  @override
+  void reportBinaryExpressionContext(
+      BinaryExpression node, DartType? contextType) {
+    _contextTypes[node] = contextType;
   }
 
   @override
@@ -720,8 +730,7 @@ class MigrationResolutionHooksImpl
     }
     if (type.isDynamic) return type;
     var ancestor = _findNullabilityContextAncestor(node);
-    context ??=
-        InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
+    context ??= _contextTypes[ancestor] ?? DynamicTypeImpl.instance;
     if (!_isSubtypeOrCoercible(type, context)) {
       var transformationInfo =
           _fixBuilder!._whereOrNullTransformer.tryTransformOrElseArgument(node);
