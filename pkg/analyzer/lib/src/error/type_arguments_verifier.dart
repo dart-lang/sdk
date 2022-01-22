@@ -13,12 +13,10 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/resolver.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptionsImpl _options;
@@ -252,7 +250,7 @@ class TypeArgumentsVerifier {
       return;
     }
     var type = node.typeOrThrow;
-    if (_isMissingTypeArguments(node, type, node.name.staticElement, null)) {
+    if (_isMissingTypeArguments(node, type, node.name.staticElement)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression || unwrappedParent is IsExpression) {
         // Do not report a "Strict raw type" error in this case; too noisy.
@@ -539,8 +537,7 @@ class TypeArgumentsVerifier {
   ///   contain `_`
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
-  bool _isMissingTypeArguments(AstNode node, DartType type, Element? element,
-      Expression? inferenceContextNode) {
+  bool _isMissingTypeArguments(AstNode node, DartType type, Element? element) {
     List<DartType> typeArguments;
     var alias = type.alias;
     if (alias != null) {
@@ -554,16 +551,6 @@ class TypeArgumentsVerifier {
     // Check if this type has type arguments and at least one is dynamic.
     // If so, we may need to issue a strict-raw-types error.
     if (typeArguments.any((t) => t.isDynamic)) {
-      // If we have an inference context node, check if the type was inferred
-      // from it. Some cases will not have a context type, such as the type
-      // annotation `List` in `List list;`
-      if (inferenceContextNode != null) {
-        var contextType = InferenceContext.getContext(inferenceContextNode);
-        if (contextType != null && UnknownInferredType.isKnown(contextType)) {
-          // Type was inferred from downwards context: not an error.
-          return false;
-        }
-      }
       if (element != null && element.hasOptionalTypeArgs) {
         return false;
       }
