@@ -3899,7 +3899,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
     // Potential new object start.
     lx(instance, Address(THR, target::Thread::top_offset()));
-    addi(end_address, instance, instance_size);
+    AddImmediate(end_address, instance, instance_size);
     bltu(end_address, instance, failure);  // Fail on unsigned overflow.
 
     // Check if the allocation fits into the remaining space.
