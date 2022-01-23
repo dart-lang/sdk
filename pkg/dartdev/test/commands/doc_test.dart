@@ -9,13 +9,13 @@ import '../utils.dart';
 const int compileErrorExitCode = 64;
 
 void main() {
-  group('doc', defineCompileTests, timeout: longTimeout);
+  group('doc', defineDocTests, timeout: longTimeout);
 }
 
-void defineCompileTests() {
+void defineDocTests() {
   test('Passing no args fails', () async {
     final p = project();
-    var result = await p.run(['doc']);
+    final result = await p.run(['doc']);
     expect(result.stderr, contains('Input directory not specified'));
     expect(result.exitCode, compileErrorExitCode);
   });
@@ -27,44 +27,70 @@ void defineCompileTests() {
       result.stdout,
       contains('Usage: dart doc [arguments] <input directory>'),
     );
-
     expect(result.exitCode, 0);
   });
 
   test('Document a library', () async {
-    final source = '''
+    final p = project(mainSrc: 'void main() { print("Hello, World"); }');
+    p.file('lib/foo.dart', '''
 /// This is Foo. It uses [Bar].
 class Foo {
-    Bar bar;
+  Bar bar;
 }
 
 /// Bar is very nice.
 class Bar {
-    _i = 42;
+  _i = 42;
 }
-    ''';
-
-    final p = project(mainSrc: 'void main() { print("Hello, World"); }');
-    p.file('lib/foo.dart', source);
+''');
     final result = await p.run(['doc', '--validate-links', p.dirPath]);
-    print(
-        'exit: ${result.exitCode}, stderr:\n${result.stderr}\nstdout:\n${result.stdout}');
     expect(result.stdout, contains('Documenting dartdev_temp'));
+    expect(result.exitCode, 0);
+  });
+
+  test('Document a library dry-run', () async {
+    final p = project(mainSrc: 'void main() { print("Hello, World"); }');
+    p.file('lib/foo.dart', '''
+/// This is Foo.
+class Foo {
+  int i = 42;
+}
+''');
+    final result = await p.run(['doc', '--dry-run', '--verbose', p.dirPath]);
+    expect(result.stdout, contains('Documenting dartdev_temp'));
+    expect(result.exitCode, 0);
+  });
+
+  test('Errors cause error code', () async {
+    final p = project(mainSrc: 'void main() { print("Hello, World"); }');
+    p.file('lib/foo.dart', '''
+/// This is Foo. It uses [TypeThatIsntDeclared].
+class Foo {
+  int i = 42;
+}
+''');
+    p.file('dartdoc_options.yaml', '''
+dartdoc:
+  errors:
+    - unresolved-doc-reference
+''');
+    final result = await p.run(['doc', p.dirPath]);
+    expect(result.exitCode, 1);
   });
 
   test('Document a library with broken link is flagged', () async {
     final source = '''
 /// This is Foo. It uses [Baz].
 class Foo {
-  //  Bar bar;
+  int i = 42;
 }
-    ''';
+''';
 
     final p = project(mainSrc: 'void main() { print("Hello, World"); }');
     p.file('lib/foo.dart', source);
     final result = await p.run(['doc', '--validate-links', p.dirPath]);
-    print(
-        'exit: ${result.exitCode}, stderr:\n${result.stderr}\nstdout:\n${result.stdout}');
+    // TODO (mit@): Update this test to actually test for the
+    // --validate-links flag.
     expect(result.stdout, contains('Documenting dartdev_temp'));
   });
 }
