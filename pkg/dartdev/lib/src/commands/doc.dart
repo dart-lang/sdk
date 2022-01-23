@@ -38,6 +38,19 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
       negatable: false,
       help: 'Display warnings for broken links.',
     );
+    argParser.addFlag(
+      'sdk-docs',
+      hide: true,
+      negatable: false,
+      help: 'Generate API docs for the Dart SDK.',
+    );
+    argParser.addFlag(
+      'dry-run',
+      negatable: false,
+      help: 'Try to generate the docs without saving them.',
+    );
+    argParser.addFlag('fatal-warnings',
+        help: 'Treat warning level issues as fatal.', defaultsTo: false);
   }
 
   @override
@@ -45,28 +58,37 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
 
   @override
   FutureOr<int> run() async {
-    // At least one argument, the input directory, is required.
-    if (argResults.rest.isEmpty) {
-      usageException("Error: Input directory not specified");
-    }
+    final options = <String>[];
 
-    // Determine input directory.
-    final dir = io.Directory(argResults.rest[0]);
-    if (!dir.existsSync()) {
-      usageException("Error: Input directory doesn't exist: ${dir.path}");
+    if (argResults['sdk-docs']) {
+      options.add('--sdk-docs');
+    } else {
+      // At least one argument, the input directory, is required,
+      // when we're not generating docs for the Dart SDK.
+      if (argResults.rest.isEmpty) {
+        usageException("Error: Input directory not specified");
+      }
+
+      // Determine input directory.
+      final dir = io.Directory(argResults.rest[0]);
+      if (!dir.existsSync()) {
+        usageException("Error: Input directory doesn't exist: ${dir.path}");
+      }
+      options.add('--input=${dir.path}');
     }
 
     // Specify where dartdoc resources are located.
     final resourcesPath =
         path.absolute(sdk.sdkPath, 'bin', 'resources', 'dartdoc', 'resources');
 
-    // Build options.
-    final options = [
-      '--input=${dir.path}',
+    // Build remaining options.
+    options.addAll([
       '--output=${argResults['output']}',
       '--resources-dir=$resourcesPath',
-      if (argResults['validate-links']) '--validate-links'
-    ];
+      if (argResults['validate-links']) '--validate-links',
+      if (argResults['dry-run']) '--no-generate-docs',
+      if (verbose) '--no-quiet',
+    ]);
 
     final config = await parseOptions(pubPackageMetaProvider, options);
     if (config == null) {
