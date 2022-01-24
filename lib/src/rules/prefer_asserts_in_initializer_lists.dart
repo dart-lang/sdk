@@ -9,16 +9,15 @@ import 'package:analyzer/dart/element/element.dart';
 import '../analyzer.dart';
 import '../ast.dart';
 
-const _desc = r'Prefer putting asserts in initializer list.';
+const _desc = r'Prefer putting asserts in initializer lists.';
 
 const _details = r'''
-**DO** put asserts in initializer list for constructors with only asserts in
-their body.
+**DO** put asserts in initializer lists.
 
 **GOOD:**
 ```dart
 class A {
-  A(int a) : assert(a != null);
+  A(int a) : assert(a != 0);
 }
 ```
 
@@ -26,11 +25,10 @@ class A {
 ```dart
 class A {
   A(int a) {
-    assert(a != null);
+    assert(a != 0);
   }
 }
 ```
-
 ''';
 
 class PreferAssertsInInitializerLists extends LintRule {
