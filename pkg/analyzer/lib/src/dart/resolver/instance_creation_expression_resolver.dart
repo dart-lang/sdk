@@ -120,8 +120,8 @@ class InstanceCreationExpressionResolver {
     _inferArgumentTypes(node);
     _resolver.visitArgumentList(node.argumentList,
         whyNotPromotedList: whyNotPromotedList);
-    node.accept(_resolver.elementResolver);
-    node.accept(_resolver.typeAnalyzer);
+    _resolver.elementResolver.visitInstanceCreationExpression(node);
+    _resolver.typeAnalyzer.visitInstanceCreationExpression(node);
     _resolver.checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
