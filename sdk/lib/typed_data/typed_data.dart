@@ -83,7 +83,7 @@ abstract class ByteBuffer {
   ///
   /// The viewed region start at [offsetInBytes], which must be 16-bit aligned,
   /// and contains [length] 16-bit integers with
-  /// the same `endianness` of the host ([Endian.host]).
+  /// the same endianness as the host ([Endian.host]).
   /// If [length] is omitted, the range extends as far towards the end of
   /// the buffer as possible -
   /// if [lengthInBytes] is not even, the last byte can't be part of the view.
@@ -105,7 +105,7 @@ abstract class ByteBuffer {
   ///
   /// The viewed region start at [offsetInBytes], which must be 16-bit aligned,
   /// and contains [length] 16-bit integers with
-  /// the same `endianness` of the host ([Endian.host]).
+  /// the same endianness as the host ([Endian.host]).
   /// If [length] is omitted, the range extends as far towards the end of
   /// the buffer as possible -
   /// if [lengthInBytes] is not even, the last byte can't be part of the view.
@@ -127,7 +127,7 @@ abstract class ByteBuffer {
   ///
   /// The viewed region start at [offsetInBytes], which must be 32-bit aligned,
   /// and contains [length] 32-bit integers with
-  /// the same `endianness` of the host ([Endian.host]).
+  /// the same endianness as the host ([Endian.host]).
   /// If [length] is omitted, the range extends as far towards the end of
   /// the buffer as possible -
   /// if [lengthInBytes] is not divisible by four, the last bytes can't be part
@@ -150,7 +150,7 @@ abstract class ByteBuffer {
   ///
   /// The viewed region start at [offsetInBytes], which must be 32-bit aligned,
   /// and contains [length] 32-bit integers with
-  /// the same `endianness` of the host ([Endian.host]).
+  /// the same endianness as the host ([Endian.host]).
   /// If [length] is omitted, the range extends as far towards the end of
   /// the buffer as possible -
   /// if [lengthInBytes] is not divisible by four, the last bytes can't be part
@@ -173,7 +173,7 @@ abstract class ByteBuffer {
   ///
   /// The viewed region start at [offsetInBytes], which must be 64-bit aligned,
   /// and contains [length] 64-bit integers with
-  /// the same `endianness` of the host ([Endian.host]).
+  /// the same endianness as the host ([Endian.host]).
   /// If [length] is omitted, the range extends as far towards the end of
   /// the buffer as possible -
   /// if [lengthInBytes] is not divisible by eight, the last bytes can't be part
@@ -196,7 +196,7 @@ abstract class ByteBuffer {
   ///
   /// The viewed region start at [offsetInBytes], which must be 64-bit aligned,
   /// and contains [length] 64-bit integers with
-  /// the same `endianness` of the host ([Endian.host]).
+  /// the same endianness as the host ([Endian.host]).
   /// If [length] is omitted, the range extends as far towards the end of
   /// the buffer as possible -
   /// if [lengthInBytes] is not divisible by eight, the last bytes can't be part
