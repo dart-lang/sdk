@@ -59,14 +59,14 @@ class TightenTypeOfInitializingFormals extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule, this.context);
-
   final LintRule rule;
+
   final LinterContext context;
+  _Visitor(this.rule, this.context);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    node.initializers
+    var parameterElements = node.initializers
         .whereType<AssertInitializer>()
         .map((e) => e.condition)
         .whereType<BinaryExpression>()
@@ -78,15 +78,16 @@ class _Visitor extends SimpleAstVisitor<void> {
                 : null)
         .whereType<Identifier>()
         .where((e) {
-          var staticType = e.staticType;
-          return staticType != null &&
-              context.typeSystem.isNullable(staticType);
-        })
-        .map((e) => e.staticElement)
-        .whereType<FieldFormalParameterElement>()
-        .forEach((e) {
-          rule.reportLint(node.parameters.parameters
-              .firstWhere((p) => p.declaredElement == e));
-        });
+      var staticType = e.staticType;
+      return staticType != null && context.typeSystem.isNullable(staticType);
+    }).map((e) => e.staticElement);
+
+    for (var parameterElement in parameterElements) {
+      if (parameterElement is FieldFormalParameterElement ||
+          parameterElement is SuperFormalParameterElement) {
+        rule.reportLint(node.parameters.parameters
+            .firstWhere((p) => p.declaredElement == parameterElement));
+      }
+    }
   }
 }

@@ -39,6 +39,8 @@ import 'prefer_generic_function_type_aliases.dart'
     as prefer_generic_function_type_aliases;
 import 'prefer_spread_collections.dart' as prefer_spread_collections;
 import 'super_goes_last.dart' as super_goes_last;
+import 'tighten_type_of_initializing_formals.dart'
+    as tighten_type_of_initializing_formals;
 import 'type_init_formals.dart' as type_init_formals;
 import 'unawaited_futures.dart' as unawaited_futures;
 import 'unnecessary_null_checks.dart' as unnecessary_null_checks;
@@ -72,6 +74,7 @@ void main() {
   prefer_generic_function_type_aliases.main();
   prefer_spread_collections.main();
   super_goes_last.main();
+  tighten_type_of_initializing_formals.main();
   type_init_formals.main();
   unawaited_futures.main();
   unnecessary_null_checks.main();
