@@ -108,7 +108,7 @@ vars = {
   "dart_style_rev": "08b0294d0a500d5c02168ef57dcb8868d0c3cb48",
 
   "dartdoc_rev" : "11c4b3c9723bfa7155efcf0fef02329233a6381d",
-  "devtools_rev" : "85932bb66aa782c4b2c528be7718960bf256ffb7",
+  "devtools_rev" : "013958fbd45351e5975068756b7b9114465a7f98",
   "jsshell_tag": "version:88.0",
   "ffi_rev": "4dd32429880a57b64edaf54c9d5af8a9fa9a4ffb",
   "fixnum_rev": "16d3890c6dc82ca629659da1934e412292508bba",
