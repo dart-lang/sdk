@@ -79,6 +79,10 @@ void main(_, SendPort sendPort) {
           var request = new ExecuteDefinitionsPhaseRequest.deserialize(deserializer, zoneId);
           (await _executeDefinitionsPhase(request, sendRequest)).serialize(serializer);
           break;
+        case MessageType.executeTypesPhaseRequest:
+          var request = new ExecuteTypesPhaseRequest.deserialize(deserializer, zoneId);
+          (await _executeTypesPhase(request, sendRequest)).serialize(serializer);
+          break;
         case MessageType.response:
           var response = new SerializableResponse.deserialize(deserializer, zoneId);
           _responseCompleters.remove(response.requestId)!.complete(response);
@@ -123,6 +127,32 @@ Future<SerializableResponse> _instantiateMacro(
     return new SerializableResponse(
         responseType: MessageType.macroInstanceIdentifier,
         response: identifier,
+        requestId: request.id,
+        serializationZoneId: request.serializationZoneId);
+  } catch (e, s) {
+    return new SerializableResponse(
+      responseType: MessageType.error,
+      error: e.toString(),
+      stackTrace: s.toString(),
+      requestId: request.id,
+      serializationZoneId: request.serializationZoneId);
+  }
+}
+
+Future<SerializableResponse> _executeTypesPhase(
+    ExecuteTypesPhaseRequest request,
+    Future<Response> Function(Request request) sendRequest) async {
+  try {
+    Macro? instance = _macroInstances[request.macro];
+    if (instance == null) {
+      throw new StateError('Unrecognized macro instance \${request.macro}\\n'
+          'Known instances: \$_macroInstances)');
+    }
+
+    var result = await executeTypesMacro(instance, request.declaration);
+    return new SerializableResponse(
+        responseType: MessageType.macroExecutionResult,
+        response: result,
         requestId: request.id,
         serializationZoneId: request.serializationZoneId);
   } catch (e, s) {
