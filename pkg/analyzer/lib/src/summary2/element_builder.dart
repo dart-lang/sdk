@@ -184,7 +184,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    var reference = _enclosingContext.addConstructor(name, element);
+    var reference = _enclosingContext.addConstructor(element);
     _buildExecutableElementChildren(
       reference: reference,
       element: element,
@@ -214,47 +214,30 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var reference = _enclosingContext.addEnum(name, element);
     _libraryBuilder.localScope.declare(name, reference);
 
+    var usedNames = <String>{
+      ...node.constants.map((e) => e.name.name),
+    };
+
+    String generateUniqueName(String base) {
+      if (usedNames.add(base)) {
+        return base;
+      }
+      for (var index = 2;; index++) {
+        var name = '$base$index';
+        if (usedNames.add(name)) {
+          return name;
+        }
+      }
+    }
+
     var holder = _EnclosingContext(
       reference,
       element,
       hasConstConstructor: true,
     );
 
-    // Build the 'index' field.
-    var indexField = ConstFieldElementImpl('index', -1)
-      ..isSynthetic = true
-      ..isFinal = true;
-    holder.addNonSyntheticField(indexField);
-
-    var constructorIndexParameter = FieldFormalParameterElementImpl(
-      name: 'index',
-      nameOffset: -1,
-      parameterKind: ParameterKind.REQUIRED,
-    )..field = indexField;
-
-    var constructorNameParameter = ParameterElementImpl(
-      name: 'name',
-      nameOffset: -1,
-      parameterKind: ParameterKind.REQUIRED,
-    );
-
-    var constructorName = '_';
-    if (node.constants.any((c) => c.name.name == '_')) {
-      constructorName = '_1';
-    }
-
-    var constructorReference =
-        reference.getChild('@constructor').getChild(constructorName);
-    var constructor = ConstructorElementImpl(constructorName, -1)
-      ..isConst = true
-      ..isSynthetic = true
-      ..parameters = [
-        constructorIndexParameter,
-        constructorNameParameter,
-      ]
-      ..reference = constructorReference;
-    constructorReference.element = constructor;
-    element.constructors = [constructor];
+    var needsImplicitConstructor =
+        !node.members.any((e) => e is ConstructorDeclaration);
 
     // Build fields for all enum constants.
     var constants = node.constants;
@@ -274,6 +257,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         _unitElement,
         constant.metadata,
       );
+
+      var constructorSelector = constant.arguments?.constructorSelector;
+      var constructorName = constructorSelector?.name.name ?? '';
+
       var initializer = astFactory.instanceCreationExpression(
         null,
         astFactory.constructorName(
@@ -298,6 +285,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
               StringToken(TokenType.STRING, "'$name'", 0),
               name,
             ),
+            ...?constant.arguments?.argumentList.arguments,
           ],
           Tokens.closeParenthesis(),
         ),
@@ -379,10 +367,55 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     // node.withClause?.accept(this);
     // node.implementsClause?.accept(this);
 
+    // Build the 'index' field.
+    var indexField = ConstFieldElementImpl('index', -1)
+      ..isFinal = true
+      ..isSynthetic = true;
+    holder.addNonSyntheticField(indexField);
+
+    // Build the 'name' field.
+    var nameField = ConstFieldElementImpl(generateUniqueName('_name'), -1)
+      ..isFinal = true
+      ..isSynthetic = true;
+    holder.addNonSyntheticField(nameField);
+
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
+
+    FieldFormalParameterElementImpl newConstructorIndexParameter() {
+      return FieldFormalParameterElementImpl(
+        name: 'index',
+        nameOffset: -1,
+        parameterKind: ParameterKind.REQUIRED,
+      )..field = indexField;
+    }
+
+    FieldFormalParameterElementImpl newConstructorNameParameter() {
+      return FieldFormalParameterElementImpl(
+        name: nameField.name,
+        nameOffset: -1,
+        parameterKind: ParameterKind.REQUIRED,
+      )..field = nameField;
+    }
+
+    if (needsImplicitConstructor) {
+      holder.addConstructor(
+        ConstructorElementImpl('', -1)
+          ..isConst = true
+          ..isSynthetic = true
+          ..parameters = [
+            newConstructorIndexParameter(),
+            newConstructorNameParameter(),
+          ],
+      );
+    } else {
+      for (var constructor in holder.constructors) {
+        constructor.parameters.insert(0, newConstructorIndexParameter());
+        constructor.parameters.insert(1, newConstructorNameParameter());
+      }
+    }
 
     MethodElementImpl? syntheticToStringMethod;
     if (holder.getMethod('toString').element == null) {
@@ -395,18 +428,18 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       ImplicitEnumNodes(
         element: element,
         indexField: indexField,
+        nameField: nameField,
         valuesTypeNode: valuesTypeNode,
         valuesField: valuesField,
-        constructorIndexParameter: constructorIndexParameter,
-        constructorNameParameter: constructorNameParameter,
         syntheticToStringMethod: syntheticToStringMethod,
       ),
     );
 
-    element.typeParameters = holder.typeParameters;
     element.accessors = holder.propertyAccessors;
+    element.constructors = holder.constructors;
     element.fields = holder.properties.whereType<FieldElementImpl>().toList();
     element.methods = holder.methods;
+    element.typeParameters = holder.typeParameters;
 
     // TODO(scheglov) resolve field formals
   }
@@ -1145,7 +1178,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     if (holder.constructors.isEmpty) {
       holder.addConstructor(
-        '',
         ConstructorElementImpl('', -1)..isSynthetic = true,
       );
     }
@@ -1400,9 +1432,9 @@ class _EnclosingContext {
     return _bindReference('@class', name, element);
   }
 
-  Reference addConstructor(String name, ConstructorElementImpl element) {
+  Reference addConstructor(ConstructorElementImpl element) {
     constructors.add(element);
-    return _bindReference('@constructor', name, element);
+    return _bindReference('@constructor', element.name, element);
   }
 
   Reference addEnum(String name, EnumElementImpl element) {

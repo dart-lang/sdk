@@ -23,19 +23,17 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 class ImplicitEnumNodes {
   final EnumElementImpl element;
   final FieldElementImpl indexField;
+  final FieldElementImpl nameField;
   final ast.NamedTypeImpl valuesTypeNode;
   final ConstFieldElementImpl valuesField;
-  final ParameterElementImpl constructorIndexParameter;
-  final ParameterElementImpl constructorNameParameter;
   final MethodElementImpl? syntheticToStringMethod;
 
   ImplicitEnumNodes({
     required this.element,
     required this.indexField,
+    required this.nameField,
     required this.valuesTypeNode,
     required this.valuesField,
-    required this.constructorIndexParameter,
-    required this.constructorNameParameter,
     required this.syntheticToStringMethod,
   });
 }
@@ -139,6 +137,7 @@ class LibraryBuilder {
     var typeProvider = element.typeProvider;
     for (var enum_ in implicitEnumNodes) {
       enum_.indexField.type = typeProvider.intType;
+      enum_.nameField.type = typeProvider.stringType;
       var valuesType = typeProvider.listType(
         element.typeSystem.instantiateToBounds2(
           classElement: enum_.element,
@@ -147,9 +146,14 @@ class LibraryBuilder {
       );
       enum_.valuesTypeNode.type = valuesType;
       enum_.valuesField.type = valuesType;
-      enum_.constructorIndexParameter.type = typeProvider.intType;
-      enum_.constructorNameParameter.type = typeProvider.stringType;
       enum_.syntheticToStringMethod?.returnType = typeProvider.stringType;
+      for (var constructor in enum_.element.constructors) {
+        var parameters = constructor.parameters;
+        if (parameters.length >= 2) {
+          parameters[0].impl.type = typeProvider.intType;
+          parameters[1].impl.type = typeProvider.stringType;
+        }
+      }
     }
   }
 
@@ -333,4 +337,10 @@ class LinkingUnit {
     required this.node,
     required this.element,
   });
+}
+
+extension on ParameterElement {
+  ParameterElementImpl get impl {
+    return this as ParameterElementImpl;
+  }
 }
