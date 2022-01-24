@@ -1342,6 +1342,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flow?.conditional_conditionBegin();
 
     // TODO(scheglov) Do we need these checks for null?
+    InferenceContext.setType(node.condition, typeProvider.boolType);
     condition.accept(this);
     condition = node.condition;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
