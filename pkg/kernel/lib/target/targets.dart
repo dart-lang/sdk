@@ -1070,7 +1070,7 @@ mixin SummaryMixin on Target {
     super.performOutlineTransformations(component);
     if (!excludeNonSources) return;
 
-    List<Library> libraries = new List.from(component.libraries);
+    List<Library> libraries = new List.of(component.libraries);
     component.libraries.clear();
     Set<Uri> include = sources.toSet();
     for (Library library in libraries) {

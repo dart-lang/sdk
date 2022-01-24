@@ -183,7 +183,7 @@ Future<CompilerResult> generateKernelInternal(
             includeHierarchyAndCoreTypes ? kernelTarget.loader.hierarchy : null,
         coreTypes:
             includeHierarchyAndCoreTypes ? kernelTarget.loader.coreTypes : null,
-        deps: new List<Uri>.from(CompilerContext.current.dependencies),
+        deps: new List<Uri>.of(CompilerContext.current.dependencies),
         kernelTargetForTesting: retainDataForTesting ? kernelTarget : null);
   }, () => sourceLoader?.currentUriForCrashReporting ?? options.inputs.first);
 }

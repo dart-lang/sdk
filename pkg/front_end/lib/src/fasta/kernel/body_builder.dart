@@ -1901,7 +1901,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     List<Object?>? argumentsOriginalOrder;
     if (libraryBuilder.enableNamedArgumentsAnywhereInLibrary) {
-      argumentsOriginalOrder = new List<Object?>.from(arguments);
+      argumentsOriginalOrder = new List<Object?>.of(arguments);
     }
     int firstNamedArgumentIndex = arguments.length;
     int positionalCount = 0;
@@ -1951,6 +1951,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         assert(
             positionalIndex == positional.length && namedIndex == named.length);
       } else {
+        // arguments have non-null Expression entries after the initial loop.
         positional = new List<Expression>.from(
             arguments.getRange(0, firstNamedArgumentIndex));
         named = new List<NamedExpression>.from(
@@ -1962,6 +1963,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       // TODO(kmillikin): Find a way to avoid allocating a second list in the
       // case where there were no named arguments, which is a common one.
+
+      // arguments have non-null Expression entries after the initial loop.
       push(forest.createArguments(
           beginToken.offset, new List<Expression>.from(arguments),
           argumentsOriginalOrder: argumentsOriginalOrder));
@@ -4885,8 +4888,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     List<NamedExpression> named = forest.argumentsNamed(arguments);
     if (named.isNotEmpty) {
-      Set<String> parameterNames =
-          new Set.from(function.namedParameters.map((a) => a.name));
+      Set<String?> parameterNames =
+          new Set.of(function.namedParameters.map((a) => a.name));
       for (NamedExpression argument in named) {
         if (!parameterNames.contains(argument.name)) {
           return fasta.templateNoSuchNamedParameter
@@ -4897,7 +4900,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (function.namedParameters.isNotEmpty) {
       if (libraryBuilder.isNonNullableByDefault) {
-        Set<String> argumentNames = new Set.from(named.map((a) => a.name));
+        Set<String> argumentNames = new Set.of(named.map((a) => a.name));
         for (VariableDeclaration parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
             return fasta.templateValueForRequiredParameterNotProvidedError
@@ -4958,7 +4961,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     List<NamedExpression> named = forest.argumentsNamed(arguments);
     if (named.isNotEmpty) {
       Set<String> names =
-          new Set.from(function.namedParameters.map((a) => a.name));
+          new Set.of(function.namedParameters.map((a) => a.name));
       for (NamedExpression argument in named) {
         if (!names.contains(argument.name)) {
           return fasta.templateNoSuchNamedParameter
@@ -4969,7 +4972,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (function.namedParameters.isNotEmpty) {
       if (libraryBuilder.isNonNullableByDefault) {
-        Set<String> argumentNames = new Set.from(named.map((a) => a.name));
+        Set<String> argumentNames = new Set.of(named.map((a) => a.name));
         for (NamedType parameter in function.namedParameters) {
           if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
             return fasta.templateValueForRequiredParameterNotProvidedError
@@ -6053,7 +6056,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
               noLocation,
               noLocation,
               // New list because the declarations are not a growable list.
-              new List<Statement>.from(
+              new List<Statement>.of(
                   forest.variablesDeclarationExtractDeclarations(lvalue)));
         } else {
           effects = forest.createExpressionStatement(
@@ -7147,7 +7150,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Arguments? arguments, Expression expression) {
     if (arguments == null) return expression;
     List<Expression> expressions =
-        new List<Expression>.from(forest.argumentsPositional(arguments));
+        new List<Expression>.of(forest.argumentsPositional(arguments));
     for (NamedExpression named in forest.argumentsNamed(arguments)) {
       expressions.add(named.value);
     }

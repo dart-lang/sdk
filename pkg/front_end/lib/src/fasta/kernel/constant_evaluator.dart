@@ -286,7 +286,7 @@ class ConstantWeakener extends ComputeOnceConstantVisitor<Constant?> {
       Reference reference = entry.key;
       Constant? value = visitConstant(entry.value);
       if (value != null) {
-        fieldValues ??= new Map<Reference, Constant>.from(node.fieldValues);
+        fieldValues ??= new Map<Reference, Constant>.of(node.fieldValues);
         fieldValues[reference] = value;
       }
     }

@@ -929,7 +929,7 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     if (_recordedAmbiguousSupertypes.isNotEmpty &&
         reissueAmbiguousSupertypesFor != null) {
       Set<Library> libs =
-          new Set<Library>.from(reissueAmbiguousSupertypesFor.libraries);
+          new Set<Library>.of(reissueAmbiguousSupertypesFor.libraries);
       for (Class class_ in _recordedAmbiguousSupertypes.keys) {
         if (!libs.contains(class_.enclosingLibrary)) continue;
         List<Supertype> recorded = _recordedAmbiguousSupertypes[class_]!;
@@ -1714,7 +1714,7 @@ class ClassSet extends IterableBase<Class> {
   }
 
   ClassSet union(ClassSet other) {
-    Set<Class> result = new Set<Class>.from(_classes);
+    Set<Class> result = new Set<Class>.of(_classes);
     result.addAll(other._classes);
     return new ClassSet(result);
   }

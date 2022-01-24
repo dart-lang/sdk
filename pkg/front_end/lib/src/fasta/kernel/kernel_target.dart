@@ -412,7 +412,7 @@ class KernelTarget extends TargetImplementation {
       installSyntheticConstructors(sourceClassBuilders);
       loader.resolveConstructors();
       component =
-          link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
+          link(new List<Library>.of(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();
       loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
       loader.checkSupertypes(sourceClassBuilders, enumClass);

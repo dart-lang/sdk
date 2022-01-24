@@ -598,7 +598,7 @@ class BinaryBuilder {
       _byteOffset = start - 4;
     }
     _byteOffset = savedByteOffset;
-    return new List.from(index.reversed);
+    return new List.of(index.reversed);
   }
 
   void _checkEmptyInput() {

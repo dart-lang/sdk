@@ -394,7 +394,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Compute which libraries to output and which (previous) errors/warnings
       // we have to reissue. In the process do some cleanup too.
       List<Library> compiledLibraries =
-          new List<Library>.from(currentKernelTarget.loader.libraries);
+          new List<Library>.of(currentKernelTarget.loader.libraries);
       Map<Uri, Source> uriToSource = componentWithDill!.uriToSource;
       _experimentalCompilationPostCompilePatchup(
           experimentalInvalidation, compiledLibraries, uriToSource);
@@ -2047,7 +2047,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     IncrementalKernelTarget? lastGoodKernelTarget = this._lastGoodKernelTarget;
     if (lastGoodKernelTarget != null) {
       Set<Uri> uris =
-          new Set<Uri>.from(lastGoodKernelTarget.loader.libraryImportUris);
+          new Set<Uri>.of(lastGoodKernelTarget.loader.libraryImportUris);
       uris.removeAll(_dillLoadedData!.loader.libraryImportUris);
       if (_previousSourceBuilders != null) {
         for (Library library in _previousSourceBuilders!) {
@@ -2578,7 +2578,7 @@ class _ComponentProblems {
 
     // Save any new component-problems.
     _addProblemsAsJson(componentWithDill.problemsAsJson);
-    return new List<String>.from(issuedProblems);
+    return new List<String>.of(issuedProblems);
   }
 
   void saveComponentProblems(Component component) {

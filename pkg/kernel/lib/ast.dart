@@ -3740,7 +3740,7 @@ class FunctionNode extends TreeNode {
     named.sort();
     // We need create a copy of the list of type parameters, otherwise
     // transformations like erasure don't work.
-    List<TypeParameter> typeParametersCopy = new List<TypeParameter>.from(
+    List<TypeParameter> typeParametersCopy = new List<TypeParameter>.of(
         parent is Constructor
             ? parent.enclosingClass.typeParameters
             : typeParameters);
@@ -3790,9 +3790,9 @@ class FunctionNode extends TreeNode {
     // We need create a copy of the list of type parameters, otherwise
     // transformations like erasure don't work.
     List<TypeParameter> classTypeParametersCopy =
-        List.from(parentConstructor.enclosingClass.typeParameters);
+        List.of(parentConstructor.enclosingClass.typeParameters);
     List<TypeParameter> typedefTypeParametersCopy =
-        List.from(typedef.typeParameters);
+        List.of(typedef.typeParameters);
     List<DartType> asTypeArguments =
         getAsTypeArguments(typedefTypeParametersCopy, library);
     TypedefType typedefType =
@@ -3834,9 +3834,9 @@ class FunctionNode extends TreeNode {
         "Only run this method on a factory");
     // We need create a copy of the list of type parameters, otherwise
     // transformations like erasure don't work.
-    List<TypeParameter> classTypeParametersCopy = List.from(typeParameters);
+    List<TypeParameter> classTypeParametersCopy = List.of(typeParameters);
     List<TypeParameter> typedefTypeParametersCopy =
-        List.from(typedef.typeParameters);
+        List.of(typedef.typeParameters);
     List<DartType> asTypeArguments =
         getAsTypeArguments(typedefTypeParametersCopy, library);
     TypedefType typedefType =

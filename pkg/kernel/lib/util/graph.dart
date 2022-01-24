@@ -227,7 +227,7 @@ Set<T> calculateTransitiveDependenciesOf<T>(Graph<T> graph, Set<T> vertices) {
   }
 
   // Collect and remove all dependencies.
-  Set<T> left = new Set<T>.from(graph.vertices);
+  Set<T> left = new Set<T>.of(graph.vertices);
   Set<T> transitive = {};
   while (workList.isNotEmpty) {
     T removed = workList.removeLast();

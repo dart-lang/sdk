@@ -2352,7 +2352,7 @@ class ClassMembersNodeBuilder {
       }
     }
     if (contextMap.isEmpty) return;
-    List<String> names = new List<String>.from(contextMap.keys)..sort();
+    List<String> names = new List<String>.of(contextMap.keys)..sort();
     List<LocatedMessage> context = <LocatedMessage>[];
     for (int i = 0; i < names.length; i++) {
       context.add(contextMap[names[i]]!);
