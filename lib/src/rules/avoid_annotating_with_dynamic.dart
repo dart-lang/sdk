@@ -49,6 +49,7 @@ class AvoidAnnotatingWithDynamic extends LintRule {
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
     registry.addSimpleFormalParameter(this, visitor);
+    registry.addSuperFormalParameter(this, visitor);
   }
 }
 
@@ -59,7 +60,15 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    var type = node.type;
+    _checkNode(node, node.type);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _checkNode(node, node.type);
+  }
+
+  void _checkNode(NormalFormalParameter node, TypeAnnotation? type) {
     if (type is NamedType && type.name.name == 'dynamic') {
       rule.reportLint(node);
     }
