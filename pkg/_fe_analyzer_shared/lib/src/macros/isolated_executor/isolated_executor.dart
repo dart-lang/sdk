@@ -420,10 +420,9 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(
-      MacroInstanceIdentifier macro, Declaration declaration) {
-    // TODO: implement executeTypesPhase
-    throw new UnimplementedError();
-  }
+          MacroInstanceIdentifier macro, DeclarationImpl declaration) =>
+      _sendRequest((zoneId) => new ExecuteTypesPhaseRequest(macro, declaration,
+          serializationZoneId: zoneId));
 
   @override
   Future<MacroInstanceIdentifier> instantiateMacro(

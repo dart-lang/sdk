@@ -451,6 +451,6 @@ class _SnippetTest extends PubPackageResolutionTest {
         );
       }
     }
-    writeTestPackageConfig(packageConfigBuilder, meta: true);
+    writeTestPackageConfig(packageConfigBuilder, ffi: true, meta: true);
   }
 }

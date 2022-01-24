@@ -6,6 +6,38 @@ import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/builder_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+/// Runs [macro] in the types phase and returns a  [MacroExecutionResult].
+Future<MacroExecutionResult> executeTypesMacro(
+    Macro macro, Declaration declaration) async {
+  TypeBuilderImpl builder = new TypeBuilderImpl();
+  if (declaration is FunctionDeclaration) {
+    if (macro is ConstructorTypesMacro &&
+        declaration is ConstructorDeclaration) {
+      await macro.buildTypesForConstructor(declaration, builder);
+      return builder.result;
+    } else if (macro is MethodTypesMacro && declaration is MethodDeclaration) {
+      await macro.buildTypesForMethod(declaration, builder);
+      return builder.result;
+    } else if (macro is FunctionTypesMacro) {
+      await macro.buildTypesForFunction(declaration, builder);
+      return builder.result;
+    }
+  } else if (declaration is VariableDeclaration) {
+    if (macro is FieldTypesMacro && declaration is FieldDeclaration) {
+      await macro.buildTypesForField(declaration, builder);
+      return builder.result;
+    } else if (macro is VariableTypesMacro) {
+      await macro.buildTypesForVariable(declaration, builder);
+      return builder.result;
+    }
+  } else if (macro is ClassTypesMacro && declaration is ClassDeclaration) {
+    await macro.buildTypesForClass(declaration, builder);
+    return builder.result;
+  }
+  throw new UnsupportedError('Unsupported macro type or invalid declaration:\n'
+      'macro: $macro\ndeclaration: $declaration');
+}
+
 /// Runs [macro] in the declaration phase and returns a  [MacroExecutionResult].
 Future<MacroExecutionResult> executeDeclarationsMacro(
     Macro macro,

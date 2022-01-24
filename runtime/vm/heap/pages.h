@@ -576,7 +576,7 @@ class PageSpace {
                             int64_t pre_wait_for_sweepers,
                             int64_t pre_safe_point);
   void SweepLarge();
-  void Sweep();
+  void Sweep(bool exclusive);
   void ConcurrentSweep(IsolateGroup* isolate_group);
   void Compact(Thread* thread);
 
@@ -614,6 +614,8 @@ class PageSpace {
   OldPage* large_pages_ = nullptr;
   OldPage* large_pages_tail_ = nullptr;
   OldPage* image_pages_ = nullptr;
+  OldPage* sweep_regular_ = nullptr;
+  OldPage* sweep_large_ = nullptr;
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_in_words_;

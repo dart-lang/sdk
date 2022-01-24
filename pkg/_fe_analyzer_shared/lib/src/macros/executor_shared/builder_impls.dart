@@ -24,6 +24,13 @@ class TypeBuilderBase {
       : _augmentations = parentAugmentations ?? [];
 }
 
+class TypeBuilderImpl extends TypeBuilderBase implements TypeBuilder {
+  @override
+  void declareType(DeclarationCode typeDeclaration) {
+    _augmentations.add(typeDeclaration);
+  }
+}
+
 /// Base class for all [DeclarationBuilder]s.
 class DeclarationBuilderBase extends TypeBuilderBase
     implements ClassIntrospector, TypeResolver {
@@ -66,10 +73,8 @@ class DeclarationBuilderBase extends TypeBuilderBase
 class DeclarationBuilderImpl extends DeclarationBuilderBase
     implements DeclarationBuilder {
   DeclarationBuilderImpl(
-      ClassIntrospector classIntrospector, TypeResolver typeResolver,
-      {List<DeclarationCode>? parentAugmentations})
-      : super(classIntrospector, typeResolver,
-            parentAugmentations: parentAugmentations);
+      ClassIntrospector classIntrospector, TypeResolver typeResolver)
+      : super(classIntrospector, typeResolver);
 
   @override
   void declareInLibrary(DeclarationCode declaration) {
@@ -82,10 +87,8 @@ class ClassMemberDeclarationBuilderImpl extends DeclarationBuilderImpl
   final TypeAnnotation definingClass;
 
   ClassMemberDeclarationBuilderImpl(this.definingClass,
-      ClassIntrospector classIntrospector, TypeResolver typeResolver,
-      {List<DeclarationCode>? parentAugmentations})
-      : super(classIntrospector, typeResolver,
-            parentAugmentations: parentAugmentations);
+      ClassIntrospector classIntrospector, TypeResolver typeResolver)
+      : super(classIntrospector, typeResolver);
 
   @override
   void declareInClass(DeclarationCode declaration) {

@@ -109,127 +109,54 @@ intptr_t GCSweeper::SweepLargePage(OldPage* page) {
 
 class ConcurrentSweeperTask : public ThreadPool::Task {
  public:
-  ConcurrentSweeperTask(IsolateGroup* isolate_group,
-                        PageSpace* old_space,
-                        OldPage* first,
-                        OldPage* last,
-                        OldPage* large_first,
-                        OldPage* large_last)
-      : task_isolate_group_(isolate_group),
-        old_space_(old_space),
-        first_(first),
-        last_(last),
-        large_first_(large_first),
-        large_last_(large_last) {
-    ASSERT(task_isolate_group_ != NULL);
-    ASSERT(first_ != NULL);
-    ASSERT(old_space_ != NULL);
-    ASSERT(last_ != NULL);
-    MonitorLocker ml(old_space_->tasks_lock());
-    old_space_->set_tasks(old_space_->tasks() + 1);
-    old_space_->set_phase(PageSpace::kSweepingLarge);
+  explicit ConcurrentSweeperTask(IsolateGroup* isolate_group)
+      : isolate_group_(isolate_group) {
+    ASSERT(isolate_group != nullptr);
+    PageSpace* old_space = isolate_group->heap()->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    old_space->set_tasks(old_space->tasks() + 1);
+    old_space->set_phase(PageSpace::kSweepingLarge);
   }
 
   virtual void Run() {
     bool result = Thread::EnterIsolateGroupAsHelper(
-        task_isolate_group_, Thread::kSweeperTask, /*bypass_safepoint=*/true);
+        isolate_group_, Thread::kSweeperTask, /*bypass_safepoint=*/true);
     ASSERT(result);
+    PageSpace* old_space = isolate_group_->heap()->old_space();
     {
       Thread* thread = Thread::Current();
       ASSERT(thread->BypassSafepoints());  // Or we should be checking in.
       TIMELINE_FUNCTION_GC_DURATION(thread, "ConcurrentSweep");
-      GCSweeper sweeper;
 
-      OldPage* page = large_first_;
-      OldPage* prev_page = NULL;
-      while (page != NULL) {
-        OldPage* next_page;
-        if (page == large_last_) {
-          // Don't access page->next(), which would be a race with mutator
-          // allocating new pages.
-          next_page = NULL;
-        } else {
-          next_page = page->next();
-        }
-        ASSERT(page->type() == OldPage::kData);
-        const intptr_t words_to_end = sweeper.SweepLargePage(page);
-        if (words_to_end == 0) {
-          old_space_->FreeLargePage(page, prev_page);
-        } else {
-          old_space_->TruncateLargePage(page, words_to_end << kWordSizeLog2);
-          prev_page = page;
-        }
-        page = next_page;
-      }
+      old_space->SweepLarge();
 
       {
-        MonitorLocker ml(old_space_->tasks_lock());
-        ASSERT(old_space_->phase() == PageSpace::kSweepingLarge);
-        old_space_->set_phase(PageSpace::kSweepingRegular);
+        MonitorLocker ml(old_space->tasks_lock());
+        ASSERT(old_space->phase() == PageSpace::kSweepingLarge);
+        old_space->set_phase(PageSpace::kSweepingRegular);
         ml.NotifyAll();
       }
 
-      intptr_t shard = 0;
-      const intptr_t num_shards = Utils::Maximum(FLAG_scavenger_tasks, 1);
-      page = first_;
-      prev_page = NULL;
-      while (page != NULL) {
-        OldPage* next_page;
-        if (page == last_) {
-          // Don't access page->next(), which would be a race with mutator
-          // allocating new pages.
-          next_page = NULL;
-        } else {
-          next_page = page->next();
-        }
-        ASSERT(page->type() == OldPage::kData);
-        shard = (shard + 1) % num_shards;
-        bool page_in_use =
-            sweeper.SweepPage(page, old_space_->DataFreeList(shard), false);
-        if (page_in_use) {
-          prev_page = page;
-        } else {
-          old_space_->FreePage(page, prev_page);
-        }
-        {
-          // Notify the mutator thread that we have added elements to the free
-          // list or that more capacity is available.
-          MonitorLocker ml(old_space_->tasks_lock());
-          ml.Notify();
-        }
-        page = next_page;
-      }
+      old_space->Sweep(/*exclusive*/ false);
     }
     // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
     Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
     // This sweeper task is done. Notify the original isolate.
     {
-      MonitorLocker ml(old_space_->tasks_lock());
-      old_space_->set_tasks(old_space_->tasks() - 1);
-      ASSERT(old_space_->phase() == PageSpace::kSweepingRegular);
-      old_space_->set_phase(PageSpace::kDone);
+      MonitorLocker ml(old_space->tasks_lock());
+      old_space->set_tasks(old_space->tasks() - 1);
+      ASSERT(old_space->phase() == PageSpace::kSweepingRegular);
+      old_space->set_phase(PageSpace::kDone);
       ml.NotifyAll();
     }
   }
 
  private:
-  IsolateGroup* task_isolate_group_;
-  PageSpace* old_space_;
-  OldPage* first_;
-  OldPage* last_;
-  OldPage* large_first_;
-  OldPage* large_last_;
+  IsolateGroup* isolate_group_;
 };
 
-void GCSweeper::SweepConcurrent(IsolateGroup* isolate_group,
-                                OldPage* first,
-                                OldPage* last,
-                                OldPage* large_first,
-                                OldPage* large_last,
-                                FreeList* freelist) {
-  bool result = Dart::thread_pool()->Run<ConcurrentSweeperTask>(
-      isolate_group, isolate_group->heap()->old_space(), first, last,
-      large_first, large_last);
+void GCSweeper::SweepConcurrent(IsolateGroup* isolate_group) {
+  bool result = Dart::thread_pool()->Run<ConcurrentSweeperTask>(isolate_group);
   ASSERT(result);
 }
 

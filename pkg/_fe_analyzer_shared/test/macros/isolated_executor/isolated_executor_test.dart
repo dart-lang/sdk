@@ -212,6 +212,35 @@ void main() {
     var testTypeDeclarationResolver =
         TestTypeDeclarationResolver({myClassStaticType: myClass});
 
+    group('in the types phase', () {
+      test('on methods', () async {
+        var result = await executor.executeTypesPhase(instanceId, myMethod);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('class GeneratedByMyMethod {}'));
+      });
+
+      test('on constructors', () async {
+        var result =
+            await executor.executeTypesPhase(instanceId, myConstructor);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('class GeneratedByMyConstructor {}'));
+      });
+
+      test('on fields', () async {
+        var result = await executor.executeTypesPhase(instanceId, myField);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('class GeneratedByMyField {}'));
+      });
+
+      test('on classes', () async {
+        var result = await executor.executeTypesPhase(instanceId, myClass);
+        expect(
+            result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace(
+                'class MyClassBuilder implements Builder<MyClass> {}'));
+      });
+    });
+
     group('in the declaration phase', () {
       test('on methods', () async {
         var result = await executor.executeDeclarationsPhase(

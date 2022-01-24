@@ -237,6 +237,32 @@ class InstantiateMacroRequest extends Request {
   }
 }
 
+/// A request to execute a macro on a particular declaration in the types phase.
+class ExecuteTypesPhaseRequest extends Request {
+  final MacroInstanceIdentifier macro;
+  final DeclarationImpl declaration;
+
+  ExecuteTypesPhaseRequest(this.macro, this.declaration,
+      {required int serializationZoneId})
+      : super(serializationZoneId: serializationZoneId);
+
+  /// When deserializing we have already consumed the message type, so we don't
+  /// consume it again.
+  ExecuteTypesPhaseRequest.deserialize(
+      Deserializer deserializer, int serializationZoneId)
+      : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
+        declaration = RemoteInstance.deserialize(deserializer),
+        super.deserialize(deserializer, serializationZoneId);
+
+  void serialize(Serializer serializer) {
+    serializer.addNum(MessageType.executeTypesPhaseRequest.index);
+    macro.serialize(serializer);
+    declaration.serialize(serializer);
+
+    super.serialize(serializer);
+  }
+}
+
 /// A request to execute a macro on a particular declaration in the definition
 /// phase.
 class ExecuteDeclarationsPhaseRequest extends Request {
@@ -664,6 +690,7 @@ enum MessageType {
   error,
   executeDeclarationsPhaseRequest,
   executeDefinitionsPhaseRequest,
+  executeTypesPhaseRequest,
   instantiateMacroRequest,
   isExactlyTypeRequest,
   isSubtypeOfRequest,

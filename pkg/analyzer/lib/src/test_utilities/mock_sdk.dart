@@ -662,6 +662,8 @@ class NativeType {
 
 class Handle extends NativeType {}
 
+abstract class Opaque extends NativeType {}
+
 class Void extends NativeType {}
 
 class Int8 extends NativeType {

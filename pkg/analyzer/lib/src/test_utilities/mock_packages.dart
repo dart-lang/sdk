@@ -6,6 +6,33 @@ import 'package:analyzer/file_system/file_system.dart';
 
 /// Helper for creating mock packages.
 class MockPackages {
+  /// Create a fake 'ffi' package that can be used by tests.
+  static void addFfiPackageFiles(Folder rootFolder) {
+    var libFolder = rootFolder.getChildAssumingFolder('lib');
+    libFolder.getChildAssumingFile('ffi.dart').writeAsStringSync(r'''
+import 'dart:ffi';
+
+const Allocator calloc = _CallocAllocator();
+
+abstract class Allocator {
+  Pointer<T> allocate<T extends NativeType>(int byteCount, {int? alignment});
+
+  void free(Pointer pointer);
+}
+
+class Utf8 extends Opaque {}
+
+class _CallocAllocator implements Allocator {
+  @override
+  Pointer<T> allocate<T extends NativeType>(int byteCount, {int? alignment})
+      => throw '';
+
+  @override
+  void free(Pointer pointer) => throw '';
+}
+''');
+  }
+
   /// Create a fake 'js' package that can be used by tests.
   static void addJsPackageFiles(Folder rootFolder) {
     var libFolder = rootFolder.getChildAssumingFolder('lib');

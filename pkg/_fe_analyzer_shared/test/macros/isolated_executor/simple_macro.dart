@@ -14,16 +14,22 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 /// to validate the introspection APIs work as expected.
 class SimpleMacro
     implements
+        ClassTypesMacro,
         ClassDeclarationsMacro,
         ClassDefinitionMacro,
+        ConstructorTypesMacro,
         ConstructorDeclarationsMacro,
         ConstructorDefinitionMacro,
+        FieldTypesMacro,
         FieldDeclarationsMacro,
         FieldDefinitionMacro,
+        FunctionTypesMacro,
         FunctionDeclarationsMacro,
         FunctionDefinitionMacro,
+        MethodTypesMacro,
         MethodDeclarationsMacro,
         MethodDefinitionMacro,
+        VariableTypesMacro,
         VariableDeclarationsMacro,
         VariableDefinitionMacro {
   final int? x;
@@ -235,6 +241,77 @@ class SimpleMacro
           ['set (', variable.type, ' value) { augment super(value); }']),
       initializer: variable.initializer,
     );
+  }
+
+  @override
+  FutureOr<void> buildTypesForClass(
+      ClassDeclaration clazz, TypeBuilder builder) {
+    List<Object> _buildTypeParam(
+        TypeParameterDeclaration typeParam, bool isFirst) {
+      return [
+        if (!isFirst) ', ',
+        typeParam.name,
+        if (typeParam.bounds != null) ...[
+          ' extends ',
+          typeParam.bounds!,
+        ]
+      ];
+    }
+
+    builder.declareType(DeclarationCode.fromParts([
+      'class ${clazz.name}Builder',
+      if (clazz.typeParameters.isNotEmpty) ...[
+        '<',
+        ..._buildTypeParam(clazz.typeParameters.first, true),
+        for (var typeParam in clazz.typeParameters.skip(1))
+          ..._buildTypeParam(typeParam, false),
+        '>',
+      ],
+      ' implements Builder<',
+      clazz.type,
+      if (clazz.typeParameters.isNotEmpty) ...[
+        '<',
+        clazz.typeParameters.first,
+        for (var typeParam in clazz.typeParameters) ', ${typeParam.name}',
+        '>',
+      ],
+      '> {}'
+    ]));
+  }
+
+  @override
+  FutureOr<void> buildTypesForConstructor(
+      ConstructorDeclaration constructor, TypeBuilder builder) {
+    builder.declareType(DeclarationCode.fromString(
+        'class GeneratedBy${constructor.name.capitalize()} {}'));
+  }
+
+  @override
+  FutureOr<void> buildTypesForField(
+      FieldDeclaration field, TypeBuilder builder) {
+    builder.declareType(DeclarationCode.fromString(
+        'class GeneratedBy${field.name.capitalize()} {}'));
+  }
+
+  @override
+  FutureOr<void> buildTypesForFunction(
+      FunctionDeclaration function, TypeBuilder builder) {
+    builder.declareType(DeclarationCode.fromString(
+        'class GeneratedBy${function.name.capitalize()} {}'));
+  }
+
+  @override
+  FutureOr<void> buildTypesForMethod(
+      MethodDeclaration method, TypeBuilder builder) {
+    builder.declareType(DeclarationCode.fromString(
+        'class GeneratedBy${method.name.capitalize()} {}'));
+  }
+
+  @override
+  FutureOr<void> buildTypesForVariable(
+      VariableDeclaration variable, TypeBuilder builder) {
+    builder.declareType(DeclarationCode.fromString(
+        'class GeneratedBy${variable.name.capitalize()} {}'));
   }
 }
 

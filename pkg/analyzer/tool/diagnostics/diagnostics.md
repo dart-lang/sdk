@@ -649,6 +649,101 @@ union(a, b) {
 }
 {% endprettify %}
 
+### annotation_on_pointer_field
+
+_Fields in a struct class whose type is 'Pointer' shouldn't have any
+annotations._
+
+#### Description
+
+The analyzer produces this diagnostic when a field that's declared in a
+subclass of `Struct` and has the type `Pointer` also has an annotation
+associated with it.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the field `p`, which
+has the type `Pointer` and is declared in a subclass of `Struct`, has the
+annotation `@Double()`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  [!@Double()!]
+  external Pointer<Int8> p;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the annotations from the field:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  external Pointer<Int8> p;
+}
+{% endprettify %}
+
+### argument_must_be_a_constant
+
+_Argument '{0}' must be a constant._
+
+#### Description
+
+The analyzer produces this diagnostic when an invocation of either
+`Pointer.asFunction` or `DynamicLibrary.lookupFunction` has an `isLeaf`
+argument whose value isn't a constant expression.
+
+The analyzer also produces this diagnostic when the value of the
+`exceptionalReturn` argument of `Pointer.fromFunction`.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the value of the
+`isLeaf` argument is a parameter, and hence isn't a constant:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+int Function(int) fromPointer(
+    Pointer<NativeFunction<Int8 Function(Int8)>> p, bool isLeaf) {
+  return p.asFunction(isLeaf: [!isLeaf!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If there's a suitable constant that can be used, then replace the argument
+with a constant:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+const isLeaf = false;
+
+int Function(int) fromPointer(Pointer<NativeFunction<Int8 Function(Int8)>> p) {
+  return p.asFunction(isLeaf: isLeaf);
+}
+{% endprettify %}
+
+If there isn't a suitable constant, then replace the argument with a
+boolean literal:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+int Function(int) fromPointer(Pointer<NativeFunction<Int8 Function(Int8)>> p) {
+  return p.asFunction(isLeaf: true);
+}
+{% endprettify %}
+
 ### argument_type_not_assignable
 
 _The argument type '{0}' can't be assigned to the parameter type '{1}'._
@@ -2696,6 +2791,58 @@ class C<T> {
 C<T> newC<T>() => C<T>();
 {% endprettify %}
 
+### creation_of_struct_or_union
+
+_Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be
+instantiated by a generative constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when a subclass of either `Struct`
+or `Union` is instantiated using a generative constructor.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the class `C` is being
+instantiated using a generative constructor:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Int32()
+  external int a;
+}
+
+void f() {
+  [!C!]();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to allocate the structure described by the class, then use the
+`ffi` package to do so:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
+
+class C extends Struct {
+  @Int32()
+  external int a;
+}
+
+void f() {
+  final pointer = calloc.allocate<C>(4);
+  final c = pointer.ref;
+  print(c);
+  calloc.free(pointer);
+}
+{% endprettify %}
+
 ### creation_with_non_type
 
 _The name '{0}' isn't a class._
@@ -3777,6 +3924,58 @@ import 'dart:math' show min;
 var x = min(2, min(0, 1));
 {% endprettify %}
 
+### empty_struct
+
+_The class '{0}' can't be empty because it's a subclass of '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a subclass of `Struct` or
+`Union` doesn't have any fields. Having an empty `Struct` or `Union`
+isn't supported.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the class `C`, which
+extends `Struct`, doesn't declare any fields:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class [!C!] extends Struct {}
+{% endprettify %}
+
+#### Common fixes
+
+If the class is intended to be a struct, then declare one or more fields:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Int32()
+  external int x;
+}
+{% endprettify %}
+
+If the class is intended to be used as a type argument to `Pointer`, then
+make it a subclass of `Opaque`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Opaque {}
+{% endprettify %}
+
+If the class isn't intended to be a struct, then remove or change the
+extends clause:
+
+{% prettify dart tag=pre+code %}
+class C {}
+{% endprettify %}
+
 ### equal_elements_in_const_set
 
 _Two elements in a constant set literal can't be equal._
@@ -4548,6 +4747,46 @@ f() {
 If there are multiple cascaded accesses, you'll need to duplicate the
 extension override for each one.
 
+### extra_annotation_on_struct_field
+
+_Fields in a struct class must have exactly one annotation indicating the native
+type._
+
+#### Description
+
+The analyzer produces this diagnostic when a field in a subclass of
+`Struct` has more than one annotation describing the native type of the
+field.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the field `x` has two
+annotations describing the native type of the field:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Int32()
+  [!@Int16()!]
+  external int x;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove all but one of the annotations:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+class C extends Struct {
+  @Int32()
+  external int x;
+}
+{% endprettify %}
+
 ### extra_positional_arguments
 
 _Too many positional arguments: {0} expected, but {1} found._
@@ -4622,6 +4861,46 @@ parameters:
 void f(int a, int b, {int c}) {}
 void g() {
   f(1, 2);
+}
+{% endprettify %}
+
+### extra_size_annotation_carray
+
+_'Array's must have exactly one 'Array' annotation._
+
+#### Description
+
+The analyzer produces this diagnostic when a field in a subclass of
+`Struct` has more than one annotation describing the size of the native
+array.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the field `a0` has two
+annotations that specify the size of the native array:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Array(4)
+  [!@Array(8)!]
+  external Array<Uint8> a0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove all but one of the annotations:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Array(8)
+  external Array<Uint8> a0;
 }
 {% endprettify %}
 
@@ -4797,6 +5076,51 @@ class C {
   int? f;
 
   factory C(int f) => throw 0;
+}
+{% endprettify %}
+
+### field_initializer_in_struct
+
+_Constructors in subclasses of 'Struct' and 'Union' can't have field
+initializers._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor in a subclass of
+either `Struct` or `Union` has one or more field initializers.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the class `C` has a
+constructor with an initializer for the field `f`:
+
+{% prettify dart tag=pre+code %}
+// @dart = 2.9
+import 'dart:ffi';
+
+class C extends Struct {
+  @Int32()
+  int f;
+
+  C() : [!f = 0!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the field initializer:
+
+{% prettify dart tag=pre+code %}
+// @dart = 2.9
+import 'dart:ffi';
+
+class C extends Struct {
+  @Int32()
+  int f;
+
+  C();
 }
 {% endprettify %}
 
@@ -4978,6 +5302,82 @@ class C {
   int f;
 
   C(String s) : f = int.parse(s);
+}
+{% endprettify %}
+
+### field_in_struct_with_initializer
+
+_Fields in subclasses of 'Struct' and 'Union' can't have initializers._
+
+#### Description
+
+The analyzer produces this diagnostic when a field in a subclass of
+`Struct` has an initializer.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the field `p` has an
+initializer:
+
+{% prettify dart tag=pre+code %}
+// @dart = 2.9
+import 'dart:ffi';
+
+class C extends Struct {
+  Pointer [!p!] = nullptr;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the initializer:
+
+{% prettify dart tag=pre+code %}
+// @dart = 2.9
+import 'dart:ffi';
+
+class C extends Struct {
+  Pointer p;
+}
+{% endprettify %}
+
+### field_must_be_external_in_struct
+
+_Fields of 'Struct' and 'Union' subclasses must be marked external._
+
+#### Description
+
+The analyzer produces this diagnostic when a field in a subclass of either
+`Struct` or `Union` isn't marked as being `external`.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the field `a` isn't
+marked as being `external`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Int16()
+  int [!a!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add the required `external` modifier:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Int16()
+  external int a;
 }
 {% endprettify %}
 
@@ -5366,6 +5766,42 @@ If you can't use a more specific type, then remove the type arguments:
 {% prettify dart tag=pre+code %}
 void f(dynamic list) {
   list.cast;
+}
+{% endprettify %}
+
+### generic_struct_subclass
+
+_The class '{0}' can't extend 'Struct' or 'Union' because '{0}' is generic._
+
+#### Description
+
+The analyzer produces this diagnostic when a subclass of either `Struct`
+or `Union` has a type parameter.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the class `S` defines
+the type parameter `T`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class [!S!]<T> extends Struct {
+  external Pointer notEmpty;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the type parameters from the class:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class S extends Struct {
+  external Pointer notEmpty;
 }
 {% endprettify %}
 
@@ -6565,6 +7001,53 @@ dependencies:
     version: ^1.4.0
 ```
 
+### invalid_exception_value
+
+_The method 'Pointer.fromFunction' can't have an exceptional return value (the
+second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'._
+
+#### Description
+
+The analyzer produces this diagnostic when an invocation of the method
+`Pointer.fromFunction` has a second argument (the exceptional return
+value) and the type to be returned from the invocation is either `void`,
+`Handle` or `Pointer`.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because a second argument is
+provided when the return type of `f` is `void`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+typedef T = Void Function(Int8);
+
+void f(int i) {}
+
+void g() {
+  Pointer.fromFunction<T>(f, [!42!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the exception value:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+typedef T = Void Function(Int8);
+
+void f(int i) {}
+
+void g() {
+  Pointer.fromFunction<T>(f);
+}
+{% endprettify %}
+
 ### invalid_extension_argument_count
 
 _Extension overrides must have exactly one argument: the value of 'this' in the
@@ -6674,6 +7157,52 @@ class A {}
 
 class C {
   static A a() => throw 0;
+}
+{% endprettify %}
+
+### invalid_field_type_in_struct
+
+_Fields in struct classes can't have the type '{0}'. They can only be declared
+as 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' or 'Union'._
+
+#### Description
+
+The analyzer produces this diagnostic when a field in a subclass of
+`Struct` has a type other than `int`, `double`, `Array`, `Pointer`, or
+subtype of `Struct` or `Union`.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the field `str` has
+the type `String`, which isn't one of the allowed types for fields in a
+subclass of `Struct`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  external [!String!] s;
+
+  @Int32()
+  external int i;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use one of the allowed types for the field:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
+
+class C extends Struct {
+  external Pointer<Utf8> s;
+
+  @Int32()
+  external int i;
 }
 {% endprettify %}
 
@@ -7748,6 +8277,112 @@ int f() {
 }
 {% endprettify %}
 
+### leaf_call_must_not_return_handle
+
+_FFI leaf call can't return a 'Handle'._
+
+#### Description
+
+The analyzer produces this diagnostic when the value of the `isLeaf`
+argument in an invocation of either `Pointer.asFunction` or
+`DynamicLibrary.lookupFunction` is `true` and the function that would be
+returned would have a return type of `Handle`.
+
+The analyzer also produces this diagnostic when the value of the `isLeaf`
+argument in an `FfiNative` annotation is `true` and the type argument on
+the annotation is a function type whose return type is `Handle`.
+
+In all of these cases, leaf calls are only supported for the types `bool`,
+`int`, `float`, `double`, and, as a return type `void`.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the function `p`
+returns a `Handle`, but the `isLeaf` argument is `true`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+void f(Pointer<NativeFunction<Handle Function()>> p) {
+  [!p.asFunction<Object Function()>(isLeaf: true)!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the function returns a handle, then remove the `isLeaf` argument:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+void f(Pointer<NativeFunction<Handle Function()>> p) {
+  p.asFunction<Object Function()>();
+}
+{% endprettify %}
+
+If the function returns one of the supported types, then correct the type
+information:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+void f(Pointer<NativeFunction<Int32 Function()>> p) {
+  p.asFunction<int Function()>(isLeaf: true);
+}
+{% endprettify %}
+
+### leaf_call_must_not_take_handle
+
+_FFI leaf call can't take arguments of type 'Handle'._
+
+#### Description
+
+The analyzer produces this diagnostic when the value of the `isLeaf`
+argument in an invocation of either `Pointer.asFunction` or
+`DynamicLibrary.lookupFunction` is `true` and the function that would be
+returned would have a parameter of type `Handle`.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the function `p` has a
+parameter of type `Handle`, but the `isLeaf` argument is `true`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+void f(Pointer<NativeFunction<Void Function(Handle)>> p) {
+  [!p.asFunction<void Function(Object)>(isLeaf: true)!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the function has at least one parameter of type `Handle`, then remove
+the `isLeaf` argument:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+void f(Pointer<NativeFunction<Void Function(Handle)>> p) {
+  p.asFunction<void Function(Object)>();
+}
+{% endprettify %}
+
+If none of the function's parameters are `Handle`s, then correct the type
+information:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+void f(Pointer<NativeFunction<Void Function(Int8)>> p) {
+  p.asFunction<void Function(int)>(isLeaf: true);
+}
+{% endprettify %}
+
 ### list_element_type_not_assignable
 
 _The element type '{0}' can't be assigned to the list type '{1}'._
@@ -8027,6 +8662,96 @@ If the type of the value is correct, then change the value type of the map:
 var m = <String, int>{'a' : 2};
 {% endprettify %}
 
+### mismatched_annotation_on_struct_field
+
+_The annotation doesn't match the declared type of the field._
+
+#### Description
+
+The analyzer produces this diagnostic when the annotation on a field in a
+subclass of `Struct` or `Union` doesn't match the Dart type of the field.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the annotation
+`Double` doesn't match the Dart type `int`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  [!@Double()!]
+  external int x;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the type of the field is correct, then change the annotation to match:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Int32()
+  external int x;
+}
+{% endprettify %}
+
+If the annotation is correct, then change the type of the field to match:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Double()
+  external double x;
+}
+{% endprettify %}
+
+### missing_annotation_on_struct_field
+
+_Fields in a struct class must either have the type 'Pointer' or an annotation
+indicating the native type._
+
+#### Description
+
+The analyzer produces this diagnostic when a field in a subclass of
+`Struct` or `Union` whose type requires an annotation doesn't have one.
+The Dart types `int`, `double`, and `Array` are used to represent multiple
+C types, and the annotation specifies which of the compatible C types the
+field represents.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the field `x` doesn't
+have an annotation indicating the underlying width of the integer value:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  external [!int!] x;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add an appropriate annotation to the field:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Int64()
+  external int x;
+}
+{% endprettify %}
+
 ### missing_dart_library
 
 _Required library '{0}' is missing._
@@ -8155,6 +8880,96 @@ void f(E e) {
     default:
       break;
   }
+}
+{% endprettify %}
+
+### missing_exception_value
+
+_The method 'Pointer.fromFunction' must have an exceptional return value (the
+second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'._
+
+#### Description
+
+The analyzer produces this diagnostic when an invocation of the method
+`Pointer.fromFunction` doesn't have a second argument (the exceptional
+return value) when the type to be returned from the invocation is neither
+`void`, `Handle`, nor `Pointer`.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the type returned by
+`f` is expected to be an 8-bit integer but the call to `fromFunction`
+doesn't include an exceptional return argument:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+int f(int i) => i * 2;
+
+void g() {
+  Pointer.[!fromFunction!]<Int8 Function(Int8)>(f);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add an exceptional return type:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+int f(int i) => i * 2;
+
+void g() {
+  Pointer.fromFunction<Int8 Function(Int8)>(f, 0);
+}
+{% endprettify %}
+
+### missing_field_type_in_struct
+
+_Fields in struct classes must have an explicitly declared type of 'int',
+'double' or 'Pointer'._
+
+#### Description
+
+The analyzer produces this diagnostic when a field in a subclass of
+`Struct` or `Union` doesn't have a type annotation. Every field must have
+an explicit type, and the type must either be `int`, `double`, `Pointer`,
+or a subclass of either `Struct` or `Union`.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the field `str`
+doesn't have a type annotation:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  external var [!str!];
+
+  @Int32()
+  external int i;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Explicitly specify the type of the field:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+import 'package:ffi/ffi.dart';
+
+class C extends Struct {
+  external Pointer<Utf8> str;
+
+  @Int32()
+  external int i;
 }
 {% endprettify %}
 
@@ -8288,6 +9103,44 @@ int [!f!](int x) {
 
 Add a `return` statement that makes the return value explicit, even if
 `null` is the appropriate value.
+
+### missing_size_annotation_carray
+
+_Fields of type 'Array' must have exactly one 'Array' annotation._
+
+#### Description
+
+The analyzer produces this diagnostic when a field in a subclass of either
+`Struct` or `Union` has a type of `Array` but doesn't have a single
+`Array` annotation indicating the dimensions of the array.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the field `a0` doesn't
+have an `Array` annotation:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  external [!Array<Uint8>!] a0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Ensure that there's exactly one `Array` annotation on the field:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Array(8)
+  external Array<Uint8> a0;
+}
+{% endprettify %}
 
 ### mixin_application_concrete_super_invoked_member_type
 
@@ -8817,6 +9670,115 @@ class A {
 
 class B extends A {
   B() : super.three(0, '');
+}
+{% endprettify %}
+
+### must_be_a_native_function_type
+
+_The type '{0}' given to '{1}' must be a valid 'dart:ffi' native function type._
+
+#### Description
+
+The analyzer produces this diagnostic when an invocation of either
+`Pointer.fromFunction` or `DynamicLibrary.lookupFunction` has a type
+argument(whether explicit or inferred) that isn't a native function type.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the type `T` can be
+any subclass of `Function` but the type argument for `fromFunction` is
+required to be a native function type:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+int f(int i) => i * 2;
+
+class C<T extends Function> {
+  void g() {
+    Pointer.fromFunction<[!T!]>(f, 0);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use a native function type as the type argument to the invocation:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+int f(int i) => i * 2;
+
+class C<T extends Function> {
+  void g() {
+    Pointer.fromFunction<Int32 Function(Int32)>(f, 0);
+  }
+}
+{% endprettify %}
+
+### must_be_a_subtype
+
+_The type '{0}' must be a subtype of '{1}' for '{2}'._
+
+#### Description
+
+The analyzer produces this diagnostic in two cases:
+- In an invocation of `Pointer.fromFunction` where the type argument
+  (whether explicit or inferred) isn't a supertype of the type of the
+  function passed as the first argument to the method.
+- In an invocation of `DynamicLibrary.lookupFunction` where the first type
+  argument isn't a supertype of the second type argument.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the type of the
+function `f` (`String Function(int)`) isn't a subtype of the type
+argument `T` (`Int8 Function(Int8)`):
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+typedef T = Int8 Function(Int8);
+
+double f(double i) => i;
+
+void g() {
+  Pointer.fromFunction<T>([!f!], 5.0);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the function is correct, then change the type argument to match:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+typedef T = Float Function(Float);
+
+double f(double i) => i;
+
+void g() {
+  Pointer.fromFunction<T>(f, 5.0);
+}
+{% endprettify %}
+
+If the type argument is correct, then change the function to match:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+typedef T = Int8 Function(Int8);
+
+int f(int i) => i;
+
+void g() {
+  Pointer.fromFunction<T>(f, 5);
 }
 {% endprettify %}
 
@@ -9640,6 +10602,52 @@ var i = 0;
 var s = {i};
 {% endprettify %}
 
+### non_constant_type_argument
+
+_The type arguments to '{0}' must be known at compile time, so they can't be
+type parameters._
+
+#### Description
+
+The analyzer produces this diagnostic when the type arguments to a method
+are required to be known at compile time, but a type parameter, whose
+value can't be known at compile time, is used as a type argument.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the type argument to
+`Pointer.asFunction` must be known at compile time, but the type parameter
+`R`, which isn't known at compile time, is being used as the type
+argument:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+typedef T = int Function(int);
+
+class C<R extends T> {
+  void m(Pointer<NativeFunction<T>> p) {
+    p.asFunction<[!R!]>();
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove any uses of type parameters:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C {
+  void m(Pointer<NativeFunction<Int64 Function(Int64)>> p) {
+    p.asFunction<int Function(int)>();
+  }
+}
+{% endprettify %}
+
 ### non_const_call_to_literal_constructor
 
 _This instance creation must be 'const', because the {0} constructor is marked
@@ -9727,6 +10735,134 @@ class B extends A {
 
 If the generative constructor is the unnamed constructor, and if there are
 no arguments being passed to it, then you can remove the super invocation.
+
+### non_native_function_type_argument_to_pointer
+
+_Can't invoke 'asFunction' because the function signature '{0}' for the pointer
+isn't a valid C function signature._
+
+#### Description
+
+The analyzer produces this diagnostic when the method `asFunction` is
+invoked on a pointer to a native function, but the signature of the native
+function isn't a valid C function signature.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because function signature
+associated with the pointer `p` (`FNative`) isn't a valid C function
+signature:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+typedef FNative = int Function(int);
+typedef F = int Function(int);
+
+class C {
+  void f(Pointer<NativeFunction<FNative>> p) {
+    p.asFunction<[!F!]>();
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Make the `NativeFunction` signature a valid C signature:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+typedef FNative = Int8 Function(Int8);
+typedef F = int Function(int);
+
+class C {
+  void f(Pointer<NativeFunction<FNative>> p) {
+    p.asFunction<F>();
+  }
+}
+{% endprettify %}
+
+### non_positive_array_dimension
+
+_Array dimensions must be positive numbers._
+
+#### Description
+
+The analyzer produces this diagnostic when a dimension given in an `Array`
+annotation is less than or equal to zero (`0`).
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because an array dimension of
+`-1` was provided:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class MyStruct extends Struct {
+  @Array([!-8!])
+  external Array<Uint8> a0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the dimension to be a positive integer:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class MyStruct extends Struct {
+  @Array(8)
+  external Array<Uint8> a0;
+}
+{% endprettify %}
+
+### non_sized_type_argument
+
+_The type '{1}' isn't a valid type argument for '{0}'. The type argument must be
+a native integer, 'Float', 'Double', 'Pointer', or subtype of 'Struct', 'Union', or 'AbiSpecificInteger'._
+
+#### Description
+
+The analyzer produces this diagnostic when the type argument for the class
+`Array` isn't one of the valid types: either a native integer, `Float`,
+`Double`, `Pointer`, or subtype of `Struct`, `Union`, or
+`AbiSpecificInteger`.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the type argument to
+`Array` is `Void`, and `Void` isn't one of the valid types:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Array(8)
+  external Array<[!Void!]> a0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the type argument to one of the valid types:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Array(8)
+  external Array<Uint8> a0;
+}
+{% endprettify %}
 
 ### non_sync_factory
 
@@ -10719,6 +11855,165 @@ If the member is intended to override a member that was removed from the
 superclass, then consider removing the member from the subclass.
 
 If the member can't be removed, then remove the annotation.
+
+### packed_annotation
+
+_Structs must have at most one 'Packed' annotation._
+
+#### Description
+
+The analyzer produces this diagnostic when a subclass of `Struct` has more
+than one `Packed` annotation.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the class `C`, which
+is a subclass of `Struct`, has two `Packed` annotations:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Packed(1)
+[!@Packed(1)!]
+class C extends Struct {
+  external Pointer<Uint8> notEmpty;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove all but one of the annotations:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Packed(1)
+class C extends Struct {
+  external Pointer<Uint8> notEmpty;
+}
+{% endprettify %}
+
+### packed_annotation_alignment
+
+_Only packing to 1, 2, 4, 8, and 16 bytes is supported._
+
+#### Description
+
+The analyzer produces this diagnostic when the argument to the `Packed`
+annotation isn't one of the allowed values: 1, 2, 4, 8, or 16.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the argument to the
+`Packed` annotation (`3`) isn't one of the allowed values:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Packed([!3!])
+class C extends Struct {
+  external Pointer<Uint8> notEmpty;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the alignment to be one of the allowed values:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Packed(4)
+class C extends Struct {
+  external Pointer<Uint8> notEmpty;
+}
+{% endprettify %}
+
+### packed_nesting_non_packed
+
+_Nesting the non-packed or less tightly packed struct '{0}' in a packed struct
+'{1}' isn't supported._
+
+#### Description
+
+The analyzer produces this diagnostic when a subclass of `Struct` that is
+annotated as being `Packed` declares a field whose type is also a subclass
+of `Struct` and the field's type is either not packed or is packed less
+tightly.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the class `Outer`,
+which is a subclass of `Struct` and is packed on 1-byte boundaries,
+declared a field whose type (`Inner`) is packed on 8-byte boundaries:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Packed(8)
+class Inner extends Struct {
+  external Pointer<Uint8> notEmpty;
+}
+
+@Packed(1)
+class Outer extends Struct {
+  external Pointer<Uint8> notEmpty;
+
+  external [!Inner!] nestedLooselyPacked;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the inner struct should be packed more tightly, then change the
+argument to the inner struct's `Packed` annotation:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Packed(1)
+class Inner extends Struct {
+  external Pointer<Uint8> notEmpty;
+}
+
+@Packed(1)
+class Outer extends Struct {
+  external Pointer<Uint8> notEmpty;
+
+  external Inner nestedLooselyPacked;
+}
+{% endprettify %}
+
+If the outer struct should be packed less tightly, then change the
+argument to the outer struct's `Packed` annotation:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+@Packed(8)
+class Inner extends Struct {
+  external Pointer<Uint8> notEmpty;
+}
+
+@Packed(8)
+class Outer extends Struct {
+  external Pointer<Uint8> notEmpty;
+
+  external Inner nestedLooselyPacked;
+}
+{% endprettify %}
+
+If the inner struct doesn't have an annotation and should be packed, then
+add an annotation.
+
+If the inner struct doesn't have an annotation and the outer struct
+shouldn't be packed, then remove its annotation.
 
 ### part_of_different_library
 
@@ -12561,6 +13856,58 @@ import 'dart:convert' as convert;
 var y = convert.json.encode(x.min(0, 1));
 {% endprettify %}
 
+### size_annotation_dimensions
+
+_'Array's must have an 'Array' annotation that matches the dimensions._
+
+#### Description
+
+The analyzer produces this diagnostic when the number of dimensions
+specified in an `Array` annotation doesn't match the number of nested
+arrays specified by the type of a field.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the field `a0` has a
+type with three nested arrays, but only two dimensions are given in the
+`Array` annotation:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  [!@Array(8, 8)!]
+  external Array<Array<Array<Uint8>>> a0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the type of the field is correct, then fix the annotation to have the
+required number of dimensions:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Array(8, 8, 4)
+  external Array<Array<Array<Uint8>>> a0;
+}
+{% endprettify %}
+
+If the type of the field is wrong, then fix the type of the field:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Array(8, 8)
+  external Array<Array<Uint8>> a0;
+}
+{% endprettify %}
+
 ### static_access_to_instance_member
 
 _Instance member '{0}' can't be accessed using static access._
@@ -12724,6 +14071,55 @@ type, and possibly the whole clause:
 class B {}
 {% endprettify %}
 
+### subtype_of_ffi_class
+
+_The class '{0}' can't extend '{1}'._
+
+_The class '{0}' can't implement '{1}'._
+
+_The class '{0}' can't mix in '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a class extends any FFI class
+other than `Struct` or `Union`, or implements or mixes in any FFI class.
+`Struct` and `Union` are the only FFI classes that can be subtyped, and
+then only by extending them.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the class `C` extends
+`Double`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends [!Double!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If the class should extend either `Struct` or `Union`, then change the
+declaration of the class:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class C extends Struct {
+  @Int32()
+  external int i;
+}
+{% endprettify %}
+
+If the class shouldn't extend either `Struct` or `Union`, then remove any
+references to FFI classes:
+
+{% prettify dart tag=pre+code %}
+class C {}
+{% endprettify %}
+
 ### subtype_of_sealed_class
 
 _The class '{0}' shouldn't be extended, mixed in, or implemented because it's
@@ -12774,6 +14170,62 @@ class B extends A {}
 If the class needs to be a subtype of the sealed class, then either change
 the sealed class so that it's no longer sealed or move the subclass into
 the same package as the sealed class.
+
+### subtype_of_struct_class
+
+_The class '{0}' can't extend '{1}' because '{1}' is a subtype of 'Struct',
+'Union', or 'AbiSpecificInteger'._
+
+_The class '{0}' can't implement '{1}' because '{1}' is a subtype of 'Struct',
+'Union', or 'AbiSpecificInteger'._
+
+_The class '{0}' can't mix in '{1}' because '{1}' is a subtype of 'Struct',
+'Union', or 'AbiSpecificInteger'._
+
+#### Description
+
+The analyzer produces this diagnostic when a class extends, implements, or
+mixes in a class that extends either `Struct` or `Union`. Classes can only
+extend either `Struct` or `Union` directly.
+
+For more information about FFI, see [C interop using dart:ffi][].
+
+#### Example
+
+The following code produces this diagnostic because the class `C` extends
+`S`, and `S` extends `Struct`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class S extends Struct {
+  external Pointer f;
+}
+
+class C extends [!S!] {
+  external Pointer g;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you're trying to define a struct or union that shares some fields
+declared by a different struct or union, then extend `Struct` or `Union`
+directly and copy the shared fields:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+class S extends Struct {
+  external Pointer f;
+}
+
+class C extends Struct {
+  external Pointer f;
+
+  external Pointer g;
+}
+{% endprettify %}
 
 ### supertype_expands_to_type_parameter
 
