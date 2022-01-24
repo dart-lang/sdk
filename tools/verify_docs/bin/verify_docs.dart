@@ -270,8 +270,8 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
         template = 'none';
       } else if (hasTopDeclaration) {
         template = 'top';
-      } else if (lines.length == 1 && !lines.first.trim().endsWith(';')) {
-        // If single line with no trailing `;`, assume expression.
+      } else if (lines.length == 1 && !lines.first.contains(';')) {
+        // If single line with no `;`, assume expression.
         template = 'expression';
       } else {
         // Otherwise default to `main`.
