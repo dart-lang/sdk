@@ -161,10 +161,10 @@ class InferenceContext {
   }
 }
 
-/// Base class for visitors that perform resolution.  This class keeps track of
-/// some of the basic information that is needed by resolution stages, such as
-/// the defining library and the error reporter.
-abstract class ResolverBase extends UnifyingAstVisitor<void> {
+/// Instances of the class `ResolverVisitor` are used to resolve the nodes
+/// within a single compilation unit.
+class ResolverVisitor extends ThrowingAstVisitor<void>
+    with ErrorDetectionHelpers {
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl definingLibrary;
 
@@ -174,22 +174,9 @@ abstract class ResolverBase extends UnifyingAstVisitor<void> {
   /// The object used to access the types from the core library.
   final TypeProviderImpl typeProvider;
 
-  /// The error reporter that will be informed of any errors that are found
-  /// during resolution.
+  @override
   final ErrorReporter errorReporter;
 
-  ResolverBase(this.definingLibrary, this.source, this.typeProvider,
-      AnalysisErrorListener errorListener)
-      : errorReporter = ErrorReporter(
-          errorListener,
-          source,
-          isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
-        );
-}
-
-/// Instances of the class `ResolverVisitor` are used to resolve the nodes
-/// within a single compilation unit.
-class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
   ClassElement? enclosingClass;
@@ -326,7 +313,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
             definingLibrary,
             source,
             definingLibrary.typeSystem,
-            typeProvider,
+            typeProvider as TypeProviderImpl,
             errorListener,
             featureSet ??
                 definingLibrary.context.analysisOptions.contextFeatures,
@@ -336,19 +323,22 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   ResolverVisitor._(
       this.inheritance,
-      LibraryElementImpl definingLibrary,
-      Source source,
+      this.definingLibrary,
+      this.source,
       this.typeSystem,
-      TypeProvider typeProvider,
+      this.typeProvider,
       AnalysisErrorListener errorListener,
       FeatureSet featureSet,
       this.flowAnalysis,
       this._migratableAstInfoProvider,
       MigrationResolutionHooks? migrationResolutionHooks)
-      : _featureSet = featureSet,
-        migrationResolutionHooks = migrationResolutionHooks,
-        super(definingLibrary, source, typeProvider as TypeProviderImpl,
-            errorListener) {
+      : errorReporter = ErrorReporter(
+          errorListener,
+          source,
+          isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
+        ),
+        _featureSet = featureSet,
+        migrationResolutionHooks = migrationResolutionHooks {
     var analysisOptions =
         definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
 
@@ -1069,6 +1059,14 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
+  void visitAdjacentStrings(AdjacentStrings node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitAdjacentStrings(node as AdjacentStringsImpl);
+  }
+
+  @override
   void visitAnnotation(covariant AnnotationImpl node) {
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     _annotationResolver.resolve(node, whyNotPromotedList);
@@ -1155,12 +1153,14 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
           node.parent as Expression, secondArg, secondArg.typeOrThrow);
     }
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
   }
 
   @override
   void visitAsExpression(AsExpression node) {
-    super.visitAsExpression(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitAsExpression(node as AsExpressionImpl);
     flowAnalysis.asExpression(node);
     insertGenericFunctionInstantiation(node);
   }
@@ -1208,7 +1208,10 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       var futureUnion = _createFutureOr(contextType);
       InferenceContext.setType(node.expression, futureUnion);
     }
-    super.visitAwaitExpression(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitAwaitExpression(node as AwaitExpressionImpl);
     insertGenericFunctionInstantiation(node);
   }
 
@@ -1224,11 +1227,20 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
+  void visitBlock(Block node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     try {
       inferenceContext.pushFunctionBodyContext(node);
       _thisAccessTracker.enterFunctionBody(node);
-      super.visitBlockFunctionBody(node);
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      node.accept(elementResolver);
     } finally {
       _thisAccessTracker.exitFunctionBody(node);
       inferenceContext.popFunctionBodyContext(node);
@@ -1238,7 +1250,10 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
     flowAnalysis.flow?.booleanLiteral(node, node.value);
-    super.visitBooleanLiteral(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitBooleanLiteral(node as BooleanLiteralImpl);
   }
 
   @override
@@ -1249,7 +1264,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     //
     checkUnreachableNode(node);
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
     flowAnalysis.breakStatement(node);
   }
 
@@ -1267,9 +1281,16 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     node.cascadeSections.accept(this);
 
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
+    typeAnalyzer.visitCascadeExpression(node);
 
     nullShortingTermination(node);
+  }
+
+  @override
+  void visitCatchClause(CatchClause node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -1280,9 +1301,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     var outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      super.visitClassDeclaration(node);
+      checkUnreachableNode(node);
+      node.visitChildren(this);
       node.accept(elementResolver);
-      node.accept(typeAnalyzer);
     } finally {
       enclosingClass = outerType;
     }
@@ -1290,10 +1311,16 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    super.visitClassTypeAlias(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
     node.accept(elementResolver);
-    // Note: no need to call the typeAnalyzer since it does not override
-    // visitClassTypeAlias.
+  }
+
+  @override
+  void visitComment(Comment node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -1303,7 +1330,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     // context of the reference.
     //
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
   }
 
   @override
@@ -1319,7 +1345,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       declarations[i].accept(this);
     }
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
   }
 
   @override
@@ -1359,7 +1384,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     elseExpression = node.elseExpression;
 
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
+    typeAnalyzer.visitConditionalExpression(node as ConditionalExpressionImpl);
   }
 
   @override
@@ -1381,7 +1406,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       _enclosingFunction = node.declaredElement;
       assert(_thisType == null);
       _setupThisType();
-      super.visitConstructorDeclaration(node);
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      node.accept(elementResolver);
     } finally {
       _enclosingFunction = outerFunction;
       _thisType = null;
@@ -1412,7 +1439,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     expression = node.expression;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
     if (fieldElement != null) {
       if (fieldType != null && expression.staticType != null) {
         var callReference = insertImplicitCallReference(expression);
@@ -1440,6 +1466,13 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
+  void visitConstructorSelector(ConstructorSelector node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
   void visitContinueStatement(ContinueStatement node) {
     //
     // We do not visit the label because it needs to be visited in the context
@@ -1447,14 +1480,22 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     //
     checkUnreachableNode(node);
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
     flowAnalysis.continueStatement(node);
+  }
+
+  @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     InferenceContext.setType(node.defaultValue, node.declaredElement?.type);
-    super.visitDefaultFormalParameter(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
     ParameterElement element = node.declaredElement!;
 
     if (element is DefaultParameterElementImpl && node.isOfLocalFunction) {
@@ -1483,17 +1524,43 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
+  void visitDoubleLiteral(DoubleLiteral node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitDoubleLiteral(node as DoubleLiteralImpl);
+  }
+
+  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     if (resolveOnlyCommentInFunctionBody) {
       return;
     }
-    super.visitEmptyFunctionBody(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
+  void visitEmptyStatement(EmptyStatement node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
+  void visitEnumConstantArguments(EnumConstantArguments node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     node.metadata.accept(this);
-    super.visitEnumConstantDeclaration(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -1504,12 +1571,19 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     var outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement;
-      super.visitEnumDeclaration(node);
+      checkUnreachableNode(node);
+      node.visitChildren(this);
       node.accept(elementResolver);
-      node.accept(typeAnalyzer);
     } finally {
       enclosingClass = outerType;
     }
+  }
+
+  @override
+  void visitExportDirective(ExportDirective node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -1526,7 +1600,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       );
       _thisAccessTracker.enterFunctionBody(node);
 
-      super.visitExpressionFunctionBody(node);
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      node.accept(elementResolver);
       insertImplicitCallReference(node.expression);
 
       flowAnalysis.flow?.handleExit();
@@ -1539,13 +1615,27 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
+  void visitExpressionStatement(ExpressionStatement node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
+  void visitExtendsClause(ExtendsClause node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var outerExtension = enclosingExtension;
     try {
       enclosingExtension = node.declaredElement!;
-      super.visitExtensionDeclaration(node);
+      checkUnreachableNode(node);
+      node.visitChildren(this);
       node.accept(elementResolver);
-      node.accept(typeAnalyzer);
     } finally {
       enclosingExtension = outerExtension;
     }
@@ -1571,7 +1661,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     try {
       assert(_thisType == null);
       _setupThisType();
-      super.visitFieldDeclaration(node);
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      node.accept(elementResolver);
     } finally {
       _thisAccessTracker.exitFieldDeclaration(node);
       _thisType = null;
@@ -1579,8 +1671,22 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
   void visitForElement(ForElement node) {
     _forResolver.resolveElement(node as ForElementImpl);
+  }
+
+  @override
+  void visitFormalParameterList(FormalParameterList node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -1611,7 +1717,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     var outerFunction = _enclosingFunction;
     try {
       _enclosingFunction = node.declaredElement;
-      super.visitFunctionDeclaration(node);
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      node.accept(elementResolver);
     } finally {
       _enclosingFunction = outerFunction;
     }
@@ -1632,10 +1740,13 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       flowAnalysis.topLevelDeclaration_exit();
     }
     nullSafetyDeadCodeVerifier.flowEnd(node);
+  }
 
+  @override
+  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
     node.accept(elementResolver);
-    // Note: no need to call the typeAnalyzer since it does not override
-    // visitFunctionDeclaration
   }
 
   @override
@@ -1668,26 +1779,30 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    super.visitFunctionTypeAlias(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
     node.accept(elementResolver);
-    // Note: no need to call the typeAnalyzer since it does not override
-    // visitFunctionTypeAlias.
   }
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    super.visitFunctionTypedFormalParameter(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
     node.accept(elementResolver);
-    // Note: no need to call the typeAnalyzer since it does not override
-    // visitFunctionTypedFormalParameter.
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    super.visitGenericTypeAlias(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
     node.accept(elementResolver);
-    // Note: no need to call the typeAnalyzer since it does not override
-    // visitGenericTypeAlias.
   }
 
   @override
@@ -1719,7 +1834,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     flowAnalysis.flow?.ifStatement_end(elseElement != null);
 
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
   }
 
   @override
@@ -1751,7 +1865,27 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     flowAnalysis.flow?.ifStatement_end(elseStatement != null);
 
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
+  }
+
+  @override
+  void visitImplementsClause(ImplementsClause node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
+  void visitImplicitCallReference(ImplicitCallReference node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
+  void visitImportDirective(ImportDirective node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -1799,8 +1933,33 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
+  void visitIntegerLiteral(IntegerLiteral node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitIntegerLiteral(node);
+  }
+
+  @override
+  void visitInterpolationExpression(InterpolationExpression node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
+  void visitInterpolationString(InterpolationString node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
-    super.visitIsExpression(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitIsExpression(node as IsExpressionImpl);
     flowAnalysis.isExpression(node);
   }
 
@@ -1810,8 +1969,17 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   @override
   void visitLabeledStatement(LabeledStatement node) {
     flowAnalysis.labeledStatement_enter(node);
-    super.visitLabeledStatement(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
     flowAnalysis.labeledStatement_exit(node);
+  }
+
+  @override
+  void visitLibraryDirective(LibraryDirective node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -1821,6 +1989,13 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   void visitListLiteral(covariant ListLiteralImpl node) {
     checkUnreachableNode(node);
     _typedLiteralResolver.resolveListLiteral(node);
+  }
+
+  @override
+  void visitMapLiteralEntry(MapLiteralEntry node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -1836,7 +2011,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       _enclosingFunction = node.declaredElement;
       assert(_thisType == null);
       _setupThisType();
-      super.visitMethodDeclaration(node);
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      node.accept(elementResolver);
     } finally {
       _enclosingFunction = outerFunction;
       _thisType = null;
@@ -1851,10 +2028,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     flowAnalysis.executableDeclaration_exit(node.body, false);
     flowAnalysis.topLevelDeclaration_exit();
     nullSafetyDeadCodeVerifier.flowEnd(node);
-
-    node.accept(elementResolver);
-    // Note: no need to call the typeAnalyzer since it does not override
-    // visitMethodDeclaration.
   }
 
   @override
@@ -1903,9 +2076,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     var outerType = enclosingClass;
     try {
       enclosingClass = node.declaredElement!;
-      super.visitMixinDeclaration(node);
+      checkUnreachableNode(node);
+      node.visitChildren(this);
       node.accept(elementResolver);
-      node.accept(typeAnalyzer);
     } finally {
       enclosingClass = outerType;
     }
@@ -1914,7 +2087,10 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   @override
   void visitNamedExpression(NamedExpression node) {
     InferenceContext.setTypeFromNode(node.expression, node);
-    super.visitNamedExpression(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitNamedExpression(node as NamedExpressionImpl);
     // Any "why not promoted" information that flow analysis had associated with
     // `node.expression` now needs to be forwarded to `node`, so that when
     // `visitArgumentList` iterates through the arguments, it will find it.
@@ -1931,24 +2107,58 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
-  void visitNode(AstNode node) {
+  void visitNativeClause(NativeClause node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
+  }
+
+  @override
+  void visitNativeFunctionBody(NativeFunctionBody node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
   void visitNullLiteral(NullLiteral node) {
     flowAnalysis.flow?.nullLiteral(node);
-    super.visitNullLiteral(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitNullLiteral(node as NullLiteralImpl);
+  }
+
+  @override
+  void visitOnClause(OnClause node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     InferenceContext.setTypeFromNode(node.expression, node);
-    super.visitParenthesizedExpression(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer
+        .visitParenthesizedExpression(node as ParenthesizedExpressionImpl);
     flowAnalysis.flow?.parenthesizedExpression(node, node.expression);
+  }
+
+  @override
+  void visitPartDirective(PartDirective node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
+  void visitPartOfDirective(PartOfDirective node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -2026,14 +2236,16 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     InferenceContext.setType(node.argumentList, node.staticElement?.type);
     visitArgumentList(node.argumentList,
         whyNotPromotedList: whyNotPromotedList);
-    node.accept(typeAnalyzer);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
   }
 
   @override
   void visitRethrowExpression(RethrowExpression node) {
-    super.visitRethrowExpression(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitRethrowExpression(node as RethrowExpressionImpl);
     flowAnalysis.flow?.handleExit();
   }
 
@@ -2044,7 +2256,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       inferenceContext.bodyContext?.contextType,
     );
 
-    super.visitReturnStatement(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
 
     inferenceContext.bodyContext?.addReturnExpression(node.expression);
     flowAnalysis.flow?.handleExit();
@@ -2065,14 +2279,31 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   void visitShowCombinator(ShowCombinator node) {}
 
   @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
   void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
     _simpleIdentifierResolver.resolve(node);
     insertGenericFunctionInstantiation(node);
   }
 
   @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitSimpleStringLiteral(node as SimpleStringLiteralImpl);
+  }
+
+  @override
   void visitSpreadElement(SpreadElement node) {
-    super.visitSpreadElement(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
 
     if (!node.isNullAware) {
       nullableDereferenceVerifier.expression(
@@ -2080,6 +2311,14 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
         node.expression,
       );
     }
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitStringInterpolation(node as StringInterpolationImpl);
   }
 
   @override
@@ -2094,9 +2333,23 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     InferenceContext.setType(node.argumentList, node.staticElement?.type);
     visitArgumentList(node.argumentList,
         whyNotPromotedList: whyNotPromotedList);
-    node.accept(typeAnalyzer);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
+  }
+
+  @override
+  void visitSuperExpression(SuperExpression node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitSuperExpression(node as SuperExpressionImpl);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -2105,7 +2358,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
     InferenceContext.setType(
         node.expression, _enclosingSwitchStatementExpressionType);
-    super.visitSwitchCase(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
 
     var flow = flowAnalysis.flow;
     if (flow != null && flow.isReachable && _isNonNullableByDefault) {
@@ -2123,7 +2378,9 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
-    super.visitSwitchDefault(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
     nullSafetyDeadCodeVerifier.flowEnd(node);
   }
 
@@ -2162,9 +2419,35 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
+  void visitSymbolLiteral(SymbolLiteral node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitSymbolLiteral(node as SymbolLiteralImpl);
+  }
+
+  @override
+  void visitThisExpression(ThisExpression node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitThisExpression(node as ThisExpressionImpl);
+  }
+
+  @override
   void visitThrowExpression(ThrowExpression node) {
-    super.visitThrowExpression(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+    typeAnalyzer.visitThrowExpression(node as ThrowExpressionImpl);
     flowAnalysis.flow?.handleExit();
+  }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -2215,6 +2498,34 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   @override
+  void visitTypeArgumentList(TypeArgumentList node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
+  void visitTypeLiteral(TypeLiteral node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
+  void visitTypeParameter(TypeParameter node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
+  void visitTypeParameterList(TypeParameterList node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _variableDeclarationResolver.resolve(node as VariableDeclarationImpl);
 
@@ -2240,7 +2551,16 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       VariableElement variableElement = decl.declaredElement!;
       InferenceContext.setType(decl, variableElement.type);
     }
-    super.visitVariableDeclarationList(node);
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
+  }
+
+  @override
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -2265,7 +2585,13 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     // TODO(brianwilkerson) If the loop can only be exited because the condition
     // is false, then propagateFalseState(condition);
     node.accept(elementResolver);
-    node.accept(typeAnalyzer);
+  }
+
+  @override
+  void visitWithClause(WithClause node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    node.accept(elementResolver);
   }
 
   @override
@@ -2459,7 +2785,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             definingLibrary,
             source,
             typeSystem,
-            typeProvider,
+            typeProvider as TypeProviderImpl,
             errorListener,
             featureSet,
             FlowAnalysisHelperForMigration(
@@ -2514,8 +2840,21 @@ class ResolverVisitorForMigration extends ResolverVisitor {
 ///
 /// TODO(paulberry): migrate the responsibility for all scope resolution into
 /// this visitor.
-class ScopeResolverVisitor extends ResolverBase {
+class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   static const _nameScopeProperty = 'nameScope';
+
+  /// The element for the library containing the compilation unit being visited.
+  final LibraryElementImpl definingLibrary;
+
+  /// The source representing the compilation unit being visited.
+  final Source source;
+
+  /// The object used to access the types from the core library.
+  final TypeProviderImpl typeProvider;
+
+  /// The error reporter that will be informed of any errors that are found
+  /// during resolution.
+  final ErrorReporter errorReporter;
 
   /// The scope used to resolve identifiers.
   Scope nameScope;
@@ -2548,12 +2887,15 @@ class ScopeResolverVisitor extends ResolverBase {
   /// [nameScope] is the scope used to resolve identifiers in the node that will
   /// first be visited.  If `null` or unspecified, a new [LibraryScope] will be
   /// created based on [definingLibrary] and [typeProvider].
-  ScopeResolverVisitor(LibraryElementImpl definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+  ScopeResolverVisitor(this.definingLibrary, this.source, this.typeProvider,
+      AnalysisErrorListener errorListener,
       {Scope? nameScope})
-      : nameScope = nameScope ?? LibraryScope(definingLibrary),
-        super(definingLibrary, source, typeProvider as TypeProviderImpl,
-            errorListener);
+      : errorReporter = ErrorReporter(
+          errorListener,
+          source,
+          isNonNullableByDefault: definingLibrary.isNonNullableByDefault,
+        ),
+        nameScope = nameScope ?? LibraryScope(definingLibrary);
 
   /// Return the implicit label scope in which the current node is being
   /// resolved.
