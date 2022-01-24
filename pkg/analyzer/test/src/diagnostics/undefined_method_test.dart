@@ -15,6 +15,19 @@ main() {
 
 @reflectiveTest
 class UndefinedMethodTest extends PubPackageResolutionTest {
+  test_conditional_expression_condition_context() async {
+    await assertErrorsInCode('''
+T castObject<T>(Object value) => value as T;
+
+main() {
+  (castObject(true)..whatever()) ? 1 : 2;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 76, 8,
+          messageContains: ["type 'bool'"]),
+    ]);
+  }
+
   test_constructor_defined() async {
     await assertNoErrorsInCode(r'''
 class C {
