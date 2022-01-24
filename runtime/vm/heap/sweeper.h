@@ -34,13 +34,8 @@ class GCSweeper {
   // last marked object.
   intptr_t SweepLargePage(OldPage* page);
 
-  // Sweep the regular sized data pages between first and last inclusive.
-  static void SweepConcurrent(IsolateGroup* isolate_group,
-                              OldPage* first,
-                              OldPage* last,
-                              OldPage* large_first,
-                              OldPage* large_last,
-                              FreeList* freelist);
+  // Sweep the large and regular sized data pages.
+  static void SweepConcurrent(IsolateGroup* isolate_group);
 };
 
 }  // namespace dart

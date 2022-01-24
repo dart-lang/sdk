@@ -4129,10 +4129,22 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     }
   }
   if (FLAG_verify_acquired_data) {
-    if (external) {
-      ASSERT(!T->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
-    } else {
-      ASSERT(T->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+    {
+      NoSafepointScope no_safepoint(T);
+      bool sweep_in_progress;
+      {
+        PageSpace* old_space = T->heap()->old_space();
+        MonitorLocker ml(old_space->tasks_lock());
+        sweep_in_progress = (old_space->phase() == PageSpace::kSweepingLarge) ||
+                            (old_space->phase() == PageSpace::kSweepingRegular);
+      }
+      if (!sweep_in_progress) {
+        if (external) {
+          ASSERT(!T->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+        } else {
+          ASSERT(T->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+        }
+      }
     }
     const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
     WeakTable* table = I->group()->api_state()->acquired_table();

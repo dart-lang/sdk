@@ -1247,16 +1247,39 @@ void PageSpace::CollectGarbageHelper(bool compact,
 
   bool has_reservation = MarkReservation();
 
+  {
+    // Move pages to sweeper work lists.
+    MutexLocker ml(&pages_lock_);
+    ASSERT(sweep_large_ == nullptr);
+    sweep_large_ = large_pages_;
+    large_pages_ = large_pages_tail_ = nullptr;
+    ASSERT(sweep_regular_ == nullptr);
+    if (!compact) {
+      sweep_regular_ = pages_;
+      pages_ = pages_tail_ = nullptr;
+    }
+  }
+
+  bool can_verify;
   if (compact) {
     SweepLarge();
     Compact(thread);
     set_phase(kDone);
+    can_verify = true;
   } else if (FLAG_concurrent_sweep && has_reservation) {
     ConcurrentSweep(isolate_group);
+    can_verify = false;
   } else {
     SweepLarge();
-    Sweep();
+    Sweep(/*exclusive*/ true);
     set_phase(kDone);
+    can_verify = true;
+  }
+
+  if (FLAG_verify_after_gc && can_verify) {
+    OS::PrintErr("Verifying after sweeping...");
+    heap_->VerifyGC(kForbidMarked);
+    OS::PrintErr(" done.\n");
   }
 
   TryReserveForOOM();
@@ -1294,65 +1317,82 @@ void PageSpace::SweepLarge() {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "SweepLarge");
 
   GCSweeper sweeper;
-  OldPage* prev_page = nullptr;
-  OldPage* page = large_pages_;
-  while (page != nullptr) {
-    OldPage* next_page = page->next();
-    const intptr_t words_to_end = sweeper.SweepLargePage(page);
+  MutexLocker ml(&pages_lock_);
+  while (sweep_large_ != nullptr) {
+    OldPage* page = sweep_large_;
+    sweep_large_ = page->next();
+    page->set_next(nullptr);
+    ASSERT(page->type() == OldPage::kData);
+
+    ml.Unlock();
+    intptr_t words_to_end = sweeper.SweepLargePage(page);
+    intptr_t size;
     if (words_to_end == 0) {
-      FreeLargePage(page, prev_page);
+      size = page->memory_->size();
+      page->Deallocate();
     } else {
       TruncateLargePage(page, words_to_end << kWordSizeLog2);
-      prev_page = page;
     }
-    // Advance to the next page.
-    page = next_page;
+    ml.Lock();
+
+    if (words_to_end == 0) {
+      IncreaseCapacityInWordsLocked(-(size >> kWordSizeLog2));
+    } else {
+      AddLargePageLocked(page);
+    }
   }
 }
 
-void PageSpace::Sweep() {
+void PageSpace::Sweep(bool exclusive) {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Sweep");
 
   GCSweeper sweeper;
 
   intptr_t shard = 0;
   const intptr_t num_shards = Utils::Maximum(FLAG_scavenger_tasks, 1);
-  for (intptr_t i = 0; i < num_shards; i++) {
-    DataFreeList(i)->mutex()->Lock();
-  }
-
-  OldPage* prev_page = nullptr;
-  OldPage* page = pages_;
-  while (page != nullptr) {
-    OldPage* next_page = page->next();
-    ASSERT(page->type() == OldPage::kData);
-    shard = (shard + 1) % num_shards;
-    bool page_in_use =
-        sweeper.SweepPage(page, DataFreeList(shard), true /*is_locked*/);
-    if (page_in_use) {
-      prev_page = page;
-    } else {
-      FreePage(page, prev_page);
+  if (exclusive) {
+    for (intptr_t i = 0; i < num_shards; i++) {
+      DataFreeList(i)->mutex()->Lock();
     }
-    // Advance to the next page.
-    page = next_page;
   }
 
-  for (intptr_t i = 0; i < num_shards; i++) {
-    DataFreeList(i)->mutex()->Unlock();
+  MutexLocker ml(&pages_lock_);
+  while (sweep_regular_ != nullptr) {
+    OldPage* page = sweep_regular_;
+    sweep_regular_ = page->next();
+    page->set_next(nullptr);
+    ASSERT(page->type() == OldPage::kData);
+
+    ml.Unlock();
+    // Cycle through the shards round-robin so that free space is roughly
+    // evenly distributed among the freelists and so roughly evenly available
+    // to each scavenger worker.
+    shard = (shard + 1) % num_shards;
+    bool page_in_use = sweeper.SweepPage(page, DataFreeList(shard), exclusive);
+    intptr_t size;
+    if (!page_in_use) {
+      size = page->memory_->size();
+      page->Deallocate();
+    }
+    ml.Lock();
+
+    if (page_in_use) {
+      AddPageLocked(page);
+    } else {
+      IncreaseCapacityInWordsLocked(-(size >> kWordSizeLog2));
+    }
   }
 
-  if (FLAG_verify_after_gc) {
-    OS::PrintErr("Verifying after sweeping...");
-    heap_->VerifyGC(kForbidMarked);
-    OS::PrintErr(" done.\n");
+  if (exclusive) {
+    for (intptr_t i = 0; i < num_shards; i++) {
+      DataFreeList(i)->mutex()->Unlock();
+    }
   }
 }
 
 void PageSpace::ConcurrentSweep(IsolateGroup* isolate_group) {
   // Start the concurrent sweeper task now.
-  GCSweeper::SweepConcurrent(isolate_group, pages_, pages_tail_, large_pages_,
-                             large_pages_tail_, &freelists_[OldPage::kData]);
+  GCSweeper::SweepConcurrent(isolate_group);
 }
 
 void PageSpace::Compact(Thread* thread) {
