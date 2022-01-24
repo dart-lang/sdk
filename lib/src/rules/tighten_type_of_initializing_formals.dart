@@ -14,8 +14,9 @@ const _desc = r'Tighten type of initializing formal.';
 
 const _details = r'''
 
-Tighten type of initializing formal if a non-null assert exists. This allows the
-type system to catch problems rather than have them only be caught at run-time.
+Tighten the type of an initializing formal if a non-null assert exists. This
+allows the type system to catch problems rather than have them only be caught at
+run-time.
 
 **BAD:**
 ```dart
@@ -29,12 +30,20 @@ class A {
 **GOOD:**
 ```dart
 class A {
-  A.c1(String this.p) : assert(p != null);
+  A.c1(String this.p);
   A.c2(this.p);
   final String? p;
 }
-```
 
+class B {
+  String? b;
+  A(this.b);
+}
+
+class C extends B {
+  B(String super.b);
+}
+```
 ''';
 
 class TightenTypeOfInitializingFormals extends LintRule {
