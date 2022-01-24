@@ -242,8 +242,9 @@ class InformativeDataApplier {
 
   void _applyToConstructors(
     List<ConstructorElement> elementList,
-    List<_InfoConstructorDeclaration> infoList,
-  ) {
+    List<_InfoConstructorDeclaration> infoList, {
+    bool ofEnum = false,
+  }) {
     forCorrespondingPairs<ConstructorElement, _InfoConstructorDeclaration>(
       elementList,
       infoList,
@@ -254,8 +255,10 @@ class InformativeDataApplier {
         element.nameOffset = info.nameOffset;
         element.nameEnd = info.nameEnd;
         element.documentationComment = info.documentationComment;
+
+        var formalParameters = element.parameters_unresolved;
         _applyToFormalParameters(
-          element.parameters_unresolved,
+          ofEnum ? formalParameters.skip(2).toList() : formalParameters,
           info.parameters,
         );
 
@@ -285,7 +288,7 @@ class InformativeDataApplier {
       element.typeParameters_unresolved,
       info.typeParameters,
     );
-    _applyToConstructors(element.constructors, info.constructors);
+    _applyToConstructors(element.constructors, info.constructors, ofEnum: true);
     _applyToFields(element.fields, info.fields);
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
@@ -1296,6 +1299,7 @@ class _InformativeDataWriter {
       _writeDocumentationComment(node);
       _writeOffsets(
         metadata: node.metadata,
+        enumConstantArguments: node.arguments?.argumentList,
       );
     }
 
@@ -1429,6 +1433,7 @@ class _InformativeDataWriter {
     NodeList<ConstructorInitializer>? constructorInitializers,
     NodeList<EnumConstantDeclaration>? enumConstants,
     TypeAnnotation? aliasedType,
+    ArgumentList? enumConstantArguments,
   }) {
     var collector = _OffsetsCollector();
 
@@ -1480,6 +1485,7 @@ class _InformativeDataWriter {
       addTypeParameters(aliasedType.typeParameters);
       addFormalParameters(aliasedType.parameters);
     }
+    enumConstantArguments?.arguments.accept(collector);
     sink.writeUint30List(collector.offsets);
   }
 
@@ -1655,11 +1661,17 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   _OffsetsApplier(this._iterator);
 
   void applyToConstantInitializer(Element element) {
-    if (element is ConstVariableElement) {
+    if (element is ConstFieldElementImpl && element.isEnumConstant) {
       var initializer = element.constantInitializer;
-      if (initializer != null) {
-        initializer.accept(this);
+      if (initializer is InstanceCreationExpression) {
+        var arguments = initializer.argumentList.arguments;
+        // Skip synthetic `index` and `name` arguments.
+        for (var argument in arguments.skip(2)) {
+          argument.accept(this);
+        }
       }
+    } else if (element is ConstVariableElement) {
+      element.constantInitializer?.accept(this);
     }
   }
 

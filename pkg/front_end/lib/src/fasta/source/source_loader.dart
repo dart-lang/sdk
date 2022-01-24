@@ -885,7 +885,7 @@ severity: $severity
         // setting a breakpoint on line 42 of some import uri mean, if the uri
         // represented several files?
         List<String> newPathSegments =
-            new List<String>.from(importUri.pathSegments);
+            new List<String>.of(importUri.pathSegments);
         newPathSegments.add(library.fileUri.pathSegments.last);
         newPathSegments[0] = "${newPathSegments[0]}-patch";
         importUri = importUri.replace(pathSegments: newPathSegments);

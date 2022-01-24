@@ -27,7 +27,9 @@ import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show
         LocatedMessage,
+        messageEnumEntryWithTypeArgumentsWithoutArguments,
         messageNoUnnamedConstructorInObject,
+        noLength,
         templateDuplicatedDeclaration,
         templateDuplicatedDeclarationCause,
         templateDuplicatedDeclarationSyntheticCause,
@@ -556,6 +558,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
               constructorBuilder is! SourceConstructorBuilder) {
             // TODO(cstefantsova): Report an error.
           } else {
+            if (enumConstantInfo.argumentsBeginToken == null &&
+                enumConstantInfo.constructorReferenceBuilder?.typeArguments !=
+                    null) {
+              addProblem(messageEnumEntryWithTypeArgumentsWithoutArguments,
+                  enumConstantInfo.charOffset, noLength);
+            }
+
             Arguments arguments;
             List<Expression> enumSyntheticArguments = <Expression>[
               new IntLiteral(index++),

@@ -374,7 +374,7 @@ class Forest {
     for (int i = 0; i < statements.length; i++) {
       Statement statement = statements[i];
       if (statement is _VariablesDeclaration) {
-        copy ??= new List<Statement>.from(statements.getRange(0, i));
+        copy ??= new List<Statement>.of(statements.getRange(0, i));
         copy.addAll(statement.declarations);
       } else if (copy != null) {
         copy.add(statement);
@@ -592,7 +592,7 @@ class Forest {
   Statement wrapVariables(Statement statement) {
     if (statement is _VariablesDeclaration) {
       return new Block(
-          new List<Statement>.from(statement.declarations, growable: true))
+          new List<Statement>.of(statement.declarations, growable: true))
         ..fileOffset = statement.fileOffset;
     } else if (statement is VariableDeclaration) {
       return new Block(<Statement>[statement])

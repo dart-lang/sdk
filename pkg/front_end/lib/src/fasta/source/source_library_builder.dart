@@ -1836,7 +1836,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         classScope,
         constructorScope,
         this,
-        new List<ConstructorReferenceBuilder>.from(constructorReferences),
+        new List<ConstructorReferenceBuilder>.of(constructorReferences),
         startOffset,
         nameOffset,
         endOffset,

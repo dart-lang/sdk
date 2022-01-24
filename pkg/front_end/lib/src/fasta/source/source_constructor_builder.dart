@@ -681,7 +681,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   void ensureGrowableFormals() {
     if (formals != null) {
-      formals = new List<FormalParameterBuilder>.from(formals!, growable: true);
+      formals = new List<FormalParameterBuilder>.of(formals!, growable: true);
     } else {
       formals = <FormalParameterBuilder>[];
     }

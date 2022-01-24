@@ -2382,10 +2382,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     List<VariableDeclaration> sortedFromDeclared =
-        new List.from(declaredFunction.namedParameters)
+        new List.of(declaredFunction.namedParameters)
           ..sort(compareNamedParameters);
     List<VariableDeclaration> sortedFromInterface =
-        new List.from(interfaceFunction.namedParameters)
+        new List.of(interfaceFunction.namedParameters)
           ..sort(compareNamedParameters);
     Iterator<VariableDeclaration> declaredNamedParameters =
         sortedFromDeclared.iterator;

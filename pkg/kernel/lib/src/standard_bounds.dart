@@ -849,7 +849,7 @@ mixin StandardBounds {
         int n = klass.typeParameters.length;
         List<DartType> leftArguments = type1.typeArguments;
         List<DartType> rightArguments = type2.typeArguments;
-        List<DartType> typeArguments = new List<DartType>.from(leftArguments);
+        List<DartType> typeArguments = new List<DartType>.of(leftArguments);
         for (int i = 0; i < n; ++i) {
           int variance = klass.typeParameters[i].variance;
           if (variance == Variance.contravariant) {

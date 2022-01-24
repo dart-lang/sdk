@@ -5,7 +5,8 @@
 enum E<X, Y> {
   one<int, String>(),
   two<double, num>(),
-  three<int, int>.named(42);
+  three<int, int>.named(42),
+  four<num, bool>; // Error.
 
   const E();
   const E.named(int value);

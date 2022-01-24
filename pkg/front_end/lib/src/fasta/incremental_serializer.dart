@@ -175,7 +175,7 @@ class IncrementalSerializer {
   }
 
   bool isSelfContained(Component component) {
-    Set<Library> got = new Set<Library>.from(component.libraries);
+    Set<Library> got = new Set<Library>.of(component.libraries);
     for (Library lib in component.libraries) {
       for (LibraryDependency dependency in lib.dependencies) {
         if (!got.contains(dependency.targetLibrary)) {

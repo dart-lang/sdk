@@ -3225,6 +3225,20 @@ class FieldElementImpl extends PropertyInducingElementImpl
     setModifier(Modifier.STATIC, isStatic);
   }
 
+  /// Return `true` if this element is a synthetic enum field.
+  ///
+  /// It is synthetic because it is not written explicitly in code, but it
+  /// is different from other synthetic fields, because its getter is also
+  /// synthetic.
+  ///
+  /// Such fields are `index`, `_name`, and `values`.
+  bool get isSyntheticEnumField {
+    return enclosingElement is EnumElementImpl &&
+        isSynthetic &&
+        getter?.isSynthetic == true &&
+        setter == null;
+  }
+
   @override
   ElementKind get kind => ElementKind.FIELD;
 
