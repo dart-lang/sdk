@@ -22,6 +22,17 @@ class AvoidAnnotatingWithDynamicTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_annotating_with_dynamic';
 
+  test_fieldFormals() async {
+    await assertDiagnostics(r'''
+class A {
+  var a;
+  A(dynamic this.a);
+}
+''', [
+      lint('avoid_annotating_with_dynamic', 23, 14),
+    ]);
+  }
+
   test_super() async {
     await assertDiagnostics(r'''
 class A {
