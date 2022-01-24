@@ -313,6 +313,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   void writeTestPackageConfig(
     PackageConfigFileBuilder config, {
     String? languageVersion,
+    bool ffi = false,
     bool js = false,
     bool meta = false,
   }) {
@@ -323,6 +324,14 @@ class PubPackageResolutionTest extends ContextResolutionTest {
       rootPath: testPackageRootPath,
       languageVersion: languageVersion ?? testPackageLanguageVersion,
     );
+
+    if (ffi) {
+      var ffiPath = '/packages/ffi';
+      MockPackages.addFfiPackageFiles(
+        getFolder(ffiPath),
+      );
+      config.add(name: 'ffi', rootPath: ffiPath);
+    }
 
     if (js) {
       var jsPath = '/packages/js';
