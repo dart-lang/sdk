@@ -1360,22 +1360,12 @@ dart_vm_nightly_builder(
 )
 dart_vm_nightly_builder(
     "vm-kernel-linux-debug-x64c",
-    category = "vm|misc|compressed|ji",
-    channels = ["try"],
-)
-dart_vm_nightly_builder(
-    "vm-kernel-linux-debug-simarm64c",
-    category = "vm|misc|compressed|ja",
+    category = "vm|misc|compressed|jl",
     channels = ["try"],
 )
 dart_vm_nightly_builder(
     "vm-kernel-precomp-linux-debug-x64c",
-    category = "vm|misc|compressed|ai",
-    channels = ["try"],
-)
-dart_vm_nightly_builder(
-    "vm-kernel-precomp-linux-debug-simarm64c",
-    category = "vm|misc|compressed|aa",
+    category = "vm|misc|compressed|al",
     channels = ["try"],
 )
 dart_vm_nightly_builder(
