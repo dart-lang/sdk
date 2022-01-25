@@ -76,6 +76,21 @@ DartType? _writeType(AstNode node) {
   return null;
 }
 
+extension AstNodeNullableExtension on AstNode? {
+  List<ClassMember> get classMembers {
+    final self = this;
+    if (self is ClassOrMixinDeclaration) {
+      return self.members;
+    } else if (self is EnumDeclaration) {
+      return self.members;
+    } else if (self is ExtensionDeclaration) {
+      return self.members;
+    } else {
+      throw UnimplementedError('(${self.runtimeType}) $self');
+    }
+  }
+}
+
 extension ConstructorDeclarationExtension on ConstructorDeclaration {
   bool get isNonRedirectingGenerative {
     // Must be generative.

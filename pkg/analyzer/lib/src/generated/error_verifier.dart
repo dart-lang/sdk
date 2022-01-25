@@ -202,11 +202,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// The class containing the AST nodes being visited, or `null` if we are not
   /// in the scope of a class.
-  ClassElementImpl? _enclosingClass;
-
-  /// The enum containing the AST nodes being visited, or `null` if we are not
-  /// in the scope of an enum.
-  ClassElement? _enclosingEnum;
+  ClassElement? _enclosingClass;
 
   /// The element of the extension being visited, or `null` if we are not
   /// in the scope of an extension.
@@ -281,11 +277,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// should not be modified in the middle of visiting a tree and requires an
   /// analyzer-provided Impl instance to work.
   set enclosingClass(ClassElement? classElement) {
-    assert(classElement is ClassElementImpl);
     assert(_enclosingClass == null);
-    assert(_enclosingEnum == null);
     assert(_enclosingExecutable.element == null);
-    _enclosingClass = classElement as ClassElementImpl;
   }
 
   /// The language team is thinking about adding abstract fields, or external
@@ -563,13 +556,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    var outerEnum = _enclosingEnum;
+    var outerClass = _enclosingClass;
     try {
-      _enclosingEnum = node.declaredElement;
+      _enclosingClass = node.declaredElement;
       _duplicateDefinitionVerifier.checkEnum(node);
       super.visitEnumDeclaration(node);
     } finally {
-      _enclosingEnum = outerEnum;
+      _enclosingClass = outerClass;
     }
   }
 
@@ -4406,9 +4399,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     var enclosingElement = element.enclosingElement;
     if (identical(enclosingElement, _enclosingClass)) {
-      return;
-    }
-    if (identical(enclosingElement, _enclosingEnum)) {
       return;
     }
     if (enclosingElement is! ClassElement) {
