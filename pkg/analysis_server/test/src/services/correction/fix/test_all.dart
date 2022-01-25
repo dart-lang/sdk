@@ -15,6 +15,8 @@ import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
 import 'add_key_to_constructors_test.dart' as add_key_to_constructors;
 import 'add_late_test.dart' as add_late;
+import 'add_leading_newline_to_string_test.dart'
+    as add_leading_newline_to_string;
 import 'add_missing_enum_case_clauses_test.dart'
     as add_missing_enum_case_clauses;
 import 'add_missing_enum_like_case_clauses_test.dart'
@@ -228,6 +230,7 @@ void main() {
     add_field_formal_parameters.main();
     add_key_to_constructors.main();
     add_late.main();
+    add_leading_newline_to_string.main();
     add_missing_enum_case_clauses.main();
     add_missing_enum_like_case_clauses.main();
     add_missing_parameter_named.main();
