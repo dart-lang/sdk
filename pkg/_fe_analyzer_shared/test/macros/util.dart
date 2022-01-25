@@ -6,6 +6,7 @@ import 'dart:mirrors';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
 
 import 'package:test/fake.dart';
 import 'package:test/test.dart';
@@ -213,4 +214,194 @@ class _DeepEqualityMatcher extends Matcher {
     }
     return true;
   }
+}
+
+class Fixtures {
+  static final stringType = NamedTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'String',
+      isNullable: false,
+      typeArguments: const []);
+  static final voidType = NamedTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'void',
+      isNullable: false,
+      typeArguments: const []);
+
+  // Top level, non-class declarations.
+  static final myFunction = FunctionDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'myFunction',
+      isAbstract: false,
+      isExternal: false,
+      isGetter: false,
+      isSetter: false,
+      namedParameters: [],
+      positionalParameters: [],
+      returnType: stringType,
+      typeParameters: []);
+  static final myVariable = VariableDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      name: '_myVariable',
+      initializer: ExpressionCode.fromString("''"),
+      isExternal: false,
+      isFinal: true,
+      isLate: false,
+      type: stringType);
+  static final myVariableGetter = FunctionDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'myVariable',
+      isAbstract: false,
+      isExternal: false,
+      isGetter: true,
+      isSetter: false,
+      namedParameters: [],
+      positionalParameters: [],
+      returnType: stringType,
+      typeParameters: []);
+  static final myVariableSetter = FunctionDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'myVariable=',
+      isAbstract: false,
+      isExternal: false,
+      isGetter: false,
+      isSetter: true,
+      namedParameters: [],
+      positionalParameters: [
+        ParameterDeclarationImpl(
+            id: RemoteInstance.uniqueId,
+            name: 'value',
+            defaultValue: null,
+            isNamed: false,
+            isRequired: true,
+            type: stringType)
+      ],
+      returnType: voidType,
+      typeParameters: []);
+
+  // Class and member declarations
+  static final myInterfaceType = NamedTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'MyInterface',
+      isNullable: false,
+      typeArguments: const []);
+  static final myMixinType = NamedTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'MyMixin',
+      isNullable: false,
+      typeArguments: const []);
+  static final mySuperclassType = NamedTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'MySuperclass',
+      isNullable: false,
+      typeArguments: const []);
+  static final myClassType = NamedTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'MyClass',
+      isNullable: false,
+      typeArguments: const []);
+  static final myClass = ClassDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      name: myClassType.name,
+      type: myClassType,
+      typeParameters: [],
+      interfaces: [myInterfaceType],
+      isAbstract: false,
+      isExternal: false,
+      mixins: [myMixinType],
+      superclass: mySuperclassType);
+  static final myConstructor = ConstructorDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'myConstructor',
+      isAbstract: false,
+      isExternal: false,
+      isGetter: false,
+      isSetter: false,
+      namedParameters: [],
+      positionalParameters: [],
+      returnType: myClassType,
+      typeParameters: [],
+      definingClass: myClassType,
+      isFactory: false);
+  static final myField = FieldDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'myField',
+      initializer: null,
+      isExternal: false,
+      isFinal: false,
+      isLate: false,
+      type: stringType,
+      definingClass: myClassType);
+  static final myInterface = ClassDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      name: myInterfaceType.name,
+      type: myInterfaceType,
+      typeParameters: [],
+      interfaces: [],
+      isAbstract: false,
+      isExternal: false,
+      mixins: [],
+      superclass: null);
+  static final myMethod = MethodDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      name: 'myMethod',
+      isAbstract: false,
+      isExternal: false,
+      isGetter: false,
+      isSetter: false,
+      namedParameters: [],
+      positionalParameters: [],
+      returnType: stringType,
+      typeParameters: [],
+      definingClass: myClassType);
+  static final myMixin = ClassDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      name: myMixinType.name,
+      type: myMixinType,
+      typeParameters: [],
+      interfaces: [],
+      isAbstract: false,
+      isExternal: false,
+      mixins: [],
+      superclass: null);
+  static final mySuperclass = ClassDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      name: mySuperclassType.name,
+      type: mySuperclassType,
+      typeParameters: [],
+      interfaces: [],
+      isAbstract: false,
+      isExternal: false,
+      mixins: [],
+      superclass: null);
+
+  static final myClassStaticType = TestNamedStaticType(
+      'package:my_package/my_package.dart', myClassType.name, []);
+
+  static final testTypeResolver = TestTypeResolver({
+    stringType: TestNamedStaticType('dart:core', stringType.name, []),
+    myClassType: myClassStaticType,
+  });
+  static final testClassIntrospector = TestClassIntrospector(
+    constructors: {
+      myClass: [myConstructor],
+    },
+    fields: {
+      myClass: [myField],
+    },
+    interfaces: {
+      myClass: [myInterface],
+    },
+    methods: {
+      myClass: [myMethod],
+    },
+    mixins: {
+      myClass: [myMixin],
+    },
+    superclass: {
+      myClass: mySuperclass,
+    },
+  );
+  static final testTypeDeclarationResolver =
+      TestTypeDeclarationResolver({myClassStaticType: myClass});
 }
