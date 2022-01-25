@@ -1299,7 +1299,7 @@ class _InformativeDataWriter {
       _writeDocumentationComment(node);
       _writeOffsets(
         metadata: node.metadata,
-        enumConstantArguments: node.arguments?.argumentList,
+        enumConstantArguments: node.arguments,
       );
     }
 
@@ -1433,7 +1433,7 @@ class _InformativeDataWriter {
     NodeList<ConstructorInitializer>? constructorInitializers,
     NodeList<EnumConstantDeclaration>? enumConstants,
     TypeAnnotation? aliasedType,
-    ArgumentList? enumConstantArguments,
+    EnumConstantArguments? enumConstantArguments,
   }) {
     var collector = _OffsetsCollector();
 
@@ -1485,7 +1485,8 @@ class _InformativeDataWriter {
       addTypeParameters(aliasedType.typeParameters);
       addFormalParameters(aliasedType.parameters);
     }
-    enumConstantArguments?.arguments.accept(collector);
+    enumConstantArguments?.typeArguments?.accept(collector);
+    enumConstantArguments?.argumentList.arguments.accept(collector);
     sink.writeUint30List(collector.offsets);
   }
 
@@ -1662,14 +1663,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
 
   void applyToConstantInitializer(Element element) {
     if (element is ConstFieldElementImpl && element.isEnumConstant) {
-      var initializer = element.constantInitializer;
-      if (initializer is InstanceCreationExpression) {
-        var arguments = initializer.argumentList.arguments;
-        // Skip synthetic `index` and `name` arguments.
-        for (var argument in arguments.skip(2)) {
-          argument.accept(this);
-        }
-      }
+      _applyToEnumConstantInitializer(element);
     } else if (element is ConstVariableElement) {
       element.constantInitializer?.accept(this);
     }
@@ -1742,6 +1736,18 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     var identifier = node.identifier;
     if (element is ParameterElementImpl && identifier != null) {
       element.nameOffset = identifier.offset;
+    }
+  }
+
+  void _applyToEnumConstantInitializer(ConstFieldElementImpl element) {
+    var initializer = element.constantInitializer;
+    if (initializer is InstanceCreationExpression) {
+      initializer.constructorName.type2.typeArguments?.accept(this);
+      var arguments = initializer.argumentList.arguments;
+      // Skip synthetic `index` and `name` arguments.
+      for (var argument in arguments.skip(2)) {
+        argument.accept(this);
+      }
     }
   }
 }

@@ -268,6 +268,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
             name: astFactory.simpleIdentifier(
               StringToken(TokenType.STRING, element.name, -1),
             ),
+            typeArguments: constant.arguments?.typeArguments,
           ),
           Tokens.period(),
           astFactory.simpleIdentifier(

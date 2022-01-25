@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 
 /// Keeps track of the set of non-synthetic child elements of an element,
 /// yielding them one at a time in response to "get" method calls.
@@ -67,7 +68,9 @@ class ElementWalker {
   ElementWalker.forExecutable(ExecutableElement element)
       : element = element,
         _functions = const <ExecutableElement>[],
-        _parameters = element.parameters,
+        _parameters = element.isEnumConstructor
+            ? element.parameters.skip(2).toList()
+            : element.parameters,
         _typeParameters = element.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of an extension

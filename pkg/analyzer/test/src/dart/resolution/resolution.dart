@@ -285,6 +285,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(element.enclosingElement, expectedEnclosing);
   }
 
+  void assertEnumConstant(
+    EnumConstantDeclaration node, {
+    required FieldElement element,
+    required Object? constructorElement,
+  }) {
+    assertElement(node.declaredElement, element);
+    assertElement(node.constructorElement, constructorElement);
+  }
+
   Future<void> assertErrorsInCode(
       String code, List<ExpectedError> expectedErrors) async {
     addTestFile(code);
@@ -627,9 +636,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertParameterElement(
     Expression expression,
-    ParameterElement expected,
+    Object? elementOrMatcher,
   ) {
-    expect(expression.staticParameterElement, expected);
+    assertElement(expression.staticParameterElement, elementOrMatcher);
   }
 
   void assertParameterElementType(FormalParameter node, String expected) {

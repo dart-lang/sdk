@@ -355,21 +355,34 @@ abstract class _FindElementBase {
 
   ConstructorElement constructor(String name, {String? of}) {
     assert(name != '');
+
     ConstructorElement? result;
-    for (var class_ in unitElement.classes) {
-      if (of == null || class_.name == of) {
-        for (var constructor in class_.constructors) {
-          if (constructor.name == name) {
-            if (result != null) {
-              throw StateError('Not unique: $name');
-            }
-            result = constructor;
+
+    void findIn(List<ConstructorElement> constructors) {
+      for (var constructor in constructors) {
+        if (constructor.name == name) {
+          if (result != null) {
+            throw StateError('Not unique: $name');
           }
+          result = constructor;
         }
       }
     }
+
+    for (var class_ in unitElement.classes) {
+      if (of == null || class_.name == of) {
+        findIn(class_.constructors);
+      }
+    }
+
+    for (var enum_ in unitElement.enums) {
+      if (of == null || enum_.name == of) {
+        findIn(enum_.constructors);
+      }
+    }
+
     if (result != null) {
-      return result;
+      return result!;
     }
     throw StateError('Not found: $name');
   }
