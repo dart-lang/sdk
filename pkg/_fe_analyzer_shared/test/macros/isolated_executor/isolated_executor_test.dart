@@ -7,8 +7,6 @@ import 'dart:isolate';
 
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
 import 'package:_fe_analyzer_shared/src/macros/isolated_executor/isolated_executor.dart'
     as isolatedExecutor;
 
@@ -80,160 +78,65 @@ void main() {
   });
 
   group('run macros', () {
-    var stringType = NamedTypeAnnotationImpl(
-        id: RemoteInstance.uniqueId,
-        name: 'String',
-        isNullable: false,
-        typeArguments: const []);
-
-    var myInterfaceType = NamedTypeAnnotationImpl(
-        id: RemoteInstance.uniqueId,
-        name: 'MyInterface',
-        isNullable: false,
-        typeArguments: const []);
-    var myMixinType = NamedTypeAnnotationImpl(
-        id: RemoteInstance.uniqueId,
-        name: 'MyMixin',
-        isNullable: false,
-        typeArguments: const []);
-    var mySuperclassType = NamedTypeAnnotationImpl(
-        id: RemoteInstance.uniqueId,
-        name: 'MySuperclass',
-        isNullable: false,
-        typeArguments: const []);
-    var myClassType = NamedTypeAnnotationImpl(
-        id: RemoteInstance.uniqueId,
-        name: 'MyClass',
-        isNullable: false,
-        typeArguments: const []);
-
-    var myClass = ClassDeclarationImpl(
-        id: RemoteInstance.uniqueId,
-        name: myClassType.name,
-        type: myClassType,
-        typeParameters: [],
-        interfaces: [myInterfaceType],
-        isAbstract: false,
-        isExternal: false,
-        mixins: [myMixinType],
-        superclass: mySuperclassType);
-    var myConstructor = ConstructorDeclarationImpl(
-        id: RemoteInstance.uniqueId,
-        name: 'myConstructor',
-        isAbstract: false,
-        isExternal: false,
-        isGetter: false,
-        isSetter: false,
-        namedParameters: [],
-        positionalParameters: [],
-        returnType: myClassType,
-        typeParameters: [],
-        definingClass: myClassType,
-        isFactory: false);
-    var myField = FieldDeclarationImpl(
-        id: RemoteInstance.uniqueId,
-        name: 'myField',
-        initializer: null,
-        isExternal: false,
-        isFinal: false,
-        isLate: false,
-        type: stringType,
-        definingClass: myClassType);
-    var myInterface = ClassDeclarationImpl(
-        id: RemoteInstance.uniqueId,
-        name: myInterfaceType.name,
-        type: myInterfaceType,
-        typeParameters: [],
-        interfaces: [],
-        isAbstract: false,
-        isExternal: false,
-        mixins: [],
-        superclass: null);
-    var myMethod = MethodDeclarationImpl(
-        id: RemoteInstance.uniqueId,
-        name: 'myMethod',
-        isAbstract: false,
-        isExternal: false,
-        isGetter: false,
-        isSetter: false,
-        namedParameters: [],
-        positionalParameters: [],
-        returnType: stringType,
-        typeParameters: [],
-        definingClass: myClassType);
-    var myMixin = ClassDeclarationImpl(
-        id: RemoteInstance.uniqueId,
-        name: myMixinType.name,
-        type: myMixinType,
-        typeParameters: [],
-        interfaces: [],
-        isAbstract: false,
-        isExternal: false,
-        mixins: [],
-        superclass: null);
-    var mySuperclass = ClassDeclarationImpl(
-        id: RemoteInstance.uniqueId,
-        name: mySuperclassType.name,
-        type: mySuperclassType,
-        typeParameters: [],
-        interfaces: [],
-        isAbstract: false,
-        isExternal: false,
-        mixins: [],
-        superclass: null);
-
-    var myClassStaticType = TestNamedStaticType(
-        'package:my_package/my_package.dart', myClassType.name, []);
-
-    var testTypeResolver = TestTypeResolver({
-      stringType: TestNamedStaticType('dart:core', stringType.name, []),
-      myClassType: myClassStaticType,
-    });
-    var testClassIntrospector = TestClassIntrospector(
-      constructors: {
-        myClass: [myConstructor],
-      },
-      fields: {
-        myClass: [myField],
-      },
-      interfaces: {
-        myClass: [myInterface],
-      },
-      methods: {
-        myClass: [myMethod],
-      },
-      mixins: {
-        myClass: [myMixin],
-      },
-      superclass: {
-        myClass: mySuperclass,
-      },
-    );
-    var testTypeDeclarationResolver =
-        TestTypeDeclarationResolver({myClassStaticType: myClass});
-
     group('in the types phase', () {
+      test('on functions', () async {
+        var result =
+            await executor.executeTypesPhase(instanceId, Fixtures.myFunction);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('class GeneratedByMyFunction {}'));
+      });
+
       test('on methods', () async {
-        var result = await executor.executeTypesPhase(instanceId, myMethod);
+        var result =
+            await executor.executeTypesPhase(instanceId, Fixtures.myMethod);
         expect(result.augmentations.single.debugString().toString(),
             equalsIgnoringWhitespace('class GeneratedByMyMethod {}'));
       });
 
+      test('on getters', () async {
+        var result = await executor.executeTypesPhase(
+          instanceId,
+          Fixtures.myVariableGetter,
+        );
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('class GeneratedByMyVariableGetter {}'));
+      });
+
+      test('on setters', () async {
+        var result = await executor.executeTypesPhase(
+          instanceId,
+          Fixtures.myVariableSetter,
+        );
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('class GeneratedByMyVariableSetter {}'));
+      });
+
+      test('on variables', () async {
+        var result = await executor.executeTypesPhase(
+          instanceId,
+          Fixtures.myVariable,
+        );
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('class GeneratedBy_myVariable {}'));
+      });
+
       test('on constructors', () async {
-        var result =
-            await executor.executeTypesPhase(instanceId, myConstructor);
+        var result = await executor.executeTypesPhase(
+            instanceId, Fixtures.myConstructor);
         expect(result.augmentations.single.debugString().toString(),
             equalsIgnoringWhitespace('class GeneratedByMyConstructor {}'));
       });
 
       test('on fields', () async {
-        var result = await executor.executeTypesPhase(instanceId, myField);
+        var result =
+            await executor.executeTypesPhase(instanceId, Fixtures.myField);
         expect(result.augmentations.single.debugString().toString(),
             equalsIgnoringWhitespace('class GeneratedByMyField {}'));
       });
 
       test('on classes', () async {
-        var result = await executor.executeTypesPhase(instanceId, myClass);
+        var result =
+            await executor.executeTypesPhase(instanceId, Fixtures.myClass);
         expect(
             result.augmentations.single.debugString().toString(),
             equalsIgnoringWhitespace(
@@ -242,9 +145,24 @@ void main() {
     });
 
     group('in the declaration phase', () {
+      test('on functions', () async {
+        var result = await executor.executeDeclarationsPhase(
+            instanceId,
+            Fixtures.myFunction,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector);
+        expect(
+            result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace(
+                'String delegateMyFunction() => myFunction();'));
+      });
+
       test('on methods', () async {
         var result = await executor.executeDeclarationsPhase(
-            instanceId, myMethod, testTypeResolver, testClassIntrospector);
+            instanceId,
+            Fixtures.myMethod,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector);
         expect(
             result.augmentations.single.debugString().toString(),
             equalsIgnoringWhitespace(
@@ -253,7 +171,10 @@ void main() {
 
       test('on constructors', () async {
         var result = await executor.executeDeclarationsPhase(
-            instanceId, myConstructor, testTypeResolver, testClassIntrospector);
+            instanceId,
+            Fixtures.myConstructor,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector);
         expect(result.augmentations.single.debugString().toString(),
             equalsIgnoringWhitespace('''
               augment class MyClass {
@@ -261,9 +182,45 @@ void main() {
               }'''));
       });
 
+      test('on getters', () async {
+        var result = await executor.executeDeclarationsPhase(
+            instanceId,
+            Fixtures.myVariableGetter,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('''
+                String get delegateMyVariable => myVariable;'''));
+      });
+
+      test('on setters', () async {
+        var result = await executor.executeDeclarationsPhase(
+            instanceId,
+            Fixtures.myVariableSetter,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('''
+                void set delegateMyVariable(String value) => myVariable = value;'''));
+      });
+
+      test('on variables', () async {
+        var result = await executor.executeDeclarationsPhase(
+            instanceId,
+            Fixtures.myVariable,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('''
+                String get delegate_myVariable => _myVariable;'''));
+      });
+
       test('on fields', () async {
         var result = await executor.executeDeclarationsPhase(
-            instanceId, myField, testTypeResolver, testClassIntrospector);
+            instanceId,
+            Fixtures.myField,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector);
         expect(result.augmentations.single.debugString().toString(),
             equalsIgnoringWhitespace('''
               augment class MyClass {
@@ -273,7 +230,10 @@ void main() {
 
       test('on classes', () async {
         var result = await executor.executeDeclarationsPhase(
-            instanceId, myClass, testTypeResolver, testClassIntrospector);
+            instanceId,
+            Fixtures.myClass,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector);
         expect(result.augmentations.single.debugString().toString(),
             equalsIgnoringWhitespace('''
               augment class MyClass {
@@ -283,13 +243,32 @@ void main() {
     });
 
     group('in the definition phase', () {
+      test('on functions', () async {
+        var result = await executor.executeDefinitionsPhase(
+            instanceId,
+            Fixtures.myFunction,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector,
+            Fixtures.testTypeDeclarationResolver);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('''
+                augment String myFunction() {
+                  print('isAbstract: false');
+                  print('isExternal: false');
+                  print('isGetter: false');
+                  print('isSetter: false');
+                  print('returnType: String');
+                  return augment super();
+                }'''));
+      });
+
       test('on methods', () async {
         var definitionResult = await executor.executeDefinitionsPhase(
             instanceId,
-            myMethod,
-            testTypeResolver,
-            testClassIntrospector,
-            testTypeDeclarationResolver);
+            Fixtures.myMethod,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector,
+            Fixtures.testTypeDeclarationResolver);
         expect(definitionResult.augmentations, hasLength(2));
         var augmentationStrings = definitionResult.augmentations
             .map((a) => a.debugString().toString())
@@ -300,22 +279,89 @@ void main() {
       test('on constructors', () async {
         var definitionResult = await executor.executeDefinitionsPhase(
             instanceId,
-            myConstructor,
-            testTypeResolver,
-            testClassIntrospector,
-            testTypeDeclarationResolver);
+            Fixtures.myConstructor,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector,
+            Fixtures.testTypeDeclarationResolver);
         expect(definitionResult.augmentations, hasLength(1));
         expect(definitionResult.augmentations.first.debugString().toString(),
             constructorDefinitionMatcher);
       });
 
+      test('on getters', () async {
+        var result = await executor.executeDefinitionsPhase(
+            instanceId,
+            Fixtures.myVariableGetter,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector,
+            Fixtures.testTypeDeclarationResolver);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('''
+                augment String myVariable() {
+                  print('isAbstract: false');
+                  print('isExternal: false');
+                  print('isGetter: true');
+                  print('isSetter: false');
+                  print('returnType: String');
+                  return augment super;
+                }'''));
+      });
+
+      test('on setters', () async {
+        var result = await executor.executeDefinitionsPhase(
+            instanceId,
+            Fixtures.myVariableSetter,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector,
+            Fixtures.testTypeDeclarationResolver);
+        expect(result.augmentations.single.debugString().toString(),
+            equalsIgnoringWhitespace('''
+                augment void myVariable(String value, ) {
+                  print('isAbstract: false');
+                  print('isExternal: false');
+                  print('isGetter: false');
+                  print('isSetter: true');
+                  print('returnType: void');
+                  print('positionalParam: String value');
+                  return augment super = value;
+                }'''));
+      });
+
+      test('on variables', () async {
+        var result = await executor.executeDefinitionsPhase(
+            instanceId,
+            Fixtures.myVariable,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector,
+            Fixtures.testTypeDeclarationResolver);
+        expect(
+            result.augmentations.map((a) => a.debugString().toString()),
+            unorderedEquals([
+              equalsIgnoringWhitespace('''
+                augment String get _myVariable {
+                  print('parentClass: ');
+                  print('isExternal: false');
+                  print('isFinal: true');
+                  print('isLate: false');
+                  return augment super;
+                }'''),
+              equalsIgnoringWhitespace('''
+                augment set _myVariable(String value) {
+                  augment super = value;
+                }'''),
+              equalsIgnoringWhitespace('''
+                augment final String _myVariable = '';
+                '''),
+            ]));
+      });
+
       test('on fields', () async {
         var definitionResult = await executor.executeDefinitionsPhase(
             instanceId,
-            myField,
-            testTypeResolver,
-            testClassIntrospector,
-            testTypeDeclarationResolver);
+            Fixtures.myField,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector,
+            Fixtures.testTypeDeclarationResolver);
         expect(definitionResult.augmentations, hasLength(1));
         expect(definitionResult.augmentations.first.debugString().toString(),
             fieldDefinitionMatcher);
@@ -324,10 +370,10 @@ void main() {
       test('on classes', () async {
         var definitionResult = await executor.executeDefinitionsPhase(
             instanceId,
-            myClass,
-            testTypeResolver,
-            testClassIntrospector,
-            testTypeDeclarationResolver);
+            Fixtures.myClass,
+            Fixtures.testTypeResolver,
+            Fixtures.testClassIntrospector,
+            Fixtures.testTypeDeclarationResolver);
         var augmentationStrings = definitionResult.augmentations
             .map((a) => a.debugString().toString())
             .toList();
@@ -366,8 +412,8 @@ augment class MyClass {
     print('isLate: false');
     return augment super;
   }
-  augment set (String value) {
-    augment super(value);
+  augment set myField(String value) {
+    augment super = value;
   }
 }''');
 

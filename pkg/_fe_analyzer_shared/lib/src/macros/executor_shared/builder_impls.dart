@@ -140,7 +140,7 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
   Future<VariableDefinitionBuilder> buildField(String name) async {
     FieldDeclaration field = (await classIntrospector.fieldsOf(declaration))
         .firstWhere((field) => field.name == name);
-    return new FieldDefinitionBuilderImpl(
+    return new VariableDefinitionBuilderImpl(
         field, classIntrospector, typeResolver, typeDeclarationResolver,
         parentAugmentations: _augmentations);
   }
@@ -149,7 +149,7 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
   Future<FunctionDefinitionBuilder> buildMethod(String name) async {
     MethodDeclaration method = (await classIntrospector.methodsOf(declaration))
         .firstWhere((method) => method.name == name);
-    return new MethodDefinitionBuilderImpl(
+    return new FunctionDefinitionBuilderImpl(
         method, classIntrospector, typeResolver, typeDeclarationResolver,
         parentAugmentations: _augmentations);
   }
@@ -171,31 +171,14 @@ class FunctionDefinitionBuilderImpl extends DefinitionBuilderBase
 
   @override
   void augment(FunctionBodyCode body) {
-    _augmentations.add(_buildFunctionAugmentation(body, declaration));
-  }
-}
-
-/// Implementation of [MethodDefinitionBuilderImpl].
-class MethodDefinitionBuilderImpl extends FunctionDefinitionBuilderImpl {
-  @override
-  final MethodDeclaration declaration;
-
-  MethodDefinitionBuilderImpl(
-      this.declaration,
-      ClassIntrospector classIntrospector,
-      TypeResolver typeResolver,
-      TypeDeclarationResolver typeDeclarationResolver,
-      {List<DeclarationCode>? parentAugmentations})
-      : super(declaration, classIntrospector, typeResolver,
-            typeDeclarationResolver,
-            parentAugmentations: parentAugmentations);
-
-  @override
-  void augment(FunctionBodyCode body) {
-    _augmentations.add(_buildClassAugmentation(
-      declaration.definingClass,
-      [_buildFunctionAugmentation(body, declaration)],
-    ));
+    DeclarationCode augmentation =
+        _buildFunctionAugmentation(body, declaration);
+    if (declaration is ClassMemberDeclaration) {
+      augmentation = _buildClassAugmentation(
+          (declaration as ClassMemberDeclaration).definingClass,
+          [augmentation]);
+    }
+    _augmentations.add(augmentation);
   }
 }
 
@@ -241,33 +224,20 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
       {DeclarationCode? getter,
       DeclarationCode? setter,
       ExpressionCode? initializer}) {
-    _augmentations.addAll(_buildVariableAugmentations(declaration,
-        getter: getter, setter: setter, initializer: initializer));
-  }
-}
+    List<DeclarationCode> augmentations = _buildVariableAugmentations(
+        declaration,
+        getter: getter,
+        setter: setter,
+        initializer: initializer);
+    if (declaration is ClassMemberDeclaration) {
+      augmentations = [
+        _buildClassAugmentation(
+            (declaration as ClassMemberDeclaration).definingClass,
+            augmentations)
+      ];
+    }
 
-class FieldDefinitionBuilderImpl extends DefinitionBuilderBase
-    implements VariableDefinitionBuilder {
-  final FieldDeclaration declaration;
-
-  FieldDefinitionBuilderImpl(
-      this.declaration,
-      ClassIntrospector classIntrospector,
-      TypeResolver typeResolver,
-      TypeDeclarationResolver typeDeclarationResolver,
-      {List<DeclarationCode>? parentAugmentations})
-      : super(classIntrospector, typeResolver, typeDeclarationResolver,
-            parentAugmentations: parentAugmentations);
-
-  @override
-  void augment(
-      {DeclarationCode? getter,
-      DeclarationCode? setter,
-      ExpressionCode? initializer}) {
-    _augmentations.add(_buildClassAugmentation(
-        declaration.definingClass,
-        _buildVariableAugmentations(declaration,
-            getter: getter, setter: setter, initializer: initializer)));
+    _augmentations.addAll(augmentations);
   }
 }
 
@@ -336,7 +306,7 @@ DeclarationCode _buildFunctionAugmentation(
       declaration.returnType.code,
       ' ',
     ],
-    declaration.name,
+    declaration.name.trimEquals(),
     if (declaration.typeParameters.isNotEmpty) ...[
       '<',
       for (TypeParameterDeclaration typeParam
@@ -398,4 +368,8 @@ DeclarationCode _buildFunctionAugmentation(
     ],
     body,
   ]);
+}
+
+extension _ on String {
+  String trimEquals() => endsWith('=') ? substring(0, length - 1) : this;
 }

@@ -68,14 +68,31 @@ class SimpleMacro
   @override
   FutureOr<void> buildDeclarationsForFunction(
       FunctionDeclaration function, DeclarationBuilder builder) {
-    if (function.positionalParameters.isNotEmpty ||
-        function.namedParameters.isNotEmpty) {
+    if (!function.isSetter &&
+        (function.positionalParameters.isNotEmpty ||
+            function.namedParameters.isNotEmpty)) {
       throw new UnsupportedError(
           'Can only run on functions with no parameters!');
     }
     builder.declareInLibrary(DeclarationCode.fromParts([
       function.returnType,
-      ' delegate${function.name.capitalize()}() => ${function.name}();',
+      if (function.isGetter) ' get' else if (function.isSetter) ' set ',
+      ' delegate${function.name.capitalize().trimEquals()}',
+      if (!function.isGetter) ...[
+        '(',
+        if (function.isSetter) ...[
+          function.positionalParameters.first.type,
+          ' value',
+        ],
+        ')',
+      ],
+      ' => ${function.name.trimEquals()}',
+      function.isGetter
+          ? ''
+          : function.isSetter
+              ? ' = value'
+              : '()',
+      ';',
     ]));
   }
 
@@ -237,8 +254,13 @@ class SimpleMacro
           return augment super;
         }''',
       ]),
-      setter: DeclarationCode.fromParts(
-          ['set (', variable.type, ' value) { augment super(value); }']),
+      setter: DeclarationCode.fromParts([
+        'set ',
+        variable.name,
+        '(',
+        variable.type,
+        ' value) { augment super = value; }'
+      ]),
       initializer: variable.initializer,
     );
   }
@@ -296,8 +318,14 @@ class SimpleMacro
   @override
   FutureOr<void> buildTypesForFunction(
       FunctionDeclaration function, TypeBuilder builder) {
+    var suffix = function.isGetter
+        ? 'Getter'
+        : function.isSetter
+            ? 'Setter'
+            : '';
     builder.declareType(DeclarationCode.fromString(
-        'class GeneratedBy${function.name.capitalize()} {}'));
+        'class GeneratedBy${function.name.capitalize().trimEquals()}'
+        '$suffix {}'));
   }
 
   @override
@@ -349,11 +377,17 @@ FunctionBodyCode _buildFunctionAugmentation(FunctionDeclaration function) =>
         if (param.bounds != null) param.bounds!,
         "');\n",
       ],
-      '''
-      return augment super();
+      'return augment super',
+      if (function.isSetter)
+        ' = ${function.positionalParameters.first.name}'
+      else if (!function.isGetter)
+        '()',
+      ''';
     }''',
     ]);
 
 extension _ on String {
-  String capitalize() => '${this[0].toUpperCase()}${this.substring(1)}';
+  String capitalize() => '${this[0].toUpperCase()}${substring(1)}';
+
+  String trimEquals() => endsWith('=') ? substring(0, length - 1) : this;
 }

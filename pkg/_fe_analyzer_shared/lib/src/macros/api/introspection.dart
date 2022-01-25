@@ -65,6 +65,12 @@ abstract class Declaration {
   String get name;
 }
 
+/// Base class for all Declarations which have a surrounding class.
+abstract class ClassMemberDeclaration implements Declaration {
+  /// The class that defines this method.
+  NamedTypeAnnotation get definingClass;
+}
+
 /// A declaration that defines a new type in the program.
 ///
 /// See subtypes [ClassDeclaration] and [TypeAliasDeclaration].
@@ -145,10 +151,8 @@ abstract class FunctionDeclaration implements Declaration {
 }
 
 /// Method introspection information.
-abstract class MethodDeclaration implements FunctionDeclaration {
-  /// The class that defines this method.
-  NamedTypeAnnotation get definingClass;
-}
+abstract class MethodDeclaration
+    implements FunctionDeclaration, ClassMemberDeclaration {}
 
 /// Constructor introspection information.
 abstract class ConstructorDeclaration implements MethodDeclaration {
@@ -175,11 +179,9 @@ abstract class VariableDeclaration implements Declaration {
   ExpressionCode? get initializer;
 }
 
-/// Field introspection information ..
-abstract class FieldDeclaration implements VariableDeclaration {
-  /// The class that defines this method.
-  NamedTypeAnnotation get definingClass;
-}
+/// Field introspection information.
+abstract class FieldDeclaration
+    implements VariableDeclaration, ClassMemberDeclaration {}
 
 /// Parameter introspection information.
 abstract class ParameterDeclaration implements Declaration {
