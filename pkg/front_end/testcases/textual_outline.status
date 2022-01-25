@@ -33,6 +33,7 @@ enhanced_enums/enum_as_supertype: FormatterCrash
 enhanced_enums/inference_in_constructor_parameters: FormatterCrash
 enhanced_enums/instantiated_generic_enum_types: FormatterCrash
 enhanced_enums/issue48084: FormatterCrash
+enhanced_enums/issue48181: FormatterCrash
 enhanced_enums/members: FormatterCrash
 enhanced_enums/named_arguments: FormatterCrash
 enhanced_enums/qualified_names_with_no_type_arguments: FormatterCrash
