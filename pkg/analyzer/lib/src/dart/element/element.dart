@@ -1584,23 +1584,19 @@ class DefaultSuperFormalParameterElementImpl
 
   @override
   String? get defaultValueCode {
-    return constantInitializer?.toSource();
-  }
-
-  @override
-  bool get hasDefaultValue {
-    if (super.hasDefaultValue) {
-      return true;
-    }
-    return computeConstantValue() != null;
-  }
-
-  @override
-  DartObject? computeConstantValue() {
+    final constantInitializer = this.constantInitializer;
     if (constantInitializer != null) {
-      return super.computeConstantValue();
+      return constantInitializer.toSource();
     }
 
+    if (_superConstructorParameterDefaultValue != null) {
+      return superConstructorParameter?.defaultValueCode;
+    }
+
+    return null;
+  }
+
+  DartObject? get _superConstructorParameterDefaultValue {
     var superDefault = superConstructorParameter?.computeConstantValue();
     var superDefaultType = superDefault?.type;
     var libraryElement = library;
@@ -1611,6 +1607,15 @@ class DefaultSuperFormalParameterElementImpl
     }
 
     return null;
+  }
+
+  @override
+  DartObject? computeConstantValue() {
+    if (constantInitializer != null) {
+      return super.computeConstantValue();
+    }
+
+    return _superConstructorParameterDefaultValue;
   }
 }
 
