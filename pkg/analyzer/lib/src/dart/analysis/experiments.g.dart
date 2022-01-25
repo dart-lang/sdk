@@ -365,7 +365,7 @@ class IsExpired {
   static const bool constant_update_2018 = true;
 
   /// Expiration status of the experiment "constructor-tearoffs"
-  static const bool constructor_tearoffs = false;
+  static const bool constructor_tearoffs = true;
 
   /// Expiration status of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;

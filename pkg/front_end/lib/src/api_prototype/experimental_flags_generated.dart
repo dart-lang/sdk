@@ -127,7 +127,7 @@ const Map<ExperimentalFlag, bool> expiredExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy: false,
   ExperimentalFlag.constFunctions: false,
   ExperimentalFlag.constantUpdate2018: true,
-  ExperimentalFlag.constructorTearoffs: false,
+  ExperimentalFlag.constructorTearoffs: true,
   ExperimentalFlag.controlFlowCollections: true,
   ExperimentalFlag.enhancedEnums: false,
   ExperimentalFlag.extensionMethods: true,

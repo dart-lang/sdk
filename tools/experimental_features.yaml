@@ -224,3 +224,4 @@ features:
         var c = A.new;
         c();
       }
+    expired: true
