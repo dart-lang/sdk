@@ -1330,14 +1330,11 @@ void PageSpace::SweepLarge() {
     if (words_to_end == 0) {
       size = page->memory_->size();
       page->Deallocate();
-    } else {
-      TruncateLargePage(page, words_to_end << kWordSizeLog2);
-    }
-    ml.Lock();
-
-    if (words_to_end == 0) {
+      ml.Lock();
       IncreaseCapacityInWordsLocked(-(size >> kWordSizeLog2));
     } else {
+      TruncateLargePage(page, words_to_end << kWordSizeLog2);
+      ml.Lock();
       AddLargePageLocked(page);
     }
   }

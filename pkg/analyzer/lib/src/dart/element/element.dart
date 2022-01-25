@@ -2680,7 +2680,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
       <InterfaceType>[...interfaces, supertype];
 
   List<FieldElement> get constants {
-    return fields.where((field) => !field.isSynthetic).toList();
+    return fields.where((field) => field.isEnumConstant).toList();
   }
 
   @override

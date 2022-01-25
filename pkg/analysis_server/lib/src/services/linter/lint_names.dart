@@ -54,6 +54,8 @@ class LintNames {
   static const String eol_at_end_of_file = 'eol_at_end_of_file';
   static const String exhaustive_cases = 'exhaustive_cases';
   static const String hash_and_equals = 'hash_and_equals';
+  static const String leading_newlines_in_multiline_strings =
+      'leading_newlines_in_multiline_strings';
   static const String no_duplicate_case_values = 'no_duplicate_case_values';
   static const String non_constant_identifier_names =
       'non_constant_identifier_names';
