@@ -22,7 +22,10 @@ E e(String name) {
   return const E();
 }
 ''', [
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 43, 9),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 43, 9),
       error(CompileTimeErrorCode.INSTANTIATE_ENUM, 49, 1),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 50, 2),
     ]);
   }
 
@@ -34,6 +37,7 @@ E e(String name) {
 }
 ''', [
       error(CompileTimeErrorCode.INSTANTIATE_ENUM, 47, 1),
+      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS, 48, 2),
     ]);
   }
 }

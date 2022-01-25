@@ -1539,9 +1539,39 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    node as EnumConstantDeclarationImpl;
+
+    node.documentationComment?.accept(this);
     node.metadata.accept(this);
     checkUnreachableNode(node);
-    node.visitChildren(this);
+
+    var element = node.declaredElement as ConstFieldElementImpl;
+    var initializer = element.constantInitializer;
+    if (initializer is InstanceCreationExpression) {
+      var constructor = initializer.constructorName.staticElement;
+      node.constructorElement = constructor;
+      var arguments = node.arguments;
+      if (arguments != null) {
+        var argumentList = arguments.argumentList;
+        if (constructor != null) {
+          InferenceContext.setType(argumentList, constructor.type);
+          argumentList.correspondingStaticParameters =
+              ResolverVisitor.resolveArgumentsToParameters(
+            argumentList: argumentList,
+            parameters: constructor.parameters.skip(2).toList(),
+          );
+          for (var argument in argumentList.arguments) {
+            var parameter = argument.staticParameterElement;
+            if (parameter != null) {
+              InferenceContext.setType(argument, parameter.type);
+            }
+            argument.accept(this);
+          }
+        }
+        arguments.typeArguments?.accept(this);
+      }
+    }
+
     elementResolver.visitEnumConstantDeclaration(node);
   }
 
@@ -3039,6 +3069,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitEnumMembersInScope(EnumDeclaration node) {
     node.documentationComment?.accept(this);
     node.constants.accept(this);
+    node.members.accept(this);
   }
 
   @override

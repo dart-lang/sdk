@@ -17748,6 +17748,109 @@ library
 ''');
   }
 
+  test_enum_constant_typeArguments() async {
+    var library = await checkLibrary(r'''
+enum E<T> {
+  v<double>(42);
+  E(T a);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        typeParameters
+          covariant T @7
+            defaultType: dynamic
+        supertype: Enum
+        fields
+          static const enumConstant v @14
+            type: E<double>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  arguments
+                    IntegerLiteral
+                      literal: 0 @0
+                      staticType: int
+                    SimpleStringLiteral
+                      literal: 'v' @0
+                    IntegerLiteral
+                      literal: 42 @24
+                      staticType: double
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: ConstructorMember
+                      base: self::@enum::E::@constructor::•
+                      substitution: {T: double}
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {T: double}
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<double>
+                    typeArguments: TypeArgumentList
+                      arguments
+                        NamedType
+                          name: SimpleIdentifier
+                            staticElement: dart:core::@class::double
+                            staticType: null
+                            token: double @16
+                          type: double
+                      leftBracket: < @15
+                      rightBracket: > @22
+                staticType: E<double>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<double>
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+          synthetic final _name @-1
+            type: String
+        constructors
+          @31
+            parameters
+              requiredPositional final this.index @-1
+                type: int
+                field: self::@enum::E::@field::index
+              requiredPositional final this._name @-1
+                type: String
+                field: self::@enum::E::@field::_name
+              requiredPositional a @35
+                type: T
+        accessors
+          synthetic static get v @-1
+            returnType: E<double>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+          synthetic get _name @-1
+            returnType: String
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
   test_enum_constant_underscore() async {
     var library = await checkLibrary('''
 enum E {

@@ -394,6 +394,15 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
+
+    var arguments = node.arguments;
+    if (arguments != null) {
+      _withElementWalker(null, () {
+        _withElementHolder(ElementHolder(element), () {
+          arguments.accept(this);
+        });
+      });
+    }
   }
 
   @override

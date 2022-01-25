@@ -15,9 +15,212 @@ main() {
 
 @reflectiveTest
 class EnumDriverResolutionTest extends PubPackageResolutionTest {
-  test_field() async {
+  test_constructor_argumentList_contextType() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v([]);
+  E(List<int> a);
+}
+''');
+
+    assertType(findNode.listLiteral('[]'), 'List<int>');
+  }
+
+  test_constructor_argumentList_namedType() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v(<void Function(double)>[]);
+  E(Object a);
+}
+''');
+
+    assertNamedType(
+      findNode.namedType('double'),
+      doubleElement,
+      'double',
+    );
+
+    assertType(
+      findNode.genericFunctionType('void Function'),
+      'void Function(double)',
+    );
+  }
+
+  test_constructor_generic_noTypeArguments_named() async {
     await assertNoErrorsInCode(r'''
 enum E<T> {
+  v.named(42);
+  E.named(T a);
+}
+''');
+
+    assertEnumConstant(
+      findNode.enumConstantDeclaration('v'),
+      element: findElement.field('v'),
+      constructorElement: elementMatcher(
+        findElement.constructor('named'),
+        substitution: {'T': 'int'},
+      ),
+    );
+
+    assertParameterElement(
+      findNode.integerLiteral('42'),
+      elementMatcher(
+        findElement.parameter('a'),
+        substitution: {'T': 'int'},
+      ),
+    );
+  }
+
+  test_constructor_generic_noTypeArguments_unnamed() async {
+    await assertNoErrorsInCode(r'''
+enum E<T> {
+  v(42);
+  E(T a);
+}
+''');
+
+    assertEnumConstant(
+      findNode.enumConstantDeclaration('v'),
+      element: findElement.field('v'),
+      constructorElement: elementMatcher(
+        findElement.enum_('E').unnamedConstructor,
+        substitution: {'T': 'int'},
+      ),
+    );
+
+    assertParameterElement(
+      findNode.integerLiteral('42'),
+      elementMatcher(
+        findElement.parameter('a'),
+        substitution: {'T': 'int'},
+      ),
+    );
+  }
+
+  test_constructor_generic_typeArguments_named() async {
+    await assertNoErrorsInCode(r'''
+enum E<T> {
+  v<double>.named(42);
+  E.named(T a);
+}
+''');
+
+    assertEnumConstant(
+      findNode.enumConstantDeclaration('v'),
+      element: findElement.field('v'),
+      constructorElement: elementMatcher(
+        findElement.constructor('named'),
+        substitution: {'T': 'double'},
+      ),
+    );
+
+    assertNamedType(
+      findNode.namedType('double'),
+      doubleElement,
+      'double',
+    );
+
+    assertParameterElement(
+      findNode.integerLiteral('42'),
+      elementMatcher(
+        findElement.parameter('a'),
+        substitution: {'T': 'double'},
+      ),
+    );
+  }
+
+  test_constructor_notGeneric_named() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v.named(42);
+  E.named(int a);
+}
+''');
+
+    assertEnumConstant(
+      findNode.enumConstantDeclaration('v'),
+      element: findElement.field('v'),
+      constructorElement: findElement.constructor('named'),
+    );
+
+    assertParameterElement(
+      findNode.integerLiteral('42'),
+      findElement.parameter('a'),
+    );
+  }
+
+  test_constructor_notGeneric_unnamed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v(42);
+  E(int a);
+}
+''');
+
+    assertEnumConstant(
+      findNode.enumConstantDeclaration('v'),
+      element: findElement.field('v'),
+      constructorElement: findElement.enum_('E').unnamedConstructor,
+    );
+
+    assertParameterElement(
+      findNode.integerLiteral('42'),
+      findElement.parameter('a'),
+    );
+  }
+
+  test_constructor_notGeneric_unnamed_implicit() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v
+}
+''');
+
+    assertEnumConstant(
+      findNode.enumConstantDeclaration('v'),
+      element: findElement.field('v'),
+      constructorElement: findElement.enum_('E').unnamedConstructor,
+    );
+  }
+
+  test_constructor_unresolved_named() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v.named(42);
+  E(int a);
+}
+''');
+
+    assertEnumConstant(
+      findNode.enumConstantDeclaration('v'),
+      element: findElement.field('v'),
+      constructorElement: null,
+    );
+
+    assertParameterElement(findNode.integerLiteral('42'), null);
+  }
+
+  test_constructor_unresolved_unnamed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v(42);
+  E.named(int a);
+}
+''');
+
+    assertEnumConstant(
+      findNode.enumConstantDeclaration('v'),
+      element: findElement.field('v'),
+      constructorElement: null,
+    );
+
+    assertParameterElement(findNode.integerLiteral('42'), null);
+  }
+
+  test_field() async {
+    await assertNoErrorsInCode(r'''
+enum E {
   v;
   final foo = 42;
 }
@@ -88,7 +291,7 @@ enum E<T> {
 
   test_method_toString() async {
     await assertNoErrorsInCode(r'''
-enum E<T> {
+enum E {
   v;
   String toString() => 'E';
 }

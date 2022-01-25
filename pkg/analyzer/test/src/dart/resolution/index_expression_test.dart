@@ -122,7 +122,10 @@ void f(A<double> a) {
     );
     assertParameterElement(
       indexExpression.index,
-      indexElement.parameters[0],
+      elementMatcher(
+        indexElement.parameters[0],
+        substitution: {'T': 'double'},
+      ),
     );
   }
 
@@ -230,7 +233,10 @@ void f(A<double> a) {
     }
     assertParameterElement(
       indexExpression.index,
-      indexEqElement.parameters[0],
+      elementMatcher(
+        indexEqElement.parameters[0],
+        substitution: {'T': 'double'},
+      ),
     );
 
     var assignment = indexExpression.parent as AssignmentExpression;
@@ -426,7 +432,10 @@ void f(A<double> a) {
     }
     assertParameterElement(
       indexExpression.index,
-      indexEqElement.parameters[0],
+      elementMatcher(
+        indexEqElement.parameters[0],
+        substitution: {'T': 'double'},
+      ),
     );
 
     var assignment = indexExpression.parent as AssignmentExpression;
@@ -444,7 +453,10 @@ void f(A<double> a) {
     );
     assertParameterElement(
       assignment.rightHandSide,
-      indexEqElement.parameters[1],
+      elementMatcher(
+        indexEqElement.parameters[1],
+        substitution: {'T': 'double'},
+      ),
     );
   }
 

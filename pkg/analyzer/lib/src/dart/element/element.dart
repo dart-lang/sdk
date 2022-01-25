@@ -130,6 +130,16 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   @override
+  ConstructorElement? get unnamedConstructor {
+    for (ConstructorElement element in constructors) {
+      if (element.name.isEmpty) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  @override
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitClassElement(this);
 
   @override
@@ -775,16 +785,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
   List<TypeParameterElement> get typeParameters {
     linkedData?.read(this);
     return super.typeParameters;
-  }
-
-  @override
-  ConstructorElement? get unnamedConstructor {
-    for (ConstructorElement element in constructors) {
-      if (element.name.isEmpty) {
-        return element;
-      }
-    }
-    return null;
   }
 
   @override
@@ -1584,23 +1584,19 @@ class DefaultSuperFormalParameterElementImpl
 
   @override
   String? get defaultValueCode {
-    return constantInitializer?.toSource();
-  }
-
-  @override
-  bool get hasDefaultValue {
-    if (super.hasDefaultValue) {
-      return true;
-    }
-    return computeConstantValue() != null;
-  }
-
-  @override
-  DartObject? computeConstantValue() {
+    final constantInitializer = this.constantInitializer;
     if (constantInitializer != null) {
-      return super.computeConstantValue();
+      return constantInitializer.toSource();
     }
 
+    if (_superConstructorParameterDefaultValue != null) {
+      return superConstructorParameter?.defaultValueCode;
+    }
+
+    return null;
+  }
+
+  DartObject? get _superConstructorParameterDefaultValue {
     var superDefault = superConstructorParameter?.computeConstantValue();
     var superDefaultType = superDefault?.type;
     var libraryElement = library;
@@ -1611,6 +1607,15 @@ class DefaultSuperFormalParameterElementImpl
     }
 
     return null;
+  }
+
+  @override
+  DartObject? computeConstantValue() {
+    if (constantInitializer != null) {
+      return super.computeConstantValue();
+    }
+
+    return _superConstructorParameterDefaultValue;
   }
 }
 
@@ -2766,9 +2771,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
     linkedData?.read(this);
     return super.typeParameters;
   }
-
-  @override
-  ConstructorElement? get unnamedConstructor => null;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

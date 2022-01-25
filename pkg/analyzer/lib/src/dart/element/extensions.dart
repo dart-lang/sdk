@@ -103,6 +103,12 @@ extension ElementExtension on Element {
   }
 }
 
+extension ExecutableElementExtension on ExecutableElement {
+  bool get isEnumConstructor {
+    return this is ConstructorElement && enclosingElement is EnumElementImpl;
+  }
+}
+
 extension ParameterElementExtensions on ParameterElement {
   /// Return [ParameterElement] with the specified properties replaced.
   ParameterElement copyWith({
