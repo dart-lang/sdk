@@ -14000,6 +14000,7 @@ class Element extends Node
    * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   Future<void> requestFullscreen([Map? options]) {
     var retValue;
