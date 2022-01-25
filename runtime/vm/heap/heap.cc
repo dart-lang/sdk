@@ -243,6 +243,7 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
 #endif
     while ((old_space_->tasks() > 0) ||
            (old_space_->phase() != PageSpace::kDone)) {
+      old_space_->AssistTasks(&ml);
       if (old_space_->phase() == PageSpace::kAwaitingFinalization) {
         ml.Exit();
         heap_->CollectOldSpaceGarbage(thread, GCType::kMarkSweep,
@@ -407,6 +408,8 @@ void Heap::NotifyIdle(int64_t deadline) {
       }
     }
   }
+
+  old_space_.NotifyIdle(deadline);
 
   if (OS::GetCurrentMonotonicMicros() < deadline) {
     SemiSpace::DrainCache();

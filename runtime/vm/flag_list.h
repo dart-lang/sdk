@@ -140,6 +140,9 @@ constexpr bool FLAG_support_il_printer = false;
   P(scavenger_tasks, int, 2,                                                   \
     "The number of tasks to spawn during scavenging (0 means "                 \
     "perform all marking on main thread).")                                    \
+  P(mark_when_idle, bool, false,                                               \
+    "The Dart thread will assist in concurrent marking during idle time and "  \
+    "is counted as one marker task")                                           \
   P(marker_tasks, int, 2,                                                      \
     "The number of tasks to spawn during old gen GC marking (0 means "         \
     "perform all marking on main thread).")                                    \

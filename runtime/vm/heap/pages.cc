@@ -1036,6 +1036,20 @@ bool PageSpace::ShouldPerformIdleMarkCompact(int64_t deadline) {
   return estimated_mark_compact_completion <= deadline;
 }
 
+void PageSpace::NotifyIdle(int64_t deadline) {
+  if (marker_ != nullptr) {
+    marker_->NotifyIdle(deadline);
+  }
+}
+
+void PageSpace::AssistTasks(MonitorLocker* ml) {
+  if (phase() == PageSpace::kMarking) {
+    ml->Exit();
+    marker_->AssistConcurrentMark();
+    ml->Enter();
+  }
+}
+
 void PageSpace::TryReleaseReservation() {
   ASSERT(phase() != kSweepingLarge);
   ASSERT(phase() != kSweepingRegular);
@@ -1107,6 +1121,7 @@ void PageSpace::CollectGarbage(bool compact, bool finalize) {
       return;
     }
 
+    AssistTasks(&locker);
     while (tasks() > 0) {
       locker.Wait();
     }
