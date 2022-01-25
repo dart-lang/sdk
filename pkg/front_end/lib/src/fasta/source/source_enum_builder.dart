@@ -37,6 +37,7 @@ import '../fasta_codes.dart'
 
 import '../kernel/body_builder.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/internal_ast.dart';
 
@@ -253,7 +254,20 @@ class SourceEnumBuilder extends SourceClassBuilder {
     members["values"] = valuesBuilder;
 
     DeclaredSourceConstructorBuilder? synthesizedDefaultConstructorBuilder;
-    if (constructorScope.local.isEmpty) {
+
+    // The default constructor is added if no generative or unnamed factory
+    // constructors are declared.
+    bool needsSynthesizedDefaultConstructor = true;
+    if (constructorScope.local.isNotEmpty) {
+      for (MemberBuilder constructorBuilder in constructorScope.local.values) {
+        if (!constructorBuilder.isFactory || constructorBuilder.name == "") {
+          needsSynthesizedDefaultConstructor = false;
+          break;
+        }
+      }
+    }
+
+    if (needsSynthesizedDefaultConstructor) {
       synthesizedDefaultConstructorBuilder =
           new DeclaredSourceConstructorBuilder(
               /* metadata = */ null,
@@ -540,6 +554,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
     if (enumConstantInfos != null) {
       for (EnumConstantInfo? enumConstantInfo in enumConstantInfos!) {
         if (enumConstantInfo != null) {
+          if (enumConstantInfo.argumentsBeginToken == null &&
+              enumConstantInfo.constructorReferenceBuilder?.typeArguments !=
+                  null) {
+            addProblem(messageEnumEntryWithTypeArgumentsWithoutArguments,
+                enumConstantInfo.charOffset, noLength);
+          }
+
           String constant = enumConstantInfo.name;
           Builder declaration = firstMemberNamed(constant)!;
           SourceFieldBuilder field;
@@ -554,63 +575,69 @@ class SourceEnumBuilder extends SourceClassBuilder {
           MemberBuilder? constructorBuilder =
               constructorScopeBuilder[constructorName];
 
+          Arguments arguments;
+          List<Expression> enumSyntheticArguments = <Expression>[
+            new IntLiteral(index++),
+            new StringLiteral(constant),
+          ];
+          List<DartType>? typeArguments;
+          List<TypeBuilder>? typeArgumentBuilders =
+              enumConstantInfo.constructorReferenceBuilder?.typeArguments;
+          if (typeArgumentBuilders != null) {
+            typeArguments = <DartType>[];
+            for (TypeBuilder typeBuilder in typeArgumentBuilders) {
+              typeArguments.add(typeBuilder.build(library));
+            }
+          }
+          BodyBuilder? bodyBuilder;
+          if (enumConstantInfo.argumentsBeginToken != null ||
+              typeArgumentBuilders == null && cls.typeParameters.isNotEmpty) {
+            // We need to create a BodyBuilder in two cases: 1) if the
+            // arguments token is provided, we'll use the BodyBuilder to
+            // parse them and perform inference, 2) if the type arguments
+            // aren't provided, but required, we'll use it to infer them.
+            bodyBuilder = library.loader.createBodyBuilderForOutlineExpression(
+                library, this, this, scope, fileUri);
+            bodyBuilder.constantContext = ConstantContext.required;
+          }
+
+          if (enumConstantInfo.argumentsBeginToken != null) {
+            arguments = bodyBuilder!
+                .parseArguments(enumConstantInfo.argumentsBeginToken!);
+            bodyBuilder.performBacklogComputations(delayedActionPerformers);
+
+            arguments.positional.insertAll(0, enumSyntheticArguments);
+          } else {
+            arguments = new ArgumentsImpl(enumSyntheticArguments);
+          }
+
+          if (typeArguments != null && arguments is ArgumentsImpl) {
+            ArgumentsImpl.setNonInferrableArgumentTypes(
+                arguments, typeArguments);
+          } else if (cls.typeParameters.isNotEmpty) {
+            arguments.types.addAll(new List<DartType>.filled(
+                cls.typeParameters.length, const UnknownType()));
+          }
+          setParents(enumSyntheticArguments, arguments);
+
           if (constructorBuilder == null ||
               constructorBuilder is! SourceConstructorBuilder) {
-            // TODO(cstefantsova): Report an error.
+            bodyBuilder ??= library.loader
+                .createBodyBuilderForOutlineExpression(
+                    library, this, this, scope, fileUri)
+              ..constantContext = ConstantContext.required;
+            field.buildBody(
+                classHierarchy.coreTypes,
+                bodyBuilder.buildUnresolvedError(
+                    new NullLiteral(),
+                    enumConstantInfo
+                            .constructorReferenceBuilder?.fullNameForErrors ??
+                        constructorName,
+                    arguments,
+                    enumConstantInfo.constructorReferenceBuilder?.charOffset ??
+                        enumConstantInfo.charOffset,
+                    kind: UnresolvedKind.Constructor));
           } else {
-            if (enumConstantInfo.argumentsBeginToken == null &&
-                enumConstantInfo.constructorReferenceBuilder?.typeArguments !=
-                    null) {
-              addProblem(messageEnumEntryWithTypeArgumentsWithoutArguments,
-                  enumConstantInfo.charOffset, noLength);
-            }
-
-            Arguments arguments;
-            List<Expression> enumSyntheticArguments = <Expression>[
-              new IntLiteral(index++),
-              new StringLiteral(constant),
-            ];
-            List<DartType>? typeArguments;
-            List<TypeBuilder>? typeArgumentBuilders =
-                enumConstantInfo.constructorReferenceBuilder?.typeArguments;
-            if (typeArgumentBuilders != null) {
-              typeArguments = <DartType>[];
-              for (TypeBuilder typeBuilder in typeArgumentBuilders) {
-                typeArguments.add(typeBuilder.build(library));
-              }
-            }
-            BodyBuilder? bodyBuilder;
-            if (enumConstantInfo.argumentsBeginToken != null ||
-                typeArgumentBuilders == null && cls.typeParameters.isNotEmpty) {
-              // We need to create a BodyBuilder in two cases: 1) if the
-              // arguments token is provided, we'll use the BodyBuilder to
-              // parse them and perform inference, 2) if the type arguments
-              // aren't provided, but required, we'll use it to infer them.
-              bodyBuilder = library.loader
-                  .createBodyBuilderForOutlineExpression(
-                      library, this, this, scope, fileUri);
-              bodyBuilder.constantContext = ConstantContext.required;
-            }
-
-            if (enumConstantInfo.argumentsBeginToken != null) {
-              arguments = bodyBuilder!
-                  .parseArguments(enumConstantInfo.argumentsBeginToken!);
-              bodyBuilder.performBacklogComputations(delayedActionPerformers);
-
-              arguments.positional.insertAll(0, enumSyntheticArguments);
-            } else {
-              arguments = new ArgumentsImpl(enumSyntheticArguments);
-            }
-
-            if (typeArguments != null && arguments is ArgumentsImpl) {
-              ArgumentsImpl.setNonInferrableArgumentTypes(
-                  arguments, typeArguments);
-            } else if (cls.typeParameters.isNotEmpty) {
-              arguments.types.addAll(new List<DartType>.filled(
-                  cls.typeParameters.length, const UnknownType()));
-            }
-            setParents(enumSyntheticArguments, arguments);
-
             Expression initializer = new ConstructorInvocation(
                 constructorBuilder.constructor, arguments,
                 isConst: true)
