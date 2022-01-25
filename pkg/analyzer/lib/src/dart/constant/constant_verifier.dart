@@ -103,8 +103,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (constKeyword != null) {
       _validateConstructorInitializers(node);
       if (node.factoryKeyword == null) {
-        _validateFieldInitializers(
-            node.parent as ClassOrMixinDeclaration, constKeyword);
+        _validateFieldInitializers(node.parent.classMembers, constKeyword);
       }
     }
     _validateDefaultValues(node.parameters);
@@ -545,12 +544,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Validates that the expressions of any field initializers in
-  /// [classDeclaration] are all compile-time constants. Since this is only
+  /// [members] are all compile-time constants. Since this is only
   /// required if the class has a constant constructor, the error is reported at
   /// [constKeyword], the const keyword on such a constant constructor.
   void _validateFieldInitializers(
-      ClassOrMixinDeclaration classDeclaration, Token constKeyword) {
-    NodeList<ClassMember> members = classDeclaration.members;
+      List<ClassMember> members, Token constKeyword) {
     for (ClassMember member in members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration variableDeclaration

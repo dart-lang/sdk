@@ -92,7 +92,7 @@ class NotImportedContributor extends DartCompletionContributor {
       }
 
       extensionContributor.addExtensions(
-        exportElements.whereType<ExtensionElement>().toList(),
+        _extensions(exportElements),
       );
 
       builder.isNotImportedLibrary = false;
@@ -108,5 +108,18 @@ class NotImportedContributor extends DartCompletionContributor {
         element.accept(visitor);
       }
     }
+  }
+
+  /// This function intentionally does not use `whereType` for performance.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/47680
+  static List<ExtensionElement> _extensions(List<Element> elements) {
+    var extensions = <ExtensionElement>[];
+    for (var element in elements) {
+      if (element is ExtensionElement) {
+        extensions.add(element);
+      }
+    }
+    return extensions;
   }
 }
