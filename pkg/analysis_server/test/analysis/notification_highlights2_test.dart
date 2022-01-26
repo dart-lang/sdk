@@ -681,6 +681,20 @@ void f() {
     assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB);');
   }
 
+  Future<void> test_EXTENSION() async {
+    addTestFile('''
+extension E on int {
+  void foo() {}
+}
+void f() {
+  E(0).foo();
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.EXTENSION, 'E on int');
+    assertHasRegion(HighlightRegionType.EXTENSION, 'E(0)');
+  }
+
   Future<void> test_FUNCTION_TYPE_ALIAS() async {
     addTestFile('''
 typedef A();

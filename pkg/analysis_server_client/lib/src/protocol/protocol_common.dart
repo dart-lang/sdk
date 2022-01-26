@@ -1882,6 +1882,7 @@ class HighlightRegion implements HasToJson {
 ///   DYNAMIC_PARAMETER_REFERENCE
 ///   ENUM
 ///   ENUM_CONSTANT
+///   EXTENSION
 ///   FIELD
 ///   FIELD_STATIC
 ///   FUNCTION
@@ -1994,6 +1995,9 @@ class HighlightRegionType implements Enum {
 
   static const HighlightRegionType ENUM_CONSTANT =
       HighlightRegionType._('ENUM_CONSTANT');
+
+  static const HighlightRegionType EXTENSION =
+      HighlightRegionType._('EXTENSION');
 
   /// Deprecated - no longer sent.
   static const HighlightRegionType FIELD = HighlightRegionType._('FIELD');
@@ -2210,6 +2214,7 @@ class HighlightRegionType implements Enum {
     DYNAMIC_PARAMETER_REFERENCE,
     ENUM,
     ENUM_CONSTANT,
+    EXTENSION,
     FIELD,
     FIELD_STATIC,
     FUNCTION,
@@ -2314,6 +2319,8 @@ class HighlightRegionType implements Enum {
         return ENUM;
       case 'ENUM_CONSTANT':
         return ENUM_CONSTANT;
+      case 'EXTENSION':
+        return EXTENSION;
       case 'FIELD':
         return FIELD;
       case 'FIELD_STATIC':
