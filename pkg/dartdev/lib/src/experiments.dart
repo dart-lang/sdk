@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:args/args.dart';
+import 'package:collection/collection.dart' show IterableExtension;
 
 const experimentFlagName = 'enable-experiment';
 
@@ -53,9 +54,8 @@ extension EnabledExperimentsArg on ArgResults {
       // look for --enable-experiment=. Currently, this path is only taken for
       // the pub and test commands, as well as when we are trying to send
       // analytics.
-      final String experiments = arguments.firstWhere(
+      final String? experiments = arguments.firstWhereOrNull(
         (e) => e.startsWith('--enable-experiment='),
-        orElse: () => null,
       );
       if (experiments == null) {
         return [];

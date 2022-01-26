@@ -34,7 +34,7 @@ class MigrateCommand extends DartdevCommand {
   FutureOr<int> run() async {
     var cli = MigrationCli(binaryName: 'dart $name');
     try {
-      await cli.decodeCommandLineArgs(argResults, isVerbose: verbose)?.run();
+      await cli.decodeCommandLineArgs(argResults!, isVerbose: verbose)?.run();
     } on MigrationExit catch (migrationExit) {
       return migrationExit.exitCode;
     }

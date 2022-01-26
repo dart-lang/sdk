@@ -101,7 +101,7 @@ Analytics createAnalyticsInstance(bool disableAnalytics) {
 ///
 /// This can return null under some conditions, including when the user's home
 /// directory does not exist.
-Directory getDartStorageDirectory() {
+Directory? getDartStorageDirectory() {
   var homeDir = Directory(userHomeDir());
   if (!homeDir.existsSync()) {
     return null;
@@ -133,11 +133,11 @@ class DartdevAnalytics extends AnalyticsImpl {
     }
 
     // If there's no explicit setting (enabled or disabled) then we don't send.
-    return (properties['enabled'] as bool) ?? false;
+    return (properties['enabled'] as bool?) ?? false;
   }
 
   bool get disclosureShownOnTerminal =>
-      (properties['disclosureShown'] as bool) ?? false;
+      (properties['disclosureShown'] as bool?) ?? false;
 
   set disclosureShownOnTerminal(bool value) {
     properties['disclosureShown'] = value;
@@ -171,7 +171,7 @@ class _LoggingAnalytics extends AnalyticsMock {
   bool get firstRun => false;
 
   @override
-  Future sendScreenView(String viewName, {Map<String, String> parameters}) {
+  Future sendScreenView(String viewName, {Map<String, String>? parameters}) {
     parameters ??= <String, String>{};
     parameters['viewName'] = viewName;
     return _log('screenView', parameters);
@@ -179,7 +179,7 @@ class _LoggingAnalytics extends AnalyticsMock {
 
   @override
   Future sendEvent(String category, String action,
-      {String label, int value, Map<String, String> parameters}) {
+      {String? label, int? value, Map<String, String>? parameters}) {
     parameters ??= <String, String>{};
     return _log(
         'event',
@@ -193,7 +193,7 @@ class _LoggingAnalytics extends AnalyticsMock {
 
   @override
   Future sendTiming(String variableName, int time,
-      {String category, String label}) {
+      {String? category, String? label}) {
     return _log('timing', {
       'variableName': variableName,
       'time': time,

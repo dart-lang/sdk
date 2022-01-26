@@ -13,9 +13,9 @@ void main() {
 }
 
 void pub() {
-  TestProject p;
+  TestProject p = project();
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   void _assertPubHelpInvoked(ProcessResult result) {
     expect(result, isNotNull);

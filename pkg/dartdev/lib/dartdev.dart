@@ -35,7 +35,7 @@ import 'src/vm_interop_handler.dart';
 
 /// This is typically called from bin/, but given the length of the method and
 /// analytics logic, it has been moved here.
-Future<void> runDartdev(List<String> args, SendPort port) async {
+Future<void> runDartdev(List<String> args, SendPort? port) async {
   VmInteropHandler.initialize(port);
 
   // TODO(sigurdm): Remove when top-level pub is removed.
@@ -61,7 +61,7 @@ Future<void> runDartdev(List<String> args, SendPort port) async {
   // Finally, call the runner to execute the command; see DartdevRunner.
 
   final runner = DartdevRunner(args);
-  var exitCode = 1;
+  int? exitCode = 1;
   try {
     exitCode = await runner.run(args);
   } on UsageException catch (e) {
@@ -86,7 +86,7 @@ class DartdevRunner extends CommandRunner<int> {
 
   final bool verbose;
 
-  Analytics _analytics;
+  late Analytics _analytics;
 
   DartdevRunner(List<String> args)
       : verbose = args.contains('-v') || args.contains('--verbose'),
@@ -221,15 +221,15 @@ class DartdevRunner extends CommandRunner<int> {
 
     // The exit code for the dartdev process; null indicates that it has not been
     // set yet. The value is set in the catch and finally blocks below.
-    int exitCode;
+    int? exitCode;
 
     // Any caught non-UsageExceptions when running the sub command.
-    Object exception;
-    StackTrace stackTrace;
+    Object? exception;
+    StackTrace? stackTrace;
     try {
       exitCode = await super.runCommand(topLevelResults);
 
-      if (path != null && analytics.enabled) {
+      if (analytics.enabled) {
         // Send the event to analytics
         unawaited(
           sendUsageEvent(
@@ -242,7 +242,8 @@ class DartdevRunner extends CommandRunner<int> {
                 // value.
                 //
                 // Note that this will also conflate short-options and long-options.
-                command?.options?.where(command.wasParsed)?.toList(),
+                command?.options.where(command.wasParsed).toList() ??
+                    const <String>[],
             specifiedExperiments: topLevelResults.enabledExperiments,
           ),
         );
@@ -263,7 +264,7 @@ class DartdevRunner extends CommandRunner<int> {
       if (analytics.enabled) {
         unawaited(
           analytics.sendTiming(
-            path ?? '',
+            path,
             stopwatch.elapsedMilliseconds,
             category: 'commands',
           ),

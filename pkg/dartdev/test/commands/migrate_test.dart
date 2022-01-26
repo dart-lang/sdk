@@ -15,9 +15,9 @@ void defineMigrateTests() {
   final runPubGet = contains('Run `dart pub get`');
   final setLowerSdkConstraint = contains('Set the lower SDK constraint');
 
-  TestProject p;
+  late TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   test('--help', () async {
     p = project();

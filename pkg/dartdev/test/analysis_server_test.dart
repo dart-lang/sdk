@@ -14,14 +14,14 @@ import 'utils.dart';
 
 void main() {
   group('AnalysisServer', () {
-    TestProject p;
+    late TestProject p;
 
     setUp(() {
       log = Logger.standard();
       p = project();
     });
 
-    tearDown(() async => await p?.dispose());
+    tearDown(() async => await p.dispose());
 
     test('can start', () async {
       AnalysisServer server = AnalysisServer(

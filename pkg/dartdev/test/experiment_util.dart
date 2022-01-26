@@ -12,7 +12,7 @@ import 'package:yaml/yaml.dart' as yaml;
 /// associated `validation` program.
 Future<List<Experiment>> experimentsWithValidation() async {
   final url = (await Isolate.resolvePackageUri(
-          Uri.parse('package:dartdev/dartdev.dart')))
+          Uri.parse('package:dartdev/dartdev.dart')))!
       .resolve('../../../tools/experimental_features.yaml');
   final experiments =
       yaml.loadYaml(File.fromUri(url).readAsStringSync(), sourceUrl: url);
@@ -28,14 +28,14 @@ Future<List<Experiment>> experimentsWithValidation() async {
   ];
 }
 
-Version tryParseVersion(String version) =>
+Version? tryParseVersion(String? version) =>
     version == null ? null : Version.parse(version);
 
 class Experiment {
   final String name;
   final String validation;
-  final Version enabledIn;
-  final Version experimentalReleaseVersion;
+  final Version? enabledIn;
+  final Version? experimentalReleaseVersion;
   Experiment(
     this.name,
     this.validation,

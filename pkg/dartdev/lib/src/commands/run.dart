@@ -196,22 +196,22 @@ class RunCommand extends DartdevCommand {
 
   @override
   FutureOr<int> run() async {
+    final args = argResults!;
     var mainCommand = '';
     var runArgs = <String>[];
-    if (argResults.rest.isNotEmpty) {
-      mainCommand = argResults.rest.first;
+    if (args.rest.isNotEmpty) {
+      mainCommand = args.rest.first;
       // The command line arguments after the command name.
-      runArgs = argResults.rest.skip(1).toList();
+      runArgs = args.rest.skip(1).toList();
     }
-
     if (!isProductMode) {
       // --launch-dds is provided by the VM if the VM service is to be enabled. In
       // that case, we need to launch DDS as well.
-      String launchDdsArg = argResults['launch-dds'];
+      String? launchDdsArg = args['launch-dds'];
       String ddsHost = '';
       String ddsPort = '';
 
-      bool launchDevTools = argResults['serve-devtools'];
+      bool launchDevTools = args['serve-devtools'] ?? false;
       bool launchDds = false;
       if (launchDdsArg != null) {
         launchDds = true;
@@ -219,9 +219,9 @@ class RunCommand extends DartdevCommand {
         ddsHost = ddsUrl[0];
         ddsPort = ddsUrl[1];
       }
-      final bool debugDds = argResults['debug-dds'];
+      final bool debugDds = args['debug-dds'];
 
-      bool disableServiceAuthCodes = argResults['disable-service-auth-codes'];
+      bool disableServiceAuthCodes = args['disable-service-auth-codes'];
 
       // If the user wants to start a debugging session we need to do some extra
       // work and spawn a Dart Development Service (DDS) instance. DDS is a VM
@@ -310,7 +310,7 @@ class _DebuggingSession {
     const devToolsMessagePrefix =
         'The Dart DevTools debugger and profiler is available at:';
     if (debugDds) {
-      StreamSubscription stdoutSub;
+      late StreamSubscription stdoutSub;
       stdoutSub = process.stdout.transform(utf8.decoder).listen((event) {
         if (event.startsWith(devToolsMessagePrefix)) {
           final ddsDebuggingUri = event.split(' ').last;
@@ -321,7 +321,7 @@ class _DebuggingSession {
         }
       });
     }
-    StreamSubscription stderrSub;
+    late StreamSubscription stderrSub;
     stderrSub = process.stderr.transform(utf8.decoder).listen((event) {
       final result = json.decode(event) as Map<String, dynamic>;
       final state = result['state'];

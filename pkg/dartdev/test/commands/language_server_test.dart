@@ -21,10 +21,10 @@ void main() {
 }
 
 void defineLanguageServerTests() {
-  utils.TestProject project;
-  Process process;
+  late utils.TestProject project;
+  Process? process;
 
-  tearDown(() async => await project?.dispose());
+  tearDown(() async => await project.dispose());
 
   Future runWithLsp(List<String> args) async {
     project = utils.project();
@@ -32,7 +32,7 @@ void defineLanguageServerTests() {
     process = await project.start(args);
 
     final Stream<String> inStream =
-        process.stdout.transform<String>(utf8.decoder);
+        process!.stdout.transform<String>(utf8.decoder);
 
     // Send an LSP init.
     final String message = jsonEncode({
@@ -47,9 +47,9 @@ void defineLanguageServerTests() {
       },
     });
 
-    process.stdin.write('Content-Length: ${message.length}\r\n');
-    process.stdin.write('\r\n');
-    process.stdin.write(message);
+    process!.stdin.write('Content-Length: ${message.length}\r\n');
+    process!.stdin.write('\r\n');
+    process!.stdin.write(message);
 
     List<String> responses = await inStream.take(2).toList();
     expect(responses, hasLength(2));
@@ -65,7 +65,7 @@ void defineLanguageServerTests() {
     final serverInfo = result['serverInfo'];
     expect(serverInfo['name'], isNotEmpty);
 
-    process.kill();
+    process!.kill();
     process = null;
   }
 
@@ -82,7 +82,7 @@ void defineLanguageServerTests() {
 
     process = await project.start(['language-server', '--protocol=analyzer']);
 
-    final Stream<String> inStream = process.stdout
+    final Stream<String> inStream = process!.stdout
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter());
 
@@ -95,7 +95,7 @@ void defineLanguageServerTests() {
     expect(params['version'], isNotEmpty);
     expect(params['pid'], isNot(0));
 
-    process.kill();
+    process!.kill();
     process = null;
   });
 }

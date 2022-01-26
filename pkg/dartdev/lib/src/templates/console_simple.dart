@@ -17,16 +17,16 @@ class ConsoleSimpleGenerator extends DefaultGenerator {
     addFile('pubspec.yaml', _pubspec);
     addFile('README.md', _readme);
     setEntrypoint(
-      addFile('bin/__projectName__.dart', main),
+      addFile('bin/__projectName__.dart', mainSrc),
     );
   }
 
   @override
   String getInstallInstructions(
-    String directory,
-    String scriptPath,
-  ) =>
-      super.getInstallInstructions(directory, null);
+    String directory, {
+    String? scriptPath,
+  }) =>
+      super.getInstallInstructions(directory);
 }
 
 final String _pubspec = '''
@@ -49,7 +49,7 @@ final String _readme = '''
 A simple command-line application.
 ''';
 
-final String main = '''
+final String mainSrc = '''
 void main(List<String> arguments) {
   print('Hello world!');
 }

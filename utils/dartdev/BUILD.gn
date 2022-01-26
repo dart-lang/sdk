@@ -25,6 +25,7 @@ application_snapshot("generate_dartdev_kernel") {
   main_dart = "../../pkg/dartdev/bin/dartdev.dart"
   training_args = []
   deps = [ "../dds:dds" ]
+  vm_args = [ "--sound-null-safety" ]
   output = "$root_gen_dir/dartdev.dill"
 }
 
@@ -39,6 +40,7 @@ application_snapshot("generate_dartdev_snapshot") {
   main_dart = "../../pkg/dartdev/bin/dartdev.dart"
   training_args = [ "--help" ]
   deps = [ "../dds:dds" ]
+  vm_args = [ "--sound-null-safety" ]
   output = "$root_gen_dir/dartdev.dart.snapshot"
 }
 

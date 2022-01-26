@@ -25,10 +25,10 @@ class ConsoleFullGenerator extends DefaultGenerator {
 
   @override
   String getInstallInstructions(
-    String directory,
-    String scriptPath,
-  ) =>
-      super.getInstallInstructions(directory, null);
+    String directory, {
+    String? scriptPath,
+  }) =>
+      super.getInstallInstructions(directory);
 }
 
 final String _pubspec = '''

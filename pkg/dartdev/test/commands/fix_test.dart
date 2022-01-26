@@ -18,9 +18,9 @@ void main() {
 const runFromSource = false;
 
 void defineFix() {
-  TestProject p;
+  TestProject? p;
 
-  ProcessResult result;
+  late ProcessResult result;
 
   final bullet = Logger.standard().ansi.bullet;
 
@@ -52,18 +52,18 @@ ${result.stderr}
 ''');
   }
 
-  Future<ProcessResult> runFix(List<String> args, {String workingDir}) async {
+  Future<ProcessResult> runFix(List<String> args, {String? workingDir}) async {
     if (runFromSource) {
       var binary = path.join(Directory.current.path, 'bin', 'dartdev.dart');
-      return await p.run([binary, 'fix', ...?args], workingDir: workingDir);
+      return await p!.run([binary, 'fix', ...args], workingDir: workingDir);
     }
-    return await p.run(['fix', ...args], workingDir: workingDir);
+    return await p!.run(['fix', ...args], workingDir: workingDir);
   }
 
   test('--help', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = await runFix([p.dirPath, '--help']);
+    var result = await runFix([p!.dirPath, '--help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -79,7 +79,7 @@ ${result.stderr}
   test('--help --verbose', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = await runFix([p.dirPath, '--help', '--verbose']);
+    var result = await runFix([p!.dirPath, '--help', '--verbose']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -98,7 +98,7 @@ ${result.stderr}
   test('none', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = await runFix([p.dirPath]);
+    var result = await runFix([p!.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -109,7 +109,7 @@ ${result.stderr}
   test('--apply (none)', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = await runFix(['--apply', p.dirPath]);
+    var result = await runFix(['--apply', p!.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -128,7 +128,7 @@ linter:
 ''',
     );
 
-    var result = await runFix(['--apply'], workingDir: p.dirPath);
+    var result = await runFix(['--apply'], workingDir: p!.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -158,7 +158,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = await runFix(['--dry-run', '.'], workingDir: p.dirPath);
+    var result = await runFix(['--dry-run', '.'], workingDir: p!.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -182,7 +182,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
+    var result = await runFix(['--apply', '.'], workingDir: p!.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -207,7 +207,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
+    var result = await runFix(['--apply', '.'], workingDir: p!.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -235,7 +235,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
+    var result = await runFix(['--apply', '.'], workingDir: p!.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
@@ -253,7 +253,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
+    var result = await runFix(['--apply', '.'], workingDir: p!.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Nothing to fix!'));
@@ -272,7 +272,7 @@ linter:
     - prefer_single_quotes
 ''',
     );
-    var result = await runFix(['--apply', '.'], workingDir: p.dirPath);
+    var result = await runFix(['--apply', '.'], workingDir: p!.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -305,7 +305,7 @@ linter:
     - prefer_single_quotes
 ''',
       );
-      p.file('lib/main.dart.expect', '''
+      p!.file('lib/main.dart.expect', '''
 class A {
   String a() => '';
 }
@@ -315,7 +315,7 @@ class B extends A {
 }
 ''');
       result =
-          await runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+          await runFix(['--compare-to-golden', '.'], workingDir: p!.dirPath);
       assertResult(exitCode: 1);
     });
 
@@ -337,7 +337,7 @@ linter:
     - prefer_single_quotes
 ''',
       );
-      p.file('lib/main.dart.expect', '''
+      p!.file('lib/main.dart.expect', '''
 class A {
   String a() => '';
 }
@@ -348,7 +348,7 @@ class B extends A {
 }
 ''');
       result =
-          await runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+          await runFix(['--compare-to-golden', '.'], workingDir: p!.dirPath);
       assertResult();
     });
 
@@ -371,7 +371,7 @@ linter:
 ''',
       );
       result =
-          await runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+          await runFix(['--compare-to-golden', '.'], workingDir: p!.dirPath);
       assertResult(exitCode: 1);
     });
 
@@ -379,14 +379,14 @@ linter:
       p = project(mainSrc: '''
 class C {}
 ''');
-      p.file('lib/main.dart.expect', '''
+      p!.file('lib/main.dart.expect', '''
 class C {}
 ''');
-      p.file('lib/secondary.dart.expect', '''
+      p!.file('lib/secondary.dart.expect', '''
 class A {}
 ''');
       result =
-          await runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+          await runFix(['--compare-to-golden', '.'], workingDir: p!.dirPath);
       assertResult(exitCode: 1);
     });
 
@@ -403,13 +403,13 @@ linter:
     - annotate_overrides
 ''',
       );
-      p.file('lib/main.dart.expect', '''
+      p!.file('lib/main.dart.expect', '''
 class A {
   String a() => '';
 }
 ''');
       result =
-          await runFix(['--compare-to-golden', '.'], workingDir: p.dirPath);
+          await runFix(['--compare-to-golden', '.'], workingDir: p!.dirPath);
       assertResult(exitCode: 1);
     });
   });
