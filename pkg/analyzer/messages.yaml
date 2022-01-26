@@ -7304,17 +7304,26 @@ CompileTimeErrorCode:
       var m = <String, int>{'a' : 2};
       ```
   MISSING_CONST_IN_LIST_LITERAL:
-    problemMessage: "List literals must be prefixed with 'const' when used as a constant expression."
-    correctionMessage: "Try adding the keyword 'const' before the literal."
-    comment: "12.1 Constants: A constant expression is ... a constant list literal."
+    problemMessage: Seeing this message constitutes a bug. Please report it.
+    comment: |-
+      12.1 Constants: A constant expression is ... a constant list literal.
+      
+      Note: This diagnostic is never displayed to the user, so it doesn't need
+      to be documented.
   MISSING_CONST_IN_MAP_LITERAL:
-    problemMessage: "Map literals must be prefixed with 'const' when used as a constant expression."
-    correctionMessage: "Try adding the keyword 'const' before the literal."
-    comment: "12.1 Constants: A constant expression is ... a constant map literal."
+    problemMessage: Seeing this message constitutes a bug. Please report it.
+    comment: |-
+      12.1 Constants: A constant expression is ... a constant map literal.
+
+      Note: This diagnostic is never displayed to the user, so it doesn't need
+      to be documented.
   MISSING_CONST_IN_SET_LITERAL:
-    problemMessage: "Set literals must be prefixed with 'const' when used as a constant expression."
-    correctionMessage: "Try adding the keyword 'const' before the literal."
-    comment: "12.1 Constants: A constant expression is ... a constant set literal."
+    problemMessage: Seeing this message constitutes a bug. Please report it.
+    comment: |-
+      12.1 Constants: A constant expression is ... a constant set literal.
+
+      Note: This diagnostic is never displayed to the user, so it doesn't need
+      to be documented.
   MISSING_DART_LIBRARY:
     problemMessage: "Required library '{0}' is missing."
     correctionMessage: Re-install the Dart or Flutter SDK.
