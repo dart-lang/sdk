@@ -1189,7 +1189,10 @@ class CodeKeyValueTrait {
   static Value ValueOf(Pair kv) { return kv; }
 
   static inline uword Hash(Key key) {
-    return Utils::WordHash(Instructions::Hash(key->instructions()));
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
+    return Utils::WordHash(
+        CombineHashes(Instructions::Hash(key->instructions()),
+                      static_cast<uword>(key->static_calls_target_table())));
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -1397,6 +1400,9 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
 
   if (FLAG_precompiled_mode) {
     StackZone stack_zone(thread);
+    // CodeKeyValueTrait::Hash is based on object addresses, so make
+    // sure GC doesn't happen and doesn't move objects.
+    NoSafepointScope no_safepoint;
     DedupInstructionsWithSameMetadataVisitor visitor(thread->zone());
     WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
     visitor.PostProcess(thread->isolate_group());

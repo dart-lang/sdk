@@ -7118,9 +7118,12 @@ void PatchClass::set_library_kernel_data(const ExternalTypedData& data) const {
 }
 
 uword Function::Hash() const {
-  const uword hash = String::HashRawSymbol(name());
+  uword hash = String::HashRawSymbol(name());
+  if (IsClosureFunction()) {
+    hash = hash ^ token_pos().Hash();
+  }
   if (untag()->owner()->IsClass()) {
-    return hash ^ Class::RawCast(untag()->owner())->untag()->id();
+    hash = hash ^ Class::RawCast(untag()->owner())->untag()->id();
   }
   return hash;
 }
