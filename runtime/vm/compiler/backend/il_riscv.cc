@@ -4027,7 +4027,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       __ SmiUntag(TMP2, left);
       __ srl(TMP, TMP2, TMP);
-      __ SmiTag(result);
+      __ SmiTag(result, TMP);
       if (deopt != nullptr) {
         __ SmiUntag(TMP2, result);
         __ bne(TMP, TMP2, deopt);

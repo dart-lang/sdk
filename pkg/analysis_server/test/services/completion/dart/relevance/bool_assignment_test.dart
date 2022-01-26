@@ -10,7 +10,7 @@ import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    // defineReflectiveTests(BoolAssignmentTest1);
+    defineReflectiveTests(BoolAssignmentTest1);
     defineReflectiveTests(BoolAssignmentTest2);
   });
 }

@@ -8431,35 +8431,38 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * 12.1 Constants: A constant expression is ... a constant list literal.
+   *
+   * Note: This diagnostic is never displayed to the user, so it doesn't need
+   * to be documented.
    */
   static const CompileTimeErrorCode MISSING_CONST_IN_LIST_LITERAL =
       CompileTimeErrorCode(
     'MISSING_CONST_IN_LIST_LITERAL',
-    "List literals must be prefixed with 'const' when used as a constant "
-        "expression.",
-    correctionMessage: "Try adding the keyword 'const' before the literal.",
+    "Seeing this message constitutes a bug. Please report it.",
   );
 
   /**
    * 12.1 Constants: A constant expression is ... a constant map literal.
+   *
+   * Note: This diagnostic is never displayed to the user, so it doesn't need
+   * to be documented.
    */
   static const CompileTimeErrorCode MISSING_CONST_IN_MAP_LITERAL =
       CompileTimeErrorCode(
     'MISSING_CONST_IN_MAP_LITERAL',
-    "Map literals must be prefixed with 'const' when used as a constant "
-        "expression.",
-    correctionMessage: "Try adding the keyword 'const' before the literal.",
+    "Seeing this message constitutes a bug. Please report it.",
   );
 
   /**
    * 12.1 Constants: A constant expression is ... a constant set literal.
+   *
+   * Note: This diagnostic is never displayed to the user, so it doesn't need
+   * to be documented.
    */
   static const CompileTimeErrorCode MISSING_CONST_IN_SET_LITERAL =
       CompileTimeErrorCode(
     'MISSING_CONST_IN_SET_LITERAL',
-    "Set literals must be prefixed with 'const' when used as a constant "
-        "expression.",
-    correctionMessage: "Try adding the keyword 'const' before the literal.",
+    "Seeing this message constitutes a bug. Please report it.",
   );
 
   /**
