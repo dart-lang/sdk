@@ -227,7 +227,16 @@ abstract class MacroClassIdentifier implements Serializable {}
 /// [MacroExecutor.instantiateMacro].
 ///
 /// Used to execute or reload this macro in the future.
-abstract class MacroInstanceIdentifier implements Serializable {}
+abstract class MacroInstanceIdentifier implements Serializable {
+  /// Whether or not this instance should run in [phase] on [declarationKind].
+  ///
+  /// Attempting to execute a macro in a phase it doesn't support, or on a
+  /// declaration kind it doesn't support is an error.
+  bool shouldExecute(DeclarationKind declarationKind, Phase phase);
+
+  /// Whether or not this macro supports [declarationKind] in any phase.
+  bool supportsDeclarationKind(DeclarationKind declarationKind);
+}
 
 /// A summary of the results of running a macro in a given phase.
 ///
@@ -240,6 +249,16 @@ abstract class MacroExecutionResult implements Serializable {
 
   /// Any augmentations that should be applied as a result of executing a macro.
   Iterable<DeclarationCode> get augmentations;
+}
+
+/// Each of the possible types of declarations a macro can be applied to
+enum DeclarationKind {
+  clazz,
+  constructor,
+  field,
+  function,
+  method,
+  variable,
 }
 
 /// Each of the different macro execution phases.

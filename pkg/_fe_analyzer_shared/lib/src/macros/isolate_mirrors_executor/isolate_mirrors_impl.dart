@@ -73,7 +73,8 @@ Future<Response> _instantiateMacro(InstantiateMacroRequest request) async {
       for (MapEntry<String, Object?> entry in request.arguments.named.entries)
         new Symbol(entry.key): entry.value,
     }).reflectee as Macro;
-    MacroInstanceIdentifierImpl identifier = new MacroInstanceIdentifierImpl();
+    MacroInstanceIdentifierImpl identifier =
+        new MacroInstanceIdentifierImpl(instance);
     _macroInstances[identifier] = instance;
     return new Response(
         response: identifier,
