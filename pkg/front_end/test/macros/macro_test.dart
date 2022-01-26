@@ -343,6 +343,14 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
 
   @override
   void serialize(Serializer serializer) => throw UnimplementedError();
+
+  @override
+  bool shouldExecute(DeclarationKind declarationKind, Phase phase) =>
+      throw new UnimplementedError();
+
+  @override
+  bool supportsDeclarationKind(DeclarationKind declarationKind) =>
+      throw new UnimplementedError();
 }
 
 class _MacroExecutionResult implements MacroExecutionResult {

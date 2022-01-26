@@ -8,6 +8,8 @@ import "dart:convert" show JsonEncoder;
 
 import "dart:io" show File, IOSink;
 
+import 'dart:typed_data' show Uint8List;
+
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 
 import "package:front_end/src/api_prototype/compiler_options.dart"
@@ -48,7 +50,7 @@ import 'package:vm/target/vm.dart' show VmTarget;
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
 import '../../lib/src/fasta/kernel/utils.dart'
-    show writeComponentToFile, serializeProcedure;
+    show serializeComponent, serializeProcedure;
 
 import '../utils/kernel_chain.dart' show runDiff, openWrite;
 
@@ -375,17 +377,16 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       Component component = sourceCompilerResult.component;
       var errors = context.takeErrors();
       if (!errors.isEmpty) {
-        return fail(tests, "Couldn't compile entry-point: $errors");
+        return fail(
+            tests,
+            "Couldn't compile entry-point: "
+            "${errors.map((e) => e.plainTextFormatted.first).toList()}");
       }
       Uri dillFileUri = new Uri(
           scheme: test.entryPoint!.scheme,
           path: test.entryPoint!.path + ".dill");
-      File dillFile = new File.fromUri(dillFileUri);
-      if (!await dillFile.exists()) {
-        await writeComponentToFile(component, dillFileUri);
-        context.fileSystem.entityForUri(dillFileUri).writeAsBytesSync(
-            await new File.fromUri(dillFileUri).readAsBytes());
-      }
+      Uint8List dillData = await serializeComponent(component);
+      context.fileSystem.entityForUri(dillFileUri).writeAsBytesSync(dillData);
       await compileExpression(test, sourceCompiler, component, context);
 
       var dillCompiler =
@@ -394,7 +395,6 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
           await dillCompiler.computeDelta(entryPoints: [test.entryPoint!]);
       component = dillCompilerResult.component;
       component.computeCanonicalNames();
-      await dillFile.delete();
 
       errors = context.takeErrors();
       // Since it compiled successfully from source, the bootstrap-from-Dill

@@ -5,6 +5,9 @@
 library main;
 
 import 'dart:io' show File, Process, exit;
+import 'dart:collection';
+
+class Entry extends LinkedListEntry<Entry> {}
 
 List<String> listOfStrings = ["hello"];
 
@@ -91,4 +94,9 @@ extension Foo on String {
   int getFortyTwo() {
     return 42;
   }
+}
+
+class E<T> {
+  T _t;
+  T get t => _t;
 }

@@ -122,7 +122,7 @@ Future<SerializableResponse> _instantiateMacro(
       for (MapEntry<String, Object?> entry in request.arguments.named.entries)
         new Symbol(entry.key): entry.value,
     }) as Macro;
-    var identifier = new MacroInstanceIdentifierImpl();
+    var identifier = new MacroInstanceIdentifierImpl(instance);
     _macroInstances[identifier] = instance;
     return new SerializableResponse(
         responseType: MessageType.macroInstanceIdentifier,

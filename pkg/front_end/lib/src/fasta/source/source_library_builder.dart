@@ -4576,8 +4576,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     assert(currentTypeParameterScopeBuilder.kind ==
         TypeParameterScopeKind.library);
-    for (SourceExtensionBuilder extensionBuilder
+    for (ExtensionBuilder _extensionBuilder
         in currentTypeParameterScopeBuilder.extensions!) {
+      ExtensionBuilder extensionBuilder = _extensionBuilder;
+      if (extensionBuilder is! SourceExtensionBuilder) continue;
       DartType onType = extensionBuilder.extension.onType;
       if (onType is InterfaceType) {
         ExtensionTypeShowHideClause showHideClause =
@@ -4924,7 +4926,7 @@ class TypeParameterScopeBuilder {
 
   final Map<String, MemberBuilder>? setters;
 
-  final Set<SourceExtensionBuilder>? extensions;
+  final Set<ExtensionBuilder>? extensions;
 
   final List<NamedTypeBuilder> unresolvedNamedTypes = <NamedTypeBuilder>[];
 
@@ -4965,7 +4967,7 @@ class TypeParameterScopeBuilder {
             <String, Builder>{},
             <String, MemberBuilder>{},
             null, // No support for constructors in library scopes.
-            <SourceExtensionBuilder>{},
+            <ExtensionBuilder>{},
             "<library>",
             -1,
             null);

@@ -104,7 +104,6 @@ class VMLibraryHooks {
 
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
-@pragma("vm:external-name", "Internal_has63BitSmis")
 external bool get has63BitSmis;
 
 @pragma("vm:recognized", "other")
@@ -168,8 +167,7 @@ external T unsafeCast<T>(Object? v);
 // This function can be used to keep an object alive till that point.
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
-@pragma("vm:external-name", "Internal_reachabilityFence")
-external void reachabilityFence(Object object);
+external void reachabilityFence(Object? object);
 
 // This function can be used to encode native side effects.
 //

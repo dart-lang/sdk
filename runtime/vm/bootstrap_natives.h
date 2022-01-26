@@ -138,16 +138,6 @@ namespace dart {
   V(String_toLowerCase, 1)                                                     \
   V(String_toUpperCase, 1)                                                     \
   V(String_concatRange, 3)                                                     \
-  V(Math_sqrt, 1)                                                              \
-  V(Math_sin, 1)                                                               \
-  V(Math_cos, 1)                                                               \
-  V(Math_tan, 1)                                                               \
-  V(Math_asin, 1)                                                              \
-  V(Math_acos, 1)                                                              \
-  V(Math_atan, 1)                                                              \
-  V(Math_atan2, 2)                                                             \
-  V(Math_exp, 1)                                                               \
-  V(Math_log, 1)                                                               \
   V(Math_doublePow, 2)                                                         \
   V(Random_nextState, 1)                                                       \
   V(Random_setupSeed, 1)                                                       \
@@ -330,11 +320,9 @@ namespace dart {
   V(GrowableList_setData, 2)                                                   \
   V(Internal_unsafeCast, 1)                                                    \
   V(Internal_nativeEffect, 1)                                                  \
-  V(Internal_reachabilityFence, 1)                                             \
   V(Internal_collectAllGarbage, 0)                                             \
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
-  V(Internal_has63BitSmis, 0)                                                  \
   V(Internal_extractTypeArguments, 2)                                          \
   V(Internal_prependTypeArguments, 4)                                          \
   V(Internal_boundsCheckForPartialInstantiation, 2)                            \

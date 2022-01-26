@@ -164,43 +164,33 @@ double log(num x) => _log(x.toDouble());
 
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_atan2")
 external double _atan2(double a, double b);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_sin")
 external double _sin(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_cos")
 external double _cos(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_tan")
 external double _tan(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_acos")
 external double _acos(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_asin")
 external double _asin(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_atan")
 external double _atan(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_sqrt")
 external double _sqrt(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_exp")
 external double _exp(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
-@pragma("vm:external-name", "Math_log")
 external double _log(double x);
 
 // TODO(iposva): Handle patch methods within a patch class correctly.

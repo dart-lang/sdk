@@ -1737,10 +1737,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         packageLanguageVersion:
             new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
         loader: lastGoodKernelTarget.loader,
-        scope: libraryBuilder.scope.createNestedScope("expression"),
         nameOrigin: libraryBuilder,
         isUnsupported: libraryBuilder.isUnsupported,
       );
+      libraryBuilder.scope.forEachLocalMember((name, member) {
+        debugLibrary.scope.addLocalMember(name, member, setter: false);
+      });
+      libraryBuilder.scope.forEachLocalSetter((name, member) {
+        debugLibrary.scope.addLocalMember(name, member, setter: true);
+      });
+      libraryBuilder.scope.forEachLocalExtension((member) {
+        debugLibrary.scope.addExtension(member);
+      });
       _ticker.logMs("Created debug library");
 
       if (libraryBuilder is DillLibraryBuilder) {
