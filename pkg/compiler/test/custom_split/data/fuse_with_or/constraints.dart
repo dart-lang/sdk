@@ -1,4 +1,4 @@
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,15 +12,15 @@ void main(List<String> args, SendPort sendPort) {
 }
 
 List<Node> processDeferredImports(List<String> imports) {
-  var step1 = 'memory:sdk/tests/web/native/main.dart#step1';
-  var step2a = 'memory:sdk/tests/web/native/main.dart#step2a';
-  var step2b = 'memory:sdk/tests/web/native/main.dart#step2b';
-  var step3 = 'memory:sdk/tests/web/native/main.dart#step3';
+  var lib1 = 'memory:sdk/tests/web/native/lib1.dart#b1';
+  var lib2 = 'memory:sdk/tests/web/native/lib2.dart#b2';
+  var lib3 = 'memory:sdk/tests/web/native/lib3.dart#b3';
+  var lib4 = 'memory:sdk/tests/web/native/lib4.dart#b4';
   var builder = ProgramSplitBuilder();
   return [
     ...imports.map(builder.referenceNode),
-    builder.fuseNode({step2a, step2b}),
-    builder.orderNode(step1, step2a),
-    builder.orderNode(step2b, step3),
+    builder.orNode('lib1_or_lib2', {lib1, lib2}),
+    builder.fuseNode({'lib1_or_lib2', lib3}),
+    builder.orderNode(lib3, lib4),
   ];
 }

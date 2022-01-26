@@ -28,12 +28,12 @@
     ]
   },
   {
-    "type": "order",
+    "type": "relative_order",
     "predecessor": "memory:sdk/tests/web/native/main.dart#step1",
     "successor": "step2"
   },
   {
-    "type": "order",
+    "type": "relative_order",
     "predecessor": "step2",
     "successor": "memory:sdk/tests/web/native/main.dart#step3"
   }

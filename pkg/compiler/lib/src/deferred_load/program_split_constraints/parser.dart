@@ -10,7 +10,7 @@ import 'nodes.dart';
 /// [ConstraintData] object.
 class Parser {
   final Map<String, NamedNode> nameMap = {};
-  final List<RelativeOrderNode> orderedNodes = [];
+  final List<OrderNode> orderedNodes = [];
 
   void parseReference(Map<String, dynamic> nodeJson) {
     var reference = ReferenceNode.fromJson(nodeJson);
@@ -22,8 +22,12 @@ class Parser {
     nameMap[combinerNode.name] = combinerNode;
   }
 
-  void parseOrder(Map<String, dynamic> nodeJson) {
+  void parseRelativeOrder(Map<String, dynamic> nodeJson) {
     orderedNodes.add(RelativeOrderNode.fromJson(nodeJson, nameMap));
+  }
+
+  void parseFuse(Map<String, dynamic> nodeJson) {
+    orderedNodes.add(FuseNode.fromJson(nodeJson, nameMap));
   }
 
   /// Reads a program split constraints json file string and returns a [Nodes]
@@ -32,19 +36,22 @@ class Parser {
     List<dynamic> doc = json.decode(programSplitJson);
     List<Map<String, dynamic>> referenceConstraints = [];
     List<Map<String, dynamic>> combinerConstraints = [];
-    List<Map<String, dynamic>> orderConstraints = [];
+    List<Map<String, dynamic>> fuseConstraints = [];
+    List<Map<String, dynamic>> relativeOrderConstraints = [];
     for (Map<String, dynamic> constraint in doc) {
       switch (constraint['type']) {
         case 'reference':
           referenceConstraints.add(constraint);
           break;
         case 'and':
-        case 'fuse':
         case 'or':
           combinerConstraints.add(constraint);
           break;
-        case 'order':
-          orderConstraints.add(constraint);
+        case 'fuse':
+          fuseConstraints.add(constraint);
+          break;
+        case 'relative_order':
+          relativeOrderConstraints.add(constraint);
           break;
         default:
           throw 'Unrecognized constraint type in $constraint';
@@ -54,7 +61,8 @@ class Parser {
     // Parse references, than combiners, than finally sequences.
     referenceConstraints.forEach(parseReference);
     combinerConstraints.forEach(parseCombiner);
-    orderConstraints.forEach(parseOrder);
+    fuseConstraints.forEach(parseFuse);
+    relativeOrderConstraints.forEach(parseRelativeOrder);
     return ConstraintData(nameMap.values.toList(), orderedNodes);
   }
 }

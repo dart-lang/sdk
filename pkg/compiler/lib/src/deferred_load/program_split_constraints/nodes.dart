@@ -71,13 +71,11 @@ class ReferenceNode extends NamedNode {
 
 /// A [CombinerType] defines how to combine multiple [ReferenceNode]s in a
 /// single step.
-enum CombinerType { fuse, and, or }
+enum CombinerType { and, or }
 
 CombinerType parseCombinerType(Map<String, dynamic> nodeJson) {
   String type = nodeJson['type'];
   switch (type) {
-    case 'fuse':
-      return CombinerType.fuse;
     case 'and':
       return CombinerType.and;
     case 'or':
@@ -89,8 +87,6 @@ CombinerType parseCombinerType(Map<String, dynamic> nodeJson) {
 
 String combinerTypeToString(CombinerType type) {
   switch (type) {
-    case CombinerType.fuse:
-      return 'fuse';
     case CombinerType.and:
       return 'and';
     case CombinerType.or:
@@ -151,9 +147,13 @@ class CombinerNode extends NamedNode {
   }
 }
 
+/// An [OrderNode] is a [Node] without a name that indicates a temporal
+/// constraint.
+abstract class OrderNode extends Node {}
+
 /// A [RelativeOrderNode] is an unnamed [Node] which defines a relative
 /// load order between two [NamedNode]s.
-class RelativeOrderNode extends Node {
+class RelativeOrderNode extends OrderNode {
   final NamedNode predecessor;
   final NamedNode successor;
 
@@ -165,7 +165,7 @@ class RelativeOrderNode extends Node {
   @override
   Map<String, dynamic> toJson() {
     return {
-      'type': 'order',
+      'type': 'relative_order',
       'predecessor': predecessor.name,
       'successor': successor.name
     };
@@ -182,6 +182,35 @@ class RelativeOrderNode extends Node {
   String toString() {
     return 'RelativeOrderNode(predecessor=${predecessor.name}, '
         'successor=${successor.name})';
+  }
+}
+
+/// A [FuseNode] is an [OrderNode] with a list of [NamedNode] children.
+/// A [FuseNode] joins its children into a strongly connected component.
+class FuseNode extends OrderNode {
+  final Set<NamedNode> nodes;
+
+  FuseNode(this.nodes);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {'type': 'fuse', 'nodes': nodes.map((node) => node.name).toList()};
+  }
+
+  static FuseNode fromJson(
+      Map<String, dynamic> nodeJson, Map<String, NamedNode> nameMap) {
+    List<dynamic> referencesJson = _jsonLookup(nodeJson, 'nodes');
+    Set<NamedNode> nodes = {};
+    for (String reference in referencesJson) {
+      nodes.add(nameMap[reference]);
+    }
+    return FuseNode(nodes);
+  }
+
+  @override
+  String toString() {
+    var nodeNames = nodes.map((node) => node.name).join(', ');
+    return 'FuseNode(nodes=$nodeNames)';
   }
 }
 
@@ -221,6 +250,14 @@ class ProgramSplitBuilder {
     return namedNodes[nodeName];
   }
 
+  ReferenceNode _lookupReferenceNode(String nodeName) {
+    var node = _lookupNamedNode(nodeName);
+    if (node is! ReferenceNode) {
+      throw 'node $nodeName is not a ReferenceNode.';
+    }
+    return node as ReferenceNode;
+  }
+
   /// Returns a [ReferenceNode] referencing [importUriAndPrefix].
   /// [ReferenceNode]s are typically created in bulk, by mapping over a list of
   /// strings of imports in the form 'uri#prefix'. In further builder calls,
@@ -242,16 +279,8 @@ class ProgramSplitBuilder {
   /// Creates a [CombinerNode] which can be referenced by [name] in further
   /// calls to the builder.
   CombinerNode combinerNode(String name, Set<String> nodes, CombinerType type) {
-    ReferenceNode _lookup(String nodeName) {
-      var node = _lookupNamedNode(nodeName);
-      if (node is! ReferenceNode) {
-        // TODO(joshualitt): Implement nested combiners.
-        throw '$name references node $nodeName which is not a ReferenceNode.';
-      }
-      return node as ReferenceNode;
-    }
-
-    return _addNamedNode(CombinerNode(name, type, nodes.map(_lookup).toSet()));
+    return _addNamedNode(
+        CombinerNode(name, type, nodes.map(_lookupReferenceNode).toSet()));
   }
 
   /// Creates an 'and' [CombinerNode] which can be referenced by [name] in
@@ -260,10 +289,10 @@ class ProgramSplitBuilder {
     return combinerNode(name, nodes, CombinerType.and);
   }
 
-  /// Creates a 'fuse' [CombinerNode] which can be referenced by [name] in
-  /// further calls to the builder.
-  CombinerNode fuseNode(String name, Set<String> nodes) {
-    return combinerNode(name, nodes, CombinerType.fuse);
+  /// Creates a [FuseNode], which is a type of [OrderNode] indicating a
+  /// [Set<String>] nodes can always be loaded together.
+  FuseNode fuseNode(Set<String> nodes) {
+    return FuseNode(nodes.map(_lookupNamedNode).toSet());
   }
 
   /// Creates an 'or' [CombinerNode] which can be referenced by [name] in
@@ -277,7 +306,7 @@ class ProgramSplitBuilder {
 /// program split constraints.
 class ConstraintData {
   final List<NamedNode> named;
-  final List<RelativeOrderNode> ordered;
+  final List<OrderNode> ordered;
 
   ConstraintData(this.named, this.ordered);
 }
