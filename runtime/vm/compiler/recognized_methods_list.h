@@ -187,7 +187,7 @@ namespace dart {
   V(_WeakProperty, get:value, WeakProperty_getValue, 0xd2f28aae)               \
   V(_WeakProperty, set:value, WeakProperty_setValue, 0x8b2bafab)               \
   V(::, _classRangeCheck, ClassRangeCheck, 0x00269620)                         \
-  V(::, _abi, FfiAbi, 0x7c4ab775)                                              \
+  V(::, _abi, FfiAbi, 0x7c4ab3b4)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x92ae104f)                \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x3ff5ae9c)        \
   V(::, _nativeEffect, NativeEffect, 0x61e00b59)                               \
@@ -234,7 +234,7 @@ namespace dart {
   V(::, _asExternalTypedDataFloat, FfiAsExternalTypedDataFloat, 0x6f465e0c)    \
   V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40cdd9e1)  \
   V(::, _getNativeField, GetNativeField, 0xa0139b85)                           \
-  V(::, reachabilityFence, ReachabilityFence, 0x619235c1)                      \
+  V(::, reachabilityFence, ReachabilityFence, 0x730f2b7f)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0x1dcaf73d)                          \
   V(_Future, timeout, FutureTimeout, 0x73041520)                               \
   V(Future, wait, FutureWait, 0x495c83cd)                                      \

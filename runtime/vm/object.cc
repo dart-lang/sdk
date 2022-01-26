@@ -8165,7 +8165,7 @@ bool Function::CanBeInlined() const {
     return false;
   }
 
-  return is_inlinable() && !is_external() && !is_generated_body();
+  return is_inlinable() && !is_generated_body();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

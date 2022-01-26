@@ -226,8 +226,6 @@ class Array<T extends NativeType> {
 /// calculations. See pkg/vm/lib/transformations/ffi.dart.
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
-@pragma("vm:external-name",
-    "Recognized method: IR graph is built in the flow graph builder.")
 external int _abi();
 
 @patch

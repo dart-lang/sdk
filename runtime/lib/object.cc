@@ -316,10 +316,6 @@ DEFINE_NATIVE_ENTRY(Internal_nativeEffect, 0, 1) {
   UNREACHABLE();
 }
 
-DEFINE_NATIVE_ENTRY(Internal_reachabilityFence, 0, 1) {
-  UNREACHABLE();
-}
-
 DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
   isolate->group()->heap()->CollectAllGarbage();
   return Object::null();
