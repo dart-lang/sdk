@@ -1055,6 +1055,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
+      {CompletionContext? context}) async {
+    final response = await getCompletionList(uri, pos, context: context);
+    return response.items;
+  }
+
+  Future<CompletionList> getCompletionList(Uri uri, Position pos,
       {CompletionContext? context}) {
     final request = makeRequest(
       Method.textDocument_completion,
@@ -1064,8 +1070,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         position: pos,
       ),
     );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(CompletionItem.fromJson));
+    return expectSuccessfulResponseTo(request, CompletionList.fromJson);
   }
 
   Future<Either2<List<Location>, List<LocationLink>>> getDefinition(
