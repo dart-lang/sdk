@@ -53,9 +53,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
-DEFINE_FLAG(bool, keep_code, false, "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
-DECLARE_FLAG(bool, strong);
 
 Isolate* Dart::vm_isolate_ = NULL;
 int64_t Dart::start_time_micros_ = 0;
