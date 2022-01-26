@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../services/completion/dart/completion_check.dart';
 import '../services/completion/dart/completion_contributor_util.dart';
 import 'impl/completion_driver.dart';
 
@@ -121,6 +122,21 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
         break;
     }
     return suggestions;
+  }
+
+  /// TODO(scheglov) Use it everywhere instead of [addTestFile].
+  Future<CompletionResponseForTesting> getTestCodeSuggestions(
+    String content,
+  ) async {
+    await addTestFile(content);
+
+    return CompletionResponseForTesting(
+      requestOffset: driver.completionOffset,
+      replacementOffset: driver.replacementOffset,
+      replacementLength: driver.replacementLength,
+      isIncomplete: false, // TODO(scheglov) not correct
+      suggestions: suggestions,
+    );
   }
 
   /// Display sorted suggestions.

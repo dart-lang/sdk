@@ -135,12 +135,16 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
   }
 
   /// Add constructor suggestions for the given class.
-  void _addConstructorSuggestions(ClassElement classElem) {
-    for (var constructor in classElem.constructors) {
+  void _addConstructorSuggestions(ClassElement element) {
+    if (element.isEnum) {
+      return;
+    }
+
+    for (var constructor in element.constructors) {
       if (constructor.isPrivate) {
         continue;
       }
-      if (classElem.isAbstract && !constructor.isFactory) {
+      if (element.isAbstract && !constructor.isFactory) {
         continue;
       }
       builder.suggestConstructor(constructor, kind: kind, prefix: prefix);

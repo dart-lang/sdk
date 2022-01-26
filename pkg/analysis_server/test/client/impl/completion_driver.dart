@@ -141,6 +141,8 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
     ).toRequest('0');
     var response = await waitResponse(request);
     var result = CompletionGetSuggestions2Result.fromResponse(response);
+    replacementOffset = result.replacementOffset;
+    replacementLength = result.replacementLength;
     return result.suggestions;
   }
 
