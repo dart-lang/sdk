@@ -13,57 +13,6 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(Math_sqrt, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
-  return Double::New(sqrt(operand.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Math_sin, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
-  return Double::New(sin(operand.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Math_cos, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
-  return Double::New(cos(operand.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Math_tan, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
-  return Double::New(tan(operand.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Math_asin, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
-  return Double::New(asin(operand.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Math_acos, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
-  return Double::New(acos(operand.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Math_atan, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
-  return Double::New(atan(operand.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Math_atan2, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, operand1, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, operand2, arguments->NativeArgAt(1));
-  return Double::New(atan2_ieee(operand1.value(), operand2.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Math_exp, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
-  return Double::New(exp(operand.value()));
-}
-
-DEFINE_NATIVE_ENTRY(Math_log, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Double, operand, arguments->NativeArgAt(0));
-  return Double::New(log(operand.value()));
-}
-
 DEFINE_NATIVE_ENTRY(Math_doublePow, 0, 2) {
   const double operand =
       Double::CheckedHandle(zone, arguments->NativeArgAt(0)).value();

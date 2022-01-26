@@ -104,7 +104,6 @@ class VMLibraryHooks {
 
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
-@pragma("vm:external-name", "Internal_has63BitSmis")
 external bool get has63BitSmis;
 
 @pragma("vm:recognized", "other")
