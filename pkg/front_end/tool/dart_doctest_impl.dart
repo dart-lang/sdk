@@ -829,6 +829,8 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
       packageLanguageVersion:
           new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
       loader: loader,
+      // TODO(jensj): Should probably set up scopes the same was as it's done
+      // (now) for expression compilation.
       scope: libraryBuilder.scope.createNestedScope("dartdoctest"),
       nameOrigin: libraryBuilder,
       isUnsupported: false,

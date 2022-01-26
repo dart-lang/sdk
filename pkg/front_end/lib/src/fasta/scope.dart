@@ -424,6 +424,10 @@ class Scope extends MutableScope {
     _setters.forEach(f);
   }
 
+  void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
+    _extensions?.forEach(f);
+  }
+
   Iterable<Builder> get localMembers => _local.values;
 
   Iterable<MemberBuilder> get localSetters => _setters.values;
