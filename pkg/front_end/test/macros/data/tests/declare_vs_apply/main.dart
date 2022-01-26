@@ -8,7 +8,8 @@
   apply_lib.dart|main.dart],
  macroClassIds=[macro_lib.dart/Macro1],
  macroInstanceIds=[macro_lib.dart/Macro1/()],
- macrosAreAvailable
+ macrosAreAvailable,
+ neededPrecompilations=[macro_lib.dart=Macro1(new)]
 */
 
 import 'apply_lib.dart';

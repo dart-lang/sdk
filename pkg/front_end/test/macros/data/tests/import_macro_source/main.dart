@@ -6,7 +6,8 @@
  compilationSequence=[
   macro_lib.dart|package:_fe_analyzer_shared/src/macros/api.dart,
   main.dart],
- macrosAreAvailable
+ macrosAreAvailable,
+ neededPrecompilations=[macro_lib.dart=Macro1(new)]
 */
 
 // ignore: unused_import

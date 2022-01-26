@@ -980,6 +980,9 @@ pragma
 pre
 prebuild
 prebuilt
+precompilation
+precompilations
+precompile
 precompiled
 preexisted
 preexisting
@@ -1391,6 +1394,7 @@ traversal
 traverse
 trees
 tricky
+triggering
 trips
 trivially
 ts

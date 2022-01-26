@@ -1345,18 +1345,24 @@ severity: $severity
     ticker.logMs("Resolved $typeCount types");
   }
 
-  void computeMacroDeclarations() {
-    if (!enableMacros) return;
+  /// Computes which macro declarations that needs to be precompiled in order
+  /// to support macro application during compilation.
+  ///
+  /// If no macros need precompilation, `null` is returned. Otherwise a map
+  /// from library uris to macro class names and the names of constructor their
+  /// constructors is returned.
+  Map<Uri, Map<String, List<String>>>? computeMacroDeclarations() {
+    if (!enableMacros) return null;
 
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
-    if (macroLibraryBuilder == null) return;
+    if (macroLibraryBuilder == null) return null;
 
     Builder? macroClassBuilder =
         macroLibraryBuilder.lookupLocalMember(macroClassName);
     if (macroClassBuilder is! ClassBuilder) {
       // TODO(johnniwinther): Report this when the actual macro builder package
       // exists. It should at least be a warning.
-      return;
+      return null;
     }
 
     _macroClassBuilder = macroClassBuilder;
@@ -1364,10 +1370,9 @@ severity: $severity
       dataForTesting!.macroDeclarationData.macrosAreAvailable = true;
     }
 
-    Set<ClassBuilder> macroClasses = {};
-
-    /// Libraries containing macros that need compilation.
-    Set<Uri> macroLibraries = {};
+    /// Libraries containing macros that need compilation mapped to the
+    /// [ClassBuilder]s for the macro classes.
+    Map<Uri, List<ClassBuilder>> macroLibraries = {};
 
     /// Libraries containing precompiled macro classes.
     Set<Uri> precompiledMacroLibraries = {};
@@ -1383,8 +1388,7 @@ severity: $severity
           Uri libraryUri = builder.library.importUri;
           MacroClass macroClass = new MacroClass(libraryUri, builder.name);
           if (!precompiledMacroUris.containsKey(macroClass)) {
-            macroClasses.add(builder);
-            macroLibraries.add(libraryUri);
+            (macroLibraries[libraryUri] ??= []).add(builder);
             if (retainDataForTesting) {
               (dataForTesting!.macroDeclarationData
                       .macroDeclarations[libraryUri] ??= [])
@@ -1397,8 +1401,8 @@ severity: $severity
       }
     }
 
-    if (macroClasses.isEmpty) {
-      return;
+    if (macroLibraries.isEmpty) {
+      return null;
     }
 
     List<List<Uri>> computeCompilationSequence(Graph<Uri> libraryGraph,
@@ -1417,7 +1421,7 @@ severity: $severity
         for (List<Uri> component in layer) {
           for (Uri uri in component) {
             if (filter(uri)) continue;
-            if (macroLibraries.contains(uri)) {
+            if (macroLibraries.containsKey(uri)) {
               declaresMacro = true;
             }
             currentLayer.add(uri);
@@ -1456,7 +1460,7 @@ severity: $severity
         addPrecompiledLibrary(builder.importUri);
       } else if (precompiledMacroLibraries.contains(builder.importUri)) {
         assert(
-            !macroLibraries.contains(builder.importUri),
+            !macroLibraries.containsKey(builder.importUri),
             "Macro library ${builder.importUri} is only partially "
             "precompiled.");
         addPrecompiledLibrary(builder.importUri);
@@ -1471,6 +1475,52 @@ severity: $severity
       dataForTesting!.macroDeclarationData.compilationSequence =
           compilationSteps;
     }
+
+    if (compilationSteps.length > 1) {
+      // We have at least 1 layer of macros that need to be precompiled before
+      // we can compile the program itself.
+      Map<Uri, Map<String, List<String>>> neededPrecompilations = {};
+      for (int i = 0; i < compilationSteps.length - 1; i++) {
+        List<Uri> compilationStep = compilationSteps[i];
+        for (Uri uri in compilationStep) {
+          List<ClassBuilder>? macroClasses = macroLibraries[uri];
+          // [uri] might not itself declare any macros but instead a part of the
+          // libraries that macros depend upon.
+          if (macroClasses != null) {
+            Map<String, List<String>>? constructorMap;
+            for (ClassBuilder macroClass in macroClasses) {
+              List<String> constructors =
+                  macroClass.constructors.local.keys.toList();
+              if (constructors.isNotEmpty) {
+                // TODO(johnniwinther): If there is no constructor here, it
+                // means the macro had no _explicit_ constructors. Since macro
+                // constructor are required to be const, this would be an error
+                // case. We need to handle that precompilation could result in
+                // errors like this. For this case we should probably add 'new'
+                // in case of [constructors] being empty in expectation of
+                // triggering the error during precompilation.
+                (constructorMap ??= {})[macroClass.name] = constructors;
+              }
+            }
+            if (constructorMap != null) {
+              neededPrecompilations[uri] = constructorMap;
+            }
+          }
+        }
+        if (neededPrecompilations.isNotEmpty) {
+          if (retainDataForTesting) {
+            dataForTesting!.macroDeclarationData.neededPrecompilations
+                .add(neededPrecompilations);
+          }
+          // We have found the first needed layer of precompilation. There might
+          // be more layers but we'll compute these at the next attempt at
+          // compilation, when this layer has been precompiled.
+          // TODO(johnniwinther): Use this to trigger a precompile step.
+          return neededPrecompilations;
+        }
+      }
+    }
+    return null;
   }
 
   Future<MacroApplications?> computeMacroApplications() async {
