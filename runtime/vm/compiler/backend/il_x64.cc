@@ -4204,9 +4204,13 @@ void UnboxInstr::EmitLoadInt32FromBoxOrSmi(FlowGraphCompiler* compiler) {
   compiler::Label done;
 #if !defined(DART_COMPRESSED_POINTERS)
   ASSERT(value == result);
+  // Optimistically untag value.
   __ SmiUntag(value);
   __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movsxd(result, compiler::Address(value, TIMES_2, Mint::value_offset()));
+  // Undo untagging by multiplying value by 2.
+  // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
+  __ movsxd(result,
+            compiler::Address(value, value, TIMES_1, Mint::value_offset()));
 #else
   ASSERT(value != result);
   // Cannot speculatively untag with value == result because it erases the
@@ -4224,9 +4228,13 @@ void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
   compiler::Label done;
 #if !defined(DART_COMPRESSED_POINTERS)
   ASSERT(value == result);
+  // Optimistically untag value.
   __ SmiUntag(value);
   __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-  __ movq(result, compiler::Address(value, TIMES_2, Mint::value_offset()));
+  // Undo untagging by multiplying value by 2.
+  // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
+  __ movq(result,
+          compiler::Address(value, value, TIMES_1, Mint::value_offset()));
 #else
   ASSERT(value != result);
   // Cannot speculatively untag with value == result because it erases the
@@ -4272,9 +4280,13 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(is_truncating());
     compiler::Label done;
 #if !defined(DART_COMPRESSED_POINTERS)
+    // Optimistically untag value.
     __ SmiUntag(value);
     __ j(NOT_CARRY, &done, compiler::Assembler::kNearJump);
-    __ movq(value, compiler::Address(value, TIMES_2, Mint::value_offset()));
+    // Undo untagging by multiplying value by 2.
+    // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
+    __ movq(value,
+            compiler::Address(value, value, TIMES_1, Mint::value_offset()));
 #else
     // Cannot speculatively untag because it erases the upper bits needed to
     // dereference when it is a Mint.
@@ -4293,8 +4305,10 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Optimistically untag value.
     __ SmiUntagOrCheckClass(value, kMintCid, &done);
     __ j(NOT_EQUAL, deopt);
-    // Undo untagging by multiplying value with 2.
-    __ movq(value, compiler::Address(value, TIMES_2, Mint::value_offset()));
+    // Undo untagging by multiplying value by 2.
+    // [reg + reg + disp8] has a shorter encoding than [reg*2 + disp32]
+    __ movq(value,
+            compiler::Address(value, value, TIMES_1, Mint::value_offset()));
 #else
     // Cannot speculatively untag because it erases the upper bits needed to
     // dereference when it is a Mint.
