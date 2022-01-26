@@ -17,7 +17,8 @@
   macro_lib2a.dart/Macro2a/(),
   macro_lib2b.dart/Macro2b/()],
  macrosAreApplied,
- macrosAreAvailable
+ macrosAreAvailable,
+ neededPrecompilations=[macro_lib1.dart=Macro1(new)macro_lib2a.dart=Macro2a(new)]
 */
 
 import 'macro_lib1.dart';

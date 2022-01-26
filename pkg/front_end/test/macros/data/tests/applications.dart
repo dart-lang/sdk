@@ -24,7 +24,8 @@
   package:macro/macro.dart/Macro3/named(),
   package:macro/macro.dart/Macro3/named()],
  macrosAreApplied,
- macrosAreAvailable
+ macrosAreAvailable,
+ neededPrecompilations=[package:macro/macro.dart=Macro1(named/new)|Macro2(named/new)|Macro3(named/new)]
 */
 
 import 'package:macro/macro.dart';

@@ -86,10 +86,15 @@ class Tags {
   static const String macrosAreAvailable = 'macrosAreAvailable';
   static const String macrosAreApplied = 'macrosAreApplied';
   static const String compilationSequence = 'compilationSequence';
+  static const String neededPrecompilations = 'neededPrecompilations';
   static const String declaredMacros = 'declaredMacros';
   static const String appliedMacros = 'appliedMacros';
   static const String macroClassIds = 'macroClassIds';
   static const String macroInstanceIds = 'macroInstanceIds';
+}
+
+String constructorNameToString(String constructorName) {
+  return constructorName == '' ? 'new' : constructorName;
 }
 
 String importUriToString(Uri importUri) {
@@ -183,9 +188,8 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
     if (macroApplications != null) {
       for (MacroApplication application in macroApplications) {
         String className = application.classBuilder.name;
-        String constructorName = application.constructorName == ''
-            ? 'new'
-            : application.constructorName;
+        String constructorName =
+            constructorNameToString(application.constructorName);
         features.addElement(
             Tags.appliedMacros, '${className}.${constructorName}');
       }
@@ -215,6 +219,32 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
           features.addElement(
               Tags.compilationSequence, strongComponentToString(component));
         }
+      }
+      for (Map<Uri, Map<String, List<String>>> precompilation
+          in macroDeclarationData.neededPrecompilations) {
+        Map<String, Map<String, List<String>>> converted =
+            new Map.fromIterables(precompilation.keys.map(importUriToString),
+                precompilation.values);
+        List<String> uris = converted.keys.toList()..sort();
+        StringBuffer sb = new StringBuffer();
+        for (String uri in uris) {
+          sb.write(uri);
+          sb.write('=');
+          Map<String, List<String>> macros = converted[uri]!;
+          List<String> classes = macros.keys.toList()..sort();
+          String delimiter = '';
+          for (String cls in classes) {
+            List<String> constructorNames =
+                macros[cls]!.map(constructorNameToString).toList()..sort();
+            sb.write(delimiter);
+            sb.write(cls);
+            sb.write('(');
+            sb.write(constructorNames.join('/'));
+            sb.write(')');
+            delimiter = '|';
+          }
+        }
+        features.addElement(Tags.neededPrecompilations, sb.toString());
       }
       for (_MacroClassIdentifier id in macroExecutor.macroClasses) {
         features.addElement(Tags.macroClassIds, id.toText());

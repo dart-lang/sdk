@@ -794,6 +794,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   DYNAMIC_PARAMETER_REFERENCE
 ///   ENUM
 ///   ENUM_CONSTANT
+///   EXTENSION
 ///   FIELD
 ///   FIELD_STATIC
 ///   FUNCTION
@@ -875,6 +876,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'DYNAMIC_PARAMETER_REFERENCE',
   'ENUM',
   'ENUM_CONSTANT',
+  'EXTENSION',
   'FIELD',
   'FIELD_STATIC',
   'FUNCTION',

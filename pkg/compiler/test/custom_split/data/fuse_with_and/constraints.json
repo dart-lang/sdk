@@ -1,0 +1,42 @@
+[
+  {
+    "type": "reference",
+    "name": "memory:sdk/tests/web/native/lib1.dart#b1",
+    "import": "memory:sdk/tests/web/native/lib1.dart#b1"
+  },
+  {
+    "type": "reference",
+    "name": "memory:sdk/tests/web/native/lib2.dart#b2",
+    "import": "memory:sdk/tests/web/native/lib2.dart#b2"
+  },
+  {
+    "type": "reference",
+    "name": "memory:sdk/tests/web/native/lib3.dart#b3",
+    "import": "memory:sdk/tests/web/native/lib3.dart#b3"
+  },
+  {
+    "type": "reference",
+    "name": "memory:sdk/tests/web/native/lib4.dart#b4",
+    "import": "memory:sdk/tests/web/native/lib4.dart#b4"
+  },
+  {
+    "type": "and",
+    "name": "lib1_and_lib2",
+    "nodes": [
+      "memory:sdk/tests/web/native/lib1.dart#b1",
+      "memory:sdk/tests/web/native/lib2.dart#b2"
+    ]
+  },
+  {
+    "type": "fuse",
+    "nodes": [
+      "lib1_and_lib2",
+      "memory:sdk/tests/web/native/lib3.dart#b3"
+    ]
+  },
+  {
+    "type": "relative_order",
+    "predecessor": "memory:sdk/tests/web/native/lib3.dart#b3",
+    "successor": "memory:sdk/tests/web/native/lib4.dart#b4"
+  }
+]

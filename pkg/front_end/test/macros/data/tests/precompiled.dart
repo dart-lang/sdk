@@ -13,7 +13,8 @@
   package:macro/macro.dart/Macro1/(),
   package:precompiled_macro/precompiled_macro.dart/PrecompiledMacro/()],
  macrosAreApplied,
- macrosAreAvailable
+ macrosAreAvailable,
+ neededPrecompilations=[package:macro/macro.dart=Macro1(named/new)|Macro2(named/new)|Macro3(named/new)]
 */
 
 import 'package:precompiled_macro/precompiled_macro.dart';

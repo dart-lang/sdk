@@ -774,6 +774,8 @@ pooled
 population
 portions
 pp
+precompilation
+precompilations
 preliminary
 prematurely
 press

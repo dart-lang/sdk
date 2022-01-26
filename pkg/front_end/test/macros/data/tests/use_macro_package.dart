@@ -19,7 +19,8 @@
   package:macro/macro.dart/Macro3/(),
   package:macro/macro.dart/Macro3/()],
  macrosAreApplied,
- macrosAreAvailable
+ macrosAreAvailable,
+ neededPrecompilations=[package:macro/macro.dart=Macro1(named/new)|Macro2(named/new)|Macro3(named/new)]
 */
 library use_macro_package;
 

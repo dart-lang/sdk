@@ -123,6 +123,7 @@ final highlightRegionTokenTypes = {
   HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE: SemanticTokenTypes.parameter,
   HighlightRegionType.ENUM: SemanticTokenTypes.enum_,
   HighlightRegionType.ENUM_CONSTANT: SemanticTokenTypes.enumMember,
+  HighlightRegionType.EXTENSION: SemanticTokenTypes.class_,
   HighlightRegionType.FUNCTION_TYPE_ALIAS: SemanticTokenTypes.type,
   HighlightRegionType.IDENTIFIER_DEFAULT: CustomSemanticTokenTypes.source,
   HighlightRegionType.IMPORT_PREFIX: SemanticTokenTypes.variable,

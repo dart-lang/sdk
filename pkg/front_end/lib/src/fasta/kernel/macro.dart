@@ -32,6 +32,7 @@ class MacroDeclarationData {
   bool macrosAreAvailable = false;
   Map<Uri, List<String>> macroDeclarations = {};
   List<List<Uri>>? compilationSequence;
+  List<Map<Uri, Map<String, List<String>>>> neededPrecompilations = [];
 }
 
 class MacroClass {

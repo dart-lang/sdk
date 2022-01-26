@@ -32,7 +32,8 @@
         "uri": "collection/collection.dart",
         "patches": [
           "_internal/vm/lib/collection_patch.dart",
-          "_internal/vm/lib/compact_hash.dart"
+          "_internal/vm/lib/compact_hash.dart",
+          "_internal/vm/lib/hash_factories.dart"
         ]
       },
       "convert": {
