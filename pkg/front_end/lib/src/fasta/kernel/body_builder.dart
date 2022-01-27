@@ -75,7 +75,6 @@ import '../fasta_codes.dart'
         templateExperimentNotEnabled;
 import '../identifiers.dart'
     show Identifier, InitializedIdentifier, QualifiedName, flattenName;
-import '../kernel/utils.dart';
 import '../messages.dart' as messages show getLocationFromUri;
 import '../modifier.dart'
     show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
