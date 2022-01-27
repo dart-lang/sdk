@@ -117,6 +117,16 @@ class CompletionTarget {
   /// otherwise this is `null`.
   ParameterElement? _parameterElement;
 
+  /// The enclosing [ClassElement], or `null` if not in a class.
+  late final ClassElement? enclosingClassElement = containingNode
+      .thisOrAncestorOfType<ClassOrMixinDeclaration>()
+      ?.declaredElement;
+
+  /// The enclosing [ExtensionElement], or `null` if not in an extension.
+  late final ExtensionElement? enclosingExtensionElement = containingNode
+      .thisOrAncestorOfType<ExtensionDeclaration>()
+      ?.declaredElement;
+
   /// Compute the appropriate [CompletionTarget] for the given [offset] within
   /// the [entryPoint].
   factory CompletionTarget.forOffset(AstNode entryPoint, int offset) {
