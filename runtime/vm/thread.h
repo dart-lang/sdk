@@ -914,8 +914,12 @@ class Thread : public ThreadState {
     return UnwindErrorInProgressField::decode(safepoint_state_);
   }
   void SetUnwindErrorInProgress(bool value) {
-    safepoint_state_ =
-        UnwindErrorInProgressField::update(value, safepoint_state_);
+    const uword mask = UnwindErrorInProgressField::mask_in_place();
+    if (value) {
+      safepoint_state_.fetch_or(mask);
+    } else {
+      safepoint_state_.fetch_and(~mask);
+    }
   }
 
   uword safepoint_state() { return safepoint_state_; }
