@@ -372,6 +372,26 @@ const [for (var i = 0; i < 4; i++) i]
     await _assertValueBool(true, "'a' != 'b'");
   }
 
+  test_object_enum() async {
+    await resolveTestCode('''
+enum E { v1, v2 }
+const x1 = E.v1;
+const x2 = E.v2;
+''');
+
+    _assertTopVarConstValue('x1', r'''
+E
+  _name: String v1
+  index: int 0
+''');
+
+    _assertTopVarConstValue('x2', r'''
+E
+  _name: String v2
+  index: int 1
+''');
+  }
+
   test_parenthesizedExpression() async {
     await _assertValueString("a", "('a')");
   }
@@ -444,6 +464,10 @@ const [for (var i = 0; i < 4; i++) i]
     await _assertValueInt(6, "'Dvorak'.length");
   }
 
+  void _assertTopVarConstValue(String name, String expected) {
+    assertDartObjectText(_topVarConstResult(name).value, expected);
+  }
+
   Future<void> _assertValueBool(bool expectedValue, String contents) async {
     var result = await _getExpressionValue(contents);
     DartObject value = result.value!;
@@ -490,5 +514,10 @@ $context
     );
 
     return evaluator.evaluate(expression);
+  }
+
+  EvaluationResultImpl _topVarConstResult(String name) {
+    var element = findElement.topVar(name) as ConstTopLevelVariableElementImpl;
+    return element.evaluationResult!;
   }
 }
