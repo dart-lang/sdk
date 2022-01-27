@@ -83,6 +83,17 @@ in 2018, as it doesn't work with any Dart 2.x release.
 
 [an issue]: https://github.com/dart-lang/sdk/issues/new
 
+#### Pub
+
+- Fixed race conditions in `dart pub get`, `dart run` and `dart pub global run`.
+  It should now be safe to run these concurrently.
+- If (when) Pub crashes it will save a verbose log in
+  `$PUB_CACHE/log/pub_log.txt` This can be used for filing issues to the issue
+  tracker.
+
+  `dart --verbose pub [command]` will also cause the log file to be written.
+- `dart pub add` can now add multiple packages in one command.
+
 #### Linter
 
 Updated the Linter to `1.18.0`, which includes changes that

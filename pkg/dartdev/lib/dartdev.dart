@@ -128,6 +128,7 @@ class DartdevRunner extends CommandRunner<int> {
           () => analytics,
           dependencyKindCustomDimensionName: dependencyKindCustomDimensionName,
         ),
+        isVerbose: () => verbose,
       ),
     );
     addCommand(RunCommand(verbose: verbose));
