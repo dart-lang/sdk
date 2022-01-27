@@ -17,6 +17,13 @@
 - `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
   `false`.
 
+#### `dart:io`
+
+- **Breaking Change** [#45410](https://github.com/dart-lang/sdk/issues/45410):
+  `HttpClient` no longer transmits some headers (i.e. `authorization`,
+  `www-authenticate`, `cookie`, `cookie2`) when processing redirects to
+  a different domain.
+
 ### Tools
 
 #### Dart command line
