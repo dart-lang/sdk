@@ -7574,6 +7574,47 @@ void g() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_quiver_checkNotNull_field_formal_initializer() async {
+    addQuiverPackage();
+    var content = '''
+import 'package:quiver/check.dart';
+class C {
+  final int i;
+  C(this.i) {
+    checkNotNull(i);
+  }
+}
+void f(bool b, int i) {
+  if (b) new C(i);
+}
+main() {
+  f(false, null);
+}
+''';
+    // Note: since the reference to `i` in `checkNotNull(i)` refers to the field
+    // rather than the formal parameter, this isn't considered sufficient to
+    // mark the field as non-nullable (even though that's the clear intention
+    // in this case).  Changing the behavior to match user intent would require
+    // more development work; for now we just want to make sure we provide a
+    // fairly reasonable migration without crashing.
+    var expected = '''
+import 'package:quiver/check.dart';
+class C {
+  final int? i;
+  C(this.i) {
+    checkNotNull(i);
+  }
+}
+void f(bool b, int? i) {
+  if (b) new C(i);
+}
+main() {
+  f(false, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_quiver_checkNotNull_implies_non_null_intent() async {
     addQuiverPackage();
     var content = '''

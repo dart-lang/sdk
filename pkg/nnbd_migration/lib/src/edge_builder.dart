@@ -3174,7 +3174,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var argument = node.argumentList.arguments.first;
       if (argument is SimpleIdentifier && _isReferenceInScope(argument)) {
         var argumentType =
-            _variables!.decoratedElementType(argument.staticElement!);
+            getOrComputeElementType(argument, argument.staticElement!);
         _graph.makeNonNullable(
             argumentType.node, QuiverCheckNotNullOrigin(source, argument));
       }
