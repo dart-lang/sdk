@@ -263,6 +263,7 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
 PageSpace::~PageSpace() {
   {
     MonitorLocker ml(tasks_lock());
+    AssistTasks(&ml);
     while (tasks() > 0) {
       ml.Wait();
     }
@@ -1046,6 +1047,12 @@ void PageSpace::AssistTasks(MonitorLocker* ml) {
   if (phase() == PageSpace::kMarking) {
     ml->Exit();
     marker_->AssistConcurrentMark();
+    ml->Enter();
+  }
+  if ((phase() == kSweepingLarge) || (phase() == kSweepingRegular)) {
+    ml->Exit();
+    Sweep(/*exclusive*/ false);
+    SweepLarge();
     ml->Enter();
   }
 }
