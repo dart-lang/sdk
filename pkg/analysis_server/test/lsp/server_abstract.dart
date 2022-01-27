@@ -1366,7 +1366,14 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Map<String, Object?>? initializationOptions,
     bool throwOnFailure = true,
     bool allowEmptyRootUri = false,
+    bool failTestOnAnyErrorNotification = true,
   }) async {
+    if (failTestOnAnyErrorNotification) {
+      errorNotificationsFromServer.listen((NotificationMessage error) {
+        fail('${error.toJson()}');
+      });
+    }
+
     final clientCapabilities = ClientCapabilities(
       workspace: workspaceCapabilities,
       textDocument: textDocumentCapabilities,
