@@ -3098,7 +3098,11 @@ class Context extends HeapObject implements M.Context {
     } else {
       var localVariables = <ContextElement>[];
       for (var element in map['variables']) {
-        localVariables.add(new ContextElement(element));
+        try {
+          localVariables.add(new ContextElement(element));
+        } catch (e) {
+          // Swallowing '$e' to still show stuff...
+        }
       }
       variables = localVariables;
     }
