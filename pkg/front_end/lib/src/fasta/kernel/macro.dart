@@ -66,6 +66,8 @@ class MacroApplication {
 
 class MacroApplicationDataForTesting {
   Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
+  Map<MemberBuilder, List<MacroExecutionResult>> memberTypesResults = {};
+  Map<MemberBuilder, List<MacroExecutionResult>> memberDeclarationsResults = {};
   Map<MemberBuilder, List<MacroExecutionResult>> memberDefinitionsResults = {};
 }
 
@@ -155,12 +157,20 @@ class MacroApplications {
     }
   }
 
-  Future<void> _applyTypeMacros(
+  Future<List<MacroExecutionResult>> _applyTypeMacros(
       Declaration declaration, List<MacroApplication> macroApplications) async {
+    List<MacroExecutionResult> results = [];
     for (MacroApplication macroApplication in macroApplications) {
-      await _macroExecutor.executeTypesPhase(
-          macroApplication.instanceIdentifier, declaration);
+      if (macroApplication.instanceIdentifier.shouldExecute(
+          // TODO(johnniwinther): Get the declaration kind from [declaration].
+          DeclarationKind.function,
+          Phase.types)) {
+        MacroExecutionResult result = await _macroExecutor.executeTypesPhase(
+            macroApplication.instanceIdentifier, declaration);
+        results.add(result);
+      }
     }
+    return results;
   }
 
   Future<void> applyTypeMacros() async {
@@ -173,24 +183,35 @@ class MacroApplications {
         MemberBuilder memberBuilder = memberEntry.key;
         Declaration? declaration = _getMemberDeclaration(memberBuilder);
         if (declaration != null) {
-          await _applyTypeMacros(declaration, memberEntry.value);
+          List<MacroExecutionResult> results =
+              await _applyTypeMacros(declaration, memberEntry.value);
+          dataForTesting?.memberTypesResults[memberBuilder] = results;
         }
       }
     }
   }
 
-  Future<void> _applyDeclarationMacros(
+  Future<List<MacroExecutionResult>> _applyDeclarationMacros(
       Declaration declaration,
       List<MacroApplication> macroApplications,
       TypeResolver typeResolver,
       ClassIntrospector classIntrospector) async {
+    List<MacroExecutionResult> results = [];
     for (MacroApplication macroApplication in macroApplications) {
-      await _macroExecutor.executeDeclarationsPhase(
-          macroApplication.instanceIdentifier,
-          declaration,
-          typeResolver,
-          classIntrospector);
+      if (macroApplication.instanceIdentifier.shouldExecute(
+          // TODO(johnniwinther): Get the declaration kind from [declaration].
+          DeclarationKind.function,
+          Phase.declarations)) {
+        MacroExecutionResult result =
+            await _macroExecutor.executeDeclarationsPhase(
+                macroApplication.instanceIdentifier,
+                declaration,
+                typeResolver,
+                classIntrospector);
+        results.add(result);
+      }
     }
+    return results;
   }
 
   Future<void> applyDeclarationMacros() async {
@@ -205,8 +226,9 @@ class MacroApplications {
         MemberBuilder memberBuilder = memberEntry.key;
         Declaration? declaration = _getMemberDeclaration(memberBuilder);
         if (declaration != null) {
-          await _applyDeclarationMacros(
+          List<MacroExecutionResult> results = await _applyDeclarationMacros(
               declaration, memberEntry.value, typeResolver, classIntrospector);
+          dataForTesting?.memberDeclarationsResults[memberBuilder] = results;
         }
       }
     }
@@ -220,14 +242,19 @@ class MacroApplications {
       TypeDeclarationResolver typeDeclarationResolver) async {
     List<MacroExecutionResult> results = [];
     for (MacroApplication macroApplication in macroApplications) {
-      MacroExecutionResult result =
-          await _macroExecutor.executeDefinitionsPhase(
-              macroApplication.instanceIdentifier,
-              declaration,
-              typeResolver,
-              classIntrospector,
-              typeDeclarationResolver);
-      results.add(result);
+      if (macroApplication.instanceIdentifier.shouldExecute(
+          // TODO(johnniwinther): Get the declaration kind from [declaration].
+          DeclarationKind.function,
+          Phase.definitions)) {
+        MacroExecutionResult result =
+            await _macroExecutor.executeDefinitionsPhase(
+                macroApplication.instanceIdentifier,
+                declaration,
+                typeResolver,
+                classIntrospector,
+                typeDeclarationResolver);
+        results.add(result);
+      }
     }
     return results;
   }

@@ -375,12 +375,10 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
   void serialize(Serializer serializer) => throw UnimplementedError();
 
   @override
-  bool shouldExecute(DeclarationKind declarationKind, Phase phase) =>
-      throw new UnimplementedError();
+  bool shouldExecute(DeclarationKind declarationKind, Phase phase) => false;
 
   @override
-  bool supportsDeclarationKind(DeclarationKind declarationKind) =>
-      throw new UnimplementedError();
+  bool supportsDeclarationKind(DeclarationKind declarationKind) => false;
 }
 
 class _MacroExecutionResult implements MacroExecutionResult {

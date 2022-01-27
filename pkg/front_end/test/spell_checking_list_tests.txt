@@ -468,6 +468,8 @@ frequency
 frozen
 fulfill
 func
+function1
+function2
 futu
 futures
 fuzz

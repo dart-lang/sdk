@@ -398,11 +398,9 @@ class KernelTarget extends TargetImplementation {
       loader.computeVariances();
       loader.computeDefaultTypes(
           dynamicType, nullType, bottomType, objectClassBuilder);
-      // TODO(johnniwinther): Enable this when supported in the isolate-based
-      //  macro executor.
-      /*if (macroApplications != null) {
+      if (macroApplications != null) {
         await macroApplications.applyTypeMacros();
-      }*/
+      }
       List<SourceClassBuilder> sourceClassBuilders =
           loader.checkSemantics(objectClassBuilder);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
@@ -416,11 +414,9 @@ class KernelTarget extends TargetImplementation {
       computeCoreTypes();
       loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
       loader.checkSupertypes(sourceClassBuilders, enumClass);
-      // TODO(johnniwinther): Enable this when supported in the isolate-based
-      //  macro executor.
-      /*if (macroApplications != null) {
+      if (macroApplications != null) {
         await macroApplications.applyDeclarationMacros();
-      }*/
+      }
       loader.buildClassHierarchyMembers(sourceClassBuilders);
       loader.computeHierarchy();
       loader.computeShowHideElements();

@@ -33,3 +33,26 @@ macro class FunctionDefinitionMacro2 implements FunctionDefinitionMacro {
 }'''));
   }
 }
+
+
+macro class FunctionTypesMacro1 implements FunctionTypesMacro {
+  const FunctionTypesMacro1();
+
+  FutureOr<void> buildTypesForFunction(
+      FunctionDeclaration function, TypeBuilder builder) {
+    builder.declareType(new DeclarationCode.fromString('''
+class ${function.name}GeneratedClass {}
+'''));
+  }
+}
+
+macro class FunctionDeclarationsMacro1 implements FunctionDeclarationsMacro {
+  const FunctionDeclarationsMacro1();
+
+  FutureOr<void> buildDeclarationsForFunction(
+      FunctionDeclaration function, DeclarationBuilder builder) {
+    builder.declareInLibrary(new DeclarationCode.fromString('''
+void ${function.name}GeneratedMethod() {}
+'''));
+  }
+}
