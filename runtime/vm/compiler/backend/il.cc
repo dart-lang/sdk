@@ -5729,10 +5729,9 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       EmitLoadInt32FromBoxOrSmi(compiler);
     } else if (representation() == kUnboxedInt64 && value()->Type()->IsInt()) {
       EmitLoadInt64FromBoxOrSmi(compiler);
-    } else if (value_cid == box_cid) {
+    } else if ((value_cid == box_cid) || !CanDeoptimize()) {
       EmitLoadFromBox(compiler);
     } else {
-      ASSERT(CanDeoptimize());
       EmitLoadFromBoxWithDeopt(compiler);
     }
   }
