@@ -1914,7 +1914,7 @@ class MetricsSuggestionListener implements SuggestionListener {
     0.0
   ];
 
-  Map<protocol.CompletionSuggestion, List<double>> featureMap = {};
+  Map<protocol.CompletionSuggestion, List<double>> featureMap = Map.identity();
 
   List<double> cachedFeatures = noFeatures;
 
