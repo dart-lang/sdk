@@ -186,9 +186,6 @@ class CompilationCommand extends ProcessCommand {
     if (displayName == 'precompiler' || displayName == 'app_jit') {
       return VMCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, pid);
-    } else if (displayName == 'dart2js') {
-      return Dart2jsCompilerCommandOutput(
-          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
     } else if (displayName == 'dartdevc') {
       return DevCompilerCommandOutput(this, exitCode, timedOut, stdout, stderr,
           time, compilationSkipped, pid);
@@ -263,7 +260,7 @@ class Dart2jsCompilationCommand extends CompilationCommand {
       int index = 0})
       : super("dart2js", outputFile, bootstrapDependencies, executable,
             arguments, environmentOverrides,
-            alwaysCompile: alwaysCompile || true,
+            alwaysCompile: alwaysCompile,
             workingDirectory: workingDirectory,
             index: index);
 
