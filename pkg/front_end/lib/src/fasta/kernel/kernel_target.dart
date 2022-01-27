@@ -145,6 +145,14 @@ class KernelTarget extends TargetImplementation {
       /* charOffset = */ null,
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
+  final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilder(
+      "_Enum",
+      const NullabilityBuilder.omitted(),
+      /* arguments = */ null,
+      /* fileUri = */ null,
+      /* charOffset = */ null,
+      instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
+
   final bool excludeSource = !CompilerContext.current.options.embedSourceText;
 
   final Map<String, String>? environmentDefines =
@@ -988,6 +996,8 @@ class KernelTarget extends TargetImplementation {
         .lookupLocalMember("Never", required: true) as TypeDeclarationBuilder);
     enumType.bind(loader.coreLibrary.lookupLocalMember("Enum", required: true)
         as TypeDeclarationBuilder);
+    underscoreEnumType.bind(loader.coreLibrary
+        .lookupLocalMember("_Enum", required: true) as TypeDeclarationBuilder);
   }
 
   void computeCoreTypes() {

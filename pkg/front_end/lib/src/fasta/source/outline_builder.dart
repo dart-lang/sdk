@@ -3230,16 +3230,10 @@ class OutlineBuilder extends StackListenerImpl {
     if (mixins is ParserRecovery) {
       push(new ParserRecovery(withKeyword.charOffset));
     } else {
-      NamedTypeBuilder enumType = new NamedTypeBuilder(
-          "_Enum",
-          const NullabilityBuilder.omitted(),
-          /* arguments = */ null,
-          /* fileUri = */ null,
-          /* charOffset = */ null,
-          instanceTypeVariableAccess:
-              InstanceTypeVariableAccessState.Unexpected);
       push(libraryBuilder.addMixinApplication(
-          enumType, mixins as List<TypeBuilder>, withKeyword.charOffset));
+          libraryBuilder.loader.target.underscoreEnumType,
+          mixins as List<TypeBuilder>,
+          withKeyword.charOffset));
     }
   }
 
