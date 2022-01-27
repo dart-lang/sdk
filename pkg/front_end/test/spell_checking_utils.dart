@@ -188,9 +188,10 @@ List<String> splitStringIntoWords(String s, List<int> splitOffsets,
   String regExpStringInner = r"\s-=\|\/,";
   if (splitAsCode) {
     // If splitting as code also split by "_", ":", ".", "(", ")", "<", ">",
-    // "[", "]", "{", "}", "@", "&", "#", "?", "%", "`".
+    // "[", "]", "{", "}", "@", "&", "#", "?", "%", "`", '"', and numbers.
     // (As well as doing stuff to camel casing further below).
-    regExpStringInner = "${regExpStringInner}_:\\.\\(\\)<>\\[\\]\{\}@&#\\?%`";
+    regExpStringInner =
+        "${regExpStringInner}_:\\.\\(\\)<>\\[\\]\{\}@&#\\?%`\"0123456789";
   }
   // Match one or more of the characters specified above.
   String regExp = "[$regExpStringInner]+";

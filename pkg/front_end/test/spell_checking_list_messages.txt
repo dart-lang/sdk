@@ -31,7 +31,6 @@ dart_runner
 dartbug.com
 dname
 e.g
-enum's
 f
 ffi
 flutter_runner
