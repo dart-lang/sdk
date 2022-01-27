@@ -894,6 +894,7 @@ precompile
 precompiled
 preexisted
 preexisting
+prefixing
 premark
 preorder
 prepares
@@ -1013,6 +1014,7 @@ relativize
 relax
 relaxes
 released
+reliably
 relink
 reload
 reloading

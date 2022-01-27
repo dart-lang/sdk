@@ -337,24 +337,24 @@ class ExecuteDefinitionsPhaseRequest extends Request {
 }
 
 /// A request to reflect on a type annotation
-class ResolveTypeRequest extends Request {
+class InstantiateTypeRequest extends Request {
   final TypeAnnotationImpl typeAnnotation;
   final RemoteInstanceImpl typeResolver;
 
-  ResolveTypeRequest(this.typeAnnotation, this.typeResolver,
+  InstantiateTypeRequest(this.typeAnnotation, this.typeResolver,
       {required int serializationZoneId})
       : super(serializationZoneId: serializationZoneId);
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
-  ResolveTypeRequest.deserialize(
+  InstantiateTypeRequest.deserialize(
       Deserializer deserializer, int serializationZoneId)
       : typeAnnotation = RemoteInstance.deserialize(deserializer),
         typeResolver = RemoteInstance.deserialize(deserializer),
         super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
-    serializer.addNum(MessageType.resolveTypeRequest.index);
+    serializer.addNum(MessageType.instantiateTypeRequest.index);
     typeAnnotation.serialize(serializer);
     typeResolver.serialize(serializer);
     super.serialize(serializer);
@@ -442,10 +442,10 @@ class ClassIntrospectionRequest extends Request {
 
 /// A request to get a [TypeDeclaration] for a [StaticType].
 class DeclarationOfRequest extends Request {
-  final RemoteInstanceImpl type;
+  final IdentifierImpl identifier;
   final RemoteInstanceImpl typeDeclarationResolver;
 
-  DeclarationOfRequest(this.type, this.typeDeclarationResolver,
+  DeclarationOfRequest(this.identifier, this.typeDeclarationResolver,
       {required int serializationZoneId})
       : super(serializationZoneId: serializationZoneId);
 
@@ -453,14 +453,14 @@ class DeclarationOfRequest extends Request {
   /// consume it again.
   DeclarationOfRequest.deserialize(
       Deserializer deserializer, int serializationZoneId)
-      : type = RemoteInstance.deserialize(deserializer),
+      : identifier = RemoteInstance.deserialize(deserializer),
         typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
         super.deserialize(deserializer, serializationZoneId);
 
   @override
   void serialize(Serializer serializer) {
     serializer.addNum(MessageType.declarationOfRequest.index);
-    type.serialize(serializer);
+    identifier.serialize(serializer);
     typeDeclarationResolver.serialize(serializer);
     super.serialize(serializer);
   }
@@ -484,8 +484,8 @@ class ClientTypeResolver implements TypeResolver {
       {required this.remoteInstance, required this.serializationZoneId});
 
   @override
-  Future<StaticType> resolve(TypeAnnotationImpl typeAnnotation) async {
-    ResolveTypeRequest request = new ResolveTypeRequest(
+  Future<StaticType> instantiateType(TypeAnnotationImpl typeAnnotation) async {
+    InstantiateTypeRequest request = new InstantiateTypeRequest(
         typeAnnotation, remoteInstance,
         serializationZoneId: serializationZoneId);
     RemoteInstanceImpl remoteType =
@@ -504,6 +504,12 @@ class ClientTypeResolver implements TypeResolver {
             'Expected either a StaticType or NamedStaticType but got '
             '${remoteType.kind}');
     }
+  }
+
+  @override
+  Future<StaticType> instantiateCode(ExpressionCode code) {
+    // TODO: implement instantiateCode
+    throw new UnimplementedError();
   }
 }
 
@@ -648,9 +654,9 @@ class ClientTypeDeclarationResolver implements TypeDeclarationResolver {
       {required this.remoteInstance, required this.serializationZoneId});
 
   @override
-  Future<TypeDeclaration> declarationOf(ClientNamedStaticTypeImpl type) async {
+  Future<TypeDeclaration> declarationOf(IdentifierImpl identifier) async {
     DeclarationOfRequest request = new DeclarationOfRequest(
-        type.remoteInstance, remoteInstance,
+        identifier, remoteInstance,
         serializationZoneId: serializationZoneId);
     return _handleResponse<TypeDeclaration>(await sendRequest(request));
   }
@@ -692,11 +698,11 @@ enum MessageType {
   executeDefinitionsPhaseRequest,
   executeTypesPhaseRequest,
   instantiateMacroRequest,
+  instantiateTypeRequest,
   isExactlyTypeRequest,
   isSubtypeOfRequest,
   loadMacroRequest,
   remoteInstance,
-  resolveTypeRequest,
   macroClassIdentifier,
   macroInstanceIdentifier,
   macroExecutionResult,

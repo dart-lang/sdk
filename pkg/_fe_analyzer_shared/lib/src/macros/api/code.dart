@@ -7,7 +7,7 @@ part of '../api.dart';
 /// The base class representing an arbitrary chunk of Dart code, which may or
 /// may not be syntactically or semantically valid yet.
 class Code {
-  /// All the chunks of [Code], raw [String]s, or [TypeAnnotation]s that
+  /// All the chunks of [Code], raw [String]s, or [Identifier]s that
   /// comprise this [Code] object.
   final List<Object> parts;
 
@@ -17,7 +17,9 @@ class Code {
 
   Code.fromString(String code) : parts = [code];
 
-  Code.fromParts(this.parts);
+  Code.fromParts(this.parts)
+      : assert(parts.every((element) =>
+            element is String || element is Code || element is Identifier));
 }
 
 /// A piece of code representing a syntactically valid declaration.
@@ -65,16 +67,6 @@ class FunctionBodyCode extends Code {
   FunctionBodyCode.fromString(String code) : super.fromString(code);
 
   FunctionBodyCode.fromParts(List<Object> parts) : super.fromParts(parts);
-}
-
-/// A piece of code representing a syntactically valid identifier.
-class IdentifierCode extends Code {
-  @override
-  CodeKind get kind => CodeKind.identifier;
-
-  IdentifierCode.fromString(String code) : super.fromString(code);
-
-  IdentifierCode.fromParts(List<Object> parts) : super.fromParts(parts);
 }
 
 /// A piece of code identifying a named argument.
@@ -137,7 +129,6 @@ enum CodeKind {
   element,
   expression,
   functionBody,
-  identifier,
   namedArgument,
   parameter,
   statement,

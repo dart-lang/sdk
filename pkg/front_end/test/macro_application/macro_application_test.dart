@@ -149,8 +149,8 @@ void _codeToString(StringBuffer sb, Code code) {
   for (Object part in code.parts) {
     if (part is Code) {
       _codeToString(sb, part);
-    } else if (part is TypeAnnotation) {
-      _codeToString(sb, part.code);
+    } else if (part is Identifier) {
+      sb.write(part.name);
     } else {
       sb.write(part);
     }

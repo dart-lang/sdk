@@ -1,0 +1,8 @@
+Info: The --categories flag is deprecated, see the usage for details.
+Info: Compiling with sound null safety
+Error: Error when reading 'benchmarks-internal/DeltaBlueBase/dart2/deltablue.dart': Error reading 'benchmarks-internal/DeltaBlueBase/dart2/deltablue.dart'  (No such file or directory)
+Error: No 'main' method found.
+Error: Compilation failed.
+real 1.14
+user 0.59
+sys 0.84

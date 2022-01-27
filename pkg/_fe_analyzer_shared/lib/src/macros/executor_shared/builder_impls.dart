@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
+
 import '../executor.dart';
 import '../api.dart';
 import 'response_impls.dart';
@@ -66,8 +68,12 @@ class DeclarationBuilderBase extends TypeBuilderBase
       classIntrospector.superclassOf(clazz);
 
   @override
-  Future<StaticType> resolve(TypeAnnotation typeAnnotation) =>
-      typeResolver.resolve(typeAnnotation);
+  Future<StaticType> instantiateCode(ExpressionCode code) =>
+      typeResolver.instantiateCode(code);
+
+  @override
+  Future<StaticType> instantiateType(TypeAnnotation typeAnnotation) =>
+      typeResolver.instantiateType(typeAnnotation);
 }
 
 class DeclarationBuilderImpl extends DeclarationBuilderBase
@@ -84,7 +90,7 @@ class DeclarationBuilderImpl extends DeclarationBuilderBase
 
 class ClassMemberDeclarationBuilderImpl extends DeclarationBuilderImpl
     implements ClassMemberDeclarationBuilder {
-  final TypeAnnotation definingClass;
+  final Identifier definingClass;
 
   ClassMemberDeclarationBuilderImpl(this.definingClass,
       ClassIntrospector classIntrospector, TypeResolver typeResolver)
@@ -108,8 +114,8 @@ class DefinitionBuilderBase extends DeclarationBuilderBase
             parentAugmentations: parentAugmentations);
 
   @override
-  Future<TypeDeclaration> declarationOf(NamedStaticType annotation) =>
-      typeDeclarationResolver.declarationOf(annotation);
+  Future<TypeDeclaration> declarationOf(IdentifierImpl identifier) =>
+      typeDeclarationResolver.declarationOf(identifier);
 }
 
 class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
@@ -127,28 +133,29 @@ class ClassDefinitionBuilderImpl extends DefinitionBuilderBase
             parentAugmentations: parentAugmentations);
 
   @override
-  Future<ConstructorDefinitionBuilder> buildConstructor(String name) async {
+  Future<ConstructorDefinitionBuilder> buildConstructor(
+      Identifier identifier) async {
     ConstructorDeclaration constructor =
         (await classIntrospector.constructorsOf(declaration))
-            .firstWhere((constructor) => constructor.name == name);
+            .firstWhere((constructor) => constructor.identifier == identifier);
     return new ConstructorDefinitionBuilderImpl(
         constructor, classIntrospector, typeResolver, typeDeclarationResolver,
         parentAugmentations: _augmentations);
   }
 
   @override
-  Future<VariableDefinitionBuilder> buildField(String name) async {
+  Future<VariableDefinitionBuilder> buildField(Identifier identifier) async {
     FieldDeclaration field = (await classIntrospector.fieldsOf(declaration))
-        .firstWhere((field) => field.name == name);
+        .firstWhere((field) => field.identifier == identifier);
     return new VariableDefinitionBuilderImpl(
         field, classIntrospector, typeResolver, typeDeclarationResolver,
         parentAugmentations: _augmentations);
   }
 
   @override
-  Future<FunctionDefinitionBuilder> buildMethod(String name) async {
+  Future<FunctionDefinitionBuilder> buildMethod(Identifier identifier) async {
     MethodDeclaration method = (await classIntrospector.methodsOf(declaration))
-        .firstWhere((method) => method.name == name);
+        .firstWhere((method) => method.identifier == identifier);
     return new FunctionDefinitionBuilderImpl(
         method, classIntrospector, typeResolver, typeDeclarationResolver,
         parentAugmentations: _augmentations);
@@ -243,7 +250,7 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
 
 /// Creates an augmentation of [clazz] with member [augmentations].
 DeclarationCode _buildClassAugmentation(
-        TypeAnnotation clazz, List<DeclarationCode> augmentations) =>
+        Identifier clazz, List<DeclarationCode> augmentations) =>
     new DeclarationCode.fromParts([
       'augment class ',
       clazz,
@@ -275,9 +282,9 @@ List<DeclarationCode> _buildVariableAugmentations(
     augmentations.add(new DeclarationCode.fromParts([
       'augment ',
       if (declaration.isFinal) 'final ',
-      declaration.type,
+      declaration.type.code,
       ' ',
-      declaration.name,
+      declaration.identifier,
       ' = ',
       initializer,
       ';',
@@ -300,18 +307,18 @@ DeclarationCode _buildFunctionAugmentation(
   return new DeclarationCode.fromParts([
     'augment ',
     if (declaration is ConstructorDeclaration) ...[
-      declaration.definingClass.name,
-      if (declaration.name.isNotEmpty) '.',
+      declaration.definingClass,
+      if (declaration.identifier.name.isNotEmpty) '.',
     ] else ...[
       declaration.returnType.code,
       ' ',
     ],
-    declaration.name.trimEquals(),
+    declaration.identifier,
     if (declaration.typeParameters.isNotEmpty) ...[
       '<',
       for (TypeParameterDeclaration typeParam
           in declaration.typeParameters) ...[
-        typeParam.name,
+        typeParam.identifier,
         if (typeParam.bounds != null) ...['extends ', typeParam.bounds!.code],
         if (typeParam != declaration.typeParameters.last) ', ',
       ],
@@ -323,7 +330,7 @@ DeclarationCode _buildFunctionAugmentation(
       new ParameterCode.fromParts([
         positionalRequired.type.code,
         ' ',
-        positionalRequired.name,
+        positionalRequired.identifier,
       ]),
       ', '
     ],
@@ -334,7 +341,7 @@ DeclarationCode _buildFunctionAugmentation(
         new ParameterCode.fromParts([
           positionalOptional.type.code,
           ' ',
-          positionalOptional.name,
+          positionalOptional.identifier,
         ]),
         ', ',
       ],
@@ -347,7 +354,7 @@ DeclarationCode _buildFunctionAugmentation(
           if (named.isRequired) 'required ',
           named.type.code,
           ' ',
-          named.name,
+          named.identifier,
           if (named.defaultValue != null) ...[
             ' = ',
             named.defaultValue!,
@@ -368,8 +375,4 @@ DeclarationCode _buildFunctionAugmentation(
     ],
     body,
   ]);
-}
-
-extension _ on String {
-  String trimEquals() => endsWith('=') ? substring(0, length - 1) : this;
 }

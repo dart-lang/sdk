@@ -47,7 +47,7 @@ Future<MacroExecutionResult> executeDeclarationsMacro(
   if (declaration is ClassDeclaration && macro is ClassDeclarationsMacro) {
     ClassMemberDeclarationBuilderImpl builder =
         new ClassMemberDeclarationBuilderImpl(
-            declaration.type, classIntrospector, typeResolver);
+            declaration.identifier, classIntrospector, typeResolver);
     await macro.buildDeclarationsForClass(declaration, builder);
     return builder.result;
   } else if (declaration is ClassMemberDeclaration) {

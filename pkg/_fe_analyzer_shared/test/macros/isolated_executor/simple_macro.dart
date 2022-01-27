@@ -45,7 +45,7 @@ class SimpleMacro
     var fields = await builder.fieldsOf(clazz);
     builder.declareInClass(DeclarationCode.fromParts([
       'static const List<String> fieldNames = [',
-      for (var field in fields) "'${field.name}',",
+      for (var field in fields) "'${field.identifier.name}',",
       '];',
     ]));
   }
@@ -59,10 +59,11 @@ class SimpleMacro
       throw new UnsupportedError(
           'Can only run on constructors with no parameters!');
     }
-    builder.declareInClass(
-        DeclarationCode.fromString('factory ${constructor.definingClass.name}'
-            '.${constructor.name}Delegate() => '
-            '${constructor.definingClass.name}.${constructor.name}();'));
+    var className = constructor.definingClass.name;
+    var constructorName = constructor.identifier.name;
+    builder.declareInClass(DeclarationCode.fromString(
+        'factory $className.${constructorName}Delegate() => '
+        '$className.$constructorName();'));
   }
 
   @override
@@ -74,19 +75,20 @@ class SimpleMacro
       throw new UnsupportedError(
           'Can only run on functions with no parameters!');
     }
+    var functionName = function.identifier.name;
     builder.declareInLibrary(DeclarationCode.fromParts([
-      function.returnType,
+      function.returnType.code,
       if (function.isGetter) ' get' else if (function.isSetter) ' set ',
-      ' delegate${function.name.capitalize().trimEquals()}',
+      ' delegate${functionName.capitalize()}',
       if (!function.isGetter) ...[
         '(',
         if (function.isSetter) ...[
-          function.positionalParameters.first.type,
+          function.positionalParameters.first.type.code,
           ' value',
         ],
         ')',
       ],
-      ' => ${function.name.trimEquals()}',
+      ' => ${functionName}',
       function.isGetter
           ? ''
           : function.isSetter
@@ -103,27 +105,30 @@ class SimpleMacro
         method.namedParameters.isNotEmpty) {
       throw new UnsupportedError('Can only run on method with no parameters!');
     }
+    var methodName = method.identifier.name;
     builder.declareInLibrary(DeclarationCode.fromParts([
-      method.returnType,
-      ' delegateMember${method.name.capitalize()}() => ${method.name}();',
+      method.returnType.code,
+      ' delegateMember${methodName.capitalize()}() => $methodName();',
     ]));
   }
 
   @override
   FutureOr<void> buildDeclarationsForVariable(
       VariableDeclaration variable, DeclarationBuilder builder) {
+    var variableName = variable.identifier.name;
     builder.declareInLibrary(DeclarationCode.fromParts([
-      variable.type,
-      ' get delegate${variable.name.capitalize()} => ${variable.name};',
+      variable.type.code,
+      ' get delegate${variableName.capitalize()} => $variableName;',
     ]));
   }
 
   @override
   FutureOr<void> buildDeclarationsForField(
       FieldDeclaration field, ClassMemberDeclarationBuilder builder) {
+    var fieldName = field.identifier.name;
     builder.declareInClass(DeclarationCode.fromParts([
-      field.type,
-      ' get delegate${field.name.capitalize()} => ${field.name};',
+      field.type.code,
+      ' get delegate${fieldName.capitalize()} => $fieldName;',
     ]));
   }
 
@@ -134,25 +139,24 @@ class SimpleMacro
     var fields = (await builder.fieldsOf(clazz));
     for (var field in fields) {
       await buildDefinitionForField(
-          field, await builder.buildField(field.name));
+          field, await builder.buildField(field.identifier));
     }
     var methods = (await builder.methodsOf(clazz));
     for (var method in methods) {
       await buildDefinitionForMethod(
-          method, await builder.buildMethod(method.name));
+          method, await builder.buildMethod(method.identifier));
     }
     var constructors = (await builder.constructorsOf(clazz));
     for (var constructor in constructors) {
       await buildDefinitionForConstructor(
-          constructor, await builder.buildConstructor(constructor.name));
+          constructor, await builder.buildConstructor(constructor.identifier));
     }
   }
 
   @override
   Future<void> buildDefinitionForConstructor(ConstructorDeclaration constructor,
       ConstructorDefinitionBuilder builder) async {
-    var clazz = await builder.declarationOf(
-            await builder.resolve(constructor.definingClass) as NamedStaticType)
+    var clazz = await builder.declarationOf(constructor.definingClass)
         as ClassDeclaration;
     var fields = (await builder.fieldsOf(clazz));
 
@@ -162,8 +166,8 @@ class SimpleMacro
         for (var field in fields)
           // TODO: Compare against actual `int` type.
           if (field.isFinal &&
-              (field.type as NamedTypeAnnotation).name == 'int')
-            Code.fromString('${field.name} = ${x!}'),
+              (field.type as NamedTypeAnnotation).identifier.name == 'int')
+            Code.fromParts([field.identifier, ' = ${x!}']),
       ],
     );
   }
@@ -184,31 +188,12 @@ class SimpleMacro
       MethodDeclaration method, FunctionDefinitionBuilder builder) async {
     await buildDefinitionForFunction(method, builder);
 
-    // Test the type resolver and static type interfaces
-    var staticReturnType = await builder.resolve(method.returnType);
-    if (!(await staticReturnType.isExactly(staticReturnType))) {
-      throw StateError('The return type should be exactly equal to itself!');
-    }
-    if (!(await staticReturnType.isSubtypeOf(staticReturnType))) {
-      throw StateError('The return type should be a subtype of itself!');
-    }
-    var classType =
-        await builder.resolve(method.definingClass) as NamedStaticType;
-    if (await staticReturnType.isExactly(classType)) {
-      throw StateError(
-          'The return type should not be exactly equal to the class type');
-    }
-    if (await staticReturnType.isSubtypeOf(classType)) {
-      throw StateError(
-          'The return type should not be a subtype of the class type!');
-    }
-
     // Test the type declaration resolver
     var parentClass =
-        await builder.declarationOf(classType) as ClassDeclaration;
+        await builder.declarationOf(method.definingClass) as ClassDeclaration;
     // Should be able to find ourself in the methods of the parent class.
     (await builder.methodsOf(parentClass))
-        .singleWhere((m) => m.name == method.name);
+        .singleWhere((m) => m.identifier == method.identifier);
 
     // Test the class introspector
     var superClass = (await builder.superclassOf(parentClass))!;
@@ -218,18 +203,42 @@ class SimpleMacro
     var methods = (await builder.methodsOf(parentClass));
     var constructors = (await builder.constructorsOf(parentClass));
 
+    // Test the type resolver and static type interfaces
+    var staticReturnType = await builder.instantiateType(method.returnType);
+    if (!(await staticReturnType.isExactly(staticReturnType))) {
+      throw StateError('The return type should be exactly equal to itself!');
+    }
+    if (!(await staticReturnType.isSubtypeOf(staticReturnType))) {
+      throw StateError('The return type should be a subtype of itself!');
+    }
+
+    // TODO: Use `builder.instantiateCode` instead once implemented.
+    var classType =
+        await builder.instantiateType(constructors.first.returnType);
+    if (await staticReturnType.isExactly(classType)) {
+      throw StateError(
+          'The return type should not be exactly equal to the class type');
+    }
+    if (await staticReturnType.isSubtypeOf(classType)) {
+      throw StateError(
+          'The return type should not be a subtype of the class type!');
+    }
+
     builder.augment(FunctionBodyCode.fromParts([
       '''{
       print('x: $x, y: $y');
-      print('parentClass: ${parentClass.name}');
-      print('superClass: ${superClass.name}');''',
+      print('parentClass: ${parentClass.identifier.name}');
+      print('superClass: ${superClass.identifier.name}');''',
       for (var interface in interfaces)
-        "\n      print('interface: ${interface.name}');",
-      for (var mixin in mixins) "\n      print('mixin: ${mixin.name}');",
-      for (var field in fields) "\n      print('field: ${field.name}');",
-      for (var method in methods) "\n      print('method: ${method.name}');",
+        "\n      print('interface: ${interface.identifier.name}');",
+      for (var mixin in mixins)
+        "\n      print('mixin: ${mixin.identifier.name}');",
+      for (var field in fields)
+        "\n      print('field: ${field.identifier.name}');",
+      for (var method in methods)
+        "\n      print('method: ${method.identifier.name}');",
       for (var constructor in constructors)
-        "\n      print('constructor: ${constructor.name}');",
+        "\n      print('constructor: ${constructor.identifier.name}');",
       '''
 \n      return augment super();
     }''',
@@ -243,9 +252,9 @@ class SimpleMacro
         variable is FieldDeclaration ? variable.definingClass.name : '';
     builder.augment(
       getter: DeclarationCode.fromParts([
-        variable.type,
+        variable.type.code,
         ' get ',
-        variable.name,
+        variable.identifier.name,
         ''' {
           print('parentClass: $definingClass');
           print('isExternal: ${variable.isExternal}');
@@ -256,9 +265,9 @@ class SimpleMacro
       ]),
       setter: DeclarationCode.fromParts([
         'set ',
-        variable.name,
+        variable.identifier.name,
         '(',
-        variable.type,
+        variable.type.code,
         ' value) { augment super = value; }'
       ]),
       initializer: variable.initializer,
@@ -272,16 +281,16 @@ class SimpleMacro
         TypeParameterDeclaration typeParam, bool isFirst) {
       return [
         if (!isFirst) ', ',
-        typeParam.name,
+        typeParam.identifier.name,
         if (typeParam.bounds != null) ...[
           ' extends ',
-          typeParam.bounds!,
+          typeParam.bounds!.code,
         ]
       ];
     }
 
     builder.declareType(DeclarationCode.fromParts([
-      'class ${clazz.name}Builder',
+      'class ${clazz.identifier.name}Builder',
       if (clazz.typeParameters.isNotEmpty) ...[
         '<',
         ..._buildTypeParam(clazz.typeParameters.first, true),
@@ -290,11 +299,12 @@ class SimpleMacro
         '>',
       ],
       ' implements Builder<',
-      clazz.type,
+      clazz.identifier,
       if (clazz.typeParameters.isNotEmpty) ...[
         '<',
-        clazz.typeParameters.first,
-        for (var typeParam in clazz.typeParameters) ', ${typeParam.name}',
+        clazz.typeParameters.first.identifier.name,
+        for (var typeParam in clazz.typeParameters)
+          ', ${typeParam.identifier.name}',
         '>',
       ],
       '> {}'
@@ -305,14 +315,14 @@ class SimpleMacro
   FutureOr<void> buildTypesForConstructor(
       ConstructorDeclaration constructor, TypeBuilder builder) {
     builder.declareType(DeclarationCode.fromString(
-        'class GeneratedBy${constructor.name.capitalize()} {}'));
+        'class GeneratedBy${constructor.identifier.name.capitalize()} {}'));
   }
 
   @override
   FutureOr<void> buildTypesForField(
       FieldDeclaration field, TypeBuilder builder) {
     builder.declareType(DeclarationCode.fromString(
-        'class GeneratedBy${field.name.capitalize()} {}'));
+        'class GeneratedBy${field.identifier.name.capitalize()} {}'));
   }
 
   @override
@@ -324,7 +334,7 @@ class SimpleMacro
             ? 'Setter'
             : '';
     builder.declareType(DeclarationCode.fromString(
-        'class GeneratedBy${function.name.capitalize().trimEquals()}'
+        'class GeneratedBy${function.identifier.name.capitalize()}'
         '$suffix {}'));
   }
 
@@ -332,14 +342,14 @@ class SimpleMacro
   FutureOr<void> buildTypesForMethod(
       MethodDeclaration method, TypeBuilder builder) {
     builder.declareType(DeclarationCode.fromString(
-        'class GeneratedBy${method.name.capitalize()} {}'));
+        'class GeneratedBy${method.identifier.name.capitalize()} {}'));
   }
 
   @override
   FutureOr<void> buildTypesForVariable(
       VariableDeclaration variable, TypeBuilder builder) {
     builder.declareType(DeclarationCode.fromString(
-        'class GeneratedBy${variable.name.capitalize()} {}'));
+        'class GeneratedBy${variable.identifier.name.capitalize()} {}'));
   }
 }
 
@@ -356,38 +366,37 @@ FunctionBodyCode _buildFunctionAugmentation(FunctionDeclaration function) =>
       print('isGetter: ${function.isGetter}');
       print('isSetter: ${function.isSetter}');
       print('returnType: ''',
-      function.returnType,
+      function.returnType.code,
       "');\n",
       for (var param in function.positionalParameters) ...[
         "print('positionalParam: ",
-        param.type,
-        ' ${param.name}',
+        param.type.code,
+        ' ${param.identifier.name}',
         if (param.defaultValue != null) ...[' = ', param.defaultValue!],
         "');\n",
       ],
       for (var param in function.namedParameters) ...[
         "print('namedParam: ",
-        param.type,
-        ' ${param.name}',
+        param.type.code,
+        ' ${param.identifier.name}',
         if (param.defaultValue != null) ...[' = ', param.defaultValue!],
         "');\n",
       ],
       for (var param in function.typeParameters) ...[
-        "print('typeParam: ${param.name} ",
-        if (param.bounds != null) param.bounds!,
+        "print('typeParam: ${param.identifier.name} ",
+        if (param.bounds != null) param.bounds!.code,
         "');\n",
       ],
       'return augment super',
-      if (function.isSetter)
-        ' = ${function.positionalParameters.first.name}'
-      else if (!function.isGetter)
-        '()',
+      if (function.isSetter) ...[
+        ' = ',
+        function.positionalParameters.first.identifier,
+      ],
+      if (!function.isGetter && !function.isSetter) '()',
       ''';
     }''',
     ]);
 
 extension _ on String {
   String capitalize() => '${this[0].toUpperCase()}${substring(1)}';
-
-  String trimEquals() => endsWith('=') ? substring(0, length - 1) : this;
 }

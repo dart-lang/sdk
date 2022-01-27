@@ -68,6 +68,9 @@ abstract class RemoteInstance implements Serializable {
         return;
     }
   }
+
+  @override
+  bool operator ==(Object other) => other is RemoteInstance && id == other.id;
 }
 
 /// A remote instance which is just a pointer to some server side instance of
@@ -96,6 +99,7 @@ enum RemoteInstanceKind {
   fieldDeclaration,
   functionDeclaration,
   functionTypeAnnotation,
+  identifier,
   namedStaticType,
   methodDeclaration,
   namedTypeAnnotation,
