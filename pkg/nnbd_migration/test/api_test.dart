@@ -387,6 +387,88 @@ class MyComponent {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_contentChild_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ContentChild('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ContentChild`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ContentChild('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_contentChildren_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ContentChildren('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ContentChildren`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ContentChildren('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_angular_optional_constructor_param() async {
     addAngularPackage();
     var content = '''
@@ -508,6 +590,47 @@ class MyComponent {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_angular_viewChild_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ViewChild('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ViewChild`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class MyComponent {
+  @ViewChild('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_angular_viewChild_setter() async {
     addAngularPackage();
     var content = '''
@@ -526,6 +649,47 @@ import 'package:angular/angular.dart';
 class MyComponent {
   @ViewChild('foo')
   set bar(Element? element) {}
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_angular_viewChildren_field_not_late() async {
+    addAngularPackage();
+    var content = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ViewChildren('foo')
+  Element bar;
+  Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar.id;
+  h() => baz.id;
+}
+''';
+    // `late` heuristics are disabled for `bar` since it's marked with
+    // `ViewChildren`.  But they do apply to `baz`.
+    var expected = '''
+import 'dart:html';
+import 'package:angular/angular.dart';
+
+class myComponent {
+  @ViewChildren('foo')
+  Element? bar;
+  late Element baz;
+
+  f(Element e) {
+    bar = e;
+    baz = e;
+  }
+  g() => bar!.id;
+  h() => baz.id;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
