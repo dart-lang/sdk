@@ -504,11 +504,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   DevCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
-  bool get useKernel => _configuration.compiler == Compiler.dartdevk;
-
   String computeCompilerPath() {
-    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
-    return "$dir/bin/dartdevc$shellScriptExtension";
+    // The compiler is a Dart program and not an executable itself, so the
+    // command to spawn as a subprocess is a Dart VM. Internally the
+    // [DevCompilerCompilationCommand] will prepend the snapshot or Dart library
+    // entrypoint that is executed by the VM.
+    // This will change once we update the DDC to use AOT instead of a snapshot.
+    var dir = _useSdk ? '${_configuration.buildDirectory}/dart-sdk' : 'sdk';
+    return '$dir/bin/dart$executableExtension';
   }
 
   List<String> computeCompilerArguments(
@@ -581,11 +584,12 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       }
     }
 
-    var inputDir = Path(inputFile).append("..").canonicalize().toNativePath();
-    var displayName = useKernel ? 'dartdevk' : 'dartdevc';
-    return CompilationCommand(displayName, outputFile, bootstrapDependencies(),
+    var compilerPath = _useSdk
+        ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/dartdevc.dart.snapshot'
+        : Repository.uri.resolve('pkg/dev_compiler/bin/dartdevc.dart').path;
+    return DevCompilerCompilationCommand(outputFile, bootstrapDependencies(),
         computeCompilerPath(), args, environment,
-        workingDirectory: inputDir);
+        compilerPath: compilerPath);
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
