@@ -83,7 +83,6 @@ DEFINE_FLAG(bool,
             "Trace only optimizing compiler operations.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 
-DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 
 static void PrecompilationModeHandler(bool value) {
