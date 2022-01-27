@@ -223,12 +223,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Whether resolved units should be indexed.
   final bool enableIndex;
 
-  /// The current analysis session.
-  late final AnalysisSessionImpl _currentSession = AnalysisSessionImpl(this);
-
-  /// The current library context, consistent with the [_currentSession].
-  ///
-  /// TODO(scheglov) We probably should tie it into the session.
+  /// The context in which libraries should be analyzed.
   LibraryContext? _libraryContext;
 
   /// Whether `dart:core` has been transitively discovered.
@@ -311,7 +306,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   AnalysisOptions get analysisOptions => _analysisOptions;
 
   /// Return the current analysis session.
-  AnalysisSessionImpl get currentSession => _currentSession;
+  AnalysisSessionImpl get currentSession {
+    return libraryContext.elementFactory.analysisSession;
+  }
 
   /// Return the stream that produces [ExceptionResult]s.
   Stream<ExceptionResult> get exceptions => _exceptionController.stream;
@@ -337,7 +334,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   LibraryContext get libraryContext {
     return _libraryContext ??= LibraryContext(
       testView: _testView.libraryContextTestView,
-      session: currentSession,
+      analysisSession: AnalysisSessionImpl(this),
       logger: _logger,
       byteStore: _byteStore,
       analysisOptions: _analysisOptions,
@@ -515,9 +512,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// periodically.
   @visibleForTesting
   void clearLibraryContext() {
-    _libraryContext?.invalidAllLibraries();
     _libraryContext = null;
-    _currentSession.clearHierarchies();
   }
 
   /// Some state on which analysis depends has changed, so the driver needs to be
@@ -654,7 +649,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     FileState file = _fileTracker.getFile(path);
     return FileResultImpl(
-        _currentSession, path, file.uri, file.lineInfo, file.isPart);
+        currentSession, path, file.uri, file.lineInfo, file.isPart);
   }
 
   /// Return the [FileResult] for the Dart file with the given [path].
@@ -1328,7 +1323,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       declaredVariables,
       sourceFactory,
       libraryContext.elementFactory.libraryOfUri2(library.uriStr),
-      libraryContext.analysisSession.inheritanceManager,
+      libraryContext.elementFactory.analysisSession.inheritanceManager,
       library,
       testingData: testingData,
     ).analyzeForCompletion(
@@ -1441,7 +1436,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           declaredVariables,
           sourceFactory,
           libraryContext.elementFactory.libraryOfUri2(library.uriStr),
-          libraryContext.analysisSession.inheritanceManager,
+          libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
           testingData: testingData,
         ).analyze();
@@ -1512,7 +1507,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               declaredVariables,
               sourceFactory,
               libraryContext.elementFactory.libraryOfUri2(library.uriStr),
-              libraryContext.analysisSession.inheritanceManager,
+              libraryContext.elementFactory.analysisSession.inheritanceManager,
               library,
               testingData: testingData)
           .analyze();
@@ -1778,6 +1773,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     _libraryContext?.elementFactory.removeLibraries(
       affected.map((e) => e.uriStr).toSet(),
+    );
+
+    _libraryContext?.elementFactory.replaceAnalysisSession(
+      AnalysisSessionImpl(this),
     );
   }
 

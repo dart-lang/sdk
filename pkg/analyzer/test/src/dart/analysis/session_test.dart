@@ -134,6 +134,16 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
     expect(errorsResult.errors, isNotEmpty);
   }
 
+  test_getErrors_inconsistent() async {
+    var test = newFile(testFilePath, content: '');
+    var session = contextFor(test.path).currentSession;
+    driverFor(test.path).changeFile(test.path);
+    expect(
+      () => session.getErrors(test.path),
+      throwsA(isA<InconsistentAnalysisException>()),
+    );
+  }
+
   test_getErrors_invalidPath_notAbsolute() async {
     var session = contextFor(testFilePath).currentSession;
     var errorsResult = await session.getErrors('not_absolute.dart');
@@ -144,6 +154,16 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
     var session = contextFor(testFilePath).currentSession;
     var errorsResult = session.getFile('not_absolute.dart');
     expect(errorsResult, isA<InvalidPathResult>());
+  }
+
+  test_getFileSync_inconsistent() async {
+    var test = newFile(testFilePath, content: '');
+    var session = contextFor(test.path).currentSession;
+    driverFor(test.path).changeFile(test.path);
+    expect(
+      () => session.getFile(test.path),
+      throwsA(isA<InconsistentAnalysisException>()),
+    );
   }
 
   test_getFileSync_library() async {
@@ -178,6 +198,16 @@ class B {}
     expect(library.getType('A'), isNotNull);
     expect(library.getType('B'), isNotNull);
     expect(library.getType('C'), isNull);
+  }
+
+  test_getLibraryByUri_inconsistent() async {
+    var test = newFile(testFilePath, content: '');
+    var session = contextFor(test.path).currentSession;
+    driverFor(test.path).changeFile(test.path);
+    expect(
+      () => session.getLibraryByUriValid('package:test/test.dart'),
+      throwsA(isA<InconsistentAnalysisException>()),
+    );
   }
 
   test_getLibraryByUri_unresolvedUri() async {
@@ -265,6 +295,16 @@ int foo = 0;
     // Synthetic elements don't have nodes.
     expect(parsedLibrary.getElementDeclaration(fooElement.getter!), isNull);
     expect(parsedLibrary.getElementDeclaration(fooElement.setter!), isNull);
+  }
+
+  test_getParsedLibrary_inconsistent() async {
+    var test = newFile(testFilePath, content: '');
+    var session = contextFor(test.path).currentSession;
+    driverFor(test.path).changeFile(test.path);
+    expect(
+      () => session.getParsedLibrary(test.path),
+      throwsA(isA<InconsistentAnalysisException>()),
+    );
   }
 
   test_getParsedLibrary_invalidPartUri() async {
@@ -407,6 +447,16 @@ class B {}
     expect(unitResult.unit.declarations, hasLength(2));
   }
 
+  test_getParsedUnit_inconsistent() async {
+    var test = newFile(testFilePath, content: '');
+    var session = contextFor(test.path).currentSession;
+    driverFor(test.path).changeFile(test.path);
+    expect(
+      () => session.getParsedUnit(test.path),
+      throwsA(isA<InconsistentAnalysisException>()),
+    );
+  }
+
   test_getParsedUnit_invalidPath_notAbsolute() async {
     var session = contextFor(testFilePath).currentSession;
     var result = session.getParsedUnit('not_absolute.dart');
@@ -512,6 +562,16 @@ int foo = 0;
     expect(resolvedLibrary.getElementDeclaration(fooElement.setter!), isNull);
   }
 
+  test_getResolvedLibrary_inconsistent() async {
+    var test = newFile(testFilePath, content: '');
+    var session = contextFor(test.path).currentSession;
+    driverFor(test.path).changeFile(test.path);
+    expect(
+      () => session.getResolvedLibrary(test.path),
+      throwsA(isA<InconsistentAnalysisException>()),
+    );
+  }
+
   test_getResolvedLibrary_invalidPartUri() async {
     var test = newFile(testFilePath, content: r'''
 part 'a.dart';
@@ -600,6 +660,16 @@ class B {}
     expect(unitResult.libraryElement, isNotNull);
   }
 
+  test_getResolvedUnit_inconsistent() async {
+    var test = newFile(testFilePath, content: '');
+    var session = contextFor(test.path).currentSession;
+    driverFor(test.path).changeFile(test.path);
+    expect(
+      () => session.getResolvedUnit(test.path),
+      throwsA(isA<InconsistentAnalysisException>()),
+    );
+  }
+
   test_getUnitElement() async {
     var test = newFile(testFilePath, content: r'''
 class A {}
@@ -612,6 +682,16 @@ class B {}
     expect(unitResult.path, test.path);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
     expect(unitResult.element.classes, hasLength(2));
+  }
+
+  test_getUnitElement_inconsistent() async {
+    var test = newFile(testFilePath, content: '');
+    var session = contextFor(test.path).currentSession;
+    driverFor(test.path).changeFile(test.path);
+    expect(
+      () => session.getUnitElement(test.path),
+      throwsA(isA<InconsistentAnalysisException>()),
+    );
   }
 
   test_resourceProvider() async {

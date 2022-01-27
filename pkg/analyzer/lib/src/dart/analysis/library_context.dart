@@ -39,8 +39,6 @@ class LibraryContext {
   final LibraryContextTestView testView;
   final PerformanceLog logger;
   final ByteStore byteStore;
-  final AnalysisSessionImpl analysisSession;
-  final SummaryDataStore? externalSummaries;
   final SummaryDataStore store = SummaryDataStore([]);
 
   late final AnalysisContextImpl analysisContext;
@@ -48,21 +46,35 @@ class LibraryContext {
 
   LibraryContext({
     required this.testView,
-    required AnalysisSessionImpl session,
+    required AnalysisSessionImpl analysisSession,
     required PerformanceLog logger,
     required ByteStore byteStore,
     required AnalysisOptionsImpl analysisOptions,
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
-    required this.externalSummaries,
+    required SummaryDataStore? externalSummaries,
   })  : logger = logger,
-        byteStore = byteStore,
-        analysisSession = session {
+        byteStore = byteStore {
     var synchronousSession =
         SynchronousSession(analysisOptions, declaredVariables);
     analysisContext = AnalysisContextImpl(synchronousSession, sourceFactory);
 
-    _createElementFactory();
+    elementFactory = LinkedElementFactory(
+      analysisContext,
+      analysisSession,
+      Reference.root(),
+    );
+    if (externalSummaries != null) {
+      for (var bundle in externalSummaries.bundles) {
+        elementFactory.addBundle(
+          BundleReader(
+            elementFactory: elementFactory,
+            resolutionBytes: bundle.resolutionBytes,
+            unitsInformativeBytes: {},
+          ),
+        );
+      }
+    }
   }
 
   /// Computes a [CompilationUnitElement] for the given library/unit pair.
@@ -84,11 +96,6 @@ class LibraryContext {
   /// Return [LibraryElement] if it is ready.
   LibraryElement? getLibraryElementIfReady(String uriStr) {
     return elementFactory.libraryOfUriIfReady(uriStr);
-  }
-
-  /// We are about to discard this context, mark all libraries invalid.
-  void invalidAllLibraries() {
-    elementFactory.invalidateAllLibraries();
   }
 
   /// Load data required to access elements of the given [targetLibrary].
@@ -220,25 +227,6 @@ class LibraryContext {
     _createElementFactoryTypeProvider();
 
     timerLoad2.stop();
-  }
-
-  void _createElementFactory() {
-    elementFactory = LinkedElementFactory(
-      analysisContext,
-      analysisSession,
-      Reference.root(),
-    );
-    if (externalSummaries != null) {
-      for (var bundle in externalSummaries!.bundles) {
-        elementFactory.addBundle(
-          BundleReader(
-            elementFactory: elementFactory,
-            resolutionBytes: bundle.resolutionBytes,
-            unitsInformativeBytes: {},
-          ),
-        );
-      }
-    }
   }
 
   /// Ensure that type provider is created.
