@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'annotate_overrides.dart' as annotate_overrides;
 import 'avoid_annotating_with_dynamic.dart' as avoid_annotating_with_dynamic;
 import 'avoid_function_literals_in_foreach_calls.dart'
     as avoid_function_literals_in_foreach_calls;
@@ -48,6 +49,7 @@ import 'use_is_even_rather_than_modulo.dart' as use_is_even_rather_than_modulo;
 import 'void_checks.dart' as void_checks;
 
 void main() {
+  annotate_overrides.main();
   avoid_annotating_with_dynamic.main();
   avoid_function_literals_in_foreach_calls.main();
   avoid_init_to_null.main();
