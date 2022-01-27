@@ -642,6 +642,9 @@ class SourceLoader extends Loader {
       currentUriForCrashReporting = library.importUri;
       await buildBody(library);
     }
+    // Workaround: This will return right away but avoid a "semi leak"
+    // where the latest library is saved in a context somewhere.
+    await buildBody(null);
     currentUriForCrashReporting = null;
     logSummary(templateSourceBodySummary);
   }
@@ -1076,7 +1079,10 @@ severity: $severity
   }
 
   /// Builds all the method bodies found in the given [library].
-  Future<Null> buildBody(SourceLibraryBuilder library) async {
+  Future<Null> buildBody(SourceLibraryBuilder? library) async {
+    // [library] is only nullable so we can call this a "dummy-time" to get rid
+    // of a semi-leak.
+    if (library == null) return;
     Iterable<SourceLibraryBuilder>? patches = library.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {

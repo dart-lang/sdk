@@ -409,7 +409,7 @@ class KernelTarget extends TargetImplementation {
       if (macroApplications != null) {
         await macroApplications.applyTypeMacros();
       }
-      List<SourceClassBuilder> sourceClassBuilders =
+      List<SourceClassBuilder>? sourceClassBuilders =
           loader.checkSemantics(objectClassBuilder);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
       loader.createTypeInferenceEngine();
@@ -442,6 +442,11 @@ class KernelTarget extends TargetImplementation {
       loader.checkMainMethods();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
+      // For whatever reason sourceClassBuilders is kept alive for some amount
+      // of time, meaning that all source library builders will be kept alive
+      // (for whatever amount of time) even though we convert them to dill
+      // library builders. To avoid it we null it out here.
+      sourceClassBuilders = null;
       return new BuildResult(
           component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
@@ -467,7 +472,7 @@ class KernelTarget extends TargetImplementation {
       finishSynthesizedParameters();
       loader.finishDeferredLoadTearoffs();
       loader.finishNoSuchMethodForwarders();
-      List<SourceClassBuilder> sourceClasses = loader.collectSourceClasses();
+      List<SourceClassBuilder>? sourceClasses = loader.collectSourceClasses();
       if (macroApplications != null) {
         await macroApplications.applyDefinitionMacros(
             loader.coreTypes, loader.hierarchy);
@@ -479,6 +484,12 @@ class KernelTarget extends TargetImplementation {
 
       if (verify) this.verify();
       installAllComponentProblems(loader.allComponentProblems);
+
+      // For whatever reason sourceClasses is kept alive for some amount
+      // of time, meaning that all source library builders will be kept alive
+      // (for whatever amount of time) even though we convert them to dill
+      // library builders. To avoid it we null it out here.
+      sourceClasses = null;
       return new BuildResult(
           component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
