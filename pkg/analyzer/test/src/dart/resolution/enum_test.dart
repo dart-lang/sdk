@@ -19,7 +19,7 @@ class EnumDriverResolutionTest extends PubPackageResolutionTest {
     await assertNoErrorsInCode(r'''
 enum E {
   v([]);
-  E(List<int> a);
+  const E(List<int> a);
 }
 ''');
 
@@ -30,7 +30,7 @@ enum E {
     await assertNoErrorsInCode(r'''
 enum E {
   v(<void Function(double)>[]);
-  E(Object a);
+  const E(Object a);
 }
 ''');
 
@@ -50,7 +50,7 @@ enum E {
     await assertNoErrorsInCode(r'''
 enum E<T> {
   v.named(42);
-  E.named(T a);
+  const E.named(T a);
 }
 ''');
 
@@ -76,7 +76,7 @@ enum E<T> {
     await assertNoErrorsInCode(r'''
 enum E<T> {
   v(42);
-  E(T a);
+  const E(T a);
 }
 ''');
 
@@ -102,7 +102,7 @@ enum E<T> {
     await assertNoErrorsInCode(r'''
 enum E<T> {
   v<double>.named(42);
-  E.named(T a);
+  const E.named(T a);
 }
 ''');
 
@@ -134,7 +134,7 @@ enum E<T> {
     await assertNoErrorsInCode(r'''
 enum E {
   v.named(42);
-  E.named(int a);
+  const E.named(int a);
 }
 ''');
 
@@ -154,7 +154,7 @@ enum E {
     await assertNoErrorsInCode(r'''
 enum E {
   v(42);
-  E(int a);
+  const E(int a);
 }
 ''');
 
@@ -188,7 +188,7 @@ enum E {
     await assertNoErrorsInCode(r'''
 enum E {
   v.named(42);
-  E(int a);
+  const E(int a);
 }
 ''');
 
@@ -205,7 +205,7 @@ enum E {
     await assertNoErrorsInCode(r'''
 enum E {
   v(42);
-  E.named(int a);
+  const E.named(int a);
 }
 ''');
 

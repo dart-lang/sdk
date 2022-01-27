@@ -17539,7 +17539,7 @@ library
     var library = await checkLibrary(r'''
 enum E<T> {
   int(1), string('2');
-  E(T a);
+  const E(T a);
 }
 ''');
     checkElementText(library, r'''
@@ -17640,7 +17640,7 @@ library
           synthetic final _name @-1
             type: String
         constructors
-          @37
+          const @43
             parameters
               requiredPositional final this.index @-1
                 type: int
@@ -17648,7 +17648,7 @@ library
               requiredPositional final this._name @-1
                 type: String
                 field: self::@enum::E::@field::_name
-              requiredPositional a @41
+              requiredPositional a @47
                 type: T
         accessors
           synthetic static get int @-1
@@ -17752,7 +17752,7 @@ library
     var library = await checkLibrary(r'''
 enum E<T> {
   v<double>(42);
-  E(T a);
+  const E(T a);
 }
 ''');
     checkElementText(library, r'''
@@ -17826,7 +17826,7 @@ library
           synthetic final _name @-1
             type: String
         constructors
-          @31
+          const @37
             parameters
               requiredPositional final this.index @-1
                 type: int
@@ -17834,7 +17834,7 @@ library
               requiredPositional final this._name @-1
                 type: String
                 field: self::@enum::E::@field::_name
-              requiredPositional a @35
+              requiredPositional a @41
                 type: T
         accessors
           synthetic static get v @-1
@@ -17935,7 +17935,7 @@ library
     var library = await checkLibrary(r'''
 enum E {
   v.named(42);
-  E.named(int a);
+  const E.named(int a);
 }
 ''');
     checkElementText(library, r'''
@@ -17992,9 +17992,9 @@ library
           synthetic final _name @-1
             type: String
         constructors
-          named @28
-            periodOffset: 27
-            nameEnd: 33
+          const named @34
+            periodOffset: 33
+            nameEnd: 39
             parameters
               requiredPositional final this.index @-1
                 type: int
@@ -18002,7 +18002,7 @@ library
               requiredPositional final this._name @-1
                 type: String
                 field: self::@enum::E::@field::_name
-              requiredPositional a @38
+              requiredPositional a @44
                 type: int
         accessors
           synthetic static get v @-1
@@ -18023,7 +18023,7 @@ library
     var library = await checkLibrary(r'''
 enum E {
   v(42);
-  E(int a);
+  const E(int a);
 }
 ''');
     checkElementText(library, r'''
@@ -18080,7 +18080,7 @@ library
           synthetic final _name @-1
             type: String
         constructors
-          @20
+          const @26
             parameters
               requiredPositional final this.index @-1
                 type: int
@@ -18088,7 +18088,7 @@ library
               requiredPositional final this._name @-1
                 type: String
                 field: self::@enum::E::@field::_name
-              requiredPositional a @26
+              requiredPositional a @32
                 type: int
         accessors
           synthetic static get v @-1
