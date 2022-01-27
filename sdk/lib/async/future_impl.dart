@@ -80,7 +80,6 @@ class _FutureListener<S, T> {
   static const int stateWhenComplete = maskWhenComplete;
   static const int maskType =
       maskValue | maskError | maskTestError | maskWhenComplete;
-  static const int stateIsAwait = 16;
 
   // Listeners on the same future are linked through this link.
   _FutureListener? _nextListener;
@@ -110,8 +109,7 @@ class _FutureListener<S, T> {
       this.result, _FutureOnValue<S, T> onValue, Function errorCallback)
       : callback = onValue,
         errorCallback = errorCallback,
-        state = ((errorCallback == null) ? stateThen : stateThenOnerror) |
-            stateIsAwait;
+        state = stateThenOnerror;
 
   _FutureListener.catchError(this.result, this.errorCallback, this.callback)
       : state = (callback == null) ? stateCatchError : stateCatchErrorTest;
@@ -126,7 +124,6 @@ class _FutureListener<S, T> {
   bool get handlesError => (state & maskError != 0);
   bool get hasErrorTest => (state & maskType == stateCatchErrorTest);
   bool get handlesComplete => (state & maskType == stateWhenComplete);
-  bool get isAwait => (state & stateIsAwait != 0);
 
   FutureOr<T> Function(S) get _onValue {
     assert(handlesValue);
@@ -304,27 +301,6 @@ class _Future<T> implements Future<T> {
   bool get _hasError => (_state & _stateError) != 0;
   bool get _ignoreError => (_state & _stateIgnoreError) != 0;
 
-  static List<Function>? _continuationFunctions(_Future<Object> future) {
-    List<Function>? result = null;
-    while (true) {
-      if (future._mayAddListener) return result;
-      assert(!future._isComplete);
-      assert(!future._isChained);
-      // So _resultOrListeners contains listeners.
-      _FutureListener<Object, Object>? listener = future._resultOrListeners;
-      if (listener != null &&
-          listener._nextListener == null &&
-          listener.isAwait) {
-        (result ??= <Function>[]).add(listener.handleValue);
-        future = listener.result;
-        assert(!future._isComplete);
-      } else {
-        break;
-      }
-    }
-    return result;
-  }
-
   void _setChained(_Future source) {
     assert(_mayAddListener);
     _state = _stateChained | (_state & _stateIgnoreError);
@@ -360,9 +336,7 @@ class _Future<T> implements Future<T> {
   /// Registers a system created result and error continuation.
   ///
   /// Used by the implementation of `await` to listen to a future.
-  /// The system created listeners are not registered in the zone,
-  /// and the listener is marked as being from an `await`.
-  /// This marker is used in [_continuationFunctions].
+  /// The system created listeners are not registered in the zone.
   Future<E> _thenAwait<E>(FutureOr<E> f(T value), Function onError) {
     _Future<E> result = new _Future<E>();
     _addListener(new _FutureListener<T, E>.thenAwait(result, f, onError));
