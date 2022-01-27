@@ -932,6 +932,24 @@ class DartObjectImpl implements DartObject {
     );
   }
 
+  /// Set the `index` and `_name` fields for this enum constant.
+  void updateEnumConstant({
+    required int index,
+    required String name,
+  }) {
+    var fields = _state.fields!;
+    fields['index'] = DartObjectImpl(
+      _typeSystem,
+      _typeSystem.typeProvider.intType,
+      IntState(index),
+    );
+    fields['_name'] = DartObjectImpl(
+      _typeSystem,
+      _typeSystem.typeProvider.stringType,
+      StringState(name),
+    );
+  }
+
   /// Throw an exception if the given [object]'s state does not represent a Type
   /// value.
   void _assertType(DartObjectImpl object) {

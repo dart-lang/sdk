@@ -242,9 +242,8 @@ class InformativeDataApplier {
 
   void _applyToConstructors(
     List<ConstructorElement> elementList,
-    List<_InfoConstructorDeclaration> infoList, {
-    bool ofEnum = false,
-  }) {
+    List<_InfoConstructorDeclaration> infoList,
+  ) {
     forCorrespondingPairs<ConstructorElement, _InfoConstructorDeclaration>(
       elementList,
       infoList,
@@ -256,9 +255,8 @@ class InformativeDataApplier {
         element.nameEnd = info.nameEnd;
         element.documentationComment = info.documentationComment;
 
-        var formalParameters = element.parameters_unresolved;
         _applyToFormalParameters(
-          ofEnum ? formalParameters.skip(2).toList() : formalParameters,
+          element.parameters_unresolved,
           info.parameters,
         );
 
@@ -288,7 +286,7 @@ class InformativeDataApplier {
       element.typeParameters_unresolved,
       info.typeParameters,
     );
-    _applyToConstructors(element.constructors, info.constructors, ofEnum: true);
+    _applyToConstructors(element.constructors, info.constructors);
     _applyToFields(element.fields, info.fields);
     _applyToAccessors(element.accessors, info.accessors);
     _applyToMethods(element.methods, info.methods);
@@ -1743,9 +1741,7 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpression) {
       initializer.constructorName.type2.typeArguments?.accept(this);
-      var arguments = initializer.argumentList.arguments;
-      // Skip synthetic `index` and `name` arguments.
-      for (var argument in arguments.skip(2)) {
+      for (var argument in initializer.argumentList.arguments) {
         argument.accept(this);
       }
     }

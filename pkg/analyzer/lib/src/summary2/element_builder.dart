@@ -214,22 +214,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var reference = _enclosingContext.addEnum(name, element);
     _libraryBuilder.localScope.declare(name, reference);
 
-    var usedNames = <String>{
-      ...node.constants.map((e) => e.name.name),
-    };
-
-    String generateUniqueName(String base) {
-      if (usedNames.add(base)) {
-        return base;
-      }
-      for (var index = 2;; index++) {
-        var name = '$base$index';
-        if (usedNames.add(name)) {
-          return name;
-        }
-      }
-    }
-
     var holder = _EnclosingContext(
       reference,
       element,
@@ -278,14 +262,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         astFactory.argumentList(
           Tokens.openParenthesis(),
           [
-            astFactory.integerLiteral(
-              StringToken(TokenType.STRING, '$i', 0),
-              i,
-            ),
-            astFactory.simpleStringLiteral(
-              StringToken(TokenType.STRING, "'$name'", 0),
-              name,
-            ),
             ...?constant.arguments?.argumentList.arguments,
           ],
           Tokens.closeParenthesis(),
@@ -374,48 +350,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       ..isSynthetic = true;
     holder.addNonSyntheticField(indexField);
 
-    // Build the 'name' field.
-    var nameField = ConstFieldElementImpl(generateUniqueName('_name'), -1)
-      ..isFinal = true
-      ..isSynthetic = true;
-    holder.addNonSyntheticField(nameField);
-
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
 
-    FieldFormalParameterElementImpl newConstructorIndexParameter() {
-      return FieldFormalParameterElementImpl(
-        name: 'index',
-        nameOffset: -1,
-        parameterKind: ParameterKind.REQUIRED,
-      )..field = indexField;
-    }
-
-    FieldFormalParameterElementImpl newConstructorNameParameter() {
-      return FieldFormalParameterElementImpl(
-        name: nameField.name,
-        nameOffset: -1,
-        parameterKind: ParameterKind.REQUIRED,
-      )..field = nameField;
-    }
-
     if (needsImplicitConstructor) {
       holder.addConstructor(
         ConstructorElementImpl('', -1)
           ..isConst = true
-          ..isSynthetic = true
-          ..parameters = [
-            newConstructorIndexParameter(),
-            newConstructorNameParameter(),
-          ],
+          ..isSynthetic = true,
       );
-    } else {
-      for (var constructor in holder.constructors) {
-        constructor.parameters.insert(0, newConstructorIndexParameter());
-        constructor.parameters.insert(1, newConstructorNameParameter());
-      }
     }
 
     MethodElementImpl? syntheticToStringMethod;
@@ -429,7 +374,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       ImplicitEnumNodes(
         element: element,
         indexField: indexField,
-        nameField: nameField,
         valuesTypeNode: valuesTypeNode,
         valuesField: valuesField,
         syntheticToStringMethod: syntheticToStringMethod,
