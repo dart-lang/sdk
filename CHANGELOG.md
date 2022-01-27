@@ -33,9 +33,16 @@
   marked deprecated as previously announced.
   Its replacement is the `dart compile js` command.
   Should you find any issues, or missing features, in the replacement
-  command, kindly file [an issue][].
+  command, kindly file [an issue](https://github.com/dart-lang/sdk/issues/new).
 
-[an issue]: https://github.com/dart-lang/sdk/issues/new
+- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dartdevc` tool has been marked deprecated as previously
+  announced and will be deleted in a future Dart stable relase.  This tool
+  was intended for use only by build systems like bazel, `build_web_compilers`
+  and `flutter_tools`. The functionality remains available for those systems,
+  but it is no longer exposed as a command-line tool in the SDK.
+  Please share any concerns in the 
+  [breaking change tracking issue](https://github.com/dart-lang/sdk/issues/46100).
 
 - **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
   The standalone `dartdoc` tool has been removed as
