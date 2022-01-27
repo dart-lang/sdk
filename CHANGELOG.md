@@ -30,6 +30,10 @@
 
 [an issue]: https://github.com/dart-lang/sdk/issues/new
 
+- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
+  The standalone `dartdoc` tool has been removed as
+  previously announced. Its replacement is the `dart doc` command.
+
 ## 2.16.0
 
 ### Core libraries

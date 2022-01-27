@@ -3574,10 +3574,12 @@
         },
         {
           "name": "validate SDK API docs",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartdoc",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "arguments": [
+            "doc",
             "--sdk-docs",
-            "--no-generate-docs"
+            "--dry-run",
+            "--verbose"
           ]
         },
         {
@@ -4006,7 +4008,8 @@
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--no-aot",
             "--no-sound-null-safety",
-            "-o", "runtime/tests/concurrency/generated_stress_test.dart.jit.dill",
+            "-o",
+            "runtime/tests/concurrency/generated_stress_test.dart.jit.dill",
             "runtime/tests/concurrency/generated_stress_test.dart"
           ]
         },
@@ -4017,7 +4020,8 @@
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--no-aot",
-            "-o", "runtime/tests/concurrency/generated_stress_test_nnbd.dart.jit.dill",
+            "-o",
+            "runtime/tests/concurrency/generated_stress_test_nnbd.dart.jit.dill",
             "runtime/tests/concurrency/generated_stress_test_nnbd.dart"
           ]
         },
@@ -4029,7 +4033,8 @@
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--aot",
             "--no-sound-null-safety",
-            "-o", "runtime/tests/concurrency/generated_stress_test.dart.aot.dill",
+            "-o",
+            "runtime/tests/concurrency/generated_stress_test.dart.aot.dill",
             "runtime/tests/concurrency/generated_stress_test.dart"
           ]
         },
@@ -4040,7 +4045,8 @@
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--aot",
-            "-o", "runtime/tests/concurrency/generated_stress_test_nnbd.dart.aot.dill",
+            "-o",
+            "runtime/tests/concurrency/generated_stress_test_nnbd.dart.aot.dill",
             "runtime/tests/concurrency/generated_stress_test_nnbd.dart"
           ]
         },
