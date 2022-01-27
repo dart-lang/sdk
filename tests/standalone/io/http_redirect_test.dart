@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 
-Future<HttpServer> setupServer() {
+Future<HttpServer> setupServer({Uri? targetServer}) {
   final completer = new Completer<HttpServer>();
   HttpServer.bind("127.0.0.1", 0).then((server) {
     var handlers = new Map<String, Function>();
@@ -128,6 +128,8 @@ Future<HttpServer> setupServer() {
     // Setup redirect checking headers.
     addRequestHandler("/src", (HttpRequest request, HttpResponse response) {
       Expect.equals("value", request.headers.value("X-Request-Header"));
+      Expect.isNotNull(request.headers.value("Authorization"),
+          "expected 'Authorization' header to be set");
       response.headers.set(
           HttpHeaders.locationHeader, "http://127.0.0.1:${server.port}/target");
       response.statusCode = HttpStatus.movedPermanently;
@@ -135,8 +137,23 @@ Future<HttpServer> setupServer() {
     });
     addRequestHandler("/target", (HttpRequest request, HttpResponse response) {
       Expect.equals("value", request.headers.value("X-Request-Header"));
+      Expect.isNotNull(request.headers.value("Authorization"),
+          "expected 'Authorization' header to be set");
       response.close();
     });
+
+    if (targetServer != null) {
+      addRequestHandler("/src-crossdomain",
+          (HttpRequest request, HttpResponse response) {
+        Expect.equals("value", request.headers.value("X-Request-Header"));
+        Expect.isNotNull(request.headers.value("Authorization"),
+            "expected 'Authorization' header to be set");
+        response.headers
+            .set(HttpHeaders.locationHeader, targetServer.toString());
+        response.statusCode = HttpStatus.movedPermanently;
+        response.close();
+      });
+    }
 
     // Setup redirect for 301 where POST should not redirect.
     addRequestHandler("/301src", (HttpRequest request, HttpResponse response) {
@@ -176,6 +193,36 @@ Future<HttpServer> setupServer() {
       response.statusCode = HttpStatus.found;
       response.persistentConnection = false;
       response.close();
+    });
+
+    completer.complete(server);
+  });
+  return completer.future;
+}
+
+// A second HTTP server used to validate that redirect requests accross domains
+// do *not* include security-related headers.
+Future<HttpServer> setupTargetServer() {
+  final completer = new Completer<HttpServer>();
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    var handlers = new Map<String, Function>();
+    addRequestHandler(
+        String path, void handler(HttpRequest request, HttpResponse response)) {
+      handlers[path] = handler;
+    }
+
+    server.listen((HttpRequest request) {
+      if (request.uri.path == "/target") {
+        Expect.equals("value", request.headers.value("X-Request-Header"));
+        Expect.isNull(request.headers.value("Authorization"),
+            "expected 'Authorization' header to be removed on redirect");
+        request.response.close();
+      } else {
+        request.listen((_) {}, onDone: () {
+          request.response.statusCode = 404;
+          request.response.close();
+        });
+      }
     });
 
     completer.complete(server);
@@ -250,6 +297,7 @@ void testManualRedirectWithHeaders() {
         .then((HttpClientRequest request) {
       request.followRedirects = false;
       request.headers.add("X-Request-Header", "value");
+      request.headers.add("Authorization", "Basic ...");
       return request.close();
     }).then(handleResponse);
   });
@@ -282,6 +330,7 @@ void testAutoRedirectWithHeaders() {
         .getUrl(Uri.parse("http://127.0.0.1:${server.port}/src"))
         .then((HttpClientRequest request) {
       request.headers.add("X-Request-Header", "value");
+      request.headers.add("Authorization", "Basic ...");
       return request.close();
     }).then((HttpClientResponse response) {
       response.listen((_) => Expect.fail("Response data not expected"),
@@ -289,6 +338,33 @@ void testAutoRedirectWithHeaders() {
         Expect.equals(1, response.redirects.length);
         server.close();
         client.close();
+      });
+    });
+  });
+}
+
+void testCrossDomainAutoRedirectWithHeaders() {
+  setupTargetServer().then((targetServer) {
+    setupServer(
+            targetServer:
+                Uri.parse("http://127.0.0.1:${targetServer.port}/target"))
+        .then((server) {
+      HttpClient client = new HttpClient();
+
+      client
+          .getUrl(Uri.parse("http://127.0.0.1:${server.port}/src-crossdomain"))
+          .then((HttpClientRequest request) {
+        request.headers.add("X-Request-Header", "value");
+        request.headers.add("Authorization", "Basic ...");
+        return request.close();
+      }).then((HttpClientResponse response) {
+        response.listen((_) => Expect.fail("Response data not expected"),
+            onDone: () {
+          Expect.equals(1, response.redirects.length);
+          targetServer.close();
+          server.close();
+          client.close();
+        });
       });
     });
   });
@@ -441,6 +517,7 @@ main() {
   testManualRedirectWithHeaders();
   testAutoRedirect();
   testAutoRedirectWithHeaders();
+  testCrossDomainAutoRedirectWithHeaders();
   testAutoRedirect301POST();
   testAutoRedirect303POST();
   testAutoRedirectLimit();
