@@ -509,17 +509,11 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_if_elements_to_conditional_expressions: [
       ConvertConditionalExpressionToIfElement.newInstance,
     ],
-    LintNames.prefer_initializing_formals: [
-      ConvertToInitializingFormal.newInstance,
-    ],
-    LintNames.prefer_is_empty: [
-      ReplaceWithIsEmpty.newInstance,
-    ],
-    LintNames.prefer_is_not_empty: [
-      UseIsNotEmpty.newInstance,
-    ],
     LintNames.prefer_if_null_operators: [
       ConvertToIfNull.newInstance,
+    ],
+    LintNames.prefer_initializing_formals: [
+      ConvertToInitializingFormal.newInstance,
     ],
     LintNames.prefer_inlined_adds: [
       ConvertAddAllToSpread.newInstance,
@@ -530,6 +524,12 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.prefer_interpolation_to_compose_strings: [
       ReplaceWithInterpolation.newInstance,
+    ],
+    LintNames.prefer_is_empty: [
+      ReplaceWithIsEmpty.newInstance,
+    ],
+    LintNames.prefer_is_not_empty: [
+      UseIsNotEmpty.newInstance,
     ],
     LintNames.prefer_is_not_operator: [
       ConvertIntoIsNot.newInstance,
@@ -555,6 +555,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.prefer_void_to_null: [
       ReplaceNullWithVoid.newInstance,
     ],
+    LintNames.require_trailing_commas: [
+      AddTrailingComma.newInstance,
+    ],
     LintNames.sized_box_for_whitespace: [
       ReplaceContainerWithSizedBox.newInstance,
     ],
@@ -563,9 +566,6 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.sort_child_properties_last: [
       SortChildPropertyLast.newInstance,
-    ],
-    LintNames.require_trailing_commas: [
-      AddTrailingComma.newInstance,
     ],
     LintNames.type_annotate_public_apis: [
       AddTypeAnnotation.newInstanceBulkFixable,
@@ -830,11 +830,11 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.CONST_WITH_NON_CONST: [
       RemoveConst.newInstance,
     ],
-    CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
-      ReplaceWithFilled.newInstance,
-    ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
+    ],
+    CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
+      ReplaceWithFilled.newInstance,
     ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       ChangeTo.classOrMixin,

@@ -40,9 +40,9 @@ class LintNames {
       'avoid_types_on_closure_parameters';
   static const String avoid_unused_constructor_parameters =
       'avoid_unused_constructor_parameters';
-  static const String await_only_futures = 'await_only_futures';
   static const String avoid_unnecessary_containers =
       'avoid_unnecessary_containers';
+  static const String await_only_futures = 'await_only_futures';
   static const String curly_braces_in_flow_control_structures =
       'curly_braces_in_flow_control_structures';
   static const String diagnostic_describe_all_properties =
