@@ -19,33 +19,45 @@ class D1 {}
 class D2 {}
 
 /*member: topLevelFunction1:
+void topLevelFunction1GeneratedMethod_es() {}
+
 augment A topLevelFunction1(A a, ) {
   print('isExactly=true');
   print('isSubtype=true');
 }*/
+@FunctionDeclarationsMacro2()
 @FunctionDefinitionMacro2()
 external A topLevelFunction1(A a);
 
 /*member: topLevelFunction2:
+void topLevelFunction2GeneratedMethod_s() {}
+
 augment B2 topLevelFunction2(B1 a, ) {
   print('isExactly=false');
   print('isSubtype=true');
 }*/
+@FunctionDeclarationsMacro2()
 @FunctionDefinitionMacro2()
 external B2 topLevelFunction2(B1 a);
 
 /*member: topLevelFunction3:
+void topLevelFunction3GeneratedMethod_() {}
+
 augment C2 topLevelFunction3(C1 a, ) {
   print('isExactly=false');
   print('isSubtype=false');
 }*/
+@FunctionDeclarationsMacro2()
 @FunctionDefinitionMacro2()
 external C2 topLevelFunction3(C1 a);
 
 /*member: topLevelFunction4:
+void topLevelFunction4GeneratedMethod_() {}
+
 augment D2 topLevelFunction4(D1 a, ) {
   print('isExactly=false');
   print('isSubtype=false');
 }*/
+@FunctionDeclarationsMacro2()
 @FunctionDefinitionMacro2()
 external D2 topLevelFunction4(D1 a);

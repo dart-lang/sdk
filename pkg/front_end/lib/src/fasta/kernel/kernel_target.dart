@@ -423,7 +423,7 @@ class KernelTarget extends TargetImplementation {
       loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
       loader.checkSupertypes(sourceClassBuilders, enumClass);
       if (macroApplications != null) {
-        await macroApplications.applyDeclarationMacros();
+        await macroApplications.applyDeclarationMacros(loader.hierarchyBuilder);
       }
       loader.buildClassHierarchyMembers(sourceClassBuilders);
       loader.computeHierarchy();
@@ -474,8 +474,7 @@ class KernelTarget extends TargetImplementation {
       loader.finishNoSuchMethodForwarders();
       List<SourceClassBuilder>? sourceClasses = loader.collectSourceClasses();
       if (macroApplications != null) {
-        await macroApplications.applyDefinitionMacros(
-            loader.coreTypes, loader.hierarchy);
+        await macroApplications.applyDefinitionMacros();
       }
       loader.finishNativeMethods();
       loader.finishPatchMethods();

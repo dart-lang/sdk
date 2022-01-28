@@ -31,6 +31,7 @@ const Map<String, Map<String, List<String>>> macroDeclarations = {
     'FunctionDefinitionMacro2': [''],
     'FunctionTypesMacro1': [''],
     'FunctionDeclarationsMacro1': [''],
+    'FunctionDeclarationsMacro2': [''],
   }
 };
 
