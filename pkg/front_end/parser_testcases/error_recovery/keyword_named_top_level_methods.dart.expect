@@ -112,9 +112,9 @@ parser/error_recovery/keyword_named_top_level_methods:74:1: Expected an identifi
 }
 ^
 
-parser/error_recovery/keyword_named_top_level_methods:74:1: Expected ';' after this.
-}
-^
+parser/error_recovery/keyword_named_top_level_methods:73:21: Expected ';' after this.
+  return do(x-1) + 1;
+                    ^
 
 parser/error_recovery/keyword_named_top_level_methods:81:5: 'else' can't be used as an identifier because it's a keyword.
 int else(int x) {
@@ -1359,7 +1359,7 @@ beginCompilationUnit(int)
           handleNoArguments())
           handleSend(, ))
           handleParenthesizedCondition(()
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], }, })
+          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], ;, ;)
         endDoWhileStatement(do, while, ;)
       endBlockFunctionBody(3, {, })
     endTopLevelMethod(int, null, })

@@ -734,6 +734,9 @@ class SyntheticBeginToken extends BeginToken {
       : super(type, offset, precedingComment);
 
   @override
+  Token? beforeSynthetic;
+
+  @override
   Token copy() =>
       new SyntheticBeginToken(type, offset, copyComments(precedingComments));
 
@@ -753,6 +756,9 @@ class SyntheticKeywordToken extends KeywordToken {
    * given [offset].
    */
   SyntheticKeywordToken(Keyword keyword, int offset) : super(keyword, offset);
+
+  @override
+  Token? beforeSynthetic;
 
   @override
   int get length => 0;
