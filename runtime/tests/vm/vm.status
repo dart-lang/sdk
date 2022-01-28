@@ -15,6 +15,7 @@ dart/boxmint_test: Pass, Slow # Uses slow path
 dart/byte_array_optimized_test: Pass, Slow
 dart/data_uri_import_test/none: SkipByDesign
 dart/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
+dart/hash_map_probes_limit_test: Pass, Slow # Test includes large program compilation.
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
 dart/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
 dart/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
@@ -28,6 +29,7 @@ dart_2/boxmint_test: Pass, Slow # Uses slow path
 dart_2/byte_array_optimized_test: Pass, Slow
 dart_2/data_uri_import_test/none: SkipByDesign
 dart_2/emit_aot_size_info_flag_test: Pass, Slow # Spawns several subprocesses
+dart_2/hash_map_probes_limit_test: Pass, Slow # Test includes large program compilation.
 dart_2/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
 dart_2/isolates/concurrency_stress_sanity_test: Pass, Slow # Spawns subprocesses
 dart_2/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
@@ -64,12 +66,14 @@ dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel 
 
 [ $builder_tag == tsan ]
 dart/appjit_cha_deopt_test: SkipSlow
+dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart/regress_40462_test: SkipSlow
 dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
 dart/v8_snapshot_profile_writer_test: SkipSlow
 dart_2/appjit_cha_deopt_test: SkipSlow
+dart_2/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart_2/regress_40462_test: SkipSlow
 dart_2/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
 dart_2/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatly fails to locate its coredump.
@@ -127,12 +131,14 @@ cc/VerifyExplicit_Crash: Crash # Negative tests of VerifiedMemory should crash i
 cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 dart/b162922506_test: SkipSlow # Generates very large input file
+dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
 dart/type_casts_with_null_safety_autodetection_test: Pass, Slow # Very slow in debug mode, uses --optimization-counter-threshold=10
 dart_2/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 dart_2/b162922506_test: SkipSlow # Generates very large input file
+dart_2/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow in debug mode
 dart_2/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.

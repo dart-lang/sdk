@@ -54,22 +54,23 @@ class CreateCommand extends DartdevCommand {
 
   @override
   FutureOr<int> run() async {
-    if (argResults['list-templates']) {
+    final args = argResults!;
+    if (args['list-templates']) {
       log.stdout(_availableTemplatesJson());
       return 0;
     }
 
-    if (argResults.rest.isEmpty) {
+    if (args.rest.isEmpty) {
       printUsage();
       return 1;
     }
 
-    String templateId = argResults['template'];
+    String templateId = args['template'];
 
-    String dir = argResults.rest.first;
+    String dir = args.rest.first;
     var targetDir = io.Directory(dir).absolute;
     dir = targetDir.path;
-    if (targetDir.existsSync() && !argResults['force']) {
+    if (targetDir.existsSync() && !args['force']) {
       log.stderr(
         "Directory '$dir' already exists "
         "(use '--force' to force project generation).",
@@ -95,13 +96,13 @@ class CreateCommand extends DartdevCommand {
     );
     log.stdout('');
 
-    var generator = getGenerator(templateId);
+    var generator = getGenerator(templateId)!;
     generator.generate(
       projectName,
       DirectoryGeneratorTarget(generator, io.Directory(dir)),
     );
 
-    if (argResults['pub']) {
+    if (args['pub']) {
       log.stdout('');
       var progress = log.progress('Running pub get');
       var process = await startDartProcess(
@@ -137,7 +138,7 @@ class CreateCommand extends DartdevCommand {
     log.stdout('');
     log.stdout(generator.getInstallInstructions(
       dir,
-      projectName,
+      scriptPath: projectName,
     ));
     log.stdout('');
 
@@ -164,7 +165,7 @@ class CreateCommand extends DartdevCommand {
       };
 
       if (generator.entrypoint != null) {
-        m['entrypoint'] = generator.entrypoint.path;
+        m['entrypoint'] = generator.entrypoint!.path;
       }
 
       return m;

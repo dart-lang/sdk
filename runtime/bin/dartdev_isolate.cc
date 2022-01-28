@@ -206,7 +206,7 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
   flags.enable_asserts = false;
-  flags.null_safety = false;
+  flags.null_safety = true;
   flags.use_field_guards = true;
   flags.use_osr = true;
   flags.is_system_isolate = true;

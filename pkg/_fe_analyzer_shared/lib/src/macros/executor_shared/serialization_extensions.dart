@@ -34,6 +34,9 @@ extension DeserializerExtensions on Deserializer {
           case RemoteInstanceKind.functionTypeAnnotation:
             moveNext();
             return _expectFunctionTypeAnnotation(id) as T;
+          case RemoteInstanceKind.identifier:
+            moveNext();
+            return _expectIdentifier(id) as T;
           case RemoteInstanceKind.methodDeclaration:
             moveNext();
             return _expectMethodDeclaration(id) as T;
@@ -71,7 +74,7 @@ extension DeserializerExtensions on Deserializer {
       new NamedTypeAnnotationImpl(
         id: id,
         isNullable: expectBool(),
-        name: (this..moveNext()).expectString(),
+        identifier: RemoteInstance.deserialize(this),
         typeArguments: (this..moveNext())._expectRemoteInstanceList(),
       );
 
@@ -85,10 +88,15 @@ extension DeserializerExtensions on Deserializer {
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
       );
 
+  Identifier _expectIdentifier(int id) => new IdentifierImpl(
+        id: id,
+        name: expectString(),
+      );
+
   ParameterDeclaration _expectParameterDeclaration(int id) =>
       new ParameterDeclarationImpl(
         id: id,
-        name: expectString(),
+        identifier: expectRemoteInstance(),
         defaultValue: (this..moveNext()).checkNull() ? null : expectCode(),
         isNamed: (this..moveNext()).expectBool(),
         isRequired: (this..moveNext()).expectBool(),
@@ -98,14 +106,14 @@ extension DeserializerExtensions on Deserializer {
   TypeParameterDeclaration _expectTypeParameterDeclaration(int id) =>
       new TypeParameterDeclarationImpl(
         id: id,
-        name: expectString(),
+        identifier: expectRemoteInstance(),
         bounds: (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
       );
 
   FunctionDeclaration _expectFunctionDeclaration(int id) =>
       new FunctionDeclarationImpl(
         id: id,
-        name: expectString(),
+        identifier: expectRemoteInstance(),
         isAbstract: (this..moveNext()).expectBool(),
         isExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
@@ -119,7 +127,7 @@ extension DeserializerExtensions on Deserializer {
   MethodDeclaration _expectMethodDeclaration(int id) =>
       new MethodDeclarationImpl(
         id: id,
-        name: expectString(),
+        identifier: expectRemoteInstance(),
         isAbstract: (this..moveNext()).expectBool(),
         isExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
@@ -134,7 +142,7 @@ extension DeserializerExtensions on Deserializer {
   ConstructorDeclaration _expectConstructorDeclaration(int id) =>
       new ConstructorDeclarationImpl(
         id: id,
-        name: expectString(),
+        identifier: expectRemoteInstance(),
         isAbstract: (this..moveNext()).expectBool(),
         isExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
@@ -150,7 +158,7 @@ extension DeserializerExtensions on Deserializer {
   VariableDeclaration _expectVariableDeclaration(int id) =>
       new VariableDeclarationImpl(
         id: id,
-        name: expectString(),
+        identifier: expectRemoteInstance(),
         initializer: (this..moveNext()).expectNullableCode(),
         isExternal: (this..moveNext()).expectBool(),
         isFinal: (this..moveNext()).expectBool(),
@@ -160,7 +168,7 @@ extension DeserializerExtensions on Deserializer {
 
   FieldDeclaration _expectFieldDeclaration(int id) => new FieldDeclarationImpl(
         id: id,
-        name: expectString(),
+        identifier: expectRemoteInstance(),
         initializer: (this..moveNext()).expectNullableCode(),
         isExternal: (this..moveNext()).expectBool(),
         isFinal: (this..moveNext()).expectBool(),
@@ -171,8 +179,7 @@ extension DeserializerExtensions on Deserializer {
 
   ClassDeclaration _expectClassDeclaration(int id) => new ClassDeclarationImpl(
         id: id,
-        name: expectString(),
-        type: RemoteInstance.deserialize(this),
+        identifier: expectRemoteInstance(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         interfaces: (this..moveNext())._expectRemoteInstanceList(),
         isAbstract: (this..moveNext()).expectBool(),
@@ -185,8 +192,7 @@ extension DeserializerExtensions on Deserializer {
   TypeAliasDeclaration _expectTypeAliasDeclaration(int id) =>
       new TypeAliasDeclarationImpl(
         id: id,
-        name: expectString(),
-        type: RemoteInstance.deserialize(this),
+        identifier: expectRemoteInstance(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         aliasedType: RemoteInstance.deserialize(this),
       );
@@ -206,7 +212,7 @@ extension DeserializerExtensions on Deserializer {
         case CodePartKind.string:
           parts.add(expectString());
           break;
-        case CodePartKind.typeAnnotation:
+        case CodePartKind.identifier:
           parts.add(expectRemoteInstance());
           break;
       }
@@ -223,8 +229,6 @@ extension DeserializerExtensions on Deserializer {
         return new ExpressionCode.fromParts(parts) as T;
       case CodeKind.functionBody:
         return new FunctionBodyCode.fromParts(parts) as T;
-      case CodeKind.identifier:
-        return new IdentifierCode.fromParts(parts) as T;
       case CodeKind.namedArgument:
         return new NamedArgumentCode.fromParts(parts) as T;
       case CodeKind.parameter:
@@ -277,8 +281,8 @@ extension SerializeCode on Code {
       } else if (part is Code) {
         serializer.addNum(CodePartKind.code.index);
         part.serialize(serializer);
-      } else if (part is TypeAnnotationImpl) {
-        serializer.addNum(CodePartKind.typeAnnotation.index);
+      } else if (part is IdentifierImpl) {
+        serializer.addNum(CodePartKind.identifier.index);
         part.serialize(serializer);
       } else {
         throw new StateError('Unrecognized code part $part');
@@ -291,5 +295,5 @@ extension SerializeCode on Code {
 enum CodePartKind {
   string,
   code,
-  typeAnnotation,
+  identifier,
 }

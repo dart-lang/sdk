@@ -50,8 +50,6 @@ class DocumentationValidator {
     // (such as `JSBool b;`), but that would complicate the example.
     'CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY',
     // Produces two diagnostics when it should only produce one.
-    'CompileTimeErrorCode.INSTANTIATE_ENUM',
-    // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.INVALID_URI',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE',

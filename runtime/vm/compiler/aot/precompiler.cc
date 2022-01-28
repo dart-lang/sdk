@@ -87,7 +87,6 @@ DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(bool, trace_bailout);
-DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DECLARE_FLAG(int, inlining_hotness);
@@ -871,6 +870,17 @@ void Precompiler::ProcessFunction(const Function& function) {
               function.ToLibNamePrefixedQualifiedCString(),
               function.token_pos().ToCString(),
               Function::KindToCString(function.kind()));
+  }
+  if (function.SourceSize() >= FLAG_huge_method_cutoff_in_tokens) {
+    THR_Print(
+        "Warning: %s from %s is too large. Some optimizations have been "
+        "disabled, and the compiler might run out of memory. "
+        "Consider refactoring this code into smaller components.\n",
+        function.QualifiedUserVisibleNameCString(),
+        String::Handle(
+            Z, Library::Handle(Z, Class::Handle(Z, function.Owner()).library())
+                   .url())
+            .ToCString());
   }
 
   ASSERT(!function.is_abstract());

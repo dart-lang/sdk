@@ -4,6 +4,18 @@
 
 part of '../api.dart';
 
+/// A concrete reference to a named declaration, which may or may not yet be
+/// resolved.
+///
+/// These can be passed directly to [Code] objects, which will automatically do
+/// any necessary prefixing when emitting references.
+///
+/// Concrete implementations should override `==` so that identifiers can be
+/// reliably compared against each other.
+abstract class Identifier {
+  String get name;
+}
+
 /// The base class for an unresolved reference to a type.
 ///
 /// See the subtypes [FunctionTypeAnnotation] and [NamedTypeAnnotation].
@@ -12,7 +24,9 @@ abstract class TypeAnnotation {
   /// trailing `?`)
   bool get isNullable;
 
-  /// A [Code] object representation of this type annotation.
+  /// A convenience method to get a [Code] object representation of this full
+  /// type annotation, including support for generic type arguments as well as
+  /// function types.
   Code get code;
 }
 
@@ -36,8 +50,8 @@ abstract class FunctionTypeAnnotation implements TypeAnnotation {
 /// These can be resolved to a [TypeDeclaration] using the `builder` classes
 /// depending on the phase a macro is running in.
 abstract class NamedTypeAnnotation implements TypeAnnotation {
-  /// The name of the type as it exists in the type annotation.
-  String get name;
+  /// An identifier pointing to this named type.
+  Identifier get identifier;
 
   /// The type arguments, if applicable.
   Iterable<TypeAnnotation> get typeArguments;
@@ -61,36 +75,22 @@ abstract class NamedStaticType implements StaticType {}
 
 /// The base class for all declarations.
 abstract class Declaration {
-  /// The name of this declaration.
-  String get name;
+  ///  An identifier pointing to this named declaration.
+  Identifier get identifier;
 }
 
 /// Base class for all Declarations which have a surrounding class.
 abstract class ClassMemberDeclaration implements Declaration {
   /// The class that defines this method.
-  NamedTypeAnnotation get definingClass;
+  Identifier get definingClass;
 }
 
 /// A declaration that defines a new type in the program.
 ///
 /// See subtypes [ClassDeclaration] and [TypeAliasDeclaration].
 abstract class TypeDeclaration implements Declaration {
-  // TODO: Change this to a [StaticType]? https://github.com/dart-lang/language/issues/2072
-  TypeAnnotation get type;
-
   /// The type parameters defined for this type declaration.
   Iterable<TypeParameterDeclaration> get typeParameters;
-
-  /// Create a static type representing this type with [typeArguments].
-  ///
-  /// If [isNullable] is `true`, then this type will behave as if it has a
-  /// trailing `?`.
-  ///
-  /// Throws an exception if the type could not be instantiated, typically due
-  /// to one of the type arguments not matching the bounds of the corresponding
-  /// type parameter.
-  Future<StaticType> instantiate(
-      {required List<StaticType> typeArguments, required bool isNullable});
 }
 
 /// Class (and enum) introspection information.
@@ -120,7 +120,7 @@ abstract class ClassDeclaration implements TypeDeclaration {
 /// Type alias introspection information.
 abstract class TypeAliasDeclaration extends TypeDeclaration {
   /// The type annotation this is an alias for.
-  TypeAnnotation get type;
+  TypeAnnotation get aliasedType;
 }
 
 /// Function introspection information.

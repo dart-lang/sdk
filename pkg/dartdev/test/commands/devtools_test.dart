@@ -14,9 +14,9 @@ void main() {
 }
 
 void devtools() {
-  TestProject p;
+  late TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   test('--help', () async {
     p = project();
@@ -47,7 +47,7 @@ void devtools() {
   });
 
   group('integration', () {
-    Process process;
+    Process? process;
 
     tearDown(() {
       process?.kill();
@@ -58,8 +58,8 @@ void devtools() {
 
       // start the devtools server
       process = await p.start(['devtools', '--no-launch-browser', '--machine']);
-
-      final Stream<String> inStream = process.stdout
+      process!.stderr.transform(utf8.decoder).listen(print);
+      final Stream<String> inStream = process!.stdout
           .transform<String>(utf8.decoder)
           .transform<String>(const LineSplitter());
 
@@ -89,7 +89,7 @@ void devtools() {
       expect(contents, contains('DevTools'));
 
       // kill the process
-      process.kill();
+      process!.kill();
       process = null;
     });
   });

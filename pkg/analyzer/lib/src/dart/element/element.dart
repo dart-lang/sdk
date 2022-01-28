@@ -3586,13 +3586,7 @@ class LibraryElementImpl extends _ExistingElementImpl
   final AnalysisContext context;
 
   @override
-  final AnalysisSession session;
-
-  /// If `true`, then this library is valid in the session.
-  ///
-  /// A library becomes invalid when one of its files, or one of its
-  /// dependencies, changes.
-  bool isValid = true;
+  AnalysisSession session;
 
   /// The language version for the library.
   LibraryLanguageVersion? _languageVersion;

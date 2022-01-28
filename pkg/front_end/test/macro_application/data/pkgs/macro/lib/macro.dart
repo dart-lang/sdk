@@ -24,12 +24,35 @@ macro class FunctionDefinitionMacro2 implements FunctionDefinitionMacro {
     if (function.positionalParameters.isEmpty) {
       return;
     }
-    StaticType returnType = await builder.resolve(function.returnType);
+    StaticType returnType = await builder.instantiateType(function.returnType);
     StaticType parameterType =
-        await builder.resolve(function.positionalParameters.first.type);
+        await builder.instantiateType(function.positionalParameters.first.type);
     builder.augment(new FunctionBodyCode.fromString('''{
   print('isExactly=${await returnType.isExactly(parameterType)}');
   print('isSubtype=${await returnType.isSubtypeOf(parameterType)}');
 }'''));
+  }
+}
+
+
+macro class FunctionTypesMacro1 implements FunctionTypesMacro {
+  const FunctionTypesMacro1();
+
+  FutureOr<void> buildTypesForFunction(
+      FunctionDeclaration function, TypeBuilder builder) {
+    builder.declareType(new DeclarationCode.fromString('''
+class ${function.identifier.name}GeneratedClass {}
+'''));
+  }
+}
+
+macro class FunctionDeclarationsMacro1 implements FunctionDeclarationsMacro {
+  const FunctionDeclarationsMacro1();
+
+  FutureOr<void> buildDeclarationsForFunction(
+      FunctionDeclaration function, DeclarationBuilder builder) {
+    builder.declareInLibrary(new DeclarationCode.fromString('''
+void ${function.identifier.name}GeneratedMethod() {}
+'''));
   }
 }

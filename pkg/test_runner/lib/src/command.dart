@@ -186,12 +186,6 @@ class CompilationCommand extends ProcessCommand {
     if (displayName == 'precompiler' || displayName == 'app_jit') {
       return VMCommandOutput(
           this, exitCode, timedOut, stdout, stderr, time, pid);
-    } else if (displayName == 'dart2js') {
-      return Dart2jsCompilerCommandOutput(
-          this, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
-    } else if (displayName == 'dartdevc') {
-      return DevCompilerCommandOutput(this, exitCode, timedOut, stdout, stderr,
-          time, compilationSkipped, pid);
     }
 
     return CompilationCommandOutput(
@@ -263,7 +257,7 @@ class Dart2jsCompilationCommand extends CompilationCommand {
       int index = 0})
       : super("dart2js", outputFile, bootstrapDependencies, executable,
             arguments, environmentOverrides,
-            alwaysCompile: alwaysCompile || true,
+            alwaysCompile: alwaysCompile,
             workingDirectory: workingDirectory,
             index: index);
 
@@ -300,6 +294,61 @@ class Dart2jsCompilationCommand extends CompilationCommand {
   @override
   bool _equal(Dart2jsCompilationCommand other) {
     return super._equal(other) && useSdk == other.useSdk;
+  }
+}
+
+class DevCompilerCompilationCommand extends CompilationCommand {
+  final String compilerPath;
+
+  DevCompilerCompilationCommand(
+      String outputFile,
+      List<Uri> bootstrapDependencies,
+      String executable,
+      List<String> arguments,
+      Map<String, String> environmentOverrides,
+      {this.compilerPath,
+      bool alwaysCompile,
+      String workingDirectory,
+      int index = 0})
+      : super("dartdevc", outputFile, bootstrapDependencies, executable,
+            arguments, environmentOverrides,
+            alwaysCompile: alwaysCompile,
+            workingDirectory: workingDirectory,
+            index: index);
+
+  @override
+  CommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
+      List<int> stderr, Duration time, bool compilationSkipped,
+      [int pid = 0]) {
+    return DevCompilerCommandOutput(this, exitCode, timedOut, stdout, stderr,
+        time, compilationSkipped, pid);
+  }
+
+  @override
+  List<String> get batchArguments {
+    return <String>[
+      compilerPath,
+      ...super.batchArguments,
+    ];
+  }
+
+  @override
+  List<String> get nonBatchArguments {
+    return <String>[
+      compilerPath,
+      ...super.nonBatchArguments,
+    ];
+  }
+
+  @override
+  void _buildHashCode(HashCodeBuilder builder) {
+    super._buildHashCode(builder);
+    builder.addJson(compilerPath);
+  }
+
+  @override
+  bool _equal(DevCompilerCompilationCommand other) {
+    return super._equal(other) && compilerPath == other.compilerPath;
   }
 }
 

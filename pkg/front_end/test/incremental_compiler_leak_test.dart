@@ -85,30 +85,48 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
       // For now ignore anything not in package:kernel or package:front_end.
       if (ignoredClass(classDetails)) continue;
 
+      bool isStrictClass = strictClass(classDetails);
+
+      int expectedStrictClassNumber = -1;
+      if (isStrictClass) {
+        expectedStrictClassNumber = strictClassExpectedNumber(classDetails);
+      }
+
       // If they're all equal there's nothing to talk about.
-      bool same = true;
-      for (int i = 1; i < listOfInstanceCounts.length; i++) {
+      bool sameAndAsExpected = true;
+      for (int i = 0; i < listOfInstanceCounts.length; i++) {
+        if (expectedStrictClassNumber > -1 &&
+            expectedStrictClassNumber != listOfInstanceCounts[i]) {
+          sameAndAsExpected = false;
+          break;
+        }
         if (listOfInstanceCounts[i] != listOfInstanceCounts[0]) {
-          same = false;
+          sameAndAsExpected = false;
           break;
         }
       }
-      if (same) continue;
+      if (sameAndAsExpected) continue;
 
       int midPoint = listOfInstanceCounts.length ~/ 2;
       List<int> firstHalf = listOfInstanceCounts.sublist(0, midPoint);
       List<int> secondHalf = listOfInstanceCounts.sublist(midPoint);
       TTestResult ttestResult = SimpleTTestStat.ttest(secondHalf, firstHalf);
 
-      if (!strictClass(classDetails)) {
+      if (!isStrictClass) {
         if (!ttestResult.significant) continue;
 
         // TODO(jensj): We could possibly also ignore if it's less (i.e. a
         // negative change), or if the change is < 1%, or the change minus the
         // confidence is < 1% etc.
       }
-      print("Differences on ${c.name} (${uriString}): "
-          "$listOfInstanceCounts ($ttestResult)");
+      if (expectedStrictClassNumber > -1) {
+        print("Differences on ${c.name} (${uriString}): "
+            "Expected exactly $expectedStrictClassNumber but found "
+            "$listOfInstanceCounts ($ttestResult)");
+      } else {
+        print("Differences on ${c.name} (${uriString}): "
+            "$listOfInstanceCounts ($ttestResult)");
+      }
       foundLeak = true;
     }
 
@@ -219,20 +237,26 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
     return true;
   }
 
-  // I have commented out the lazy ones below.
-  Set<String> frontEndStrictClasses = {
+  Map<String, int> frontEndStrictClasses = {
+    // The inner working of dills are created lazily:
     // "DillClassBuilder",
     // "DillExtensionBuilder",
     // "DillExtensionMemberBuilder",
-    "DillLibraryBuilder",
-    "DillLoader",
     // "DillMemberBuilder",
-    "DillTarget",
     // "DillTypeAliasBuilder",
-    "SourceClassBuilder",
-    "SourceExtensionBuilder",
-    "SourceLibraryBuilder",
-    "SourceLoader",
+
+    "DillLibraryBuilder": -1 /* unknown amount */,
+    "DillLoader": 1,
+    "DillTarget": 1,
+
+    // We convert all source builders to dill builders so we expect none to
+    // exist after that.
+    "SourceClassBuilder": 0,
+    "SourceExtensionBuilder": 0,
+    "SourceLibraryBuilder": 0,
+
+    // We still expect exactly 1 source loader though.
+    "SourceLoader": 1,
   };
 
   Set<String> kernelAstStrictClasses = {
@@ -248,16 +272,32 @@ class LeakFinder extends vmService.LaunchingVMServiceHelper {
 
   bool strictClass(vmService.Class classDetails) {
     if (!kernelAstStrictClasses.contains(classDetails.name) &&
-        !frontEndStrictClasses.contains(classDetails.name)) return false;
+        !frontEndStrictClasses.containsKey(classDetails.name)) return false;
 
     if (kernelAstStrictClasses.contains(classDetails.name) &&
         classDetails.location?.script?.uri == "package:kernel/ast.dart") {
       return true;
     }
-    if (frontEndStrictClasses.contains(classDetails.name) &&
+    if (frontEndStrictClasses.containsKey(classDetails.name) &&
         classDetails.location?.script?.uri?.startsWith("package:front_end/") ==
             true) {
       return true;
+    }
+
+    throw "$classDetails: ${classDetails.name} --- ${classDetails.location}";
+  }
+
+  int strictClassExpectedNumber(vmService.Class classDetails) {
+    if (!strictClass(classDetails)) return -1;
+    if (kernelAstStrictClasses.contains(classDetails.name) &&
+        classDetails.location?.script?.uri == "package:kernel/ast.dart") {
+      return -1;
+    }
+    int? result = frontEndStrictClasses[classDetails.name];
+    if (result != null &&
+        classDetails.location?.script?.uri?.startsWith("package:front_end/") ==
+            true) {
+      return result;
     }
 
     throw "$classDetails: ${classDetails.name} --- ${classDetails.location}";

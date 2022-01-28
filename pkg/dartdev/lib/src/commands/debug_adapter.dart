@@ -53,7 +53,7 @@ class DebugAdapterCommand extends DartdevCommand {
 
   @override
   FutureOr<int> run() async {
-    final args = argResults;
+    final args = argResults!;
     final ipv6 = args[argIpv6] as bool;
 
     final server = DapServer(

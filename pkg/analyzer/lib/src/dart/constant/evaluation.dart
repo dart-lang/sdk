@@ -101,6 +101,17 @@ class ConstantEvaluationEngine {
                 [dartObject.type, constant.type]);
           }
         }
+
+        if (dartObject != null) {
+          var enumConstant = _enumConstant(constant);
+          if (enumConstant != null) {
+            dartObject.updateEnumConstant(
+              index: enumConstant.index,
+              name: enumConstant.name,
+            );
+          }
+        }
+
         constant.evaluationResult =
             EvaluationResultImpl(dartObject, errorListener.errors);
       }
@@ -359,6 +370,21 @@ class ConstantEvaluationEngine {
       return null;
     }
     return redirectedConstructor;
+  }
+
+  static _EnumConstant? _enumConstant(VariableElementImpl element) {
+    if (element is ConstFieldElementImpl && element.isEnumConstant) {
+      var enum_ = element.enclosingElement;
+      if (enum_ is EnumElementImpl) {
+        var index = enum_.constants.indexOf(element);
+        assert(index >= 0);
+        return _EnumConstant(
+          index: index,
+          name: element.name,
+        );
+      }
+    }
+    return null;
   }
 
   static DartObjectImpl _nullObject(LibraryElementImpl library) {
@@ -1915,6 +1941,16 @@ class EvaluationResultImpl {
     }
     return value.toString();
   }
+}
+
+class _EnumConstant {
+  final int index;
+  final String name;
+
+  _EnumConstant({
+    required this.index,
+    required this.name,
+  });
 }
 
 /// The result of evaluation the initializers declared on a const constructor.

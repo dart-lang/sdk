@@ -8308,12 +8308,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'aaa' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -8337,12 +8331,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'bbb' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -8366,12 +8354,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 2 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'ccc' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -8410,21 +8392,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                codeOffset: null
-                codeLength: null
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                codeOffset: null
-                codeLength: null
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get aaa @-1
             returnType: E
@@ -8436,8 +8405,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -13591,12 +13558,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'a' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -13618,12 +13579,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'b' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -13645,12 +13600,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 2 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'c' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -13689,17 +13638,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get a @-1
             returnType: E
@@ -13711,8 +13651,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -15915,12 +15853,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'a' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -15942,12 +15874,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'b' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -15969,12 +15895,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 2 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'c' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -16013,17 +15933,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get a @-1
             returnType: E
@@ -16035,8 +15946,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -16074,12 +15983,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'a' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -16110,17 +16013,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get a @-1
             returnType: E
@@ -16128,8 +16022,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -17092,12 +16984,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'a' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -17119,12 +17005,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'b' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -17159,17 +17039,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get a @-1
             returnType: E
@@ -17179,8 +17050,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -17192,12 +17061,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'c' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -17219,12 +17082,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'd' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -17246,12 +17103,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 2 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'e' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -17290,17 +17141,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get c @-1
             returnType: E
@@ -17312,8 +17154,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -17539,7 +17379,7 @@ library
     var library = await checkLibrary(r'''
 enum E<T> {
   int(1), string('2');
-  E(T a);
+  const E(T a);
 }
 ''');
     checkElementText(library, r'''
@@ -17558,11 +17398,6 @@ library
               InstanceCreationExpression
                 argumentList: ArgumentList
                   arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'int' @0
                     IntegerLiteral
                       literal: 1 @18
                       staticType: int
@@ -17592,11 +17427,6 @@ library
               InstanceCreationExpression
                 argumentList: ArgumentList
                   arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'string' @0
                     SimpleStringLiteral
                       literal: '2' @29
                   leftParenthesis: ( @0
@@ -17637,18 +17467,10 @@ library
                 staticType: List<E<dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
-          @37
+          const @43
             parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
-              requiredPositional a @41
+              requiredPositional a @47
                 type: T
         accessors
           synthetic static get int @-1
@@ -17659,8 +17481,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -17686,12 +17506,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: '_name' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -17722,17 +17536,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name2 @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name2 @-1
-                type: String
-                field: self::@enum::E::@field::_name2
         accessors
           synthetic static get _name @-1
             returnType: E
@@ -17740,8 +17545,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name2 @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -17752,7 +17555,7 @@ library
     var library = await checkLibrary(r'''
 enum E<T> {
   v<double>(42);
-  E(T a);
+  const E(T a);
 }
 ''');
     checkElementText(library, r'''
@@ -17771,11 +17574,6 @@ library
               InstanceCreationExpression
                 argumentList: ArgumentList
                   arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                     IntegerLiteral
                       literal: 42 @24
                       staticType: double
@@ -17823,18 +17621,10 @@ library
                 staticType: List<E<dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
-          @31
+          const @37
             parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
-              requiredPositional a @35
+              requiredPositional a @41
                 type: T
         accessors
           synthetic static get v @-1
@@ -17843,8 +17633,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -17869,12 +17657,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: '_' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -17905,17 +17687,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get _ @-1
             returnType: E
@@ -17923,8 +17696,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -17935,7 +17706,7 @@ library
     var library = await checkLibrary(r'''
 enum E {
   v.named(42);
-  E.named(int a);
+  const E.named(int a);
 }
 ''');
     checkElementText(library, r'''
@@ -17951,11 +17722,6 @@ library
               InstanceCreationExpression
                 argumentList: ArgumentList
                   arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                     IntegerLiteral
                       literal: 42 @19
                       staticType: int
@@ -17989,20 +17755,12 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
-          named @28
-            periodOffset: 27
-            nameEnd: 33
+          const named @34
+            periodOffset: 33
+            nameEnd: 39
             parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
-              requiredPositional a @38
+              requiredPositional a @44
                 type: int
         accessors
           synthetic static get v @-1
@@ -18011,8 +17769,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18023,7 +17779,7 @@ library
     var library = await checkLibrary(r'''
 enum E {
   v(42);
-  E(int a);
+  const E(int a);
 }
 ''');
     checkElementText(library, r'''
@@ -18039,11 +17795,6 @@ library
               InstanceCreationExpression
                 argumentList: ArgumentList
                   arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                     IntegerLiteral
                       literal: 42 @13
                       staticType: int
@@ -18077,18 +17828,10 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
-          @20
+          const @26
             parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
-              requiredPositional a @26
+              requiredPositional a @32
                 type: int
         accessors
           synthetic static get v @-1
@@ -18097,8 +17840,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18125,12 +17866,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -18161,17 +17896,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E
@@ -18179,8 +17905,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18206,12 +17930,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -18242,8 +17960,6 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
           final foo @22
             type: int
             constantInitializer
@@ -18252,13 +17968,6 @@ library
                 staticType: int
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E
@@ -18266,8 +17975,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
           synthetic get foo @-1
             returnType: int
         methods
@@ -18298,12 +18005,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -18338,17 +18039,8 @@ library
                 staticType: List<E<dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E<dynamic>
@@ -18356,8 +18048,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           foo @23
             typeParameters
@@ -18392,12 +18082,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -18428,17 +18112,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E
@@ -18446,8 +18121,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           toString @23
             returnType: String
@@ -18475,12 +18148,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -18515,17 +18182,8 @@ library
                 staticType: List<E<dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E<dynamic>
@@ -18533,8 +18191,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18566,12 +18222,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -18606,17 +18256,8 @@ library
                 staticType: List<E<num, num>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E<num, num>
@@ -18624,8 +18265,6 @@ library
             returnType: List<E<num, num>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18656,24 +18295,13 @@ library
                 staticType: List<E<dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18710,24 +18338,13 @@ library
                 staticType: List<E<dynamic, num, dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic, num, dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18758,24 +18375,13 @@ library
                 staticType: List<E<dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18805,24 +18411,13 @@ library
                 staticType: List<E<dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18852,24 +18447,13 @@ library
                 staticType: List<E<dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18899,24 +18483,13 @@ library
                 staticType: List<E<dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18950,24 +18523,13 @@ library
                 staticType: List<E<dynamic, dynamic, dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get values @-1
             returnType: List<E<dynamic, dynamic, dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -18997,12 +18559,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'a' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -19025,12 +18581,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'b' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -19065,17 +18615,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get a @-1
             returnType: E
@@ -19085,8 +18626,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -19129,12 +18668,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'a' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -19165,12 +18698,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'b' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -19205,17 +18732,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get a @-1
             returnType: E
@@ -19225,8 +18743,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -19257,12 +18773,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v1' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -19284,12 +18794,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v2' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -19324,17 +18828,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v1 @-1
             returnType: E
@@ -19344,8 +18839,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -19366,12 +18859,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v1' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -19402,17 +18889,8 @@ library
                 staticType: List<E1>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E1::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E1::@field::_name
         accessors
           synthetic static get v1 @-1
             returnType: E1
@@ -19420,8 +18898,6 @@ library
             returnType: List<E1>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -19433,12 +18909,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v2' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -19469,17 +18939,8 @@ library
                 staticType: List<E2>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E2::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E2::@field::_name
         accessors
           synthetic static get v2 @-1
             returnType: E2
@@ -19487,8 +18948,6 @@ library
             returnType: List<E2>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -19567,12 +19026,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'a' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -19594,12 +19047,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'b' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -19621,12 +19068,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 2 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'c' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -19665,17 +19106,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get a @-1
             returnType: E
@@ -19687,8 +19119,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -26540,12 +25970,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -26576,17 +26000,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E
@@ -26594,8 +26009,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -26666,12 +26079,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'a' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -26693,12 +26100,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'b' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -26735,12 +26136,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 2 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'c' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -26779,17 +26174,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get a @-1
             returnType: E
@@ -26801,8 +26187,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -26831,12 +26215,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -26867,17 +26245,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E
@@ -26885,8 +26254,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -28386,12 +27753,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'e1' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -28413,12 +27774,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'e2' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -28448,12 +27803,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 2 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'e3' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -28492,17 +27841,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get e1 @-1
             returnType: E
@@ -28514,8 +27854,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -29562,12 +28900,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -29602,17 +28934,8 @@ library
                 staticType: List<E<dynamic>>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E<dynamic>
@@ -29620,8 +28943,6 @@ library
             returnType: List<E<dynamic>>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -29834,12 +29155,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'a' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -29861,12 +29176,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'b' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -29888,12 +29197,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 2 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'c' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -29932,17 +29235,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get a @-1
             returnType: E
@@ -29954,8 +29248,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -31251,12 +30543,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'a' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -31279,12 +30565,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 1 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'b' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -31322,20 +30602,8 @@ library
           synthetic final index @-1
             type: int
             nonSynthetic: self::@enum::E
-          synthetic final _name @-1
-            type: String
-            nonSynthetic: self::@enum::E::@getter::_name
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                nonSynthetic: index@-1
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                nonSynthetic: _name@-1
-                field: self::@enum::E::@field::_name
             nonSynthetic: self::@enum::E
         accessors
           synthetic static get a @-1
@@ -31350,9 +30618,6 @@ library
           synthetic get index @-1
             returnType: int
             nonSynthetic: self::@enum::E
-          synthetic get _name @-1
-            returnType: String
-            nonSynthetic: self::@enum::E::@field::_name
         methods
           synthetic toString @-1
             returnType: String
@@ -33334,12 +32599,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -33370,17 +32629,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E
@@ -33388,8 +32638,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -33489,12 +32737,6 @@ library
               constantInitializer
                 InstanceCreationExpression
                   argumentList: ArgumentList
-                    arguments
-                      IntegerLiteral
-                        literal: 0 @0
-                        staticType: int
-                      SimpleStringLiteral
-                        literal: 'v' @0
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   constructorName: ConstructorName
@@ -33525,17 +32767,8 @@ library
                   staticType: List<E>
             synthetic final index @-1
               type: int
-            synthetic final _name @-1
-              type: String
           constructors
             synthetic const @-1
-              parameters
-                requiredPositional final this.index @-1
-                  type: int
-                  field: self::@enum::E::@field::index
-                requiredPositional final this._name @-1
-                  type: String
-                  field: self::@enum::E::@field::_name
           accessors
             synthetic static get v @-1
               returnType: E
@@ -33543,8 +32776,6 @@ library
               returnType: List<E>
             synthetic get index @-1
               returnType: int
-            synthetic get _name @-1
-              returnType: String
           methods
             synthetic toString @-1
               returnType: String
@@ -33578,12 +32809,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -33614,17 +32839,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E
@@ -33632,8 +32848,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String
@@ -33704,12 +32918,6 @@ library
               constantInitializer
                 InstanceCreationExpression
                   argumentList: ArgumentList
-                    arguments
-                      IntegerLiteral
-                        literal: 0 @0
-                        staticType: int
-                      SimpleStringLiteral
-                        literal: 'v' @0
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   constructorName: ConstructorName
@@ -33740,17 +32948,8 @@ library
                   staticType: List<E>
             synthetic final index @-1
               type: int
-            synthetic final _name @-1
-              type: String
           constructors
             synthetic const @-1
-              parameters
-                requiredPositional final this.index @-1
-                  type: int
-                  field: self::@enum::E::@field::index
-                requiredPositional final this._name @-1
-                  type: String
-                  field: self::@enum::E::@field::_name
           accessors
             synthetic static get v @-1
               returnType: E
@@ -33758,8 +32957,6 @@ library
               returnType: List<E>
             synthetic get index @-1
               returnType: int
-            synthetic get _name @-1
-              returnType: String
           methods
             synthetic toString @-1
               returnType: String
@@ -33828,12 +33025,6 @@ library
               constantInitializer
                 InstanceCreationExpression
                   argumentList: ArgumentList
-                    arguments
-                      IntegerLiteral
-                        literal: 0 @0
-                        staticType: int
-                      SimpleStringLiteral
-                        literal: 'v' @0
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   constructorName: ConstructorName
@@ -33864,17 +33055,8 @@ library
                   staticType: List<E>
             synthetic final index @-1
               type: int
-            synthetic final _name @-1
-              type: String
           constructors
             synthetic const @-1
-              parameters
-                requiredPositional final this.index @-1
-                  type: int
-                  field: self::@enum::E::@field::index
-                requiredPositional final this._name @-1
-                  type: String
-                  field: self::@enum::E::@field::_name
           accessors
             synthetic static get v @-1
               returnType: E
@@ -33882,8 +33064,6 @@ library
               returnType: List<E>
             synthetic get index @-1
               returnType: int
-            synthetic get _name @-1
-              returnType: String
           methods
             synthetic toString @-1
               returnType: String
@@ -34020,12 +33200,6 @@ library
             constantInitializer
               InstanceCreationExpression
                 argumentList: ArgumentList
-                  arguments
-                    IntegerLiteral
-                      literal: 0 @0
-                      staticType: int
-                    SimpleStringLiteral
-                      literal: 'v' @0
                   leftParenthesis: ( @0
                   rightParenthesis: ) @0
                 constructorName: ConstructorName
@@ -34056,17 +33230,8 @@ library
                 staticType: List<E>
           synthetic final index @-1
             type: int
-          synthetic final _name @-1
-            type: String
         constructors
           synthetic const @-1
-            parameters
-              requiredPositional final this.index @-1
-                type: int
-                field: self::@enum::E::@field::index
-              requiredPositional final this._name @-1
-                type: String
-                field: self::@enum::E::@field::_name
         accessors
           synthetic static get v @-1
             returnType: E
@@ -34074,8 +33239,6 @@ library
             returnType: List<E>
           synthetic get index @-1
             returnType: int
-          synthetic get _name @-1
-            returnType: String
         methods
           synthetic toString @-1
             returnType: String

@@ -4,7 +4,7 @@ name: dartdev
 publish_to: none
 
 environment:
-  sdk: '>=2.6.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 dependencies:
   analysis_server:
     path: ../analysis_server
@@ -14,6 +14,7 @@ dependencies:
     path: ../analyzer
   args: any
   cli_util: any
+  collection: any
   dart2native:
     path: ../dart2native
   dart_style: any

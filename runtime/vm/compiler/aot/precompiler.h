@@ -119,7 +119,9 @@ class ClassKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline uword Hash(Key key) { return key->token_pos().Hash(); }
+  static inline uword Hash(Key key) {
+    return Utils::WordHash(CombineHashes(key->id(), key->token_pos().Hash()));
+  }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->ptr() == key->ptr();

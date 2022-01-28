@@ -58,7 +58,7 @@ void main() {
 
     var returnType = NamedTypeAnnotationImpl(
         id: RemoteInstance.uniqueId,
-        name: 'String',
+        identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'String'),
         isNullable: false,
         typeArguments: const []);
     var definitionResult = await executor.executeDefinitionsPhase(
@@ -69,14 +69,16 @@ void main() {
           isExternal: false,
           isGetter: false,
           isSetter: false,
-          name: 'foo',
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'foo'),
           namedParameters: [],
           positionalParameters: [],
           returnType: returnType,
           typeParameters: [],
         ),
-        TestTypeResolver(
-            {returnType: TestNamedStaticType('dart:core', 'String', [])}),
+        TestTypeResolver({
+          returnType:
+              TestNamedStaticType(returnType.identifier, 'dart:core', [])
+        }),
         FakeClassIntrospector(),
         FakeTypeDeclarationResolver());
     expect(definitionResult.augmentations, hasLength(1));

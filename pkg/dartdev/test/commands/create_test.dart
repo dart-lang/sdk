@@ -17,7 +17,7 @@ void main() {
 }
 
 void defineCreateTests() {
-  TestProject p;
+  TestProject? p;
 
   setUp(() => p = null);
 
@@ -25,7 +25,7 @@ void defineCreateTests() {
 
   test('--help', () async {
     p = project();
-    var result = await p.run(['create', '--help']);
+    var result = await p!.run(['create', '--help']);
 
     expect(result.stdout, contains('Create a new Dart project.'));
     expect(
@@ -40,7 +40,7 @@ void defineCreateTests() {
 
   test('--help --verbose', () async {
     p = project();
-    var result = await p.run(['create', '--help', '--verbose']);
+    var result = await p!.run(['create', '--help', '--verbose']);
 
     expect(result.stdout, contains('Create a new Dart project.'));
     expect(
@@ -67,7 +67,7 @@ void defineCreateTests() {
   test('list templates', () async {
     p = project();
 
-    ProcessResult result = await p.run(['create', '--list-templates']);
+    ProcessResult result = await p!.run(['create', '--list-templates']);
     expect(result.exitCode, 0);
 
     String output = result.stdout.toString();
@@ -81,7 +81,7 @@ void defineCreateTests() {
   test('no directory given', () async {
     p = project();
 
-    ProcessResult result = await p.run([
+    ProcessResult result = await p!.run([
       'create',
     ]);
     expect(result.exitCode, 1);
@@ -90,15 +90,15 @@ void defineCreateTests() {
   test('directory already exists', () async {
     p = project();
 
-    ProcessResult result = await p.run(
-        ['create', '--template', CreateCommand.defaultTemplateId, p.dir.path]);
+    ProcessResult result = await p!.run(
+        ['create', '--template', CreateCommand.defaultTemplateId, p!.dir.path]);
     expect(result.exitCode, 73);
   });
 
   test('project in current directory', () async {
     p = project();
     final projectDir = Directory('foo')..createSync();
-    final result = await p.run(
+    final result = await p!.run(
       ['create', '--force', '.'],
       workingDir: projectDir.path,
     );
@@ -109,7 +109,7 @@ void defineCreateTests() {
 
   test('project with normalized package name', () async {
     p = project();
-    final result = await p.run(['create', 'requires-normalization']);
+    final result = await p!.run(['create', 'requires-normalization']);
     expect(result.stderr, isEmpty);
     expect(
         result.stdout,
@@ -120,7 +120,7 @@ void defineCreateTests() {
 
   test('project with an invalid package name', () async {
     p = project();
-    final result = await p.run(['create', 'bad-package^name']);
+    final result = await p!.run(['create', 'bad-package^name']);
     expect(
       result.stderr,
       contains(
@@ -134,8 +134,8 @@ void defineCreateTests() {
   test('bad template id', () async {
     p = project();
 
-    ProcessResult result = await p
-        .run(['create', '--no-pub', '--template', 'foo-bar', p.dir.path]);
+    ProcessResult result = await p!
+        .run(['create', '--no-pub', '--template', 'foo-bar', p!.dir.path]);
     expect(result.exitCode, isNot(0));
   });
 
@@ -144,7 +144,7 @@ void defineCreateTests() {
     test(templateId, () async {
       p = project();
       const projectName = 'template_project';
-      ProcessResult result = await p.run([
+      ProcessResult result = await p!.run([
         'create',
         '--force',
         '--no-pub',
@@ -154,9 +154,9 @@ void defineCreateTests() {
       ]);
       expect(result.exitCode, 0);
 
-      String entry = templates.getGenerator(templateId).entrypoint.path;
+      String entry = templates.getGenerator(templateId)!.entrypoint!.path;
       entry = entry.replaceAll('__projectName__', projectName);
-      File entryFile = File(path.join(p.dir.path, projectName, entry));
+      File entryFile = File(path.join(p!.dir.path, projectName, entry));
 
       expect(entryFile.existsSync(), true,
           reason: 'File not found: ${entryFile.path}');
@@ -168,7 +168,7 @@ void defineCreateTests() {
       const dir = 'foo';
       const projectName = dir;
       final lines = generator
-          .getInstallInstructions(dir, projectName)
+          .getInstallInstructions(dir, scriptPath: projectName)
           .split('\n')
           .map((e) => e.trim())
           .toList();

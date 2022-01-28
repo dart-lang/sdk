@@ -922,8 +922,6 @@ $dartVersion
 
 import 'dart:ffi';
 
-// Reuse the AbiSpecificInts.
-import 'abi_specific_ints.dart';
 """;
 }
 
@@ -967,8 +965,6 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-// Reuse the AbiSpecificInts.
-import 'abi_specific_ints.dart';
 
 import 'dylib_utils.dart';
 
@@ -1029,8 +1025,6 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
-// Reuse the AbiSpecificInts.
-import 'abi_specific_ints.dart';
 
 import 'callback_tests_utils.dart';
 

@@ -21,14 +21,14 @@ const int compileErrorExitCode = 64;
 class Option {
   final String flag;
   final String help;
-  final String abbr;
-  final String defaultsTo;
-  final List<String> allowed;
-  final Map<String, String> allowedHelp;
+  final String? abbr;
+  final String? defaultsTo;
+  final List<String>? allowed;
+  final Map<String, String>? allowedHelp;
 
   Option(
-      {this.flag,
-      this.help,
+      {required this.flag,
+      required this.help,
       this.abbr,
       this.defaultsTo,
       this.allowed,
@@ -71,7 +71,7 @@ class CompileJSCommand extends CompileSubcommandCommand {
   @override
   final ArgParser argParser = ArgParser.allowAnything();
 
-  CompileJSCommand({bool verbose})
+  CompileJSCommand({bool verbose = false})
       : super(cmdName, 'Compile Dart to JavaScript.', verbose);
 
   @override
@@ -91,7 +91,7 @@ class CompileJSCommand extends CompileSubcommandCommand {
           '--libraries-spec=$librariesPath',
           '--cfe-invocation-modes=compile',
           '--invoker=dart_cli',
-          ...argResults.arguments,
+          ...argResults!.arguments,
         ],
         packageConfigOverride: null);
 
@@ -109,25 +109,25 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
   final String formatName;
 
   CompileSnapshotCommand({
-    this.commandName,
-    this.help,
-    this.fileExt,
-    this.formatName,
-    bool verbose,
+    required this.commandName,
+    required this.help,
+    required this.fileExt,
+    required this.formatName,
+    bool verbose = false,
   }) : super(commandName, 'Compile Dart $help', verbose) {
     argParser
       ..addOption(
-        commonOptions['outputFile'].flag,
-        help: commonOptions['outputFile'].help,
-        abbr: commonOptions['outputFile'].abbr,
+        commonOptions['outputFile']!.flag,
+        help: commonOptions['outputFile']!.help,
+        abbr: commonOptions['outputFile']!.abbr,
       )
       ..addOption(
-        commonOptions['verbosity'].flag,
-        help: commonOptions['verbosity'].help,
-        abbr: commonOptions['verbosity'].abbr,
-        defaultsTo: commonOptions['verbosity'].defaultsTo,
-        allowed: commonOptions['verbosity'].allowed,
-        allowedHelp: commonOptions['verbosity'].allowedHelp,
+        commonOptions['verbosity']!.flag,
+        help: commonOptions['verbosity']!.help,
+        abbr: commonOptions['verbosity']!.abbr,
+        defaultsTo: commonOptions['verbosity']!.defaultsTo,
+        allowed: commonOptions['verbosity']!.allowed,
+        allowedHelp: commonOptions['verbosity']!.allowedHelp,
       );
 
     addExperimentalFlags(argParser, verbose);
@@ -146,20 +146,21 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    if (argResults.rest.isEmpty) {
+    final args = argResults!;
+    if (args.rest.isEmpty) {
       // This throws.
       usageException('Missing Dart entry point.');
-    } else if (!isJitSnapshot && argResults.rest.length > 1) {
+    } else if (!isJitSnapshot && args.rest.length > 1) {
       usageException('Unexpected arguments after Dart entry point.');
     }
 
-    final String sourcePath = argResults.rest[0];
+    final String sourcePath = args.rest[0];
     if (!checkFile(sourcePath)) {
       return -1;
     }
 
     // Determine output file name.
-    String outputFile = argResults[commonOptions['outputFile'].flag];
+    String? outputFile = args[commonOptions['outputFile']!.flag];
     if (outputFile == null) {
       final inputWithoutDart = sourcePath.endsWith('.dart')
           ? sourcePath.substring(0, sourcePath.length - 5)
@@ -167,31 +168,31 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
       outputFile = '$inputWithoutDart.$fileExt';
     }
 
-    final enabledExperiments = argResults.enabledExperiments;
+    final enabledExperiments = args.enabledExperiments;
     // Build arguments.
-    List<String> args = [];
-    args.add('--snapshot-kind=$formatName');
-    args.add('--snapshot=${path.canonicalize(outputFile)}');
+    List<String> buildArgs = [];
+    buildArgs.add('--snapshot-kind=$formatName');
+    buildArgs.add('--snapshot=${path.canonicalize(outputFile)}');
 
-    String verbosity = argResults[commonOptions['verbosity'].flag];
-    args.add('--verbosity=$verbosity');
+    String? verbosity = args[commonOptions['verbosity']!.flag];
+    buildArgs.add('--verbosity=$verbosity');
 
     if (enabledExperiments.isNotEmpty) {
-      args.add("--enable-experiment=${enabledExperiments.join(',')}");
+      buildArgs.add("--enable-experiment=${enabledExperiments.join(',')}");
     }
     if (verbose) {
-      args.add('-v');
+      buildArgs.add('-v');
     }
-    args.add(path.canonicalize(sourcePath));
+    buildArgs.add(path.canonicalize(sourcePath));
 
     // Add the training arguments.
-    if (argResults.rest.length > 1) {
-      args.addAll(argResults.rest.sublist(1));
+    if (args.rest.length > 1) {
+      buildArgs.addAll(args.rest.sublist(1));
     }
 
     log.stdout('Compiling $sourcePath to $commandName file $outputFile.');
     // TODO(bkonyi): perform compilation in same process.
-    final process = await startDartProcess(sdk, args);
+    final process = await startDartProcess(sdk, buildArgs);
     routeToStdout(process);
     return process.exitCode;
   }
@@ -206,24 +207,24 @@ class CompileNativeCommand extends CompileSubcommandCommand {
   final String help;
 
   CompileNativeCommand({
-    this.commandName,
-    this.format,
-    this.help,
-    bool verbose,
+    required this.commandName,
+    required this.format,
+    required this.help,
+    bool verbose = false,
   }) : super(commandName, 'Compile Dart $help', verbose) {
     argParser
       ..addOption(
-        commonOptions['outputFile'].flag,
-        help: commonOptions['outputFile'].help,
-        abbr: commonOptions['outputFile'].abbr,
+        commonOptions['outputFile']!.flag,
+        help: commonOptions['outputFile']!.help,
+        abbr: commonOptions['outputFile']!.abbr,
       )
       ..addOption(
-        commonOptions['verbosity'].flag,
-        help: commonOptions['verbosity'].help,
-        abbr: commonOptions['verbosity'].abbr,
-        defaultsTo: commonOptions['verbosity'].defaultsTo,
-        allowed: commonOptions['verbosity'].allowed,
-        allowedHelp: commonOptions['verbosity'].allowedHelp,
+        commonOptions['verbosity']!.flag,
+        help: commonOptions['verbosity']!.help,
+        abbr: commonOptions['verbosity']!.abbr,
+        defaultsTo: commonOptions['verbosity']!.defaultsTo,
+        allowed: commonOptions['verbosity']!.allowed,
+        allowedHelp: commonOptions['verbosity']!.allowedHelp,
       )
       ..addMultiOption('define', abbr: 'D', valueHelp: 'key=value', help: '''
 Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
@@ -269,13 +270,14 @@ Remove debugging information from the output and save it separately to the speci
           "'dart compile $format' is not supported on x86 architectures");
       return 64;
     }
+    final args = argResults!;
+
     // We expect a single rest argument; the dart entry point.
-    if (argResults.rest.length != 1) {
+    if (args.rest.length != 1) {
       // This throws.
       usageException('Missing Dart entry point.');
     }
-
-    final String sourcePath = argResults.rest[0];
+    final String sourcePath = args.rest[0];
     if (!checkFile(sourcePath)) {
       return -1;
     }
@@ -284,16 +286,16 @@ Remove debugging information from the output and save it separately to the speci
       await generateNative(
         kind: format,
         sourceFile: sourcePath,
-        outputFile: argResults['output'],
-        defines: argResults['define'],
-        packages: argResults['packages'],
-        enableAsserts: argResults['enable-asserts'],
-        enableExperiment: argResults.enabledExperiments.join(','),
-        soundNullSafety: argResults['sound-null-safety'],
-        debugFile: argResults['save-debugging-info'],
+        outputFile: args['output'],
+        defines: args['define'],
+        packages: args['packages'],
+        enableAsserts: args['enable-asserts'],
+        enableExperiment: args.enabledExperiments.join(','),
+        soundNullSafety: args['sound-null-safety'],
+        debugFile: args['save-debugging-info'],
         verbose: verbose,
-        verbosity: argResults['verbosity'],
-        extraOptions: argResults['extra-gen-snapshot-options'],
+        verbosity: args['verbosity'],
+        extraOptions: args['extra-gen-snapshot-options'],
       );
       return 0;
     } catch (e) {

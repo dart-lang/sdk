@@ -14,7 +14,6 @@ import 'package:analysis_server_client/protocol.dart'
         EditBulkFixesResult,
         ResponseDecoder;
 import 'package:args/args.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import 'core.dart';
@@ -23,7 +22,7 @@ import 'utils.dart';
 
 /// When set, this function is executed just before the Analysis Server starts.
 void Function(String cmdName, List<FileSystemEntity> analysisRoots,
-    ArgResults argResults) preAnalysisServerStart;
+    ArgResults? argResults)? preAnalysisServerStart;
 
 /// A class to provide an API wrapper around an analysis server process.
 class AnalysisServer {
@@ -32,18 +31,18 @@ class AnalysisServer {
     this.sdkPath,
     this.analysisRoots, {
     this.cacheDirectoryPath,
-    @required this.commandName,
-    @required this.argResults,
+    required this.commandName,
+    required this.argResults,
   });
 
-  final String cacheDirectoryPath;
-  final File packagesFile;
+  final String? cacheDirectoryPath;
+  final File? packagesFile;
   final Directory sdkPath;
   final List<FileSystemEntity> analysisRoots;
   final String commandName;
-  final ArgResults argResults;
+  final ArgResults? argResults;
 
-  Process _process;
+  Process? _process;
 
   Completer<bool> _analysisFinished = Completer();
 
@@ -53,8 +52,8 @@ class AnalysisServer {
     // {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
     return _streamController('server.status')
         .stream
-        .where((event) => event['analysis'] != null)
-        .map((event) => event['analysis']['isAnalyzing'] as bool);
+        .where((event) => event!['analysis'] != null)
+        .map((event) => (event!['analysis']['isAnalyzing']!) as bool);
   }
 
   /// This future completes when we next receive an analysis finished event
@@ -65,7 +64,7 @@ class AnalysisServer {
   Stream<FileAnalysisErrors> get onErrors {
     // {"event":"analysis.errors","params":{"file":"/Users/.../lib/main.dart","errors":[]}}
     return _streamController('analysis.errors').stream.map((event) {
-      final file = event['file'] as String;
+      final file = event!['file'] as String;
       final errorsList = event['errors'] as List<dynamic>;
       final errors = errorsList
           .map<Map<String, dynamic>>(castStringKeyedMap)
@@ -76,7 +75,7 @@ class AnalysisServer {
     });
   }
 
-  Future<int> get onExit => _process.exitCode;
+  Future<int> get onExit => _process!.exitCode;
 
   final Map<String, StreamController<Map<String, dynamic>>> _streamControllers =
       {};
@@ -94,19 +93,19 @@ class AnalysisServer {
       '--sdk',
       sdkPath.path,
       if (cacheDirectoryPath != null) '--cache=$cacheDirectoryPath',
-      if (packagesFile != null) '--packages=${packagesFile.path}',
+      if (packagesFile != null) '--packages=${packagesFile!.path}',
     ];
 
     _process = await startDartProcess(sdk, command);
     // This callback hookup can't throw.
-    _process.exitCode.whenComplete(() => _process = null);
+    _process!.exitCode.whenComplete(() => _process = null);
 
-    final Stream<String> errorStream = _process.stderr
+    final Stream<String> errorStream = _process!.stderr
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter());
     errorStream.listen(log.stderr);
 
-    final Stream<String> inStream = _process.stdout
+    final Stream<String> inStream = _process!.stdout
         .transform<String>(utf8.decoder)
         .transform<String>(const LineSplitter());
     inStream.listen(_handleServerResponse);
@@ -125,7 +124,7 @@ class AnalysisServer {
     // be passed to the analysis server.
     List<String> analysisRootPaths = analysisRoots.map((root) {
       return trimEnd(
-          root.absolute.resolveSymbolicLinksSync(), path.context.separator);
+          root.absolute.resolveSymbolicLinksSync(), path.context.separator)!;
     }).toList();
 
     onAnalyzing.listen((bool isAnalyzing) {
@@ -178,7 +177,7 @@ class AnalysisServer {
   }
 
   Future<Map<String, dynamic>> _sendCommand(String method,
-      {Map<String, dynamic> params}) {
+      {Map<String, dynamic>? params}) {
     final String id = (++_id).toString();
     final String message = json.encode(<String, dynamic>{
       'id': id,
@@ -187,11 +186,11 @@ class AnalysisServer {
     });
 
     _requestCompleters[id] = Completer();
-    _process.stdin.writeln(message);
+    _process!.stdin.writeln(message);
 
     log.trace('==> $message');
 
-    return _requestCompleters[id].future;
+    return _requestCompleters[id]!.future;
   }
 
   void _handleServerResponse(String line) {
@@ -216,27 +215,28 @@ class AnalysisServer {
               .remove(id)
               ?.completeError(RequestError.parse(error));
         } else {
-          _requestCompleters.remove(id)?.complete(response['result']);
+          _requestCompleters.remove(id)?.complete(response['result'] ?? {});
         }
       }
     }
   }
 
-  void _handleServerError(Map<String, dynamic> error) {
+  void _handleServerError(Map<String, dynamic>? error) {
+    final err = error!;
     // Fields are 'isFatal', 'message', and 'stackTrace'.
-    log.stderr('Error from the analysis server: ${error['message']}');
-    if (error['stackTrace'] != null) {
-      log.stderr(error['stackTrace'] as String);
+    log.stderr('Error from the analysis server: ${err['message']}');
+    if (err['stackTrace'] != null) {
+      log.stderr(err['stackTrace'] as String);
     }
   }
 
-  StreamController<Map<String, dynamic>> _streamController(String streamId) {
+  StreamController<Map<String, dynamic>?> _streamController(String streamId) {
     return _streamControllers.putIfAbsent(
         streamId, () => StreamController<Map<String, dynamic>>.broadcast());
   }
 
   Future<bool> dispose() async {
-    return _process?.kill();
+    return _process?.kill() ?? true;
   }
 }
 
@@ -262,10 +262,10 @@ class AnalysisError implements Comparable<AnalysisError> {
   // },"message":"...","hasFix":false}
   Map<String, dynamic> json;
 
-  String get severity => json['severity'] as String;
+  String? get severity => json['severity'] as String?;
 
   _AnalysisSeverity get _severityLevel =>
-      _severityMap[severity] ?? _AnalysisSeverity.none;
+      _severityMap[severity!] ?? _AnalysisSeverity.none;
 
   bool get isInfo => _severityLevel == _AnalysisSeverity.info;
 
@@ -279,26 +279,26 @@ class AnalysisError implements Comparable<AnalysisError> {
 
   String get code => json['code'] as String;
 
-  String get correction => json['correction'] as String;
+  String? get correction => json['correction'] as String?;
 
-  int get endColumn => json['location']['endColumn'] as int;
+  int? get endColumn => json['location']['endColumn'] as int?;
 
-  int get endLine => json['location']['endLine'] as int;
+  int? get endLine => json['location']['endLine'] as int?;
 
   String get file => json['location']['file'] as String;
 
-  int get startLine => json['location']['startLine'] as int;
+  int? get startLine => json['location']['startLine'] as int?;
 
-  int get startColumn => json['location']['startColumn'] as int;
+  int? get startColumn => json['location']['startColumn'] as int?;
 
   int get offset => json['location']['offset'] as int;
 
   int get length => json['location']['length'] as int;
 
-  String get url => json['url'] as String;
+  String? get url => json['url'] as String?;
 
   List<DiagnosticMessage> get contextMessages {
-    var messages = json['contextMessages'] as List<dynamic>;
+    var messages = json['contextMessages'] as List<dynamic>?;
     if (messages == null) {
       // The field is optional, so we return an empty list as a default value.
       return [];
@@ -326,7 +326,7 @@ class AnalysisError implements Comparable<AnalysisError> {
   }
 
   @override
-  String toString() => '${severity.toLowerCase()} • '
+  String toString() => '${severity!.toLowerCase()} • '
       '$message • $file:$startLine:$startColumn • '
       '($code)';
 }
@@ -336,11 +336,11 @@ class DiagnosticMessage {
 
   DiagnosticMessage(this.json);
 
-  int get column => json['location']['startColumn'] as int;
+  int? get column => json['location']['startColumn'] as int?;
 
-  int get endColumn => json['location']['endColumn'] as int;
+  int? get endColumn => json['location']['endColumn'] as int?;
 
-  int get endLine => json['location']['endLine'] as int;
+  int? get endLine => json['location']['endLine'] as int?;
 
   String get filePath => json['location']['file'] as String;
 
@@ -373,7 +373,7 @@ class RequestError {
   final String message;
   final String stackTrace;
 
-  RequestError(this.code, this.message, {this.stackTrace});
+  RequestError(this.code, this.message, {required this.stackTrace});
 
   @override
   String toString() => '[RequestError code: $code, message: $message]';

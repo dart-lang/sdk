@@ -29,6 +29,9 @@ class Object {
 /*class: Enum:Enum,Object*/
 abstract class Enum {}
 
+/*class: _Enum:Enum,Object,_Enum*/
+abstract class _Enum implements Enum {}
+
 /*class: Null:Null,Object*/
 class Null {
   factory Null._uninstantiable() {

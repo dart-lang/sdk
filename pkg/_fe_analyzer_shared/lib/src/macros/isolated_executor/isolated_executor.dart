@@ -156,12 +156,12 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
               }
               completer.complete(response);
               break;
-            case MessageType.resolveTypeRequest:
-              ResolveTypeRequest request =
-                  new ResolveTypeRequest.deserialize(deserializer, zoneId);
+            case MessageType.instantiateTypeRequest:
+              InstantiateTypeRequest request =
+                  new InstantiateTypeRequest.deserialize(deserializer, zoneId);
               StaticType instance =
                   await (request.typeResolver.instance as TypeResolver)
-                      .resolve(request.typeAnnotation);
+                      .instantiateType(request.typeAnnotation);
               SerializableResponse response = new SerializableResponse(
                   response: new RemoteInstanceImpl(
                       id: RemoteInstance.uniqueId,
@@ -211,13 +211,12 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
             case MessageType.declarationOfRequest:
               DeclarationOfRequest request =
                   new DeclarationOfRequest.deserialize(deserializer, zoneId);
-              NamedStaticType type = request.type.instance as NamedStaticType;
               TypeDeclarationResolver resolver = request
                   .typeDeclarationResolver.instance as TypeDeclarationResolver;
               SerializableResponse response = new SerializableResponse(
                   requestId: request.id,
                   responseType: MessageType.remoteInstance,
-                  response: (await resolver.declarationOf(type)
+                  response: (await resolver.declarationOf(request.identifier)
                       // TODO: Consider refactoring to avoid the need for this.
                       as TypeDeclarationImpl),
                   serializationZoneId: zoneId);

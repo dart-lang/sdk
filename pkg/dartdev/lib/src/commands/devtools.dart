@@ -140,7 +140,7 @@ class DevToolsCommand extends DartdevCommand {
         hide: !verbose,
       );
 
-    // Deprecated and hidden argResults.
+    // Deprecated and hidden args.
     // TODO: Remove this - prefer that clients use the rest arg.
     argParser
       ..addOption(
@@ -150,7 +150,7 @@ class DevToolsCommand extends DartdevCommand {
         hide: true,
       )
 
-      // Development only argResults.
+      // Development only args.
       ..addFlag(
         argDebugMode,
         negatable: false,
@@ -159,7 +159,7 @@ class DevToolsCommand extends DartdevCommand {
       );
   }
 
-  final String customDevToolsPath;
+  final String? customDevToolsPath;
 
   @override
   String get name => 'devtools';
@@ -172,32 +172,30 @@ class DevToolsCommand extends DartdevCommand {
 
   @override
   Future<int> run() async {
-    final bool version = argResults[argVersion];
-    final bool machineMode = argResults[argMachine];
+    final args = argResults!;
+    final bool version = args[argVersion];
+    final bool machineMode = args[argMachine];
     // launchBrowser defaults based on machine-mode if not explicitly supplied.
-    final bool launchBrowser = argResults.wasParsed(argLaunchBrowser)
-        ? argResults[argLaunchBrowser]
+    final bool launchBrowser = args.wasParsed(argLaunchBrowser)
+        ? args[argLaunchBrowser]
         : !machineMode;
-    final bool enableNotifications = argResults[argEnableNotifications];
-    final bool allowEmbedding = argResults.wasParsed(argAllowEmbedding)
-        ? argResults[argAllowEmbedding]
-        : true;
+    final bool enableNotifications = args[argEnableNotifications];
+    final bool allowEmbedding =
+        args.wasParsed(argAllowEmbedding) ? args[argAllowEmbedding] : true;
 
-    final port = argResults[argPort] != null
-        ? int.tryParse(argResults[argPort]) ?? 0
-        : 0;
+    final port = args[argPort] != null ? int.tryParse(args[argPort]) ?? 0 : 0;
 
-    final bool headlessMode = argResults[argHeadlessMode];
-    final bool debugMode = argResults[argDebugMode];
+    final bool headlessMode = args[argHeadlessMode];
+    final bool debugMode = args[argDebugMode];
 
-    final numPortsToTry = argResults[argTryPorts] != null
-        ? int.tryParse(argResults[argTryPorts]) ?? 0
+    final numPortsToTry = args[argTryPorts] != null
+        ? int.tryParse(args[argTryPorts]) ?? 0
         : DevToolsServer.defaultTryPorts;
 
-    final bool verboseMode = argResults[argVerbose];
-    final String hostname = argResults[argHost];
-    final String appSizeBase = argResults[argAppSizeBase];
-    final String appSizeTest = argResults[argAppSizeTest];
+    final bool verboseMode = args[argVerbose];
+    final String? hostname = args[argHost];
+    final String? appSizeBase = args[argAppSizeBase];
+    final String? appSizeTest = args[argAppSizeTest];
 
     final sdkDir = path.dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
@@ -213,22 +211,22 @@ class DevToolsCommand extends DartdevCommand {
         },
         machineMode: machineMode,
       );
-      return null;
+      return 0;
     }
 
-    // Prefer getting the VM URI from the rest argResults; fall back on the 'vm-url'
+    // Prefer getting the VM URI from the rest args; fall back on the 'vm-url'
     // option otherwise.
-    String serviceProtocolUri;
-    if (argResults.rest.isNotEmpty) {
-      serviceProtocolUri = argResults.rest.first;
-    } else if (argResults.wasParsed(argVmUri)) {
-      serviceProtocolUri = argResults[argVmUri];
+    String? serviceProtocolUri;
+    if (args.rest.isNotEmpty) {
+      serviceProtocolUri = args.rest.first;
+    } else if (args.wasParsed(argVmUri)) {
+      serviceProtocolUri = args[argVmUri];
     }
 
     // Support collecting profile data.
-    String profileFilename;
-    if (argResults.wasParsed(argProfileMemory)) {
-      profileFilename = argResults[argProfileMemory];
+    String? profileFilename;
+    if (args.wasParsed(argProfileMemory)) {
+      profileFilename = args[argProfileMemory];
     }
     if (profileFilename != null && !path.isAbsolute(profileFilename)) {
       profileFilename = path.absolute(profileFilename);

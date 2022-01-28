@@ -29,6 +29,8 @@ const Map<String, Map<String, List<String>>> macroDeclarations = {
   'package:macro/macro.dart': {
     'FunctionDefinitionMacro1': [''],
     'FunctionDefinitionMacro2': [''],
+    'FunctionTypesMacro1': [''],
+    'FunctionDeclarationsMacro1': [''],
   }
 };
 
@@ -110,17 +112,35 @@ class MacroDataComputer extends DataComputer<String> {
         .loader
         .dataForTesting!
         .macroApplicationData;
+    StringBuffer sb = new StringBuffer();
     for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
-        in macroApplicationData.memberDefinitionsResults.entries) {
+        in macroApplicationData.memberTypesResults.entries) {
       if (entry.key.member == member) {
-        StringBuffer sb = new StringBuffer();
         for (MacroExecutionResult result in entry.value) {
           sb.write('\n${codeToString(result.augmentations.first)}');
         }
-        Id id = computeMemberId(member);
-        registry.registerValue(
-            member.fileUri, member.fileOffset, id, sb.toString(), member);
       }
+    }
+    for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
+        in macroApplicationData.memberDeclarationsResults.entries) {
+      if (entry.key.member == member) {
+        for (MacroExecutionResult result in entry.value) {
+          sb.write('\n${codeToString(result.augmentations.first)}');
+        }
+      }
+    }
+    for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
+        in macroApplicationData.memberDefinitionsResults.entries) {
+      if (entry.key.member == member) {
+        for (MacroExecutionResult result in entry.value) {
+          sb.write('\n${codeToString(result.augmentations.first)}');
+        }
+      }
+    }
+    if (sb.isNotEmpty) {
+      Id id = computeMemberId(member);
+      registry.registerValue(
+          member.fileUri, member.fileOffset, id, sb.toString(), member);
     }
   }
 }
@@ -129,8 +149,8 @@ void _codeToString(StringBuffer sb, Code code) {
   for (Object part in code.parts) {
     if (part is Code) {
       _codeToString(sb, part);
-    } else if (part is TypeAnnotation) {
-      _codeToString(sb, part.code);
+    } else if (part is Identifier) {
+      sb.write(part.name);
     } else {
       sb.write(part);
     }

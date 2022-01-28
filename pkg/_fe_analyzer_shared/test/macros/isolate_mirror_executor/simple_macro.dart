@@ -27,7 +27,7 @@ class SimpleMacro implements FunctionDefinitionMacro {
     }
 
     // Test the type resolver and static type interfaces
-    var staticReturnType = await builder.resolve(method.returnType);
+    var staticReturnType = await builder.instantiateType(method.returnType);
     if (!(await staticReturnType.isExactly(staticReturnType))) {
       throw StateError('The return type should be exactly equal to itself!');
     }

@@ -63,7 +63,7 @@ void main() {
         );
         expect(
           result.stderr,
-          'Could not start VM service: localhost:${server.port} is already in use.\n',
+          'Could not start the VM service: localhost:${server.port} is already in use.\n',
         );
         expect(result.stdout, isEmpty);
         server.close();

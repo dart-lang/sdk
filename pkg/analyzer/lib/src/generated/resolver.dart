@@ -1558,7 +1558,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           argumentList.correspondingStaticParameters =
               ResolverVisitor.resolveArgumentsToParameters(
             argumentList: argumentList,
-            parameters: constructor.parameters.skip(2).toList(),
+            parameters: constructor.parameters,
           );
           for (var argument in argumentList.arguments) {
             var parameter = argument.staticParameterElement;

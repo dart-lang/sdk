@@ -2,12 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -2181,22 +2177,12 @@ A
     _assertElementAnnotationValueText(elementAnnotation, expected);
   }
 
-  void _assertDartObjectText(DartObject? object, String expected) {
-    var buffer = StringBuffer();
-    _DartObjectPrinter(buffer).write(object as DartObjectImpl?, '');
-    var actual = buffer.toString();
-    if (actual != expected) {
-      print(buffer);
-    }
-    expect(actual, expected);
-  }
-
   void _assertElementAnnotationValueText(
     ElementAnnotation annotation,
     String expected,
   ) {
     var value = annotation.computeConstantValue();
-    _assertDartObjectText(value, expected);
+    assertDartObjectText(value, expected);
   }
 
   void _assertResolvedNodeText(AstNode node, String expected) {
@@ -2217,41 +2203,5 @@ A
       ),
     );
     return buffer.toString();
-  }
-}
-
-class _DartObjectPrinter {
-  final StringBuffer sink;
-
-  _DartObjectPrinter(this.sink);
-
-  void write(DartObjectImpl? object, String indent) {
-    if (object != null) {
-      var type = object.type;
-      if (type.isDartCoreDouble) {
-        sink.write('double ');
-        sink.writeln(object.toDoubleValue());
-      } else if (type.isDartCoreInt) {
-        sink.write('int ');
-        sink.writeln(object.toIntValue());
-      } else if (object.isUserDefinedObject) {
-        var newIndent = '$indent  ';
-        var typeStr = type.getDisplayString(withNullability: true);
-        sink.writeln(typeStr);
-        var fields = object.fields;
-        if (fields != null) {
-          var sortedFields = SplayTreeMap.of(fields);
-          for (var entry in sortedFields.entries) {
-            sink.write(newIndent);
-            sink.write('${entry.key}: ');
-            write(entry.value, newIndent);
-          }
-        }
-      } else {
-        throw UnimplementedError();
-      }
-    } else {
-      sink.writeln('<null>');
-    }
   }
 }

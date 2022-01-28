@@ -18,8 +18,8 @@ Future<FixOutput> runFix(List<String> args) async {
 }
 
 void _driver() {
-  TestProject p;
-  tearDown(() async => await p?.dispose());
+  late TestProject p;
+  tearDown(() async => await p.dispose());
 
   test('no fixes', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
@@ -33,7 +33,7 @@ class FixOutput {
   final FixResult<CapturingLogger> result;
   FixOutput(this.result);
 
-  int get returnCode => result.returnCode;
+  int? get returnCode => result.returnCode;
   String get stderr => result.logger.output.stderr.toString();
   String get stdout => result.logger.output.stdout.toString();
 }

@@ -15,10 +15,8 @@ abstract class TypeBuilder implements Builder {
   void declareType(DeclarationCode typeDeclaration);
 }
 
-/// The interface to resolve a [TypeAnnotation] to a [StaticType].
-///
-/// The [StaticType]s can be compared against other [StaticType]s to see how
-/// they relate to each other.
+/// The interface used to create [StaticType] instances, which are used to
+/// examine type relationships.
 ///
 /// This api is only available to the declaration and definition phases of
 /// macro expansion.
@@ -30,7 +28,14 @@ abstract class TypeResolver {
   /// may be asked to run in this state during the development cycle. It is
   /// helpful for users if macros provide a best effort implementation in that
   /// case or handle the error in a useful way.
-  Future<StaticType> resolve(covariant TypeAnnotation typeAnnotation);
+  Future<StaticType> instantiateType(covariant TypeAnnotation typeAnnotation);
+
+  /// Instantiates a new [StaticType] for a given [code] expression, which must
+  /// be a type expression.
+  ///
+  /// All type identifiers in [code] must be instances of [Identifier] and not
+  /// bare strings.
+  Future<StaticType> instantiateCode(ExpressionCode code);
 }
 
 /// The api used to introspect on a [ClassDeclaration].
@@ -87,13 +92,16 @@ abstract class ClassMemberDeclarationBuilder implements DeclarationBuilder {
   void declareInClass(DeclarationCode declaration);
 }
 
-/// The interface used by [Macro]s to resolve any [NamedStaticType] to its
-/// declaration.
+/// The interface used by [Macro]s to resolve any [Identifier]s pointing to
+/// types to their type declarations.
 ///
 /// Only available in the definition phase of macro expansion.
 abstract class TypeDeclarationResolver {
-  /// Resolves a [NamedStaticType] to its [TypeDeclaration].
-  Future<TypeDeclaration> declarationOf(covariant NamedStaticType annotation);
+  /// Resolves an [identifier] to its [TypeDeclaration].
+  ///
+  /// If [identifier] does resolve to a [TypeDeclaration], then an
+  /// [ArgumentError] is thrown.
+  Future<TypeDeclaration> declarationOf(covariant Identifier identifier);
 }
 
 /// The base class for builders in the definition phase. These can convert
@@ -109,20 +117,24 @@ abstract class DefinitionBuilder
 /// The apis used by [Macro]s that run on classes, to fill in the definitions
 /// of any external declarations within that class.
 abstract class ClassDefinitionBuilder implements DefinitionBuilder {
-  /// Retrieve a [VariableDefinitionBuilder] for a field by [name].
+  /// Retrieve a [VariableDefinitionBuilder] for a field by [identifier].
   ///
-  /// Throws an [ArgumentError] if there is no field by that name.
-  Future<VariableDefinitionBuilder> buildField(String name);
+  /// Throws an [ArgumentError] if [identifier] does not refer to a field in
+  /// this class.
+  Future<VariableDefinitionBuilder> buildField(Identifier identifier);
 
-  /// Retrieve a [FunctionDefinitionBuilder] for a method by [name].
+  /// Retrieve a [FunctionDefinitionBuilder] for a method by [identifier].
   ///
-  /// Throws an [ArgumentError] if there is no method by that name.
-  Future<FunctionDefinitionBuilder> buildMethod(String name);
+  /// Throws an [ArgumentError] if [identifier] does not refer to a method in
+  /// this class.
+  Future<FunctionDefinitionBuilder> buildMethod(Identifier identifier);
 
-  /// Retrieve a [ConstructorDefinitionBuilder] for a constructor by [name].
+  /// Retrieve a [ConstructorDefinitionBuilder] for a constructor by
+  /// [identifier].
   ///
-  /// Throws an [ArgumentError] if there is no constructor by that name.
-  Future<ConstructorDefinitionBuilder> buildConstructor(String name);
+  /// Throws an [ArgumentError] if [identifier] does not refer to a constructor
+  /// in this class.
+  Future<ConstructorDefinitionBuilder> buildConstructor(Identifier identifier);
 }
 
 /// The apis used by [Macro]s to define the body of a constructor

@@ -476,7 +476,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var type = decoratedType.positionalParameters![0];
         _variables!.recordDecoratedElementType(declaredElement.variable, type,
             soft: true);
-        if (_hasAngularChildAnnotation(node.metadata)) {
+        if (_getAngularAnnotation(node.metadata) == _AngularAnnotation.child) {
           _graph.makeNullable(
               type!.node!, AngularAnnotationOrigin(source, node));
         }
@@ -686,9 +686,18 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _variables!.recordDecoratedElementType(declaredElement, type);
       variable.initializer?.accept(this);
       if (parent is FieldDeclaration) {
-        if (_hasAngularChildAnnotation(parent.metadata)) {
-          _graph.makeNullable(
-              type.node!, AngularAnnotationOrigin(source, node));
+        var angularAnnotation = _getAngularAnnotation(parent.metadata);
+        if (angularAnnotation != null) {
+          switch (angularAnnotation) {
+            case _AngularAnnotation.child:
+              _graph.makeNullable(
+                  type.node!, AngularAnnotationOrigin(source, node));
+              break;
+            case _AngularAnnotation.children:
+              _graph.preventLate(
+                  type.node!, AngularAnnotationOrigin(source, node));
+              break;
+          }
         }
       }
     }
@@ -710,6 +719,26 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _graph.never,
       typeArguments: decoratedTypeArguments,
     );
+  }
+
+  /// Determines if the given [metadata] contains a reference to one of the
+  /// Angular annotations that we have special behaviors for.  If it does,
+  /// returns an enumerated value describing the type of annotation.
+  _AngularAnnotation? _getAngularAnnotation(NodeList<Annotation> metadata) {
+    for (var annotation in metadata) {
+      var element = annotation.element;
+      if (element is ConstructorElement) {
+        var name = element.enclosingElement.name;
+        if (_isAngularUri(element.librarySource.uri)) {
+          if (name == 'ViewChild' || name == 'ContentChild') {
+            return _AngularAnnotation.child;
+          } else if (name == 'ViewChildren' || name == 'ContentChildren') {
+            return _AngularAnnotation.children;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /// Common handling of function and method declarations.
@@ -938,23 +967,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         .recordDecoratedDirectSupertypes(declaredElement, decoratedSupertypes);
   }
 
-  /// Determines if the given [metadata] contains a reference to one of the
-  /// Angular annotations `ViewChild` or `ContentChild`, either of which implies
-  /// nullability of the underlying property.
-  bool _hasAngularChildAnnotation(NodeList<Annotation> metadata) {
-    for (var annotation in metadata) {
-      var element = annotation.element;
-      if (element is ConstructorElement) {
-        var name = element.enclosingElement.name;
-        if ((name == 'ViewChild' || name == 'ContentChild') &&
-            _isAngularUri(element.librarySource.uri)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   /// Determines whether the given [uri] comes from the Angular package.
   bool _isAngularUri(Uri uri) {
     if (uri.scheme != 'package') return false;
@@ -992,4 +1004,16 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     buffer.write('"');
     throw UnimplementedError(buffer.toString());
   }
+}
+
+/// Enum describing the kinds of annotations supplied by the angular package for
+/// which we have special migration behaviors.
+enum _AngularAnnotation {
+  /// Either the `@ViewChild` or `@ContentChild` annotation.  Fields with these
+  /// annotations should always be nullable and should never be late.
+  child,
+
+  /// Either the `@ViewChildren` or `@ContentChildren` annotation.  Fields with
+  /// these annotations should never be late.
+  children,
 }

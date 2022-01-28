@@ -85,12 +85,13 @@ void main() {
       var string = NamedTypeAnnotationImpl(
           id: RemoteInstance.uniqueId,
           isNullable: false,
-          name: 'String',
+          identifier:
+              IdentifierImpl(id: RemoteInstance.uniqueId, name: 'String'),
           typeArguments: const []);
       var foo = NamedTypeAnnotationImpl(
           id: RemoteInstance.uniqueId,
           isNullable: false,
-          name: 'Foo',
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
           typeArguments: [string]);
       Object? serializedFoo;
       var serializer = JsonSerializer();
@@ -109,12 +110,12 @@ void main() {
       final barType = NamedTypeAnnotationImpl(
           id: RemoteInstance.uniqueId,
           isNullable: false,
-          name: 'Bar',
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Bar'),
           typeArguments: []);
       final fooType = NamedTypeAnnotationImpl(
           id: RemoteInstance.uniqueId,
           isNullable: true,
-          name: 'Foo',
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
           typeArguments: [barType]);
 
       test('NamedTypeAnnotation', () {
@@ -126,7 +127,7 @@ void main() {
           defaultValue: null,
           isNamed: true,
           isRequired: true,
-          name: 'foo',
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'foo'),
           type: fooType);
 
       final barPositionalParam = ParameterDeclarationImpl(
@@ -134,11 +135,13 @@ void main() {
           defaultValue: Code.fromString('const Bar()'),
           isNamed: false,
           isRequired: false,
-          name: 'bar',
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
           type: barType);
 
       final zapTypeParam = TypeParameterDeclarationImpl(
-          id: RemoteInstance.uniqueId, name: 'Zap', bounds: barType);
+          id: RemoteInstance.uniqueId,
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Zap'),
+          bounds: barType);
 
       // Transitively tests `TypeParameterDeclaration` and
       // `ParameterDeclaration`.
@@ -157,7 +160,8 @@ void main() {
       test('FunctionDeclaration', () {
         var function = FunctionDeclarationImpl(
             id: RemoteInstance.uniqueId,
-            name: 'name',
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'name'),
             isAbstract: true,
             isExternal: false,
             isGetter: true,
@@ -172,7 +176,8 @@ void main() {
       test('MethodDeclaration', () {
         var method = MethodDeclarationImpl(
             id: RemoteInstance.uniqueId,
-            name: 'zorp',
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'zorp'),
             isAbstract: false,
             isExternal: false,
             isGetter: false,
@@ -181,14 +186,14 @@ void main() {
             positionalParameters: [barPositionalParam],
             returnType: fooType,
             typeParameters: [zapTypeParam],
-            definingClass: fooType);
+            definingClass: fooType.identifier);
         expectSerializationEquality(method);
       });
 
       test('ConstructorDeclaration', () {
         var constructor = ConstructorDeclarationImpl(
           id: RemoteInstance.uniqueId,
-          name: 'new',
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'new'),
           isAbstract: false,
           isExternal: false,
           isGetter: false,
@@ -197,7 +202,7 @@ void main() {
           positionalParameters: [barPositionalParam],
           returnType: fooType,
           typeParameters: [zapTypeParam],
-          definingClass: fooType,
+          definingClass: fooType.identifier,
           isFactory: true,
         );
         expectSerializationEquality(constructor);
@@ -206,7 +211,7 @@ void main() {
       test('VariableDeclaration', () {
         var bar = VariableDeclarationImpl(
           id: RemoteInstance.uniqueId,
-          name: 'bar',
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
           isExternal: true,
           isFinal: false,
           isLate: true,
@@ -219,26 +224,27 @@ void main() {
       test('FieldDeclaration', () {
         var bar = FieldDeclarationImpl(
           id: RemoteInstance.uniqueId,
-          name: 'bar',
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
           isExternal: false,
           isFinal: true,
           isLate: false,
           initializer: null,
           type: barType,
-          definingClass: fooType,
+          definingClass: fooType.identifier,
         );
         expectSerializationEquality(bar);
       });
 
       var objectType = NamedTypeAnnotationImpl(
         id: RemoteInstance.uniqueId,
-        name: 'Object',
+        identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Object'),
         isNullable: false,
         typeArguments: [],
       );
       var serializableType = NamedTypeAnnotationImpl(
         id: RemoteInstance.uniqueId,
-        name: 'Serializable',
+        identifier:
+            IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Serializable'),
         isNullable: false,
         typeArguments: [],
       );
@@ -246,13 +252,12 @@ void main() {
       test('ClassDeclaration', () {
         var fooClass = ClassDeclarationImpl(
           id: RemoteInstance.uniqueId,
-          name: 'Foo',
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
           interfaces: [barType],
           isAbstract: true,
           isExternal: false,
           mixins: [serializableType],
           superclass: objectType,
-          type: fooType,
           typeParameters: [zapTypeParam],
         );
         expectSerializationEquality(fooClass);
@@ -261,17 +266,14 @@ void main() {
       test('TypeAliasDeclaration', () {
         var typeAlias = TypeAliasDeclarationImpl(
           id: RemoteInstance.uniqueId,
-          name: 'FooOfBar',
-          type: NamedTypeAnnotationImpl(
-              id: RemoteInstance.uniqueId,
-              isNullable: false,
-              name: 'FooOfBar',
-              typeArguments: []),
+          identifier:
+              IdentifierImpl(id: RemoteInstance.uniqueId, name: 'FooOfBar'),
           typeParameters: [zapTypeParam],
           aliasedType: NamedTypeAnnotationImpl(
               id: RemoteInstance.uniqueId,
               isNullable: false,
-              name: 'Foo',
+              identifier:
+                  IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
               typeArguments: [barType]),
         );
         expectSerializationEquality(typeAlias);

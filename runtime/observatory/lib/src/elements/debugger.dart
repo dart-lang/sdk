@@ -2545,7 +2545,7 @@ class DebuggerFrameElement extends CustomElement implements Renderable {
     if (_expanded) {
       final homeMethod = _frame.function!.homeMethod;
       String? homeMethodName;
-      if ((homeMethod.dartOwner is S.Class) && homeMethod.isStatic!) {
+      if ((homeMethod.dartOwner is S.Class) && homeMethod.isStatic == true) {
         homeMethodName = '<class>';
       } else if (homeMethod.dartOwner is S.Library) {
         homeMethodName = '<library>';

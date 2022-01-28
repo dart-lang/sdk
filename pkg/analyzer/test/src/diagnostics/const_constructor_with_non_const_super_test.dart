@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ConstConstructorWithNonConstSuperTest extends PubPackageResolutionTest {
-  test_explicit() async {
+  test_class_explicit() async {
     await assertErrorsInCode(r'''
 class A {
   A();
@@ -28,7 +28,7 @@ class B extends A {
     ]);
   }
 
-  test_implicit() async {
+  test_class_implicit() async {
     await assertErrorsInCode(r'''
 class A {
   A();
@@ -39,5 +39,22 @@ class B extends A {
 ''', [
       error(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER, 47, 1),
     ]);
+  }
+
+  test_enum() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v
+}
+''');
+  }
+
+  test_enum_hasConstructor() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v(0);
+  const E(int a);
+}
+''');
   }
 }

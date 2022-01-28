@@ -28,11 +28,12 @@ class TestCommand extends DartdevCommand {
 
   @override
   FutureOr<int> run() async {
+    final args = argResults!;
     try {
       final testExecutable = await getExecutableForCommand('test:test');
-      log.trace('dart $testExecutable ${argResults.rest.join(' ')}');
-      VmInteropHandler.run(testExecutable.executable, argResults.rest,
-          packageConfigOverride: testExecutable.packageConfig);
+      log.trace('dart $testExecutable ${args.rest.join(' ')}');
+      VmInteropHandler.run(testExecutable.executable, args.rest,
+          packageConfigOverride: testExecutable.packageConfig!);
       return 0;
     } on CommandResolutionFailedException catch (e) {
       if (project.hasPubspecFile) {
@@ -45,8 +46,7 @@ class TestCommand extends DartdevCommand {
         print(
             'No pubspec.yaml file found - run this command in your project folder.');
       }
-      if (argResults.rest.contains('-h') ||
-          argResults.rest.contains('--help')) {
+      if (args.rest.contains('-h') || args.rest.contains('--help')) {
         print('');
         printUsage();
       }

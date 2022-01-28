@@ -65,14 +65,14 @@ class FakeTypeDeclarationResolver extends Fake
     implements TypeDeclarationResolver {}
 
 class TestTypeDeclarationResolver implements TypeDeclarationResolver {
-  final Map<NamedStaticType, TypeDeclaration> typeDeclarations;
+  final Map<Identifier, TypeDeclaration> typeDeclarations;
 
   TestTypeDeclarationResolver(this.typeDeclarations);
 
   @override
   Future<TypeDeclaration> declarationOf(
-          covariant NamedStaticType annotation) async =>
-      typeDeclarations[annotation]!;
+          covariant Identifier identifier) async =>
+      typeDeclarations[identifier]!;
 }
 
 class TestTypeResolver implements TypeResolver {
@@ -81,18 +81,25 @@ class TestTypeResolver implements TypeResolver {
   TestTypeResolver(this.staticTypes);
 
   @override
-  Future<StaticType> resolve(covariant TypeAnnotation typeAnnotation) async {
+  Future<StaticType> instantiateType(
+      covariant TypeAnnotation typeAnnotation) async {
     return staticTypes[typeAnnotation]!;
+  }
+
+  @override
+  Future<StaticType> instantiateCode(ExpressionCode code) {
+    // TODO: implement instantiateCode
+    throw UnimplementedError();
   }
 }
 
 // Doesn't handle generics etc but thats ok for now
 class TestNamedStaticType implements NamedStaticType {
+  final IdentifierImpl identifier;
   final String library;
-  final String name;
   final List<TestNamedStaticType> superTypes;
 
-  TestNamedStaticType(this.library, this.name, this.superTypes);
+  TestNamedStaticType(this.identifier, this.library, this.superTypes);
 
   @override
   Future<bool> isExactly(TestNamedStaticType other) async => _isExactly(other);
@@ -104,7 +111,7 @@ class TestNamedStaticType implements NamedStaticType {
 
   bool _isExactly(TestNamedStaticType other) =>
       identical(other, this) ||
-      (library == other.library && name == other.name);
+      (library == other.library && identifier.name == other.identifier.name);
 }
 
 extension DebugCodeString on Code {
@@ -113,10 +120,10 @@ extension DebugCodeString on Code {
     for (var part in parts) {
       if (part is Code) {
         part.debugString(buffer);
-      } else if (part is TypeAnnotation) {
-        part.code.debugString(buffer);
+      } else if (part is IdentifierImpl) {
+        buffer.write(part.name);
       } else {
-        buffer.write(part.toString());
+        buffer.write(part as String);
       }
     }
     return buffer;
@@ -219,19 +226,20 @@ class _DeepEqualityMatcher extends Matcher {
 class Fixtures {
   static final stringType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'String',
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'String'),
       isNullable: false,
       typeArguments: const []);
   static final voidType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'void',
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'void'),
       isNullable: false,
       typeArguments: const []);
 
   // Top level, non-class declarations.
   static final myFunction = FunctionDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'myFunction',
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myFunction'),
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -242,7 +250,8 @@ class Fixtures {
       typeParameters: []);
   static final myVariable = VariableDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      name: '_myVariable',
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: '_myVariable'),
       initializer: ExpressionCode.fromString("''"),
       isExternal: false,
       isFinal: true,
@@ -250,7 +259,8 @@ class Fixtures {
       type: stringType);
   static final myVariableGetter = FunctionDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'myVariable',
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myVariable'),
       isAbstract: false,
       isExternal: false,
       isGetter: true,
@@ -261,7 +271,8 @@ class Fixtures {
       typeParameters: []);
   static final myVariableSetter = FunctionDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'myVariable=',
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myVariable'),
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -270,7 +281,8 @@ class Fixtures {
       positionalParameters: [
         ParameterDeclarationImpl(
             id: RemoteInstance.uniqueId,
-            name: 'value',
+            identifier:
+                IdentifierImpl(id: RemoteInstance.uniqueId, name: 'value'),
             defaultValue: null,
             isNamed: false,
             isRequired: true,
@@ -282,28 +294,29 @@ class Fixtures {
   // Class and member declarations
   static final myInterfaceType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'MyInterface',
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyInterface'),
       isNullable: false,
       typeArguments: const []);
   static final myMixinType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'MyMixin',
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyMixin'),
       isNullable: false,
       typeArguments: const []);
   static final mySuperclassType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'MySuperclass',
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MySuperclass'),
       isNullable: false,
       typeArguments: const []);
   static final myClassType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'MyClass',
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyClass'),
       isNullable: false,
       typeArguments: const []);
   static final myClass = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      name: myClassType.name,
-      type: myClassType,
+      identifier: myClassType.identifier,
       typeParameters: [],
       interfaces: [myInterfaceType],
       isAbstract: false,
@@ -312,7 +325,8 @@ class Fixtures {
       superclass: mySuperclassType);
   static final myConstructor = ConstructorDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'myConstructor',
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myConstructor'),
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -321,21 +335,20 @@ class Fixtures {
       positionalParameters: [],
       returnType: myClassType,
       typeParameters: [],
-      definingClass: myClassType,
+      definingClass: myClassType.identifier,
       isFactory: false);
   static final myField = FieldDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'myField',
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
       initializer: null,
       isExternal: false,
       isFinal: false,
       isLate: false,
       type: stringType,
-      definingClass: myClassType);
+      definingClass: myClassType.identifier);
   static final myInterface = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      name: myInterfaceType.name,
-      type: myInterfaceType,
+      identifier: myInterfaceType.identifier,
       typeParameters: [],
       interfaces: [],
       isAbstract: false,
@@ -344,7 +357,7 @@ class Fixtures {
       superclass: null);
   static final myMethod = MethodDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      name: 'myMethod',
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myMethod'),
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -353,11 +366,10 @@ class Fixtures {
       positionalParameters: [],
       returnType: stringType,
       typeParameters: [],
-      definingClass: myClassType);
+      definingClass: myClassType.identifier);
   static final myMixin = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      name: myMixinType.name,
-      type: myMixinType,
+      identifier: myMixinType.identifier,
       typeParameters: [],
       interfaces: [],
       isAbstract: false,
@@ -366,8 +378,7 @@ class Fixtures {
       superclass: null);
   static final mySuperclass = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      name: mySuperclassType.name,
-      type: mySuperclassType,
+      identifier: mySuperclassType.identifier,
       typeParameters: [],
       interfaces: [],
       isAbstract: false,
@@ -376,10 +387,10 @@ class Fixtures {
       superclass: null);
 
   static final myClassStaticType = TestNamedStaticType(
-      'package:my_package/my_package.dart', myClassType.name, []);
+      myClassType.identifier, 'package:my_package/my_package.dart', []);
 
   static final testTypeResolver = TestTypeResolver({
-    stringType: TestNamedStaticType('dart:core', stringType.name, []),
+    stringType: TestNamedStaticType(stringType.identifier, 'dart:core', []),
     myClassType: myClassStaticType,
   });
   static final testClassIntrospector = TestClassIntrospector(
@@ -403,5 +414,5 @@ class Fixtures {
     },
   );
   static final testTypeDeclarationResolver =
-      TestTypeDeclarationResolver({myClassStaticType: myClass});
+      TestTypeDeclarationResolver({myClass.identifier: myClass});
 }

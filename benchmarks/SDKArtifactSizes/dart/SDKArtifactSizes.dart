@@ -23,7 +23,6 @@ const snapshots = <String>[
   'dartanalyzer',
   'dartdev',
   'dartdevc',
-  'dartdoc',
   'dds',
   'frontend_server',
   'gen_kernel',

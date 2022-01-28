@@ -1976,9 +1976,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD].
   bool _checkForConstConstructorWithNonConstSuper(
       ConstructorDeclaration constructor) {
-    if (!_enclosingExecutable.isConstConstructor) {
+    var enclosingClass = _enclosingClass;
+    if (enclosingClass == null || !_enclosingExecutable.isConstConstructor) {
       return false;
     }
+
     // OK, const factory, checked elsewhere
     if (constructor.factoryKeyword != null) {
       return false;
@@ -1986,7 +1988,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     // check for mixins
     var instanceFields = <FieldElement>[];
-    for (var mixin in _enclosingClass!.mixins) {
+    for (var mixin in enclosingClass.mixins) {
       instanceFields.addAll(mixin.element.fields.where((field) {
         if (field.isStatic) {
           return false;
@@ -2022,6 +2024,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return true;
     }
 
+    // Enum(s) always call a const super-constructor.
+    if (enclosingClass.isEnum) {
+      return false;
+    }
+
     // try to find and check super constructor invocation
     for (ConstructorInitializer initializer in constructor.initializers) {
       if (initializer is SuperConstructorInvocation) {
@@ -2037,7 +2044,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
     // no explicit super constructor invocation, check default constructor
-    var supertype = _enclosingClass!.supertype;
+    var supertype = enclosingClass.supertype;
     if (supertype == null) {
       return false;
     }

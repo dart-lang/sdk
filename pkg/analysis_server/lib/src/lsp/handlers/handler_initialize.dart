@@ -29,7 +29,7 @@ class InitializeMessageHandler
       params.initializationOptions,
     );
 
-    final openWorkspacePaths = <String>[];
+    final unnormalisedWorkspacePaths = <String>[];
     final workspaceFolders = params.workspaceFolders;
     final rootUri = params.rootUri;
     final rootPath = params.rootPath;
@@ -43,23 +43,30 @@ class InitializeMessageHandler
           // Only file URIs are supported, but there's no way to signal this to
           // the LSP client (and certainly not before initialization).
           if (uri.isScheme('file')) {
-            openWorkspacePaths.add(uri.toFilePath());
+            unnormalisedWorkspacePaths.add(uri.toFilePath());
           }
         });
       }
       if (rootUri != null) {
         final uri = Uri.parse(rootUri);
         if (uri.isScheme('file')) {
-          openWorkspacePaths.add(uri.toFilePath());
+          unnormalisedWorkspacePaths.add(uri.toFilePath());
         }
       } else if (rootPath != null) {
-        openWorkspacePaths.add(rootPath);
+        unnormalisedWorkspacePaths.add(rootPath);
       }
     }
 
+    final pathContext = server.resourceProvider.pathContext;
+    // Normalise all potential workspace folder paths as these may contain
+    // trailing slashes (the LSP spec does not specific if folders
+    // should/should not have them) and the analysis roots must be normalized.
+    final workspacePaths =
+        unnormalisedWorkspacePaths.map(pathContext.normalize).toList();
+
     server.messageHandler = InitializingStateMessageHandler(
       server,
-      openWorkspacePaths,
+      workspacePaths,
     );
 
     final capabilities = server.capabilitiesComputer

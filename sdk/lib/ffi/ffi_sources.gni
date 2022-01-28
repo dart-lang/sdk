@@ -10,6 +10,7 @@ ffi_sdk_sources = [
   "abi_specific.dart",
   "allocation.dart",
   "annotations.dart",
+  "c_type.dart",
   "dynamic_library.dart",
   "native_type.dart",
   "struct.dart",

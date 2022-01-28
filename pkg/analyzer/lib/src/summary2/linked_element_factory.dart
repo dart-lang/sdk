@@ -13,7 +13,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 
 class LinkedElementFactory {
   final AnalysisContextImpl analysisContext;
-  final AnalysisSessionImpl analysisSession;
+  AnalysisSessionImpl analysisSession;
   final Reference rootReference;
   final Map<String, LibraryReader> _libraryReaders = {};
   final Map<String, List<Reference>> _exportsOfLibrary = {};
@@ -165,13 +165,6 @@ class LinkedElementFactory {
     return _libraryReaders[uriStr] != null;
   }
 
-  /// We are about to discard this factory, mark all libraries invalid.
-  void invalidateAllLibraries() {
-    for (var libraryReference in rootReference.children) {
-      _invalidateLibrary(libraryReference);
-    }
-  }
-
   LibraryElementImpl? libraryOfUri(String uriStr) {
     var reference = rootReference.getChild(uriStr);
     return elementOfReference(reference) as LibraryElementImpl?;
@@ -204,8 +197,7 @@ class LinkedElementFactory {
     for (var uriStr in uriStrSet) {
       _exportsOfLibrary.remove(uriStr);
       _libraryReaders.remove(uriStr);
-      var libraryReference = rootReference.removeChild(uriStr);
-      _invalidateLibrary(libraryReference);
+      rootReference.removeChild(uriStr);
     }
 
     analysisSession.classHierarchy.removeOfLibraries(uriStrSet);
@@ -227,6 +219,16 @@ class LinkedElementFactory {
         );
       }
       analysisContext.clearTypeProvider();
+    }
+  }
+
+  void replaceAnalysisSession(AnalysisSessionImpl newSession) {
+    analysisSession = newSession;
+    for (var libraryReference in rootReference.children) {
+      var libraryElement = libraryReference.element;
+      if (libraryElement is LibraryElementImpl) {
+        libraryElement.session = newSession;
+      }
     }
   }
 
@@ -254,12 +256,5 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
 
     libraryElement.createLoadLibraryFunction();
-  }
-
-  void _invalidateLibrary(Reference? libraryReference) {
-    var libraryElement = libraryReference?.element;
-    if (libraryElement is LibraryElementImpl) {
-      libraryElement.isValid = false;
-    }
   }
 }

@@ -13,10 +13,12 @@ part of dart.ffi;
 /// For example:
 ///
 /// ```
-/// /// Represents a `uintptr_t` in C.
+/// /// The C `uintptr_t` type.
 /// ///
-/// /// [UintPtr] is not constructible in the Dart code and serves purely as
-/// /// marker in type signatures.
+/// /// The [UintPtr] type is a native type, and should not be constructed in
+/// /// Dart code.
+/// /// It occurs only in native type signatures and as annotation on [Struct]
+/// /// and [Union] fields.
 /// @AbiSpecificIntegerMapping({
 ///   Abi.androidArm: Uint32(),
 ///   Abi.androidArm64: Uint64(),

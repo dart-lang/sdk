@@ -59,18 +59,19 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
   @override
   FutureOr<int> run() async {
     final options = <String>[];
+    final args = argResults!;
 
-    if (argResults['sdk-docs']) {
+    if (args['sdk-docs']) {
       options.add('--sdk-docs');
     } else {
       // At least one argument, the input directory, is required,
       // when we're not generating docs for the Dart SDK.
-      if (argResults.rest.isEmpty) {
+      if (args.rest.isEmpty) {
         usageException("Error: Input directory not specified");
       }
 
       // Determine input directory.
-      final dir = io.Directory(argResults.rest[0]);
+      final dir = io.Directory(args.rest[0]);
       if (!dir.existsSync()) {
         usageException("Error: Input directory doesn't exist: ${dir.path}");
       }
@@ -83,10 +84,10 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
 
     // Build remaining options.
     options.addAll([
-      '--output=${argResults['output']}',
+      '--output=${args['output']}',
       '--resources-dir=$resourcesPath',
-      if (argResults['validate-links']) '--validate-links',
-      if (argResults['dry-run']) '--no-generate-docs',
+      if (args['validate-links']) '--validate-links',
+      if (args['dry-run']) '--no-generate-docs',
       if (verbose) '--no-quiet',
     ]);
 

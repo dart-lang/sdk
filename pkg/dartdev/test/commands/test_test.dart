@@ -17,9 +17,9 @@ Future<void> main() async {
 }
 
 void defineTest(List<Experiment> experiments) {
-  TestProject p;
+  late TestProject p;
 
-  tearDown(() async => await p?.dispose());
+  tearDown(() async => await p.dispose());
 
   test('--help', () async {
     p = project();
@@ -152,7 +152,7 @@ void main() {
   });
 
   group('--enable-experiment', () {
-    Future<ProcessResult> runTestWithExperimentFlag(String flag) async {
+    Future<ProcessResult> runTestWithExperimentFlag(String? flag) async {
       return await p.run([
         if (flag != null) flag,
         'test',
@@ -162,7 +162,7 @@ void main() {
       ]);
     }
 
-    Future<void> expectSuccess(String flag) async {
+    Future<void> expectSuccess(String? flag) async {
       final result = await runTestWithExperimentFlag(flag);
       expect(result.stdout, contains('feature enabled'),
           reason: 'stderr: ${result.stderr}');
@@ -170,7 +170,7 @@ void main() {
           reason: 'stdout: ${result.stdout} stderr: ${result.stderr}');
     }
 
-    Future<void> expectFailure(String flag) async {
+    Future<void> expectFailure(String? flag) async {
       final result = await runTestWithExperimentFlag(flag);
       expect(result.exitCode, isNot(0));
     }
