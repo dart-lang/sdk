@@ -47,6 +47,7 @@ import 'tighten_type_of_initializing_formals.dart'
     as tighten_type_of_initializing_formals;
 import 'type_init_formals.dart' as type_init_formals;
 import 'unawaited_futures.dart' as unawaited_futures;
+import 'unnecessary_getters_setters.dart' as unnecessary_getters_setters;
 import 'unnecessary_null_checks.dart' as unnecessary_null_checks;
 import 'unnecessary_overrides.dart' as unnecessary_overrides;
 import 'use_is_even_rather_than_modulo.dart' as use_is_even_rather_than_modulo;
@@ -86,6 +87,7 @@ void main() {
   tighten_type_of_initializing_formals.main();
   type_init_formals.main();
   unawaited_futures.main();
+  unnecessary_getters_setters.main();
   unnecessary_null_checks.main();
   unnecessary_overrides.main();
   use_is_even_rather_than_modulo.main();
