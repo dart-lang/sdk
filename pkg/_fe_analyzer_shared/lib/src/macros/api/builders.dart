@@ -12,7 +12,10 @@ abstract class Builder {}
 /// current library, and get [TypeAnnotation]s from runtime [Type] objects.
 abstract class TypeBuilder implements Builder {
   /// Adds a new type declaration to the surrounding library.
-  void declareType(DeclarationCode typeDeclaration);
+  ///
+  /// The [name] must match the name of the new [typeDeclaration] (this does
+  /// not include any type parameters, just the name).
+  void declareType(String name, DeclarationCode typeDeclaration);
 }
 
 /// The interface used to create [StaticType] instances, which are used to

@@ -6,12 +6,10 @@ import 'package:macro/macro.dart';
 
 @FunctionTypesMacro1()
 /*member: topLevelFunction1:
-class topLevelFunction1GeneratedClass {}
-*/
+class topLevelFunction1GeneratedClass {}*/
 void topLevelFunction1() {}
 
 @FunctionTypesMacro1()
 /*member: topLevelFunction2:
-class topLevelFunction2GeneratedClass {}
-*/
+class topLevelFunction2GeneratedClass {}*/
 void topLevelFunction2() {}

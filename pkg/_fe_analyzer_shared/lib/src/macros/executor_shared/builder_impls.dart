@@ -14,18 +14,25 @@ class TypeBuilderBase {
   /// The final result, will be built up over `augment` calls.
   final List<DeclarationCode> _augmentations;
 
+  /// The names of any new types added in [_augmentations].
+  final List<String> _newTypeNames;
+
   /// Creates and returns a [MacroExecutionResult] out of the [_augmentations]
   /// created by this builder.
-  MacroExecutionResult get result =>
-      new MacroExecutionResultImpl(augmentations: _augmentations);
+  MacroExecutionResult get result => new MacroExecutionResultImpl(
+        augmentations: _augmentations,
+        newTypeNames: _newTypeNames,
+      );
 
   TypeBuilderBase({List<DeclarationCode>? parentAugmentations})
-      : _augmentations = parentAugmentations ?? [];
+      : _augmentations = parentAugmentations ?? [],
+        _newTypeNames = [];
 }
 
 class TypeBuilderImpl extends TypeBuilderBase implements TypeBuilder {
   @override
-  void declareType(DeclarationCode typeDeclaration) {
+  void declareType(String name, DeclarationCode typeDeclaration) {
+    _newTypeNames.add(name);
     _augmentations.add(typeDeclaration);
   }
 }

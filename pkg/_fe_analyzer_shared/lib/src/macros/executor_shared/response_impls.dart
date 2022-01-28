@@ -209,8 +209,12 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
   @override
   final List<DeclarationCode> augmentations;
 
+  @override
+  final List<String> newTypeNames;
+
   MacroExecutionResultImpl({
     required this.augmentations,
+    required this.newTypeNames,
   });
 
   factory MacroExecutionResultImpl.deserialize(Deserializer deserializer) {
@@ -222,13 +226,30 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
           hasNext = deserializer.moveNext())
         deserializer.expectCode()
     ];
-    return new MacroExecutionResultImpl(augmentations: augmentations);
+    deserializer.moveNext();
+    deserializer.expectList();
+    List<String> newTypeNames = [
+      for (bool hasNext = deserializer.moveNext();
+          hasNext;
+          hasNext = deserializer.moveNext())
+        deserializer.expectString()
+    ];
+
+    return new MacroExecutionResultImpl(
+      augmentations: augmentations,
+      newTypeNames: newTypeNames,
+    );
   }
 
   void serialize(Serializer serializer) {
     serializer.startList();
     for (DeclarationCode augmentation in augmentations) {
       augmentation.serialize(serializer);
+    }
+    serializer.endList();
+    serializer.startList();
+    for (String name in newTypeNames) {
+      serializer.addString(name);
     }
     serializer.endList();
   }
