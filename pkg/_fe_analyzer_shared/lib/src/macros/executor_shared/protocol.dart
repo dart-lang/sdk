@@ -216,7 +216,12 @@ class InstantiateMacroRequest extends Request {
   final String constructorName;
   final Arguments arguments;
 
-  InstantiateMacroRequest(this.macroClass, this.constructorName, this.arguments,
+  /// The ID to assign to the identifier, this needs to come from the requesting
+  /// side so that it is unique.
+  final int instanceId;
+
+  InstantiateMacroRequest(
+      this.macroClass, this.constructorName, this.arguments, this.instanceId,
       {required int serializationZoneId})
       : super(serializationZoneId: serializationZoneId);
 
@@ -225,6 +230,7 @@ class InstantiateMacroRequest extends Request {
       : macroClass = new MacroClassIdentifierImpl.deserialize(deserializer),
         constructorName = (deserializer..moveNext()).expectString(),
         arguments = new Arguments.deserialize(deserializer),
+        instanceId = (deserializer..moveNext()).expectNum(),
         super.deserialize(deserializer, serializationZoneId);
 
   @override
@@ -233,6 +239,7 @@ class InstantiateMacroRequest extends Request {
     macroClass.serialize(serializer);
     serializer.addString(constructorName);
     arguments.serialize(serializer);
+    serializer.addNum(instanceId);
     super.serialize(serializer);
   }
 }

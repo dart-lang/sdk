@@ -429,7 +429,7 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
           String constructor,
           Arguments arguments) =>
       _sendRequest((zoneId) => new InstantiateMacroRequest(
-          macroClass, constructor, arguments,
+          macroClass, constructor, arguments, RemoteInstance.uniqueId,
           serializationZoneId: zoneId));
 
   /// These calls are handled by the higher level executor.

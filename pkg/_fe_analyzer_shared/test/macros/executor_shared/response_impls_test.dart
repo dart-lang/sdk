@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
 import 'package:test/fake.dart';
 import 'package:test/test.dart';
 
@@ -67,43 +68,52 @@ void main() {
 final Map<DeclarationKind, Map<Phase, MacroInstanceIdentifierImpl>>
     instancesByKindAndPhase = {
   DeclarationKind.clazz: {
-    Phase.types: MacroInstanceIdentifierImpl(FakeClassTypesMacro()),
-    Phase.declarations:
-        MacroInstanceIdentifierImpl(FakeClassDeclarationsMacro()),
-    Phase.definitions: MacroInstanceIdentifierImpl(FakeClassDefinitionMacro()),
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeClassTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeClassDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeClassDefinitionMacro(), RemoteInstance.uniqueId),
   },
   DeclarationKind.constructor: {
-    Phase.types: MacroInstanceIdentifierImpl(FakeConstructorTypesMacro()),
-    Phase.declarations:
-        MacroInstanceIdentifierImpl(FakeConstructorDeclarationsMacro()),
-    Phase.definitions:
-        MacroInstanceIdentifierImpl(FakeConstructorDefinitionMacro()),
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeConstructorTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeConstructorDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeConstructorDefinitionMacro(), RemoteInstance.uniqueId),
   },
   DeclarationKind.field: {
-    Phase.types: MacroInstanceIdentifierImpl(FakeFieldTypesMacro()),
-    Phase.declarations:
-        MacroInstanceIdentifierImpl(FakeFieldDeclarationsMacro()),
-    Phase.definitions: MacroInstanceIdentifierImpl(FakeFieldDefinitionMacro()),
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeFieldTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeFieldDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeFieldDefinitionMacro(), RemoteInstance.uniqueId),
   },
   DeclarationKind.function: {
-    Phase.types: MacroInstanceIdentifierImpl(FakeFunctionTypesMacro()),
-    Phase.declarations:
-        MacroInstanceIdentifierImpl(FakeFunctionDeclarationsMacro()),
-    Phase.definitions:
-        MacroInstanceIdentifierImpl(FakeFunctionDefinitionMacro()),
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeFunctionTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeFunctionDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeFunctionDefinitionMacro(), RemoteInstance.uniqueId),
   },
   DeclarationKind.method: {
-    Phase.types: MacroInstanceIdentifierImpl(FakeMethodTypesMacro()),
-    Phase.declarations:
-        MacroInstanceIdentifierImpl(FakeMethodDeclarationsMacro()),
-    Phase.definitions: MacroInstanceIdentifierImpl(FakeMethodDefinitionMacro()),
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeMethodTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeMethodDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeMethodDefinitionMacro(), RemoteInstance.uniqueId),
   },
   DeclarationKind.variable: {
-    Phase.types: MacroInstanceIdentifierImpl(FakeVariableTypesMacro()),
-    Phase.declarations:
-        MacroInstanceIdentifierImpl(FakeVariableDeclarationsMacro()),
-    Phase.definitions:
-        MacroInstanceIdentifierImpl(FakeVariableDefinitionMacro()),
+    Phase.types: MacroInstanceIdentifierImpl(
+        FakeVariableTypesMacro(), RemoteInstance.uniqueId),
+    Phase.declarations: MacroInstanceIdentifierImpl(
+        FakeVariableDeclarationsMacro(), RemoteInstance.uniqueId),
+    Phase.definitions: MacroInstanceIdentifierImpl(
+        FakeVariableDefinitionMacro(), RemoteInstance.uniqueId),
   },
 };
 

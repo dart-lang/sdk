@@ -137,10 +137,10 @@ class _IsolateMirrorMacroExecutor implements MacroExecutor {
           MacroClassIdentifier macroClass,
           String constructor,
           Arguments arguments) =>
-      _sendRequest(
-          new InstantiateMacroRequest(macroClass, constructor, arguments,
-              // Serialization zones are not necessary in this executor.
-              serializationZoneId: -1));
+      _sendRequest(new InstantiateMacroRequest(
+          macroClass, constructor, arguments, RemoteInstance.uniqueId,
+          // Serialization zones are not necessary in this executor.
+          serializationZoneId: -1));
 
   @override
   Future<MacroClassIdentifier> loadMacro(Uri library, String name,
