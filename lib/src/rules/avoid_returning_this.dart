@@ -77,14 +77,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isOperator) return;
 
     var parent = node.parent;
-    if (parent is ClassOrMixinDeclaration) {
+    if (parent is ClassOrMixinDeclaration || parent is EnumDeclaration) {
       if (DartTypeUtilities.overridesMethod(node)) {
         return;
       }
 
       var returnType = node.declaredElement?.returnType;
       if (returnType is InterfaceType &&
-          returnType.element == parent.declaredElement) {
+          // ignore: cast_nullable_to_non_nullable
+          returnType.element == (parent as Declaration).declaredElement) {
       } else {
         return;
       }

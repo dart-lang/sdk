@@ -9,6 +9,7 @@ import 'avoid_function_literals_in_foreach_calls.dart'
 import 'avoid_init_to_null.dart' as avoid_init_to_null;
 import 'avoid_redundant_argument_values.dart'
     as avoid_redundant_argument_values;
+import 'avoid_returning_this.dart' as avoid_returning_this;
 import 'avoid_shadowing_type_parameters.dart'
     as avoid_shadowing_type_parameters;
 import 'avoid_types_as_parameter_names.dart' as avoid_types_as_parameter_names;
@@ -55,6 +56,7 @@ void main() {
   avoid_function_literals_in_foreach_calls.main();
   avoid_init_to_null.main();
   avoid_redundant_argument_values.main();
+  avoid_returning_this.main();
   avoid_shadowing_type_parameters.main();
   avoid_types_as_parameter_names.main();
   avoid_unused_constructor_parameters.main();
