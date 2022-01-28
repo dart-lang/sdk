@@ -1715,8 +1715,39 @@ abstract class HttpClientRequest implements IOSink {
   /// following the redirect.
   ///
   /// All headers added to the request will be added to the redirection
-  /// request(s). However, any body send with the request will not be
-  /// part of the redirection request(s).
+  /// request(s) except when forwarding sensitive headers like
+  /// "Authorization", "WWW-Authenticate", and "Cookie". Those headers
+  /// will be skipped if following a redirect to a domain that is not a
+  /// subdomain match or exact match of the initial domain.
+  /// For example, a redirect from "foo.com" to either "foo.com" or
+  /// "sub.foo.com" will forward the sensitive headers, but a redirect to
+  /// "bar.com" will not.
+  ///
+  /// Any body send with the request will not be part of the redirection
+  /// request(s).
+  ///
+  /// For precise control of redirect handling, set this property to `false`
+  /// and make a separate HTTP request to process the redirect. For example:
+  ///
+  /// ```dart
+  /// final client = HttpClient();
+  /// var uri = Uri.parse("http://localhost/");
+  /// var request = await client.getUrl(uri);
+  /// request.followRedirects = false;
+  /// var response = await request.close();
+  /// while (response.isRedirect) {
+  ///   response.drain();
+  ///   final location = response.headers.value(HttpHeaders.locationHeader);
+  ///   if (location != null) {
+  ///     uri = uri.resolve(location);
+  ///     request = await client.getUrl(uri);
+  ///     // Set the body or headers as desired.
+  ///     request.followRedirects = false;
+  ///     response = await request.close();
+  ///   }
+  /// }
+  /// // Do something with the final response.
+  /// ```
   bool followRedirects = true;
 
   /// Set this property to the maximum number of redirects to follow
