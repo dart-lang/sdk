@@ -1385,6 +1385,17 @@ dart_vm_low_priority_builder("vm-fuchsia-release-x64", category = "vm|misc|f")
 # Our sysroot does not support gcc, we can't use goma on RBE for this builder
 dart_vm_nightly_builder("vm-kernel-gcc-linux", category = "vm|misc|g", goma = False)
 
+dart_vm_nightly_builder(
+    "vm-kernel-linux-debug-simriscv64",
+    category = "vm|misc|rv64",
+    channels = ["try"],
+)
+dart_vm_nightly_builder(
+    "vm-kernel-precomp-linux-debug-simriscv64",
+    category = "vm|misc|rv64",
+    channels = ["try"],
+)
+
 # vm|ffi
 dart_vm_extra_builder("vm-ffi-android-debug-arm", category = "vm|ffi|d32")
 dart_vm_extra_builder("vm-ffi-android-release-arm", category = "vm|ffi|r32")
@@ -1394,7 +1405,11 @@ dart_vm_extra_builder("vm-ffi-android-release-arm64c", category = "vm|ffi|r64")
 dart_vm_extra_builder("vm-ffi-android-product-arm64c", category = "vm|ffi|p64")
 dart_vm_extra_builder(
     "vm-precomp-ffi-qemu-linux-release-arm",
-    category = "vm|ffi|qe",
+    category = "vm|ffi|qa",
+)
+dart_vm_extra_builder(
+    "vm-precomp-ffi-qemu-linux-release-riscv64",
+    category = "vm|ffi|qr",
 )
 
 # pkg
