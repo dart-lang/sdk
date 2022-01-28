@@ -93,7 +93,7 @@ class TestTypeResolver implements TypeResolver {
   }
 }
 
-// Doesn't handle generics etc but thats ok for now
+/// Doesn't handle generics etc but thats ok for now
 class TestNamedStaticType implements NamedStaticType {
   final IdentifierImpl identifier;
   final String library;
@@ -112,6 +112,15 @@ class TestNamedStaticType implements NamedStaticType {
   bool _isExactly(TestNamedStaticType other) =>
       identical(other, this) ||
       (library == other.library && identifier.name == other.identifier.name);
+}
+
+/// An identifier that knows what URI should be used to import it.
+class TestIdentifier extends IdentifierImpl {
+  final Uri libraryImportUri;
+
+  TestIdentifier(
+      {required int id, required String name, required this.libraryImportUri})
+      : super(id: id, name: name);
 }
 
 extension DebugCodeString on Code {

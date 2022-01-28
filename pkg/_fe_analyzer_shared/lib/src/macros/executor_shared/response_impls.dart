@@ -209,12 +209,8 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
   @override
   final List<DeclarationCode> augmentations;
 
-  @override
-  final List<DeclarationCode> imports;
-
   MacroExecutionResultImpl({
     required this.augmentations,
-    required this.imports,
   });
 
   factory MacroExecutionResultImpl.deserialize(Deserializer deserializer) {
@@ -226,30 +222,13 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
           hasNext = deserializer.moveNext())
         deserializer.expectCode()
     ];
-    deserializer.moveNext();
-    deserializer.expectList();
-    List<DeclarationCode> imports = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
-        deserializer.expectCode()
-    ];
-
-    return new MacroExecutionResultImpl(
-      augmentations: augmentations,
-      imports: imports,
-    );
+    return new MacroExecutionResultImpl(augmentations: augmentations);
   }
 
   void serialize(Serializer serializer) {
     serializer.startList();
     for (DeclarationCode augmentation in augmentations) {
       augmentation.serialize(serializer);
-    }
-    serializer.endList();
-    serializer.startList();
-    for (DeclarationCode import in imports) {
-      import.serialize(serializer);
     }
     serializer.endList();
   }

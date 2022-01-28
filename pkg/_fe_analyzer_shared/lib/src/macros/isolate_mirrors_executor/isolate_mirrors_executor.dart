@@ -7,6 +7,7 @@ import 'dart:isolate';
 import 'dart:mirrors';
 
 import 'isolate_mirrors_impl.dart';
+import '../executor_shared/augmentation_library.dart';
 import '../executor_shared/introspection_impls.dart';
 import '../executor_shared/protocol.dart';
 import '../executor_shared/remote_instance.dart';
@@ -23,7 +24,8 @@ Future<MacroExecutor> start() => _IsolateMirrorMacroExecutor.start();
 ///
 /// All actual work happens in a separate [Isolate], and this class serves as
 /// a bridge between that isolate and the language frontends.
-class _IsolateMirrorMacroExecutor implements MacroExecutor {
+class _IsolateMirrorMacroExecutor extends MacroExecutor
+    with AugmentationLibraryBuilder {
   /// The actual isolate doing macro loading and execution.
   final Isolate _macroIsolate;
 
@@ -75,13 +77,6 @@ class _IsolateMirrorMacroExecutor implements MacroExecutor {
         await sendPortCompleter.future,
         responseStreamController.stream,
         receivePort.close);
-  }
-
-  @override
-  Future<String> buildAugmentationLibrary(
-      Iterable<MacroExecutionResult> macroResults) {
-    // TODO: implement buildAugmentationLibrary
-    throw new UnimplementedError();
   }
 
   @override

@@ -16,11 +16,8 @@ class TypeBuilderBase {
 
   /// Creates and returns a [MacroExecutionResult] out of the [_augmentations]
   /// created by this builder.
-  MacroExecutionResult get result => new MacroExecutionResultImpl(
-        augmentations: _augmentations,
-        // TODO: Implement `imports`, or possibly drop it?
-        imports: [],
-      );
+  MacroExecutionResult get result =>
+      new MacroExecutionResultImpl(augmentations: _augmentations);
 
   TypeBuilderBase({List<DeclarationCode>? parentAugmentations})
       : _augmentations = parentAugmentations ?? [];

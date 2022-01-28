@@ -56,3 +56,23 @@ void ${function.identifier.name}GeneratedMethod() {}
 '''));
   }
 }
+
+macro class FunctionDeclarationsMacro2 implements FunctionDeclarationsMacro {
+  const FunctionDeclarationsMacro2();
+
+  FutureOr<void> buildDeclarationsForFunction(
+      FunctionDeclaration function, DeclarationBuilder builder) async {
+    if (function.positionalParameters.isEmpty) {
+      return;
+    }
+    StaticType returnType = await builder.instantiateType(function.returnType);
+    StaticType parameterType =
+        await builder.instantiateType(function.positionalParameters.first.type);
+    bool isExactly = await returnType.isExactly(parameterType);
+    bool isSubtype = await returnType.isSubtypeOf(parameterType);
+    String tag = '${isExactly ? 'e' : ''}${isSubtype ? 's' : ''}';
+    builder.declareInLibrary(new DeclarationCode.fromString('''
+void ${function.identifier.name}GeneratedMethod_$tag() {}
+'''));
+  }
+}

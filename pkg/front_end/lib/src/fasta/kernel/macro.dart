@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO: Only import `Identifier` under a prefix if/when the presubmit check
-// allows duplicate imports if they have different prefixes.
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
-import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_impls.dart'
+    as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart'
+    as macro;
 import 'package:kernel/ast.dart' show DartType, DynamicType;
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/core_types.dart';
-import 'package:kernel/type_environment.dart';
+import 'package:kernel/src/types.dart';
+import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
 import '../builder/class_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -29,8 +29,8 @@ bool enableMacros = false;
 final Uri macroLibraryUri =
     Uri.parse('package:_fe_analyzer_shared/src/macros/api.dart');
 const String macroClassName = 'Macro';
-final IdentifierImpl dynamicIdentifier =
-    new IdentifierImpl(id: RemoteInstance.uniqueId, name: 'dynamic');
+final macro.IdentifierImpl dynamicIdentifier = new macro.IdentifierImpl(
+    id: macro.RemoteInstance.uniqueId, name: 'dynamic');
 
 class MacroDeclarationData {
   bool macrosAreAvailable = false;
@@ -65,14 +65,16 @@ class MacroApplication {
 
   MacroApplication(this.classBuilder, this.constructorName);
 
-  late MacroInstanceIdentifier instanceIdentifier;
+  late macro.MacroInstanceIdentifier instanceIdentifier;
 }
 
 class MacroApplicationDataForTesting {
   Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData = {};
-  Map<MemberBuilder, List<MacroExecutionResult>> memberTypesResults = {};
-  Map<MemberBuilder, List<MacroExecutionResult>> memberDeclarationsResults = {};
-  Map<MemberBuilder, List<MacroExecutionResult>> memberDefinitionsResults = {};
+  Map<MemberBuilder, List<macro.MacroExecutionResult>> memberTypesResults = {};
+  Map<MemberBuilder, List<macro.MacroExecutionResult>>
+      memberDeclarationsResults = {};
+  Map<MemberBuilder, List<macro.MacroExecutionResult>>
+      memberDefinitionsResults = {};
 }
 
 class LibraryMacroApplicationData {
@@ -86,7 +88,7 @@ class ClassMacroApplicationData {
 }
 
 class MacroApplications {
-  final MacroExecutor _macroExecutor;
+  final macro.MacroExecutor _macroExecutor;
   final Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData;
   final MacroApplicationDataForTesting? dataForTesting;
 
@@ -96,13 +98,13 @@ class MacroApplications {
   }
 
   static Future<MacroApplications> loadMacroIds(
-      MacroExecutor macroExecutor,
+      macro.MacroExecutor macroExecutor,
       Map<MacroClass, Uri> precompiledMacroUris,
       Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData,
       MacroApplicationDataForTesting? dataForTesting) async {
-    Map<ClassBuilder, MacroClassIdentifier> classIdCache = {};
+    Map<ClassBuilder, macro.MacroClassIdentifier> classIdCache = {};
 
-    Map<MacroApplication, MacroInstanceIdentifier> instanceIdCache = {};
+    Map<MacroApplication, macro.MacroInstanceIdentifier> instanceIdCache = {};
 
     Future<void> ensureMacroClassIds(
         List<MacroApplication>? applications) async {
@@ -112,16 +114,16 @@ class MacroApplications {
               application.classBuilder.library.importUri,
               application.classBuilder.name);
           Uri? precompiledMacroUri = precompiledMacroUris[macroClass];
-          MacroClassIdentifier macroClassIdentifier =
+          macro.MacroClassIdentifier macroClassIdentifier =
               classIdCache[application.classBuilder] ??= await macroExecutor
                   .loadMacro(macroClass.importUri, macroClass.className,
                       precompiledKernelUri: precompiledMacroUri);
-          application.instanceIdentifier = instanceIdCache[application] =
+          application.instanceIdentifier = instanceIdCache[application] ??=
               await macroExecutor.instantiateMacro(
                   macroClassIdentifier,
                   application.constructorName,
                   // TODO(johnniwinther): Support macro arguments.
-                  new Arguments([], {}));
+                  new macro.Arguments([], {}));
         }
       }
     }
@@ -161,17 +163,18 @@ class MacroApplications {
     }
   }
 
-  Future<List<MacroExecutionResult>> _applyTypeMacros(
+  Future<List<macro.MacroExecutionResult>> _applyTypeMacros(
       macro.Declaration declaration,
       List<MacroApplication> macroApplications) async {
-    List<MacroExecutionResult> results = [];
+    List<macro.MacroExecutionResult> results = [];
     for (MacroApplication macroApplication in macroApplications) {
       if (macroApplication.instanceIdentifier.shouldExecute(
           // TODO(johnniwinther): Get the declaration kind from [declaration].
-          DeclarationKind.function,
-          Phase.types)) {
-        MacroExecutionResult result = await _macroExecutor.executeTypesPhase(
-            macroApplication.instanceIdentifier, declaration);
+          macro.DeclarationKind.function,
+          macro.Phase.types)) {
+        macro.MacroExecutionResult result =
+            await _macroExecutor.executeTypesPhase(
+                macroApplication.instanceIdentifier, declaration);
         results.add(result);
       }
     }
@@ -188,7 +191,7 @@ class MacroApplications {
         MemberBuilder memberBuilder = memberEntry.key;
         macro.Declaration? declaration = _getMemberDeclaration(memberBuilder);
         if (declaration != null) {
-          List<MacroExecutionResult> results =
+          List<macro.MacroExecutionResult> results =
               await _applyTypeMacros(declaration, memberEntry.value);
           dataForTesting?.memberTypesResults[memberBuilder] = results;
         }
@@ -196,18 +199,18 @@ class MacroApplications {
     }
   }
 
-  Future<List<MacroExecutionResult>> _applyDeclarationMacros(
+  Future<List<macro.MacroExecutionResult>> _applyDeclarationMacros(
       macro.Declaration declaration,
       List<MacroApplication> macroApplications,
       macro.TypeResolver typeResolver,
       macro.ClassIntrospector classIntrospector) async {
-    List<MacroExecutionResult> results = [];
+    List<macro.MacroExecutionResult> results = [];
     for (MacroApplication macroApplication in macroApplications) {
       if (macroApplication.instanceIdentifier.shouldExecute(
           // TODO(johnniwinther): Get the declaration kind from [declaration].
-          DeclarationKind.function,
-          Phase.declarations)) {
-        MacroExecutionResult result =
+          macro.DeclarationKind.function,
+          macro.Phase.declarations)) {
+        macro.MacroExecutionResult result =
             await _macroExecutor.executeDeclarationsPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
@@ -219,9 +222,14 @@ class MacroApplications {
     return results;
   }
 
-  Future<void> applyDeclarationMacros() async {
-    macro.TypeResolver typeResolver = new _TypeResolver(this);
-    macro.ClassIntrospector classIntrospector = new _ClassIntrospector();
+  late Types types;
+  late macro.TypeResolver typeResolver;
+  late macro.ClassIntrospector classIntrospector;
+
+  Future<void> applyDeclarationMacros(ClassHierarchyBase classHierarchy) async {
+    types = new Types(classHierarchy);
+    typeResolver = new _TypeResolver(this);
+    classIntrospector = new _ClassIntrospector();
     for (MapEntry<SourceLibraryBuilder,
         LibraryMacroApplicationData> libraryEntry in libraryData.entries) {
       LibraryMacroApplicationData libraryMacroApplicationData =
@@ -231,27 +239,28 @@ class MacroApplications {
         MemberBuilder memberBuilder = memberEntry.key;
         macro.Declaration? declaration = _getMemberDeclaration(memberBuilder);
         if (declaration != null) {
-          List<MacroExecutionResult> results = await _applyDeclarationMacros(
-              declaration, memberEntry.value, typeResolver, classIntrospector);
+          List<macro.MacroExecutionResult> results =
+              await _applyDeclarationMacros(declaration, memberEntry.value,
+                  typeResolver, classIntrospector);
           dataForTesting?.memberDeclarationsResults[memberBuilder] = results;
         }
       }
     }
   }
 
-  Future<List<MacroExecutionResult>> _applyDefinitionMacros(
+  Future<List<macro.MacroExecutionResult>> _applyDefinitionMacros(
       macro.Declaration declaration,
       List<MacroApplication> macroApplications,
       macro.TypeResolver typeResolver,
       macro.ClassIntrospector classIntrospector,
       macro.TypeDeclarationResolver typeDeclarationResolver) async {
-    List<MacroExecutionResult> results = [];
+    List<macro.MacroExecutionResult> results = [];
     for (MacroApplication macroApplication in macroApplications) {
       if (macroApplication.instanceIdentifier.shouldExecute(
           // TODO(johnniwinther): Get the declaration kind from [declaration].
-          DeclarationKind.function,
-          Phase.definitions)) {
-        MacroExecutionResult result =
+          macro.DeclarationKind.function,
+          macro.Phase.definitions)) {
+        macro.MacroExecutionResult result =
             await _macroExecutor.executeDefinitionsPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
@@ -264,13 +273,7 @@ class MacroApplications {
     return results;
   }
 
-  late TypeEnvironment typeEnvironment;
-
-  Future<void> applyDefinitionMacros(
-      CoreTypes coreTypes, ClassHierarchy classHierarchy) async {
-    typeEnvironment = new TypeEnvironment(coreTypes, classHierarchy);
-    macro.TypeResolver typeResolver = new _TypeResolver(this);
-    macro.ClassIntrospector classIntrospector = new _ClassIntrospector();
+  Future<void> applyDefinitionMacros() async {
     macro.TypeDeclarationResolver typeDeclarationResolver =
         new _TypeDeclarationResolver();
     for (MapEntry<SourceLibraryBuilder,
@@ -282,12 +285,9 @@ class MacroApplications {
         MemberBuilder memberBuilder = memberEntry.key;
         macro.Declaration? declaration = _getMemberDeclaration(memberBuilder);
         if (declaration != null) {
-          List<MacroExecutionResult> results = await _applyDefinitionMacros(
-              declaration,
-              memberEntry.value,
-              typeResolver,
-              classIntrospector,
-              typeDeclarationResolver);
+          List<macro.MacroExecutionResult> results =
+              await _applyDefinitionMacros(declaration, memberEntry.value,
+                  typeResolver, classIntrospector, typeDeclarationResolver);
           dataForTesting?.memberDefinitionsResults[memberBuilder] = results;
         }
       }
@@ -302,8 +302,8 @@ class MacroApplications {
 
   macro.FunctionDeclaration createTopLevelFunctionDeclaration(
       SourceProcedureBuilder builder) {
-    List<ParameterDeclarationImpl>? positionalParameters;
-    List<ParameterDeclarationImpl>? namedParameters;
+    List<macro.ParameterDeclarationImpl>? positionalParameters;
+    List<macro.ParameterDeclarationImpl>? namedParameters;
 
     List<FormalParameterBuilder>? formals = builder.formals;
     if (formals == null) {
@@ -312,23 +312,23 @@ class MacroApplications {
       positionalParameters = [];
       namedParameters = [];
       for (FormalParameterBuilder formal in formals) {
-        TypeAnnotationImpl type =
+        macro.TypeAnnotationImpl type =
             computeTypeAnnotation(builder.library, formal.type);
         // TODO(johnniwinther): Support default values.
         if (formal.isNamed) {
-          namedParameters.add(new ParameterDeclarationImpl(
-              id: RemoteInstance.uniqueId,
-              identifier: new IdentifierImpl(
-                  id: RemoteInstance.uniqueId, name: formal.name),
+          namedParameters.add(new macro.ParameterDeclarationImpl(
+              id: macro.RemoteInstance.uniqueId,
+              identifier: new macro.IdentifierImpl(
+                  id: macro.RemoteInstance.uniqueId, name: formal.name),
               isRequired: formal.isNamedRequired,
               isNamed: true,
               type: type,
               defaultValue: null));
         } else {
-          positionalParameters.add(new ParameterDeclarationImpl(
-              id: RemoteInstance.uniqueId,
-              identifier: new IdentifierImpl(
-                  id: RemoteInstance.uniqueId, name: formal.name),
+          positionalParameters.add(new macro.ParameterDeclarationImpl(
+              id: macro.RemoteInstance.uniqueId,
+              identifier: new macro.IdentifierImpl(
+                  id: macro.RemoteInstance.uniqueId, name: formal.name),
               isRequired: formal.isRequired,
               isNamed: false,
               type: type,
@@ -337,10 +337,10 @@ class MacroApplications {
       }
     }
 
-    return new FunctionDeclarationImpl(
-        id: RemoteInstance.uniqueId,
-        identifier:
-            new IdentifierImpl(id: RemoteInstance.uniqueId, name: builder.name),
+    return new macro.FunctionDeclarationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        identifier: new macro.IdentifierImpl(
+            id: macro.RemoteInstance.uniqueId, name: builder.name),
         isAbstract: builder.isAbstract,
         isExternal: builder.isExternal,
         isGetter: builder.isGetter,
@@ -354,7 +354,7 @@ class MacroApplications {
 
   Map<TypeBuilder?, _NamedTypeAnnotationImpl> _typeAnnotationCache = {};
 
-  List<TypeAnnotationImpl> computeTypeAnnotations(
+  List<macro.TypeAnnotationImpl> computeTypeAnnotations(
       LibraryBuilder library, List<TypeBuilder>? typeBuilders) {
     if (typeBuilders == null) return const [];
     return new List.generate(typeBuilders.length,
@@ -366,16 +366,16 @@ class MacroApplications {
     if (typeBuilder != null) {
       if (typeBuilder is NamedTypeBuilder) {
         Object name = typeBuilder.name;
-        List<TypeAnnotationImpl> typeArguments =
+        List<macro.TypeAnnotationImpl> typeArguments =
             computeTypeAnnotations(libraryBuilder, typeBuilder.arguments);
         bool isNullable = typeBuilder.nullabilityBuilder.isNullable;
         if (name is String) {
           return new _NamedTypeAnnotationImpl(
               typeBuilder: typeBuilder,
               libraryBuilder: libraryBuilder,
-              id: RemoteInstance.uniqueId,
-              identifier:
-                  new IdentifierImpl(id: RemoteInstance.uniqueId, name: name),
+              id: macro.RemoteInstance.uniqueId,
+              identifier: new macro.IdentifierImpl(
+                  id: macro.RemoteInstance.uniqueId, name: name),
               typeArguments: typeArguments,
               isNullable: isNullable);
         } else if (name is QualifiedName) {
@@ -383,9 +383,9 @@ class MacroApplications {
           return new _NamedTypeAnnotationImpl(
               typeBuilder: typeBuilder,
               libraryBuilder: libraryBuilder,
-              id: RemoteInstance.uniqueId,
-              identifier: new IdentifierImpl(
-                  id: RemoteInstance.uniqueId,
+              id: macro.RemoteInstance.uniqueId,
+              identifier: new macro.IdentifierImpl(
+                  id: macro.RemoteInstance.uniqueId,
                   // TODO: We probably shouldn't be including the qualifier
                   // here. Kernel should probably have its own implementation
                   // of Identifier which holds on to the qualified reference
@@ -399,13 +399,13 @@ class MacroApplications {
     return new _NamedTypeAnnotationImpl(
         typeBuilder: typeBuilder,
         libraryBuilder: libraryBuilder,
-        id: RemoteInstance.uniqueId,
+        id: macro.RemoteInstance.uniqueId,
         identifier: dynamicIdentifier,
         isNullable: false,
         typeArguments: const []);
   }
 
-  TypeAnnotationImpl computeTypeAnnotation(
+  macro.TypeAnnotationImpl computeTypeAnnotation(
       LibraryBuilder libraryBuilder, TypeBuilder? typeBuilder) {
     return _typeAnnotationCache[typeBuilder] ??=
         _computeTypeAnnotation(libraryBuilder, typeBuilder);
@@ -431,7 +431,7 @@ class MacroApplications {
   }
 }
 
-class _NamedTypeAnnotationImpl extends NamedTypeAnnotationImpl {
+class _NamedTypeAnnotationImpl extends macro.NamedTypeAnnotationImpl {
   final TypeBuilder? typeBuilder;
   final LibraryBuilder libraryBuilder;
 
@@ -440,8 +440,8 @@ class _NamedTypeAnnotationImpl extends NamedTypeAnnotationImpl {
     required this.libraryBuilder,
     required int id,
     required bool isNullable,
-    required IdentifierImpl identifier,
-    required List<TypeAnnotationImpl> typeArguments,
+    required macro.IdentifierImpl identifier,
+    required List<macro.TypeAnnotationImpl> typeArguments,
   }) : super(
             id: id,
             isNullable: isNullable,
@@ -462,7 +462,7 @@ class _StaticTypeImpl extends macro.StaticType {
 
   @override
   Future<bool> isSubtypeOf(covariant _StaticTypeImpl other) {
-    return new Future.value(macroApplications.typeEnvironment
+    return new Future.value(macroApplications.types
         .isSubtypeOf(type, other.type, SubtypeCheckMode.withNullabilities));
   }
 }

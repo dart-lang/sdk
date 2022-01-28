@@ -85,8 +85,11 @@ abstract class MacroExecutor {
 
   /// Combines multiple [MacroExecutionResult]s into a single library
   /// augmentation file, and returns a [String] representing that file.
-  Future<String> buildAugmentationLibrary(
-      Iterable<MacroExecutionResult> macroResults);
+  ///
+  /// The [resolveIdentifier] argument should return the import uri to be used
+  /// for that identifier.
+  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
+      Uri Function(Identifier) resolveIdentifier);
 
   /// Tell the executor to shut down and clean up any resources it may have
   /// allocated.
@@ -243,10 +246,6 @@ abstract class MacroInstanceIdentifier implements Serializable {
 /// All modifications are expressed in terms of library augmentation
 /// declarations.
 abstract class MacroExecutionResult implements Serializable {
-  /// Any library imports that should be added to support the code used in
-  /// the augmentations.
-  Iterable<DeclarationCode> get imports;
-
   /// Any augmentations that should be applied as a result of executing a macro.
   Iterable<DeclarationCode> get augmentations;
 }
