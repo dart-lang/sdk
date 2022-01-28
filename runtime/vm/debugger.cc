@@ -1287,7 +1287,9 @@ ObjectPtr ActivationFrame::EvaluateCompiledExpression(
 TypeArgumentsPtr ActivationFrame::BuildParameters(
     const GrowableObjectArray& param_names,
     const GrowableObjectArray& param_values,
-    const GrowableObjectArray& type_params_names) {
+    const GrowableObjectArray& type_params_names,
+    const GrowableObjectArray& type_params_bounds,
+    const GrowableObjectArray& type_params_defaults) {
   GetDescIndices();
   bool type_arguments_available = false;
   String& name = String::Handle();
@@ -1329,6 +1331,12 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
     intptr_t num_vars = function().NumTypeArguments();
     type_params_names.Grow(num_vars);
     type_params_names.SetLength(num_vars);
+    type_params_bounds.Grow(num_vars);
+    type_params_bounds.SetLength(num_vars);
+    type_params_defaults.Grow(num_vars);
+    type_params_defaults.SetLength(num_vars);
+    AbstractType& bound = AbstractType::Handle();
+    AbstractType& defaultType = AbstractType::Handle();
     TypeParameters& type_params = TypeParameters::Handle();
     Function& current = Function::Handle(function().ptr());
     intptr_t mapping_offset = num_vars;
@@ -1341,12 +1349,16 @@ TypeArgumentsPtr ActivationFrame::BuildParameters(
       mapping_offset -= size;
       for (intptr_t j = 0; j < size; ++j) {
         name = type_params.NameAt(j);
+        bound = type_params.BoundAt(j);
+        defaultType = type_params.DefaultAt(j);
         // Write the names in backwards in terms of chain of functions.
         // But keep the order of names within the same function. so they
         // match up with the order of the types in 'type_arguments'.
         // Index:0 1 2 3 ...
         //       |Names in Grandparent| |Names in Parent| ..|Names in Child|
         type_params_names.SetAt(mapping_offset + j, name);
+        type_params_bounds.SetAt(mapping_offset + j, bound);
+        type_params_defaults.SetAt(mapping_offset + j, defaultType);
       }
     }
     if (!type_arguments.IsNull()) {

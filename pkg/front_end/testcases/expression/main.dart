@@ -100,3 +100,30 @@ class E<T> {
   T _t;
   T get t => _t;
 }
+
+void withBound<E extends String>(List<E> x) {
+  List<E> y = [];
+  List<String> z = [];
+  z.addAll(y);
+}
+
+void withBound2<E>() {
+  print(E);
+}
+
+void hasList() {
+  List<String> x = ["a", "b", "c"];
+  int xCombinedLength = x.fold<int>(
+      0, (previousValue, element) => previousValue + element.length);
+  print("xCombinedLength = $xCombinedLength");
+}
+
+void hasClosure() {
+  List<String> x() {
+    return ["hello"];
+  }
+
+  int xCombinedLength = x()
+      .fold<int>(0, (previousValue, element) => previousValue + element.length);
+  print("xCombinedLength = $xCombinedLength");
+}

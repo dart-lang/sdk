@@ -124,7 +124,10 @@ class _Evaluator {
       'isolateId': _message.params['isolateId']!,
       'expression': _message.params['expression']!,
       'definitions': buildScopeResponseResult['param_names']!,
+      'definitionTypes': buildScopeResponseResult['param_types']!,
       'typeDefinitions': buildScopeResponseResult['type_params_names']!,
+      'typeBounds': buildScopeResponseResult['type_params_bounds']!,
+      'typeDefaults': buildScopeResponseResult['type_params_defaults']!,
       'libraryUri': buildScopeResponseResult['libraryUri']!,
       'isStatic': buildScopeResponseResult['isStatic']!,
     };

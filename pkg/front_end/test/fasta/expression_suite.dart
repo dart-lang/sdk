@@ -16,6 +16,12 @@ import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, DiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 
+import 'package:front_end/src/api_prototype/expression_compilation_tools.dart'
+    show createDefinitionsWithTypes, createTypeParametersWithBounds;
+
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
+
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
 
@@ -34,7 +40,7 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
 import "package:kernel/ast.dart"
-    show Procedure, Component, DynamicType, DartType, TypeParameter;
+    show Component, DartType, DynamicType, Procedure, TypeParameter;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
@@ -132,7 +138,13 @@ class TestCase {
 
   final List<String> definitions;
 
+  final List<String> definitionTypes;
+
   final List<String> typeDefinitions;
+
+  final List<String> typeBounds;
+
+  final List<String> typeDefaults;
 
   final bool isStaticMethod;
 
@@ -151,7 +163,10 @@ class TestCase {
       this.entryPoint,
       this.import,
       this.definitions,
+      this.definitionTypes,
       this.typeDefinitions,
+      this.typeBounds,
+      this.typeDefaults,
       this.isStaticMethod,
       this.library,
       this.className,
@@ -164,7 +179,10 @@ class TestCase {
         "$entryPoint, "
         "$import, "
         "$definitions, "
+        "$definitionTypes, "
         "$typeDefinitions,"
+        "$typeBounds,"
+        "$typeDefaults,"
         "$library, "
         "$className, "
         "static = $isStaticMethod)";
@@ -259,7 +277,10 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
     Uri? entryPoint;
     Uri? import;
     List<String> definitions = <String>[];
+    List<String> definitionTypes = <String>[];
     List<String> typeDefinitions = <String>[];
+    List<String> typeBounds = <String>[];
+    List<String> typeDefaults = <String>[];
     bool isStaticMethod = false;
     Uri? library;
     String? className;
@@ -289,9 +310,16 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
           methodName = value as String;
         } else if (key == "definitions") {
           definitions = (value as YamlList).map((x) => x as String).toList();
+        } else if (key == "definition_types") {
+          definitionTypes =
+              (value as YamlList).map((x) => x as String).toList();
         } else if (key == "type_definitions") {
           typeDefinitions =
               (value as YamlList).map((x) => x as String).toList();
+        } else if (key == "type_bounds") {
+          typeBounds = (value as YamlList).map((x) => x as String).toList();
+        } else if (key == "type_defaults") {
+          typeDefaults = (value as YamlList).map((x) => x as String).toList();
         } else if (key == "static") {
           isStaticMethod = value;
         } else if (key == "expression") {
@@ -303,7 +331,10 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
           entryPoint,
           import,
           definitions,
+          definitionTypes,
           typeDefinitions,
+          typeBounds,
+          typeDefaults,
           isStaticMethod,
           library,
           className,
@@ -328,15 +359,29 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
   // Compile [test.expression], update [test.errors] with results.
   // As a side effect - verify that generated procedure can be serialized.
   Future<void> compileExpression(TestCase test, IncrementalCompiler compiler,
-      Component component, Context context) async {
-    Map<String, DartType> definitions = {};
-    for (String name in test.definitions) {
-      definitions[name] = new DynamicType();
+      IncrementalCompilerResult sourceCompilerResult, Context context) async {
+    Map<String, DartType>? definitions = createDefinitionsWithTypes(
+        sourceCompilerResult.classHierarchy?.knownLibraries,
+        test.definitionTypes,
+        test.definitions);
+
+    if (definitions == null) {
+      definitions = {};
+      for (String name in test.definitions) {
+        definitions[name] = new DynamicType();
+      }
     }
-    List<TypeParameter> typeParams = [];
-    for (String name in test.typeDefinitions) {
-      typeParams
-          .add(new TypeParameter(name, new DynamicType(), new DynamicType()));
+    List<TypeParameter>? typeParams = createTypeParametersWithBounds(
+        sourceCompilerResult.classHierarchy?.knownLibraries,
+        test.typeBounds,
+        test.typeDefaults,
+        test.typeDefinitions);
+    if (typeParams == null) {
+      typeParams = [];
+      for (String name in test.typeDefinitions) {
+        typeParams
+            .add(new TypeParameter(name, new DynamicType(), new DynamicType()));
+      }
     }
 
     Procedure? compiledProcedure = await compiler.compileExpression(
@@ -353,7 +398,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
     test.results.add(new CompilationResult(compiledProcedure, errors));
     if (compiledProcedure != null) {
       // Confirm we can serialize generated procedure.
-      component.computeCanonicalNames();
+      sourceCompilerResult.component.computeCanonicalNames();
       List<int> list = serializeProcedure(compiledProcedure);
       assert(list.length > 0);
     }
@@ -371,8 +416,9 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
             await new File.fromUri(test.import!).readAsBytes());
       }
 
-      var sourceCompiler = new IncrementalCompiler(context.compilerContext);
-      var sourceCompilerResult =
+      IncrementalCompiler sourceCompiler =
+          new IncrementalCompiler(context.compilerContext);
+      IncrementalCompilerResult sourceCompilerResult =
           await sourceCompiler.computeDelta(entryPoints: [test.entryPoint!]);
       Component component = sourceCompilerResult.component;
       var errors = context.takeErrors();
@@ -387,11 +433,12 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
           path: test.entryPoint!.path + ".dill");
       Uint8List dillData = await serializeComponent(component);
       context.fileSystem.entityForUri(dillFileUri).writeAsBytesSync(dillData);
-      await compileExpression(test, sourceCompiler, component, context);
+      await compileExpression(
+          test, sourceCompiler, sourceCompilerResult, context);
 
-      var dillCompiler =
+      IncrementalCompiler dillCompiler =
           new IncrementalCompiler(context.compilerContext, dillFileUri);
-      var dillCompilerResult =
+      IncrementalCompilerResult dillCompilerResult =
           await dillCompiler.computeDelta(entryPoints: [test.entryPoint!]);
       component = dillCompilerResult.component;
       component.computeCanonicalNames();
@@ -400,7 +447,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       // Since it compiled successfully from source, the bootstrap-from-Dill
       // should also succeed without errors.
       assert(errors.isEmpty);
-      await compileExpression(test, dillCompiler, component, context);
+      await compileExpression(test, dillCompiler, dillCompilerResult, context);
     }
     return new Result.pass(tests);
   }

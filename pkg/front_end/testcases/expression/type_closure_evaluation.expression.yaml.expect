@@ -1,0 +1,9 @@
+Errors: {
+  org-dartlang-debug:synthetic_debug_expression:1:2: Error: Cannot invoke an instance of '_Closure' because it declares 'call' to be something other than a method.
+   - '_Closure' is from 'dart:core'.
+  Try changing 'call' to a method or explicitly invoke 'call'.
+  x().fold<int>(0, (previousValue, element) => previousValue + element.length)
+   ^
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::_Closure x) → dynamic
+  return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:2: Error: Cannot invoke an instance of '_Closure' because it declares 'call' to be something other than a method.\n - '_Closure' is from 'dart:core'.\nTry changing 'call' to a method or explicitly invoke 'call'.\nx().fold<int>(0, (previousValue, element) => previousValue + element.length)\n ^"{dynamic}.fold<dart.core::int*>(0, (dynamic previousValue, dynamic element) → dynamic => previousValue{dynamic}.+(element{dynamic}.length));

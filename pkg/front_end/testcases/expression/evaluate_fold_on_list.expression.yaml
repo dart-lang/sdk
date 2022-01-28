@@ -1,0 +1,16 @@
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+entry_point: "main.dart"
+definitions: ["x", "y"]
+# List<String>, int
+definition_types: ["dart:core", "List", "1", "1", "dart:core", "String", "1", "0", "dart:core", "int", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+position: "main.dart"
+method: "hasList"
+# Because x has a type (List<String>) x.fold knows that element is a String.
+expression: |
+  x.fold<int>(0, (previousValue, element) => previousValue + element.length)
