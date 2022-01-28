@@ -143,6 +143,44 @@ void main() {
           ]);
         });
       });
+      test('includesAllInOrder', () {
+        // Extra elements are OK.
+        check([0, 1, 2, 3, 4]).includesAllInOrder([
+          (e) => e.isEqualTo(0),
+          (e) => e.isEqualTo(3),
+        ]);
+        // Exactly one element should match.
+        _fails(() {
+          check([0, 1, 0, 2]).includesAllInOrder([
+            (e) => e.isZero,
+          ]);
+        });
+        // Must be in the requested order.
+        _fails(() {
+          check([0, 1, 2]).includesAllInOrder([
+            (e) => e.isEqualTo(1),
+            (e) => e.isEqualTo(0),
+          ]);
+        });
+        // Must have all elements.
+        _fails(() {
+          check(<int>[]).includesAllInOrder([
+            (e) => e.isEqualTo(0),
+          ]);
+        });
+        _fails(() {
+          check([0]).includesAllInOrder([
+            (e) => e.isEqualTo(0),
+            (e) => e.isEqualTo(1),
+          ]);
+        });
+        _fails(() {
+          check([1]).includesAllInOrder([
+            (e) => e.isEqualTo(0),
+            (e) => e.isEqualTo(1),
+          ]);
+        });
+      });
       test('isEmpty', () {
         check(<int>[]).isEmpty;
         check(<int>{}).isEmpty;

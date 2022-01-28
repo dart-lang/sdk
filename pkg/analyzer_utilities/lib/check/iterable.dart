@@ -22,20 +22,9 @@ extension IterableExtension<T> on CheckTarget<Iterable<T>> {
   /// Succeeds if there is an element that matches the [matcher],
   void containsMatch(void Function(CheckTarget<T> element) matcher) {
     var elementList = value.toList();
-    for (var elementIndex = 0;
-        elementIndex < elementList.length;
-        elementIndex++) {
-      var element = elementList[elementIndex];
-      var elementTarget = nest(
-        element,
-        (element) =>
-            'element ${valueStr(element)} at ${valueStr(elementIndex)}',
-      );
-      try {
-        matcher(elementTarget);
+    for (var i = 0; i < elementList.length; i++) {
+      if (_matches(elementList, i, matcher)) {
         return;
-      } on test_package.TestFailure {
-        continue;
       }
     }
     fail('Does not contain at least one element that matches');
@@ -50,17 +39,10 @@ extension IterableExtension<T> on CheckTarget<Iterable<T>> {
     var included = <int>[];
     for (var i = 0; i < matcherList.length; i++) {
       var matcher = matcherList[i];
-      for (var element in elementList) {
-        var elementTarget = nest(
-          element,
-          (element) => 'element ${valueStr(element)}',
-        );
-        try {
-          matcher(elementTarget);
+      for (var j = 0; j < elementList.length; j++) {
+        if (_matches(elementList, j, matcher)) {
           included.add(i);
           break;
-        } on test_package.TestFailure {
-          // ignore
         }
       }
     }
@@ -91,22 +73,46 @@ extension IterableExtension<T> on CheckTarget<Iterable<T>> {
     for (var i = 0; i < matcherList.length; i++) {
       var matcher = matcherList[i];
       notIncluded.add(i);
-      for (var element in elementList) {
-        var elementTarget = nest(
-          element,
-          (element) => 'element ${valueStr(element)}',
-        );
-        try {
-          matcher(elementTarget);
+      for (var j = 0; j < elementList.length; j++) {
+        if (_matches(elementList, j, matcher)) {
           notIncluded.removeLast();
           break;
-        } on test_package.TestFailure {
-          // ignore
         }
       }
     }
     if (notIncluded.isNotEmpty) {
       fail('Does not include matchers at ${valueStr(notIncluded)}');
+    }
+  }
+
+  /// Succeeds if for each matcher there is exactly one matching element,
+  /// in the same relative order.
+  void includesAllInOrder(
+    Iterable<void Function(CheckTarget<T> element)> matchers,
+  ) {
+    var elementList = value.toList();
+    var matcherList = matchers.toList();
+    var elementIndex = 0;
+    for (var i = 0; i < matcherList.length; i++) {
+      var matcher = matcherList[i];
+      var hasMatch = false;
+      for (; elementIndex < elementList.length; elementIndex++) {
+        if (_matches(elementList, elementIndex, matcher)) {
+          hasMatch = true;
+          for (var j = elementIndex + 1; j < elementList.length; j++) {
+            if (_matches(elementList, j, matcher)) {
+              fail(
+                'Matcher at ${valueStr(i)} matches elements at '
+                '${valueStr(elementIndex)} and ${valueStr(j)}',
+              );
+            }
+          }
+          break;
+        } else {}
+      }
+      if (!hasMatch) {
+        fail('Does not include matcher at ${valueStr(i)}');
+      }
     }
   }
 
@@ -157,15 +163,7 @@ extension IterableExtension<T> on CheckTarget<Iterable<T>> {
           elementIndex < elementList.length;
           elementIndex++) {
         var element = elementList[elementIndex];
-        var elementTarget = nest(
-          element,
-          (element) =>
-              'element ${valueStr(element)} at ${valueStr(elementIndex)}',
-        );
-        // Jump to the next element if does not match.
-        try {
-          matcher(elementTarget);
-        } on test_package.TestFailure {
+        if (!_matches(elementList, elementIndex, matcher)) {
           continue;
         }
         // The element matches, check that it is unique.
@@ -179,6 +177,23 @@ extension IterableExtension<T> on CheckTarget<Iterable<T>> {
       if (matchedElement == null) {
         fail('No match at ${valueStr(matcherIndex)}');
       }
+    }
+  }
+
+  bool _matches(
+    List<T> elementList,
+    int index,
+    void Function(CheckTarget<T> element) matcher,
+  ) {
+    var elementTarget = nest(
+      elementList[index],
+      (element) => 'element ${valueStr(element)} at ${valueStr(index)}',
+    );
+    try {
+      matcher(elementTarget);
+      return true;
+    } on test_package.TestFailure {
+      return false;
     }
   }
 }
