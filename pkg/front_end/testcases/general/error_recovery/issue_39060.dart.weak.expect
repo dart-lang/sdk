@@ -22,9 +22,9 @@ library;
 // }
 // ^
 //
-// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:4:1: Error: Expected ';' after this.
-// }
-// ^
+// pkg/front_end/testcases/general/error_recovery/issue_39060.dart:3:9: Error: Expected ';' after this.
+//   {s A<}>
+//         ^
 //
 import self as self;
 

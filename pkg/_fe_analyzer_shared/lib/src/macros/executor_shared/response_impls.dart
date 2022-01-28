@@ -25,17 +25,16 @@ class MacroClassIdentifierImpl implements MacroClassIdentifier {
 
 /// Implementation of [MacroInstanceIdentifier].
 class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
+  /// Unique identifier for this instance, passed in from the server.
+  final int id;
+
   /// A single int where each bit indicates whether a specific macro interface
   /// is implemented by this macro.
   final int _interfaces;
 
-  static int _next = 0;
+  MacroInstanceIdentifierImpl._(this.id, this._interfaces);
 
-  final int id;
-
-  MacroInstanceIdentifierImpl._(this._interfaces) : id = _next++;
-
-  factory MacroInstanceIdentifierImpl(Macro macro) {
+  factory MacroInstanceIdentifierImpl(Macro macro, int instanceId) {
     // Build up the interfaces value, there is a bit for each declaration/phase
     // combination (as there is an interface for each).
     int interfaces = 0;
@@ -161,7 +160,7 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
       }
     }
 
-    return new MacroInstanceIdentifierImpl._(interfaces);
+    return new MacroInstanceIdentifierImpl._(instanceId, interfaces);
   }
 
   MacroInstanceIdentifierImpl.deserialize(Deserializer deserializer)

@@ -500,16 +500,19 @@ Future _processExpressionCompilationRequest(request) async {
   final dynamic dart_platform_kernel = request[3];
   final String expression = request[4];
   final List<String> definitions = request[5].cast<String>();
-  final List<String> typeDefinitions = request[6].cast<String>();
-  final String libraryUri = request[7];
-  final String? klass = request[8];
-  final String? method = request[9];
-  final bool isStatic = request[10];
-  final List<List<int>> dillData = request[11].cast<List<int>>();
-  final int blobLoadCount = request[12];
-  final bool enableAsserts = request[13];
+  final List<String> definitionTypes = request[6].cast<String>();
+  final List<String> typeDefinitions = request[7].cast<String>();
+  final List<String> typeBounds = request[8].cast<String>();
+  final List<String> typeDefaults = request[9].cast<String>();
+  final String libraryUri = request[10];
+  final String? klass = request[11];
+  final String? method = request[12];
+  final bool isStatic = request[13];
+  final List<List<int>> dillData = request[14].cast<List<int>>();
+  final int blobLoadCount = request[15];
+  final bool enableAsserts = request[16];
   final List<String>? experimentalFlags =
-      request[14] != null ? request[14].cast<String>() : null;
+      request[17] != null ? request[17].cast<String>() : null;
 
   IncrementalCompilerWrapper? compiler = isolateCompilers[isolateGroupId];
 
@@ -623,7 +626,10 @@ Future _processExpressionCompilationRequest(request) async {
     Procedure? procedure = await compiler.generator!.compileExpression(
         expression,
         definitions,
+        definitionTypes,
         typeDefinitions,
+        typeBounds,
+        typeDefaults,
         libraryUri,
         klass,
         method,

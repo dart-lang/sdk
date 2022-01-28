@@ -398,6 +398,7 @@ micro
 minimize
 minimizer
 minimizing
+minitest
 minst
 mintty
 minutes

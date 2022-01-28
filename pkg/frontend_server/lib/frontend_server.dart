@@ -285,7 +285,10 @@ abstract class CompilerInterface {
   Future<Null> compileExpression(
       String expression,
       List<String> definitions,
+      List<String> definitionTypes,
       List<String> typeDefinitions,
+      List<String> typeBounds,
+      List<String> typeDefaults,
       String libraryUri,
       String klass,
       String method,
@@ -840,15 +843,27 @@ class FrontendCompiler implements CompilerInterface {
   Future<Null> compileExpression(
       String expression,
       List<String> definitions,
+      List<String> definitionTypes,
       List<String> typeDefinitions,
+      List<String> typeBounds,
+      List<String> typeDefaults,
       String libraryUri,
       String klass,
       String method,
       bool isStatic) async {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
-    Procedure procedure = await _generator.compileExpression(expression,
-        definitions, typeDefinitions, libraryUri, klass, method, isStatic);
+    Procedure procedure = await _generator.compileExpression(
+        expression,
+        definitions,
+        definitionTypes,
+        typeDefinitions,
+        typeBounds,
+        typeDefaults,
+        libraryUri,
+        klass,
+        method,
+        isStatic);
     if (procedure != null) {
       Component component = createExpressionEvaluationComponent(procedure);
       final IOSink sink = File(_kernelBinaryFilename).openWrite();
@@ -1127,7 +1142,10 @@ class _CompileExpressionRequest {
   // Note that FE will reject a compileExpression command by returning a null
   // procedure when defs or typeDefs include an illegal identifier.
   List<String> defs = <String>[];
+  List<String> defTypes = <String>[];
   List<String> typeDefs = <String>[];
+  List<String> typeBounds = <String>[];
+  List<String> typeDefaults = <String>[];
   String library;
   String klass;
   String method;
@@ -1268,7 +1286,10 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
           compiler.compileExpression(
               compileExpressionRequest.expression,
               compileExpressionRequest.defs,
+              compileExpressionRequest.defTypes,
               compileExpressionRequest.typeDefs,
+              compileExpressionRequest.typeBounds,
+              compileExpressionRequest.typeDefaults,
               compileExpressionRequest.library,
               compileExpressionRequest.klass,
               compileExpressionRequest.method,

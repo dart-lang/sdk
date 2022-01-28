@@ -194,23 +194,43 @@ class IncrementalCompiler {
   Future<Procedure?> compileExpression(
       String expression,
       List<String> definitions,
+      List<String> definitionTypes,
       List<String> typeDefinitions,
+      List<String> typeBounds,
+      List<String> typeDefaults,
       String libraryUri,
       String? klass,
       String? method,
       bool isStatic) {
-    Map<String, DartType> completeDefinitions = {};
-    for (int i = 0; i < definitions.length; i++) {
-      String name = definitions[i];
-      if (isLegalIdentifier(name) || (i == 0 && isExtensionThisName(name))) {
-        completeDefinitions[name] = new DynamicType();
+    ClassHierarchy? classHierarchy =
+        (_lastKnownGood ?? _combinePendingDeltas(false)).classHierarchy;
+    Map<String, DartType>? completeDefinitions = createDefinitionsWithTypes(
+        classHierarchy?.knownLibraries, definitionTypes, definitions);
+    if (completeDefinitions == null) {
+      completeDefinitions = {};
+      // No class hierarchy or wasn't provided correct types.
+      // Revert to old behaviour of setting everything to dynamic.
+      for (int i = 0; i < definitions.length; i++) {
+        String name = definitions[i];
+        if (isLegalIdentifier(name) || (i == 0 && isExtensionThisName(name))) {
+          completeDefinitions[name] = new DynamicType();
+        }
       }
     }
 
-    List<TypeParameter> typeParameters = [];
-    for (String name in typeDefinitions) {
-      if (!isLegalIdentifier(name)) continue;
-      typeParameters.add(new TypeParameter(name, new DynamicType()));
+    List<TypeParameter>? typeParameters = createTypeParametersWithBounds(
+        classHierarchy?.knownLibraries,
+        typeBounds,
+        typeDefaults,
+        typeDefinitions);
+    if (typeParameters == null) {
+      // No class hierarchy or wasn't provided correct types.
+      // Revert to old behaviour of setting everything to dynamic.
+      typeParameters = [];
+      for (String name in typeDefinitions) {
+        if (!isLegalIdentifier(name)) continue;
+        typeParameters.add(new TypeParameter(name, new DynamicType()));
+      }
     }
 
     Uri library = Uri.parse(libraryUri);

@@ -1,0 +1,4 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr< extends dynamic>(dart.core::List<dart.core::String> x) → dynamic
+  return main::Foo|getFortyTwo(x.{dart.core::Iterable::first}{dart.core::String*});

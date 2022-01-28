@@ -1683,9 +1683,9 @@ class Wrong<T> {
 
   void test_invalidTypedef() {
     parseCompilationUnit("typedef var Function(var arg);", errors: [
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 7),
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 8, 3),
       expectedError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 8, 3),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 3),
       expectedError(ParserErrorCode.VAR_RETURN_TYPE, 8, 3),
       expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 29, 1),
     ]);

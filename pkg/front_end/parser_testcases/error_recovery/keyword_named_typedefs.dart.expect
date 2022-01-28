@@ -436,9 +436,9 @@ parser/error_recovery/keyword_named_typedefs:132:14: A typedef needs an explicit
 typedef void = void Function();
              ^
 
-parser/error_recovery/keyword_named_typedefs:132:14: Expected ';' after this.
+parser/error_recovery/keyword_named_typedefs:132:9: Expected ';' after this.
 typedef void = void Function();
-             ^
+        ^^^^
 
 parser/error_recovery/keyword_named_typedefs:132:14: Expected a declaration, but got '='.
 typedef void = void Function();
@@ -2219,7 +2219,7 @@ beginCompilationUnit(typedef)
       handleRecoverableError(MissingTypedefParameters, =, =)
       beginFormalParameters((, MemberKind.FunctionTypeAlias)
       endFormalParameters(0, (, ), MemberKind.FunctionTypeAlias)
-      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], =, =)
+      handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], void, void)
     endTypedef(typedef, null, ;)
   endTopLevelDeclaration(=)
   beginMetadataStar(=)

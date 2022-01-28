@@ -6,11 +6,9 @@ f() { m(T<R(<Z
 
 WARNING: Reporting at eof --- see below for details.
 
-parser/error_recovery/issue_38415.crash:1:15: Expected ';' after this.
+parser/error_recovery/issue_38415.crash:1:14: Expected ';' after this.
 f() { m(T<R(<Z
-              ^...
-
-WARNING: Reporting at eof --- see below for details.
+             ^
 
 parser/error_recovery/issue_38415.crash:1:12: Can't find ')' to match '('.
 f() { m(T<R(<Z
@@ -64,8 +62,7 @@ beginCompilationUnit(f)
           endBinaryExpression(<)
         endArguments(1, (, ))
         handleSend(m, })
-        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], , )
-        // WARNING: Reporting at eof for .
+        handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], Z, Z)
         handleExpressionStatement(;)
       endBlockFunctionBody(1, {, })
     endTopLevelMethod(f, null, })

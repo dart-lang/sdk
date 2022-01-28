@@ -2857,6 +2857,51 @@ static const MethodParameter* const build_expression_evaluation_scope_params[] =
         NULL,
 };
 
+static void CollectStringifiedType(Zone* zone,
+                                   const AbstractType& type,
+                                   const GrowableObjectArray& output) {
+  Instance& instance = Instance::Handle(zone);
+  if (type.IsFunctionType()) {
+    // The closure class
+    // (IsolateGroup::Current()->object_store()->closure_class())
+    // is statically typed weird (the call method redirects to itself)
+    // and the type is therefore not useful for the CFE. We use null instead.
+    output.Add(instance);
+    return;
+  }
+  if (type.IsDynamicType()) {
+    // Dynamic is weird in that it seems to have a class with no name and a
+    // library called something like '7189777121420'. We use null instead.
+    output.Add(instance);
+    return;
+  }
+  if (type.IsTypeParameter() && type.IsAbstractType()) {
+    // Calling type_class on an abstract type parameter will crash the VM.
+    // We use null instead.
+    output.Add(instance);
+    return;
+  }
+  const Class& cls = Class::Handle(type.type_class());
+  const Library& lib = Library::Handle(zone, cls.library());
+
+  instance ^= lib.url();
+  output.Add(instance);
+
+  instance ^= cls.ScrubbedName();
+  output.Add(instance);
+
+  instance ^= Smi::New((intptr_t)type.nullability());
+  output.Add(instance);
+
+  const TypeArguments& srcArguments = TypeArguments::Handle(type.arguments());
+  instance ^= Smi::New(srcArguments.Length());
+  output.Add(instance);
+  for (int i = 0; i < srcArguments.Length(); i++) {
+    const AbstractType& src_type = AbstractType::Handle(srcArguments.TypeAt(i));
+    CollectStringifiedType(zone, src_type, output);
+  }
+}
+
 static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
   if (CheckDebuggerDisabled(thread, js)) {
     return;
@@ -2877,6 +2922,10 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   const GrowableObjectArray& type_params_names =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const GrowableObjectArray& type_params_bounds =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const GrowableObjectArray& type_params_defaults =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   String& klass_name = String::Handle(zone);
   String& method_name = String::Handle(zone);
   String& library_uri = String::Handle(zone);
@@ -2896,7 +2945,8 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     }
 
     ActivationFrame* frame = stack->FrameAt(framePos);
-    frame->BuildParameters(param_names, param_values, type_params_names);
+    frame->BuildParameters(param_names, param_values, type_params_names,
+                           type_params_bounds, type_params_defaults);
 
     if (frame->function().is_static()) {
       const Class& cls = Class::Handle(zone, frame->function().Owner());
@@ -2976,6 +3026,28 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       jsonParamNames.AddValue(param_name.ToCString());
     }
   }
+  {
+    const JSONArray jsonParamTypes(&report, "param_types");
+    Object& obj = Object::Handle();
+    Instance& instance = Instance::Handle();
+    const GrowableObjectArray& param_types =
+        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+    AbstractType& type = AbstractType::Handle();
+    for (intptr_t i = 0; i < param_names.Length(); i++) {
+      obj = param_values.At(i);
+      if (obj.IsNull()) {
+        param_types.Add(obj);
+      } else if (obj.IsInstance()) {
+        instance ^= param_values.At(i);
+        type = instance.GetType(Heap::kNew);
+        CollectStringifiedType(zone, type, param_types);
+      }
+    }
+    for (intptr_t i = 0; i < param_types.Length(); i++) {
+      instance ^= param_types.At(i);
+      jsonParamTypes.AddValue(instance.ToCString());
+    }
+  }
 
   {
     JSONArray jsonTypeParamsNames(&report, "type_params_names");
@@ -2983,6 +3055,36 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     for (intptr_t i = 0; i < type_params_names.Length(); i++) {
       type_param_name ^= type_params_names.At(i);
       jsonTypeParamsNames.AddValue(type_param_name.ToCString());
+    }
+  }
+  {
+    const JSONArray jsonParamTypes(&report, "type_params_bounds");
+    const GrowableObjectArray& type_params_bounds_strings =
+        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+    AbstractType& type = AbstractType::Handle();
+    for (intptr_t i = 0; i < type_params_bounds.Length(); i++) {
+      type ^= type_params_bounds.At(i);
+      CollectStringifiedType(zone, type, type_params_bounds_strings);
+    }
+    Instance& instance = Instance::Handle();
+    for (intptr_t i = 0; i < type_params_bounds_strings.Length(); i++) {
+      instance ^= type_params_bounds_strings.At(i);
+      jsonParamTypes.AddValue(instance.ToCString());
+    }
+  }
+  {
+    const JSONArray jsonParamTypes(&report, "type_params_defaults");
+    const GrowableObjectArray& type_params_defaults_strings =
+        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+    AbstractType& type = AbstractType::Handle();
+    for (intptr_t i = 0; i < type_params_defaults.Length(); i++) {
+      type ^= type_params_defaults.At(i);
+      CollectStringifiedType(zone, type, type_params_defaults_strings);
+    }
+    Instance& instance = Instance::Handle();
+    for (intptr_t i = 0; i < type_params_defaults_strings.Length(); i++) {
+      instance ^= type_params_defaults_strings.At(i);
+      jsonParamTypes.AddValue(instance.ToCString());
     }
   }
   report.AddProperty("libraryUri", library_uri.ToCString());
@@ -3036,7 +3138,10 @@ static const MethodParameter* const compile_expression_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
     new StringParameter("expression", true),
     new StringParameter("definitions", false),
+    new StringParameter("definitionTypes", false),
     new StringParameter("typeDefinitions", false),
+    new StringParameter("typeBounds", false),
+    new StringParameter("typeDefaults", false),
     new StringParameter("libraryUri", true),
     new StringParameter("klass", false),
     new BoolParameter("isStatic", false),
@@ -3070,11 +3175,29 @@ static void CompileExpression(Thread* thread, JSONStream* js) {
     PrintInvalidParamError(js, "definitions");
     return;
   }
+  const GrowableObjectArray& param_types =
+      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
+  if (!ParseCSVList(js->LookupParam("definitionTypes"), param_types)) {
+    PrintInvalidParamError(js, "definitionTypes");
+    return;
+  }
 
   const GrowableObjectArray& type_params =
       GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
   if (!ParseCSVList(js->LookupParam("typeDefinitions"), type_params)) {
     PrintInvalidParamError(js, "typedDefinitions");
+    return;
+  }
+  const GrowableObjectArray& type_bounds =
+      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
+  if (!ParseCSVList(js->LookupParam("typeBounds"), type_bounds)) {
+    PrintInvalidParamError(js, "typeBounds");
+    return;
+  }
+  const GrowableObjectArray& type_defaults =
+      GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());
+  if (!ParseCSVList(js->LookupParam("typeDefaults"), type_defaults)) {
+    PrintInvalidParamError(js, "typeDefaults");
     return;
   }
 
@@ -3085,7 +3208,10 @@ static void CompileExpression(Thread* thread, JSONStream* js) {
       KernelIsolate::CompileExpressionToKernel(
           kernel_buffer, kernel_buffer_len, js->LookupParam("expression"),
           Array::Handle(Array::MakeFixedLength(params)),
+          Array::Handle(Array::MakeFixedLength(param_types)),
           Array::Handle(Array::MakeFixedLength(type_params)),
+          Array::Handle(Array::MakeFixedLength(type_bounds)),
+          Array::Handle(Array::MakeFixedLength(type_defaults)),
           js->LookupParam("libraryUri"), js->LookupParam("klass"),
           js->LookupParam("method"), is_static);
 
@@ -3145,6 +3271,10 @@ static void EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
   }
   const GrowableObjectArray& type_params_names =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const GrowableObjectArray& type_params_bounds =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  const GrowableObjectArray& type_params_defaults =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
 
   const ExternalTypedData& kernel_data = ExternalTypedData::Handle(
       zone, DecodeKernelBuffer(js->LookupParam("kernelBytes")));
@@ -3160,7 +3290,8 @@ static void EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
     ActivationFrame* frame = stack->FrameAt(frame_pos);
     TypeArguments& type_arguments = TypeArguments::Handle(
         zone,
-        frame->BuildParameters(param_names, param_values, type_params_names));
+        frame->BuildParameters(param_names, param_values, type_params_names,
+                               type_params_bounds, type_params_defaults));
 
     const Object& result = Object::Handle(
         zone,
