@@ -28,6 +28,10 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   Map<String, String> packageRoots = {};
   late List<CompletionSuggestion> suggestions;
 
+  bool get isProtocolVersion2 {
+    return protocol == TestingCompletionProtocol.version2;
+  }
+
   String get projectName => 'project';
 
   String get projectPath => '/$projectName';
