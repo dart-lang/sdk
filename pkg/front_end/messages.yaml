@@ -5461,3 +5461,9 @@ EnumSupertypeOfNonAbstractClass:
 
 EnumEntryWithTypeArgumentsWithoutArguments:
   problemMessage: "Missing arguments in enum constructor invocation."
+
+EnumNonConstConstructor:
+  problemMessage: "Generative enum constructors must be marked as 'const'."
+
+EnumConstructorSuperInitializer:
+  problemMessage: "Enum constructors can't contain super-initializers."

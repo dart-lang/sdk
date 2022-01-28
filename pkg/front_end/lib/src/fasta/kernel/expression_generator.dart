@@ -4570,32 +4570,14 @@ class ThisAccessGenerator extends Generator {
       int offset, Name name, Arguments arguments) {
     Constructor? constructor =
         _helper.lookupConstructor(name, isSuper: isSuper);
-    LocatedMessage? message;
-    if (constructor != null) {
-      // The check of the arguments is done later for super initializers if the
-      // 'super-parameters' language feature is enabled. In that case the
-      // additional parameters can be added at a later stage.
-      bool isPotentialSuperParametersReceiver =
-          isSuper && _helper.libraryBuilder.enableSuperParametersInLibrary;
-      // Additional arguments are added to the redirecting initializer of an
-      // enum constructor, so the check is performed later.
-      bool isEnumConstructorRedirectingInitializer =
-          constructor.enclosingClass.isEnum;
-      if (!isPotentialSuperParametersReceiver &&
-          !isEnumConstructorRedirectingInitializer) {
-        message = _helper.checkArgumentsForFunction(
-            constructor.function, arguments, offset, <TypeParameter>[]);
-      }
-    } else {
+    if (constructor == null) {
       String fullName =
           _helper.constructorNameForDiagnostics(name.text, isSuper: isSuper);
-      message = (isSuper
+      LocatedMessage message = (isSuper
               ? templateSuperclassHasNoConstructor
               : templateConstructorNotFound)
           .withArguments(fullName)
           .withLocation(_uri, fileOffset, lengthForToken(token));
-    }
-    if (message != null) {
       return _helper.buildInvalidInitializer(
           _helper.buildUnresolvedError(
               _forest.createNullLiteral(offset),
@@ -4609,10 +4591,10 @@ class ThisAccessGenerator extends Generator {
           offset);
     } else if (isSuper) {
       return _helper.buildSuperInitializer(
-          false, constructor!, arguments, offset);
+          false, constructor, arguments, offset);
     } else {
       return _helper.buildRedirectingInitializer(
-          constructor!, arguments, offset);
+          constructor, arguments, offset);
     }
   }
 

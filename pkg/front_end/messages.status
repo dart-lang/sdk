@@ -213,6 +213,8 @@ DuplicatedNamedArgument/example: Fail
 DuplicatedParameterName/example: Fail
 Encoding/analyzerCode: Fail
 EnumConstantSameNameAsEnclosing/example: Fail
+EnumConstructorSuperInitializer/analyzerCode: Fail
+EnumConstructorSuperInitializer/example: Fail
 EnumDeclaresConstFactory/analyzerCode: Fail
 EnumDeclaresConstFactory/example: Fail
 EnumDeclaresFactory/analyzerCode: Fail
@@ -220,6 +222,8 @@ EnumDeclaresFactory/example: Fail
 EnumEntryWithTypeArgumentsWithoutArguments/analyzerCode: Fail
 EnumEntryWithTypeArgumentsWithoutArguments/example: Fail
 EnumInstantiation/example: Fail
+EnumNonConstConstructor/analyzerCode: Fail
+EnumNonConstConstructor/example: Fail
 EnumSupertypeOfNonAbstractClass/analyzerCode: Fail
 EnumSupertypeOfNonAbstractClass/example: Fail
 EqualityCannotBeEqualityOperand/part_wrapped_script1: Fail
