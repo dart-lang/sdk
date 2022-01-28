@@ -152,6 +152,19 @@ class B {
     ]);
   }
 
+  test_constructorDeclaration_fieldFormalParameter_name() async {
+    var result = _resolveTestCode(r'''
+class A {
+  final int f;
+  A(this.^);
+}
+''');
+
+    result.assertResolvedNodes([
+      'A(this.);',
+    ]);
+  }
+
   test_constructorDeclaration_fieldInitializer_name() async {
     var result = _resolveTestCode(r'''
 class A {}
@@ -199,6 +212,23 @@ class A {
 ''');
 
     result.assertResolvedNodes([]);
+  }
+
+  test_constructorDeclaration_superFormalParameter_name() async {
+    var result = _resolveTestCode(r'''
+class A {
+  A(int first, double second);
+  A.named(int third);
+}
+
+class B extends A {
+  B(super.^);
+}
+''');
+
+    result.assertResolvedNodes([
+      'B(super.);',
+    ]);
   }
 
   test_doubleLiteral() async {

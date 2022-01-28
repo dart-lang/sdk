@@ -956,8 +956,16 @@ class LibraryAnalyzer {
         return true;
       }
 
-      // We have a contributor that looks at the type, but it is syntactic.
       if (parent is FormalParameter && parent.identifier == node) {
+        // We use elements to access fields.
+        if (parent is FieldFormalParameter) {
+          return false;
+        }
+        // We use elements to access the enclosing constructor.
+        if (parent is SuperFormalParameter) {
+          return false;
+        }
+        // We have a contributor that looks at the type, but it is syntactic.
         return true;
       }
 
