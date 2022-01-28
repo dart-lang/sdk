@@ -39,7 +39,7 @@ class CallGraphNode {
   /// Dominator of this node.
   ///
   /// Computed by [CallGraph.computeDominators].
-  late CallGraphNode dominator;
+  CallGraphNode? dominator;
 
   /// Nodes dominated by this node.
   ///
