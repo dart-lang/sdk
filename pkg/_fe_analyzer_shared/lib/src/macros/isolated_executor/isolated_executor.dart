@@ -8,6 +8,7 @@ import 'dart:isolate';
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart';
 
 import '../api.dart';
+import '../executor_shared/augmentation_library.dart';
 import '../executor_shared/introspection_impls.dart';
 import '../executor_shared/protocol.dart';
 import '../executor_shared/response_impls.dart';
@@ -28,17 +29,11 @@ Future<MacroExecutor> start() async => new _IsolatedMacroExecutor();
 ///
 /// Spawned isolates are not ran in the same isolate group, so objects are
 /// serialized between isolates.
-class _IsolatedMacroExecutor implements MacroExecutor {
+class _IsolatedMacroExecutor extends MacroExecutor
+    with AugmentationLibraryBuilder {
   /// Individual executors indexed by [MacroClassIdentifier] or
   /// [MacroInstanceIdentifier].
   final _executors = <Object, _SingleIsolatedMacroExecutor>{};
-
-  @override
-  Future<String> buildAugmentationLibrary(
-      Iterable<MacroExecutionResult> macroResults) {
-    // TODO: implement buildAugmentationLibrary
-    throw new UnimplementedError();
-  }
 
   @override
   void close() {
@@ -370,8 +365,8 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
 
   /// These calls are handled by the higher level executor.
   @override
-  Future<String> buildAugmentationLibrary(
-          Iterable<MacroExecutionResult> macroResults) =>
+  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
+          Uri Function(Identifier) resolveIdentifier) =>
       throw new StateError('Unreachable');
 
   @override

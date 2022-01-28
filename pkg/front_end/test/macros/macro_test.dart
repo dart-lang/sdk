@@ -126,6 +126,7 @@ class MacroDataExtractor extends CfeDataExtractor<Features> {
 
   MacroDeclarationData get macroDeclarationData => testResultData.compilerResult
       .kernelTargetForTesting!.loader.dataForTesting!.macroDeclarationData;
+
   MacroApplicationDataForTesting get macroApplicationData => testResultData
       .compilerResult
       .kernelTargetForTesting!
@@ -280,8 +281,8 @@ class TestMacroExecutor implements MacroExecutor {
   List<_MacroInstanceIdentifier> macroInstances = [];
 
   @override
-  Future<String> buildAugmentationLibrary(
-      Iterable<MacroExecutionResult> macroResults) {
+  String buildAugmentationLibrary(Iterable<MacroExecutionResult> macroResults,
+      Uri Function(Identifier) resolveIdentifier) {
     // TODO: implement buildAugmentationLibrary
     throw UnimplementedError();
   }
@@ -384,9 +385,6 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
 class _MacroExecutionResult implements MacroExecutionResult {
   @override
   Iterable<DeclarationCode> augmentations = const [];
-
-  @override
-  Iterable<DeclarationCode> imports = const [];
 
   @override
   void serialize(Serializer serializer) {}
