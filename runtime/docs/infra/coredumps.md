@@ -45,10 +45,24 @@ is using isolate storage. In this case you need to look for
 
 ![shard isolate out](images/isolated-out-link.png)
 
-This link would bring you to isolate server file browser where you will be
-able to download archived artifacts.
+This link would bring you to isolate server file browser where you can see the artifacts you can download.
 
 ![Isolate Server Browser](images/isolated-out-browser.png)
+
+One caveat is that file browser might fail to download large files, so you might need to use `cas` tool if you need to download those.
+
+`cas` tool is installed using `cipd`:
+```
+cipd install "infra/tools/luci/cas/\${platform}" -root ~/cas_tool
+```
+
+Then you point `cas` at digest hash for the directory to be downloaded:
+
+```
+~/cas_tool/cas download -cas-instance projects/chromium-swarm/instances/default_instance -digest <digest_hash> -dir downloaded
+```
+
+where `<digest_hash>` is 'Digest' value from the isolate server browser listing.
 
 ### Cloud Storage
 
