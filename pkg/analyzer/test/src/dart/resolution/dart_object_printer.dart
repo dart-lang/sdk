@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 
 /// Prints [DartObjectImpl] as a tree, with values and fields.
@@ -24,6 +25,17 @@ class DartObjectPrinter {
       } else if (type.isDartCoreString) {
         sink.write('String ');
         sink.writeln(object.toStringValue());
+      } else if (type.isDartCoreList) {
+        var newIndent = '$indent  ';
+        sink.writeln('List');
+        sink.write(newIndent);
+        sink.writeln(
+            'elementType: ${(type as InterfaceType).typeArguments[0]}');
+        var elements = object.toListValue()!;
+        for (int i = 0; i < elements.length; i++) {
+          sink.write(newIndent);
+          write(elements[i] as DartObjectImpl, newIndent);
+        }
       } else if (object.isUserDefinedObject) {
         var newIndent = '$indent  ';
         var typeStr = type.getDisplayString(withNullability: true);

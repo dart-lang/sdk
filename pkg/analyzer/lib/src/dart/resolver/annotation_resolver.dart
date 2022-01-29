@@ -12,14 +12,18 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/instance_creation_resolver_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-class AnnotationResolver {
+class AnnotationResolver with InstanceCreationResolverMixin {
   final ResolverVisitor _resolver;
 
   AnnotationResolver(this._resolver);
+
+  @override
+  ResolverVisitor get resolver => _resolver;
 
   LibraryElement get _definingLibrary => _resolver.definingLibrary;
 
@@ -213,13 +217,21 @@ class AnnotationResolver {
       return;
     }
 
-    _resolver.visitArgumentList(argumentList,
-        whyNotPromotedList: whyNotPromotedList);
-
     var elementToInfer = ConstructorElementToInfer(
       typeParameters,
       constructorElement,
     );
+    inferArgumentTypes(
+        inferenceNode: node,
+        constructorElement: constructorElement,
+        elementToInfer: elementToInfer,
+        typeArguments: node.typeArguments,
+        arguments: node.arguments!,
+        errorNode: node,
+        isConst: true);
+    _resolver.visitArgumentList(argumentList,
+        whyNotPromotedList: whyNotPromotedList);
+
     var constructorRawType = elementToInfer.asType;
 
     var inferred = _resolver.inferenceHelper.inferGenericInvoke(
