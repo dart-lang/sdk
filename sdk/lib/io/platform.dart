@@ -168,8 +168,10 @@ class Platform {
   static Map<String, String> get environment => _Platform.environment;
 
   /// The path of the executable used to run the script in this isolate.
+  /// Usually `dart` when running on the Dart VM or the
+  /// compiled script name (`script_name.exe`).
   ///
-  /// The literal path used to identify the script.
+  /// The literal path used to identify the executable.
   /// This path might be relative or just be a name from which the executable
   /// was found by searching the system path.
   ///
@@ -181,6 +183,8 @@ class Platform {
   ///
   /// This is the absolute path, with all symlinks resolved, to the
   /// executable used to run the script.
+  ///
+  /// See [executable] for the unresolved version.
   static String get resolvedExecutable => _Platform.resolvedExecutable;
 
   /// The absolute URI of the script being run in this isolate.
@@ -193,6 +197,12 @@ class Platform {
   /// may be different from the file system's path resolution behavior. For
   /// example, a symbolic link immediately followed by '..' will not be
   /// looked up.
+  ///
+  /// If a compiled Dart script is being executed the URI to the compiled
+  /// script is returned, for example, `file:///full/path/to/script_name.exe`.
+  ///
+  /// If running on the Dart VM the URI to the running Dart script is returned,
+  /// for example, `file:///full/path/to/script_name.dart`.
   ///
   /// If the executable environment does not support [script],
   /// the URI is empty.
