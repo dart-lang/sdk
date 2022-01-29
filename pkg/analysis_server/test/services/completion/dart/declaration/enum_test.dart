@@ -203,6 +203,8 @@ void f() {
           ..completion.isEqualTo('MyEnum')
           ..isEnum,
       ])
+      // TODO(scheglov) This is wrong.
+      // Should include constants, as [test_nothing_imported_withPrefix] does.
       ..excludesAll([
         (suggestion) => suggestion.isEnumConstant,
       ]);
