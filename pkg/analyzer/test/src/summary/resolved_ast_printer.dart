@@ -33,9 +33,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   /// The optional provider for code lines, might be `null`.
   final CodeLinesProvider? _codeLinesProvider;
 
-  /// If `true`, types should be printed with nullability suffixes.
-  final bool _withNullability;
-
   /// If `true`, selected tokens and nodes should be printed with offsets.
   final bool _withOffsets;
 
@@ -46,12 +43,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     required StringSink sink,
     required String indent,
     CodeLinesProvider? codeLinesProvider,
-    bool withNullability = false,
     bool withOffsets = false,
   })  : _selfUriStr = selfUriStr,
         _sink = sink,
         _codeLinesProvider = codeLinesProvider,
-        _withNullability = withNullability,
         _withOffsets = withOffsets,
         _indent = indent;
 
@@ -1830,7 +1825,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   /// TODO(scheglov) Make [type] non-nullable?
   String? _typeStr(DartType? type) {
-    return type?.getDisplayString(withNullability: _withNullability);
+    return type?.getDisplayString(withNullability: true);
   }
 
   void _withIndent(void Function() f) {

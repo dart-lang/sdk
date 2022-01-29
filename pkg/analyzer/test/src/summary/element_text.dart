@@ -213,7 +213,6 @@ class _ElementWriter {
       selfUriStr: selfUriStr,
       sink: buffer,
       indent: indent,
-      withNullability: true,
       withOffsets: true,
     );
   }

@@ -578,18 +578,18 @@ Annotation
       ListLiteral
         leftBracket: [
         rightBracket: ]
-        staticType: List<List<Object>>
+        staticType: List<List<Object?>>
     leftParenthesis: (
     rightParenthesis: )
   atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::named
-    substitution: {T: Object}
+    substitution: {T: Object?}
   name: PrefixedIdentifier
     identifier: SimpleIdentifier
       staticElement: ConstructorMember
         base: self::@class::A::@constructor::named
-        substitution: {T: Object}
+        substitution: {T: Object?}
       staticType: null
       token: named
     period: .
@@ -599,7 +599,7 @@ Annotation
       token: A
     staticElement: ConstructorMember
       base: self::@class::A::@constructor::named
-      substitution: {T: Object}
+      substitution: {T: Object?}
     staticType: null
 ''');
     _assertAnnotationValueText(annotation, '''
@@ -633,13 +633,13 @@ Annotation
       ListLiteral
         leftBracket: [
         rightBracket: ]
-        staticType: List<List<Object>>
+        staticType: List<List<Object?>>
     leftParenthesis: (
     rightParenthesis: )
   atSign: @
   element: ConstructorMember
     base: self::@class::A::@constructor::•
-    substitution: {T: Object}
+    substitution: {T: Object?}
   name: SimpleIdentifier
     staticElement: self::@class::A
     staticType: null
