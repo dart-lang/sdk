@@ -223,7 +223,16 @@ class TypesBuilder {
   }
 
   void _enumDeclaration(EnumDeclaration node) {
+    var element = node.declaredElement as EnumElementImpl;
+
     // TODO(scheglov) implement
+    // element.mixins = _toInterfaceTypeList(
+    //   node.withClause?.mixinTypes2,
+    // );
+
+    element.interfaces = _toInterfaceTypeList(
+      node.implementsClause?.interfaces2,
+    );
   }
 
   void _extensionDeclaration(ExtensionDeclaration node) {

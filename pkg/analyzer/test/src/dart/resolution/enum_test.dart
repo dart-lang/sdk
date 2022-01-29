@@ -244,6 +244,21 @@ var v = [E1.a, E2.b];
     assertType(v.type, 'List<Enum>');
   }
 
+  test_interfaces() async {
+    await assertNoErrorsInCode(r'''
+class I {}
+enum E implements I { // ref
+  v;
+}
+''');
+
+    assertNamedType(
+      findNode.namedType('I { // ref'),
+      findElement.class_('I'),
+      'I',
+    );
+  }
+
   test_isEnumConstant() async {
     await assertNoErrorsInCode(r'''
 enum E {

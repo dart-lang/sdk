@@ -418,6 +418,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
 
+        // TODO(scheglov) implement
+        // _resolveWithClause(node.withClause);
+        _resolveImplementsClause(node.implementsClause);
+
         _defineElements(element.accessors);
         _defineElements(element.methods);
         node.constants.accept(this);

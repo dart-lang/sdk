@@ -122,10 +122,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     scope = TypeParameterScope(scope, element.typeParameters);
 
     node.typeParameters?.accept(this);
-    // TODO(scheglov) implement
-    // node.extendsClause?.accept(this);
-    // node.implementsClause?.accept(this);
-    // node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
+    node.withClause?.accept(this);
 
     scope = ClassScope(scope, element);
     LinkingNodeContext(node, scope);

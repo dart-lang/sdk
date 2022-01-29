@@ -17,6 +17,17 @@ main() {
 @reflectiveTest
 class ImplementsNonClassTest extends PubPackageResolutionTest
     with ImplementsNonClassTestCases {
+  test_inEnum_topLevelVariable() async {
+    await assertErrorsInCode(r'''
+int A = 7;
+enum E implements A {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 29, 1),
+    ]);
+  }
+
   test_Never() async {
     await assertErrorsInCode('''
 class A implements Never {}
@@ -27,16 +38,7 @@ class A implements Never {}
 }
 
 mixin ImplementsNonClassTestCases on PubPackageResolutionTest {
-  test_class() async {
-    await assertErrorsInCode(r'''
-int A = 7;
-class B implements A {}
-''', [
-      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 30, 1),
-    ]);
-  }
-
-  test_dynamic() async {
+  test_inClass_dynamic() async {
     await assertErrorsInCode('''
 class A implements dynamic {}
 ''', [
@@ -44,7 +46,7 @@ class A implements dynamic {}
     ]);
   }
 
-  test_enum() async {
+  test_inClass_enum() async {
     await assertErrorsInCode(r'''
 enum E { ONE }
 class A implements E {}
@@ -53,7 +55,16 @@ class A implements E {}
     ]);
   }
 
-  test_typeAlias() async {
+  test_inClass_topLevelVariable() async {
+    await assertErrorsInCode(r'''
+int A = 7;
+class B implements A {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 30, 1),
+    ]);
+  }
+
+  test_inClassTypeAlias() async {
     await assertErrorsInCode(r'''
 class A {}
 class M {}

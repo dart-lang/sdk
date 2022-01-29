@@ -17983,6 +17983,231 @@ library
 ''');
   }
 
+  test_enum_interfaces() async {
+    var library = await checkLibrary(r'''
+class I {}
+enum E implements I {
+  v;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I @6
+        constructors
+          synthetic @-1
+    enums
+      enum E @16
+        supertype: Enum
+        interfaces
+          I
+        fields
+          static const enumConstant v @35
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_interfaces_generic() async {
+    var library = await checkLibrary(r'''
+class I<T> {}
+enum E<U> implements I<U> {
+  v;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I @6
+        typeParameters
+          covariant T @8
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+    enums
+      enum E @19
+        typeParameters
+          covariant U @21
+            defaultType: dynamic
+        supertype: Enum
+        interfaces
+          I<U>
+        fields
+          static const enumConstant v @44
+            type: E<dynamic>
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: ConstructorMember
+                      base: self::@enum::E::@constructor::•
+                      substitution: {U: dynamic}
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: ConstructorMember
+                    base: self::@enum::E::@constructor::•
+                    substitution: {U: dynamic}
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E<dynamic>
+                staticType: E<dynamic>
+          synthetic static const values @-1
+            type: List<E<dynamic>>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E<dynamic>
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E<dynamic>>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E<dynamic>
+          synthetic static get values @-1
+            returnType: List<E<dynamic>>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_interfaces_unresolved() async {
+    var library = await checkLibrary('''
+class X {}
+class Z {}
+enum E implements X, Y, Z {
+  v
+}
+''', allowErrors: true);
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class X @6
+        constructors
+          synthetic @-1
+      class Z @17
+        constructors
+          synthetic @-1
+    enums
+      enum E @27
+        supertype: Enum
+        interfaces
+          X
+          Z
+        fields
+          static const enumConstant v @52
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
   test_enum_method() async {
     var library = await checkLibrary(r'''
 enum E<T> {
