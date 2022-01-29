@@ -3131,6 +3131,16 @@ class ExtensionElementImpl extends _ExistingElementImpl
   }
 
   @override
+  FieldElement? getField(String name) {
+    for (FieldElement fieldElement in fields) {
+      if (name == fieldElement.name) {
+        return fieldElement;
+      }
+    }
+    return null;
+  }
+
+  @override
   PropertyAccessorElement? getGetter(String getterName) {
     int length = accessors.length;
     for (int i = 0; i < length; i++) {
