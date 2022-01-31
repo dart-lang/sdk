@@ -31,9 +31,6 @@ mixin EnumTestCases on AbstractCompletionDriverTest {
   @override
   bool get supportsAvailableSuggestions => true;
 
-  @override
-  String get testFilePath => '$projectPath/lib/test.dart';
-
   Future<void> test_enumConstantName() async {
     await _check_locations(
       declaration: 'enum MyEnum { foo01 }',

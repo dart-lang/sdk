@@ -9,15 +9,12 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:matcher/matcher.dart';
 import 'package:meta/meta.dart';
 
 import '../../constants.dart';
-import 'abstract_client.dart';
+import '../../domain_completion_test.dart';
 import 'expect_mixin.dart';
 
 CompletionSuggestion _createCompletionSuggestionFromAvailableSuggestion(
@@ -63,9 +60,9 @@ CompletionSuggestion _createCompletionSuggestionFromAvailableSuggestion(
   );
 }
 
-class CompletionDriver extends AbstractClient with ExpectMixin {
+class CompletionDriver with ExpectMixin {
+  final PubPackageAnalysisServerTest server;
   final bool supportsAvailableSuggestions;
-  final MemoryResourceProvider _resourceProvider;
 
   Map<String, Completer<void>> receivedSuggestionsCompleters = {};
   List<CompletionSuggestion> suggestions = [];
@@ -85,51 +82,53 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
 
   CompletionDriver({
     required this.supportsAvailableSuggestions,
-    AnalysisServerOptions? serverOptions,
-    required MemoryResourceProvider resourceProvider,
-    required String projectPath,
-    required String testFilePath,
-  })  : _resourceProvider = resourceProvider,
-        super(
-            serverOptions: serverOptions ?? AnalysisServerOptions(),
-            projectPath: resourceProvider.convertPath(projectPath),
-            testFilePath: resourceProvider.convertPath(testFilePath),
-            sdkPath: resourceProvider.convertPath('/sdk'));
+    required this.server,
+  }) {
+    server.serverChannel.notificationController.stream
+        .listen((Notification notification) {
+      processNotification(notification);
+    });
+  }
 
-  @override
-  MemoryResourceProvider get resourceProvider => _resourceProvider;
-
-  @override
-  String addTestFile(String content, {int? offset}) {
+  void addTestFile(String content, {int? offset}) {
     completionOffset = content.indexOf('^');
     if (offset != null) {
       expect(completionOffset, -1, reason: 'cannot supply offset and ^');
       completionOffset = offset;
-      return super.addTestFile(content);
+      server.newFile(server.testFilePath, content: content);
+    } else {
+      expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+      var nextOffset = content.indexOf('^', completionOffset + 1);
+      expect(nextOffset, equals(-1), reason: 'too many ^');
+      server.newFile(server.testFilePath,
+          content: content.substring(0, completionOffset) +
+              content.substring(completionOffset + 1));
     }
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-    var nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-    return super.addTestFile(content.substring(0, completionOffset) +
-        content.substring(completionOffset + 1));
   }
 
-  @override
-  Future<void> createProject({Map<String, String>? packageRoots}) async {
-    await super.createProject(packageRoots: packageRoots);
+  void assertValidId(String id) {
+    expect(id, isNotNull);
+    expect(id.isNotEmpty, isTrue);
+  }
+
+  Future<void> createProject() async {
+    await server.setRoots(included: [server.workspaceRootPath], excluded: []);
+
     if (supportsAvailableSuggestions) {
-      var request = CompletionSetSubscriptionsParams(
-          [CompletionService.AVAILABLE_SUGGESTION_SETS]).toRequest('0');
-      handleSuccessfulRequest(request, handler: completionHandler);
+      await server.handleRequest(
+        CompletionSetSubscriptionsParams([
+          CompletionService.AVAILABLE_SUGGESTION_SETS,
+        ]).toRequest('0'),
+      );
     }
   }
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
-    await waitForTasksFinished();
-
-    var request = CompletionGetSuggestionsParams(testFilePath, completionOffset)
-        .toRequest('0');
-    var response = await waitResponse(request);
+    var request = CompletionGetSuggestionsParams(
+      server.testFilePath,
+      completionOffset,
+    ).toRequest('0');
+    var response = await server.handleRequest(request);
     var result = CompletionGetSuggestionsResult.fromResponse(response);
     completionId = result.id;
     assertValidId(completionId);
@@ -138,30 +137,19 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   }
 
   Future<List<CompletionSuggestion>> getSuggestions2() async {
-    await waitForTasksFinished();
-
     var request = CompletionGetSuggestions2Params(
-      testFilePath,
+      server.testFilePath,
       completionOffset,
       1 << 16,
       timeout: 60 * 1000,
     ).toRequest('0');
-    var response = await waitResponse(request);
+    var response = await server.handleRequest(request);
     var result = CompletionGetSuggestions2Result.fromResponse(response);
     replacementOffset = result.replacementOffset;
     replacementLength = result.replacementLength;
     return result.suggestions;
   }
 
-  @override
-  File newFile(String path, String content) =>
-      resourceProvider.newFile(resourceProvider.convertPath(path), content);
-
-  @override
-  Folder newFolder(String path) =>
-      resourceProvider.newFolder(resourceProvider.convertPath(path));
-
-  @override
   @mustCallSuper
   Future<void> processNotification(Notification notification) async {
     if (notification.event == COMPLETION_RESULTS) {
