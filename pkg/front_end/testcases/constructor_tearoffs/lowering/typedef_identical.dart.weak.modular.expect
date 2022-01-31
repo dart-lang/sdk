@@ -1,0 +1,148 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "typedef_identical_lib.dart" as typ;
+
+import "org-dartlang-testcase:///typedef_identical_lib.dart";
+
+typedef H<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = typ::A<Y%>;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> H_new = #C1;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, [core::int?]) → typ::A<Y%> H_named = #C2;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, {b: core::int?, c: core::int}) → typ::A<Y%> H_fact = #C3;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> H_redirect = #C4;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> F_new = #C5;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, [core::int?]) → typ::A<Y%> F_named = #C6;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, {b: core::int?, c: core::int}) → typ::A<Y%> F_fact = #C7;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> F_redirect = #C8;
+static method main() → dynamic {
+  self::expect(true, core::identical(self::F_new, typ::F_new_lib));
+  self::expect(false, core::identical(self::F_new, typ::F_named_lib));
+  self::expect(false, core::identical(self::F_new, typ::F_fact_lib));
+  self::expect(false, core::identical(self::F_new, typ::F_redirect_lib));
+  self::expect(false, core::identical(self::F_new, typ::G_new_lib));
+  self::expect(false, core::identical(self::F_new, typ::G_named_lib));
+  self::expect(false, core::identical(self::F_new, typ::G_fact_lib));
+  self::expect(false, core::identical(self::F_new, typ::G_redirect_lib));
+  self::expect(false, core::identical(self::F_new, self::H_new));
+  self::expect(false, core::identical(self::F_new, self::H_named));
+  self::expect(false, core::identical(self::F_new, self::H_fact));
+  self::expect(false, core::identical(self::F_new, self::H_redirect));
+  self::expect(false, core::identical(self::F_named, typ::F_new_lib));
+  self::expect(true, core::identical(self::F_named, typ::F_named_lib));
+  self::expect(false, core::identical(self::F_named, typ::F_fact_lib));
+  self::expect(false, core::identical(self::F_named, typ::F_redirect_lib));
+  self::expect(false, core::identical(self::F_named, typ::G_new_lib));
+  self::expect(false, core::identical(self::F_named, typ::G_named_lib));
+  self::expect(false, core::identical(self::F_named, typ::G_fact_lib));
+  self::expect(false, core::identical(self::F_named, typ::G_redirect_lib));
+  self::expect(false, core::identical(self::F_named, self::H_new));
+  self::expect(false, core::identical(self::F_named, self::H_named));
+  self::expect(false, core::identical(self::F_named, self::H_fact));
+  self::expect(false, core::identical(self::F_named, self::H_redirect));
+  self::expect(false, core::identical(self::F_fact, typ::F_new_lib));
+  self::expect(false, core::identical(self::F_fact, typ::F_named_lib));
+  self::expect(true, core::identical(self::F_fact, typ::F_fact_lib));
+  self::expect(false, core::identical(self::F_fact, typ::F_redirect_lib));
+  self::expect(false, core::identical(self::F_fact, typ::G_new_lib));
+  self::expect(false, core::identical(self::F_fact, typ::G_named_lib));
+  self::expect(false, core::identical(self::F_fact, typ::G_fact_lib));
+  self::expect(false, core::identical(self::F_fact, typ::G_redirect_lib));
+  self::expect(false, core::identical(self::F_fact, self::H_new));
+  self::expect(false, core::identical(self::F_fact, self::H_named));
+  self::expect(false, core::identical(self::F_fact, self::H_fact));
+  self::expect(false, core::identical(self::F_fact, self::H_redirect));
+  self::expect(false, core::identical(self::F_redirect, typ::F_new_lib));
+  self::expect(false, core::identical(self::F_redirect, typ::F_named_lib));
+  self::expect(false, core::identical(self::F_redirect, typ::F_fact_lib));
+  self::expect(true, core::identical(self::F_redirect, typ::F_redirect_lib));
+  self::expect(false, core::identical(self::F_redirect, typ::G_new_lib));
+  self::expect(false, core::identical(self::F_redirect, typ::G_named_lib));
+  self::expect(false, core::identical(self::F_redirect, typ::G_fact_lib));
+  self::expect(false, core::identical(self::F_redirect, typ::G_redirect_lib));
+  self::expect(false, core::identical(self::F_redirect, self::H_new));
+  self::expect(false, core::identical(self::F_redirect, self::H_named));
+  self::expect(false, core::identical(self::F_redirect, self::H_fact));
+  self::expect(false, core::identical(self::F_redirect, self::H_redirect));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#new#tearOff::Y%>
+  return new typ::A::•<self::_#H#new#tearOff::Y%>();
+static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b = #C9]) → typ::A<self::_#H#named#tearOff::Y%>
+  return new typ::A::named<self::_#H#named#tearOff::Y%>(a, b);
+static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#fact#tearOff::Y% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<self::_#H#fact#tearOff::Y%>
+  return typ::A::fact<self::_#H#fact#tearOff::Y%>(a, b: b, c: c);
+static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#redirect#tearOff::Y%>
+  return typ::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();
+
+library /*isNonNullableByDefault*/;
+import self as typ;
+import "dart:core" as core;
+
+typedef F<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = typ::A<Y%>;
+typedef G<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic> = typ::A<Y%>;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C11]/*isLegacy*/;
+  constructor •() → typ::A<typ::A::T%>
+    : super core::Object::•()
+    ;
+  constructor named(typ::A::T% a, [core::int? b = #C9]) → typ::A<typ::A::T%>
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → typ::A<typ::A::_#new#tearOff::T%>
+    return new typ::A::•<typ::A::_#new#tearOff::T%>();
+  static method _#named#tearOff<T extends core::Object? = dynamic>(typ::A::_#named#tearOff::T% a, [core::int? b = #C9]) → typ::A<typ::A::_#named#tearOff::T%>
+    return new typ::A::named<typ::A::_#named#tearOff::T%>(a, b);
+  static factory fact<T extends core::Object? = dynamic>(typ::A::fact::T% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<typ::A::fact::T%>
+    return new typ::A::•<typ::A::fact::T%>();
+  static method _#fact#tearOff<T extends core::Object? = dynamic>(typ::A::_#fact#tearOff::T% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<typ::A::_#fact#tearOff::T%>
+    return typ::A::fact<typ::A::_#fact#tearOff::T%>(a, b: b, c: c);
+  static factory redirect<T extends core::Object? = dynamic>() → typ::A<typ::A::redirect::T%>
+    return new typ::A::•<typ::A::redirect::T%>();
+  static method _#redirect#tearOff<T extends core::Object? = dynamic>() → typ::A<typ::A::_#redirect#tearOff::T%>
+    return new typ::A::•<typ::A::_#redirect#tearOff::T%>();
+}
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> F_new_lib = #C5;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, [core::int?]) → typ::A<Y%> F_named_lib = #C6;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, {b: core::int?, c: core::int}) → typ::A<Y%> F_fact_lib = #C7;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> F_redirect_lib = #C8;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> G_new_lib = #C12;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, [core::int?]) → typ::A<Y%> G_named_lib = #C13;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(Y%, {b: core::int?, c: core::int}) → typ::A<Y%> G_fact_lib = #C14;
+static field <unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<Y%> G_redirect_lib = #C15;
+static method _#F#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#F#new#tearOff::Y%>
+  return new typ::A::•<typ::_#F#new#tearOff::Y%>();
+static method _#F#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#F#named#tearOff::Y% a, [core::int? b = #C9]) → typ::A<typ::_#F#named#tearOff::Y%>
+  return new typ::A::named<typ::_#F#named#tearOff::Y%>(a, b);
+static method _#F#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#F#fact#tearOff::Y% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<typ::_#F#fact#tearOff::Y%>
+  return typ::A::fact<typ::_#F#fact#tearOff::Y%>(a, b: b, c: c);
+static method _#F#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#F#redirect#tearOff::Y%>
+  return typ::A::_#redirect#tearOff<typ::_#F#redirect#tearOff::Y%>();
+static method _#G#new#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#G#new#tearOff::Y%>
+  return new typ::A::•<typ::_#G#new#tearOff::Y%>();
+static method _#G#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#G#named#tearOff::Y% a, [core::int? b = #C9]) → typ::A<typ::_#G#named#tearOff::Y%>
+  return new typ::A::named<typ::_#G#named#tearOff::Y%>(a, b);
+static method _#G#fact#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(typ::_#G#fact#tearOff::Y% a, {core::int? b = #C9, core::int c = #C10}) → typ::A<typ::_#G#fact#tearOff::Y%>
+  return typ::A::fact<typ::_#G#fact#tearOff::Y%>(a, b: b, c: c);
+static method _#G#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<typ::_#G#redirect#tearOff::Y%>
+  return typ::A::_#redirect#tearOff<typ::_#G#redirect#tearOff::Y%>();
+
+constants  {
+  #C1 = static-tearoff self::_#H#new#tearOff
+  #C2 = static-tearoff self::_#H#named#tearOff
+  #C3 = static-tearoff self::_#H#fact#tearOff
+  #C4 = static-tearoff self::_#H#redirect#tearOff
+  #C5 = static-tearoff typ::_#F#new#tearOff
+  #C6 = static-tearoff typ::_#F#named#tearOff
+  #C7 = static-tearoff typ::_#F#fact#tearOff
+  #C8 = static-tearoff typ::_#F#redirect#tearOff
+  #C9 = null
+  #C10 = 42
+  #C11 = constructor-tearoff typ::A::redirect
+  #C12 = static-tearoff typ::_#G#new#tearOff
+  #C13 = static-tearoff typ::_#G#named#tearOff
+  #C14 = static-tearoff typ::_#G#fact#tearOff
+  #C15 = static-tearoff typ::_#G#redirect#tearOff
+}

@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2021-10-26T10:20:01.277340",
+  "generated": "2021-12-10T17:31:54.553345",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -88,7 +88,7 @@
       "name": "analyzer_cli",
       "rootUri": "../pkg/analyzer_cli",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.14"
     },
     {
       "name": "analyzer_plugin",
@@ -124,7 +124,7 @@
       "name": "bazel_worker",
       "rootUri": "../third_party/pkg/bazel_worker",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.14"
     },
     {
       "name": "benchmark_harness",
@@ -262,7 +262,7 @@
       "name": "dev_compiler",
       "rootUri": "../pkg/dev_compiler",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.15"
     },
     {
       "name": "devtools_server",
@@ -381,7 +381,7 @@
       "name": "js",
       "rootUri": "../pkg/js",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.16"
     },
     {
       "name": "js_ast",
@@ -659,7 +659,7 @@
       "name": "stream_channel",
       "rootUri": "../third_party/pkg/stream_channel",
       "packageUri": "lib/",
-      "languageVersion": "2.10"
+      "languageVersion": "2.14"
     },
     {
       "name": "string_scanner",
@@ -710,6 +710,11 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "test_package",
+      "rootUri": "../pkg/vm_service/test/test_package",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "test_process",
       "rootUri": "../third_party/pkg/test_process",
       "packageUri": "lib/",
@@ -755,7 +760,7 @@
       "name": "vm",
       "rootUri": "../pkg/vm",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.15"
     },
     {
       "name": "vm_service",

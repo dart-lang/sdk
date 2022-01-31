@@ -25,9 +25,10 @@ namespace ffi {
 const intptr_t kNativeParamsStartAt = 1;
 
 // Representations of the arguments and return value of a C signature function.
-static const NativeFunctionType& NativeFunctionSignature(
+const NativeFunctionType* NativeFunctionTypeFromFunctionType(
     Zone* zone,
-    const FunctionType& c_signature) {
+    const FunctionType& c_signature,
+    const char** error) {
   ASSERT(c_signature.NumOptionalParameters() == 0);
   ASSERT(c_signature.NumOptionalPositionalParameters() == 0);
 
@@ -38,29 +39,41 @@ static const NativeFunctionType& NativeFunctionSignature(
   for (intptr_t i = 0; i < num_arguments; i++) {
     AbstractType& arg_type = AbstractType::Handle(
         zone, c_signature.ParameterTypeAt(i + kNativeParamsStartAt));
-    const auto& rep = NativeType::FromAbstractType(zone, arg_type);
-    argument_representations.Add(&rep);
+    const auto rep = NativeType::FromAbstractType(zone, arg_type, error);
+    if (*error != nullptr) {
+      return nullptr;
+    }
+    argument_representations.Add(rep);
   }
 
   const auto& result_type =
       AbstractType::Handle(zone, c_signature.result_type());
-  const auto& result_representation =
-      NativeType::FromAbstractType(zone, result_type);
+  const auto result_representation =
+      NativeType::FromAbstractType(zone, result_type, error);
+  if (*error != nullptr) {
+    return nullptr;
+  }
 
-  const auto& result = *new (zone) NativeFunctionType(argument_representations,
-                                                      result_representation);
+  const auto result = new (zone)
+      NativeFunctionType(argument_representations, *result_representation);
   return result;
 }
 
-BaseMarshaller::BaseMarshaller(Zone* zone, const Function& dart_signature)
-    : zone_(zone),
-      dart_signature_(dart_signature),
-      c_signature_(
-          FunctionType::ZoneHandle(zone, dart_signature.FfiCSignature())),
-      native_calling_convention_(NativeCallingConvention::FromSignature(
-          zone,
-          NativeFunctionSignature(zone_, c_signature_))) {
-  ASSERT(dart_signature_.IsZoneHandle());
+CallMarshaller* CallMarshaller::FromFunction(Zone* zone,
+                                             const Function& function,
+                                             const char** error) {
+  ASSERT(function.IsZoneHandle());
+  const auto& c_signature =
+      FunctionType::ZoneHandle(zone, function.FfiCSignature());
+  const auto native_function_signature =
+      NativeFunctionTypeFromFunctionType(zone, c_signature, error);
+  if (*error != nullptr) {
+    return nullptr;
+  }
+  const auto& native_calling_convention =
+      NativeCallingConvention::FromSignature(zone, *native_function_signature);
+  return new (zone)
+      CallMarshaller(zone, function, c_signature, native_calling_convention);
 }
 
 AbstractTypePtr BaseMarshaller::CType(intptr_t arg_index) const {
@@ -70,6 +83,32 @@ AbstractTypePtr BaseMarshaller::CType(intptr_t arg_index) const {
 
   // Skip #0 argument, the function pointer.
   return c_signature_.ParameterTypeAt(arg_index + kNativeParamsStartAt);
+}
+
+// Keep consistent with Function::FfiCSignatureReturnsStruct.
+bool BaseMarshaller::IsCompound(intptr_t arg_index) const {
+  const auto& type = AbstractType::Handle(zone_, CType(arg_index));
+  if (IsFfiTypeClassId(type.type_class_id())) {
+    return false;
+  }
+  const auto& cls = Class::Handle(this->zone_, type.type_class());
+  const auto& superClass = Class::Handle(this->zone_, cls.SuperClass());
+  const bool is_abi_specific_int =
+      String::Handle(this->zone_, superClass.UserVisibleName())
+          .Equals(Symbols::AbiSpecificInteger());
+  if (is_abi_specific_int) {
+    return false;
+  }
+#ifdef DEBUG
+  const bool is_struct =
+      String::Handle(this->zone_, superClass.UserVisibleName())
+          .Equals(Symbols::Struct());
+  const bool is_union =
+      String::Handle(this->zone_, superClass.UserVisibleName())
+          .Equals(Symbols::Union());
+  ASSERT(is_struct || is_union);
+#endif
+  return true;
 }
 
 bool BaseMarshaller::ContainsHandles() const {
@@ -574,13 +613,26 @@ class CallbackArgumentTranslator : public ValueObject {
   intptr_t argument_slots_required_ = 0;
 };
 
-CallbackMarshaller::CallbackMarshaller(Zone* zone,
-                                       const Function& dart_signature)
-    : BaseMarshaller(zone, dart_signature),
-      callback_locs_(CallbackArgumentTranslator::TranslateArgumentLocations(
-          zone_,
-          native_calling_convention_.argument_locations(),
-          native_calling_convention_.return_location())) {}
+CallbackMarshaller* CallbackMarshaller::FromFunction(Zone* zone,
+                                                     const Function& function,
+                                                     const char** error) {
+  ASSERT(function.IsZoneHandle());
+  const auto& c_signature =
+      FunctionType::ZoneHandle(zone, function.FfiCSignature());
+  const auto native_function_signature =
+      NativeFunctionTypeFromFunctionType(zone, c_signature, error);
+  if (*error != nullptr) {
+    return nullptr;
+  }
+  const auto& native_calling_convention =
+      NativeCallingConvention::FromSignature(zone, *native_function_signature);
+  const auto& callback_locs =
+      CallbackArgumentTranslator::TranslateArgumentLocations(
+          zone, native_calling_convention.argument_locations(),
+          native_calling_convention.return_location());
+  return new (zone) CallbackMarshaller(
+      zone, function, c_signature, native_calling_convention, callback_locs);
+}
 
 const NativeLocation& CallbackMarshaller::NativeLocationOfNativeParameter(
     intptr_t def_index) const {

@@ -315,8 +315,7 @@ class KernelTarget extends TargetImplementation {
       Uri translatedEntryPoint =
           getEntryPointUri(entryPoint, issueProblem: true);
       result.add(translatedEntryPoint);
-      loader.read(translatedEntryPoint, -1,
-          accessor: loader.first,
+      loader.readAsEntryPoint(translatedEntryPoint,
           fileUri: translatedEntryPoint != entryPoint ? entryPoint : null);
     }
     return result;
@@ -361,23 +360,6 @@ class KernelTarget extends TargetImplementation {
     return entryPoint;
   }
 
-  /// Returns classes defined in libraries in [loader].
-  List<SourceClassBuilder> collectMyClasses() {
-    List<SourceClassBuilder> result = <SourceClassBuilder>[];
-    for (LibraryBuilder library in loader.libraryBuilders) {
-      if (library.loader == loader) {
-        Iterator<Builder> iterator = library.iterator;
-        while (iterator.moveNext()) {
-          Builder member = iterator.current;
-          if (member is SourceClassBuilder && !member.isPatch) {
-            result.add(member);
-          }
-        }
-      }
-    }
-    return result;
-  }
-
   /// The class [cls] is involved in a cyclic definition. This method should
   /// ensure that the cycle is broken, for example, by removing superclass and
   /// implemented interfaces.
@@ -402,7 +384,6 @@ class KernelTarget extends TargetImplementation {
     if (loader.first == null) return null;
     return withCrashReporting<Component?>(() async {
       await loader.buildOutlines();
-      loader.createTypeInferenceEngine();
       loader.coreLibrary.becomeCoreLibrary();
       loader.resolveParts();
       loader.computeLibraryScopes();
@@ -411,30 +392,33 @@ class KernelTarget extends TargetImplementation {
       loader.computeVariances();
       loader.computeDefaultTypes(
           dynamicType, nullType, bottomType, objectClassBuilder);
-      List<SourceClassBuilder> myClasses =
+      List<SourceClassBuilder> sourceClassBuilders =
           loader.checkSemantics(objectClassBuilder);
+      loader.computeMacroDeclarations(sourceClassBuilders);
       loader.finishTypeVariables(objectClassBuilder, dynamicType);
+      loader.createTypeInferenceEngine();
       loader.buildComponent();
       installDefaultSupertypes();
-      installSyntheticConstructors(myClasses);
+      installSyntheticConstructors(sourceClassBuilders);
       loader.resolveConstructors();
       component =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
       computeCoreTypes();
-      loader.buildClassHierarchy(myClasses, objectClassBuilder);
+      loader.buildClassHierarchy(sourceClassBuilders, objectClassBuilder);
       loader.computeHierarchy();
       loader.computeShowHideElements();
       loader.installTypedefTearOffs();
-      loader.performTopLevelInference(myClasses);
-      loader.checkSupertypes(myClasses);
-      loader.checkOverrides(myClasses);
-      loader.checkAbstractMembers(myClasses);
-      loader.addNoSuchMethodForwarders(myClasses);
-      loader.checkMixins(myClasses);
+      loader.performTopLevelInference(sourceClassBuilders);
+      loader.checkSupertypes(sourceClassBuilders);
+      loader.checkOverrides(sourceClassBuilders);
+      loader.checkAbstractMembers(sourceClassBuilders);
+      loader.addNoSuchMethodForwarders(sourceClassBuilders);
+      loader.checkMixins(sourceClassBuilders);
       loader.buildOutlineExpressions(
           loader.coreTypes, synthesizedFunctionNodes);
+      loader.computeMacroApplications();
       loader.checkTypes();
-      loader.checkRedirectingFactories(myClasses);
+      loader.checkRedirectingFactories(sourceClassBuilders);
       loader.checkMainMethods();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
@@ -458,10 +442,10 @@ class KernelTarget extends TargetImplementation {
       finishSynthesizedParameters();
       loader.finishDeferredLoadTearoffs();
       loader.finishNoSuchMethodForwarders();
-      List<SourceClassBuilder> myClasses = collectMyClasses();
+      List<SourceClassBuilder> sourceClasses = loader.collectSourceClasses();
       loader.finishNativeMethods();
       loader.finishPatchMethods();
-      finishAllConstructors(myClasses);
+      finishAllConstructors(sourceClasses);
       runBuildTransformations();
 
       if (verify) this.verify();
@@ -623,33 +607,8 @@ class KernelTarget extends TargetImplementation {
 
   void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
-    for (LibraryBuilder library in loader.libraryBuilders) {
-      if (library.loader == loader) {
-        Iterator<Builder> iterator = library.iterator;
-        while (iterator.moveNext()) {
-          Builder declaration = iterator.current;
-          if (declaration is SourceClassBuilder) {
-            Class cls = declaration.cls;
-            if (cls != objectClass) {
-              cls.supertype ??= objectClass.asRawSupertype;
-              declaration.supertypeBuilder ??= new NamedTypeBuilder(
-                  "Object",
-                  const NullabilityBuilder.omitted(),
-                  /* arguments = */ null,
-                  /* fileUri = */ null,
-                  /* charOffset = */ null,
-                  instanceTypeVariableAccess:
-                      InstanceTypeVariableAccessState.Unexpected)
-                ..bind(objectClassBuilder);
-            }
-            if (declaration.isMixinApplication) {
-              cls.mixedInType = declaration.mixedInTypeBuilder!
-                  .buildMixedInType(
-                      library, declaration.charOffset, declaration.fileUri);
-            }
-          }
-        }
-      }
+    for (SourceLibraryBuilder library in loader.sourceLibraryBuilders) {
+      library.installDefaultSupertypes(objectClassBuilder, objectClass);
     }
     ticker.logMs("Installed Object as implicit superclass");
   }
@@ -809,7 +768,8 @@ class KernelTarget extends TargetImplementation {
         supertype is TypeVariableBuilder ||
         supertype is DynamicTypeDeclarationBuilder ||
         supertype is VoidTypeDeclarationBuilder ||
-        supertype is NeverTypeDeclarationBuilder) {
+        supertype is NeverTypeDeclarationBuilder ||
+        supertype is TypeAliasBuilder) {
       builder.addSyntheticConstructor(_makeDefaultConstructor(
           builder, constructorReference, tearOffReference));
     } else {

@@ -61,7 +61,7 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
       ));
     }
 
-    final sorter = MemberSorter(code, unit);
+    final sorter = MemberSorter(code, unit, result.lineInfo);
     final edits = sorter.sort();
 
     if (edits.isEmpty) {

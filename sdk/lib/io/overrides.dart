@@ -81,16 +81,21 @@ abstract class IOOverrides {
 
       // Socket
       Future<Socket> Function(dynamic, int,
-              {dynamic sourceAddress, Duration? timeout})?
+              {dynamic sourceAddress, int sourcePort, Duration? timeout})?
           socketConnect,
       Future<ConnectionTask<Socket>> Function(dynamic, int,
-              {dynamic sourceAddress})?
+              {dynamic sourceAddress, int sourcePort})?
           socketStartConnect,
 
       // ServerSocket
       Future<ServerSocket> Function(dynamic, int,
               {int backlog, bool v6Only, bool shared})?
-          serverSocketBind}) {
+          serverSocketBind,
+
+      // Standard Streams
+      Stdin Function()? stdin,
+      Stdout Function()? stdout,
+      Stdout Function()? stderr}) {
     IOOverrides overrides = new _IOOverridesScope(
       // Directory
       createDirectory,
@@ -124,6 +129,11 @@ abstract class IOOverrides {
 
       // ServerSocket
       serverSocketBind,
+
+      // Standard streams
+      stdin,
+      stdout,
+      stderr,
     );
     return _asyncRunZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
@@ -259,9 +269,9 @@ abstract class IOOverrides {
   /// When this override is installed, this functions overrides the behavior of
   /// `Socket.connect(...)`.
   Future<Socket> socketConnect(host, int port,
-      {sourceAddress, Duration? timeout}) {
+      {sourceAddress, int sourcePort = 0, Duration? timeout}) {
     return Socket._connect(host, port,
-        sourceAddress: sourceAddress, timeout: timeout);
+        sourceAddress: sourceAddress, sourcePort: sourcePort, timeout: timeout);
   }
 
   /// Asynchronously returns a [ConnectionTask] that connects to the given host
@@ -270,8 +280,9 @@ abstract class IOOverrides {
   /// When this override is installed, this functions overrides the behavior of
   /// `Socket.startConnect(...)`.
   Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
-      {sourceAddress}) {
-    return Socket._startConnect(host, port, sourceAddress: sourceAddress);
+      {sourceAddress, int sourcePort = 0}) {
+    return Socket._startConnect(host, port,
+        sourceAddress: sourceAddress, sourcePort: sourcePort);
   }
 
   // ServerSocket
@@ -285,6 +296,32 @@ abstract class IOOverrides {
       {int backlog = 0, bool v6Only = false, bool shared = false}) {
     return ServerSocket._bind(address, port,
         backlog: backlog, v6Only: v6Only, shared: shared);
+  }
+
+  // Standard streams
+
+  /// The standard input stream of data read by this program.
+  ///
+  /// When this override is installed, this getter overrides the behavior of
+  /// the top-level `stdin` getter.
+  Stdin get stdin {
+    return _stdin;
+  }
+
+  /// The standard output stream of data written by this program.
+  ///
+  /// When this override is installed, this getter overrides the behavior of
+  /// the top-level `stdout` getter.
+  Stdout get stdout {
+    return _stdout;
+  }
+
+  /// The standard output stream of errors written by this program.
+  ///
+  /// When this override is installed, this getter overrides the behavior of
+  /// the top-level `stderr` getter.
+  Stdout get stderr {
+    return _stderr;
   }
 }
 
@@ -319,13 +356,20 @@ class _IOOverridesScope extends IOOverrides {
 
   // Socket
   Future<Socket> Function(dynamic, int,
-      {dynamic sourceAddress, Duration? timeout})? _socketConnect;
+      {dynamic sourceAddress,
+      int sourcePort,
+      Duration? timeout})? _socketConnect;
   Future<ConnectionTask<Socket>> Function(dynamic, int,
-      {dynamic sourceAddress})? _socketStartConnect;
+      {dynamic sourceAddress, int sourcePort})? _socketStartConnect;
 
   // ServerSocket
   Future<ServerSocket> Function(dynamic, int,
       {int backlog, bool v6Only, bool shared})? _serverSocketBind;
+
+  // Standard streams
+  Stdin Function()? _stdin;
+  Stdout Function()? _stdout;
+  Stdout Function()? _stderr;
 
   _IOOverridesScope(
     // Directory
@@ -360,6 +404,11 @@ class _IOOverridesScope extends IOOverrides {
 
     // ServerSocket
     this._serverSocketBind,
+
+    // Standard streams
+    this._stdin,
+    this._stdout,
+    this._stderr,
   );
 
   // Directory
@@ -472,30 +521,34 @@ class _IOOverridesScope extends IOOverrides {
   // Socket
   @override
   Future<Socket> socketConnect(host, int port,
-      {sourceAddress, Duration? timeout}) {
+      {sourceAddress, int sourcePort = 0, Duration? timeout}) {
     if (_socketConnect != null) {
       return _socketConnect!(host, port,
           sourceAddress: sourceAddress, timeout: timeout);
     }
     if (_previous != null) {
       return _previous!.socketConnect(host, port,
-          sourceAddress: sourceAddress, timeout: timeout);
+          sourceAddress: sourceAddress,
+          sourcePort: sourcePort,
+          timeout: timeout);
     }
     return super.socketConnect(host, port,
-        sourceAddress: sourceAddress, timeout: timeout);
+        sourceAddress: sourceAddress, sourcePort: sourcePort, timeout: timeout);
   }
 
   @override
   Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
-      {sourceAddress}) {
+      {sourceAddress, int sourcePort = 0}) {
     if (_socketStartConnect != null) {
-      return _socketStartConnect!(host, port, sourceAddress: sourceAddress);
+      return _socketStartConnect!(host, port,
+          sourceAddress: sourceAddress, sourcePort: sourcePort);
     }
     if (_previous != null) {
-      return _previous!
-          .socketStartConnect(host, port, sourceAddress: sourceAddress);
+      return _previous!.socketStartConnect(host, port,
+          sourceAddress: sourceAddress, sourcePort: sourcePort);
     }
-    return super.socketStartConnect(host, port, sourceAddress: sourceAddress);
+    return super.socketStartConnect(host, port,
+        sourceAddress: sourceAddress, sourcePort: sourcePort);
   }
 
   // ServerSocket
@@ -513,5 +566,22 @@ class _IOOverridesScope extends IOOverrides {
     }
     return super.serverSocketBind(address, port,
         backlog: backlog, v6Only: v6Only, shared: shared);
+  }
+
+  // Standard streams
+
+  @override
+  Stdin get stdin {
+    return _stdin?.call() ?? _previous?.stdin ?? super.stdin;
+  }
+
+  @override
+  Stdout get stdout {
+    return _stdout?.call() ?? _previous?.stdout ?? super.stdout;
+  }
+
+  @override
+  Stdout get stderr {
+    return _stderr?.call() ?? _previous?.stderr ?? super.stderr;
   }
 }

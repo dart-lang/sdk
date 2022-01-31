@@ -93,7 +93,6 @@ io/http_reuse_server_port_test: Skip # Flaky.
 io/http_server_close_response_after_error_test: Skip # Flaky.
 io/http_shutdown_test: Skip # Flaky.
 io/https_client_certificate_test: Crash
-io/platform_test: Crash
 io/raw_datagram_socket_test: Skip # Flaky.
 io/raw_secure_server_closing_test: Skip # Flaky
 io/raw_socket_test: Crash

@@ -12,17 +12,15 @@ import 'package:analyzer_cli/src/options.dart';
 /// - if [options.enableTypeChecks] is false, then de-escalate checked-mode
 ///   compile time errors to a severity of [ErrorSeverity.INFO].
 /// - if [options.lintsAreFatal] is true, escalate lints to errors.
-ErrorSeverity computeSeverity(
+ErrorSeverity? computeSeverity(
   AnalysisError error,
   CommandLineOptions commandLineOptions,
   AnalysisOptions analysisOptions,
 ) {
-  if (analysisOptions != null) {
-    var processor = ErrorProcessor.getProcessor(analysisOptions, error);
-    // If there is a processor for this error, defer to it.
-    if (processor != null) {
-      return processor.severity;
-    }
+  var processor = ErrorProcessor.getProcessor(analysisOptions, error);
+  // If there is a processor for this error, defer to it.
+  if (processor != null) {
+    return processor.severity;
   }
 
   if (commandLineOptions.lintsAreFatal && error.errorCode is LintCode) {
@@ -34,7 +32,7 @@ ErrorSeverity computeSeverity(
 
 /// Check various configuration options to get a desired severity for this
 /// [error] (or `null` if it's to be suppressed).
-ErrorSeverity determineProcessedSeverity(AnalysisError error,
+ErrorSeverity? determineProcessedSeverity(AnalysisError error,
     CommandLineOptions commandLineOptions, AnalysisOptions analysisOptions) {
   var severity = computeSeverity(error, commandLineOptions, analysisOptions);
   // Skip TODOs categorically unless escalated to ERROR or HINT (#26215).

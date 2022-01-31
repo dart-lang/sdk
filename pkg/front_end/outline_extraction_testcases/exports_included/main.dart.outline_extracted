@@ -1,0 +1,15 @@
+org-dartlang-testcase:///main.dart:
+export "test6.dart";
+
+
+
+
+org-dartlang-testcase:///test6.dart:
+export "test7.dart";
+void test6() {}
+
+
+
+
+org-dartlang-testcase:///test7.dart:
+void test7() {}

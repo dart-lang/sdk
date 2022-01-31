@@ -223,8 +223,15 @@ struct AssertSubtypeABI {
 
 // ABI for InitStaticFieldStub.
 struct InitStaticFieldABI {
-  static const Register kFieldReg = RAX;
+  static const Register kFieldReg = RDX;
   static const Register kResultReg = RAX;
+};
+
+// Registers used inside the implementation of InitLateStaticFieldStub.
+struct InitLateStaticFieldInternalRegs {
+  static const Register kFunctionReg = RAX;
+  static const Register kAddressReg = RCX;
+  static const Register kScratchReg = RSI;
 };
 
 // ABI for InitInstanceFieldStub.

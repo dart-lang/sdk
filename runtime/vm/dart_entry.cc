@@ -107,16 +107,14 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
 #if !defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
-    if (FLAG_use_bare_instructions) {
-      Thread* thread = Thread::Current();
-      thread->set_global_object_pool(
-          thread->isolate_group()->object_store()->global_object_pool());
-      const DispatchTable* dispatch_table = thread->isolate()->dispatch_table();
-      if (dispatch_table != nullptr) {
-        thread->set_dispatch_table_array(dispatch_table->ArrayOrigin());
-      }
-      ASSERT(thread->global_object_pool() != Object::null());
+    Thread* thread = Thread::Current();
+    thread->set_global_object_pool(
+        thread->isolate_group()->object_store()->global_object_pool());
+    const DispatchTable* dispatch_table = thread->isolate()->dispatch_table();
+    if (dispatch_table != nullptr) {
+      thread->set_dispatch_table_array(dispatch_table->ArrayOrigin());
     }
+    ASSERT(thread->global_object_pool() != Object::null());
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
@@ -179,14 +177,13 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
 #if defined(USING_SIMULATOR)
   return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
       static_cast<intptr_t>(stub),
-      ((FLAG_precompiled_mode && FLAG_use_bare_instructions)
-           ? static_cast<intptr_t>(entry_point)
-           : reinterpret_cast<intptr_t>(&code)),
+      FLAG_precompiled_mode ? static_cast<intptr_t>(entry_point)
+                            : reinterpret_cast<intptr_t>(&code),
       reinterpret_cast<intptr_t>(&arguments_descriptor),
       reinterpret_cast<intptr_t>(&arguments),
       reinterpret_cast<intptr_t>(thread)));
 #else
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     return static_cast<ObjectPtr>(
         (reinterpret_cast<invokestub_bare_instructions>(stub))(
             entry_point, arguments_descriptor, arguments, thread));
@@ -673,24 +670,6 @@ ObjectPtr DartLibraryCalls::Equals(const Instance& left,
   const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, left);
   args.SetAt(1, right);
-  const Object& result =
-      Object::Handle(zone, DartEntry::InvokeFunction(function, args));
-  ASSERT(result.IsInstance() || result.IsError());
-  return result.ptr();
-}
-
-// On success, returns an InstancePtr.  On failure, an ErrorPtr.
-ObjectPtr DartLibraryCalls::IdentityHashCode(const Instance& object) {
-  const int kNumArguments = 1;
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const Library& libcore = Library::Handle(zone, Library::CoreLibrary());
-  ASSERT(!libcore.IsNull());
-  const Function& function = Function::Handle(
-      zone, libcore.LookupFunctionAllowPrivate(Symbols::identityHashCode()));
-  ASSERT(!function.IsNull());
-  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
-  args.SetAt(0, object);
   const Object& result =
       Object::Handle(zone, DartEntry::InvokeFunction(function, args));
   ASSERT(result.IsInstance() || result.IsError());

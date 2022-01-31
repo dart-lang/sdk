@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'ast_model.dart';
@@ -21,7 +19,7 @@ Future<void> main(List<String> args) async {
   new File.fromUri(output).writeAsStringSync(result);
 }
 
-Future<String> generateAstCoverage(Uri repoDir, [AstModel astModel]) async {
+Future<String> generateAstCoverage(Uri repoDir, [AstModel? astModel]) async {
   astModel ??= await deriveAstModel(repoDir);
   return generateVisitor(astModel, new CoverageVisitorStrategy());
 }
@@ -47,7 +45,7 @@ class CoverageVisitorStrategy extends Visitor0Strategy {
 
   @override
   void handleVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {
-    AstClass superAstClass = astClass.superclass;
+    AstClass? superAstClass = astClass.superclass;
     while (superAstClass != null && !superAstClass.isInterchangeable) {
       superAstClass = superAstClass.superclass;
     }
@@ -61,13 +59,13 @@ class CoverageVisitorStrategy extends Visitor0Strategy {
   @override
   void handleVisitReference(
       AstModel astModel, AstClass astClass, StringBuffer sb) {
-    AstClass superAstClass = astClass.superclass;
+    AstClass? superAstClass = astClass.superclass;
     while (superAstClass != null && !superAstClass.isInterchangeable) {
       superAstClass = superAstClass.superclass;
     }
     if (superAstClass == astModel.constantClass) {
       // Constants are only visited as references.
-      String innerName = superAstClass.name;
+      String innerName = superAstClass!.name;
       (nestedClassNames[innerName] ??= {}).add(astClass.name);
       sb.writeln('''
         visited.add(${innerName}Kind.${astClass.name});

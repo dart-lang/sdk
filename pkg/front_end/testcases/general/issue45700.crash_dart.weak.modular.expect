@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue45700.crash_dart:5:7: Error: Can't use a function type as supertype.
+// mixin M on Function() {}
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+static method main() → void {}

@@ -15,7 +15,7 @@ Because in the DAP protocol the client speaks first, running this command from t
 
 For details on the standard DAP functionality, see [the Debug Adapter Protocol Overview](https://microsoft.github.io/debug-adapter-protocol/) and [the Debug Adapter Protocol Specification](https://microsoft.github.io/debug-adapter-protocol/specification). Custom extensions are detailed below.
 
-**Flutter**: To run Flutter apps, the equivalent command should be run through the `flutter` tool. This is unavailable at the time of writing, but details will be linked here once available.
+**Flutter**: Flutter apps should be run using the debug adapter in the `flutter` tool - [see this document](https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/debug_adapters/README.md).
 
 ## Launch/Attach Arguments
 
@@ -29,15 +29,20 @@ Arguments common to both `launchRequest` and `attachRequest` are:
 - `int? vmServicePort` - the port to bind the VM Service too
 - `List<String>? additionalProjectPaths` - paths of any projects (outside of `cwd`) that are open in the users workspace
 - `String? cwd` - the working directory for the Dart process to be spawned in
+- `Map<String, String>? env` - environment variables to be passed to any spawned process
 
 Arguments specific to `launchRequest` are:
 
 - `bool? noDebug` - whether to run in debug or noDebug mode (if not supplied, defaults to debug)
 - `String program` - the path of the Dart program to run
-- `List<String>? args` - arguments to be passed to the Dart program
-- `List<String>? toolArgs` - arguments for the Dart VM
+- `List<String>? args` - arguments to be passed to the Dart program (after the `program` on the command line)
+- `List<String>? toolArgs` - arguments passed after the tool that will run `program` (after `dart` for CLI scripts and after `dart run test:test` for test scripts)
+- `List<String>? vmAdditionalArgs` - arguments passed directly to the Dart VM (after `dart` for both CLI scripts and test scripts)
 - `String? console` - if set to `"terminal"` or `"externalTerminal"` will be run using the `runInTerminal` reverse-request; otherwise the debug adapter spawns the Dart process
 - `bool? enableAsserts` - whether to enable asserts (if not supplied, defaults to enabled)
+- `String? customTool` - an optional tool to run instead of `dart` - the custom tool must be completely compatible with the tool/command it is replacing
+- `int? customToolReplacesArgs` - the number of arguments to delete from the beginning of the argument list when invoking `customTool` - e.g. setting `customTool` to `dart_test` and
+  `customToolReplacesArgs` to `2` for a test run would invoke `dart_test foo_test.dart` instead of `dart run test:test foo_test.dart` (if larger than the number of computed arguments all arguments will be removed, if not supplied will default to `0`)
 
 Arguments specific to `attachRequest` are:
 
@@ -71,6 +76,17 @@ Some custom requests are available for clients to call.
 	"params": {
 		// ...
 	}
+}
+```
+
+### `hotReload`
+
+`hotReload` calls the VM's `reloadSources` service for each active isolate, reloading all modified source files.
+
+```
+{
+	"method": "hotReload",
+	"params": null
 }
 ```
 

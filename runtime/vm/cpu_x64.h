@@ -30,15 +30,15 @@ class HostCPUFeatures : public AllStatic {
   }
   static bool sse4_1_supported() {
     DEBUG_ASSERT(initialized_);
-    return sse4_1_supported_ && FLAG_use_sse41;
+    return sse4_1_supported_ && FLAG_use_sse41 && !FLAG_target_unknown_cpu;
   }
   static bool popcnt_supported() {
     DEBUG_ASSERT(initialized_);
-    return popcnt_supported_;
+    return popcnt_supported_ && !FLAG_target_unknown_cpu;
   }
   static bool abm_supported() {
     DEBUG_ASSERT(initialized_);
-    return abm_supported_;
+    return abm_supported_ && !FLAG_target_unknown_cpu;
   }
 
  private:

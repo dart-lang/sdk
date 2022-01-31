@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::bool* y = #C1;
+static const field core::bool* z = #C2;
+static const field core::Object* maybeInt = #C3;
+static const field core::bool* isItInt = #C2;
+static const field core::bool* isItDouble = #C2;
+static const field core::int* actualInt = #C3;
+static const field core::bool* isItInt2 = #C2;
+static const field core::bool* isItDouble2 = #C2;
+static const field core::Object* maybeDouble = #C3;
+static const field core::bool* isItInt3 = #C2;
+static const field core::bool* isItDouble3 = #C2;
+static const field core::double* actualDouble = #C3;
+static const field core::bool* isItInt4 = #C2;
+static const field core::bool* isItDouble4 = #C2;
+static const field core::Object* maybeDouble2 = #C4;
+static const field core::bool* isItInt5 = #C1;
+static const field core::bool* isItDouble5 = #C2;
+static const field core::double* actualDouble2 = #C4;
+static const field core::bool* isItInt6 = #C1;
+static const field core::bool* isItDouble7 = #C2;
+static const field core::bool* zeroPointZeroIdentical = #C2;
+static const field core::bool* zeroPointZeroIdenticalToZero = #C2;
+static const field core::bool* zeroIdenticalToZeroPointZero = #C2;
+static const field core::bool* nanIdentical = #C1;
+static const field core::bool* stringIdentical = #C2;
+static const field core::bool* string2Identical = #C1;
+static const field core::bool* zeroPointZeroEqual = #C2;
+static const field core::bool* zeroPointZeroEqualToZero = #C2;
+static const field core::bool* zeroEqualToZeroPointZero = #C2;
+static const field core::bool* nanEqual = #C1;
+static const field core::bool* stringEqual = #C2;
+static const field core::bool* string2Equal = #C1;
+static const field core::int* intFortyTwo = #C3;
+static const field core::String* intStringConcat = #C5;
+
+constants  {
+  #C1 = false
+  #C2 = true
+  #C3 = 42.0
+  #C4 = 42.42
+  #C5 = "hello1764"
+}

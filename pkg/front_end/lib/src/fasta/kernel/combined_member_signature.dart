@@ -20,7 +20,9 @@ import '../problems.dart' show unhandled;
 
 import '../source/source_class_builder.dart';
 
-import 'class_hierarchy_builder.dart';
+import 'hierarchy/class_member.dart';
+import 'hierarchy/hierarchy_builder.dart';
+import 'hierarchy/members_builder.dart';
 import 'member_covariance.dart';
 
 /// Class used for computing and inspecting the combined member signature for
@@ -736,9 +738,11 @@ abstract class CombinedMemberSignatureBase<T> {
 /// a set of overridden/inherited [ClassMember]s.
 class CombinedClassMemberSignature
     extends CombinedMemberSignatureBase<ClassMember> {
-  /// The class hierarchy builder used for building this class.
+  /// The class members builder used for building this class.
+  final ClassMembersBuilder membersBuilder;
+
   @override
-  final ClassHierarchyBuilder hierarchy;
+  ClassHierarchyBuilder get hierarchy => membersBuilder.hierarchyBuilder;
 
   /// The list of the members inherited into or overridden in [classBuilder].
   @override
@@ -746,7 +750,7 @@ class CombinedClassMemberSignature
 
   /// Creates a [CombinedClassMemberSignature] whose canonical member is already
   /// defined.
-  CombinedClassMemberSignature.internal(this.hierarchy,
+  CombinedClassMemberSignature.internal(this.membersBuilder,
       SourceClassBuilder classBuilder, int canonicalMemberIndex, this.members,
       {required bool forSetter})
       : super.internal(classBuilder, canonicalMemberIndex, forSetter);
@@ -758,7 +762,7 @@ class CombinedClassMemberSignature
   /// compute the most specific member type. Otherwise covariance of the getter
   /// types or function types is used.
   CombinedClassMemberSignature(
-      this.hierarchy, SourceClassBuilder classBuilder, this.members,
+      this.membersBuilder, SourceClassBuilder classBuilder, this.members,
       {required bool forSetter})
       : super(classBuilder, forSetter: forSetter);
 
@@ -771,7 +775,7 @@ class CombinedClassMemberSignature
   @override
   Member _getMember(int index) {
     ClassMember candidate = members[index];
-    Member target = candidate.getMember(hierarchy);
+    Member target = candidate.getMember(membersBuilder);
     // ignore: unnecessary_null_comparison
     assert(target != null,
         "No member computed for ${candidate} (${candidate.runtimeType})");
@@ -781,7 +785,7 @@ class CombinedClassMemberSignature
   @override
   Covariance _getMemberCovariance(int index) {
     ClassMember candidate = members[index];
-    Covariance covariance = candidate.getCovariance(hierarchy);
+    Covariance covariance = candidate.getCovariance(membersBuilder);
     // ignore: unnecessary_null_comparison
     assert(covariance != null,
         "No covariance computed for ${candidate} (${candidate.runtimeType})");

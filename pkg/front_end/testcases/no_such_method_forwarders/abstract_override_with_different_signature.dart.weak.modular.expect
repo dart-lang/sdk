@@ -1,0 +1,87 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Cat extends core::Object {
+  synthetic constructor •() → self::Cat*
+    : super core::Object::•()
+    ;
+  method eatFood(core::String* food) → core::bool*
+    return true;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class MockCat extends core::Object implements self::Cat {
+  synthetic constructor •() → self::MockCat*
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation* invocation) → dynamic {
+    dynamic arg = invocation.{core::Invocation::positionalArguments}{core::List<dynamic>*}.{core::List::[]}(0){(core::int*) →* dynamic};
+    return arg is core::String* && arg{core::String*}.{core::String::isNotEmpty}{core::bool*};
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  no-such-method-forwarder method eatFood(core::String* food) → core::bool*
+    return this.{self::MockCat::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::bool*;
+}
+class MockCat2 extends self::MockCat {
+  synthetic constructor •() → self::MockCat2*
+    : super self::MockCat::•()
+    ;
+  abstract method noSuchMethod(core::Invocation* _) → dynamic;
+}
+class MockCat3 extends self::MockCat2 implements self::Cat {
+  synthetic constructor •() → self::MockCat3*
+    : super self::MockCat2::•()
+    ;
+  no-such-method-forwarder method eatFood(core::String* food, {core::double* amount = #C4}) → core::bool*
+    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C5: amount}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::bool*;
+}
+class MockCat4 extends self::MockCat2 implements self::HungryCat {
+  synthetic constructor •() → self::MockCat4*
+    : super self::MockCat2::•()
+    ;
+  no-such-method-forwarder method eatFood(core::String* food, {core::double* amount = #C4, core::double* yetAnother = #C4}) → core::bool*
+    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C5: amount, #C6: yetAnother}))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::bool*;
+}
+abstract class HungryCat extends core::Object {
+  synthetic constructor •() → self::HungryCat*
+    : super core::Object::•()
+    ;
+  abstract method eatFood(core::String* food, {core::double* amount = #C4, core::double* yetAnother = #C4}) → core::bool*;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = #eatFood
+  #C2 = <core::Type*>[]
+  #C3 = <core::Symbol*, dynamic>{)
+  #C4 = null
+  #C5 = #amount
+  #C6 = #yetAnother
+}

@@ -4,43 +4,35 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/lint/pub.dart';
-import 'package:analyzer/src/workspace/pub.dart';
-import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
+import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 
 /// A contributor of suggestions from not yet imported libraries.
 class NotImportedContributor extends DartCompletionContributor {
-  /// Tests set this function to abort the current request.
-  @visibleForTesting
-  static void Function(FileState)? onFile;
-
   final CompletionBudget budget;
-  final List<Uri> librariesToImport;
+  final Map<protocol.CompletionSuggestion, Uri> notImportedSuggestions;
 
   NotImportedContributor(
     DartCompletionRequest request,
     SuggestionBuilder builder,
     this.budget,
-    this.librariesToImport,
+    this.notImportedSuggestions,
   ) : super(request, builder);
 
   @override
   Future<void> computeSuggestions() async {
-    var session = request.result.session as AnalysisSessionImpl;
-    var analysisDriver = session.getDriver(); // ignore: deprecated_member_use
+    var analysisDriver = request.analysisContext.driver;
 
     var fsState = analysisDriver.fsState;
-    var filter = _buildFilter(fsState);
+    var filter = FileStateFilter(
+      fsState.getFileForPath(request.path),
+    );
 
     try {
       await analysisDriver.discoverAvailableFiles().timeout(budget.left);
@@ -53,9 +45,6 @@ class NotImportedContributor extends DartCompletionContributor {
 
     var knownFiles = fsState.knownFiles.toList();
     for (var file in knownFiles) {
-      onFile?.call(file);
-      request.checkAborted();
-
       if (budget.isEmpty) {
         return;
       }
@@ -64,15 +53,18 @@ class NotImportedContributor extends DartCompletionContributor {
         continue;
       }
 
-      var elementResult = await session.getLibraryByUri(file.uriStr);
-      if (elementResult is! LibraryElementResult) {
+      var element = analysisDriver.getLibraryByFile(file);
+      if (element == null) {
         continue;
       }
 
-      var exportNamespace = elementResult.element.exportNamespace;
+      var exportNamespace = element.exportNamespace;
       var exportElements = exportNamespace.definedNames.values.toList();
 
-      var newSuggestions = builder.markSuggestions();
+      builder.laterReplacesEarlier = false;
+      builder.suggestionAdded = (suggestion) {
+        notImportedSuggestions[suggestion] = file.uri;
+      };
 
       if (request.includeIdentifiers) {
         _buildSuggestions(exportElements);
@@ -81,127 +73,16 @@ class NotImportedContributor extends DartCompletionContributor {
       extensionContributor.addExtensions(
         exportElements.whereType<ExtensionElement>().toList(),
       );
-
-      newSuggestions.setLibraryUriToImportIndex(() {
-        librariesToImport.add(file.uri);
-        return librariesToImport.length - 1;
-      });
     }
-  }
 
-  _Filter _buildFilter(FileSystemState fsState) {
-    var file = fsState.getFileForPath(request.result.path);
-    var workspacePackage = file.workspacePackage;
-    if (workspacePackage is PubWorkspacePackage) {
-      return _PubFilter(workspacePackage, file.path);
-    } else {
-      return _AnyFilter();
-    }
+    builder.laterReplacesEarlier = true;
+    builder.suggestionAdded = null;
   }
 
   void _buildSuggestions(List<Element> elements) {
     var visitor = LibraryElementSuggestionBuilder(request, builder);
     for (var element in elements) {
       element.accept(visitor);
-    }
-  }
-}
-
-class _AnyFilter implements _Filter {
-  @override
-  bool shouldInclude(FileState file) => true;
-}
-
-abstract class _Filter {
-  bool shouldInclude(FileState file);
-}
-
-class _PubFilter implements _Filter {
-  final PubWorkspacePackage targetPackage;
-  final String? targetPackageName;
-  final bool targetInLib;
-  final Set<String> dependencies;
-
-  factory _PubFilter(PubWorkspacePackage package, String path) {
-    var inLib = package.workspace.provider
-        .getFolder(package.root)
-        .getChildAssumingFolder('lib')
-        .contains(path);
-
-    var dependencies = <String>{};
-    var pubspec = package.pubspec;
-    if (pubspec != null) {
-      dependencies.addAll(pubspec.dependencies.names);
-      if (!inLib) {
-        dependencies.addAll(pubspec.devDependencies.names);
-      }
-    }
-
-    return _PubFilter._(
-      targetPackage: package,
-      targetPackageName: pubspec?.name?.value.text,
-      targetInLib: inLib,
-      dependencies: dependencies,
-    );
-  }
-
-  _PubFilter._({
-    required this.targetPackage,
-    required this.targetPackageName,
-    required this.targetInLib,
-    required this.dependencies,
-  });
-
-  @override
-  bool shouldInclude(FileState file) {
-    var uri = file.uri;
-    if (uri.isScheme('dart')) {
-      return true;
-    }
-
-    // Normally only package URIs are available.
-    // But outside of lib/ we allow any files of this package.
-    if (!uri.isScheme('package')) {
-      if (targetInLib) {
-        return false;
-      } else {
-        var filePackage = file.workspacePackage;
-        return filePackage is PubWorkspacePackage &&
-            filePackage.root == targetPackage.root;
-      }
-    }
-
-    // Sanity check.
-    var uriPathSegments = uri.pathSegments;
-    if (uriPathSegments.length < 2) {
-      return false;
-    }
-
-    // Any `package:` library from the same package.
-    var packageName = uriPathSegments[0];
-    if (packageName == targetPackageName) {
-      return true;
-    }
-
-    // If not the same package, must be public.
-    if (uriPathSegments[1] == 'src') {
-      return false;
-    }
-
-    return dependencies.contains(packageName);
-  }
-}
-
-extension on PSDependencyList? {
-  List<String> get names {
-    final self = this;
-    if (self == null) {
-      return const [];
-    } else {
-      return self
-          .map((dependency) => dependency.name?.text)
-          .whereNotNull()
-          .toList();
     }
   }
 }

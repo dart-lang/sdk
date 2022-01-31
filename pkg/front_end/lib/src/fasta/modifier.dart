@@ -50,6 +50,10 @@ const int initializingFormalMask = hasInitializerMask << 1;
 /// constructor.
 const int declaresConstConstructorMask = initializingFormalMask << 1;
 
+/// Not a modifier, used by formal parameters to track if they are
+/// super-parameter initializers.
+const int superInitializingFormalMask = declaresConstConstructorMask << 1;
+
 /// Not a real modifier, and by setting it to zero, it is automatically ignored
 /// by [Modifier.toMask] below.
 const int varMask = 0;

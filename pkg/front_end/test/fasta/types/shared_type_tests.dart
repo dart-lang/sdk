@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "package:expect/expect.dart" show Expect;
 
 import "package:kernel/type_environment.dart";
 
 abstract class SubtypeTest<T, E> {
   void isSubtype(String subtypeString, String supertypeString,
-      {String typeParameters}) {
+      {String? typeParameters}) {
     E environment = extend(typeParameters);
     T subtype = toType(subtypeString, environment);
     T supertype = toType(supertypeString, environment);
@@ -21,7 +19,7 @@ abstract class SubtypeTest<T, E> {
   }
 
   void isNotSubtype(String subtypeString, String supertypeString,
-      {String typeParameters}) {
+      {String? typeParameters}) {
     E environment = extend(typeParameters);
     T subtype = toType(subtypeString, environment);
     T supertype = toType(supertypeString, environment);
@@ -33,7 +31,7 @@ abstract class SubtypeTest<T, E> {
 
   /// Checks if a type is a subtype of the other ignoring nullability modifiers.
   void isObliviousSubtype(String subtypeString, String supertypeString,
-      {String typeParameters}) {
+      {String? typeParameters}) {
     E environment = extend(typeParameters);
     T subtype = toType(subtypeString, environment);
     T supertype = toType(supertypeString, environment);
@@ -54,7 +52,7 @@ abstract class SubtypeTest<T, E> {
 
   IsSubtypeOf isSubtypeImpl(T subtype, T supertype);
 
-  E extend(String typeParameters);
+  E extend(String? typeParameters);
 
   void run() {
     // Tests for subtypes and supertypes of num.

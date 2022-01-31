@@ -442,9 +442,38 @@ void f() {
 ''');
   }
 
+  Future<void> test_createChange_parameter_named_anywhere() async {
+    await indexTestUnit('''
+myFunction(int a, int b, {required int test}) {
+  test = 1;
+  test += 2;
+  print(test);
+}
+void f() {
+  myFunction(0, test: 2, 1);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test}) {');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    expect(refactoring.elementKindName, 'parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+myFunction(int a, int b, {required int newName}) {
+  newName = 1;
+  newName += 2;
+  print(newName);
+}
+void f() {
+  myFunction(0, newName: 2, 1);
+}
+''');
+  }
+
   Future<void> test_createChange_parameter_named_inOtherFile() async {
-    var a = convertPath('/home/test/lib/a.dart');
-    var b = convertPath('/home/test/lib/b.dart');
+    var a = convertPath('$testPackageLibPath/a.dart');
+    var b = convertPath('$testPackageLibPath/b.dart');
 
     newFile(a, content: r'''
 class A {
@@ -537,7 +566,7 @@ void f(A<int> a) {
   }
 
   Future<void> test_createChange_parameter_named_updateHierarchy() async {
-    await indexUnit('/home/test/lib/test2.dart', '''
+    await indexUnit('$testPackageLibPath/test2.dart', '''
 library test2;
 class A {
   void foo({int? test}) {
@@ -581,7 +610,7 @@ class C extends A {
   }
 }
 ''');
-    assertFileChangeResult('/home/test/lib/test2.dart', '''
+    assertFileChangeResult('$testPackageLibPath/test2.dart', '''
 library test2;
 class A {
   void foo({int? newName}) {

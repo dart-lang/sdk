@@ -13,6 +13,7 @@ late Uri remoteVmServiceUri;
 Future<Process> spawnDartProcess(
   String script, {
   bool pauseOnStart = true,
+  bool disableServiceAuthCodes = false,
 }) async {
   final executable = Platform.executable;
   final tmpDir = await Directory.systemTemp.createTemp('dart_service');
@@ -23,6 +24,7 @@ Future<Process> spawnDartProcess(
     '--disable-dart-dev',
     '--observe=0',
     if (pauseOnStart) '--pause-isolates-on-start',
+    if (disableServiceAuthCodes) '--disable-service-auth-codes',
     '--write-service-info=$serviceInfoUri',
     ...Platform.executableArguments,
     Platform.script.resolve(script).toString(),

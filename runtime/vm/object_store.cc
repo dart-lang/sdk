@@ -103,8 +103,8 @@ ObjectStore::ObjectStore()
                               EMIT_FIELD_INIT,
                               EMIT_FIELD_INIT)
 #undef EMIT_FIELD_INIT
-          unused_field_(0)  // Just to prevent a trailing comma.
-{
+      // Just to prevent a trailing comma.
+      unused_field_(0) {
   for (ObjectPtr* current = from(); current <= to(); current++) {
     *current = Object::null();
   }

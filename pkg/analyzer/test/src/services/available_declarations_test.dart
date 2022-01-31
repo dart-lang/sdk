@@ -914,6 +914,75 @@ class C2 {}
     ]);
   }
 
+  /// https://github.com/dart-lang/sdk/issues/47804
+  test_updated_exported2() async {
+    var a = convertPath('/home/test/lib/a.dart');
+    var b = convertPath('/home/test/lib/b.dart');
+    var c = convertPath('/home/test/lib/c.dart');
+
+    newFile(a, content: r'''
+class A {}
+''');
+    newFile(b, content: r'''
+class B {}
+''');
+    newFile(c, content: r'''
+export 'a.dart';
+export 'b.dart';
+class C {}
+''');
+    tracker.addContext(testAnalysisContext);
+
+    await _doAllTrackerWork();
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration.class_('A', [
+        _ExpectedDeclaration.constructor(''),
+      ]),
+      _ExpectedDeclaration.class_('B', [
+        _ExpectedDeclaration.constructor(''),
+      ]),
+      _ExpectedDeclaration.class_('C', [
+        _ExpectedDeclaration.constructor(''),
+      ]),
+    ]);
+
+    changes.clear();
+
+    newFile(a, content: r'''
+class A2 {}
+''');
+    newFile(b, content: r'''
+class B2 {}
+''');
+    tracker.changeFile(a);
+    tracker.changeFile(b);
+    await _doAllTrackerWork();
+
+    // In general it is OK to get duplicate libraries.
+    // But here we notified about both `a.dart` and `b.dart` changes before
+    // performing any work. So, there is no reason do handle `c.dart` twice.
+    var uniquePathSet = <String>{};
+    for (var change in changes) {
+      for (var library in change.changed) {
+        if (!uniquePathSet.add(library.path)) {
+          fail('Not unique path: ${library.path}');
+        }
+      }
+    }
+
+    _assertHasLibrary('package:test/c.dart', declarations: [
+      _ExpectedDeclaration.class_('A2', [
+        _ExpectedDeclaration.constructor(''),
+      ]),
+      _ExpectedDeclaration.class_('B2', [
+        _ExpectedDeclaration.constructor(''),
+      ]),
+      _ExpectedDeclaration.class_('C', [
+        _ExpectedDeclaration.constructor(''),
+      ]),
+    ]);
+  }
+
   test_updated_library() async {
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');

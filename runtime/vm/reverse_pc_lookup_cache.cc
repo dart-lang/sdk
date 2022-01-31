@@ -11,10 +11,9 @@
 
 namespace dart {
 
-ObjectPtr ReversePc::FindCodeDescriptorInGroup(IsolateGroup* group,
-                                               uword pc,
-                                               bool is_return_address,
-                                               uword* code_start) {
+CodePtr ReversePc::FindCodeInGroup(IsolateGroup* group,
+                                   uword pc,
+                                   bool is_return_address) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // This can run in the middle of GC and must not allocate handles.
   NoSafepointScope no_safepoint;
@@ -31,30 +30,80 @@ ObjectPtr ReversePc::FindCodeDescriptorInGroup(IsolateGroup* group,
   for (intptr_t i = 0; i < tables_length; i++) {
     InstructionsTablePtr table = static_cast<InstructionsTablePtr>(
         tables->untag()->data()->untag()->element(i));
-    intptr_t index = InstructionsTable::FindEntry(table, pc);
-    if (index >= 0) {
-      *code_start = InstructionsTable::PayloadStartAt(table, index);
-      return InstructionsTable::DescriptorAt(table, index);
+    CodePtr code = InstructionsTable::FindCode(table, pc);
+    if (code != Code::null()) {
+      return code;
+    }
+  }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+  return Code::null();
+}
+
+const UntaggedCompressedStackMaps::Payload* ReversePc::FindStackMapInGroup(
+    IsolateGroup* group,
+    uword pc,
+    bool is_return_address,
+    uword* code_start,
+    const UntaggedCompressedStackMaps::Payload** global_table) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // This can run in the middle of GC and must not allocate handles.
+  NoSafepointScope no_safepoint;
+
+  if (is_return_address) {
+    pc--;
+  }
+
+  // This expected number of tables is low (one per loading unit), so we go
+  // through them linearly. If this changes, would could sort the table list
+  // during deserialization and binary search for the table.
+  GrowableObjectArrayPtr tables = group->object_store()->instructions_tables();
+  intptr_t tables_length = Smi::Value(tables->untag()->length());
+  for (intptr_t i = 0; i < tables_length; i++) {
+    InstructionsTablePtr table = static_cast<InstructionsTablePtr>(
+        tables->untag()->data()->untag()->element(i));
+    auto map = InstructionsTable::FindStackMap(table, pc, code_start);
+    if (map != nullptr) {
+      // Take global table from the first table.
+      table = static_cast<InstructionsTablePtr>(
+          tables->untag()->data()->untag()->element(0));
+      *global_table = InstructionsTable::GetCanonicalStackMap(table);
+      return map;
     }
   }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   *code_start = 0;
-  return Object::null();
+  return nullptr;
 }
 
-ObjectPtr ReversePc::FindCodeDescriptor(IsolateGroup* group,
-                                        uword pc,
-                                        bool is_return_address,
-                                        uword* code_start) {
-  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+const UntaggedCompressedStackMaps::Payload* ReversePc::FindStackMap(
+    IsolateGroup* group,
+    uword pc,
+    bool is_return_address,
+    uword* code_start,
+    const UntaggedCompressedStackMaps::Payload** global_table) {
+  ASSERT(FLAG_precompiled_mode);
   NoSafepointScope no_safepoint;
 
-  ObjectPtr code_descriptor =
-      FindCodeDescriptorInGroup(group, pc, is_return_address, code_start);
-  if (code_descriptor == Object::null()) {
-    code_descriptor = FindCodeDescriptorInGroup(Dart::vm_isolate_group(), pc,
-                                                is_return_address, code_start);
+  auto map = FindStackMapInGroup(group, pc, is_return_address, code_start,
+                                 global_table);
+  if (map == nullptr) {
+    map = FindStackMapInGroup(Dart::vm_isolate_group(), pc, is_return_address,
+                              code_start, global_table);
+  }
+  return map;
+}
+
+CodePtr ReversePc::FindCode(IsolateGroup* group,
+                            uword pc,
+                            bool is_return_address) {
+  ASSERT(FLAG_precompiled_mode);
+  NoSafepointScope no_safepoint;
+
+  auto code_descriptor = FindCodeInGroup(group, pc, is_return_address);
+  if (code_descriptor == Code::null()) {
+    code_descriptor =
+        FindCodeInGroup(Dart::vm_isolate_group(), pc, is_return_address);
   }
   return code_descriptor;
 }
@@ -62,47 +111,10 @@ ObjectPtr ReversePc::FindCodeDescriptor(IsolateGroup* group,
 CodePtr ReversePc::Lookup(IsolateGroup* group,
                           uword pc,
                           bool is_return_address) {
-  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  ASSERT(FLAG_precompiled_mode);
   NoSafepointScope no_safepoint;
 
-  uword code_start;
-  ObjectPtr code_descriptor =
-      FindCodeDescriptor(group, pc, is_return_address, &code_start);
-  if (code_descriptor != Object::null()) {
-    if (!code_descriptor->IsCode()) {
-      ASSERT(StubCode::UnknownDartCode().PayloadStart() == 0);
-      ASSERT(StubCode::UnknownDartCode().Size() == kUwordMax);
-      ASSERT(StubCode::UnknownDartCode().IsFunctionCode());
-      ASSERT(StubCode::UnknownDartCode().IsUnknownDartCode());
-      code_descriptor = StubCode::UnknownDartCode().ptr();
-    }
-  }
-  return static_cast<CodePtr>(code_descriptor);
-}
-
-CompressedStackMapsPtr ReversePc::FindCompressedStackMaps(
-    IsolateGroup* group,
-    uword pc,
-    bool is_return_address,
-    uword* code_start) {
-  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
-  NoSafepointScope no_safepoint;
-
-  ObjectPtr code_descriptor =
-      FindCodeDescriptor(group, pc, is_return_address, code_start);
-  if (code_descriptor != Object::null()) {
-    if (code_descriptor->IsCode()) {
-      CodePtr code = static_cast<CodePtr>(code_descriptor);
-      ASSERT(*code_start == Code::PayloadStartOf(code));
-      return code->untag()->compressed_stackmaps();
-    } else {
-      ASSERT(code_descriptor->IsCompressedStackMaps());
-      return static_cast<CompressedStackMapsPtr>(code_descriptor);
-    }
-  }
-
-  *code_start = 0;
-  return CompressedStackMaps::null();
+  return FindCode(group, pc, is_return_address);
 }
 
 }  // namespace dart

@@ -639,6 +639,20 @@ abstract class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_await_null() async {
+    var content = '''
+Future<int> test() async {
+  return await null;
+}
+''';
+    var expected = '''
+Future<int?> test() async {
+  return await null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void>
       test_back_propagation_stops_at_implicitly_typed_variables() async {
     var content = '''
@@ -859,6 +873,171 @@ int f(M<int> m) => m['x'];
     var expected = '''
 abstract class M<V> implements Map<String, V> {}
 int? f(M<int> m) => m['x'];
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_tearoff() async {
+    var content = '''
+class C {
+  void call() {}
+}
+void Function() f(C c) => c;
+''';
+    var expected = '''
+class C {
+  void call() {}
+}
+void Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_tearoff_already_migrated() async {
+    var content = '''
+import 'already_migrated.dart';
+void Function() f(C c) => c;
+''';
+    var alreadyMigrated = '''
+// @dart=2.12
+class C {
+  void call() {}
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+void Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '$projectPath/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
+  Future<void>
+      test_call_tearoff_already_migrated_propagate_nullability() async {
+    var content = '''
+import 'already_migrated.dart';
+Map<int, String> Function() f(C c) => c;
+''';
+    var alreadyMigrated = '''
+// @dart=2.12
+class C {
+  Map<int, String?> call() => {};
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+Map<int, String?> Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '$projectPath/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
+  Future<void> test_call_tearoff_already_migrated_with_substitution() async {
+    var content = '''
+import 'already_migrated.dart';
+Map<int, String> Function() f(C<String/*?*/> c) => c;
+''';
+    var alreadyMigrated = '''
+// @dart=2.12
+class C<T> {
+  Map<int, T> call() => {};
+}
+''';
+    var expected = '''
+import 'already_migrated.dart';
+Map<int, String?> Function() f(C<String?> c) => c;
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '$projectPath/lib/already_migrated.dart': alreadyMigrated
+    });
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47848')
+  Future<void> test_call_tearoff_futureOr() async {
+    var content = '''
+import 'dart:async';
+class C {
+  void call() {}
+}
+FutureOr<void Function()> f(C c) => c;
+''';
+    var expected = '''
+import 'dart:async';
+class C {
+  void call() {}
+}
+FutureOr<void Function()> f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_tearoff_inherited() async {
+    var content = '''
+class B {
+  void call() {}
+}
+class C extends B {}
+void Function() f(C c) => c;
+''';
+    var expected = '''
+class B {
+  void call() {}
+}
+class C extends B {}
+void Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_tearoff_inherited_propagate_nullability() async {
+    var content = '''
+class B {
+  Map<int, String> call() => {1: null};
+}
+class C extends B {}
+Map<int, String> Function() f(C c) => c;
+''';
+    var expected = '''
+class B {
+  Map<int, String?> call() => {1: null};
+}
+class C extends B {}
+Map<int, String?> Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_call_tearoff_propagate_nullability() async {
+    var content = '''
+class C {
+  Map<int, String> call() => {1: null};
+}
+Map<int, String> Function() f(C c) => c;
+''';
+    var expected = '''
+class C {
+  Map<int, String?> call() => {1: null};
+}
+Map<int, String?> Function() f(C c) => c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47848')
+  Future<void> test_call_tearoff_raw_function() async {
+    var content = '''
+class C {
+  void call() {}
+}
+Function f(C c) => c;
+''';
+    var expected = '''
+class C {
+  void call() {}
+}
+Function f(C c) => c;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -4924,6 +5103,18 @@ class C implements A, B {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_implicit_tearoff_type_arguments() async {
+    var content = '''
+T f<T>(T t) => t;
+int Function(int) g() => f;
+''';
+    var expected = '''
+T f<T>(T t) => t;
+int Function(int) g() => f;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_implicit_type_parameter_bound_nullable() async {
     var content = '''
 class C<T> {
@@ -5165,6 +5356,16 @@ void main() {
 class C {
   int get length => 0;
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_int_double_coercion() async {
+    var content = '''
+double f() => 0;
+''';
+    var expected = '''
+double f() => 0;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -8909,6 +9110,49 @@ http.BaseClient downcast(http.Client x) => x;
     var expected = '''
 import 'package:http/http.dart' as http;
 http.BaseClient downcast(http.Client x) => x as http.BaseClient;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_var_with_different_types() async {
+    // Based on https://github.com/dart-lang/sdk/issues/47669
+    var content = '''
+class C<T> {
+  T m() => throw 'foo';
+}
+f(bool b, List<C<int>> cs) {
+  var x = !b,
+      y = cs.first,
+      z = y.m();
+}
+''';
+    var expected = '''
+class C<T> {
+  T m() => throw 'foo';
+}
+f(bool b, List<C<int>> cs) {
+  var x = !b,
+      y = cs.first,
+      z = y.m();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_var_with_different_types_becoming_explicit() async {
+    // When types need to be added to some variables in a declaration but not
+    // others, we handle it by introducing `as` casts.
+    var content = '''
+f(int i, String s) {
+  var x = i, y = s;
+  x = null;
+}
+''';
+    var expected = '''
+f(int i, String s) {
+  var x = i as int?, y = s;
+  x = null;
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }

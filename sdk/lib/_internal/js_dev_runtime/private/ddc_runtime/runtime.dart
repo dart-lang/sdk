@@ -11,13 +11,12 @@ import 'dart:collection';
 import 'dart:_debugger' show stackTraceMapper, trackCall;
 import 'dart:_foreign_helper' show JS, JSExportName, rest, spread;
 import 'dart:_interceptors'
-    show JSArray, jsNull, JSFunction, NativeError, JavaScriptObject;
+    show JSArray, jsNull, JSFunction, NativeError, LegacyJavaScriptObject;
 import 'dart:_internal' as internal show LateError, Symbol;
 import 'dart:_js_helper'
     show
         AssertionErrorImpl,
         BooleanConversionAssertionError,
-        CastErrorImpl,
         DartIterator,
         DeferredNotLoadedError,
         TypeErrorImpl,

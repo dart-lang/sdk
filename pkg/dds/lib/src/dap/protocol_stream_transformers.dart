@@ -87,8 +87,14 @@ class PacketTransformer extends StreamTransformerBase<List<int>, String> {
 
   /// Decodes [buffer] into a String and returns the 'Content-Length' header value.
   static ProtocolHeaders _parseHeaders(List<int> buffer) {
-    // Headers are specified as always ASCII in LSP.
-    final asString = ascii.decode(buffer);
+    final String asString;
+    try {
+      // Headers are specified as always ASCII in LSP.
+      asString = ascii.decode(buffer);
+    } on FormatException {
+      throw FormatException('Unable to decode headers with ascii. '
+          'The stream has utf8 content:\n${utf8.decode(buffer)}');
+    }
     final headers = asString.split('\r\n');
     final lengthHeader =
         headers.firstWhere((h) => h.startsWith('Content-Length'));

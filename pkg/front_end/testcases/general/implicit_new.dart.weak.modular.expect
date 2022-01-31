@@ -1,0 +1,106 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/implicit_new.dart:18:18: Error: Couldn't find constructor 'Bar'.
+//   var y = prefix.Bar();
+//                  ^^^
+//
+// pkg/front_end/testcases/general/implicit_new.dart:19:10: Error: Couldn't find constructor 'Bar'.
+//   prefix.Bar();
+//          ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///implicit_new.dart" as prefix;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo*
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → dynamic
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Bar extends core::Object {
+  constructor named() → self::Bar*
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → dynamic
+    return null;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class IndexTester extends core::Object {
+  synthetic constructor •() → self::IndexTester*
+    : super core::Object::•()
+    ;
+  operator [](dynamic _) → dynamic
+    return null;
+  operator []=(dynamic _a, dynamic _b) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method testNSM() → dynamic {
+  invalid-type y = invalid-expression "pkg/front_end/testcases/general/implicit_new.dart:18:18: Error: Couldn't find constructor 'Bar'.
+  var y = prefix.Bar();
+                 ^^^";
+  invalid-expression "pkg/front_end/testcases/general/implicit_new.dart:19:10: Error: Couldn't find constructor 'Bar'.
+  prefix.Bar();
+         ^^^";
+}
+static method f(dynamic x) → dynamic
+  return x;
+static method main() → dynamic {
+  self::Foo* x = new self::Foo::•();
+  x = new self::Foo::•();
+  self::Bar* z = new self::Bar::named();
+  z = new self::Bar::named();
+  self::f(new self::Foo::•());
+  self::f(new self::Foo::•());
+  self::f(new self::Bar::named());
+  self::f(new self::Bar::named());
+  core::List<core::Object*>* l = <core::Object*>[new self::Foo::•(), new self::Bar::named()];
+  l = <core::Object*>[new self::Foo::•(), new self::Bar::named()];
+  core::Map<core::String*, core::Object*>* m = <core::String*, core::Object*>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
+  m = <core::String*, core::Object*>{"foo": new self::Foo::•(), "bar": new self::Bar::named()};
+  self::IndexTester* i = new self::IndexTester::•();
+  i.{self::IndexTester::[]}(new self::Foo::•()){(dynamic) →* dynamic};
+  i.{self::IndexTester::[]}(new self::Foo::•()){(dynamic) →* dynamic};
+  i.{self::IndexTester::[]}(new self::Bar::named()){(dynamic) →* dynamic};
+  i.{self::IndexTester::[]}(new self::Bar::named()){(dynamic) →* dynamic};
+  i.{self::IndexTester::[]=}(new self::Foo::•(), null){(dynamic, dynamic) →* void};
+  i.{self::IndexTester::[]=}(new self::Foo::•(), null){(dynamic, dynamic) →* void};
+  i.{self::IndexTester::[]=}(new self::Bar::named(), null){(dynamic, dynamic) →* void};
+  i.{self::IndexTester::[]=}(new self::Bar::named(), null){(dynamic, dynamic) →* void};
+  new self::Foo::•().{self::Foo::+}(new self::Bar::named()){(dynamic) →* dynamic};
+  new self::Foo::•().{self::Foo::+}(new self::Bar::named()){(dynamic) →* dynamic};
+  new self::Bar::named().{self::Bar::+}(new self::Foo::•()){(dynamic) →* dynamic};
+  new self::Bar::named().{self::Bar::+}(new self::Foo::•()){(dynamic) →* dynamic};
+}

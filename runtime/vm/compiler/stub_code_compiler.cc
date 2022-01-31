@@ -48,6 +48,67 @@ void StubCodeCompiler::GenerateInitStaticFieldStub(Assembler* assembler) {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateInitLateStaticFieldStub(Assembler* assembler,
+                                                       bool is_final) {
+  const Register kResultReg = InitStaticFieldABI::kResultReg;
+  const Register kFunctionReg = InitLateStaticFieldInternalRegs::kFunctionReg;
+  const Register kFieldReg = InitStaticFieldABI::kFieldReg;
+  const Register kAddressReg = InitLateStaticFieldInternalRegs::kAddressReg;
+  const Register kScratchReg = InitLateStaticFieldInternalRegs::kScratchReg;
+
+  __ EnterStubFrame();
+
+  __ Comment("Calling initializer function");
+  __ PushRegister(kFieldReg);
+  __ LoadCompressedFieldFromOffset(
+      kFunctionReg, kFieldReg, target::Field::initializer_function_offset());
+  if (!FLAG_precompiled_mode) {
+    __ LoadCompressedFieldFromOffset(CODE_REG, kFunctionReg,
+                                     target::Function::code_offset());
+    // Load a GC-safe value for the arguments descriptor (unused but tagged).
+    __ LoadImmediate(ARGS_DESC_REG, 0);
+  }
+  __ Call(FieldAddress(kFunctionReg, target::Function::entry_point_offset()));
+  __ MoveRegister(kResultReg, CallingConventions::kReturnReg);
+  __ PopRegister(kFieldReg);
+  __ LoadStaticFieldAddress(kAddressReg, kFieldReg, kScratchReg);
+
+  Label throw_exception;
+  if (is_final) {
+    __ Comment("Checking that initializer did not set late final field");
+    __ LoadFromOffset(kScratchReg, kAddressReg, 0);
+    __ CompareObject(kScratchReg, SentinelObject());
+    __ BranchIf(NOT_EQUAL, &throw_exception);
+  }
+
+  __ StoreToOffset(kResultReg, kAddressReg, 0);
+  __ LeaveStubFrame();
+  __ Ret();
+
+  if (is_final) {
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    // We are jumping over LeaveStubFrame so restore LR state to match one
+    // at the jump point.
+    __ set_lr_state(compiler::LRState::OnEntry().EnterFrame());
+#endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+    __ Bind(&throw_exception);
+    __ PushObject(NullObject());  // Make room for (unused) result.
+    __ PushRegister(kFieldReg);
+    __ CallRuntime(kLateFieldAssignedDuringInitializationErrorRuntimeEntry,
+                   /*argument_count=*/1);
+    __ Breakpoint();
+  }
+}
+
+void StubCodeCompiler::GenerateInitLateStaticFieldStub(Assembler* assembler) {
+  GenerateInitLateStaticFieldStub(assembler, /*is_final=*/false);
+}
+
+void StubCodeCompiler::GenerateInitLateFinalStaticFieldStub(
+    Assembler* assembler) {
+  GenerateInitLateStaticFieldStub(assembler, /*is_final=*/true);
+}
+
 void StubCodeCompiler::GenerateInitInstanceFieldStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Make room for result.
@@ -82,7 +143,7 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(Assembler* assembler,
   __ LoadCompressedFieldFromOffset(
       kFunctionReg, InitInstanceFieldABI::kFieldReg,
       target::Field::initializer_function_offset());
-  if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
+  if (!FLAG_precompiled_mode) {
     __ LoadCompressedFieldFromOffset(CODE_REG, kFunctionReg,
                                      target::Function::code_offset());
     // Load a GC-safe value for the arguments descriptor (unused but tagged).
@@ -675,7 +736,7 @@ void StubCodeCompiler::GenerateLazySpecializeNullableTypeTestStub(
 void StubCodeCompiler::GenerateSlowTypeTestStub(Assembler* assembler) {
   Label done, call_runtime;
 
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     __ LoadFromOffset(CODE_REG, THR,
                       target::Thread::slow_type_test_stub_offset());
   }
@@ -807,13 +868,9 @@ void StubCodeCompiler::GenerateAllocateClosureStub(Assembler* assembler) {
       // entry point in bare instructions mode or to 0 otherwise (to catch
       // misuse). This overwrites the scratch register, but there are no more
       // boxed fields.
-      if (FLAG_use_bare_instructions) {
-        __ LoadFromSlot(AllocateClosureABI::kScratchReg,
-                        AllocateClosureABI::kFunctionReg,
-                        Slot::Function_entry_point());
-      } else {
-        __ LoadImmediate(AllocateClosureABI::kScratchReg, 0);
-      }
+      __ LoadFromSlot(AllocateClosureABI::kScratchReg,
+                      AllocateClosureABI::kFunctionReg,
+                      Slot::Function_entry_point());
       __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
                               AllocateClosureABI::kResultReg,
                               Slot::Closure_entry_point());
@@ -1015,12 +1072,6 @@ EMIT_BOX_ALLOCATION(Int32x4)
 #undef EMIT_BOX_ALLOCATION
 
 void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
-#if defined(TARGET_ARCH_ARM)
-  if (!TargetCPUFeatures::vfp_supported()) {
-    __ Breakpoint();
-    return;
-  }
-#endif  // defined(TARGET_ARCH_ARM)
   Label call_runtime;
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     __ TryAllocate(compiler::DoubleClass(), &call_runtime,
@@ -1043,12 +1094,6 @@ void StubCodeCompiler::GenerateBoxDoubleStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateDoubleToIntegerStub(Assembler* assembler) {
-#if defined(TARGET_ARCH_ARM)
-  if (!TargetCPUFeatures::vfp_supported()) {
-    __ Breakpoint();
-    return;
-  }
-#endif  // defined(TARGET_ARCH_ARM)
   __ EnterStubFrame();
   __ StoreUnboxedDouble(DoubleToIntegerStubABI::kInputReg, THR,
                         target::Thread::unboxed_double_runtime_arg_offset());

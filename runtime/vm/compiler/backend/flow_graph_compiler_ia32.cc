@@ -48,10 +48,6 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return FLAG_enable_simd_inline;
 }
 
-bool FlowGraphCompiler::SupportsHardwareDivision() {
-  return true;
-}
-
 bool FlowGraphCompiler::CanConvertInt64ToDouble() {
   return true;
 }
@@ -457,24 +453,6 @@ void FlowGraphCompiler::EmitPrologue() {
   }
 
   EndCodeSourceRange(PrologueSource());
-}
-
-void FlowGraphCompiler::CompileGraph() {
-  InitCompiler();
-
-  ASSERT(!block_order().is_empty());
-  VisitBlocks();
-
-  if (!skip_body_compilation()) {
-#if defined(DEBUG)
-    __ int3();
-#endif
-    GenerateDeferredCode();
-  }
-
-  for (intptr_t i = 0; i < indirect_gotos_.length(); ++i) {
-    indirect_gotos_[i]->ComputeOffsetTable(this);
-  }
 }
 
 void FlowGraphCompiler::EmitCallToStub(const Code& stub) {

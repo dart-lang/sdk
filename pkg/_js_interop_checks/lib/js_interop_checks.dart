@@ -252,7 +252,8 @@ class JsInteropChecks extends RecursiveVisitor {
 
     if (_classHasStaticInteropAnnotation &&
         procedure.isInstanceMember &&
-        !procedure.isFactory) {
+        !procedure.isFactory &&
+        !procedure.isSynthetic) {
       _diagnosticsReporter.report(
           templateJsInteropStaticInteropWithInstanceMembers
               .withArguments(procedure.enclosingClass!.name),

@@ -1,0 +1,11 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method f() → dynamic {
+  core::List<core::int*>* o;
+  o.{core::Iterable::where}((core::int* i) → core::bool* {
+    return i =={core::num::==}{(core::Object*) →* core::bool*} 0;
+  }){((core::int*) →* core::bool*) →* core::Iterable<core::int*>*};
+}
+static method main() → dynamic {}

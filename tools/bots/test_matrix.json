@@ -424,6 +424,17 @@
         "use-sdk": true
       }
     },
+    "web-unittest-asserts-legacy-(linux|mac|win)": {
+      "options": {
+        "builder-tag": "web-legacy",
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
+      }
+    },
     "unittest-asserts-(debug|product|release)-(linux|mac|win)": {
       "options": {
         "compiler": "dartk",
@@ -533,10 +544,7 @@
     },
     "dart2js-(linux|mac|win)-chrome": {
       "options": {
-        "use-sdk": true,
-        "dart2js-options": [
-          "--canary"
-        ]
+        "use-sdk": true
       }
     },
     "dart2js-(linux|mac|win)-chrome-unsound": {
@@ -680,10 +688,20 @@
         ]
       }
     },
-    "dart2js-modern-(linux|mac|win)-d8": {
+    "dart2js-canary-(linux|mac|win)-d8": {
       "options": {
-        "builder-tag": "dart2js_modern",
-        "use-sdk": true,
+        "builder-tag": "dart2js_canary",
+        "host-checked": true,
+        "timeout": 240,
+        "dart2js-options": [
+          "--canary"
+        ]
+      }
+    },
+    "dart2js-canary-(linux|mac|win)-chrome": {
+      "options": {
+        "host-checked": true,
+        "timeout": 240,
         "dart2js-options": [
           "--canary"
         ]
@@ -782,7 +800,8 @@
     },
     "dartkp-linux-(debug|product|release)-simarm-crossword": {
       "options": {
-        "builder-tag": "crossword"
+        "builder-tag": "crossword",
+        "use-elf": true
       }
     },
     "dartkp-weak-asserts-linux-(debug|product|release)-simarm-crossword": {
@@ -824,21 +843,6 @@
     "dartkp-(linux|mac)-debug-(x64|x64c)": {
       "options": {
         "vm-options": []
-      }
-    },
-    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(x64|x64c)": {
-      "options": {
-        "vm-options": [
-          "--no-use-bare-instructions"
-        ]
-      }
-    },
-    "dartkp-no-bare-(linux|mac|win)-(debug|product|release)-(simarm|simarm64|simarm64c)": {
-      "options": {
-        "vm-options": [
-          "--no-use-bare-instructions"
-        ],
-        "use-elf": true
       }
     },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {},
@@ -1540,36 +1544,6 @@
           "name": "vm tests",
           "arguments": [
             "-ndartkp-dwarf-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm-kernel",
-          "shards": 10
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-bare-linux-release-x64",
-        "vm-kernel-precomp-bare-linux-release-x64c",
-        "vm-kernel-precomp-bare-linux-release-simarm",
-        "vm-kernel-precomp-bare-linux-release-simarm64",
-        "vm-kernel-precomp-bare-linux-release-simarm64c"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm kernel precomp builders using bare instructions."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime",
-            "dart_precompiled_runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartkp-no-bare-${system}-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
           "shards": 10
@@ -2432,6 +2406,62 @@
     },
     {
       "builders": [
+        "dart2js-canary-x64"
+      ],
+      "meta": {
+        "description": "dart2js canary tests."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "create_sdk",
+            "dart2js_bot"
+          ]
+        },
+        {
+          "name": "dart2js canary d8 tests",
+          "arguments": [
+            "-ndart2js-canary-linux-d8",
+            "language",
+            "corelib",
+            "web"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js canary chrome tests",
+          "arguments": [
+            "-ndart2js-canary-linux-chrome",
+            "web"
+          ],
+          "shards": 3,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js canary lib tests",
+          "arguments": [
+            "-ndart2js-canary-linux-chrome",
+            "lib"
+          ],
+          "shards": 3,
+          "fileset": "web_platform_hostasserts_nnbd"
+        },
+        {
+          "name": "dart2js canary co19 tests",
+          "arguments": [
+            "-ndart2js-canary-linux-chrome",
+            "co19"
+          ],
+          "shards": 6,
+          "fileset": "web_platform_hostasserts_nnbd"
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart2js-unit-linux-x64-release"
       ],
       "meta": {
@@ -2443,6 +2473,17 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk"
+          ]
+        },
+        {
+          "name": "dart2js legacy modular tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/compiler/tool/modular_test_suite_legacy.dart",
+            "-nweb-unittest-asserts-legacy-linux",
+            "--verbose",
+            "--use-sdk"
           ]
         },
         {
@@ -2663,13 +2704,6 @@
           "name": "dart2js -O0 smoke tests",
           "arguments": [
             "-ndart2js-o0-linux-d8",
-            "web_2"
-          ]
-        },
-        {
-          "name": "dart2js --canary smoke tests",
-          "arguments": [
-            "-ndart2js-modern-linux-d8",
             "web_2"
           ]
         },
@@ -3722,6 +3756,10 @@
         {
           "name": "analyze flutter/plugins",
           "script": "tools/bots/flutter/analyze_flutter_plugins.sh"
+        },
+        {
+          "name": "analyze flutter/gallery",
+          "script": "tools/bots/flutter/analyze_flutter_gallery.sh"
         }
       ]
     },

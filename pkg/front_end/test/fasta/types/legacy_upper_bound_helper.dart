@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "package:async_helper/async_helper.dart" show asyncTest;
 
 import "package:expect/expect.dart" show Expect;
@@ -15,13 +13,13 @@ import 'package:kernel/testing/type_parser_environment.dart' as parser;
 final Uri libraryUri = Uri.parse("org-dartlang-test:///library.dart");
 
 abstract class LegacyUpperBoundTest {
-  parser.Env env;
-  Library coreLibrary;
-  Library testLibrary;
+  late parser.Env env;
+  late Library coreLibrary;
+  late Library testLibrary;
 
   bool get isNonNullableByDefault;
 
-  void parseComponent(String source) {
+  Future<void> parseComponent(String source) {
     env =
         new parser.Env(source, isNonNullableByDefault: isNonNullableByDefault);
     assert(
@@ -42,6 +40,7 @@ abstract class LegacyUpperBoundTest {
       coreLibrary = secondLibrary;
       testLibrary = firstLibrary;
     }
+    return new Future<void>.value();
   }
 
   DartType getLegacyLeastUpperBound(

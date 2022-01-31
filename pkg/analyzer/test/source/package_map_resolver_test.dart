@@ -39,6 +39,33 @@ class _PackageMapUriResolverTest {
     expect(PackageMapUriResolver.isPackageUri(uri), isFalse);
   }
 
+  void test_pathToUri() {
+    String pkgFileA = provider.convertPath('/pkgA/lib/libA.dart');
+    String pkgFileB = provider.convertPath('/pkgB/lib/src/libB.dart');
+    provider.newFile(pkgFileA, 'library lib_a;');
+    provider.newFile(pkgFileB, 'library lib_b;');
+    PackageMapUriResolver resolver =
+        PackageMapUriResolver(provider, <String, List<Folder>>{
+      'pkgA': <Folder>[provider.getFolder(provider.convertPath('/pkgA/lib'))],
+      'pkgB': <Folder>[provider.getFolder(provider.convertPath('/pkgB/lib'))]
+    });
+    {
+      var path = provider.convertPath('/pkgA/lib/libA.dart');
+      var uri = resolver.pathToUri(path);
+      expect(uri, Uri.parse('package:pkgA/libA.dart'));
+    }
+    {
+      var path = provider.convertPath('/pkgB/lib/src/libB.dart');
+      var uri = resolver.pathToUri(path);
+      expect(uri, Uri.parse('package:pkgB/src/libB.dart'));
+    }
+    {
+      var path = provider.convertPath('/no/such/file');
+      var uri = resolver.pathToUri(path);
+      expect(uri, isNull);
+    }
+  }
+
   void test_resolve_multiple_folders() {
     var a = provider.newFile(provider.convertPath('/aaa/a.dart'), '');
     var b = provider.newFile(provider.convertPath('/bbb/b.dart'), '');
@@ -70,14 +97,14 @@ class _PackageMapUriResolverTest {
       Uri uri = Uri.parse('package:pkgA/libA.dart');
       var result = resolver.resolveAbsolute(uri)!;
       expect(result.exists(), isTrue);
-      expect(result.uriKind, UriKind.PACKAGE_URI);
+      expect(result.uri, uri);
       expect(result.fullName, pkgFileA);
     }
     {
       Uri uri = Uri.parse('package:pkgB/libB.dart');
       var result = resolver.resolveAbsolute(uri)!;
       expect(result.exists(), isTrue);
-      expect(result.uriKind, UriKind.PACKAGE_URI);
+      expect(result.uri, uri);
       expect(result.fullName, pkgFileB);
     }
   }
@@ -144,6 +171,7 @@ class _PackageMapUriResolverTest {
     expect(result, isNull);
   }
 
+  @Deprecated('Use pathToUri() instead')
   void test_restoreAbsolute() {
     String pkgFileA = provider.convertPath('/pkgA/lib/libA.dart');
     String pkgFileB = provider.convertPath('/pkgB/lib/src/libB.dart');
@@ -173,7 +201,8 @@ class _PackageMapUriResolverTest {
     }
   }
 
+  @Deprecated('Use pathToUri() instead')
   Source _createFileSource(String path) {
-    return NonExistingSource(path, toUri(path), UriKind.FILE_URI);
+    return NonExistingSource(path, toUri(path));
   }
 }

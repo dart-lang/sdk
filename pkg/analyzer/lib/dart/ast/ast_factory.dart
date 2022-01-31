@@ -118,7 +118,8 @@ abstract class AstFactory {
   /// Returns a newly created class declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the class does not have the
   /// corresponding attribute. The [abstractKeyword] can be `null` if the class
-  /// is not abstract. The [typeParameters] can be `null` if the class does not
+  /// is not abstract. The [macroKeyword] can be `null` if the class is not a
+  /// macro class. The [typeParameters] can be `null` if the class does not
   /// have any type parameters. Any or all of the [extendsClause], [withClause],
   /// and [implementsClause] can be `null` if the class does not have the
   /// corresponding clause. The list of [members] can be `null` if the class
@@ -127,6 +128,7 @@ abstract class AstFactory {
       Comment? comment,
       List<Annotation>? metadata,
       Token? abstractKeyword,
+      Token? macroKeyword,
       Token classKeyword,
       SimpleIdentifier name,
       TypeParameterList? typeParameters,
@@ -141,7 +143,8 @@ abstract class AstFactory {
   /// and [metadata] can be `null` if the class type alias does not have the
   /// corresponding attribute. The [typeParameters] can be `null` if the class
   /// does not have any type parameters. The [abstractKeyword] can be `null` if
-  /// the class is not abstract. The [implementsClause] can be `null` if the
+  /// the class is not abstract. The [macroKeyword] can be `null` if the class
+  /// is not a macro class. The [implementsClause] can be `null` if the
   /// class does not implement any interfaces.
   ClassTypeAlias classTypeAlias(
       Comment? comment,
@@ -151,6 +154,7 @@ abstract class AstFactory {
       TypeParameterList? typeParameters,
       Token equals,
       Token? abstractKeyword,
+      Token? macroKeyword,
       NamedType superclass,
       WithClause withClause,
       ImplementsClause? implementsClause,
@@ -301,6 +305,7 @@ abstract class AstFactory {
   /// [comment] and [metadata] can be `null` if the declaration does not have
   /// the corresponding attribute. The list of [constants] must contain at least
   /// one value.
+  @Deprecated('Use enumDeclaration2() instead')
   EnumDeclaration enumDeclaration(
       Comment? comment,
       List<Annotation>? metadata,
@@ -309,6 +314,24 @@ abstract class AstFactory {
       Token leftBracket,
       List<EnumConstantDeclaration> constants,
       Token rightBracket);
+
+  /// Returns a newly created enumeration declaration. Either or both of the
+  /// [comment] and [metadata] can be `null` if the declaration does not have
+  /// the corresponding attribute. The list of [constants] must contain at least
+  /// one value.
+  EnumDeclaration enumDeclaration2({
+    required Comment? comment,
+    required List<Annotation>? metadata,
+    required Token enumKeyword,
+    required SimpleIdentifier name,
+    required TypeParameterList? typeParameters,
+    required WithClause? withClause,
+    required ImplementsClause? implementsClause,
+    required Token leftBracket,
+    required List<EnumConstantDeclaration> constants,
+    required List<ClassMember> members,
+    required Token rightBracket,
+  });
 
   /// Returns a newly created export directive. Either or both of the
   /// [comment] and [metadata] can be `null` if the directive does not have the
@@ -872,6 +895,26 @@ abstract class AstFactory {
   /// Returns a newly created super expression.
   SuperExpression superExpression(Token superKeyword);
 
+  /// Returns a newly created super-initializer parameter. Either or both of
+  /// the [comment] and [metadata] can be `null` if the parameter does not have
+  /// the corresponding attribute. The [keyword] can be `null` if there is a
+  /// type. The [type] must be `null` if the keyword is 'var'. The [parameters]
+  /// can be `null` if this is not a function-typed super-initializer
+  /// parameter.
+  SuperFormalParameter superFormalParameter(
+      {Comment? comment,
+      List<Annotation>? metadata,
+      Token? covariantKeyword,
+      Token? requiredKeyword,
+      Token? keyword,
+      TypeAnnotation? type,
+      required Token superKeyword,
+      required Token period,
+      required SimpleIdentifier identifier,
+      TypeParameterList? typeParameters,
+      FormalParameterList? parameters,
+      Token? question});
+
   /// Returns a newly created switch case. The list of [labels] can be `null`
   /// if there are no labels.
   SwitchCase switchCase(List<Label> labels, Token keyword,
@@ -928,13 +971,6 @@ abstract class AstFactory {
 
   /// Returns a newly created type literal.
   TypeLiteral typeLiteral({required NamedType typeName});
-
-  /// Returns a newly created type name. The [typeArguments] can be `null` if
-  /// there are no type arguments. The [question] can be `null` if there is no
-  /// question mark.
-  @Deprecated('Use namedType() instead')
-  TypeName typeName(Identifier name, TypeArgumentList? typeArguments,
-      {Token? question});
 
   /// Returns a newly created type parameter. Either or both of the [comment]
   /// and [metadata] can be `null` if the parameter does not have the

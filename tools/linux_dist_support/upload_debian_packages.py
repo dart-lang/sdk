@@ -22,7 +22,7 @@ def ArchiveArtifacts(tarfile, builddir, channel):
     remote_tarfile = '/'.join(
         [namer.src_directory(revision),
          os.path.basename(tarfile)])
-    gsutil.upload(tarfile, remote_tarfile, public=True)
+    gsutil.upload(tarfile, remote_tarfile)
     # Archive all files except the tar file to the linux packages dir
     for entry in os.listdir(builddir):
         full_path = os.path.join(builddir, entry)
@@ -31,7 +31,7 @@ def ArchiveArtifacts(tarfile, builddir, channel):
         if full_path != tarfile:
             package_dir = namer.linux_packages_directory(revision)
             remote_file = '/'.join([package_dir, os.path.basename(entry)])
-            gsutil.upload(full_path, remote_file, public=True)
+            gsutil.upload(full_path, remote_file)
 
 
 if __name__ == '__main__':

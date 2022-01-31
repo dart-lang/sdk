@@ -3091,7 +3091,22 @@ void IntConverterInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   }
 }
 
+void AssertAssignableInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  const Range* value_range = value()->definition()->range();
+  if (!Range::IsUnknown(value_range)) {
+    *range = *value_range;
+  } else {
+    *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
+  }
+}
+
 static bool IsRedundantBasedOnRangeInformation(Value* index, Value* length) {
+  if (index->BindsToSmiConstant() && length->BindsToSmiConstant()) {
+    const auto index_val = index->BoundSmiConstant();
+    const auto length_val = length->BoundSmiConstant();
+    return (0 <= index_val && index_val < length_val);
+  }
+
   // Range of the index is unknown can't decide if the check is redundant.
   Range* index_range = index->definition()->range();
   if (index_range == nullptr) {

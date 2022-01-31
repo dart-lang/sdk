@@ -96,7 +96,6 @@ class LintFixTester {
       workspace,
       unitResult,
       error,
-      (name) => const [],
     );
 
     List<Fix> fixes;

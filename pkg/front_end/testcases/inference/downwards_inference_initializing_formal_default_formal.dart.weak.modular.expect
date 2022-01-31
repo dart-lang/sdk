@@ -1,0 +1,32 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef Function2<contravariant S extends core::Object* = dynamic, T extends core::Object* = dynamic> = ([S*]) →* T*;
+class Foo extends core::Object {
+  field core::List<core::int*>* x;
+  constructor •([core::List<core::int*>* x = #C2]) → self::Foo*
+    : self::Foo::x = x, super core::Object::•()
+    ;
+  constructor named([core::List<core::int*>* x = #C2]) → self::Foo*
+    : self::Foo::x = null, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field ([core::List<core::int*>*]) →* core::String* g = ([core::List<core::int*>* llll = #C2]) → core::String* => "hello";
+static method f([core::List<core::int*>* l = #C2]) → void {}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 1
+  #C2 = <core::int*>[#C1]
+}

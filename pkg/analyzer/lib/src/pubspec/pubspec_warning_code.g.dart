@@ -120,7 +120,8 @@ class PubspecWarningCode extends ErrorCode {
   // ```
   static const PubspecWarningCode ASSET_FIELD_NOT_LIST = PubspecWarningCode(
     'ASSET_FIELD_NOT_LIST',
-    "The value of the 'asset' field is expected to be a list of relative file paths.",
+    "The value of the 'asset' field is expected to be a list of relative file "
+        "paths.",
     correctionMessage:
         "Try converting the value to be a list of relative file paths.",
     hasPublishedDocs: true,
@@ -291,7 +292,7 @@ class PubspecWarningCode extends ErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a package under either
-  // `dependencies` or `dev_dependencies` is not a pub, `git`, or `path` based
+  // `dependencies` or `dev_dependencies` isn't a pub, `git`, or `path` based
   // dependency.
   //
   // See [Package dependencies](https://dart.dev/tools/pub/dependencies) for
@@ -300,7 +301,7 @@ class PubspecWarningCode extends ErrorCode {
   // #### Example
   //
   // The following code produces this diagnostic because the dependency on the
-  // package `transmogrify` is not a pub, `git`, or `path` based dependency:
+  // package `transmogrify` isn't a pub, `git`, or `path` based dependency:
   //
   // ```yaml
   // %uri="pubspec.yaml"
@@ -337,7 +338,8 @@ class PubspecWarningCode extends ErrorCode {
     'INVALID_DEPENDENCY',
     "Publishable packages can't have '{0}' dependencies.",
     correctionMessage:
-        "Try adding a 'publish_to: none' entry to mark the package as not for publishing or remove the {0} dependency.",
+        "Try adding a 'publish_to: none' entry to mark the package as not for "
+        "publishing or remove the {0} dependency.",
     hasPublishedDocs: true,
   );
 
@@ -518,7 +520,8 @@ class PubspecWarningCode extends ErrorCode {
     'PATH_PUBSPEC_DOES_NOT_EXIST',
     "The directory '{0}' doesn't contain a pubspec.",
     correctionMessage:
-        "Try creating a pubspec in the referenced directory or using a path that has a pubspec.",
+        "Try creating a pubspec in the referenced directory or using a path "
+        "that has a pubspec.",
     hasPublishedDocs: true,
   );
 
@@ -561,7 +564,8 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode UNNECESSARY_DEV_DEPENDENCY =
       PubspecWarningCode(
     'UNNECESSARY_DEV_DEPENDENCY',
-    "The dev dependency on {0} is unnecessary because there is also a normal dependency on that package.",
+    "The dev dependency on {0} is unnecessary because there is also a normal "
+        "dependency on that package.",
     correctionMessage: "Try removing the dev dependency.",
     hasPublishedDocs: true,
   );

@@ -25,7 +25,9 @@ DEFINE_FLAG(bool, trace_intrinsifier, false, "Trace intrinsifier");
 
 namespace compiler {
 
-bool Intrinsifier::CanIntrinsify(const Function& function) {
+bool Intrinsifier::CanIntrinsify(const ParsedFunction& parsed_function) {
+  const Function& function = parsed_function.function();
+
   if (FLAG_trace_intrinsifier) {
     THR_Print("CanIntrinsify %s ->", function.ToQualifiedCString());
   }
@@ -45,7 +47,8 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
     }
     return false;
   }
-  if (!function.is_intrinsic() && !CanIntrinsifyFieldAccessor(function)) {
+  if (!function.is_intrinsic() &&
+      !CanIntrinsifyFieldAccessor(parsed_function)) {
     if (FLAG_trace_intrinsifier) {
       THR_Print("No, not intrinsic function.\n");
     }
@@ -73,7 +76,10 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
   return true;
 }
 
-bool Intrinsifier::CanIntrinsifyFieldAccessor(const Function& function) {
+bool Intrinsifier::CanIntrinsifyFieldAccessor(
+    const ParsedFunction& parsed_function) {
+  const Function& function = parsed_function.function();
+
   const bool is_getter = function.IsImplicitGetterFunction();
   const bool is_setter = function.IsImplicitSetterFunction();
   if (!is_getter && !is_setter) return false;
@@ -97,11 +103,13 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(const Function& function) {
   // We only graph intrinsify implicit instance getters/setter for now.
   if (!field.is_instance()) return false;
 
+  const auto& slot = Slot::Get(field, &parsed_function);
+
   if (is_getter) {
     // We don't support complex getter cases.
     if (field.is_late() || field.needs_load_guard()) return false;
 
-    if (FlowGraphCompiler::IsPotentialUnboxedField(field)) {
+    if (slot.IsPotentialUnboxed()) {
       if (function.HasUnboxedReturnValue()) {
         // In AOT mode: Unboxed fields contain the unboxed value and can be
         // returned in unboxed form.
@@ -136,7 +144,7 @@ bool Intrinsifier::CanIntrinsifyFieldAccessor(const Function& function) {
     // avoid the need for boxing (which we cannot do in the intrinsic).
     if (function.HasUnboxedParameters()) {
       ASSERT(FLAG_precompiled_mode);
-      if (!FlowGraphCompiler::IsUnboxedField(field)) {
+      if (!slot.IsUnboxed()) {
         return false;
       }
     }
@@ -253,8 +261,7 @@ void Intrinsifier::InitializeState() {
 // Returns true if fall-through code can be omitted.
 bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
                               FlowGraphCompiler* compiler) {
-  const Function& function = parsed_function.function();
-  if (!CanIntrinsify(function)) {
+  if (!CanIntrinsify(parsed_function)) {
     return false;
   }
 
@@ -262,14 +269,13 @@ bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     return compiler->intrinsic_slow_path_label()->IsUnused();
   }
 
+  const Function& function = parsed_function.function();
 #if !defined(HASH_IN_OBJECT_HEADER)
   // These two are more complicated on 32 bit platforms, where the
   // identity hash is not stored in the header of the object.  We
   // therefore don't intrinsify them, falling back on the native C++
   // implementations.
-  if (function.recognized_kind() == MethodRecognizer::kObject_getHash ||
-      function.recognized_kind() ==
-          MethodRecognizer::kObject_setHashIfNotSetYet) {
+  if (function.recognized_kind() == MethodRecognizer::kObject_getHash) {
     return false;
   }
 #endif

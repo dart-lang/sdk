@@ -290,9 +290,9 @@ void f() {
   }
 
   Future<void> test_ConstructorName_importedClass() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
@@ -318,9 +318,9 @@ void f() {
   }
 
   Future<void> test_ConstructorName_importedClass_unresolved() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
@@ -347,9 +347,9 @@ void f() {
   }
 
   Future<void> test_ConstructorName_importedFactory() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
-    addSource('/home/test/lib/b.dart', '''
+    addSource('$testPackageLibPath/b.dart', '''
         lib B;
         int T1;
         F1() { }
@@ -375,7 +375,7 @@ void f() {
   }
 
   Future<void> test_ConstructorName_importedFactory2() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
         main() {new String.fr^omCharCodes([]);}''');
@@ -395,7 +395,7 @@ void f() {
   }
 
   Future<void> test_ConstructorName_localClass() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
         int T1;
@@ -422,7 +422,7 @@ void f() {
   }
 
   Future<void> test_ConstructorName_localFactory() async {
-    // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
+    // SimpleIdentifier  PrefixedIdentifier  NamedType  ConstructorName
     // InstanceCreationExpression
     addTestSource('''
         int T1;
@@ -450,7 +450,7 @@ void f() {
 
   Future<void>
       test_importPrefix_className_typeArguments_period_nothing_functionTypeContext_matchingReturnType() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 class A<T> {
   A.named();
   A.new();

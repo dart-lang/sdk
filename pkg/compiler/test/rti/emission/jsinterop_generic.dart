@@ -11,7 +11,7 @@ library foo;
 
 // TODO(johnniwinther): Avoid generating duplicate is/as function when multiple
 // jsinterop classes implement the same interface.
-/*class: global#JavaScriptObject:checks=[$isA,$isB,$isB],instance*/
+/*class: global#LegacyJavaScriptObject:checks=[$isA,$isB,$isB],instance*/
 
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';

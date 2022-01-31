@@ -221,7 +221,7 @@ void _generateYaml(Map<String, List<ErrorCode>> errorCodesByClass,
       var commentInfo = _extractCommentInfo(fieldDeclaration);
       var documentationComment = commentInfo.documentationComment;
       var otherComment = commentInfo.otherComment;
-      yamlCodes[uniqueNameSuffix] = ErrorCodeInfo(
+      yamlCodes[uniqueNameSuffix] = AnalyzerErrorCodeInfo(
               sharedName: uniqueNameSuffix == name ? null : name,
               problemMessage: code.problemMessage,
               correctionMessage: code.correctionMessage,

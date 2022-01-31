@@ -36,7 +36,8 @@ main() {
 class T {}
 f(T e1) { e1.m = 0; }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 24, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 24, 1,
+          messageContains: ["the type 'T'"]),
     ]);
   }
 
@@ -99,7 +100,8 @@ class C extends S {}
 f(var p) {
   f(C.s = 1);
 }''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 75, 1),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 75, 1,
+          messageContains: ["type 'C'"]),
     ]);
   }
 

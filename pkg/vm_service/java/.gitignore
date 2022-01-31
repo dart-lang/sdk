@@ -36,6 +36,7 @@ src/org/dartlang/vm/service/consumer/RequestHeapSnapshotConsumer.java
 src/org/dartlang/vm/service/consumer/ResumeConsumer.java
 src/org/dartlang/vm/service/consumer/SetExceptionPauseModeConsumer.java
 src/org/dartlang/vm/service/consumer/SetFlagConsumer.java
+src/org/dartlang/vm/service/consumer/SetIsolatePauseModeConsumer.java
 src/org/dartlang/vm/service/consumer/SetLibraryDebuggableConsumer.java
 src/org/dartlang/vm/service/consumer/SetNameConsumer.java
 src/org/dartlang/vm/service/consumer/SetTraceClassAllocationConsumer.java
@@ -62,6 +63,7 @@ src/org/dartlang/vm/service/element/ContextElement.java
 src/org/dartlang/vm/service/element/ContextRef.java
 src/org/dartlang/vm/service/element/CpuSample.java
 src/org/dartlang/vm/service/element/CpuSamples.java
+src/org/dartlang/vm/service/element/CpuSamplesEvent.java
 src/org/dartlang/vm/service/element/ErrorKind.java
 src/org/dartlang/vm/service/element/ErrorObj.java
 src/org/dartlang/vm/service/element/ErrorRef.java

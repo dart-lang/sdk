@@ -1,0 +1,75 @@
+//
+// Problems in component:
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41567.dart:13:7: Error: 'in3' can't implement both 'A<int>' and 'A<dynamic>'
+//  - 'A' is from 'pkg/front_end/testcases/nnbd_mixed/issue41567_lib.dart'.
+// class in3 extends out_int implements B {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/issue41567.dart:15:7: Error: 'in4' can't implement both 'A<dynamic>' and 'A<int>'
+//  - 'A' is from 'pkg/front_end/testcases/nnbd_mixed/issue41567_lib.dart'.
+// class in4 extends B implements out_int {} // error
+//       ^
+//
+library /*isNonNullableByDefault*/;
+import self as self;
+import "issue41567_lib.dart" as iss;
+
+import "org-dartlang-testcase:///issue41567_lib.dart";
+
+class B extends iss::A<dynamic> {
+  synthetic constructor •() → self::B
+    : super iss::A::•()
+    ;
+}
+class in1 extends iss::out_Object implements self::B {
+  synthetic constructor •() → self::in1
+    : super iss::out_Object::•()
+    ;
+}
+class in2 extends self::B implements iss::out_Object {
+  synthetic constructor •() → self::in2
+    : super self::B::•()
+    ;
+}
+class in3 extends iss::out_int implements self::B {
+  synthetic constructor •() → self::in3
+    : super iss::out_int::•()
+    ;
+}
+class in4 extends self::B implements iss::out_int {
+  synthetic constructor •() → self::in4
+    : super self::B::•()
+    ;
+}
+static method main() → dynamic {}
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+class A<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → iss::A<iss::A::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class out_int extends iss::A<core::int*> {
+  synthetic constructor •() → iss::out_int*
+    : super iss::A::•()
+    ;
+}
+class out_Object extends iss::A<core::Object*> {
+  synthetic constructor •() → iss::out_Object*
+    : super iss::A::•()
+    ;
+}

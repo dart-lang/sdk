@@ -57,11 +57,11 @@ void command() {
 void help() {
   TestProject p;
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
-  test('--help', () {
+  test('--help', () async {
     p = project();
-    var result = p.runSync(['--help']);
+    var result = await p.run(['--help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -77,9 +77,9 @@ void help() {
     expect(result.stdout, contains('migrate '));
   });
 
-  test('--help --verbose', () {
+  test('--help --verbose', () async {
     p = project();
-    var result = p.runSync(['--help', '--verbose']);
+    var result = await p.run(['--help', '--verbose']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -87,9 +87,9 @@ void help() {
         contains('The following options are only used for VM development'));
   });
 
-  test('--help -v', () {
+  test('--help -v', () async {
     p = project();
-    var result = p.runSync(['--help', '-v']);
+    var result = await p.run(['--help', '-v']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -97,25 +97,26 @@ void help() {
         contains('The following options are only used for VM development'));
   });
 
-  test('print Dart CLI help on usage error', () {
+  test('print Dart CLI help on usage error', () async {
     p = project();
-    var result = p.runSync(['---help']);
+    var result = await p.run(['---help']);
     expect(result.exitCode, 255);
     expect(result.stdout, contains(DartdevRunner.dartdevDescription));
     expect(result.stderr, isEmpty);
   });
 
-  test('print VM help on usage error when --disable-dart-dev is provided', () {
+  test('print VM help on usage error when --disable-dart-dev is provided',
+      () async {
     p = project();
-    var result = p.runSync(['---help', '--disable-dart-dev']);
+    var result = await p.run(['---help', '--disable-dart-dev']);
     expect(result.exitCode, 255);
     expect(result.stdout, isNot(contains(DartdevRunner.dartdevDescription)));
     expect(result.stderr, isEmpty);
   });
 
-  test('help', () {
+  test('help', () async {
     p = project();
-    var result = p.runSync(['help']);
+    var result = await p.run(['help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -131,9 +132,9 @@ void help() {
     expect(result.stdout, contains('migrate '));
   });
 
-  test('help --verbose', () {
+  test('help --verbose', () async {
     p = project();
-    var result = p.runSync(['help', '--verbose']);
+    var result = await p.run(['help', '--verbose']);
 
     expect(result.exitCode, 0);
     expect(result.stdout,
@@ -141,9 +142,9 @@ void help() {
     expect(result.stdout, contains('migrate '));
   });
 
-  test('help -v', () {
+  test('help -v', () async {
     p = project();
-    var result = p.runSync(['help', '-v']);
+    var result = await p.run(['help', '-v']);
 
     expect(result.exitCode, 0);
     expect(result.stdout,

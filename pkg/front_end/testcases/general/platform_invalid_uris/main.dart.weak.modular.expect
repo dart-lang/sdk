@@ -1,0 +1,108 @@
+library;
+import self as self;
+import "dart:test" as test;
+
+import "dart:test";
+
+static method main() → dynamic {
+  new test::Class::•();
+}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:8:9: Error: Couldn't parse URI ':c':
+//   Invalid empty scheme.
+// import ':c';
+//         ^
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:9:9: Error: Couldn't parse URI ':d':
+//   Invalid empty scheme.
+// export ':d';
+//         ^
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/origin_lib.dart:5:9: Error: Couldn't parse URI ':a':
+//   Invalid empty scheme.
+// import ':a';
+//         ^
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/origin_lib.dart:6:9: Error: Couldn't parse URI ':b':
+//   Invalid empty scheme.
+// export ':b';
+//         ^
+//
+import self as test;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+import "org-dartlang-malformed-uri:?%3Ac";
+export "org-dartlang-malformed-uri:?%3Ad";
+import "org-dartlang-malformed-uri:?%3Aa";
+export "org-dartlang-malformed-uri:?%3Ab";
+
+@#C1
+class Class extends core::Object {
+  synthetic constructor •() → test::Class*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:8:8: Error: Expected a URI.
+// import ':c';
+//        ^
+//
+import self as self2;
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/patch_lib.dart:9:1: Error: Expected a URI.
+// export ':d';
+// ^
+//
+import self as self3;
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/origin_lib.dart:5:8: Error: Expected a URI.
+// import ':a';
+//        ^
+//
+import self as self4;
+
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/platform_invalid_uris/origin_lib.dart:6:1: Error: Expected a URI.
+// export ':b';
+// ^
+//
+import self as self5;
+
+
+constants  {
+  #C1 = _in::_Patch {}
+}

@@ -1,0 +1,248 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:5:1: Error: Can't have modifier 'abstract' here.
+// Try removing 'abstract'.
+// abstract int topLevelField;
+// ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:7:1: Error: Can't have modifier 'abstract' here.
+// Try removing 'abstract'.
+// abstract final int finalTopLevelField = 0;
+// ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:9:1: Error: Can't have modifier 'abstract' here.
+// Try removing 'abstract'.
+// abstract const int constField = 0;
+// ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:20:3: Error: Static fields can't be declared 'abstract'.
+// Try removing the 'abstract' or 'static' keyword.
+//   abstract static int staticField;
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:22:3: Error: Static fields can't be declared 'abstract'.
+// Try removing the 'abstract' or 'static' keyword.
+//   abstract static final int finalStaticField;
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:24:3: Error: Abstract fields cannot be late.
+// Try removing the 'abstract' or 'late' keyword.
+//   abstract late int lateInstanceField;
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:26:12: Error: Fields can't be declared both 'abstract' and 'external'.
+// Try removing the 'abstract' or 'external' keyword.
+//   external abstract int externalInstanceField1;
+//            ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:28:12: Error: Fields can't be declared both 'abstract' and 'external'.
+// Try removing the 'abstract' or 'external' keyword.
+//   external abstract final int externalFinalInstanceField1;
+//            ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:30:12: Error: Fields can't be declared both 'abstract' and 'external'.
+// Try removing the 'abstract' or 'external' keyword.
+//   external abstract covariant num externalCovariantInstanceField1;
+//            ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:32:3: Error: Fields can't be declared both 'abstract' and 'external'.
+// Try removing the 'abstract' or 'external' keyword.
+//   abstract external int externalInstanceField2;
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:34:3: Error: Fields can't be declared both 'abstract' and 'external'.
+// Try removing the 'abstract' or 'external' keyword.
+//   abstract external final int externalFinalInstanceField2;
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:36:3: Error: Fields can't be declared both 'abstract' and 'external'.
+// Try removing the 'abstract' or 'external' keyword.
+//   abstract external covariant num externalCovariantInstanceField2;
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:38:12: Error: Fields can't be declared both 'abstract' and 'external'.
+// Try removing the 'abstract' or 'external' keyword.
+//   external abstract late int externalLateInstanceField;
+//            ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:38:12: Error: Abstract fields cannot be late.
+// Try removing the 'abstract' or 'late' keyword.
+//   external abstract late int externalLateInstanceField;
+//            ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:42:3: Error: Static fields can't be declared 'abstract'.
+// Try removing the 'abstract' or 'static' keyword.
+//   abstract static int staticField;
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:44:3: Error: Static fields can't be declared 'abstract'.
+// Try removing the 'abstract' or 'static' keyword.
+//   abstract static final int finalStaticField;
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:46:12: Error: Fields can't be declared both 'abstract' and 'external'.
+// Try removing the 'abstract' or 'external' keyword.
+//   external abstract int externalInstanceField;
+//            ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:48:12: Error: Fields can't be declared both 'abstract' and 'external'.
+// Try removing the 'abstract' or 'external' keyword.
+//   external abstract final int externalFinalInstanceField;
+//            ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:50:12: Error: Fields can't be declared both 'abstract' and 'external'.
+// Try removing the 'abstract' or 'external' keyword.
+//   external abstract covariant num externalCovariantInstanceField;
+//            ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:55:16: Error: Extension fields can't be declared 'abstract'.
+// Try removing the 'abstract' keyword.
+//   abstract int extensionInstanceField;
+//                ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:55:16: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   abstract int extensionInstanceField;
+//                ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:56:22: Error: Extension fields can't be declared 'abstract'.
+// Try removing the 'abstract' keyword.
+//   abstract final int finalExtensionInstanceField;
+//                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:56:22: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   abstract final int finalExtensionInstanceField;
+//                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:57:23: Error: Extension fields can't be declared 'abstract'.
+// Try removing the 'abstract' keyword.
+//   abstract static int extensionStaticField = 0;
+//                       ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:57:3: Error: Static fields can't be declared 'abstract'.
+// Try removing the 'abstract' or 'static' keyword.
+//   abstract static int extensionStaticField = 0;
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:58:29: Error: Extension fields can't be declared 'abstract'.
+// Try removing the 'abstract' keyword.
+//   abstract static final int finalExtensionStaticField = 0;
+//                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:58:3: Error: Static fields can't be declared 'abstract'.
+// Try removing the 'abstract' or 'static' keyword.
+//   abstract static final int finalExtensionStaticField = 0;
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:5:14: Error: Field 'topLevelField' should be initialized because its type 'int' doesn't allow null.
+// abstract int topLevelField;
+//              ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:20:23: Error: Field 'staticField' should be initialized because its type 'int' doesn't allow null.
+//   abstract static int staticField;
+//                       ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:22:29: Error: Field 'finalStaticField' should be initialized because its type 'int' doesn't allow null.
+//   abstract static final int finalStaticField;
+//                             ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:42:23: Error: Field 'staticField' should be initialized because its type 'int' doesn't allow null.
+//   abstract static int staticField;
+//                       ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:44:29: Error: Field 'finalStaticField' should be initialized because its type 'int' doesn't allow null.
+//   abstract static final int finalStaticField;
+//                             ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:12:37: Error: Abstract fields cannot have initializers.
+// Try removing the initializer or the 'abstract' keyword.
+//   abstract int fieldWithInitializer = 0;
+//                                     ^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:18:10: Error: Abstract fields cannot have initializers.
+// Try removing the field initializer or the 'abstract' keyword from the field declaration.
+//   A(this.initializedField1) : this.initializedField2 = 0;
+//          ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:18:36: Error: Abstract fields cannot have initializers.
+// Try removing the field initializer or the 'abstract' keyword from the field declaration.
+//   A(this.initializedField1) : this.initializedField2 = 0;
+//                                    ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:22:29: Error: Final field 'finalStaticField' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   abstract static final int finalStaticField;
+//                             ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:44:29: Error: Final field 'finalStaticField' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   abstract static final int finalStaticField;
+//                             ^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  static field core::int staticField = null;
+  static final field core::int finalStaticField = null;
+  late field core::int lateInstanceField;
+  constructor •(core::int initializedField1) → self::A
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/nnbd/abstract_field_errors.dart:18:10: Error: Abstract fields cannot have initializers.
+Try removing the field initializer or the 'abstract' keyword from the field declaration.
+  A(this.initializedField1) : this.initializedField2 = 0;
+         ^^^^^^^^^^^^^^^^^", final dynamic #t2 = invalid-expression "pkg/front_end/testcases/nnbd/abstract_field_errors.dart:18:36: Error: Abstract fields cannot have initializers.
+Try removing the field initializer or the 'abstract' keyword from the field declaration.
+  A(this.initializedField1) : this.initializedField2 = 0;
+                                   ^^^^^^^^^^^^^^^^^"
+    ;
+  abstract get fieldWithInitializer() → core::int;
+  abstract set fieldWithInitializer(core::int #externalFieldValue) → void;
+  abstract get initializedField1() → core::int;
+  abstract set initializedField1(core::int #externalFieldValue) → void;
+  abstract get initializedField2() → core::int;
+  abstract set initializedField2(core::int #externalFieldValue) → void;
+  external get externalInstanceField1() → core::int;
+  external set externalInstanceField1(core::int #externalFieldValue) → void;
+  external get externalFinalInstanceField1() → core::int;
+  external get externalCovariantInstanceField1() → core::num;
+  external set externalCovariantInstanceField1(covariant-by-declaration core::num #externalFieldValue) → void;
+  external get externalInstanceField2() → core::int;
+  external set externalInstanceField2(core::int #externalFieldValue) → void;
+  external get externalFinalInstanceField2() → core::int;
+  external get externalCovariantInstanceField2() → core::num;
+  external set externalCovariantInstanceField2(covariant-by-declaration core::num #externalFieldValue) → void;
+  external get externalLateInstanceField() → core::int;
+  external set externalLateInstanceField(core::int #externalFieldValue) → void;
+}
+abstract class B extends core::Object /*isMixinDeclaration*/  {
+  static field core::int staticField = null;
+  static final field core::int finalStaticField = null;
+  external get externalInstanceField() → core::int;
+  external set externalInstanceField(core::int #externalFieldValue) → void;
+  external get externalFinalInstanceField() → core::int;
+  external get externalCovariantInstanceField() → core::num;
+  external set externalCovariantInstanceField(covariant-by-declaration core::num #externalFieldValue) → void;
+}
+extension Extension on self::A {
+  get extensionInstanceField = get self::Extension|extensionInstanceField;
+  set extensionInstanceField = set self::Extension|extensionInstanceField;
+  get finalExtensionInstanceField = get self::Extension|finalExtensionInstanceField;
+  static field extensionStaticField = self::Extension|extensionStaticField;
+  static field finalExtensionStaticField = self::Extension|finalExtensionStaticField;
+}
+static field core::int topLevelField;
+static final field core::int finalTopLevelField = 0;
+static const field core::int constField = #C1;
+static field core::int Extension|extensionStaticField = 0;
+static final field core::int Extension|finalExtensionStaticField = 0;
+static abstract get Extension|extensionInstanceField() → core::int;
+static abstract set Extension|extensionInstanceField(core::int #externalFieldValue) → void;
+static abstract get Extension|finalExtensionInstanceField() → core::int;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+}

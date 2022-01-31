@@ -24,7 +24,11 @@ export '../api_prototype/file_system.dart'
 export '../api_prototype/front_end.dart' show CompilerResult;
 
 export '../api_prototype/incremental_kernel_generator.dart'
-    show IncrementalKernelGenerator, IncrementalSerializer, isLegalIdentifier;
+    show
+        IncrementalCompilerResult,
+        IncrementalKernelGenerator,
+        IncrementalSerializer,
+        isLegalIdentifier;
 
 export '../api_prototype/kernel_generator.dart'
     show kernelForModule, kernelForProgram;
@@ -50,6 +54,8 @@ export '../fasta/compiler_context.dart' show CompilerContext;
 export '../fasta/fasta_codes.dart'
     show
         LocatedMessage,
+        messageFfiAbiSpecificIntegerInvalid,
+        messageFfiAbiSpecificIntegerMappingInvalid,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
         messageFfiLeafCallMustNotReturnHandle,

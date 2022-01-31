@@ -4,14 +4,11 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // https://github.com/dart-lang/sdk/issues/35778
 
 import "dart:async";
 import "dart:isolate";
-import "dart:typed_data";
+
 import "package:expect/expect.dart";
 
 void child(replyPort) {

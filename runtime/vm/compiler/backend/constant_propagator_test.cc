@@ -295,4 +295,85 @@ ISOLATE_UNIT_TEST_CASE(ConstantPropagator_Regress35371) {
 }
 #endif
 
+void StrictCompareSentinel(Thread* thread,
+                           bool negate,
+                           bool non_sentinel_on_left) {
+  const char* kScript = R"(
+    late final int x = 4;
+  )";
+  Zone* const Z = Thread::Current()->zone();
+  const auto& root_library = Library::CheckedHandle(Z, LoadTestScript(kScript));
+  const auto& toplevel = Class::Handle(Z, root_library.toplevel_class());
+  const auto& field_x = Field::Handle(
+      Z, toplevel.LookupStaticField(String::Handle(Z, String::New("x"))));
+
+  using compiler::BlockBuilder;
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H;
+
+  auto b1 = H.flow_graph()->graph_entry()->normal_entry();
+
+  {
+    BlockBuilder builder(H.flow_graph(), b1);
+    auto v_load = builder.AddDefinition(new LoadStaticFieldInstr(
+        field_x, {},
+        /*calls_initializer=*/true, S.GetNextDeoptId()));
+    auto v_sentinel = H.flow_graph()->GetConstant(Object::sentinel());
+    Value* const left_value =
+        non_sentinel_on_left ? new Value(v_load) : new Value(v_sentinel);
+    Value* const right_value =
+        non_sentinel_on_left ? new Value(v_sentinel) : new Value(v_load);
+    auto v_compare = builder.AddDefinition(new StrictCompareInstr(
+        {}, negate ? Token::kNE_STRICT : Token::kEQ_STRICT, left_value,
+        right_value,
+        /*needs_number_check=*/false, S.GetNextDeoptId()));
+    builder.AddReturn(new Value(v_compare));
+  }
+
+  H.FinishGraph();
+
+  FlowGraphPrinter::PrintGraph("Before TypePropagator", H.flow_graph());
+  FlowGraphTypePropagator::Propagate(H.flow_graph());
+  FlowGraphPrinter::PrintGraph("After TypePropagator", H.flow_graph());
+  GrowableArray<BlockEntryInstr*> ignored;
+  ConstantPropagator::Optimize(H.flow_graph());
+  FlowGraphPrinter::PrintGraph("After ConstantPropagator", H.flow_graph());
+
+  ReturnInstr* ret = nullptr;
+
+  ILMatcher cursor(H.flow_graph(),
+                   H.flow_graph()->graph_entry()->normal_entry(), true);
+  RELEASE_ASSERT(cursor.TryMatch({
+      kMatchAndMoveFunctionEntry,
+      kMatchAndMoveLoadStaticField,
+      // The StrictCompare instruction should be removed.
+      {kMatchReturn, &ret},
+  }));
+
+  EXPECT_PROPERTY(ret, it.value()->BindsToConstant());
+  EXPECT_PROPERTY(&ret->value()->BoundConstant(), it.IsBool());
+  EXPECT_PROPERTY(&ret->value()->BoundConstant(),
+                  Bool::Cast(it).value() == negate);
+}
+
+ISOLATE_UNIT_TEST_CASE(ConstantPropagator_StrictCompareEqualsSentinelLeft) {
+  StrictCompareSentinel(thread, /*negate=*/false,
+                        /*non_sentinel_on_left=*/true);
+}
+
+ISOLATE_UNIT_TEST_CASE(ConstantPropagator_StrictCompareEqualsSentinelRightt) {
+  StrictCompareSentinel(thread, /*negate=*/false,
+                        /*non_sentinel_on_left=*/false);
+}
+
+ISOLATE_UNIT_TEST_CASE(ConstantPropagator_StrictCompareNotEqualsSentinelLeft) {
+  StrictCompareSentinel(thread, /*negate=*/true,
+                        /*non_sentinel_on_left=*/true);
+}
+
+ISOLATE_UNIT_TEST_CASE(ConstantPropagator_StrictCompareNotEqualsSentinelRight) {
+  StrictCompareSentinel(thread, /*negate=*/true,
+                        /*non_sentinel_on_left=*/false);
+}
+
 }  // namespace dart

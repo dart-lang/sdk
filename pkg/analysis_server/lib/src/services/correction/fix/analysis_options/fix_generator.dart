@@ -151,7 +151,7 @@ class AnalysisOptionsFixGenerator {
           } else if (nodes.containsValue(child)) {
             for (var entry in nodes.entries) {
               if (child == entry.value) {
-                key = entry.key;
+                key = entry.key as YamlNode?;
                 value = child;
                 break;
               }

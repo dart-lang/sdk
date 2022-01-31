@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue47075.dart:6:7: Error: 'new' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+//   int new = 42;
+//       ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue47075.dart:10:11: Error: 'new' can only be used as a constructor reference.
+//   new C().new is int;
+//           ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue47075.dart:12:7: Error: 'new' can only be used as a constructor reference.
+//   foo.new;
+//       ^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/issue47075.dart:13:7: Error: 'new' can only be used as a constructor reference.
+//   foo.new();
+//       ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int new = 42;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic {
+  new self::C::•().{self::C::new}{core::int} is{ForNonNullableByDefault} core::int;
+  dynamic foo;
+  foo{dynamic}.new;
+  foo{dynamic}.new();
+}
+static method main() → dynamic {}

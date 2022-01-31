@@ -14,10 +14,13 @@ import 'package:analysis_server/src/lsp/handlers/handler_reject.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
+
+export 'package:analysis_server/src/utilities/progress.dart';
 
 /// Converts an iterable using the provided function and skipping over any
 /// null values.
@@ -25,22 +28,6 @@ Iterable<T> convert<T, E>(Iterable<E> items, T Function(E) converter) {
   // TODO(dantup): Now this is used outside of handlers, is there somewhere
   // better to put it, and/or a better name for it?
   return items.map(converter).where((item) => item != null);
-}
-
-class CancelableToken extends CancellationToken {
-  bool _isCancelled = false;
-
-  @override
-  bool get isCancellationRequested => _isCancelled;
-
-  void cancel() => _isCancelled = true;
-}
-
-/// A token used to signal cancellation of an operation. This allows computation
-/// to be skipped when a caller is no longer interested in the result, for example
-/// when a $/cancel request is recieved for an in-progress request.
-abstract class CancellationToken {
-  bool get isCancellationRequested;
 }
 
 abstract class CommandHandler<P, R> with Handler<P, R> {
@@ -134,7 +121,8 @@ abstract class MessageHandler<P, R>
   FutureOr<ErrorOr<R>> handleMessage(
       IncomingMessage message, CancellationToken token) {
     final reporter = LspJsonReporter('params');
-    if (!jsonHandler.validateParams(message.params, reporter)) {
+    final paramsJson = message.params as Map<String, Object?>?;
+    if (!jsonHandler.validateParams(paramsJson, reporter)) {
       return error(
         ErrorCodes.InvalidParams,
         'Invalid params for ${message.method}:\n'
@@ -144,16 +132,10 @@ abstract class MessageHandler<P, R>
       );
     }
 
-    final params = message.params != null
-        ? jsonHandler.convertParams(message.params)
-        : null as P;
+    final params =
+        paramsJson != null ? jsonHandler.convertParams(paramsJson) : null as P;
     return handle(params, token);
   }
-}
-
-class NotCancelableToken extends CancellationToken {
-  @override
-  bool get isCancellationRequested => false;
 }
 
 /// A message handler that handles all messages for a given server state.

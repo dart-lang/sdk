@@ -208,8 +208,8 @@ typedef td3 = double;
     assertHas('s', ElementKind.SETTER);
     assertHas('f', ElementKind.FUNCTION);
     assertHas('v', ElementKind.TOP_LEVEL_VARIABLE);
-    assertHas('tf1', ElementKind.FUNCTION_TYPE_ALIAS);
-    assertHas('tf2', ElementKind.FUNCTION_TYPE_ALIAS);
+    assertHas('tf1', ElementKind.TYPE_ALIAS);
+    assertHas('tf2', ElementKind.TYPE_ALIAS);
     assertHas('td3', ElementKind.TYPE_ALIAS);
   }
 

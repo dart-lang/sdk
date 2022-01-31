@@ -197,7 +197,7 @@ class LibraryAnalyzer {
   /// Compute [_constants] in all units.
   void _computeConstants() {
     computeConstants(_typeProvider, _typeSystem, _declaredVariables,
-        _constants.toList(), _analysisOptions.experimentStatus);
+        _constants.toList(), _libraryElement.featureSet);
   }
 
   void _computeDiagnostics({
@@ -362,17 +362,14 @@ class LibraryAnalyzer {
   }
 
   void _computeVerifyErrors(FileState file, CompilationUnit unit) {
-    RecordingErrorListener errorListener = _getErrorListener(file);
+    ErrorReporter errorReporter = _getErrorReporter(file);
 
     CodeChecker checker = CodeChecker(
       _typeProvider,
       _typeSystem,
-      _inheritance,
-      errorListener,
+      errorReporter,
     );
     checker.visitCompilationUnit(unit);
-
-    ErrorReporter errorReporter = _getErrorReporter(file);
 
     //
     // Validate the directives.

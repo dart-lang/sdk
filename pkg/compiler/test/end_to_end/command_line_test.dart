@@ -91,14 +91,27 @@ main() {
       '--out=foo.dill'
     ], out: 'foo.dill', readClosedWorld: 'foo.world', writeData: 'foo.data');
 
-    await test([Flags.readData, 'foo.dill'],
-        out: 'out.js', readData: 'foo.dill.data');
-    await test([Flags.readData, 'foo.dill', '--out=foo.js'],
-        out: 'foo.js', readData: 'foo.dill.data');
-    await test(['${Flags.readData}=out.data', 'foo.dill'],
-        out: 'out.js', readData: 'out.data');
-    await test(['${Flags.readData}=out.data', 'foo.dill', '--out=foo.js'],
-        out: 'foo.js', readData: 'out.data');
+    await test([Flags.readData, 'foo.dill'], exitCode: 1);
+    await test([Flags.readClosedWorld, Flags.readData, 'foo.dill'],
+        out: 'out.js',
+        readClosedWorld: 'foo.dill.world',
+        readData: 'foo.dill.data');
+    await test(
+        [Flags.readClosedWorld, Flags.readData, 'foo.dill', '--out=foo.js'],
+        out: 'foo.js',
+        readClosedWorld: 'foo.dill.world',
+        readData: 'foo.dill.data');
+    await test([
+      '${Flags.readClosedWorld}=out.world',
+      '${Flags.readData}=out.data',
+      'foo.dill'
+    ], out: 'out.js', readClosedWorld: 'out.world', readData: 'out.data');
+    await test([
+      '${Flags.readClosedWorld}=out.world',
+      '${Flags.readData}=out.data',
+      'foo.dill',
+      '--out=foo.js'
+    ], out: 'foo.js', readClosedWorld: 'out.world', readData: 'out.data');
 
     await test([
       Flags.writeCodegen,
@@ -107,6 +120,7 @@ main() {
       '${Flags.codegenShards}=2'
     ], exitCode: 1);
     await test([
+      Flags.readClosedWorld,
       Flags.readData,
       Flags.writeCodegen,
       'foo.dill',
@@ -114,6 +128,7 @@ main() {
       '${Flags.codegenShards}=2'
     ],
         out: 'out',
+        readClosedWorld: 'foo.dill.world',
         readData: 'foo.dill.data',
         writeCodegen: 'out.code',
         codegenShard: 0,
@@ -121,16 +136,19 @@ main() {
     await test([
       Flags.writeCodegen,
       Flags.readData,
+      Flags.readClosedWorld,
       'foo.dill',
       '${Flags.codegenShard}=1',
       '${Flags.codegenShards}=2'
     ],
         out: 'out',
+        readClosedWorld: 'foo.dill.world',
         readData: 'foo.dill.data',
         writeCodegen: 'out.code',
         codegenShard: 1,
         codegenShards: 2);
     await test([
+      '${Flags.readClosedWorld}=foo.world',
       '${Flags.readData}=foo.data',
       '${Flags.writeCodegen}=foo.code',
       'foo.dill',
@@ -138,6 +156,7 @@ main() {
       '${Flags.codegenShards}=3'
     ],
         out: 'out',
+        readClosedWorld: 'foo.world',
         readData: 'foo.data',
         writeCodegen: 'foo.code',
         codegenShard: 0,
@@ -145,12 +164,14 @@ main() {
     await test([
       '${Flags.readData}=foo.data',
       '${Flags.writeCodegen}',
+      '${Flags.readClosedWorld}=foo.world',
       'foo.dill',
       '--out=foo.js',
       '${Flags.codegenShard}=0',
       '${Flags.codegenShards}=2'
     ],
         out: 'foo.js',
+        readClosedWorld: 'foo.world',
         readData: 'foo.data',
         writeCodegen: 'foo.js.code',
         codegenShard: 0,
@@ -203,28 +224,126 @@ main() {
       '${Flags.codegenShards}=2'
     ], exitCode: 1);
 
-    await test([Flags.readCodegen, 'foo.dill', '${Flags.codegenShards}=2'],
-        out: 'out.js',
-        readData: 'foo.dill.data',
-        readCodegen: 'foo.dill.code',
-        codegenShards: 2);
+    // These three flags should parse in any order, but all are required.
     await test([
-      '${Flags.readCodegen}=foo.code',
-      'foo.dill',
-      '${Flags.codegenShards}=3'
-    ],
-        out: 'out.js',
-        readData: 'foo.dill.data',
-        readCodegen: 'foo.code',
-        codegenShards: 3);
-
-    await test([
+      Flags.readClosedWorld,
       Flags.readData,
       Flags.readCodegen,
       'foo.dill',
       '${Flags.codegenShards}=2'
     ],
         out: 'out.js',
+        readClosedWorld: 'foo.dill.world',
+        readData: 'foo.dill.data',
+        readCodegen: 'foo.dill.code',
+        codegenShards: 2);
+    await test([
+      Flags.readClosedWorld,
+      Flags.readCodegen,
+      Flags.readData,
+      'foo.dill',
+      '${Flags.codegenShards}=2'
+    ],
+        out: 'out.js',
+        readClosedWorld: 'foo.dill.world',
+        readData: 'foo.dill.data',
+        readCodegen: 'foo.dill.code',
+        codegenShards: 2);
+    await test([
+      Flags.readCodegen,
+      Flags.readClosedWorld,
+      Flags.readData,
+      'foo.dill',
+      '${Flags.codegenShards}=2'
+    ],
+        out: 'out.js',
+        readClosedWorld: 'foo.dill.world',
+        readData: 'foo.dill.data',
+        readCodegen: 'foo.dill.code',
+        codegenShards: 2);
+    await test([
+      Flags.readCodegen,
+      Flags.readData,
+      Flags.readClosedWorld,
+      'foo.dill',
+      '${Flags.codegenShards}=2'
+    ],
+        out: 'out.js',
+        readClosedWorld: 'foo.dill.world',
+        readData: 'foo.dill.data',
+        readCodegen: 'foo.dill.code',
+        codegenShards: 2);
+    await test([
+      Flags.readData,
+      Flags.readCodegen,
+      Flags.readClosedWorld,
+      'foo.dill',
+      '${Flags.codegenShards}=2'
+    ],
+        out: 'out.js',
+        readClosedWorld: 'foo.dill.world',
+        readData: 'foo.dill.data',
+        readCodegen: 'foo.dill.code',
+        codegenShards: 2);
+    await test([
+      Flags.readData,
+      Flags.readClosedWorld,
+      Flags.readCodegen,
+      'foo.dill',
+      '${Flags.codegenShards}=2'
+    ],
+        out: 'out.js',
+        readClosedWorld: 'foo.dill.world',
+        readData: 'foo.dill.data',
+        readCodegen: 'foo.dill.code',
+        codegenShards: 2);
+    await test([
+      Flags.readClosedWorld,
+      Flags.readCodegen,
+      'foo.dill',
+      '${Flags.codegenShards}=2'
+    ], exitCode: 1);
+    await test([
+      Flags.readData,
+      Flags.readCodegen,
+      'foo.dill',
+      '${Flags.codegenShards}=2'
+    ], exitCode: 1);
+
+    await test([
+      Flags.readData,
+      Flags.readClosedWorld,
+      Flags.readCodegen,
+      'foo.dill',
+      '${Flags.codegenShards}=2'
+    ],
+        out: 'out.js',
+        readClosedWorld: 'foo.dill.world',
+        readData: 'foo.dill.data',
+        readCodegen: 'foo.dill.code',
+        codegenShards: 2);
+    await test([
+      '${Flags.readCodegen}=foo.code',
+      'foo.dill',
+      '${Flags.codegenShards}=3',
+      Flags.readData,
+      Flags.readClosedWorld,
+    ],
+        out: 'out.js',
+        readData: 'foo.dill.data',
+        readClosedWorld: 'foo.dill.world',
+        readCodegen: 'foo.code',
+        codegenShards: 3);
+
+    await test([
+      Flags.readData,
+      Flags.readCodegen,
+      Flags.readClosedWorld,
+      'foo.dill',
+      '${Flags.codegenShards}=2'
+    ],
+        out: 'out.js',
+        readClosedWorld: 'foo.dill.world',
         readData: 'foo.dill.data',
         readCodegen: 'foo.dill.code',
         codegenShards: 2);
@@ -233,9 +352,11 @@ main() {
       '${Flags.readCodegen}=foo.code',
       'foo.dill',
       '${Flags.codegenShards}=3',
+      '${Flags.readClosedWorld}=foo.world',
       '-v'
     ],
         out: 'out.js',
+        readClosedWorld: 'foo.world',
         readData: 'foo.data',
         readCodegen: 'foo.code',
         codegenShards: 3);

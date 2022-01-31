@@ -138,7 +138,7 @@ void VirtualMemory::Init() {
         nullptr, PROT_NONE, allocated_size, kCompressedHeapPageSize,
         allocated_size + kCompressedHeapPageSize,
         MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE);
-    if (address == MAP_FAILED) continue;
+    if (address == nullptr) continue;
 
     MemoryRegion region(address, allocated_size);
     region = ClipToAlignedRegion(region, kCompressedHeapAlignment);

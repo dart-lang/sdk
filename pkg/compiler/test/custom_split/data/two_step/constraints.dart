@@ -12,10 +12,13 @@ void main(List<String> args, SendPort sendPort) {
 }
 
 List<Node> processDeferredImports(List<String> imports) {
+  var step1 = 'memory:sdk/tests/web/native/main.dart#step1';
+  var step2 = 'memory:sdk/tests/web/native/main.dart#step2';
+  var step3 = 'memory:sdk/tests/web/native/main.dart#step3';
   var builder = ProgramSplitBuilder();
   return [
     ...imports.map(builder.referenceNode),
-    builder.orderNode('step1', 'step2'),
-    builder.orderNode('step2', 'step3'),
+    builder.orderNode(step1, step2),
+    builder.orderNode(step2, step3),
   ];
 }

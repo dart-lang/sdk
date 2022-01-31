@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:isolate" as iso;
+import "dart:async" as asy;
+
+import "dart:isolate";
+
+static field dynamic subscription;
+static method onData(dynamic x) → void {
+  core::print(x);
+  self::subscription{dynamic}.cancel();
+}
+static method main() → dynamic {
+  core::String* string = core::String::fromCharCode(65);
+  iso::ReceivePort* port = iso::ReceivePort::•();
+  self::subscription = port.{iso::ReceivePort::listen}(#C1){((dynamic) →* void, {cancelOnError: core::bool*, onDone: () →* void, onError: core::Function*}) →* asy::StreamSubscription<dynamic>*};
+  port.{iso::ReceivePort::sendPort}{iso::SendPort*}.{iso::SendPort::send}(string){(core::Object*) →* void};
+}
+
+constants  {
+  #C1 = static-tearoff self::onData
+}

@@ -13,6 +13,7 @@ import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/comment.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:collection/collection.dart';
 
 class ElementBuilder extends ThrowingAstVisitor<void> {
@@ -351,13 +352,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _enclosingContext.addParameter(null, element);
     }
     element.hasImplicitType = node.type == null && node.parameters == null;
-    element.isExplicitlyCovariant = node.covariantKeyword != null;
-    element.isFinal = node.isFinal;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
 
     nameNode.staticElement = element;
 
+    // TODO(scheglov) check that we don't set reference for parameters
     var fakeReference = Reference.root();
     var holder = _EnclosingContext(fakeReference, element);
     _withEnclosing(holder, () {
@@ -793,6 +793,59 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(
+    covariant SuperFormalParameterImpl node,
+  ) {
+    var nameNode = node.identifier;
+    var name = nameNode.name;
+    var nameOffset = nameNode.offset;
+
+    SuperFormalParameterElementImpl element;
+    var parent = node.parent;
+    if (parent is DefaultFormalParameter) {
+      element = DefaultSuperFormalParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      )..constantInitializer = parent.defaultValue;
+      _linker.elementNodes[element] = parent;
+      _enclosingContext.addParameter(name, element);
+    } else {
+      element = SuperFormalParameterElementImpl(
+        name: name,
+        nameOffset: nameOffset,
+        parameterKind: node.kind,
+      );
+      _linker.elementNodes[element] = node;
+      _enclosingContext.addParameter(null, element);
+    }
+    element.hasImplicitType = node.type == null && node.parameters == null;
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+
+    nameNode.staticElement = element;
+
+    // TODO(scheglov) check that we don't set reference for parameters
+    var fakeReference = Reference.root();
+    var holder = _EnclosingContext(fakeReference, element);
+    _withEnclosing(holder, () {
+      var formalParameters = node.parameters;
+      if (formalParameters != null) {
+        formalParameters.accept(this);
+        element.parameters = holder.parameters;
+      }
+
+      var typeParameters = node.typeParameters;
+      if (typeParameters != null) {
+        typeParameters.accept(this);
+        element.typeParameters = holder.typeParameters;
+      }
+    });
+
+    _buildType(node.type);
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(
     covariant TopLevelVariableDeclarationImpl node,
   ) {
@@ -904,15 +957,14 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.fields = holder.properties.whereType<FieldElement>().toList();
     element.methods = holder.methods;
 
-    var constructors = holder.constructors;
-    if (constructors.isEmpty) {
-      var containerRef = element.reference!.getChild('@constructor');
-      constructors = [
-        ConstructorElementImpl('', -1)
-          ..isSynthetic = true
-          ..reference = containerRef.getChild(''),
-      ];
+    if (holder.constructors.isEmpty) {
+      holder.addConstructor(
+        '',
+        ConstructorElementImpl('', -1)..isSynthetic = true,
+      );
     }
+
+    var constructors = holder.constructors;
     element.constructors = constructors;
 
     // We have all fields and constructors.
@@ -997,16 +1049,26 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     if (relativeUriStr == null) {
       return null;
     }
-    var relativeUri = Uri.parse(relativeUriStr);
-    return resolveRelativeUri(_libraryBuilder.uri, relativeUri);
+
+    Uri relativeUri;
+    try {
+      relativeUri = Uri.parse(relativeUriStr);
+    } on FormatException {
+      return null;
+    }
+
+    var absoluteUri = resolveRelativeUri(_libraryBuilder.uri, relativeUri);
+
+    var sourceFactory = _linker.analysisContext.sourceFactory;
+    return rewriteToCanonicalUri(sourceFactory, absoluteUri);
   }
 
   LibraryElement? _selectLibrary(NamespaceDirective node) {
-    try {
-      var uri = _selectAbsoluteUri(node);
-      return _linker.elementFactory.libraryOfUri('$uri');
-    } on FormatException {
+    var uri = _selectAbsoluteUri(node);
+    if (uri == null) {
       return null;
+    } else {
+      return _linker.elementFactory.libraryOfUri('$uri');
     }
   }
 
@@ -1261,7 +1323,9 @@ class _EnclosingContext {
 
   Reference? addParameter(String? name, ParameterElementImpl element) {
     parameters.add(element);
-    if (name != null) {
+    if (name == null) {
+      return null;
+    } else {
       return _bindReference('@parameter', name, element);
     }
   }

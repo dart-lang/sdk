@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 
 /// Instances of the class [ServerDomainHandler] implement a [RequestHandler]
 /// that handles requests in the server domain.
@@ -17,13 +18,23 @@ class ServerDomainHandler implements RequestHandler {
   /// [server].
   ServerDomainHandler(this.server);
 
+  Response cancelRequest(Request request) {
+    final id = ServerCancelRequestParams.fromRequest(request).id;
+    server.cancelRequest(id);
+
+    return ServerCancelRequestResult().toResponse(request.id);
+  }
+
   /// Return the version number of the analysis server.
   Response getVersion(Request request) {
-    return ServerGetVersionResult(PROTOCOL_VERSION).toResponse(request.id);
+    return ServerGetVersionResult(
+      server.options.reportProtocolVersion ?? PROTOCOL_VERSION,
+    ).toResponse(request.id);
   }
 
   @override
-  Response? handleRequest(Request request) {
+  Response? handleRequest(
+      Request request, CancellationToken cancellationToken) {
     try {
       var requestName = request.method;
       if (requestName == SERVER_REQUEST_GET_VERSION) {
@@ -33,6 +44,8 @@ class ServerDomainHandler implements RequestHandler {
       } else if (requestName == SERVER_REQUEST_SHUTDOWN) {
         shutdown(request);
         return Response.DELAYED_RESPONSE;
+      } else if (requestName == SERVER_REQUEST_CANCEL_REQUEST) {
+        return cancelRequest(request);
       }
     } on RequestFailure catch (exception) {
       return exception.response;

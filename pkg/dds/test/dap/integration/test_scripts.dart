@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:test/test.dart';
 
 /// A marker used in some test scripts/tests for where to set breakpoints.
@@ -52,6 +54,24 @@ const simpleArgPrintingProgram = r'''
     print('args: $args');
   }
 ''';
+
+/// Returns a simple Dart script that prints the provided string repeatedly.
+String stringPrintingProgram(String text) {
+  // jsonEncode the string to get it into a quoted/escaped form that can be
+  // embedded in the string.
+  final encodedTextString = jsonEncode(text);
+  return '''
+  import 'dart:async';
+
+  main() async {
+    Timer.periodic(Duration(milliseconds: 10), (_) => printSomething());
+  }
+
+  void printSomething() {
+    print($encodedTextString);
+  }
+''';
+}
 
 /// A simple async Dart script that when stopped at the line of '// BREAKPOINT'
 /// will contain multiple stack frames across some async boundaries.

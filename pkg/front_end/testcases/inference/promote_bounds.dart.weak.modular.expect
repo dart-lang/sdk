@@ -1,0 +1,35 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+  abstract method foo() → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class C extends self::B {
+  synthetic constructor •() → self::C*
+    : super self::B::•()
+    ;
+  abstract method bar() → void;
+}
+static method f<T extends self::B*>(self::f::T* a) → void {
+  if(a is core::String*) {
+    a.{self::B::foo}(){() →* void};
+  }
+  if(a is self::C*) {
+    a{self::f::T* & self::C* /* '*' & '*' = '*' */}.{self::C::bar}(){() →* void};
+  }
+}
+static method main() → dynamic {}

@@ -24,6 +24,7 @@ Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipByDesign # Uses d
 Language/Libraries_and_Scripts/Scripts/top_level_syntax_t01: SkipByDesign # Non-JS-interop external members are not supported
 Language/Libraries_and_Scripts/top_level_syntax_t01: SkipByDesign # Non-JS-interop external members are not supported
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
+Language/Types/Interface_Types/subtype_t27: Skip # https://github.com/dart-lang/sdk/issues/42641
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t01: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t02: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t03: SkipByDesign # Non-JS-interop external members are not supported
@@ -53,8 +54,6 @@ LibTest/core/int/operator_truncating_division_A01_t02: SkipByDesign # Division b
 LibTest/core/int/parse_A01_t02: SkipByDesign # uses integer literal not representable as JavaScript number
 LibTest/core/int/remainder_A01_t03: SkipByDesign # Division by zero is not an error in JavaScript
 LibTest/ffi/*: SkipByDesign # dart:ffi is not supported
-LibTest/html/HttpRequest/responseText_A01_t02: Skip # https://github.com/dart-lang/co19/issues/932
-LibTest/html/HttpRequestUpload/*: Skip # https://github.com/dart-lang/co19/issues/932
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported

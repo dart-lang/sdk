@@ -130,6 +130,13 @@ class ChangeBuilderImpl implements ChangeBuilder {
     if (builder == null) {
       builder = await _createDartFileEditBuilder(path);
       if (builder != null) {
+        // It's not currently supported to call this method twice concurrently
+        // for the same file as two builder may be produced because of the above
+        // `await` so detect this and throw to avoid losing edits.
+        if (_dartFileEditBuilders.containsKey(path)) {
+          throw StateError(
+              "Can't add multiple edits concurrently for the same file");
+        }
         _dartFileEditBuilders[path] = builder;
       }
     }
@@ -239,6 +246,13 @@ class ChangeBuilderImpl implements ChangeBuilder {
       _linkedEditGroups[groupName] = group;
     }
     return group;
+  }
+
+  @override
+  bool hasEditsFor(String path) {
+    return _dartFileEditBuilders.containsKey(path) ||
+        _genericFileEditBuilders.containsKey(path) ||
+        _yamlFileEditBuilders.containsKey(path);
   }
 
   @override

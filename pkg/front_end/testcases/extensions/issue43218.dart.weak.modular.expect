@@ -1,0 +1,48 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/issue43218.dart:24:10: Error: The setter 'id' isn't defined for the class 'int'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'id'.
+//   Ext(c).id++;
+//          ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int* value;
+  constructor •() → self::C*
+    : self::C::value = 0, super core::Object::•() {}
+  method init() → dynamic {
+    this.{self::C::value} = 0;
+  }
+  get id() → core::int*
+    return this.{self::C::value}{core::int*};
+  set id(core::int* v) → void {
+    this.{self::C::value} = v;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Ext on self::C* {
+  get id = self::Ext|get#id;
+}
+static method Ext|get#id(lowered final self::C* #this) → core::int*
+  return #this.{self::C::value}{core::int*}.{core::num::+}(1){(core::num*) →* core::int*};
+static method test() → dynamic {
+  self::C* c = new self::C::•();
+  let final self::C* #t1 = c in invalid-expression "pkg/front_end/testcases/extensions/issue43218.dart:24:10: Error: The setter 'id' isn't defined for the class 'int'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'id'.
+  Ext(c).id++;
+         ^^" in #t1{<unresolved>}.id = self::Ext|get#id(#t1).{core::num::+}(1){(core::num*) →* core::int*};
+}
+static method main() → dynamic {}

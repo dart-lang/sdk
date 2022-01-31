@@ -5,6 +5,7 @@
 import 'dart:io' show File, Platform, stdin, exitCode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
@@ -26,8 +27,9 @@ Future<void> main(List<String> args) async {
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, input,
             /*Uri initializeFrom*/ null, /*bool outlineOnly*/ true);
-    c = await compiler.computeDelta();
-    classHierarchy = compiler.getClassHierarchy()!;
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+    c = compilerResult.component;
+    classHierarchy = compilerResult.classHierarchy!;
     List<Library> libraries = c.libraries
         .where((Library lib) =>
             (lib.importUri.toString() == "package:kernel/ast.dart"))

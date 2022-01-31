@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
+
 import '../compiler/js_typerep.dart';
 import 'kernel_helpers.dart';
 
@@ -32,9 +31,8 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
   @override
   JSType typeFor(DartType type) {
     while (type is TypeParameterType) {
-      type = (type as TypeParameterType).parameter.bound;
+      type = type.parameter.bound;
     }
-    if (type == null) return JSType.jsUnknown;
     assert(isKnownDartTypeImplementor(type));
 
     // Note that this should be changed if Dart gets non-nullable types
@@ -65,11 +63,12 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
     return JSType.jsObject;
   }
 
-  /// Given a Dart type return the known implementation type, if any.
-  /// Given `bool`, `String`, or `num`/`int`/`double`,
-  /// returns the corresponding class in `dart:_interceptors`:
-  /// `JSBool`, `JSString`, and `JSNumber` respectively, otherwise null.
-  Class getImplementationClass(DartType t) {
+  /// Returns the known implementation type for [t], if any.
+  ///
+  /// Given `bool`, `String`, or `num`/`int`/`double`, returns the corresponding
+  /// class in `dart:_interceptors`: `JSBool`, `JSString`, and `JSNumber`
+  /// respectively, otherwise null.
+  Class? getImplementationClass(DartType t) {
     var rep = typeFor(t);
     // Number, String, and Bool are final
     if (rep == JSType.jsNumber) return _jsNumber;

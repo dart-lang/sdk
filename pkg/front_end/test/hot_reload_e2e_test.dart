@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 /// Integration test that runs the incremental compiler, runs the compiled
 /// program, incrementally rebuild portions of the app, and triggers a hot
 /// reload on the running program.
@@ -45,12 +43,12 @@ import 'package:vm/target/vm.dart';
 import 'tool/reload.dart' show RemoteVm;
 
 abstract class TestCase {
-  IncrementalKernelGenerator compiler;
-  MemoryFileSystem fs;
-  Directory outDir;
-  Uri outputUri;
-  List<Future<String>> lines;
-  Future programIsDone;
+  late IncrementalKernelGenerator compiler;
+  late MemoryFileSystem fs;
+  late Directory outDir;
+  late Uri outputUri;
+  List<Future<String>> lines = const [];
+  late Future programIsDone;
 
   String get name;
 
@@ -83,14 +81,14 @@ abstract class TestCase {
 
   Future<void> tearDown() async {
     outDir.deleteSync(recursive: true);
-    lines = null;
+    lines = const [];
   }
 
   Future<int> computeVmPort() async {
     var portLine = await lines[0];
     Expect.isTrue(observatoryPortRegExp.hasMatch(portLine));
     var match = observatoryPortRegExp.firstMatch(portLine);
-    return int.parse(match.group(1));
+    return int.parse(match!.group(1)!);
   }
 
   /// Request vm to resume execution
@@ -318,8 +316,9 @@ Future<bool> rebuild(IncrementalKernelGenerator compiler, Uri outputUri) async {
   compiler.invalidate(Uri.parse("org-dartlang-test:///a.dart"));
   compiler.invalidate(Uri.parse("org-dartlang-test:///b.dart"));
   compiler.invalidate(Uri.parse("org-dartlang-test:///c.dart"));
-  var component = await compiler.computeDelta();
-  if (component != null && !component.libraries.isEmpty) {
+  var compilerResult = await compiler.computeDelta();
+  var component = compilerResult.component;
+  if (!component.libraries.isEmpty) {
     await writeProgram(component, outputUri);
     return true;
   }

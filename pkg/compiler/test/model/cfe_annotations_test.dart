@@ -14,6 +14,7 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:expect/expect.dart';
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../helpers/args_helper.dart';
@@ -434,6 +435,7 @@ main(List<String> args) {
                     implicitJsInteropMember:
                         nativeData.isJsInteropClass(classEntity),
                     implicitNativeMember: member is! ir.Constructor &&
+                        !isTearOffLowering(member) &&
                         nativeData.isNativeClass(classEntity) &&
                         !nativeData.isJsInteropClass(classEntity));
               }

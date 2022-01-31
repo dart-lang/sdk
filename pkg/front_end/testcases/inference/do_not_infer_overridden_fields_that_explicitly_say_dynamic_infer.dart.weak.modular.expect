@@ -1,0 +1,55 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer.dart:13:49: Error: The return type of the method 'B.x' is 'dynamic', which does not match the return type, 'int', of the overridden method, 'A.x'.
+// Change to a subtype of 'int'.
+//   /*error:INVALID_METHOD_OVERRIDE*/ dynamic get x => 3;
+//                                                 ^
+// pkg/front_end/testcases/inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer.dart:9:13: Context: This is the overridden method ('x').
+//   final int x = 2;
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int* x = 2;
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends core::Object implements self::A {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+  get x() → dynamic
+    return 3;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method foo() → dynamic {
+  core::String* y = new self::B::•().{self::B::x}{dynamic} as{TypeError,ForDynamic} core::String*;
+  core::int* z = new self::B::•().{self::B::x}{dynamic} as{TypeError,ForDynamic} core::int*;
+}
+static method main() → dynamic {
+  self::foo();
+}

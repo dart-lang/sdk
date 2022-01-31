@@ -32,6 +32,7 @@ extension FooExt on Foo {
   external set annotatedSetter(_);
 
   external num getField();
+  external void setField10([optionalArgument = 10]);
   @JS('toString')
   external String extToString();
   external dynamic getFirstEl(list);
@@ -71,6 +72,10 @@ void main() {
       return this.field;
     }
 
+    Foo.prototype.setField10 = function(optionalArgument) {
+      this.field = optionalArgument;
+    }
+
     Foo.prototype.getFirstEl = function(list) {
       return list[0];
     }
@@ -108,6 +113,24 @@ void main() {
     expect(foo.getFirstEl([1, 2, 3]), equals(1));
     expect(foo.sumFn(2, 3), equals(5));
     expect(foo.otherSumFn(10, 5), equals(15));
+  });
+
+  // TODO(41375): Remove if JS interop default value arguments are disallowed.
+  test('optional arguments', () {
+    var foo = Foo(42);
+    expect(foo.getField(), equals(42));
+
+    foo.setField10();
+    expect(foo.getField(), equals(10));
+    foo.setField10(6);
+    expect(foo.getField(), equals(6));
+
+    // Test using tearoffs
+    var setF = foo.setField10;
+    setF();
+    expect(foo.getField(), equals(10));
+    setF(6);
+    expect(foo.getField(), equals(6));
   });
 
   test('module class', () {

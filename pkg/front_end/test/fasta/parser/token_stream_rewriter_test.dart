@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerResult, scanString;
@@ -39,7 +37,7 @@ abstract class TokenStreamRewriterTest {
 
     TokenStreamRewriter rewriter = getTokenStreamRewriter();
     Token openParen = rewriter.insertParens(a, false);
-    Token closeParen = openParen.next;
+    Token closeParen = openParen.next!;
 
     expect(openParen.lexeme, '(');
     expect(closeParen.lexeme, ')');
@@ -64,8 +62,8 @@ abstract class TokenStreamRewriterTest {
 
     TokenStreamRewriter rewriter = getTokenStreamRewriter();
     Token openParen = rewriter.insertParens(a, true);
-    Token identifier = openParen.next;
-    Token closeParen = identifier.next;
+    Token identifier = openParen.next!;
+    Token closeParen = identifier.next!;
 
     expect(openParen.lexeme, '(');
     expect(identifier.lexeme, '');
@@ -180,7 +178,7 @@ abstract class TokenStreamRewriterTest {
 
     expect(a.next, same(replacement));
     expect(replacement.next, same(c));
-    expect(c.next.isEof, true);
+    expect(c.next!.isEof, true);
 
     normalTestDone(rewriter, a);
   }
@@ -202,7 +200,7 @@ abstract class TokenStreamRewriterTest {
     expect(replacement.replacedToken, same(b));
 
     expect(a.next, same(replacement));
-    expect(replacement.next.isEof, true);
+    expect(replacement.next!.isEof, true);
 
     normalTestDone(rewriter, a);
   }
@@ -226,11 +224,11 @@ abstract class TokenStreamRewriterTest {
     expect(b.precedingComments, same(replacement.precedingComments));
     expect(replacement.replacedToken, same(b));
     expect(replacement.replacedToken.next, same(c));
-    expect(replacement.replacedToken.next.next, same(d));
+    expect(replacement.replacedToken.next!.next, same(d));
 
     expect(a.next, same(replacement));
     expect(replacement.next, same(e));
-    expect(e.next.isEof, true);
+    expect(e.next!.isEof, true);
 
     normalTestDone(rewriter, a);
   }
@@ -254,7 +252,7 @@ abstract class TokenStreamRewriterTest {
     expect(replacement.replacedToken.next, same(c));
 
     expect(a.next, same(replacement));
-    expect(replacement.next.isEof, true);
+    expect(replacement.next!.isEof, true);
 
     normalTestDone(rewriter, a);
   }
@@ -265,18 +263,18 @@ abstract class TokenStreamRewriterTest {
     Token firstToken = scanResult.tokens;
     setupDone(firstToken);
 
-    Token open = scanResult.tokens.next.next;
+    Token open = scanResult.tokens.next!.next!;
     expect(open.lexeme, '(');
-    Token close = open.endGroup;
+    Token close = open.endGroup!;
     expect(close.isSynthetic, isTrue);
-    expect(close.next.isEof, isTrue);
+    expect(close.next!.isEof, isTrue);
     TokenStreamRewriter rewriter = getTokenStreamRewriter();
 
-    Token result = rewriter.moveSynthetic(open.next, close);
+    Token result = rewriter.moveSynthetic(open.next!, close);
     expect(result, close);
     expect(open.endGroup, close);
-    expect(open.next.next, close);
-    expect(close.next.isEof, isFalse);
+    expect(open.next!.next, close);
+    expect(close.next!.isEof, isFalse);
 
     normalTestDone(rewriter, firstToken);
   }
@@ -340,7 +338,7 @@ abstract class TokenStreamRewriterTest {
   }
 
   StringToken _makeToken(int charOffset, String text) {
-    return new StringToken.fromString(null, text, charOffset);
+    return new StringToken.fromString(TokenType.IDENTIFIER, text, charOffset);
   }
 }
 
@@ -384,34 +382,35 @@ class TokenStreamRewriterTest_Undoable extends TokenStreamRewriterTest {
   TokenStreamRewriter getTokenStreamRewriter() =>
       new UndoableTokenStreamRewriter();
 
-  List<CachedTokenSetup> setup;
+  List<CachedTokenSetup>? setup;
 
   @override
   void setupDone(Token first) {
     setup = [];
-    Token token = first;
+    Token? token = first;
     while (token != null && !token.isEof) {
-      setup.add(new CachedTokenSetup(token));
+      setup!.add(new CachedTokenSetup(token));
       token = token.next;
     }
   }
 
   @override
   void normalTestDone(TokenStreamRewriter rewriter, Token first) {
-    UndoableTokenStreamRewriter undoableTokenStreamRewriter = rewriter;
+    UndoableTokenStreamRewriter undoableTokenStreamRewriter =
+        rewriter as UndoableTokenStreamRewriter;
     undoableTokenStreamRewriter.undo();
     List<CachedTokenSetup> now = [];
-    Token token = first;
+    Token? token = first;
     while (token != null && !token.isEof) {
       now.add(new CachedTokenSetup(token));
       token = token.next;
     }
-    if (setup.length != now.length) {
-      throw "Different length: ${setup.length} vs ${now.length}";
+    if (setup!.length != now.length) {
+      throw "Different length: ${setup!.length} vs ${now.length}";
     }
-    for (int i = 0; i < setup.length; i++) {
-      if (setup[i] != now[i]) {
-        throw "Different at $i: ${setup[i]} vs ${now[i]}";
+    for (int i = 0; i < setup!.length; i++) {
+      if (setup![i] != now[i]) {
+        throw "Different at $i: ${setup![i]} vs ${now[i]}";
       }
     }
     setup = null;
@@ -420,9 +419,9 @@ class TokenStreamRewriterTest_Undoable extends TokenStreamRewriterTest {
 
 class CachedTokenSetup {
   final Token token;
-  final Token prev;
-  final Token next;
-  final Token precedingComments;
+  final Token? prev;
+  final Token? next;
+  final Token? precedingComments;
 
   CachedTokenSetup(this.token)
       : prev = token.previous,

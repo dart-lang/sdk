@@ -3053,7 +3053,7 @@ void FlowGraphAllocator::RemoveFrameIfNotNeeded() {
   // frameless functions. Outside of bare instructions mode we need to preserve
   // caller PP - so all functions need a frame if they have their own pool which
   // is hard to determine at this stage.
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     return;
   }
 

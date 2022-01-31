@@ -1,0 +1,34 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_35220.dart:6:25: Error: A value of type 'bool' can't be assigned to a variable of type 'A'.
+//  - 'A' is from 'pkg/front_end/testcases/regress/issue_35220.dart'.
+//   A bad() { return true != 2; }
+//                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  method bad() → self::A* {
+    return invalid-expression "pkg/front_end/testcases/regress/issue_35220.dart:6:25: Error: A value of type 'bool' can't be assigned to a variable of type 'A'.
+ - 'A' is from 'pkg/front_end/testcases/regress/issue_35220.dart'.
+  A bad() { return true != 2; }
+                        ^" in !(true =={core::Object::==}{(core::Object*) →* core::bool*} 2) as{TypeError} self::A*;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

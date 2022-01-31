@@ -10,7 +10,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart';
 import 'package:args/command_runner.dart';
-import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 
 import 'perf/benchmarks_impl.dart';
@@ -88,8 +87,6 @@ abstract class Benchmark {
 }
 
 class BenchMarkResult {
-  static final NumberFormat nf = NumberFormat.decimalPattern();
-
   /// One of 'bytes', 'micros', or 'compound'.
   final String kindName;
 
@@ -104,7 +101,7 @@ class BenchMarkResult {
   Map toJson() => {kindName: value};
 
   @override
-  String toString() => '$kindName: ${nf.format(value)}';
+  String toString() => '$kindName: $value';
 }
 
 class CompoundBenchMarkResult extends BenchMarkResult {
@@ -222,16 +219,20 @@ class RunCommand extends Command {
 
   @override
   Future run() async {
-    if (argResults!.rest.isEmpty) {
+    var args = argResults;
+    if (args == null) {
+      throw StateError('argResults have not been set');
+    }
+    if (args.rest.isEmpty) {
       printUsage();
       exit(1);
     }
 
-    var benchmarkId = argResults!.rest.first;
-    var repeatCount = int.parse(argResults!['repeat'] as String);
-    var flutterRepository = argResults!['flutter-repository'] as String?;
-    var quick = argResults!['quick'];
-    var verbose = argResults!['verbose'];
+    var benchmarkId = args.rest.first;
+    var repeatCount = int.parse(args['repeat'] as String);
+    var flutterRepository = args['flutter-repository'] as String?;
+    var quick = args['quick'] as bool;
+    var verbose = args['verbose'] as bool;
 
     var benchmark =
         benchmarks.firstWhere((b) => b.id == benchmarkId, orElse: () {
@@ -241,8 +242,14 @@ class RunCommand extends Command {
 
     if (benchmark is FlutterBenchmark) {
       if (flutterRepository != null) {
-        (benchmark as FlutterBenchmark).flutterRepositoryPath =
-            flutterRepository;
+        if (path.isAbsolute(flutterRepository) &&
+            path.normalize(flutterRepository) == flutterRepository) {
+          (benchmark as FlutterBenchmark).flutterRepositoryPath =
+              flutterRepository;
+        } else {
+          print('The path must be absolute and normalized: $flutterRepository');
+          exit(1);
+        }
       } else {
         print('The option --flutter-repository is required to '
             "run '$benchmarkId'.");

@@ -1,0 +1,34 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+import "org-dartlang-testcase:///unaliased_bounds_checks_in_constructor_calls_with_parts_lib.dart";
+
+static method main() → dynamic {}
+
+library unaliased_bounds_checks_in_constructor_calls_with_parts_lib /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/unaliased_bounds_checks_in_constructor_calls_with_parts_part_lib.dart:11:7: Error: Type argument 'dynamic' doesn't conform to the bound 'num' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   new A<dynamic, String>();
+//       ^
+// pkg/front_end/testcases/nonfunction_type_aliases/unaliased_bounds_checks_in_constructor_calls_with_parts_part_lib.dart:8:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef A<X extends num, Y> = C<X>;
+//           ^
+//
+import self as self2;
+import "dart:core" as core;
+
+part ./unaliased_bounds_checks_in_constructor_calls_with_parts_part_lib.dart;
+typedef A<X extends core::num, unrelated Y extends core::Object? = dynamic> = self2::C<X>;
+class C<X extends core::Object? = dynamic> extends core::Object { // from org-dartlang-testcase:///unaliased_bounds_checks_in_constructor_calls_with_parts_part_lib.dart
+  synthetic constructor •() → self2::C<self2::C::X%>
+    : super core::Object::•()
+    ;
+}
+static method /* from org-dartlang-testcase:///unaliased_bounds_checks_in_constructor_calls_with_parts_part_lib.dart */ foo() → dynamic {
+  new self2::C::•<dynamic>();
+}
+static method /* from org-dartlang-testcase:///unaliased_bounds_checks_in_constructor_calls_with_parts_part_lib.dart */ _#A#new#tearOff<X extends core::num, unrelated Y extends core::Object? = dynamic>() → self2::C<self2::_#A#new#tearOff::X>
+  return new self2::C::•<self2::_#A#new#tearOff::X>();

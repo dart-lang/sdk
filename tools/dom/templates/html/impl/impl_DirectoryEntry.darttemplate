@@ -19,6 +19,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   DirectoryReader createReader() {
     DirectoryReader reader = _createReader();
     applyExtension('DirectoryReader', reader);
+    applyExtension('WebKitDirectoryReader', reader);
+    applyExtension('webkitFileSystemDirectoryReader', reader);
+    applyExtension('FileSystemDirectoryReader', reader);
     return reader;
   }
 

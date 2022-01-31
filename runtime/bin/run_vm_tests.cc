@@ -384,7 +384,8 @@ static int Main(int argc, const char** argv) {
       dart::bin::DartUtils::ReadFile, dart::bin::DartUtils::WriteFile,
       dart::bin::DartUtils::CloseFile, /*entropy_source=*/nullptr,
       /*get_service_assets=*/nullptr, start_kernel_isolate,
-      /*code_observer=*/nullptr);
+      /*code_observer=*/nullptr, /*post_task=*/nullptr,
+      /*post_task_data*/ nullptr);
   if (error != nullptr) {
     Syslog::PrintErr("Failed to initialize VM: %s\n", error);
     free(error);

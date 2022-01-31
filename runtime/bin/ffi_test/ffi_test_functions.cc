@@ -1133,4 +1133,38 @@ DART_EXPORT uint64_t SizeOfStruct3BytesPackedInt() {
   return sizeof(Struct3BytesPackedIntCopy);
 }
 
+// Define ssize_t for Windows as intptr_t.
+#if defined(_WIN32)
+typedef intptr_t ssize_t;
+#endif
+
+#define DEFINE_SIZE_OF(type_modifier, type)                                    \
+  DART_EXPORT uint64_t FfiSizeOf_##type_modifier##_##type() {                  \
+    return sizeof(type_modifier type);                                         \
+  }
+
+#define SIZES(F)                                                               \
+  F(, intptr_t)                                                                \
+  F(, uintptr_t)                                                               \
+  F(, int)                                                                     \
+  F(unsigned, int)                                                             \
+  F(, long)         /* NOLINT */                                               \
+  F(unsigned, long) /* NOLINT */                                               \
+  F(, wchar_t)                                                                 \
+  F(, size_t)                                                                  \
+  F(, ssize_t)                                                                 \
+  F(, off_t)
+
+SIZES(DEFINE_SIZE_OF)
+
+#undef DEFINE_SIZE_OF
+#undef SIZES
+
+DART_EXPORT int64_t WCharMinValue() {
+  return WCHAR_MIN;
+}
+DART_EXPORT int64_t WCharMaxValue() {
+  return WCHAR_MAX;
+}
+
 }  // namespace dart

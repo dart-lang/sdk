@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.52
+# Dart VM Service Protocol 3.55
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.52_ of the Dart VM Service Protocol. This
+This document describes of _version 3.55_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -79,6 +79,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [setVMName](#setvmname)
   - [setVMTimelineFlags](#setvmtimelineflags)
   - [streamCancel](#streamcancel)
+  - [streamCpuSamplesWithUserTag](#streamcpusampleswithusertag)
   - [streamListen](#streamlisten)
 - [Public Types](#public-types)
   - [AllocationProfile](#allocationprofile)
@@ -1378,9 +1379,35 @@ See [Breakpoint](#breakpoint).
 ### setExceptionPauseMode
 
 ```
+@deprecated('Use setIsolatePauseMode instead')
 Success|Sentinel setExceptionPauseMode(string isolateId,
                                        ExceptionPauseMode mode)
 ```
+
+The _setExceptionPauseMode_ RPC is used to control if an isolate pauses when
+an exception is thrown.
+
+mode | meaning
+---- | -------
+None | Do not pause isolate on thrown exceptions
+Unhandled | Pause isolate on unhandled exceptions
+All  | Pause isolate on all thrown exceptions
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
+
+### setIsolatePauseMode
+
+```
+Success|Sentinel setIsolatePauseMode(string isolateId,
+                                     ExceptionPauseMode exceptionPauseMode [optional],
+                                     bool shouldPauseOnExit [optional])
+```
+
+The _setIsolatePauseMode_ RPC is used to control if or when an isolate will
+pause due to a change in execution state.
+
+The _shouldPauseOnExit_ parameter specify whether the target isolate should pause on exit.
 
 The _setExceptionPauseMode_ RPC is used to control if an isolate pauses when
 an exception is thrown.
@@ -1420,6 +1447,7 @@ Notes:
    provided value. If set to false when the profiler is already running, the
    profiler will be stopped but may not free its sample buffer depending on
    platform limitations.
+ * Isolate pause settings will only be applied to newly spawned isolates.
 
 See [Success](#success).
 
@@ -1506,6 +1534,19 @@ The _streamCancel_ RPC cancels a stream subscription in the VM.
 
 If the client is not subscribed to the stream, the _104_ (Stream not
 subscribed) [RPC error](#rpc-error) code is returned.
+
+See [Success](#success).
+
+### streamCpuSamplesWithUserTag
+
+```
+Success streamCpuSamplesWithUserTag(string[] userTags)
+```
+
+The _streamCpuSamplesWithUserTag_ RPC allows for clients to specify which CPU
+samples collected by the profiler should be sent over the `Profiler` stream.
+When called, the VM will stream `CpuSamples` events containing `CpuSample`'s
+collected while a user tag contained in `userTags` was active.
 
 See [Success](#success).
 
@@ -1960,6 +2001,46 @@ class CpuSamples extends Response {
 
 See [getCpuSamples](#getcpusamples) and [CpuSample](#cpusample).
 
+### CpuSamplesEvent
+
+```
+class CpuSamplesEvent {
+  // The sampling rate for the profiler in microseconds.
+  int samplePeriod;
+
+  // The maximum possible stack depth for samples.
+  int maxStackDepth;
+
+  // The number of samples returned.
+  int sampleCount;
+
+  // The timespan the set of returned samples covers, in microseconds (deprecated).
+  //
+  // Note: this property is deprecated and will always return -1. Use `timeExtentMicros`
+  // instead.
+  int timeSpan;
+
+  // The start of the period of time in which the returned samples were
+  // collected.
+  int timeOriginMicros;
+
+  // The duration of time covered by the returned samples.
+  int timeExtentMicros;
+
+  // The process ID for the VM.
+  int pid;
+
+  // A list of references to functions seen in the relevant samples. These references can
+  // be looked up using the indicies provided in a `CpuSample` `stack` to determine
+  // which function was on the stack.
+  (@Object|NativeFunction)[] functions;
+
+  // A list of samples collected in the range
+  // `[timeOriginMicros, timeOriginMicros + timeExtentMicros]`
+  CpuSample[] samples;
+}
+```
+
 ### CpuSample
 
 ```
@@ -2224,7 +2305,7 @@ class Event extends Response {
   string previousTag [optional];
 
   // A CPU profile containing recent samples.
-  CpuSamples cpuSamples [optional];
+  CpuSamplesEvent cpuSamples [optional];
 }
 ```
 
@@ -4235,4 +4316,8 @@ version | comments
 3.50 | Added `returnType`, `parameters`, and `typeParameters` to `@Instance`, and `implicit` to `@Function`. Added `Parameter` type.
 3.51 | Added optional `reportLines` parameter to `getSourceReport` RPC.
 3.52 | Added `lookupResolvedPackageUris` and `lookupPackageUris` RPCs and `UriList` type.
+3.53 | Added `setIsolatePauseMode` RPC.
+3.54 | Added `CpuSamplesEvent`, updated `cpuSamples` property on `Event` to have type `CpuSamplesEvent`.
+3.55 | Added `streamCpuSamplesWithUserTag` RPC.
+
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

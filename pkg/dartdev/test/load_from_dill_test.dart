@@ -11,16 +11,16 @@ import 'utils.dart';
 void main() {
   TestProject p;
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
   test("Fallback to dartdev.dill from dartdev.dart.snapshot for 'Hello World'",
-      () {
+      () async {
     p = project(mainSrc: "void main() { print('Hello World'); }");
-    // The DartDev snapshot includes the --use-bare-instructions flag. If
-    // --no-use-bare-instructions is passed, the VM will fail to load the
+    // The DartDev snapshot includes the --use_field_guards flag. If
+    // --no-use-field-guards is passed, the VM will fail to load the
     // snapshot and should fall back to using the DartDev dill file.
     ProcessResult result =
-        p.runSync(['--no-use-bare-instructions', 'run', p.relativeFilePath]);
+        await p.run(['--no-use-field-guards', 'run', p.relativeFilePath]);
 
     expect(result.stdout, contains('Hello World'));
     expect(result.stderr, isEmpty);

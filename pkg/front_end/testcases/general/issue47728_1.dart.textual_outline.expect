@@ -1,0 +1,7 @@
+// @dart = 2.12
+typedef A = Function()?;
+
+class B {}
+
+class C = A with B;
+main() {}

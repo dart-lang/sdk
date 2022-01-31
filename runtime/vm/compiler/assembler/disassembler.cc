@@ -80,14 +80,16 @@ void DisassembleToJSONStream::ConsumeInstruction(char* hex_buffer,
 }
 
 void DisassembleToJSONStream::Print(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, args);
-  va_end(args);
+  va_list measure_args;
+  va_start(measure_args, format);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  va_end(measure_args);
+
   char* p = reinterpret_cast<char*>(malloc(len + 1));
-  va_start(args, format);
-  intptr_t len2 = Utils::VSNPrint(p, len, format, args);
-  va_end(args);
+  va_list print_args;
+  va_start(print_args, format);
+  intptr_t len2 = Utils::VSNPrint(p, len, format, print_args);
+  va_end(print_args);
   ASSERT(len == len2);
   for (intptr_t i = 0; i < len; i++) {
     if (p[i] == '\n' || p[i] == '\r') {
@@ -134,10 +136,10 @@ void DisassembleToMemory::Print(const char* format, ...) {
   if (overflowed_) {
     return;
   }
-  va_list args;
-  va_start(args, format);
-  intptr_t len = Utils::VSNPrint(NULL, 0, format, args);
-  va_end(args);
+  va_list measure_args;
+  va_start(measure_args, format);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, measure_args);
+  va_end(measure_args);
   if (remaining_ < len + 100) {
     *buffer_++ = '.';
     *buffer_++ = '.';
@@ -147,9 +149,10 @@ void DisassembleToMemory::Print(const char* format, ...) {
     overflowed_ = true;
     return;
   }
-  va_start(args, format);
-  intptr_t len2 = Utils::VSNPrint(buffer_, len, format, args);
-  va_end(args);
+  va_list print_args;
+  va_start(print_args, format);
+  intptr_t len2 = Utils::VSNPrint(buffer_, len, format, print_args);
+  va_end(print_args);
   ASSERT(len == len2);
   buffer_ += len;
   remaining_ -= len;
@@ -245,7 +248,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   ASSERT(code.pointer_offsets_length() == 0);
 #endif
 
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     THR_Print("(No object pool for bare instructions.)\n");
   } else {
     const ObjectPool& object_pool =
@@ -293,10 +296,9 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   {
     const auto& stackmaps =
         CompressedStackMaps::Handle(zone, code.compressed_stackmaps());
-    CompressedStackMaps::Iterator it(thread, stackmaps);
     TextBuffer buffer(100);
     buffer.Printf("StackMaps for function '%s' {\n", function_fullname);
-    it.WriteToBuffer(&buffer, "\n");
+    stackmaps.WriteToBuffer(&buffer, "\n");
     buffer.AddString("}\n");
     THR_Print("%s", buffer.buffer());
   }
@@ -480,7 +482,7 @@ void Disassembler::DisassembleStub(const char* name, const Code& code) {
   code.Disassemble(&formatter);
   THR_Print("}\n");
   const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     THR_Print("(No object pool for bare instructions.)\n");
   } else if (!object_pool.IsNull()) {
     object_pool.DebugPrint();

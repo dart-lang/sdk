@@ -74,7 +74,7 @@ class CreateGetter extends CorrectionProducer {
       return;
     }
     var targetSource = targetElement.source;
-    if (targetSource == null || targetSource.isInSystemLibrary) {
+    if (targetSource == null || targetSource.uri.isScheme('dart')) {
       return;
     }
     // prepare target declaration

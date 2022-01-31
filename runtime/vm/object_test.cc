@@ -4545,13 +4545,14 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
     ElideJSONSubstring("libraries", buffer, buffer);
     ElideJSONSubstring("_List@", buffer, buffer);
     ElideJSONSubstring("_TypeParameter@", buffer, buffer);
+    StripTokenPositions(buffer);
     EXPECT_SUBSTRING(
         "{\"type\":\"@Instance\",\"_vmType\":\"Array\",\"class\":{\"type\":\"@"
         "Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"_List\",\"_vmName\":"
         "\"\",\"location\":{\"type\":\"SourceLocation\",\"script\":{\"type\":"
         "\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:core-patch\\/"
-        "array.dart\",\"_kind\":\"kernel\"},\"tokenPos\":248,\"endTokenPos\":"
-        "7917},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "array.dart\",\"_kind\":\"kernel\"}},"
+        "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"},\"typeParameters\":[{"
         "\"type\":\"@"
         "Instance\",\"_vmType\":\"TypeParameter\",\"class\":{\"type\":\"@"
@@ -4559,8 +4560,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "vmName\":\"\",\"location\":{\"type\":"
         "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"\",\"uri\":\"dart:core-patch\\/"
-        "type_patch.dart\",\"_kind\":\"kernel\"},\"tokenPos\":1749,"
-        "\"endTokenPos\":1894},\"library\":{\"type\":\"@Library\",\"fixedId\":"
+        "type_patch.dart\",\"_kind\":\"kernel\"}},"
+        "\"library\":{\"type\":\"@Library\",\"fixedId\":"
         "true,\"id\":\"\",\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"identityHashCode\":",
         buffer);
@@ -4572,8 +4573,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"Null\",\"location\":{\"type\":\"SourceLocation\",\"script\":{"
         "\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\"uri\":\"dart:"
         "core\\/"
-        "null.dart\",\"_kind\":\"kernel\"},\"tokenPos\":925,\"endTokenPos\":"
-        "1165},\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "null.dart\",\"_kind\":\"kernel\"}},"
+        "\"library\":{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},\"kind\":\"Null\","
         "\"fixedId\":true,\"id\":\"\",\"valueAsString\":\"null\"}}]},"
         "\"identityHashCode\":0,\"kind\":\"List\",\"id\":\"\",\"length\":0}",

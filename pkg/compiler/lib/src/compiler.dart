@@ -5,6 +5,7 @@
 library dart2js.compiler_base;
 
 import 'dart:async' show Future;
+import 'dart:convert' show jsonEncode;
 
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show clearStringTokenCanonicalizer;
@@ -178,8 +179,7 @@ abstract class Compiler {
     enqueuer = EnqueueTask(this);
 
     tasks = [
-      kernelLoader = KernelLoaderTask(
-          options, provider, _outputProvider, reporter, measurer),
+      kernelLoader = KernelLoaderTask(options, provider, reporter, measurer),
       kernelFrontEndTask,
       globalInference = GlobalTypeInferenceTask(this),
       deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
@@ -247,6 +247,31 @@ abstract class Compiler {
     return options.readClosedWorldUri != null && options.readDataUri != null;
   }
 
+  /// Dumps a list of unused [ir.Library]'s in the [KernelResult]. This *must*
+  /// be called before [setMainAndTrimComponent], because that method will
+  /// discard the unused [ir.Library]s.
+  void dumpUnusedLibraries(KernelResult result) {
+    var usedUris = result.libraries.toSet();
+    bool isUnused(ir.Library l) => !usedUris.contains(l.importUri);
+    String libraryString(ir.Library library) {
+      return '${library.importUri}(${library.fileUri})';
+    }
+
+    var unusedLibraries =
+        result.component.libraries.where(isUnused).map(libraryString).toList();
+    unusedLibraries.sort();
+    var jsonLibraries = jsonEncode(unusedLibraries);
+    outputProvider.createOutputSink(options.outputUri.pathSegments.last,
+        'unused.json', api.OutputType.dumpUnusedLibraries)
+      ..add(jsonLibraries)
+      ..close();
+    reporter.reportInfo(
+        reporter.createMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+      'text': "${unusedLibraries.length} unused libraries out of "
+          "${result.component.libraries.length}. Dumping to JSON."
+    }));
+  }
+
   Future runInternal() async {
     clearState();
     var compilationTarget = options.compilationTarget;
@@ -275,13 +300,8 @@ abstract class Compiler {
           performGlobalTypeInference(closedWorldAndIndices.closedWorld);
       var indices = closedWorldAndIndices.indices;
       if (options.writeDataUri != null) {
-        if (options.noClosedWorldInData) {
-          serializationTask.serializeGlobalTypeInference(
-              globalTypeInferenceResults, indices);
-        } else {
-          serializationTask
-              .serializeGlobalTypeInferenceLegacy(globalTypeInferenceResults);
-        }
+        serializationTask.serializeGlobalTypeInference(
+            globalTypeInferenceResults, indices);
         return;
       }
       await generateJavaScriptCode(globalTypeInferenceResults,
@@ -301,12 +321,6 @@ abstract class Compiler {
               closedWorldAndIndices);
       await generateJavaScriptCode(globalTypeInferenceResults,
           indices: closedWorldAndIndices.indices);
-    } else if (options.readDataUri != null) {
-      // TODO(joshualitt) delete and clean up after google3 roll
-      var globalTypeInferenceResults =
-          await serializationTask.deserializeGlobalTypeInferenceLegacy(
-              environment, abstractValueStrategy);
-      await generateJavaScriptCode(globalTypeInferenceResults);
     } else {
       KernelResult result = await kernelLoader.load();
       reporter.log("Kernel load complete");
@@ -317,7 +331,6 @@ abstract class Compiler {
       if (retainDataForTesting) {
         componentForTesting = result.component;
       }
-      if (options.cfeOnly) return;
 
       frontendStrategy.registerLoadedLibraries(result);
 
@@ -325,12 +338,30 @@ abstract class Compiler {
         await runModularAnalysis(result);
       } else {
         List<ModuleData> data;
-        if (options.modularAnalysisInputs != null) {
+        if (options.hasModularAnalysisInputs) {
           data =
               await serializationTask.deserializeModuleData(result.component);
         }
         frontendStrategy.registerModuleData(data);
-        await compileFromKernel(result.rootLibraryUri, result.libraries);
+
+        // After we've deserialized modular data, we trim the component of any
+        // unnecessary dependencies.
+        // Note: It is critical we wait to trim the dill until after we've
+        // deserialized modular data because some of this data may reference
+        // 'trimmed' elements.
+        if (options.fromDill) {
+          if (options.dumpUnusedLibraries) {
+            dumpUnusedLibraries(result);
+          }
+          if (options.entryUri != null) {
+            result.trimComponent();
+          }
+        }
+        if (options.cfeOnly) {
+          await serializationTask.serializeComponent(result.component);
+        } else {
+          await compileFromKernel(result.rootLibraryUri, result.libraries);
+        }
       }
     }
   }
@@ -543,16 +574,6 @@ abstract class Compiler {
       if (stopAfterClosedWorld || options.stopAfterProgramSplit) return;
       GlobalTypeInferenceResults globalInferenceResults =
           performGlobalTypeInference(closedWorld);
-      if (options.writeDataUri != null) {
-        // TODO(joshualitt) delete after google3 roll.
-        if (options.noClosedWorldInData) {
-          throw '"no-closed-world-in-data" requires serializing closed world.';
-        } else {
-          serializationTask
-              .serializeGlobalTypeInferenceLegacy(globalInferenceResults);
-        }
-        return;
-      }
       if (options.testMode) {
         globalInferenceResults =
             globalTypeInferenceResultsTestMode(globalInferenceResults);

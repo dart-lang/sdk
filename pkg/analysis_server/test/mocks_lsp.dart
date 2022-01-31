@@ -191,6 +191,7 @@ class MockLspServerChannel implements LspServerCommunicationChannel {
   /// than the maps as they would be (the server expects to do the conversion).
   T _convertJson<T>(
       lsp.ToJsonable message, T Function(Map<String, dynamic>) constructor) {
-    return constructor(jsonDecode(jsonEncode(message.toJson())));
+    return constructor(
+        jsonDecode(jsonEncode(message.toJson())) as Map<String, Object?>);
   }
 }

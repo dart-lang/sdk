@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method main() → dynamic {
+  FutureOr<core::String*>* result = self::returnsString();
+  core::print(result.{core::Object::runtimeType}{core::Type*});
+}
+static method returnsString() → FutureOr<core::String*>* async {
+  return "oh no";
+}

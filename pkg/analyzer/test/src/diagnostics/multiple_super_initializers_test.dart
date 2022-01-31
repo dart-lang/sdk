@@ -15,14 +15,22 @@ main() {
 
 @reflectiveTest
 class MultipleSuperInitializersTest extends PubPackageResolutionTest {
+  test_oneSuperInitializer() async {
+    await assertNoErrorsInCode('''
+class A {}
+class B extends A {
+  B() : super() {}
+}
+''');
+  }
+
   test_twoSuperInitializers() async {
-    await assertErrorsInCode(r'''
+    await assertErrorsInCode('''
 class A {}
 class B extends A {
   B() : super(), super() {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_SUPER_INVOCATION, 39, 5),
       error(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, 48, 7),
     ]);
   }

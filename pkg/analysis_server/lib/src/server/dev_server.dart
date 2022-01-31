@@ -80,20 +80,21 @@ class DevAnalysisServer {
           continue;
         }
 
-        String severity = error['severity'].toLowerCase();
+        var severity = (error['severity'] as String).toLowerCase();
         if (severity == 'warning' && exitCode < 1) {
           exitCode = 1;
         } else if (severity == 'error' && exitCode < 2) {
           exitCode = 2;
         }
 
-        String message = error['message'];
+        var message = error['message'] as String;
         if (message.endsWith('.')) {
           message = message.substring(0, message.length - 1);
         }
-        String code = error['code'];
-        int line = error['location']['startLine'];
-        int column = error['location']['startColumn'];
+        var code = error['code'] as String;
+        var location = error['location'] as Map<Object?, Object?>;
+        var line = location['startLine'] as int;
+        var column = location['startColumn'] as int;
 
         print('  $severity • $bold$message$none at $filePath:$line:$column • '
             '($code)');
@@ -165,21 +166,11 @@ class DevChannel implements ServerCommunicationChannel {
   Stream<Notification> get onNotification => _notificationController.stream;
 
   @override
-  void close() {
-    _notificationController.close();
-  }
+  Stream<Request> get requests => _requestController.stream;
 
   @override
-  void listen(
-    void Function(Request request) onRequest, {
-    Function? onError,
-    void Function()? onDone,
-  }) {
-    _requestController.stream.listen(
-      onRequest,
-      onError: onError,
-      onDone: onDone,
-    );
+  void close() {
+    _notificationController.close();
   }
 
   @override

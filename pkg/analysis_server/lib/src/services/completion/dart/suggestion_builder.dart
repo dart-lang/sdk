@@ -25,6 +25,16 @@ import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+/// Wrapper around a potentially nullable value.
+///
+/// When the wrapper instance is provided for a property, the property
+/// value is replaced, even if the value to set is `null` itself.
+class CopyWithValue<T> {
+  final T value;
+
+  CopyWithValue(this.value);
+}
+
 /// This class provides suggestions based upon the visible instance members in
 /// an interface type.
 class MemberSuggestionBuilder {
@@ -138,54 +148,6 @@ class MemberSuggestionBuilder {
   }
 }
 
-class NewSuggestionsProcessor {
-  final SuggestionBuilder _builder;
-  final Set<protocol.CompletionSuggestion> _current = Set.identity();
-
-  NewSuggestionsProcessor._(this._builder) {
-    _current.addAll(_builder._suggestionMap.values);
-  }
-
-  /// Update suggestions added since this marker was created.
-  void setLibraryUriToImportIndex(int Function() produce) {
-    int? libraryUriToImportIndex;
-    var suggestionMap = _builder._suggestionMap;
-    for (var entry in suggestionMap.entries.toList()) {
-      var suggestion = entry.value;
-      if (!_current.contains(suggestion)) {
-        libraryUriToImportIndex ??= produce();
-        suggestionMap[entry.key] = protocol.CompletionSuggestion(
-          suggestion.kind,
-          suggestion.relevance,
-          suggestion.completion,
-          suggestion.selectionOffset,
-          suggestion.selectionLength,
-          suggestion.isDeprecated,
-          suggestion.isPotential,
-          displayText: suggestion.displayText,
-          replacementOffset: suggestion.replacementOffset,
-          replacementLength: suggestion.replacementLength,
-          docSummary: suggestion.docSummary,
-          docComplete: suggestion.docComplete,
-          declaringType: suggestion.declaringType,
-          defaultArgumentListString: suggestion.defaultArgumentListString,
-          defaultArgumentListTextRanges:
-              suggestion.defaultArgumentListTextRanges,
-          element: suggestion.element,
-          returnType: suggestion.returnType,
-          parameterNames: suggestion.parameterNames,
-          parameterTypes: suggestion.parameterTypes,
-          requiredParameterCount: suggestion.requiredParameterCount,
-          hasNamedParameters: suggestion.hasNamedParameters,
-          parameterName: suggestion.parameterName,
-          parameterType: suggestion.parameterType,
-          libraryUriToImportIndex: libraryUriToImportIndex,
-        );
-      }
-    }
-  }
-}
-
 /// An object used to build a list of suggestions in response to a single
 /// completion request.
 class SuggestionBuilder {
@@ -211,6 +173,9 @@ class SuggestionBuilder {
   /// The listener to be notified at certain points in the process of building
   /// suggestions, or `null` if no notification should occur.
   final SuggestionListener? listener;
+
+  /// The function to be invoked when a new suggestion is added.
+  void Function(protocol.CompletionSuggestion)? suggestionAdded;
 
   /// A map from a completion identifier to a completion suggestion.
   final Map<String, CompletionSuggestion> _suggestionMap =
@@ -263,11 +228,6 @@ class SuggestionBuilder {
 
   bool get _isNonNullableByDefault =>
       request.libraryElement.isNonNullableByDefault;
-
-  /// Return an object that knows which suggestions exist, and which are new.
-  NewSuggestionsProcessor markSuggestions() {
-    return NewSuggestionsProcessor._(this);
-  }
 
   /// Add a suggestion for an [accessor] declared within a class or extension.
   /// If the accessor is being invoked with a target of `super`, then the
@@ -587,8 +547,7 @@ class SuggestionBuilder {
       var suggestion = CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
           Relevance.label, completion, completion.length, 0, false, false);
       suggestion.element = createLocalElement(
-          request.source, protocol.ElementKind.LABEL, label.label,
-          returnType: NO_RETURN_TYPE);
+          request.source, protocol.ElementKind.LABEL, label.label);
       _add(suggestion);
     }
   }
@@ -778,8 +737,8 @@ class SuggestionBuilder {
   Future<void> suggestOverride(SimpleIdentifier targetId,
       ExecutableElement element, bool invokeSuper) async {
     var displayTextBuffer = StringBuffer();
-    var builder = ChangeBuilder(session: request.result.session);
-    await builder.addDartFileEdit(request.result.path, (builder) {
+    var builder = ChangeBuilder(session: request.analysisSession);
+    await builder.addDartFileEdit(request.path, (builder) {
       builder.addReplacement(range.node(targetId), (builder) {
         builder.writeOverride(
           element,
@@ -979,10 +938,9 @@ class SuggestionBuilder {
         key = '$key()';
       }
       listener?.builtSuggestion(suggestion);
-      if (laterReplacesEarlier) {
+      if (laterReplacesEarlier || !_suggestionMap.containsKey(key)) {
         _suggestionMap[key] = suggestion;
-      } else {
-        _suggestionMap.putIfAbsent(key, () => suggestion);
+        suggestionAdded?.call(suggestion);
       }
     }
   }
@@ -1312,5 +1270,47 @@ class _CompletionSuggestionInputs {
         other.elementKind == elementKind &&
         other.kind == kind &&
         other.prefix == prefix;
+  }
+}
+
+extension CompletionSuggestionExtension on CompletionSuggestion {
+  CompletionSuggestion copyWith({
+    CopyWithValue<int?>? libraryUriToImportIndex,
+  }) {
+    return protocol.CompletionSuggestion(
+      kind,
+      relevance,
+      completion,
+      selectionOffset,
+      selectionLength,
+      isDeprecated,
+      isPotential,
+      displayText: displayText,
+      replacementOffset: replacementOffset,
+      replacementLength: replacementLength,
+      docSummary: docSummary,
+      docComplete: docComplete,
+      declaringType: declaringType,
+      defaultArgumentListString: defaultArgumentListString,
+      defaultArgumentListTextRanges: defaultArgumentListTextRanges,
+      element: element,
+      returnType: returnType,
+      parameterNames: parameterNames,
+      parameterTypes: parameterTypes,
+      requiredParameterCount: requiredParameterCount,
+      hasNamedParameters: hasNamedParameters,
+      parameterName: parameterName,
+      parameterType: parameterType,
+      libraryUriToImportIndex: libraryUriToImportIndex.orElse(
+        this.libraryUriToImportIndex,
+      ),
+    );
+  }
+}
+
+extension _CopyWithValueExtension<T> on CopyWithValue<T>? {
+  T orElse(T defaultValue) {
+    final self = this;
+    return self != null ? self.value : defaultValue;
   }
 }

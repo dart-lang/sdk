@@ -1,0 +1,367 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:36:10: Error: 'foo' isn't a type.
+//   print(<foo);
+//          ^^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:36:10: Error: Expected '>' after this.
+//   print(<foo);
+//          ^^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:36:13: Error: Expected '[' before this.
+//   print(<foo);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:37:9: Error: Expected an identifier, but got '>'.
+// Try inserting an identifier before '>'.
+//   print(>foo);
+//         ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:38:9: Error: Expected an identifier, but got '<='.
+// Try inserting an identifier before '<='.
+//   print(<=foo);
+//         ^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:39:9: Error: Expected an identifier, but got '>='.
+// Try inserting an identifier before '>='.
+//   print(>=foo);
+//         ^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:40:9: Error: Expected an identifier, but got '=='.
+// Try inserting an identifier before '=='.
+//   print(==foo);
+//         ^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:41:9: Error: '+' is not a prefix operator.
+// Try removing '+'.
+//   print(+foo);
+//         ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:42:9: Error: Expected an identifier, but got '/'.
+// Try inserting an identifier before '/'.
+//   print(/foo);
+//         ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:43:9: Error: Expected an identifier, but got '~/'.
+// Try inserting an identifier before '~/'.
+//   print(~/foo);
+//         ^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:44:9: Error: Expected an identifier, but got '*'.
+// Try inserting an identifier before '*'.
+//   print(*foo);
+//         ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:45:9: Error: Expected an identifier, but got '%'.
+// Try inserting an identifier before '%'.
+//   print(%foo);
+//         ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:46:9: Error: Expected an identifier, but got '|'.
+// Try inserting an identifier before '|'.
+//   print(|foo);
+//         ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:47:9: Error: Expected an identifier, but got '^'.
+// Try inserting an identifier before '^'.
+//   print(^foo);
+//         ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:48:9: Error: Expected an identifier, but got '&'.
+// Try inserting an identifier before '&'.
+//   print(&foo);
+//         ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:49:9: Error: Expected an identifier, but got '<<'.
+// Try inserting an identifier before '<<'.
+//   print(<<foo);
+//         ^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:50:9: Error: Expected an identifier, but got '>>'.
+// Try inserting an identifier before '>>'.
+//   print(>>foo);
+//         ^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:54:13: Error: '~' isn't a binary operator.
+//   print(foo ~ 2);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:12:13: Error: The operator '<' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '<' operator.
+//   print(foo < 2);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:13:13: Error: The operator '>' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '>' operator.
+//   print(foo > 2);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:14:13: Error: The operator '<=' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '<=' operator.
+//   print(foo <= 2);
+//             ^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:15:13: Error: The operator '>=' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '>=' operator.
+//   print(foo >= 2);
+//             ^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:17:13: Error: The operator '-' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
+//   print(foo - 2);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:18:13: Error: The operator '+' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//   print(foo + 2);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:19:13: Error: The operator '/' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '/' operator.
+//   print(foo / 2);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:20:13: Error: The operator '~/' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '~/' operator.
+//   print(foo ~/ 2);
+//             ^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:21:13: Error: The operator '*' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '*' operator.
+//   print(foo * 2);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:22:13: Error: The operator '%' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '%' operator.
+//   print(foo % 2);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:23:13: Error: The operator '|' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '|' operator.
+//   print(foo | 2);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:24:13: Error: The operator '^' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '^' operator.
+//   print(foo ^ 2);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:25:13: Error: The operator '&' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '&' operator.
+//   print(foo & 2);
+//             ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:26:13: Error: The operator '<<' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '<<' operator.
+//   print(foo << 2);
+//             ^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:27:13: Error: The operator '>>' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '>>' operator.
+//   print(foo >> 2);
+//             ^^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:29:12: Error: The operator '[]=' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '[]=' operator.
+//   print(foo[2] = 2);
+//            ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:30:12: Error: The operator '[]' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '[]' operator.
+//   print(foo[2]);
+//            ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:31:9: Error: The operator '~' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a '~' operator.
+//   print(~foo);
+//         ^
+//
+// pkg/front_end/testcases/general/operator_method_not_found.dart:32:9: Error: The operator 'unary-' isn't defined for the class 'Foo'.
+//  - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+// Try correcting the operator to an existing operator, or defining a 'unary-' operator.
+//   print(-foo);
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  self::Foo* foo = new self::Foo::•();
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:12:13: Error: The operator '<' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '<' operator.
+  print(foo < 2);
+            ^" in foo{<unresolved>}.<(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:13:13: Error: The operator '>' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '>' operator.
+  print(foo > 2);
+            ^" in foo{<unresolved>}.>(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:14:13: Error: The operator '<=' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '<=' operator.
+  print(foo <= 2);
+            ^^" in foo{<unresolved>}.<=(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:15:13: Error: The operator '>=' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '>=' operator.
+  print(foo >= 2);
+            ^^" in foo{<unresolved>}.>=(2));
+  core::print(foo =={self::Foo::==}{(dynamic) →* core::bool*} 2);
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:17:13: Error: The operator '-' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
+  print(foo - 2);
+            ^" in foo{<unresolved>}.-(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:18:13: Error: The operator '+' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+  print(foo + 2);
+            ^" in foo{<unresolved>}.+(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:19:13: Error: The operator '/' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '/' operator.
+  print(foo / 2);
+            ^" in foo{<unresolved>}./(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:20:13: Error: The operator '~/' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '~/' operator.
+  print(foo ~/ 2);
+            ^^" in foo{<unresolved>}.~/(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:21:13: Error: The operator '*' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '*' operator.
+  print(foo * 2);
+            ^" in foo{<unresolved>}.*(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:22:13: Error: The operator '%' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '%' operator.
+  print(foo % 2);
+            ^" in foo{<unresolved>}.%(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:23:13: Error: The operator '|' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '|' operator.
+  print(foo | 2);
+            ^" in foo{<unresolved>}.|(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:24:13: Error: The operator '^' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '^' operator.
+  print(foo ^ 2);
+            ^" in foo{<unresolved>}.^(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:25:13: Error: The operator '&' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '&' operator.
+  print(foo & 2);
+            ^" in foo{<unresolved>}.&(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:26:13: Error: The operator '<<' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '<<' operator.
+  print(foo << 2);
+            ^^" in foo{<unresolved>}.<<(2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:27:13: Error: The operator '>>' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '>>' operator.
+  print(foo >> 2);
+            ^^" in foo{<unresolved>}.>>(2));
+  core::print(let final self::Foo* #t1 = foo in let final core::int* #t2 = 2 in let final core::int* #t3 = 2 in let final void #t4 = invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:29:12: Error: The operator '[]=' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '[]=' operator.
+  print(foo[2] = 2);
+           ^" in #t1{<unresolved>}.[]=(#t2, #t3) in #t3);
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:30:12: Error: The operator '[]' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '[]' operator.
+  print(foo[2]);
+           ^" in foo{<unresolved>}.[](2));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:31:9: Error: The operator '~' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a '~' operator.
+  print(~foo);
+        ^" in foo{<unresolved>}.~());
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:32:9: Error: The operator 'unary-' isn't defined for the class 'Foo'.
+ - 'Foo' is from 'pkg/front_end/testcases/general/operator_method_not_found.dart'.
+Try correcting the operator to an existing operator, or defining a 'unary-' operator.
+  print(-foo);
+        ^" in foo{<unresolved>}.unary-());
+  core::print(<invalid-type>[]);
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:37:9: Error: This couldn't be parsed.
+  print(>foo);
+        ^"{<invalid>}.>(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:38:9: Error: This couldn't be parsed.
+  print(<=foo);
+        ^"{<invalid>}.<=(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:39:9: Error: This couldn't be parsed.
+  print(>=foo);
+        ^"{<invalid>}.>=(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:40:9: Error: This couldn't be parsed.
+  print(==foo);
+        ^" =={core::Object::==}{(core::Object*) →* core::bool*} foo);
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:41:9: Error: This couldn't be parsed.
+  print(+foo);
+        ^"{<invalid>}.+(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:42:9: Error: This couldn't be parsed.
+  print(/foo);
+        ^"{<invalid>}./(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:43:9: Error: This couldn't be parsed.
+  print(~/foo);
+        ^"{<invalid>}.~/(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:44:9: Error: This couldn't be parsed.
+  print(*foo);
+        ^"{<invalid>}.*(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:45:9: Error: This couldn't be parsed.
+  print(%foo);
+        ^"{<invalid>}.%(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:46:9: Error: This couldn't be parsed.
+  print(|foo);
+        ^"{<invalid>}.|(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:47:9: Error: This couldn't be parsed.
+  print(^foo);
+        ^"{<invalid>}.^(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:48:9: Error: This couldn't be parsed.
+  print(&foo);
+        ^"{<invalid>}.&(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:49:9: Error: This couldn't be parsed.
+  print(<<foo);
+        ^"{<invalid>}.<<(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:50:9: Error: This couldn't be parsed.
+  print(>>foo);
+        ^"{<invalid>}.>>(foo));
+  core::print(invalid-expression "pkg/front_end/testcases/general/operator_method_not_found.dart:54:13: Error: '~' isn't a binary operator.
+  print(foo ~ 2);
+            ^");
+}

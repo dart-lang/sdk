@@ -149,8 +149,6 @@ class TypeProviderImpl extends TypeProviderBase {
 
   InterfaceType? _nullStar;
 
-  Set<ClassElement>? _nonSubtypableClasses;
-
   /// Initialize a newly created type provider to provide the types defined in
   /// the given [coreLibrary] and [asyncLibrary].
   TypeProviderImpl({
@@ -353,18 +351,6 @@ class TypeProviderImpl extends TypeProviderBase {
       ? NeverTypeImpl.instance
       : NeverTypeImpl.instanceLegacy;
 
-  @Deprecated('Use isNonSubtypableClass instead')
-  @override
-  Set<ClassElement> get nonSubtypableClasses => _nonSubtypableClasses ??= {
-        boolElement,
-        doubleElement,
-        futureOrElement,
-        intElement,
-        nullElement,
-        numElement,
-        stringElement,
-      };
-
   @override
   ClassElement get nullElement {
     return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
@@ -473,24 +459,12 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  @Deprecated('Use futureOrType instead')
-  @override
-  InterfaceType futureOrType2(DartType valueType) {
-    return futureOrType(valueType);
-  }
-
   @override
   InterfaceType futureType(DartType valueType) {
     return futureElement.instantiate(
       typeArguments: [valueType],
       nullabilitySuffix: _nullabilitySuffix,
     );
-  }
-
-  @Deprecated('Use futureType instead')
-  @override
-  InterfaceType futureType2(DartType valueType) {
-    return futureType(valueType);
   }
 
   @override
@@ -512,24 +486,12 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  @Deprecated('Use iterableType instead')
-  @override
-  InterfaceType iterableType2(DartType elementType) {
-    return iterableType(elementType);
-  }
-
   @override
   InterfaceType listType(DartType elementType) {
     return listElement.instantiate(
       typeArguments: [elementType],
       nullabilitySuffix: _nullabilitySuffix,
     );
-  }
-
-  @Deprecated('Use listType instead')
-  @override
-  InterfaceType listType2(DartType elementType) {
-    return listType(elementType);
   }
 
   @override
@@ -540,12 +502,6 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  @Deprecated('Use mapType instead')
-  @override
-  InterfaceType mapType2(DartType keyType, DartType valueType) {
-    return mapType(keyType, valueType);
-  }
-
   @override
   InterfaceType setType(DartType elementType) {
     return setElement.instantiate(
@@ -554,24 +510,12 @@ class TypeProviderImpl extends TypeProviderBase {
     );
   }
 
-  @Deprecated('Use setType instead')
-  @override
-  InterfaceType setType2(DartType elementType) {
-    return setType(elementType);
-  }
-
   @override
   InterfaceType streamType(DartType elementType) {
     return streamElement.instantiate(
       typeArguments: [elementType],
       nullabilitySuffix: _nullabilitySuffix,
     );
-  }
-
-  @Deprecated('Use streamType instead')
-  @override
-  InterfaceType streamType2(DartType elementType) {
-    return streamType(elementType);
   }
 
   /// Return the class with the given [name] from the given [library], or

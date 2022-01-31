@@ -28,12 +28,14 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/element_type_matchers.dart';
 import '../../../utils.dart';
+import '../resolution/context_collection_resolution.dart';
 import 'base.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriverSchedulerTest);
     defineReflectiveTests(AnalysisDriverTest);
+    defineReflectiveTests(AnalysisDriver_BazelWorkspaceTest);
   });
 }
 
@@ -47,6 +49,56 @@ Future pumpEventQueue([int times = 5000]) {
   // would therefore not wait for microtask callbacks that are scheduled after
   // invoking this method.
   return Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
+}
+
+@reflectiveTest
+class AnalysisDriver_BazelWorkspaceTest extends BazelWorkspaceResolutionTest {
+  void test_nestedLib_notCanonicalUri() async {
+    var outerLibPath = '$workspaceRootPath/my/outer/lib';
+
+    var innerPath = convertPath('$outerLibPath/inner/lib/b.dart');
+    var innerUri = Uri.parse('package:my.outer.lib.inner/b.dart');
+    newFile(innerPath, content: 'class B {}');
+
+    var analysisSession = contextFor(innerPath).currentSession;
+
+    void assertInnerUri(ResolvedUnitResult result) {
+      var innerLibrary = result.libraryElement.importedLibraries
+          .where((e) => e.source.fullName == innerPath)
+          .single;
+      expect(innerLibrary.source.uri, innerUri);
+    }
+
+    // Reference "inner" using a non-canonical URI.
+    {
+      var a = newFile(convertPath('$outerLibPath/a.dart'), content: r'''
+import 'inner/lib/b.dart';
+''');
+      var result = await analysisSession.getResolvedUnit(a.path);
+      result as ResolvedUnitResult;
+      assertInnerUri(result);
+    }
+
+    // Reference "inner" using the canonical URI, via relative.
+    {
+      var c = newFile('$outerLibPath/inner/lib/c.dart', content: r'''
+import 'b.dart';
+''');
+      var result = await analysisSession.getResolvedUnit(c.path);
+      result as ResolvedUnitResult;
+      assertInnerUri(result);
+    }
+
+    // Reference "inner" using the canonical URI, via absolute.
+    {
+      var d = newFile('$outerLibPath/inner/lib/d.dart', content: '''
+import '$innerUri';
+''');
+      var result = await analysisSession.getResolvedUnit(d.path);
+      result as ResolvedUnitResult;
+      assertInnerUri(result);
+    }
+  }
 }
 
 @reflectiveTest
@@ -1246,8 +1298,7 @@ bbb() {}
     Source generatedSource = _SourceMock(generatedPath, uri);
 
     generatedUriResolver.resolveAbsoluteFunction = (uri) => generatedSource;
-    generatedUriResolver.restoreAbsoluteFunction = (Source source) {
-      String path = source.fullName;
+    generatedUriResolver.pathToUriFunction = (path) {
       if (path == templatePath || path == generatedPath) {
         return uri;
       } else {
@@ -1952,16 +2003,13 @@ String z = "string";
       expect(result.errors, isEmpty);
     }
 
-    // Analysis of my_pkg/bin/b.dart produces the error "A value of type
-    // 'String' can't be assigned to a variable of type 'int'", because
-    // file:///my_pkg/bin/b.dart imports file:///my_pkg/lib/c.dart, which
-    // successfully imports file:///my_pkg/test/d.dart, causing y to have an
-    // inferred type of String.
+    // Analysis of my_pkg/bin/a.dart produces no error because
+    // the import `../lib/c.dart` is resolved to package:my_pkg/c.dart, and
+    // package:my_pkg/c.dart's import is erroneous, causing y's reference to z
+    // to be unresolved (and therefore have type dynamic).
     {
       ResolvedUnitResult result = await driver.getResultValid(b);
-      List<AnalysisError> errors = result.errors;
-      expect(errors, hasLength(1));
-      expect(errors[0].errorCode, CompileTimeErrorCode.INVALID_ASSIGNMENT);
+      expect(result.errors, isEmpty);
     }
   }
 
@@ -2028,8 +2076,10 @@ var VC = new A<double>();
 
     {
       ResolvedUnitResult result = await driver.getResultValid(b);
-      expect(_getImportSource(result.unit, 0).uri.toString(),
-          'package:test/a.dart');
+      expect(
+        _getImportSource(result.unit, 0).uri,
+        Uri.parse('package:test/a.dart'),
+      );
       _assertTopLevelVarType(result.unit, 'VB', 'A<int>');
     }
 
@@ -2037,7 +2087,7 @@ var VC = new A<double>();
       ResolvedUnitResult result = await driver.getResultValid(c);
       expect(
         _getImportSource(result.unit, 0).uri,
-        toUri('/test/lib/a.dart'),
+        Uri.parse('package:test/a.dart'),
       );
       _assertTopLevelVarType(result.unit, 'VC', 'A<double>');
     }
@@ -2924,6 +2974,24 @@ var b = new B();
     expect(result.unit, isNotNull);
   }
 
+  test_removeFile_addFile_results() async {
+    var a = convertPath('/test/lib/a.dart');
+    newFile(a, content: 'class A {}');
+
+    driver.addFile(a);
+
+    await waitForIdleWithoutExceptions();
+    expect(allResults.map((e) => e.path).toSet(), {a});
+    allResults.clear();
+
+    driver.removeFile(a);
+    driver.addFile(a);
+
+    // a.dart should be produced again
+    await waitForIdleWithoutExceptions();
+    expect(allResults.map((e) => e.path).toSet(), {a});
+  }
+
   test_removeFile_changeFile_implicitlyAnalyzed() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -3357,10 +3425,6 @@ class _SourceMock implements Source {
 }
 
 extension on AnalysisDriver {
-  FileResult getFileSyncValid(String path) {
-    return getFileSync(path) as FileResult;
-  }
-
   Set<String> get loadedLibraryUriSet {
     var elementFactory = this.test.libraryContext!.elementFactory;
     var libraryReferences = elementFactory.rootReference.children;
@@ -3382,11 +3446,15 @@ extension on AnalysisDriver {
     }
   }
 
-  Future<ResolvedUnitResult> getResultValid(String path) async {
-    return await getResult(path) as ResolvedUnitResult;
+  FileResult getFileSyncValid(String path) {
+    return getFileSync(path) as FileResult;
   }
 
   Future<LibraryElementResult> getLibraryByUriValid(String uriStr) async {
     return await getLibraryByUri(uriStr) as LibraryElementResult;
+  }
+
+  Future<ResolvedUnitResult> getResultValid(String path) async {
+    return await getResult(path) as ResolvedUnitResult;
   }
 }

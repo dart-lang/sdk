@@ -127,6 +127,8 @@ namespace dart {
   V(ExitSafepoint)                                                             \
   V(CallNativeThroughSafepoint)                                                \
   V(InitStaticField)                                                           \
+  V(InitLateStaticField)                                                       \
+  V(InitLateFinalStaticField)                                                  \
   V(InitInstanceField)                                                         \
   V(InitLateInstanceField)                                                     \
   V(InitLateFinalInstanceField)                                                \

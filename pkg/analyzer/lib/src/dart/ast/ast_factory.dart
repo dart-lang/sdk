@@ -155,6 +155,7 @@ class AstFactoryImpl extends AstFactory {
           Comment? comment,
           List<Annotation>? metadata,
           Token? abstractKeyword,
+          Token? macroKeyword,
           Token classKeyword,
           SimpleIdentifier name,
           TypeParameterList? typeParameters,
@@ -168,6 +169,7 @@ class AstFactoryImpl extends AstFactory {
           comment as CommentImpl?,
           metadata,
           abstractKeyword,
+          macroKeyword,
           classKeyword,
           name as SimpleIdentifierImpl,
           typeParameters as TypeParameterListImpl?,
@@ -187,6 +189,7 @@ class AstFactoryImpl extends AstFactory {
           TypeParameterList? typeParameters,
           Token equals,
           Token? abstractKeyword,
+          Token? macroKeyword,
           NamedType superclass,
           WithClause withClause,
           ImplementsClause? implementsClause,
@@ -199,6 +202,7 @@ class AstFactoryImpl extends AstFactory {
           typeParameters as TypeParameterListImpl?,
           equals,
           abstractKeyword,
+          macroKeyword,
           superclass as NamedTypeImpl,
           withClause as WithClauseImpl,
           implementsClause as ImplementsClauseImpl?,
@@ -383,6 +387,7 @@ class AstFactoryImpl extends AstFactory {
       EnumConstantDeclarationImpl(
           comment as CommentImpl?, metadata, name as SimpleIdentifierImpl);
 
+  @Deprecated('Use enumDeclaration2() instead')
   @override
   EnumDeclarationImpl enumDeclaration(
           Comment? comment,
@@ -392,8 +397,47 @@ class AstFactoryImpl extends AstFactory {
           Token leftBracket,
           List<EnumConstantDeclaration> constants,
           Token rightBracket) =>
-      EnumDeclarationImpl(comment as CommentImpl?, metadata, enumKeyword,
-          name as SimpleIdentifierImpl, leftBracket, constants, rightBracket);
+      enumDeclaration2(
+          comment: comment,
+          metadata: metadata,
+          enumKeyword: enumKeyword,
+          name: name,
+          typeParameters: null,
+          withClause: null,
+          implementsClause: null,
+          leftBracket: leftBracket,
+          constants: constants,
+          members: [],
+          rightBracket: rightBracket);
+
+  @override
+  EnumDeclarationImpl enumDeclaration2({
+    required Comment? comment,
+    required List<Annotation>? metadata,
+    required Token enumKeyword,
+    required SimpleIdentifier name,
+    required TypeParameterList? typeParameters,
+    required WithClause? withClause,
+    required ImplementsClause? implementsClause,
+    required Token leftBracket,
+    required List<EnumConstantDeclaration> constants,
+    required List<ClassMember> members,
+    required Token rightBracket,
+  }) {
+    return EnumDeclarationImpl(
+      comment as CommentImpl?,
+      metadata,
+      enumKeyword,
+      name as SimpleIdentifierImpl,
+      typeParameters as TypeParameterListImpl?,
+      withClause as WithClauseImpl?,
+      implementsClause as ImplementsClauseImpl?,
+      leftBracket,
+      constants,
+      members,
+      rightBracket,
+    );
+  }
 
   @override
   ExportDirectiveImpl exportDirective(
@@ -1185,6 +1229,34 @@ class AstFactoryImpl extends AstFactory {
       SuperExpressionImpl(superKeyword);
 
   @override
+  SuperFormalParameterImpl superFormalParameter(
+          {Comment? comment,
+          List<Annotation>? metadata,
+          Token? covariantKeyword,
+          Token? requiredKeyword,
+          Token? keyword,
+          TypeAnnotation? type,
+          required Token superKeyword,
+          required Token period,
+          required SimpleIdentifier identifier,
+          TypeParameterList? typeParameters,
+          FormalParameterList? parameters,
+          Token? question}) =>
+      SuperFormalParameterImpl(
+          comment as CommentImpl?,
+          metadata,
+          covariantKeyword,
+          requiredKeyword,
+          keyword,
+          type as TypeAnnotationImpl?,
+          superKeyword,
+          period,
+          identifier as SimpleIdentifierImpl,
+          typeParameters as TypeParameterListImpl?,
+          parameters as FormalParameterListImpl?,
+          question);
+
+  @override
   SwitchCaseImpl switchCase(List<Label> labels, Token keyword,
           Expression expression, Token colon, List<Statement> statements) =>
       SwitchCaseImpl(
@@ -1258,14 +1330,6 @@ class AstFactoryImpl extends AstFactory {
   @override
   TypeLiteralImpl typeLiteral({required NamedType typeName}) =>
       TypeLiteralImpl(typeName as NamedTypeImpl);
-
-  @Deprecated('Use namedType() instead')
-  @override
-  NamedTypeImpl typeName(Identifier name, TypeArgumentList? typeArguments,
-          {Token? question}) =>
-      NamedTypeImpl(
-          name as IdentifierImpl, typeArguments as TypeArgumentListImpl?,
-          question: question);
 
   @override
   TypeParameterImpl typeParameter(

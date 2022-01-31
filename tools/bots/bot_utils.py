@@ -227,7 +227,6 @@ class GSUtil(object):
                local_path,
                remote_path,
                recursive=False,
-               public=False,
                multithread=False):
         assert remote_path.startswith('gs://')
 
@@ -235,8 +234,6 @@ class GSUtil(object):
             args = ['-m', 'cp']
         else:
             args = ['cp']
-        if public:
-            args += ['-a', 'public-read']
         if recursive:
             args += ['-R']
         args += [local_path, remote_path]

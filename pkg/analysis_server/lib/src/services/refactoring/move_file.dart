@@ -158,9 +158,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     var refDir = pathContext.dirname(reference.file);
     // Try to keep package: URI
     if (_isPackageReference(reference)) {
-      Source newSource =
-          NonExistingSource(newFile, pathos.toUri(newFile), UriKind.FILE_URI);
-      var restoredUri = driver.sourceFactory.restoreUri(newSource);
+      var restoredUri = driver.sourceFactory.pathToUri(newFile);
       // If the new URI is not a package: URI, fall back to computing a relative
       // URI below.
       if (restoredUri?.isScheme('package') ?? false) {

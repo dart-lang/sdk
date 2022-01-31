@@ -28,6 +28,8 @@ constructor_tearoffs/issue47075: FormatterCrash
 constructor_tearoffs/new_as_selector: FormatterCrash
 dart2js/late_fields: FormatterCrash
 dart2js/late_statics: FormatterCrash
+enhanced_enums/entries_with_type_arguments: FormatterCrash
+enhanced_enums/qualified_names_with_no_type_arguments: FormatterCrash
 extension_types/basic_show: FormatterCrash
 extension_types/call_not_get: FormatterCrash
 extension_types/keyword_in_show_hide_element: FormatterCrash
@@ -88,6 +90,9 @@ general/issue43363: FormatterCrash
 general/issue45490: FormatterCrash
 general/issue45700.crash: FormatterCrash
 general/issue47495: FormatterCrash
+general/issue47728_2: FormatterCrash
+general/issue47728_3: FormatterCrash
+general/macro_class: FormatterCrash
 general/many_errors: FormatterCrash
 general/missing_prefix_name: FormatterCrash
 general/new_as_selector: FormatterCrash
@@ -134,6 +139,7 @@ late_lowering/override: FormatterCrash
 late_lowering/override_getter_setter: FormatterCrash
 late_lowering/skip_late_final_uninitialized_instance_fields/main: FormatterCrash
 late_lowering/uninitialized_non_nullable_late_fields: FormatterCrash
+macros/macro_class: FormatterCrash
 named_arguments_anywhere/redirecting_constructor_initializers: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/covariant_late_field: FormatterCrash
@@ -195,6 +201,10 @@ regress/issue_37285: FormatterCrash
 regress/issue_39091_1: FormatterCrash
 regress/issue_41265.crash: Crash
 regress/issue_41265.crash: FormatterCrash
+super_parameters/simple: FormatterCrash
+super_parameters/simple_named_super_parameters: FormatterCrash
+super_parameters/simple_positional_super_parameters: FormatterCrash
+super_parameters/typed_super_parameter: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash
 variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash

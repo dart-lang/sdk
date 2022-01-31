@@ -151,6 +151,11 @@ class StubCodeCompiler : public AllStatic {
   static intptr_t WordOffsetFromFpToCpuRegister(Register cpu_register);
 
  private:
+  // Common function for generating InitLateStaticField and
+  // InitLateFinalStaticField stubs.
+  static void GenerateInitLateStaticFieldStub(Assembler* assembler,
+                                              bool is_final);
+
   // Common function for generating InitLateInstanceField and
   // InitLateFinalInstanceField stubs.
   static void GenerateInitLateInstanceFieldStub(Assembler* assembler,

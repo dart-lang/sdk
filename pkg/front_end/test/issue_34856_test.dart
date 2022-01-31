@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show File;
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
@@ -68,14 +66,14 @@ Future<void> test() async {
   fs.entityForUri(platformDill).writeAsBytesSync(platformDillBytes);
   fs
       .entityForUri(base.resolve("lib.dart"))
-      .writeAsStringSync(files["lib.dart"]);
+      .writeAsStringSync(files["lib.dart"]!);
   CompilerOptions options = new CompilerOptions()
     ..fileSystem = fs
     ..sdkSummary = platformDill;
 
   Component component =
       (await kernelForModule(<Uri>[base.resolve("lib.dart")], options))
-          .component;
+          .component!;
 
   fs = new MemoryFileSystem(base);
   fs.entityForUri(platformDill).writeAsBytesSync(platformDillBytes);
@@ -84,7 +82,7 @@ Future<void> test() async {
       .writeAsBytesSync(serializeComponent(component));
   fs
       .entityForUri(base.resolve("repro.dart"))
-      .writeAsStringSync(files["repro.dart"]);
+      .writeAsStringSync(files["repro.dart"]!);
 
   options = new CompilerOptions()
     ..fileSystem = fs
@@ -94,12 +92,12 @@ Future<void> test() async {
 
   List<Uri> inputs = <Uri>[base.resolve("repro.dart")];
 
-  component = (await kernelForModule(inputs, options)).component;
+  component = (await kernelForModule(inputs, options)).component!;
 
   List<Object> errors = await CompilerContext.runWithOptions(
       new ProcessedOptions(options: options, inputs: inputs),
       (_) => new Future<List<Object>>.value(
-          verifyComponent(component, options.target, skipPlatform: true)));
+          verifyComponent(component, options.target!, skipPlatform: true)));
 
   serializeComponent(component);
 

@@ -110,21 +110,19 @@ class _RunningIsolate {
   /// Should always be called after an isolate is resumed.
   void clearResumeApprovals() => _resumeApprovalsByName.clear();
 
-  Map<String, dynamic> getCachedCpuSamples(String userTag) {
+  Future<Map<String, dynamic>> getCachedCpuSamples(String userTag) async {
     final repo = cpuSamplesManager.cpuSamplesCaches[userTag];
     if (repo == null) {
       throw json_rpc.RpcException.invalidParams(
         'CPU sample caching is not enabled for tag: "$userTag"',
       );
     }
+    await repo.populateFunctionDetails(isolateManager.dds, id);
     return repo.toJson();
   }
 
   void handleEvent(Event event) {
     switch (event.kind) {
-      case EventKind.kUserTagChanged:
-        cpuSamplesManager.handleUserTagEvent(event);
-        return;
       case EventKind.kCpuSamples:
         cpuSamplesManager.handleCpuSamplesEvent(event);
         return;
@@ -238,6 +236,14 @@ class IsolateManager {
             isolateStarted(id, name);
           }
         }
+        if (dds.cachedUserTags.isNotEmpty) {
+          await dds.vmServiceClient.sendRequest(
+            'streamCpuSamplesWithUserTag',
+            {
+              'userTags': dds.cachedUserTags,
+            },
+          );
+        }
       },
     );
     _initialized = true;
@@ -283,14 +289,15 @@ class IsolateManager {
     );
   }
 
-  Map<String, dynamic> getCachedCpuSamples(json_rpc.Parameters parameters) {
+  Future<Map<String, dynamic>> getCachedCpuSamples(
+      json_rpc.Parameters parameters) async {
     final isolateId = parameters['isolateId'].asString;
     if (!isolates.containsKey(isolateId)) {
       return RPCResponses.collectedSentinel;
     }
     final isolate = isolates[isolateId]!;
     final userTag = parameters['userTag'].asString;
-    return isolate.getCachedCpuSamples(userTag);
+    return await isolate.getCachedCpuSamples(userTag);
   }
 
   /// Forwards a `resume` request to the VM service.

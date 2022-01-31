@@ -50,10 +50,10 @@ class B extends A {
   }
 
   Future<void> test_importType() async {
-    addSource('/home/test/lib/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
-    addSource('/home/test/lib/b.dart', r'''
+    addSource('$testPackageLibPath/b.dart', r'''
 import 'package:test/a.dart';
 
 class B {
@@ -104,7 +104,7 @@ class B extends A {
 ''');
   }
 
-  Future<void> test_named() async {
+  Future<void> test_namedConstructor() async {
     await resolveTestCode('''
 class A {
   A.named(p1, int p2);
@@ -123,6 +123,56 @@ class B extends A {
   int existingField = 0;
 
   B.named(p1, int p2) : super.named(p1, p2);
+
+  void existingMethod() {}
+}
+''');
+  }
+
+  Future<void> test_namedOptionalParams() async {
+    await resolveTestCode('''
+class A {
+  A(p1, int p2, List<String> p3, {int? p4});
+}
+class B extends A {
+  int existingField = 0;
+
+  void existingMethod() {}
+}
+''');
+    await assertHasFix('''
+class A {
+  A(p1, int p2, List<String> p3, {int? p4});
+}
+class B extends A {
+  int existingField = 0;
+
+  B(p1, int p2, List<String> p3) : super(p1, p2, p3);
+
+  void existingMethod() {}
+}
+''');
+  }
+
+  Future<void> test_namedRequiredParams() async {
+    await resolveTestCode('''
+class A {
+  A(p1, int p2, List<String> p3, {required int p4, required int p5});
+}
+class B extends A {
+  int existingField = 0;
+
+  void existingMethod() {}
+}
+''');
+    await assertHasFix('''
+class A {
+  A(p1, int p2, List<String> p3, {required int p4, required int p5});
+}
+class B extends A {
+  int existingField = 0;
+
+  B(p1, int p2, List<String> p3, {required int p4, required int p5}) : super(p1, p2, p3, p4: p4, p5: p5);
 
   void existingMethod() {}
 }

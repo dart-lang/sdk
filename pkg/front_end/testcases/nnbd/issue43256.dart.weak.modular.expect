@@ -1,0 +1,142 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:16:17: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//   if (i > 0) ...nullableMap, // error
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:23:17: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//   if (i > 0) ...nullableList, // error
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:29:17: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//   if (i > 0) ...nullableList, // error
+//                 ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:37:19: Error: Unexpected type 'X' of a map spread entry.  Expected 'dynamic' or a Map.
+//     if (i > 0) ...x, // error
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:38:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     if (i > 0) ...y, // error
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:48:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     if (i > 0) ...x, // error
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:48:19: Error: Unexpected type 'X' of a spread.  Expected 'dynamic' or an Iterable.
+//     if (i > 0) ...x, // error
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:49:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     if (i > 0) ...y, // error
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:53:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     if (i > 0) ...x, // error
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:53:19: Error: Unexpected type 'X' of a spread.  Expected 'dynamic' or an Iterable.
+//     if (i > 0) ...x, // error
+//                   ^
+//
+// pkg/front_end/testcases/nnbd/issue43256.dart:54:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+//     if (i > 0) ...y, // error
+//                   ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static field core::int i = 1;
+static field core::Map<core::int, core::String>? nullableMap = <core::int, core::String>{1: "Let", 2: "it", 3: "be"};
+static field core::List<core::int>? nullableList = <core::int>[1, 2, 3];
+static field dynamic dynamicMap = <core::int, core::String>{1: "Let", 2: "it", 3: "be"};
+static field dynamic dynamicList = <core::int>[1, 2, 3];
+static field core::Map<dynamic, dynamic> map1 = block {
+  final core::Map<dynamic, dynamic> #t1 = <dynamic, dynamic>{};
+  if(self::i.{core::num::>}(0){(core::num) → core::bool})
+    #t1.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43256.dart:16:17: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  if (i > 0) ...nullableMap, // error
+                ^", null){(dynamic, dynamic) → void};
+  if(self::i.{core::num::>}(0){(core::num) → core::bool})
+    for (final core::MapEntry<dynamic, dynamic> #t2 in (self::dynamicMap as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
+      #t1.{core::Map::[]=}{Invariant}(#t2.{core::MapEntry::key}{dynamic}, #t2.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
+  if(self::i.{core::num::>}(0){(core::num) → core::bool})
+    for (final core::MapEntry<dynamic, dynamic> #t3 in self::nullableMap!.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
+      #t1.{core::Map::[]=}{Invariant}(#t3.{core::MapEntry::key}{dynamic}, #t3.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
+} =>#t1;
+static field core::Set<dynamic> set1 = block {
+  final core::Set<dynamic> #t4 = col::LinkedHashSet::•<dynamic>();
+  #t4.{core::Set::add}{Invariant}(0){(dynamic) → core::bool};
+  if(self::i.{core::num::>}(0){(core::num) → core::bool})
+    #t4.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43256.dart:23:17: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  if (i > 0) ...nullableList, // error
+                ^"){(dynamic) → core::bool};
+  if(self::i.{core::num::>}(0){(core::num) → core::bool})
+    #t4.{core::Set::addAll}{Invariant}(self::dynamicList as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
+  if(self::i.{core::num::>}(0){(core::num) → core::bool})
+    #t4.{core::Set::addAll}{Invariant}(self::nullableList!){(core::Iterable<dynamic>) → void};
+} =>#t4;
+static field core::List<dynamic> list1 = block {
+  final core::List<dynamic> #t5 = <dynamic>[];
+  if(self::i.{core::num::>}(0){(core::num) → core::bool})
+    #t5.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43256.dart:29:17: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+  if (i > 0) ...nullableList, // error
+                ^"){(dynamic) → void};
+  if(self::i.{core::num::>}(0){(core::num) → core::bool})
+    #t5.{core::List::addAll}{Invariant}(self::dynamicList as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
+  if(self::i.{core::num::>}(0){(core::num) → core::bool})
+    #t5.{core::List::addAll}{Invariant}(self::nullableList!){(core::Iterable<dynamic>) → void};
+} =>#t5;
+static method testMap<X extends dynamic, Y extends core::Map<core::int, core::String>?, Z extends core::Map<core::int, core::String>>(self::testMap::X% x, self::testMap::Y% y, self::testMap::Z z) → dynamic {
+  core::Map<dynamic, dynamic> map2 = block {
+    final core::Map<dynamic, dynamic> #t6 = <dynamic, dynamic>{};
+    if(self::i.{core::num::>}(0){(core::num) → core::bool})
+      #t6.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43256.dart:37:19: Error: Unexpected type 'X' of a map spread entry.  Expected 'dynamic' or a Map.
+    if (i > 0) ...x, // error
+                  ^", null){(dynamic, dynamic) → void};
+    if(self::i.{core::num::>}(0){(core::num) → core::bool})
+      #t6.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43256.dart:38:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    if (i > 0) ...y, // error
+                  ^", null){(dynamic, dynamic) → void};
+    if(self::i.{core::num::>}(0){(core::num) → core::bool})
+      for (final core::MapEntry<dynamic, dynamic> #t7 in z.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
+        #t6.{core::Map::[]=}{Invariant}(#t7.{core::MapEntry::key}{dynamic}, #t7.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
+    if(self::i.{core::num::>}(0){(core::num) → core::bool})
+      for (final core::MapEntry<dynamic, dynamic> #t8 in y!.{core::Map::entries}{core::Iterable<core::MapEntry<dynamic, dynamic>>})
+        #t6.{core::Map::[]=}{Invariant}(#t8.{core::MapEntry::key}{dynamic}, #t8.{core::MapEntry::value}{dynamic}){(dynamic, dynamic) → void};
+  } =>#t6;
+}
+static method testIterables<X extends dynamic, Y extends core::List<core::int>?, Z extends core::List<core::int>>(self::testIterables::X% x, self::testIterables::Y% y, self::testIterables::Z z) → dynamic {
+  core::Set<dynamic> set2 = block {
+    final core::Set<dynamic> #t9 = col::LinkedHashSet::•<dynamic>();
+    #t9.{core::Set::add}{Invariant}(0){(dynamic) → core::bool};
+    if(self::i.{core::num::>}(0){(core::num) → core::bool})
+      #t9.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43256.dart:48:19: Error: Unexpected type 'X' of a spread.  Expected 'dynamic' or an Iterable.
+    if (i > 0) ...x, // error
+                  ^"){(dynamic) → core::bool};
+    if(self::i.{core::num::>}(0){(core::num) → core::bool})
+      #t9.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43256.dart:49:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    if (i > 0) ...y, // error
+                  ^"){(dynamic) → core::bool};
+    if(self::i.{core::num::>}(0){(core::num) → core::bool})
+      #t9.{core::Set::addAll}{Invariant}(z){(core::Iterable<dynamic>) → void};
+  } =>#t9;
+  core::List<dynamic> list2 = block {
+    final core::List<dynamic> #t10 = <dynamic>[];
+    if(self::i.{core::num::>}(0){(core::num) → core::bool})
+      #t10.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43256.dart:53:19: Error: Unexpected type 'X' of a spread.  Expected 'dynamic' or an Iterable.
+    if (i > 0) ...x, // error
+                  ^"){(dynamic) → void};
+    if(self::i.{core::num::>}(0){(core::num) → core::bool})
+      #t10.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/nnbd/issue43256.dart:54:19: Error: An expression whose value can be 'null' must be null-checked before it can be dereferenced.
+    if (i > 0) ...y, // error
+                  ^"){(dynamic) → void};
+    if(self::i.{core::num::>}(0){(core::num) → core::bool})
+      #t10.{core::List::addAll}{Invariant}(z){(core::Iterable<dynamic>) → void};
+  } =>#t10;
+}
+static method main() → dynamic {}

@@ -88,7 +88,7 @@ String b = "Test";
 linter:
   rules:
     - invalid_lint_rule_name
-''').path;
+''');
 
     final firstDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
     await initialize();
@@ -102,7 +102,7 @@ linter:
   Future<void> test_analysisOptionsFile_packageInclude() async {
     newFile(analysisOptionsPath, content: '''
 include: package:pedantic/analysis_options.yaml
-''').path;
+''');
 
     // Verify there's an error for the import.
     final firstDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);

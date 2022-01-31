@@ -1,0 +1,56 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks_in_typedef.dart:10:28: Error: Type argument 'String' doesn't conform to the bound 'int' of the type variable 'X' on 'C'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef B<X extends int> = C<String>;
+//                            ^
+// pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks_in_typedef.dart:11:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef C<X extends int> = X;
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks_in_typedef.dart:9:28: Error: Type argument 'String' doesn't conform to the bound 'int' of the type variable 'X' on 'B'.
+// Try changing type arguments so that they conform to the bounds.
+// typedef A<X extends int> = B<String>;
+//                            ^
+// pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks_in_typedef.dart:10:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef B<X extends int> = C<String>;
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks_in_typedef.dart:6:3: Error: Type argument 'String' doesn't conform to the bound 'int' of the type variable 'X' on 'A'.
+// Try changing type arguments so that they conform to the bounds.
+//   A<String> a;
+//   ^
+// pkg/front_end/testcases/nonfunction_type_aliases/aliased_checks_in_typedef.dart:9:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef A<X extends int> = B<String>;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef A<unrelated X extends core::int> = core::String;
+typedef B<unrelated X extends core::int> = core::String;
+typedef C<X extends core::int> = X;
+static method foo() → dynamic {
+  core::String a;
+}
+static method main() → dynamic {}
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#A#fromCharCodes#tearOff<unrelated X extends core::int>(core::Iterable<core::int> charCodes, [core::int start = #C1, core::int? end = #C2]) → core::String
+  return core::String::fromCharCodes(charCodes, start, end);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#A#fromCharCode#tearOff<unrelated X extends core::int>(core::int charCode) → core::String
+  return core::String::fromCharCode(charCode);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#A#fromEnvironment#tearOff<unrelated X extends core::int>(core::String name, {core::String defaultValue = #C3}) → core::String
+  return core::String::fromEnvironment(name, defaultValue: defaultValue);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#B#fromCharCodes#tearOff<unrelated X extends core::int>(core::Iterable<core::int> charCodes, [core::int start = #C1, core::int? end = #C2]) → core::String
+  return core::String::fromCharCodes(charCodes, start, end);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#B#fromCharCode#tearOff<unrelated X extends core::int>(core::int charCode) → core::String
+  return core::String::fromCharCode(charCode);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/string_patch.dart */ _#B#fromEnvironment#tearOff<unrelated X extends core::int>(core::String name, {core::String defaultValue = #C3}) → core::String
+  return core::String::fromEnvironment(name, defaultValue: defaultValue);
+
+constants  {
+  #C1 = 0
+  #C2 = null
+  #C3 = ""
+}

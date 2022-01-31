@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, getMessageUri;
 
@@ -24,17 +22,17 @@ void main() {
     Severity severity = Severity.values[i];
     Code code = new Code("MyCodeName");
     Message message = new Message(code, problemMessage: '');
-    LocatedMessage locatedMessage1 =
+    LocatedMessage locatedMessage =
         new LocatedMessage(Uri.parse("what:ever/fun_1.dart"), 117, 2, message);
     FormattedMessage formattedMessage2 = new FormattedMessage(
-        null,
+        locatedMessage,
         "Formatted string Plain #2",
         "Formatted string Colorized #2",
         13,
         2,
         Severity.error, []);
     FormattedMessage formattedMessage3 = new FormattedMessage(
-        null,
+        locatedMessage,
         "Formatted string Plain #3",
         "Formatted string Colorized #3",
         313,
@@ -42,7 +40,7 @@ void main() {
         Severity.error, []);
 
     FormattedMessage formattedMessage1 = new FormattedMessage(
-        locatedMessage1,
+        locatedMessage,
         "Formatted string Plain",
         "Formatted string Colorized",
         42,
@@ -90,20 +88,20 @@ void compareMessages(DiagnosticMessage a, DiagnosticMessage b) {
   expect(a.severity, b.severity);
   expect(getMessageUri(a), getMessageUri(b));
 
-  List<Uri> uriList1 = a.involvedFiles?.toList();
-  List<Uri> uriList2 = b.involvedFiles?.toList();
+  List<Uri>? uriList1 = a.involvedFiles?.toList();
+  List<Uri>? uriList2 = b.involvedFiles?.toList();
   expect(uriList1?.length, uriList2?.length);
   if (uriList1 != null) {
     for (int i = 0; i < uriList1.length; i++) {
-      expect(uriList1[i], uriList2[i]);
+      expect(uriList1[i], uriList2![i]);
     }
   }
 
-  String string1 = a.codeName;
-  String string2 = b.codeName;
+  String? string1 = a.codeName;
+  String? string2 = b.codeName;
   expect(string1, string2);
 }
 
-void expect(Object actual, Object expect) {
+void expect(Object? actual, Object? expect) {
   if (expect != actual) throw "Expected $expect got $actual";
 }

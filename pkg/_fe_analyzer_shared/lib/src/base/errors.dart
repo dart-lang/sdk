@@ -50,17 +50,14 @@ abstract class ErrorCode {
     this.hasPublishedDocs = false,
     this.isUnresolvedIdentifier: false,
     required this.name,
-    @Deprecated('Please use problemMessage') String? message,
-    String? problemMessage,
+    required String problemMessage,
     required this.uniqueName,
   })  : _correctionMessage = correctionMessage,
-        _problemMessage = problemMessage ?? message ?? 'NO MESSAGE',
+        _problemMessage = problemMessage,
         // ignore: unnecessary_null_comparison
         assert(hasPublishedDocs != null),
         // ignore: unnecessary_null_comparison
-        assert(isUnresolvedIdentifier != null),
-        assert((message == null) != (problemMessage == null),
-            'Either problemMessage or message must be provided (not both)');
+        assert(isUnresolvedIdentifier != null);
 
   /**
    * The template used to create the correction to be displayed for this error,

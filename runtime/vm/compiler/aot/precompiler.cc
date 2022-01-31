@@ -67,6 +67,10 @@ DEFINE_FLAG(bool,
             "Print per-phase breakdown of time spent precompiling");
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynamic targets");
 DEFINE_FLAG(bool, print_gop, false, "Print global object pool");
+DEFINE_FLAG(charp,
+            print_object_layout_to,
+            nullptr,
+            "Print layout of Dart objects to the given file");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 DEFINE_FLAG(
     int,
@@ -141,12 +145,11 @@ struct RetainReasons : public AllStatic {
   // The object is a function and symbolic stack traces are enabled.
   static constexpr const char* kSymbolicStackTraces =
       "needed for symbolic stack traces";
-  // The object is a function that is only used via its implicit closure
-  // function, into which it was inlined.
-  static constexpr const char* kInlinedIntoICF =
-      "inlined into implicit closure function";
   // The object is a parent function function of a non-inlined local function.
   static constexpr const char* kLocalParent = "parent of a local function";
+  // The object is a main function of the root library.
+  static constexpr const char* kMainFunction =
+      "this is main function of the root library";
   // The object has an entry point pragma that requires it be retained.
   static constexpr const char* kEntryPointPragma = "entry point pragma";
   // The function is a target of FFI callback.
@@ -456,12 +459,10 @@ void Precompiler::DoCompileAll() {
       retained_reasons_writer_ = &reasons_writer;
     }
 
-    if (FLAG_use_bare_instructions) {
-      // Since we keep the object pool until the end of AOT compilation, it
-      // will hang on to its entries until the very end. Therefore we have
-      // to use handles which survive that long, so we use [zone_] here.
-      global_object_pool_builder_.InitializeWithZone(zone_);
-    }
+    // Since we keep the object pool until the end of AOT compilation, it
+    // will hang on to its entries until the very end. Therefore we have
+    // to use handles which survive that long, so we use [zone_] here.
+    global_object_pool_builder_.InitializeWithZone(zone_);
 
     {
       HANDLESCOPE(T);
@@ -471,6 +472,10 @@ void Precompiler::DoCompileAll() {
       // because their class hasn't been finalized yet.
       FinalizeAllClasses();
       ASSERT(Error::Handle(Z, T->sticky_error()).IsNull());
+
+      if (FLAG_print_object_layout_to != nullptr) {
+        IG->class_table()->PrintObjectLayout(FLAG_print_object_layout_to);
+      }
 
       ClassFinalizer::SortClasses();
 
@@ -482,7 +487,7 @@ void Precompiler::DoCompileAll() {
       // as well as other type checks.
       HierarchyInfo hierarchy_info(T);
 
-      if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
+      if (FLAG_use_table_dispatch) {
         dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
         dispatch_table_generator_->Initialize(IG->class_table());
       }
@@ -490,7 +495,7 @@ void Precompiler::DoCompileAll() {
       // Precompile constructors to compute information such as
       // optimized instruction count (used in inlining heuristics).
       ClassFinalizer::ClearAllCode(
-          /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
+          /*including_nonchanging_cids=*/true);
 
       {
         CompilerState state(thread_, /*is_aot=*/true, /*is_optimizing=*/true);
@@ -498,14 +503,14 @@ void Precompiler::DoCompileAll() {
       }
 
       ClassFinalizer::ClearAllCode(
-          /*including_nonchanging_cids=*/FLAG_use_bare_instructions);
+          /*including_nonchanging_cids=*/true);
 
       tracer_ = PrecompilerTracer::StartTracingIfRequested(this);
 
       // All stubs have already been generated, all of them share the same pool.
       // We use that pool to initialize our global object pool, to guarantee
       // stubs as well as code compiled from here on will have the same pool.
-      if (FLAG_use_bare_instructions) {
+      {
         // We use any stub here to get it's object pool (all stubs share the
         // same object pool in bare instructions mode).
         const Code& code = StubCode::LazyCompile();
@@ -572,7 +577,7 @@ void Precompiler::DoCompileAll() {
       // [Type]-specialized stubs.
       AttachOptimizedTypeTestingStub();
 
-      if (FLAG_use_bare_instructions) {
+      {
         // Now we generate the actual object pool instance and attach it to the
         // object store. The AOT runtime will use it from there in the enter
         // dart code stub.
@@ -724,13 +729,10 @@ void Precompiler::PrecompileConstructors() {
 
 void Precompiler::AddRoots() {
   HANDLESCOPE(T);
-  // Note that <rootlibrary>.main is not a root. The appropriate main will be
-  // discovered through _getMainClosure.
-
   AddSelector(Symbols::NoSuchMethod());
-
   AddSelector(Symbols::Call());  // For speed, not correctness.
 
+  // Add main as an entry point.
   const Library& lib = Library::Handle(IG->object_store()->root_library());
   if (lib.IsNull()) {
     const String& msg = String::Handle(
@@ -740,22 +742,26 @@ void Precompiler::AddRoots() {
   }
 
   const String& name = String::Handle(String::New("main"));
-  const Object& main_closure = Object::Handle(lib.GetFunctionClosure(name));
-  if (main_closure.IsClosure()) {
-    if (lib.LookupLocalFunction(name) == Function::null()) {
-      // Check whether the function is in exported namespace of library, in
-      // this case we have to retain the root library caches.
-      if (lib.LookupFunctionAllowPrivate(name) != Function::null() ||
-          lib.LookupReExport(name) != Object::null()) {
-        retain_root_library_caches_ = true;
-      }
+  Function& main = Function::Handle(lib.LookupFunctionAllowPrivate(name));
+  if (main.IsNull()) {
+    const Object& obj = Object::Handle(lib.LookupReExport(name));
+    if (obj.IsFunction()) {
+      main ^= obj.ptr();
     }
-    AddConstObject(Closure::Cast(main_closure));
-  } else if (main_closure.IsError()) {
-    const Error& error = Error::Cast(main_closure);
-    String& msg =
-        String::Handle(Z, String::NewFormatted("Cannot find main closure %s\n",
-                                               error.ToErrorCString()));
+  }
+  if (!main.IsNull()) {
+    if (lib.LookupLocalFunction(name) == Function::null()) {
+      retain_root_library_caches_ = true;
+    }
+    AddRetainReason(main, RetainReasons::kMainFunction);
+    AddTypesOf(main);
+    // Create closure object from main.
+    main = main.ImplicitClosureFunction();
+    AddConstObject(Closure::Handle(main.ImplicitStaticClosure()));
+  } else {
+    String& msg = String::Handle(
+        Z, String::NewFormatted("Cannot find main in library %s\n",
+                                lib.ToCString()));
     Jump(Error::Handle(Z, ApiError::New(msg)));
     UNREACHABLE();
   }
@@ -853,9 +859,7 @@ void Precompiler::CollectCallbackFields() {
 
 void Precompiler::ProcessFunction(const Function& function) {
   HANDLESCOPE(T);
-  const intptr_t gop_offset =
-      FLAG_use_bare_instructions ? global_object_pool_builder()->CurrentLength()
-                                 : 0;
+  const intptr_t gop_offset = global_object_pool_builder()->CurrentLength();
   RELEASE_ASSERT(!function.HasCode());
   // Ffi trampoline functions have no signature.
   ASSERT(function.kind() == UntaggedFunction::kFfiTrampoline ||
@@ -949,7 +953,7 @@ void Precompiler::AddCalleesOf(const Function& function, intptr_t gop_offset) {
   // rather than scanning global object pool - because we want to include
   // *all* outgoing references into the trace. Scanning GOP would exclude
   // references that have been deduplicated.
-  if (FLAG_use_bare_instructions && !is_tracing()) {
+  if (!is_tracing()) {
     for (intptr_t i = gop_offset;
          i < global_object_pool_builder()->CurrentLength(); i++) {
       const auto& wrapper_entry = global_object_pool_builder()->EntryAt(i);
@@ -1442,7 +1446,7 @@ void Precompiler::AddSelector(const String& selector) {
 }
 
 void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
-  ASSERT(FLAG_use_bare_instructions && FLAG_use_table_dispatch);
+  ASSERT(FLAG_use_table_dispatch);
 
   if (is_tracing()) {
     tracer_->WriteTableSelectorRef(selector->id);
@@ -1455,7 +1459,7 @@ void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
 }
 
 bool Precompiler::IsHitByTableSelector(const Function& function) {
-  if (!(FLAG_use_bare_instructions && FLAG_use_table_dispatch)) {
+  if (!FLAG_use_table_dispatch) {
     return false;
   }
 
@@ -1930,25 +1934,25 @@ void Precompiler::TraceForRetainedFunctions() {
       for (intptr_t j = 0; j < functions.Length(); j++) {
         SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
         function ^= functions.At(j);
-        bool retain = possibly_retained_functions_.ContainsKey(function);
-        if (!retain && function.HasImplicitClosureFunction()) {
-          // It can happen that all uses of an implicit closure inline their
-          // target function, leaving the target function uncompiled. Keep
-          // the target function anyway so we can enumerate it to bind its
-          // static calls, etc.
-          function2 = function.ImplicitClosureFunction();
-          retain = function2.HasCode();
-          if (retain) {
-            AddRetainReason(function, RetainReasons::kInlinedIntoICF);
-          }
-        }
-        if (retain) {
-          function.DropUncompiledImplicitClosureFunction();
+        function.DropUncompiledImplicitClosureFunction();
+
+        const bool retained =
+            possibly_retained_functions_.ContainsKey(function);
+        if (retained) {
           AddTypesOf(function);
-          if (function.HasImplicitClosureFunction()) {
-            function2 = function.ImplicitClosureFunction();
-            if (possibly_retained_functions_.ContainsKey(function2)) {
-              AddTypesOf(function2);
+        }
+        if (function.HasImplicitClosureFunction()) {
+          function2 = function.ImplicitClosureFunction();
+
+          if (possibly_retained_functions_.ContainsKey(function2)) {
+            AddTypesOf(function2);
+            // If function has @pragma('vm:entry-point', 'get') we need to keep
+            // the function itself around so that runtime could find it and
+            // get to the implicit closure through it.
+            if (!retained &&
+                functions_with_entry_point_pragmas_.ContainsKey(function2)) {
+              AddRetainReason(function, RetainReasons::kEntryPointPragma);
+              AddTypesOf(function);
             }
           }
         }
@@ -2007,7 +2011,7 @@ void Precompiler::TraceForRetainedFunctions() {
 
 void Precompiler::FinalizeDispatchTable() {
   PRECOMPILER_TIMER_SCOPE(this, FinalizeDispatchTable);
-  if (!FLAG_use_bare_instructions || !FLAG_use_table_dispatch) return;
+  if (!FLAG_use_table_dispatch) return;
   HANDLESCOPE(T);
   // Build the entries used to serialize the dispatch table before
   // dropping functions, as we may clear references to Code objects.
@@ -2066,11 +2070,8 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
       // the old references to the CallStaticFunction stub, but it is sufficient
       // for the local pool to include the actual call target.
       compiler::ObjectPoolBuilder builder;
-      bool append_to_pool = FLAG_use_bare_instructions;
-      if (append_to_pool) {
-        pool_ = code.object_pool();
-        pool_.CopyInto(&builder);
-      }
+      pool_ = code.object_pool();
+      pool_.CopyInto(&builder);
 
       for (auto& view : static_calls) {
         kind_and_offset_ = view.Get<Code::kSCallTableKindAndOffset>();
@@ -2093,9 +2094,7 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
               Code::OffsetField::decode(kind_and_offset_.Value());
           const uword pc = pc_offset + code.PayloadStart();
           CodePatcher::PatchStaticCallAt(pc, code, target_code_);
-          if (append_to_pool) {
-            builder.AddObject(Object::ZoneHandle(target_code_.ptr()));
-          }
+          builder.AddObject(Object::ZoneHandle(target_code_.ptr()));
         }
         if (FLAG_trace_precompiler) {
           THR_Print("Updated static call entry to %s in \"%s\"\n",
@@ -2104,9 +2103,7 @@ void Precompiler::ReplaceFunctionStaticCallEntries() {
         }
       }
 
-      if (append_to_pool) {
-        code.set_object_pool(ObjectPool::NewFromBuilder(builder));
-      }
+      code.set_object_pool(ObjectPool::NewFromBuilder(builder));
     }
 
    private:
@@ -2129,6 +2126,7 @@ void Precompiler::DropFunctions() {
   Array& functions = Array::Handle(Z);
   Function& function = Function::Handle(Z);
   Function& target = Function::Handle(Z);
+  Function& implicit_closure = Function::Handle(Z);
   Code& code = Code::Handle(Z);
   Object& owner = Object::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
@@ -2206,6 +2204,17 @@ void Precompiler::DropFunctions() {
       owner = WeakSerializationReference::New(
           owner, Smi::Handle(Smi::New(owner.GetClassId())));
       code.set_owner(owner);
+    }
+    if (function.HasImplicitClosureFunction()) {
+      // If we are going to drop the function which has a compiled
+      // implicit closure move the closure itself to the list of closures
+      // attached to the object store so that ProgramVisitor could find it.
+      // The list of closures is going to be dropped during PRODUCT snapshotting
+      // so there is no overhead in doing so.
+      implicit_closure = function.ImplicitClosureFunction();
+      RELEASE_ASSERT(functions_to_retain_.ContainsKey(implicit_closure));
+      ClosureFunctionsCache::AddClosureFunctionLocked(
+          implicit_closure, /*allow_implicit_closure_functions=*/true);
     }
     dropped_function_count_++;
     if (FLAG_trace_precompiler) {
@@ -2289,6 +2298,9 @@ void Precompiler::DropFunctions() {
     }
     return true;  // Continue iteration.
   });
+
+  // Note: in PRODUCT mode snapshotter will drop this field when serializing.
+  // This is done in ProgramSerializationRoots.
   IG->object_store()->set_closure_functions(retained_functions);
 }
 
@@ -2887,11 +2899,9 @@ void Precompiler::DiscardCodeObjects() {
     intptr_t discarded_codes_ = 0;
   };
 
-  // Code objects are stored in stack frames if not use_bare_instructions.
   // Code objects are used by stack traces if not dwarf_stack_traces.
   // Code objects are used by profiler in non-PRODUCT mode.
-  if (!FLAG_use_bare_instructions || !FLAG_dwarf_stack_traces_mode ||
-      FLAG_retain_code_objects) {
+  if (!FLAG_dwarf_stack_traces_mode || FLAG_retain_code_objects) {
     return;
   }
 
@@ -3050,9 +3060,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
       Array::Handle(zone, graph_compiler->CreateDeoptInfo(assembler));
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
-  const auto pool_attachment = FLAG_use_bare_instructions
-                                   ? Code::PoolAttachment::kNotAttachPool
-                                   : Code::PoolAttachment::kAttachPool;
+  const auto pool_attachment = Code::PoolAttachment::kNotAttachPool;
 
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
   const Code& code = Code::Handle(
@@ -3130,6 +3138,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       CompilerState compiler_state(thread(), /*is_aot=*/true, optimized(),
                                    CompilerState::ShouldTrace(function));
+      compiler_state.set_function(function);
 
       {
         ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
@@ -3177,19 +3186,17 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
 
-      ASSERT(!FLAG_use_bare_instructions || precompiler_ != nullptr);
+      ASSERT(precompiler_ != nullptr);
 
-      if (FLAG_use_bare_instructions) {
-        // When generating code in bare instruction mode all code objects
-        // share the same global object pool. To reduce interleaving of
-        // unrelated object pool entries from different code objects
-        // we attempt to pregenerate stubs referenced by the code
-        // we are going to generate.
-        //
-        // Reducing interleaving means reducing recompilations triggered by
-        // failure to commit object pool into the global object pool.
-        GenerateNecessaryAllocationStubs(flow_graph);
-      }
+      // When generating code in bare instruction mode all code objects
+      // share the same global object pool. To reduce interleaving of
+      // unrelated object pool entries from different code objects
+      // we attempt to pregenerate stubs referenced by the code
+      // we are going to generate.
+      //
+      // Reducing interleaving means reducing recompilations triggered by
+      // failure to commit object pool into the global object pool.
+      GenerateNecessaryAllocationStubs(flow_graph);
 
       // Even in bare instructions mode we don't directly add objects into
       // the global object pool because code generation can bail out
@@ -3204,9 +3211,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // some stubs). If this indeed happens we retry the compilation.
       // (See TryCommitToParent invocation below).
       compiler::ObjectPoolBuilder object_pool_builder(
-          FLAG_use_bare_instructions
-              ? precompiler_->global_object_pool_builder()
-              : nullptr);
+          precompiler_->global_object_pool_builder());
       compiler::Assembler assembler(&object_pool_builder, use_far_branches);
 
       CodeStatistics* function_stats = NULL;
@@ -3267,8 +3272,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // method will lead to the same IR due to instability of inlining
       // heuristics (under some conditions we might end up inlining
       // more aggressively on the second attempt).
-      if (FLAG_use_bare_instructions &&
-          !object_pool_builder.TryCommitToParent()) {
+      if (!object_pool_builder.TryCommitToParent()) {
         done = false;
         continue;
       }

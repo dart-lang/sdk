@@ -52,6 +52,7 @@ class TestConfig {
   final Map<ExperimentalFlag, bool> explicitExperimentalFlags;
   final AllowedExperimentalFlags? allowedExperimentalFlags;
   final Uri? librariesSpecificationUri;
+  final Uri? packageConfigUri;
   // TODO(johnniwinther): Tailor support to redefine selected platform
   // classes/members only.
   final bool compileSdk;
@@ -62,6 +63,7 @@ class TestConfig {
       {this.explicitExperimentalFlags = const {},
       this.allowedExperimentalFlags,
       this.librariesSpecificationUri,
+      this.packageConfigUri,
       this.compileSdk: false,
       this.targetFlags: const TestTargetFlags(),
       this.nnbdMode: NnbdMode.Weak});
@@ -322,6 +324,7 @@ Future<TestResult<T>> runTestForConfig<T>(
       options.compileSdk = config.compileSdk;
     }
   }
+  options.packagesFileUri = config.packageConfigUri;
   config.customizeCompilerOptions(options, testData);
   InternalCompilerResult compilerResult = await compileScript(
       testData.memorySourceFiles,

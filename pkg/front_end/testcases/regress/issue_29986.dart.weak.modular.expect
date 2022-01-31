@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29986.dart:8:13: Error: Expected a function body or '=>'.
+// Try adding {}.
+// C(this.name);
+//             ^
+//
+// pkg/front_end/testcases/regress/issue_29986.dart:8:3: Error: Field formal parameters can only be used in a constructor.
+// Try removing 'this.'.
+// C(this.name);
+//   ^^^^
+//
+import self as self;
+
+static method main() → dynamic {}
+static abstract method C(dynamic name) → dynamic;

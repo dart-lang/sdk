@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "issue_43084_lib.dart" as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue_43084_lib.dart";
+
+static method main() → dynamic {
+  iss::Foo<core::int*>* x = new iss::Foo::•<core::int*>();
+  core::print(x);
+}

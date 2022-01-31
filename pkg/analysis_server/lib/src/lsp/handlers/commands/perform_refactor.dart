@@ -120,7 +120,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
         final refactor = ExtractMethodRefactoring(
             server.searchEngine, result, offset, length);
 
-        var preferredName = options != null ? options['name'] : null;
+        var preferredName = options != null ? options['name'] as String : null;
         // checkInitialConditions will populate names with suggestions.
         if (preferredName == null) {
           await refactor.checkInitialConditions();
@@ -138,7 +138,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
       case RefactoringKind.EXTRACT_LOCAL_VARIABLE:
         final refactor = ExtractLocalRefactoring(result, offset, length);
 
-        var preferredName = options != null ? options['name'] : null;
+        var preferredName = options != null ? options['name'] as String : null;
         // checkInitialConditions will populate names with suggestions.
         if (preferredName == null) {
           await refactor.checkInitialConditions();
@@ -162,7 +162,7 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
         // to handle this better.
         // https://github.com/microsoft/language-server-protocol/issues/764
         refactor.name =
-            (options != null ? options['name'] : null) ?? 'NewWidget';
+            options != null ? options['name'] as String : 'NewWidget';
         return success(refactor);
 
       case RefactoringKind.INLINE_LOCAL_VARIABLE:

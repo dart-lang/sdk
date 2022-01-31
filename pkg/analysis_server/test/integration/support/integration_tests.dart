@@ -41,7 +41,7 @@ Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) =>
 Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
 
 /// Assert that [actual] matches [matcher].
-void outOfTestExpect(actual, Matcher matcher,
+void outOfTestExpect(Object? actual, Matcher matcher,
     {String? reason, skip, bool verbose = false}) {
   var matchState = {};
   try {
@@ -377,8 +377,8 @@ class MatchesJsonObject extends _RecursiveMatcher {
       description.add(this.description);
 
   @override
-  void populateMismatches(item, List<MismatchDescriber> mismatches) {
-    if (item is! Map) {
+  void populateMismatches(Object? item, List<MismatchDescriber> mismatches) {
+    if (item is! Map<String, Object?>) {
       mismatches.add(simpleDescription('is not a map'));
       return;
     }
@@ -535,7 +535,7 @@ class Server {
       _recordStdio('<== $trimmedLine');
       Map message;
       try {
-        message = json.decoder.convert(trimmedLine);
+        message = json.decoder.convert(trimmedLine) as Map<Object?, Object?>;
       } catch (exception) {
         _badDataFromServer('JSON decode failure: $exception');
         return;
@@ -543,7 +543,7 @@ class Server {
       outOfTestExpect(message, isMap);
       if (message.containsKey('id')) {
         outOfTestExpect(message['id'], isString);
-        String id = message['id'];
+        var id = message['id'] as String;
         var completer = _pendingCommands[id];
         if (completer == null) {
           fail('Unexpected response from server: id=$id');
@@ -553,7 +553,7 @@ class Server {
         if (message.containsKey('error')) {
           completer.completeError(ServerErrorMessage(message));
         } else {
-          completer.complete(message['result']);
+          completer.complete(message['result'] as Map<String, Object?>?);
         }
         // Check that the message is well-formed.  We do this after calling
         // completer.complete() or completer.completeError() so that we don't
@@ -564,7 +564,8 @@ class Server {
         // params.
         outOfTestExpect(message, contains('event'));
         outOfTestExpect(message['event'], isString);
-        notificationProcessor(message['event'], message['params']);
+        notificationProcessor(message['event'] as String,
+            message['params'] as Map<Object?, Object?>);
         // Check that the message is well-formed.  We do this after calling
         // notificationController.add() so that we don't stall the test in the
         // event of an error.

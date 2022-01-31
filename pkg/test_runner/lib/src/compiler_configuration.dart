@@ -828,6 +828,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       if (_configuration.useQemu) '--no-use-integer-division',
       if (arguments.contains('--print-flow-graph-optimized'))
         '--redirect-isolate-log-to=$tempDir/out.il',
+      if (arguments.contains('--print-flow-graph-optimized') &&
+          (_configuration.isMinified || arguments.contains('--obfuscate')))
+        '--save-obfuscation_map=$tempDir/renames.json',
       ..._replaceDartFiles(arguments, tempKernelFile(tempDir)),
     ];
 
@@ -844,6 +847,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var args = [
       arguments.firstWhere((arg) => arg.endsWith('_il_test.dart')),
       '$tempDir/out.il',
+      if (arguments.contains('--obfuscate')) '$tempDir/renames.json',
     ];
 
     return CompilationCommand('compare_il', tempDir, bootstrapDependencies(),
@@ -965,9 +969,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   List<String> computeCompilerArguments(
       TestFile testFile, List<String> vmOptions, List<String> args) {
     return [
-      if (testFile.ilMatches.isNotEmpty) ...[
+      if (testFile.isVmIntermediateLanguageTest) ...[
         '--print-flow-graph-optimized',
-        '--print-flow-graph-filter=${testFile.ilMatches.join(',')}'
+        '--print-flow-graph-as-json',
+        '--print-flow-graph-filter=@pragma',
       ],
       if (_enableAsserts) '--enable_asserts',
       ...filterVmOptions(vmOptions),

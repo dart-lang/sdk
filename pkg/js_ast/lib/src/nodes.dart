@@ -85,13 +85,11 @@ abstract class NodeVisitor<T> {
   T visitInterpolatedDeclaration(InterpolatedDeclaration node);
 }
 
-class BaseVisitor<T> implements NodeVisitor<T> {
+abstract class BaseVisitor<T> implements NodeVisitor<T> {
   const BaseVisitor();
 
-  T visitNode(Node node) {
-    node.visitChildren(this);
-    return null;
-  }
+  T visitNode(Node node);
+  T visitComment(Comment node);
 
   T visitProgram(Program node) => visitNode(node);
 
@@ -198,11 +196,17 @@ class BaseVisitor<T> implements NodeVisitor<T> {
     return visitInterpolatedNode(node);
   }
 
-  // Ignore comments by default.
-  T visitComment(Comment node) => null;
-
   T visitAwait(Await node) => visitExpression(node);
   T visitDartYield(DartYield node) => visitStatement(node);
+}
+
+class BaseVisitorVoid extends BaseVisitor<void> {
+  void visitNode(Node node) {
+    node.visitChildren(this);
+  }
+
+  // Ignore comments by default.
+  void visitComment(Comment node) {}
 }
 
 abstract class NodeVisitor1<R, A> {
@@ -286,13 +290,11 @@ abstract class NodeVisitor1<R, A> {
   R visitInterpolatedDeclaration(InterpolatedDeclaration node, A arg);
 }
 
-class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
+abstract class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
   const BaseVisitor1();
 
-  R visitNode(Node node, A arg) {
-    node.visitChildren1(this, arg);
-    return null;
-  }
+  R visitNode(Node node, A arg);
+  R visitComment(Comment node, A arg);
 
   R visitProgram(Program node, A arg) => visitNode(node, arg);
 
@@ -412,11 +414,17 @@ class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
     return visitInterpolatedNode(node, arg);
   }
 
-  // Ignore comments by default.
-  R visitComment(Comment node, A arg) => null;
-
   R visitAwait(Await node, A arg) => visitExpression(node, arg);
   R visitDartYield(DartYield node, A arg) => visitStatement(node, arg);
+}
+
+class BaseVisitor1Void<A> extends BaseVisitor1<void, A> {
+  void visitNode(Node node, A arg) {
+    node.visitChildren1(this, arg);
+  }
+
+  // Ignore comments by default.
+  void visitComment(Comment node, A arg) {}
 }
 
 /// This tag interface has no behaviour but must be implemented by any class
@@ -436,12 +444,12 @@ abstract class Node {
   R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg);
   void visitChildren1<R, A>(NodeVisitor1<R, A> visitor, A arg);
 
-  // Shallow clone of node.  Does not clone positions since the only use of this
-  // private method is create a copy with a new position.
+  /// Shallow clone of node.  Does not clone positions since the only use of
+  /// this private method is create a copy with a new position.
   Node _clone();
 
-  // Returns a node equivalent to [this], but with new source position and end
-  // source position.
+  /// Returns a node equivalent to [this], but with new source position and end
+  /// source position.
   Node withSourceInformation(
       JavaScriptNodeSourceInformation sourceInformation) {
     if (sourceInformation == _sourceInformation) {
@@ -456,13 +464,23 @@ abstract class Node {
 
   bool get isCommaOperator => false;
 
-  bool get isFinalized => true;
-
   Statement toStatement() {
     throw UnsupportedError('toStatement');
   }
 
   String debugPrint() => DebugPrint(this);
+
+  /// Some nodes, e.g. DeferredExpression, become finalized in a 'linking'
+  /// phase.
+  bool get isFinalized => true;
+
+  /// If a node is not finalized, debug printing can print something indicative
+  /// of the node instead of the finalized AST. This method returns the
+  /// replacement text.
+  String nonfinalizedDebugText() {
+    assert(!isFinalized);
+    return '$runtimeType';
+  }
 }
 
 class Program extends Node {

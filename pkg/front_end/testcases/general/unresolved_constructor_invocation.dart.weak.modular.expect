@@ -1,0 +1,866 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:14:26: Error: Superclass has no constructor named 'Super'.
+//   Class.constructor1() : super();
+//                          ^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:15:26: Error: Superclass has no constructor named 'Super.unresolved'.
+//   Class.constructor2() : super.unresolved();
+//                          ^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:16:26: Error: Couldn't find constructor 'Class'.
+//   Class.constructor3() : this();
+//                          ^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:17:26: Error: Couldn't find constructor 'Class.unresolved'.
+//   Class.constructor4() : this.unresolved();
+//                          ^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:25:3: Error: Method not found: 'UnresolvedClass'.
+//   UnresolvedClass();
+//   ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:26:7: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new UnresolvedClass();
+//       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:27:9: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const UnresolvedClass();
+//         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:29:3: Error: Undefined name 'UnresolvedClass'.
+//   UnresolvedClass.unresolvedConstructor();
+//   ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:30:7: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+//   new UnresolvedClass.unresolvedConstructor();
+//       ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:31:9: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+//   const UnresolvedClass.unresolvedConstructor();
+//         ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:32:3: Error: Undefined name 'UnresolvedClass'.
+//   UnresolvedClass /**/ .unresolvedConstructor();
+//   ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:33:7: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+//   new UnresolvedClass. /**/ unresolvedConstructor();
+//       ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:34:9: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+//   const UnresolvedClass /**/ .unresolvedConstructor();
+//         ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:36:3: Error: Undefined name 'unresolved_prefix'.
+//   unresolved_prefix.UnresolvedClass();
+//   ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:37:7: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+//   new unresolved_prefix.UnresolvedClass();
+//       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:38:9: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+//   const unresolved_prefix.UnresolvedClass();
+//         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:39:3: Error: Undefined name 'unresolved_prefix'.
+//   unresolved_prefix. /**/ UnresolvedClass();
+//   ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:40:7: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+//   new unresolved_prefix /**/ .UnresolvedClass();
+//       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:41:9: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+//   const unresolved_prefix. /**/ UnresolvedClass();
+//         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:43:3: Error: Undefined name 'unresolved_prefix'.
+//   unresolved_prefix.UnresolvedClass.unresolvedConstructor();
+//   ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:44:41: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+//   new unresolved_prefix.UnresolvedClass.unresolvedConstructor();
+//                                         ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:45:43: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+//   const unresolved_prefix.UnresolvedClass.unresolvedConstructor();
+//                                           ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:46:3: Error: Undefined name 'unresolved_prefix'.
+//   unresolved_prefix /**/ .UnresolvedClass.unresolvedConstructor();
+//   ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:47:47: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+//   new unresolved_prefix.UnresolvedClass /**/ .unresolvedConstructor();
+//                                               ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:48:55: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+//   const unresolved_prefix. /**/ UnresolvedClass. /**/ unresolvedConstructor();
+//                                                       ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:50:3: Error: Method not found: 'UnresolvedClass'.
+//   UnresolvedClass<int>();
+//   ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:51:7: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new UnresolvedClass<int>();
+//       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:52:9: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const UnresolvedClass<int>();
+//         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:53:3: Error: Method not found: 'UnresolvedClass'.
+//   UnresolvedClass /**/ <int>();
+//   ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:54:7: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new UnresolvedClass<int> /**/ ();
+//       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:55:9: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const UnresolvedClass /**/ <int>();
+//         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:57:3: Error: Couldn't find constructor 'UnresolvedClass'.
+//   UnresolvedClass<int>.unresolvedConstructor();
+//   ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:58:7: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new UnresolvedClass<int>.unresolvedConstructor();
+//       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:59:9: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const UnresolvedClass<int>.unresolvedConstructor();
+//         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:60:3: Error: Couldn't find constructor 'UnresolvedClass'.
+//   UnresolvedClass /**/ <int>.unresolvedConstructor();
+//   ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:61:7: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new UnresolvedClass<int> /**/ .unresolvedConstructor();
+//       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:62:9: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const UnresolvedClass<int>. /**/ unresolvedConstructor();
+//         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:64:3: Error: Undefined name 'unresolved_prefix'.
+//   unresolved_prefix.UnresolvedClass<int>();
+//   ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:65:7: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+//   new unresolved_prefix.UnresolvedClass<int>();
+//       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:66:9: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+//   const unresolved_prefix.UnresolvedClass<int>();
+//         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:67:3: Error: Undefined name 'unresolved_prefix'.
+//   unresolved_prefix /**/ .UnresolvedClass<int>();
+//   ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:68:7: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+//   new unresolved_prefix.UnresolvedClass /**/ <int>();
+//       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:69:9: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+//   const unresolved_prefix.UnresolvedClass<int> /**/ ();
+//         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:71:3: Error: Undefined name 'unresolved_prefix'.
+//   unresolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+//   ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:71:42: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+//   unresolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+//                                          ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:72:46: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+//   new unresolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+//                                              ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:73:48: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+//   const unresolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+//                                                ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:74:3: Error: Undefined name 'unresolved_prefix'.
+//   unresolved_prefix /**/ .UnresolvedClass<int>.unresolvedConstructor();
+//   ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:74:48: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+//   unresolved_prefix /**/ .UnresolvedClass<int>.unresolvedConstructor();
+//                                                ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:75:52: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+//   new unresolved_prefix.UnresolvedClass /**/ <int>.unresolvedConstructor();
+//                                                    ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:76:54: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+//   const unresolved_prefix.UnresolvedClass<int>. /**/ unresolvedConstructor();
+//                                                      ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:78:3: Error: Couldn't find constructor 'ResolvedClass'.
+//   ResolvedClass();
+//   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:79:7: Error: Couldn't find constructor 'ResolvedClass'.
+//   new ResolvedClass();
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:80:9: Error: Couldn't find constructor 'ResolvedClass'.
+//   const ResolvedClass();
+//         ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:82:17: Error: Member not found: 'ResolvedClass.unresolvedConstructor'.
+//   ResolvedClass.unresolvedConstructor();
+//                 ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:83:21: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   new ResolvedClass.unresolvedConstructor();
+//                     ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:84:23: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   const ResolvedClass.unresolvedConstructor();
+//                       ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:85:23: Error: Member not found: 'ResolvedClass.unresolvedConstructor'.
+//   ResolvedClass /**/ .unresolvedConstructor();
+//                       ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:86:27: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   new ResolvedClass. /**/ unresolvedConstructor();
+//                           ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:87:29: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   const ResolvedClass /**/ .unresolvedConstructor();
+//                             ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:89:19: Error: Method not found: 'UnresolvedClass'.
+//   resolved_prefix.UnresolvedClass();
+//                   ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:90:23: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new resolved_prefix.UnresolvedClass();
+//                       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:91:25: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const resolved_prefix.UnresolvedClass();
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:92:25: Error: Method not found: 'UnresolvedClass'.
+//   resolved_prefix. /**/ UnresolvedClass();
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:93:29: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new resolved_prefix /**/ .UnresolvedClass();
+//                             ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:94:31: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const resolved_prefix. /**/ UnresolvedClass();
+//                               ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:96:19: Error: Couldn't find constructor 'ResolvedClass'.
+//   resolved_prefix.ResolvedClass();
+//                   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:97:7: Error: Couldn't find constructor 'ResolvedClass'.
+//   new resolved_prefix.ResolvedClass();
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:98:9: Error: Couldn't find constructor 'ResolvedClass'.
+//   const resolved_prefix.ResolvedClass();
+//         ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:99:25: Error: Couldn't find constructor 'ResolvedClass'.
+//   resolved_prefix. /**/ ResolvedClass();
+//                         ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:100:7: Error: Couldn't find constructor 'ResolvedClass'.
+//   new resolved_prefix /**/ .ResolvedClass();
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:101:9: Error: Couldn't find constructor 'ResolvedClass'.
+//   const resolved_prefix. /**/ ResolvedClass();
+//         ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:103:19: Error: Undefined name 'UnresolvedClass'.
+//   resolved_prefix.UnresolvedClass.unresolvedConstructor();
+//                   ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:104:23: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new resolved_prefix.UnresolvedClass.unresolvedConstructor();
+//                       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:105:25: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const resolved_prefix.UnresolvedClass.unresolvedConstructor();
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:106:25: Error: Undefined name 'UnresolvedClass'.
+//   resolved_prefix /**/ .UnresolvedClass.unresolvedConstructor();
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:107:23: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new resolved_prefix.UnresolvedClass /**/ .unresolvedConstructor();
+//                       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:108:31: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const resolved_prefix. /**/ UnresolvedClass. /**/ unresolvedConstructor();
+//                               ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:110:33: Error: Member not found: 'ResolvedClass.unresolvedConstructor'.
+//   resolved_prefix.ResolvedClass.unresolvedConstructor();
+//                                 ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:111:37: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   new resolved_prefix.ResolvedClass.unresolvedConstructor();
+//                                     ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:112:39: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   const resolved_prefix.ResolvedClass.unresolvedConstructor();
+//                                       ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:113:39: Error: Member not found: 'ResolvedClass.unresolvedConstructor'.
+//   resolved_prefix /**/ .ResolvedClass.unresolvedConstructor();
+//                                       ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:114:43: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   new resolved_prefix.ResolvedClass /**/ .unresolvedConstructor();
+//                                           ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:115:51: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   const resolved_prefix. /**/ ResolvedClass. /**/ unresolvedConstructor();
+//                                                   ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:117:3: Error: Couldn't find constructor 'ResolvedClass'.
+//   ResolvedClass<int>();
+//   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:118:7: Error: Couldn't find constructor 'ResolvedClass'.
+//   new ResolvedClass<int>();
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:119:9: Error: Couldn't find constructor 'ResolvedClass'.
+//   const ResolvedClass<int>();
+//         ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:120:3: Error: Couldn't find constructor 'ResolvedClass'.
+//   ResolvedClass /**/ <int>();
+//   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:121:7: Error: Couldn't find constructor 'ResolvedClass'.
+//   new ResolvedClass /**/ <int>();
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:122:9: Error: Couldn't find constructor 'ResolvedClass'.
+//   const ResolvedClass /**/ <int>();
+//         ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:124:22: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   ResolvedClass<int>.unresolvedConstructor();
+//                      ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:125:26: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   new ResolvedClass<int>.unresolvedConstructor();
+//                          ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:126:28: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   const ResolvedClass<int>.unresolvedConstructor();
+//                            ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:127:28: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   ResolvedClass<int> /**/ .unresolvedConstructor();
+//                            ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:128:32: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   new ResolvedClass<int>. /**/ unresolvedConstructor();
+//                                ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:129:34: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   const ResolvedClass /**/ <int>.unresolvedConstructor();
+//                                  ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:131:19: Error: Method not found: 'UnresolvedClass'.
+//   resolved_prefix.UnresolvedClass<int>();
+//                   ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:132:23: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new resolved_prefix.UnresolvedClass<int>();
+//                       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:133:25: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const resolved_prefix.UnresolvedClass<int>();
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:134:25: Error: Method not found: 'UnresolvedClass'.
+//   resolved_prefix. /**/ UnresolvedClass<int>();
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:135:23: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new resolved_prefix.UnresolvedClass /**/ <int>();
+//                       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:136:25: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const resolved_prefix.UnresolvedClass<int> /**/ ();
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:138:19: Error: Couldn't find constructor 'ResolvedClass'.
+//   resolved_prefix.ResolvedClass<int>();
+//                   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:139:7: Error: Couldn't find constructor 'ResolvedClass'.
+//   new resolved_prefix.ResolvedClass<int>();
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:140:9: Error: Couldn't find constructor 'ResolvedClass'.
+//   const resolved_prefix.ResolvedClass<int>();
+//         ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:141:25: Error: Couldn't find constructor 'ResolvedClass'.
+//   resolved_prefix. /**/ ResolvedClass<int>();
+//                         ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:142:7: Error: Couldn't find constructor 'ResolvedClass'.
+//   new resolved_prefix.ResolvedClass /**/ <int>();
+//       ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:143:9: Error: Couldn't find constructor 'ResolvedClass'.
+//   const resolved_prefix.ResolvedClass<int> /**/ ();
+//         ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:145:19: Error: Couldn't find constructor 'UnresolvedClass'.
+//   resolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+//                   ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:146:23: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new resolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+//                       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:147:25: Error: Couldn't find constructor 'UnresolvedClass'.
+//   const resolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:148:25: Error: Couldn't find constructor 'UnresolvedClass'.
+//   resolved_prefix /**/ .UnresolvedClass<int>.unresolvedConstructor();
+//                         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:149:23: Error: Couldn't find constructor 'UnresolvedClass'.
+//   new resolved_prefix.UnresolvedClass<int> /**/ .unresolvedConstructor();
+//                       ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:151:14: Error: Couldn't find constructor 'UnresolvedClass'.
+//       . /**/ UnresolvedClass<int>. /**/ unresolvedConstructor();
+//              ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:153:38: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   resolved_prefix.ResolvedClass<int>.unresolvedConstructor();
+//                                      ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:154:42: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   new resolved_prefix.ResolvedClass<int>.unresolvedConstructor();
+//                                          ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:155:44: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   const resolved_prefix.ResolvedClass<int>.unresolvedConstructor();
+//                                            ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:156:44: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   resolved_prefix /**/ .ResolvedClass<int>.unresolvedConstructor();
+//                                            ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:157:48: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   new resolved_prefix.ResolvedClass<int> /**/ .unresolvedConstructor();
+//                                                ^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:158:56: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+//   const resolved_prefix. /**/ ResolvedClass<int>. /**/ unresolvedConstructor();
+//                                                        ^^^^^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///unresolved_constructor_invocation.dart" as resolved_prefix;
+
+class Super extends core::Object {
+  constructor named() → self::Super
+    : super core::Object::•()
+    ;
+}
+class Class extends self::Super {
+  constructor constructor1() → self::Class
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:14:26: Error: Superclass has no constructor named 'Super'.
+  Class.constructor1() : super();
+                         ^^^^^"
+    ;
+  constructor constructor2() → self::Class
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:15:26: Error: Superclass has no constructor named 'Super.unresolved'.
+  Class.constructor2() : super.unresolved();
+                         ^^^^^"
+    ;
+  constructor constructor3() → self::Class
+    : final dynamic #t3 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:16:26: Error: Couldn't find constructor 'Class'.
+  Class.constructor3() : this();
+                         ^^^^"
+    ;
+  constructor constructor4() → self::Class
+    : final dynamic #t4 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:17:26: Error: Couldn't find constructor 'Class.unresolved'.
+  Class.constructor4() : this.unresolved();
+                         ^^^^"
+    ;
+}
+class ResolvedClass<T extends core::Object? = dynamic> extends core::Object {
+  constructor named() → self::ResolvedClass<self::ResolvedClass::T%>
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:25:3: Error: Method not found: 'UnresolvedClass'.
+  UnresolvedClass();
+  ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:26:7: Error: Couldn't find constructor 'UnresolvedClass'.
+  new UnresolvedClass();
+      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:27:9: Error: Couldn't find constructor 'UnresolvedClass'.
+  const UnresolvedClass();
+        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:29:3: Error: Undefined name 'UnresolvedClass'.
+  UnresolvedClass.unresolvedConstructor();
+  ^^^^^^^^^^^^^^^"{dynamic}.unresolvedConstructor();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:30:7: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+  new UnresolvedClass.unresolvedConstructor();
+      ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:31:9: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+  const UnresolvedClass.unresolvedConstructor();
+        ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:32:3: Error: Undefined name 'UnresolvedClass'.
+  UnresolvedClass /**/ .unresolvedConstructor();
+  ^^^^^^^^^^^^^^^"{dynamic}.unresolvedConstructor();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:33:7: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+  new UnresolvedClass. /**/ unresolvedConstructor();
+      ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:34:9: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+  const UnresolvedClass /**/ .unresolvedConstructor();
+        ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:36:3: Error: Undefined name 'unresolved_prefix'.
+  unresolved_prefix.UnresolvedClass();
+  ^^^^^^^^^^^^^^^^^"{dynamic}.UnresolvedClass();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:37:7: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+  new unresolved_prefix.UnresolvedClass();
+      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:38:9: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+  const unresolved_prefix.UnresolvedClass();
+        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:39:3: Error: Undefined name 'unresolved_prefix'.
+  unresolved_prefix. /**/ UnresolvedClass();
+  ^^^^^^^^^^^^^^^^^"{dynamic}.UnresolvedClass();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:40:7: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+  new unresolved_prefix /**/ .UnresolvedClass();
+      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:41:9: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+  const unresolved_prefix. /**/ UnresolvedClass();
+        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:43:3: Error: Undefined name 'unresolved_prefix'.
+  unresolved_prefix.UnresolvedClass.unresolvedConstructor();
+  ^^^^^^^^^^^^^^^^^"{<invalid>}.UnresolvedClass{dynamic}.unresolvedConstructor();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:44:41: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+  new unresolved_prefix.UnresolvedClass.unresolvedConstructor();
+                                        ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:45:43: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+  const unresolved_prefix.UnresolvedClass.unresolvedConstructor();
+                                          ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:46:3: Error: Undefined name 'unresolved_prefix'.
+  unresolved_prefix /**/ .UnresolvedClass.unresolvedConstructor();
+  ^^^^^^^^^^^^^^^^^"{<invalid>}.UnresolvedClass{dynamic}.unresolvedConstructor();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:47:47: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+  new unresolved_prefix.UnresolvedClass /**/ .unresolvedConstructor();
+                                              ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:48:55: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+  const unresolved_prefix. /**/ UnresolvedClass. /**/ unresolvedConstructor();
+                                                      ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:50:3: Error: Method not found: 'UnresolvedClass'.
+  UnresolvedClass<int>();
+  ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:51:7: Error: Couldn't find constructor 'UnresolvedClass'.
+  new UnresolvedClass<int>();
+      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:52:9: Error: Couldn't find constructor 'UnresolvedClass'.
+  const UnresolvedClass<int>();
+        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:53:3: Error: Method not found: 'UnresolvedClass'.
+  UnresolvedClass /**/ <int>();
+  ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:54:7: Error: Couldn't find constructor 'UnresolvedClass'.
+  new UnresolvedClass<int> /**/ ();
+      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:55:9: Error: Couldn't find constructor 'UnresolvedClass'.
+  const UnresolvedClass /**/ <int>();
+        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:57:3: Error: Couldn't find constructor 'UnresolvedClass'.
+  UnresolvedClass<int>.unresolvedConstructor();
+  ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:58:7: Error: Couldn't find constructor 'UnresolvedClass'.
+  new UnresolvedClass<int>.unresolvedConstructor();
+      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:59:9: Error: Couldn't find constructor 'UnresolvedClass'.
+  const UnresolvedClass<int>.unresolvedConstructor();
+        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:60:3: Error: Couldn't find constructor 'UnresolvedClass'.
+  UnresolvedClass /**/ <int>.unresolvedConstructor();
+  ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:61:7: Error: Couldn't find constructor 'UnresolvedClass'.
+  new UnresolvedClass<int> /**/ .unresolvedConstructor();
+      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:62:9: Error: Couldn't find constructor 'UnresolvedClass'.
+  const UnresolvedClass<int>. /**/ unresolvedConstructor();
+        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:64:3: Error: Undefined name 'unresolved_prefix'.
+  unresolved_prefix.UnresolvedClass<int>();
+  ^^^^^^^^^^^^^^^^^"{dynamic}.UnresolvedClass<core::int>();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:65:7: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+  new unresolved_prefix.UnresolvedClass<int>();
+      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:66:9: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+  const unresolved_prefix.UnresolvedClass<int>();
+        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:67:3: Error: Undefined name 'unresolved_prefix'.
+  unresolved_prefix /**/ .UnresolvedClass<int>();
+  ^^^^^^^^^^^^^^^^^"{dynamic}.UnresolvedClass<core::int>();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:68:7: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+  new unresolved_prefix.UnresolvedClass /**/ <int>();
+      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:69:9: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass'.
+  const unresolved_prefix.UnresolvedClass<int> /**/ ();
+        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:71:42: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+  unresolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+                                         ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:72:46: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+  new unresolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+                                             ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:73:48: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+  const unresolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+                                               ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:74:48: Error: Couldn't find constructor 'UnresolvedClass.unresolvedConstructor'.
+  unresolved_prefix /**/ .UnresolvedClass<int>.unresolvedConstructor();
+                                               ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:75:52: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+  new unresolved_prefix.UnresolvedClass /**/ <int>.unresolvedConstructor();
+                                                   ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:76:54: Error: Couldn't find constructor 'unresolved_prefix.UnresolvedClass.unresolvedConstructor'.
+  const unresolved_prefix.UnresolvedClass<int>. /**/ unresolvedConstructor();
+                                                     ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:78:3: Error: Couldn't find constructor 'ResolvedClass'.
+  ResolvedClass();
+  ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:79:7: Error: Couldn't find constructor 'ResolvedClass'.
+  new ResolvedClass();
+      ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:80:9: Error: Couldn't find constructor 'ResolvedClass'.
+  const ResolvedClass();
+        ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:82:17: Error: Member not found: 'ResolvedClass.unresolvedConstructor'.
+  ResolvedClass.unresolvedConstructor();
+                ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:83:21: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  new ResolvedClass.unresolvedConstructor();
+                    ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:84:23: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  const ResolvedClass.unresolvedConstructor();
+                      ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:85:23: Error: Member not found: 'ResolvedClass.unresolvedConstructor'.
+  ResolvedClass /**/ .unresolvedConstructor();
+                      ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:86:27: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  new ResolvedClass. /**/ unresolvedConstructor();
+                          ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:87:29: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  const ResolvedClass /**/ .unresolvedConstructor();
+                            ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:89:19: Error: Method not found: 'UnresolvedClass'.
+  resolved_prefix.UnresolvedClass();
+                  ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:90:23: Error: Couldn't find constructor 'UnresolvedClass'.
+  new resolved_prefix.UnresolvedClass();
+                      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:91:25: Error: Couldn't find constructor 'UnresolvedClass'.
+  const resolved_prefix.UnresolvedClass();
+                        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:92:25: Error: Method not found: 'UnresolvedClass'.
+  resolved_prefix. /**/ UnresolvedClass();
+                        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:93:29: Error: Couldn't find constructor 'UnresolvedClass'.
+  new resolved_prefix /**/ .UnresolvedClass();
+                            ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:94:31: Error: Couldn't find constructor 'UnresolvedClass'.
+  const resolved_prefix. /**/ UnresolvedClass();
+                              ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:96:19: Error: Couldn't find constructor 'ResolvedClass'.
+  resolved_prefix.ResolvedClass();
+                  ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:97:7: Error: Couldn't find constructor 'ResolvedClass'.
+  new resolved_prefix.ResolvedClass();
+      ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:98:9: Error: Couldn't find constructor 'ResolvedClass'.
+  const resolved_prefix.ResolvedClass();
+        ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:99:25: Error: Couldn't find constructor 'ResolvedClass'.
+  resolved_prefix. /**/ ResolvedClass();
+                        ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:100:7: Error: Couldn't find constructor 'ResolvedClass'.
+  new resolved_prefix /**/ .ResolvedClass();
+      ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:101:9: Error: Couldn't find constructor 'ResolvedClass'.
+  const resolved_prefix. /**/ ResolvedClass();
+        ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:103:19: Error: Undefined name 'UnresolvedClass'.
+  resolved_prefix.UnresolvedClass.unresolvedConstructor();
+                  ^^^^^^^^^^^^^^^"{dynamic}.unresolvedConstructor();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:104:23: Error: Couldn't find constructor 'UnresolvedClass'.
+  new resolved_prefix.UnresolvedClass.unresolvedConstructor();
+                      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:105:25: Error: Couldn't find constructor 'UnresolvedClass'.
+  const resolved_prefix.UnresolvedClass.unresolvedConstructor();
+                        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:106:25: Error: Undefined name 'UnresolvedClass'.
+  resolved_prefix /**/ .UnresolvedClass.unresolvedConstructor();
+                        ^^^^^^^^^^^^^^^"{dynamic}.unresolvedConstructor();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:107:23: Error: Couldn't find constructor 'UnresolvedClass'.
+  new resolved_prefix.UnresolvedClass /**/ .unresolvedConstructor();
+                      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:108:31: Error: Couldn't find constructor 'UnresolvedClass'.
+  const resolved_prefix. /**/ UnresolvedClass. /**/ unresolvedConstructor();
+                              ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:110:33: Error: Member not found: 'ResolvedClass.unresolvedConstructor'.
+  resolved_prefix.ResolvedClass.unresolvedConstructor();
+                                ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:111:37: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  new resolved_prefix.ResolvedClass.unresolvedConstructor();
+                                    ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:112:39: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  const resolved_prefix.ResolvedClass.unresolvedConstructor();
+                                      ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:113:39: Error: Member not found: 'ResolvedClass.unresolvedConstructor'.
+  resolved_prefix /**/ .ResolvedClass.unresolvedConstructor();
+                                      ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:114:43: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  new resolved_prefix.ResolvedClass /**/ .unresolvedConstructor();
+                                          ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:115:51: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  const resolved_prefix. /**/ ResolvedClass. /**/ unresolvedConstructor();
+                                                  ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:117:3: Error: Couldn't find constructor 'ResolvedClass'.
+  ResolvedClass<int>();
+  ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:118:7: Error: Couldn't find constructor 'ResolvedClass'.
+  new ResolvedClass<int>();
+      ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:119:9: Error: Couldn't find constructor 'ResolvedClass'.
+  const ResolvedClass<int>();
+        ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:120:3: Error: Couldn't find constructor 'ResolvedClass'.
+  ResolvedClass /**/ <int>();
+  ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:121:7: Error: Couldn't find constructor 'ResolvedClass'.
+  new ResolvedClass /**/ <int>();
+      ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:122:9: Error: Couldn't find constructor 'ResolvedClass'.
+  const ResolvedClass /**/ <int>();
+        ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:124:22: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  ResolvedClass<int>.unresolvedConstructor();
+                     ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:125:26: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  new ResolvedClass<int>.unresolvedConstructor();
+                         ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:126:28: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  const ResolvedClass<int>.unresolvedConstructor();
+                           ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:127:28: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  ResolvedClass<int> /**/ .unresolvedConstructor();
+                           ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:128:32: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  new ResolvedClass<int>. /**/ unresolvedConstructor();
+                               ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:129:34: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  const ResolvedClass /**/ <int>.unresolvedConstructor();
+                                 ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:131:19: Error: Method not found: 'UnresolvedClass'.
+  resolved_prefix.UnresolvedClass<int>();
+                  ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:132:23: Error: Couldn't find constructor 'UnresolvedClass'.
+  new resolved_prefix.UnresolvedClass<int>();
+                      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:133:25: Error: Couldn't find constructor 'UnresolvedClass'.
+  const resolved_prefix.UnresolvedClass<int>();
+                        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:134:25: Error: Method not found: 'UnresolvedClass'.
+  resolved_prefix. /**/ UnresolvedClass<int>();
+                        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:135:23: Error: Couldn't find constructor 'UnresolvedClass'.
+  new resolved_prefix.UnresolvedClass /**/ <int>();
+                      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:136:25: Error: Couldn't find constructor 'UnresolvedClass'.
+  const resolved_prefix.UnresolvedClass<int> /**/ ();
+                        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:138:19: Error: Couldn't find constructor 'ResolvedClass'.
+  resolved_prefix.ResolvedClass<int>();
+                  ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:139:7: Error: Couldn't find constructor 'ResolvedClass'.
+  new resolved_prefix.ResolvedClass<int>();
+      ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:140:9: Error: Couldn't find constructor 'ResolvedClass'.
+  const resolved_prefix.ResolvedClass<int>();
+        ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:141:25: Error: Couldn't find constructor 'ResolvedClass'.
+  resolved_prefix. /**/ ResolvedClass<int>();
+                        ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:142:7: Error: Couldn't find constructor 'ResolvedClass'.
+  new resolved_prefix.ResolvedClass /**/ <int>();
+      ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:143:9: Error: Couldn't find constructor 'ResolvedClass'.
+  const resolved_prefix.ResolvedClass<int> /**/ ();
+        ^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:145:19: Error: Couldn't find constructor 'UnresolvedClass'.
+  resolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+                  ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:146:23: Error: Couldn't find constructor 'UnresolvedClass'.
+  new resolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+                      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:147:25: Error: Couldn't find constructor 'UnresolvedClass'.
+  const resolved_prefix.UnresolvedClass<int>.unresolvedConstructor();
+                        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:148:25: Error: Couldn't find constructor 'UnresolvedClass'.
+  resolved_prefix /**/ .UnresolvedClass<int>.unresolvedConstructor();
+                        ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:149:23: Error: Couldn't find constructor 'UnresolvedClass'.
+  new resolved_prefix.UnresolvedClass<int> /**/ .unresolvedConstructor();
+                      ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:151:14: Error: Couldn't find constructor 'UnresolvedClass'.
+      . /**/ UnresolvedClass<int>. /**/ unresolvedConstructor();
+             ^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:153:38: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  resolved_prefix.ResolvedClass<int>.unresolvedConstructor();
+                                     ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:154:42: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  new resolved_prefix.ResolvedClass<int>.unresolvedConstructor();
+                                         ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:155:44: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  const resolved_prefix.ResolvedClass<int>.unresolvedConstructor();
+                                           ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:156:44: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  resolved_prefix /**/ .ResolvedClass<int>.unresolvedConstructor();
+                                           ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:157:48: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  new resolved_prefix.ResolvedClass<int> /**/ .unresolvedConstructor();
+                                               ^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:158:56: Error: Couldn't find constructor 'ResolvedClass.unresolvedConstructor'.
+  const resolved_prefix. /**/ ResolvedClass<int>. /**/ unresolvedConstructor();
+                                                       ^^^^^^^^^^^^^^^^^^^^^";
+}
+static method main() → dynamic {}

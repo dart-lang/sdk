@@ -59,7 +59,7 @@ class PubApi {
 
     final packageNames = json['packages'];
     return packageNames is List
-        ? packageNames.map((name) => PubApiPackage(name)).toList()
+        ? packageNames.map((name) => PubApiPackage(name as String)).toList()
         : null;
   }
 
@@ -103,7 +103,7 @@ class PubApi {
             await httpClient.get(Uri.parse(url), headers: _headers);
         if (response.statusCode == 200) {
           instrumentationService.logInfo('Pub API request successful for $url');
-          return jsonDecode(response.body);
+          return jsonDecode(response.body) as Map<String, Object?>?;
         } else if (response.statusCode >= 400 && response.statusCode < 500) {
           // Do not retry 4xx responses.
           instrumentationService.logError(

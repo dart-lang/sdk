@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-//
 // VMOptions=--trace_shutdown
 // VMOptions=--trace_shutdown --short_socket_read
 // VMOptions=--trace_shutdown --short_socket_write

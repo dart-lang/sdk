@@ -243,12 +243,11 @@ class Precompiler : public ValueObject {
   }
 
   compiler::ObjectPoolBuilder* global_object_pool_builder() {
-    ASSERT(FLAG_use_bare_instructions);
     return &global_object_pool_builder_;
   }
 
   compiler::SelectorMap* selector_map() {
-    ASSERT(FLAG_use_bare_instructions && FLAG_use_table_dispatch);
+    ASSERT(FLAG_use_table_dispatch);
     return dispatch_table_generator_->selector_map();
   }
 

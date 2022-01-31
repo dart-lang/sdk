@@ -306,8 +306,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   /// List of built redirecting factory invocations.  The targets of the
   /// invocations are to be resolved in a separate step.
-  final List<FactoryConstructorInvocation> redirectingFactoryInvocations =
-      <FactoryConstructorInvocation>[];
+  final List<FactoryConstructorInvocation> redirectingFactoryInvocations = [];
 
   /// List of redirecting factory invocations delayed for resolution.
   ///
@@ -315,7 +314,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// the inference in the declaration of the redirecting factory isn't done
   /// yet.
   final List<FactoryConstructorInvocation>
-      delayedRedirectingFactoryInvocations = <FactoryConstructorInvocation>[];
+      delayedRedirectingFactoryInvocations = [];
 
   /// List of built type aliased generative constructor invocations that
   /// require unaliasing.
@@ -325,6 +324,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// List of built type aliased factory constructor invocations that require
   /// unaliasing.
   final List<TypeAliasedFactoryInvocation> typeAliasedFactoryInvocations = [];
+
+  /// List of type aliased factory invocations delayed for resolution.
+  ///
+  /// A resolution of a type aliased factory invocation can be delayed because
+  /// the inference in the declaration of the target isn't done yet.
+  final List<TypeAliasedFactoryInvocation>
+      delayedTypeAliasedFactoryInvocations = [];
 
   /// Variables with metadata.  Their types need to be inferred late, for
   /// example, in [finishFunction].
@@ -897,9 +903,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       [List<DelayedActionPerformer>? delayedActionPerformers]) {
     _finishVariableMetadata();
     _unaliasTypeAliasedConstructorInvocations();
-    _unaliasTypeAliasedFactoryInvocations();
-    _resolveRedirectingFactoryTargets(
-        redirectingFactoryInvocations, delayedRedirectingFactoryInvocations);
+    _unaliasTypeAliasedFactoryInvocations(typeAliasedFactoryInvocations);
+    _resolveRedirectingFactoryTargets(redirectingFactoryInvocations);
     libraryBuilder.checkUncheckedTypedefTypes(typeEnvironment);
     if (hasDelayedActions) {
       assert(
@@ -1043,6 +1048,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         buildInvalidInitializer(node as Expression, token.charOffset)
       ];
     }
+
     _initializers ??= <Initializer>[];
     _initializers!.addAll(initializers);
   }
@@ -1349,9 +1355,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void _resolveRedirectingFactoryTargets(
-      List<FactoryConstructorInvocation> redirectingFactoryInvocations,
-      List<FactoryConstructorInvocation>?
-          delayedRedirectingFactoryInvocations) {
+      List<FactoryConstructorInvocation> redirectingFactoryInvocations) {
     List<FactoryConstructorInvocation> invocations =
         redirectingFactoryInvocations.toList();
     redirectingFactoryInvocations.clear();
@@ -1381,7 +1385,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           invocation.fileOffset,
           invocation.isConst);
       if (replacement == null) {
-        delayedRedirectingFactoryInvocations?.add(invocation);
+        delayedRedirectingFactoryInvocations.add(invocation);
       } else {
         invocation.replaceWith(replacement);
       }
@@ -1414,9 +1418,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     typeAliasedConstructorInvocations.clear();
   }
 
-  void _unaliasTypeAliasedFactoryInvocations() {
-    for (TypeAliasedFactoryInvocation invocation
-        in typeAliasedFactoryInvocations) {
+  void _unaliasTypeAliasedFactoryInvocations(
+      List<TypeAliasedFactoryInvocation> typeAliasedFactoryInvocations) {
+    List<TypeAliasedFactoryInvocation> invocations =
+        typeAliasedFactoryInvocations.toList();
+    typeAliasedFactoryInvocations.clear();
+    for (TypeAliasedFactoryInvocation invocation in invocations) {
       bool inferred = !hasExplicitTypeArguments(invocation.arguments);
       DartType aliasedType = new TypedefType(
           invocation.typeAliasBuilder.typedef,
@@ -1436,8 +1443,16 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           named: invocation.arguments.named,
           hasExplicitTypeArguments:
               hasExplicitTypeArguments(invocation.arguments));
-      invocation.replaceWith(_resolveRedirectingFactoryTarget(invocation.target,
-          invocationArguments, invocation.fileOffset, invocation.isConst)!);
+      Expression? replacement = _resolveRedirectingFactoryTarget(
+          invocation.target,
+          invocationArguments,
+          invocation.fileOffset,
+          invocation.isConst);
+      if (replacement == null) {
+        delayedTypeAliasedFactoryInvocations.add(invocation);
+      } else {
+        invocation.replaceWith(replacement);
+      }
     }
     typeAliasedFactoryInvocations.clear();
   }
@@ -1451,11 +1466,24 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void performDelayedActions() {
     if (delayedRedirectingFactoryInvocations.isNotEmpty) {
-      _resolveRedirectingFactoryTargets(
-          delayedRedirectingFactoryInvocations, null);
+      _resolveRedirectingFactoryTargets(delayedRedirectingFactoryInvocations);
       if (delayedRedirectingFactoryInvocations.isNotEmpty) {
         for (StaticInvocation invocation
             in delayedRedirectingFactoryInvocations) {
+          internalProblem(
+              fasta.templateInternalProblemUnhandled.withArguments(
+                  invocation.target.name.text, 'performDelayedActions'),
+              invocation.fileOffset,
+              uri);
+        }
+      }
+    }
+    if (delayedTypeAliasedFactoryInvocations.isNotEmpty) {
+      _unaliasTypeAliasedFactoryInvocations(
+          delayedTypeAliasedFactoryInvocations);
+      if (delayedTypeAliasedFactoryInvocations.isNotEmpty) {
+        for (StaticInvocation invocation
+            in delayedTypeAliasedFactoryInvocations) {
           internalProblem(
               fasta.templateInternalProblemUnhandled.withArguments(
                   invocation.target.name.text, 'performDelayedActions'),
@@ -1468,7 +1496,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   bool get hasDelayedActions {
-    return delayedRedirectingFactoryInvocations.isNotEmpty;
+    return delayedRedirectingFactoryInvocations.isNotEmpty ||
+        delayedTypeAliasedFactoryInvocations.isNotEmpty;
   }
 
   void _finishVariableMetadata() {
@@ -1647,15 +1676,87 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         typeInferrer.flowAnalysis.declare(parameter.variable!, true);
       }
     }
-    if (_initializers != null) {
+
+    List<Expression>? positionalSuperParametersAsArguments;
+    List<NamedExpression>? namedSuperParametersAsArguments;
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.isSuperInitializingFormal) {
+          if (formal.isNamed) {
+            (namedSuperParametersAsArguments ??= <NamedExpression>[]).add(
+                new NamedExpression(
+                    formal.name,
+                    new VariableGetImpl(formal.variable!,
+                        forNullGuardedAccess: false)
+                      ..fileOffset = formal.charOffset)
+                  ..fileOffset = formal.charOffset);
+          } else {
+            (positionalSuperParametersAsArguments ??= <Expression>[]).add(
+                new VariableGetImpl(formal.variable!,
+                    forNullGuardedAccess: false)
+                  ..fileOffset = formal.charOffset);
+          }
+        }
+      }
+    }
+
+    List<Initializer>? initializers = _initializers;
+    if (initializers != null) {
+      if (libraryBuilder.enableSuperParametersInLibrary) {
+        if (initializers.isNotEmpty && initializers.last is SuperInitializer) {
+          SuperInitializer superInitializer =
+              initializers.last as SuperInitializer;
+          Arguments arguments = superInitializer.arguments;
+
+          if (positionalSuperParametersAsArguments != null) {
+            if (arguments.positional.isNotEmpty) {
+              addProblem(fasta.messagePositionalSuperParametersAndArguments,
+                  arguments.fileOffset, noLength,
+                  context: <LocatedMessage>[
+                    fasta.messageSuperInitializerParameter.withLocation(
+                        uri,
+                        (positionalSuperParametersAsArguments.first
+                                as VariableGet)
+                            .variable
+                            .fileOffset,
+                        noLength)
+                  ]);
+            } else {
+              arguments.positional.addAll(positionalSuperParametersAsArguments);
+            }
+          }
+          if (namedSuperParametersAsArguments != null) {
+            // TODO(cstefantsova): Report name conflicts.
+            arguments.named.addAll(namedSuperParametersAsArguments);
+          }
+
+          LocatedMessage? message = checkArgumentsForFunction(
+              superInitializer.target.function,
+              arguments,
+              arguments.fileOffset, <TypeParameter>[]);
+          if (message != null) {
+            initializers[initializers.length - 1] = buildInvalidInitializer(
+                buildUnresolvedError(
+                    forest.createNullLiteral(superInitializer.fileOffset),
+                    constructorNameForDiagnostics(
+                        superInitializer.target.name.text),
+                    arguments,
+                    superInitializer.fileOffset,
+                    isSuper: true,
+                    message: message,
+                    kind: UnresolvedKind.Constructor));
+          }
+        }
+      }
+
       Map<Initializer, InitializerInferenceResult> inferenceResults =
           <Initializer, InitializerInferenceResult>{};
-      for (Initializer initializer in _initializers!) {
+      for (Initializer initializer in initializers) {
         inferenceResults[initializer] =
             typeInferrer.inferInitializer(this, initializer);
       }
       if (!builder.isExternal) {
-        for (Initializer initializer in _initializers!) {
+        for (Initializer initializer in initializers) {
           builder.addInitializer(initializer, this,
               inferenceResult: inferenceResults[initializer]!);
         }
@@ -1671,7 +1772,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       /// >unless the enclosing class is class Object.
       Constructor? superTarget = lookupConstructor(emptyName, isSuper: true);
       Initializer initializer;
-      Arguments arguments = forest.createArgumentsEmpty(noLocation);
+      Arguments arguments;
+      if (libraryBuilder.enableSuperParametersInLibrary) {
+        arguments = forest.createArguments(
+            noLocation, positionalSuperParametersAsArguments ?? <Expression>[],
+            named: namedSuperParametersAsArguments);
+      } else {
+        arguments = forest.createArgumentsEmpty(noLocation);
+      }
       if (superTarget == null ||
           checkArgumentsForFunction(superTarget.function, arguments,
                   builder.charOffset, const <TypeParameter>[]) !=
@@ -4013,7 +4121,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,

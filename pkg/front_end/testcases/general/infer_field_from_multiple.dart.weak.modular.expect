@@ -1,0 +1,297 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:49:7: Error: Can't infer a type for 'field2' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field2; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:7:7: Context: This is one of the overridden members.
+//   var field2 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:28:7: Context: This is one of the overridden members.
+//   var field2 = '';
+//       ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:51:7: Error: Can't infer a type for 'field4' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field4 = 0; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:9:7: Context: This is one of the overridden members.
+//   var field4 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:30:7: Context: This is one of the overridden members.
+//   var field4 = '';
+//       ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:53:7: Error: Can't infer a type for 'field6' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field6; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:11:7: Context: This is one of the overridden members.
+//   int field6;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:32:10: Context: This is one of the overridden members.
+//   String field6;
+//          ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:55:7: Error: Can't infer a type for 'field8' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field8 = 0; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:13:7: Context: This is one of the overridden members.
+//   int field8;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:34:10: Context: This is one of the overridden members.
+//   String field8;
+//          ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:58:7: Error: Can't infer a type for 'field11' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field11; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:16:5: Context: This is one of the overridden members.
+//   T field11;
+//     ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:37:5: Context: This is one of the overridden members.
+//   S field11;
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:64:7: Error: Can't infer a type for 'field17' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field17; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:22:7: Context: This is one of the overridden members.
+//   var field17 = 0;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:43:10: Context: This is one of the overridden members.
+//   String field17;
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:65:7: Error: Can't infer a type for 'field18' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field18; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:23:7: Context: This is one of the overridden members.
+//   int field18;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:44:7: Context: This is one of the overridden members.
+//   var field18 = '';
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:90:7: Error: Can't infer a type for 'field2' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field2; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:7:7: Context: This is one of the overridden members.
+//   var field2 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:28:7: Context: This is one of the overridden members.
+//   var field2 = '';
+//       ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:92:7: Error: Can't infer a type for 'field4' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field4 = 0; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:9:7: Context: This is one of the overridden members.
+//   var field4 = 0;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:30:7: Context: This is one of the overridden members.
+//   var field4 = '';
+//       ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:94:7: Error: Can't infer a type for 'field6' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field6; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:11:7: Context: This is one of the overridden members.
+//   int field6;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:32:10: Context: This is one of the overridden members.
+//   String field6;
+//          ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:96:7: Error: Can't infer a type for 'field8' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field8 = 0; // error
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:13:7: Context: This is one of the overridden members.
+//   int field8;
+//       ^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:34:10: Context: This is one of the overridden members.
+//   String field8;
+//          ^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:105:7: Error: Can't infer a type for 'field17' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field17; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:22:7: Context: This is one of the overridden members.
+//   var field17 = 0;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:43:10: Context: This is one of the overridden members.
+//   String field17;
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:106:7: Error: Can't infer a type for 'field18' as the overridden members don't have a combined signature.
+// Try adding an explicit type.
+//   var field18; // error
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:23:7: Context: This is one of the overridden members.
+//   int field18;
+//       ^^^^^^^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:44:7: Context: This is one of the overridden members.
+//   var field18 = '';
+//       ^^^^^^^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:61:7: Error: The return type of the method 'C.field14' is 'int', which does not match the return type, 'String', of the overridden method, 'B.field14'.
+// Change to a subtype of 'String'.
+//   int field14; // error
+//       ^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:40:5: Context: This is the overridden method ('field14').
+//   S field14;
+//     ^
+//
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:61:7: Error: The field 'C.field14' has type 'int', which does not match the corresponding type, 'String', in the overridden setter, 'B.field14'.
+//   int field14; // error
+//       ^
+// pkg/front_end/testcases/general/infer_field_from_multiple.dart:40:5: Context: This is the overridden method ('field14').
+//   S field14;
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object* = dynamic> extends core::Object {
+  field core::int* field1 = 0;
+  field core::int* field2 = 0;
+  field core::int* field3 = 0;
+  field core::int* field4 = 0;
+  field core::int* field5 = null;
+  field core::int* field6 = null;
+  field core::int* field7 = null;
+  field core::int* field8 = null;
+  field dynamic field9 = null;
+  covariant-by-class field self::A::T* field10 = null;
+  covariant-by-class field self::A::T* field11 = null;
+  covariant-by-class field self::A::T* field12 = null;
+  covariant-by-class field self::A::T* field13 = null;
+  covariant-by-class field self::A::T* field14 = null;
+  field core::int* field15 = 0;
+  field core::int* field16 = null;
+  field core::int* field17 = 0;
+  field core::int* field18 = null;
+  synthetic constructor •() → self::A<self::A::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B<T extends core::Object* = dynamic, S extends core::Object* = dynamic> extends core::Object {
+  field core::int* field1 = 1;
+  field core::String* field2 = "";
+  field core::int* field3 = 1;
+  field core::String* field4 = "";
+  field core::int* field5 = null;
+  field core::String* field6 = null;
+  field core::int* field7 = null;
+  field core::String* field8 = null;
+  field dynamic field9 = null;
+  covariant-by-class field self::B::T* field10 = null;
+  covariant-by-class field self::B::S* field11 = null;
+  covariant-by-class field self::B::T* field12 = null;
+  covariant-by-class field self::B::T* field13 = null;
+  covariant-by-class field self::B::S* field14 = null;
+  field core::int* field15 = null;
+  field core::int* field16 = 0;
+  field core::String* field17 = null;
+  field core::String* field18 = "";
+  synthetic constructor •() → self::B<self::B::T*, self::B::S*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C extends core::Object implements self::A<core::int*>, self::B<core::int*, core::String*> {
+  field core::int* field1;
+  field invalid-type field2;
+  field core::int* field3 = 0;
+  field invalid-type field4 = 0;
+  field core::int* field5;
+  field invalid-type field6;
+  field core::int* field7 = 0;
+  field invalid-type field8 = 0;
+  field dynamic field9;
+  covariant-by-class field core::int* field10;
+  covariant-by-class field invalid-type field11;
+  covariant-by-class field core::int* field12;
+  covariant-by-class field core::int* field13 = 0;
+  covariant-by-class field core::int* field14;
+  field core::int* field15;
+  field core::int* field16;
+  field invalid-type field17;
+  field invalid-type field18;
+  constructor •(core::int* field1, invalid-type field2, core::int* field3, invalid-type field4, core::int* field5, invalid-type field6, core::int* field7, invalid-type field8, dynamic field9, core::int* field10, invalid-type field11, core::int* field12, core::int* field13, core::int* field14, core::int* field15, core::int* field16, invalid-type field17, invalid-type field18) → self::C*
+    : self::C::field1 = field1, self::C::field2 = field2, self::C::field3 = field3, self::C::field4 = field4, self::C::field5 = field5, self::C::field6 = field6, self::C::field7 = field7, self::C::field8 = field8, self::C::field9 = field9, self::C::field10 = field10, self::C::field11 = field11, self::C::field12 = field12, self::C::field13 = field13, self::C::field14 = field14, self::C::field15 = field15, self::C::field16 = field16, self::C::field17 = field17, self::C::field18 = field18, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D<T extends core::Object* = dynamic> extends core::Object implements self::A<self::D::T*>, self::B<self::D::T*, self::D::T*> {
+  field core::int* field1;
+  field invalid-type field2;
+  field core::int* field3 = 0;
+  field invalid-type field4 = 0;
+  field core::int* field5;
+  field invalid-type field6;
+  field core::int* field7 = 0;
+  field invalid-type field8 = 0;
+  field dynamic field9;
+  covariant-by-class field self::D::T* field10;
+  covariant-by-class field self::D::T* field11;
+  covariant-by-class field self::D::T* field12;
+  covariant-by-class field self::D::T* field13 = null;
+  covariant-by-class field self::D::T* field14;
+  field core::int* field15;
+  field core::int* field16;
+  field invalid-type field17;
+  field invalid-type field18;
+  constructor •(core::int* field1, invalid-type field2, core::int* field3, invalid-type field4, core::int* field5, invalid-type field6, core::int* field7, invalid-type field8, dynamic field9, self::D::T* field10, self::D::T* field11, self::D::T* field12, self::D::T* field13, self::D::T* field14, core::int* field15, core::int* field16, invalid-type field17, invalid-type field18) → self::D<self::D::T*>*
+    : self::D::field1 = field1, self::D::field2 = field2, self::D::field3 = field3, self::D::field4 = field4, self::D::field5 = field5, self::D::field6 = field6, self::D::field7 = field7, self::D::field8 = field8, self::D::field9 = field9, self::D::field10 = field10, self::D::field11 = field11, self::D::field12 = field12, self::D::field13 = field13, self::D::field14 = field14, self::D::field15 = field15, self::D::field16 = field16, self::D::field17 = field17, self::D::field18 = field18, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}

@@ -1,0 +1,119 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::Class1*
+    : self::Class1::field = field, super core::Object::•()
+    ;
+  method toString() → core::String*
+    return "Class1(${this.{self::Class1::field}{core::int*}})";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Class2 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::Class2*
+    : self::Class2::field = field, super core::Object::•()
+    ;
+  method toString() → core::String*
+    return "Class2(${this.{self::Class2::field}{core::int*}})";
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension1 on self::Class1* {
+  method method = self::Extension1|method;
+  tearoff method = self::Extension1|get#method;
+  method genericMethod = self::Extension1|genericMethod;
+  tearoff genericMethod = self::Extension1|get#genericMethod;
+}
+extension Extension2 on self::Class2* {
+  method method = self::Extension2|method;
+  tearoff method = self::Extension2|get#method;
+  method genericMethod = self::Extension2|genericMethod;
+  tearoff genericMethod = self::Extension2|get#genericMethod;
+}
+static method Extension1|method(lowered final self::Class1* #this) → core::int* {
+  core::print("Extension1.method on ${#this}");
+  return #this.{self::Class1::field}{core::int*};
+}
+static method Extension1|get#method(lowered final self::Class1* #this) → () →* core::int*
+  return () → core::int* => self::Extension1|method(#this);
+static method Extension1|genericMethod<T extends core::num*>(lowered final self::Class1* #this, self::Extension1|genericMethod::T* t) → core::int* {
+  core::print("Extension1.genericMethod<${self::Extension1|genericMethod::T*}>(${t}) on ${#this}");
+  return #this.{self::Class1::field}{core::int*}.{core::num::+}(t){(core::num*) →* core::num*} as{TypeError} core::int*;
+}
+static method Extension1|get#genericMethod(lowered final self::Class1* #this) → <T extends core::num*>(T*) →* core::int*
+  return <T extends core::num*>(T* t) → core::int* => self::Extension1|genericMethod<T*>(#this, t);
+static method Extension2|method(lowered final self::Class2* #this) → core::int* {
+  core::print("Extension2.method on ${#this}");
+  return #this.{self::Class2::field}{core::int*}.{core::num::+}(2){(core::num*) →* core::int*};
+}
+static method Extension2|get#method(lowered final self::Class2* #this) → () →* core::int*
+  return () → core::int* => self::Extension2|method(#this);
+static method Extension2|genericMethod<T extends core::num*>(lowered final self::Class2* #this, self::Extension2|genericMethod::T* t) → core::int* {
+  core::print("Extension2.genericMethod<${self::Extension2|genericMethod::T*}>(${t}) on ${#this}");
+  return #this.{self::Class2::field}{core::int*}.{core::num::+}(t){(core::num*) →* core::num*}.{core::num::+}(3){(core::num*) →* core::num*} as{TypeError} core::int*;
+}
+static method Extension2|get#genericMethod(lowered final self::Class2* #this) → <T extends core::num*>(T*) →* core::int*
+  return <T extends core::num*>(T* t) → core::int* => self::Extension2|genericMethod<T*>(#this, t);
+static method main() → dynamic {
+  self::testExtension1();
+  self::testExtension2();
+}
+static method testExtension1() → dynamic {
+  self::Class1* c0 = new self::Class1::•(0);
+  self::Class1* c1 = new self::Class1::•(1);
+  () →* core::int* tearOff0 = self::Extension1|get#method(c0);
+  self::expect(0, tearOff0(){() →* core::int*});
+  c0 = new self::Class1::•(4.{core::int::unary-}(){() →* core::int*});
+  self::expect(0, tearOff0(){() →* core::int*});
+  () →* core::int* tearOff1 = self::Extension1|get#method(c1);
+  self::expect(1, tearOff1(){() →* core::int*});
+  c1 = new self::Class1::•(7.{core::int::unary-}(){() →* core::int*});
+  self::expect(1, tearOff1(){() →* core::int*});
+  <T extends core::num*>(T*) →* core::int* genericTearOff0 = self::Extension1|get#genericMethod(c0);
+  self::expect(38, genericTearOff0<core::int*>(42){(core::int*) →* core::int*});
+  self::expect(38, genericTearOff0<core::num*>(42){(core::num*) →* core::int*});
+  <T extends core::num*>(T*) →* core::int* genericTearOff1 = self::Extension1|get#genericMethod(c1);
+  self::expect(35, genericTearOff1<core::int*>(42){(core::int*) →* core::int*});
+  self::expect(35, genericTearOff1<core::num*>(42){(core::num*) →* core::int*});
+}
+static method testExtension2() → dynamic {
+  self::Class2* c0 = new self::Class2::•(0);
+  self::Class2* c1 = new self::Class2::•(1);
+  () →* core::int* tearOff0 = self::Extension2|get#method(c0);
+  self::expect(2, tearOff0(){() →* core::int*});
+  c0 = new self::Class2::•(4.{core::int::unary-}(){() →* core::int*});
+  self::expect(2, tearOff0(){() →* core::int*});
+  () →* core::int* tearOff1 = self::Extension2|get#method(c1);
+  self::expect(3, tearOff1(){() →* core::int*});
+  c1 = new self::Class2::•(7.{core::int::unary-}(){() →* core::int*});
+  self::expect(3, tearOff1(){() →* core::int*});
+  <T extends core::num*>(T*) →* core::int* genericTearOff0 = self::Extension2|get#genericMethod(c0);
+  self::expect(41, genericTearOff0<core::int*>(42){(core::int*) →* core::int*});
+  self::expect(41, genericTearOff0<core::num*>(42){(core::num*) →* core::int*});
+  <T extends core::num*>(T*) →* core::int* genericTearOff1 = self::Extension2|get#genericMethod(c1);
+  self::expect(38, genericTearOff1<core::int*>(42){(core::int*) →* core::int*});
+  self::expect(38, genericTearOff1<core::num*>(42){(core::num*) →* core::int*});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

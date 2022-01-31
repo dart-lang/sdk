@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue47728_1.dart:7:11: Error: Can't create typedef from nullable type.
+// typedef A = Function()?;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef A = invalid-type;
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+}
+class C = core::Object with self::B {
+  synthetic constructor •() → self::C
+    ;
+}
+static method main() → dynamic
+  ;

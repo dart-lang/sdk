@@ -1,0 +1,52 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_statics_transitively3_a.dart" show a1, A;
+import "org-dartlang-testcase:///infer_statics_transitively3_a.dart" as p show a2, A;
+
+static const field core::int* t1 = #C1;
+static const field core::int* t2 = #C1;
+static const field core::int* t3 = #C2;
+static const field core::int* t4 = #C3;
+static const field dynamic t5 = #C4;
+static const field dynamic t6 = #C4;
+static method foo() → dynamic {
+  core::int* i;
+  i = #C1;
+  i = #C1;
+  i = #C2;
+  i = #C3;
+}
+static method main() → dynamic {}
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static const field dynamic a3 = #C4;
+  synthetic constructor •() → self2::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static const field core::int* a1 = #C2;
+static const field core::int* a2 = #C3;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 1
+  #C2 = 3
+  #C3 = 4
+  #C4 = null
+}

@@ -11,6 +11,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -18,6 +19,8 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
+    show HasToJson;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -87,7 +90,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     var contentChange = ChangeContentOverlay([edit]);
     var request = AnalysisUpdateContentParams({helper.testFile: contentChange})
         .toRequest('0');
-    var response = helper.handler.handleRequest(request);
+    var response = helper.handler.handleRequest(request, NotCancelableToken());
     expect(response,
         isResponseFailure('0', RequestErrorCode.INVALID_OVERLAY_CHANGE));
   }
@@ -154,7 +157,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     var request = AnalysisSetPriorityFilesParams(
       [convertPath('/project/lib.dart')],
     ).toRequest('0');
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request, NotCancelableToken());
     expect(response, isResponseSuccess('0'));
   }
 
@@ -170,12 +173,13 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 
     var setRootsRequest =
         AnalysisSetAnalysisRootsParams([p1, p2], []).toRequest('0');
-    var setRootsResponse = handler.handleRequest(setRootsRequest);
+    var setRootsResponse =
+        handler.handleRequest(setRootsRequest, NotCancelableToken());
     expect(setRootsResponse, isResponseSuccess('0'));
 
     void setPriorityFiles(List<String> fileList) {
       var request = AnalysisSetPriorityFilesParams(fileList).toRequest('0');
-      var response = handler.handleRequest(request);
+      var response = handler.handleRequest(request, NotCancelableToken());
       expect(response, isResponseSuccess('0'));
       // TODO(brianwilkerson) Enable the line below after getPriorityFiles
       // has been implemented.
@@ -198,7 +202,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
         }
       }
     });
-    var response = helper.handler.handleRequest(request);
+    var response = helper.handler.handleRequest(request, NotCancelableToken());
     expect(response, isResponseFailure('0'));
   }
 
@@ -288,7 +292,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     var request = Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS, {
       ANALYSIS_REQUEST_UPDATE_OPTIONS_OPTIONS: {'not-an-option': true}
     });
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request, NotCancelableToken());
     // Invalid options should be silently ignored.
     expect(response, isResponseSuccess('0'));
   }
@@ -297,14 +301,14 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     // null is allowed as a synonym for {}.
     var request = Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS,
         {ANALYSIS_REQUEST_UPDATE_OPTIONS_OPTIONS: null});
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request, NotCancelableToken());
     expect(response, isResponseSuccess('0'));
   }
 
   Response testSetAnalysisRoots(List<String> included, List<String> excluded) {
     var request =
         AnalysisSetAnalysisRootsParams(included, excluded).toRequest('0');
-    return handler.handleRequest(request)!;
+    return handler.handleRequest(request, NotCancelableToken())!;
   }
 
   Future<void> xtest_getReachableSources_invalidSource() async {
@@ -317,7 +321,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
 
     var request = AnalysisGetReachableSourcesParams('/does/not/exist.dart')
         .toRequest('0');
-    var response = handler.handleRequest(request)!;
+    var response = handler.handleRequest(request, NotCancelableToken())!;
     var error = response.error!;
     expect(error.code, RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE);
   }
@@ -333,7 +337,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     await server.onAnalysisComplete;
 
     var request = AnalysisGetReachableSourcesParams(fileA).toRequest('0');
-    var response = handler.handleRequest(request)!;
+    var response = handler.handleRequest(request, NotCancelableToken())!;
 
     var json = response.toJson()[Response.RESULT] as Map<String, dynamic>;
 
@@ -1575,12 +1579,12 @@ class AnalysisTestHelper with ResourceProviderMixin {
 
   /// Validates that the given [request] is handled successfully.
   void handleSuccessfulRequest(Request request) {
-    var response = handler.handleRequest(request);
+    var response = handler.handleRequest(request, NotCancelableToken());
     expect(response, isResponseSuccess('0'));
   }
 
   /// Send an `updateContent` request for [testFile].
-  void sendContentChange(dynamic contentChange) {
+  void sendContentChange(HasToJson contentChange) {
     var request =
         AnalysisUpdateContentParams({testFile: contentChange}).toRequest('0');
     handleSuccessfulRequest(request);

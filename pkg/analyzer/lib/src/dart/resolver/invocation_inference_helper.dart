@@ -129,10 +129,11 @@ class InvocationInferenceHelper {
       }
     }
 
-    if (typeParameters != null && rawElement != null) {
-      rawElement = _resolver.toLegacyElement(rawElement);
-      return ConstructorElementToInfer(typeParameters, rawElement);
+    if (typeParameters == null || rawElement == null) {
+      return null;
     }
+    rawElement = _resolver.toLegacyElement(rawElement);
+    return ConstructorElementToInfer(typeParameters, rawElement);
   }
 
   FunctionType? inferArgumentTypesForGeneric(AstNode inferenceNode,

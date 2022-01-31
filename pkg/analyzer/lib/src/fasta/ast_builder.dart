@@ -62,6 +62,8 @@ import 'package:analyzer/src/dart/ast/ast.dart'
     show
         ClassDeclarationImpl,
         CompilationUnitImpl,
+        ConstructorNameImpl,
+        EnumDeclarationImpl,
         ExtensionDeclarationImpl,
         ImportDirectiveImpl,
         MethodInvocationImpl,
@@ -103,6 +105,9 @@ class AstBuilder extends StackListener {
 
   /// The extension currently being parsed, or `null` if none.
   ExtensionDeclarationImpl? extensionDeclaration;
+
+  /// The enum currently being parsed, or `null` if none.
+  EnumDeclarationImpl? enumDeclaration;
 
   /// If true, this is building a full AST. Otherwise, only create method
   /// bodies.
@@ -150,6 +155,15 @@ class AstBuilder extends StackListener {
   /// `true` if named arguments anywhere are enabled
   final bool enableNamedArgumentsAnywhere;
 
+  /// `true` if super parameters are enabled
+  final bool enableSuperParameters;
+
+  /// `true` if enhanced enums are enabled
+  final bool enableEnhancedEnums;
+
+  /// `true` if macros are enabled
+  final bool enableMacros;
+
   final FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter? errorReporter, this.fileUri, this.isFullAst,
@@ -170,6 +184,9 @@ class AstBuilder extends StackListener {
         enableExtensionTypes = _featureSet.isEnabled(Feature.extension_types),
         enableNamedArgumentsAnywhere =
             _featureSet.isEnabled(Feature.named_arguments_anywhere),
+        enableSuperParameters = _featureSet.isEnabled(Feature.super_parameters),
+        enableEnhancedEnums = _featureSet.isEnabled(Feature.enhanced_enums),
+        enableMacros = _featureSet.isEnabled(Feature.macros),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -177,8 +194,10 @@ class AstBuilder extends StackListener {
       return classDeclaration!.members;
     } else if (mixinDeclaration != null) {
       return mixinDeclaration!.members;
-    } else {
+    } else if (extensionDeclaration != null) {
       return extensionDeclaration!.members;
+    } else {
+      return enumDeclaration!.members;
     }
   }
 
@@ -187,8 +206,10 @@ class AstBuilder extends StackListener {
       return classDeclaration!.name;
     } else if (mixinDeclaration != null) {
       return mixinDeclaration!.name;
-    } else {
+    } else if (extensionDeclaration != null) {
       return extensionDeclaration!.name;
+    } else {
+      return enumDeclaration!.name;
     }
   }
 
@@ -223,17 +244,34 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
+  void beginClassDeclaration(
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     assert(classDeclaration == null &&
         mixinDeclaration == null &&
         extensionDeclaration == null);
     push(_Modifiers()..abstractKeyword = abstractToken);
+    if (macroToken != null && !enableMacros) {
+      var feature = ExperimentalFeatures.macros;
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          macroToken,
+          macroToken);
+      // Pretend that 'macro' didn't occur while this feature is incomplete.
+      macroToken = null;
+    }
+    push(macroToken ?? NullValue.Token);
   }
 
   @override
   void beginCompilationUnit(Token token) {
     push(token);
   }
+
+  @override
+  void beginEnum(Token enumKeyword) {}
 
   @override
   void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
@@ -330,11 +368,7 @@ class AstBuilder extends StackListener {
     }
     if (staticToken != null) {
       assert(staticToken.isModifier);
-      String? className = classDeclaration != null
-          ? classDeclaration!.name.name
-          : (mixinDeclaration != null
-              ? mixinDeclaration!.name.name
-              : extensionDeclaration!.name?.name);
+      String? className = currentDeclarationName?.name;
       if (name.lexeme != className || getOrSet != null) {
         modifiers.staticKeyword = staticToken;
       }
@@ -359,8 +393,21 @@ class AstBuilder extends StackListener {
 
   @override
   void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token name) {
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     push(_Modifiers()..abstractKeyword = abstractToken);
+    if (macroToken != null && !enableMacros) {
+      var feature = ExperimentalFeatures.macros;
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments(
+            feature.enableString,
+            _versionAsString(ExperimentStatus.currentVersion),
+          ),
+          macroToken,
+          macroToken);
+      // Pretend that 'macro' didn't occur while this feature is incomplete.
+      macroToken = null;
+    }
+    push(macroToken ?? NullValue.Token);
   }
 
   @override
@@ -1173,17 +1220,18 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
     assert(optional('enum', enumKeyword));
     assert(optional('{', leftBrace));
     debugEvent("Enum");
+  }
 
-    var constants = popTypedList2<EnumConstantDeclaration>(count);
-    var name = pop() as SimpleIdentifier;
-    var metadata = pop() as List<Annotation>?;
-    var comment = _findComment(metadata, enumKeyword);
-    declarations.add(ast.enumDeclaration(comment, metadata, enumKeyword, name,
-        leftBrace, constants, leftBrace.endGroup!));
+  @override
+  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    debugEvent("endEnumConstructor");
+    endClassConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -1412,17 +1460,31 @@ class AstBuilder extends StackListener {
   @override
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
     assert(optionalOrNull('this', thisKeyword));
-    assert(thisKeyword == null
-        ? periodAfterThis == null
-        : optional('.', periodAfterThis!));
+    assert(optionalOrNull('super', superKeyword));
+    assert(thisKeyword == null && superKeyword == null
+        ? periodAfterThisOrSuper == null
+        : optional('.', periodAfterThisOrSuper!));
     debugEvent("FormalParameter");
+
+    if (superKeyword != null && !enableSuperParameters) {
+      var feature = ExperimentalFeatures.super_parameters;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        superKeyword,
+        superKeyword,
+      );
+    }
 
     var defaultValue = pop() as _ParameterDefaultValue?;
     var name = pop() as SimpleIdentifier?;
@@ -1443,7 +1505,37 @@ class AstBuilder extends StackListener {
       // This is a temporary AST node that was constructed in
       // [endFunctionTypedFormalParameter]. We now deconstruct it and create
       // the final AST node.
-      if (thisKeyword == null) {
+      if (superKeyword != null) {
+        assert(thisKeyword == null,
+            "Can't have both 'this' and 'super' in a parameter.");
+        node = ast.superFormalParameter(
+            identifier: name!,
+            comment: comment,
+            metadata: metadata,
+            covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
+            type: typeOrFunctionTypedParameter.returnType,
+            superKeyword: superKeyword,
+            period: periodAfterThisOrSuper!,
+            typeParameters: typeOrFunctionTypedParameter.typeParameters,
+            parameters: typeOrFunctionTypedParameter.parameters,
+            question: typeOrFunctionTypedParameter.question);
+      } else if (thisKeyword != null) {
+        assert(superKeyword == null,
+            "Can't have both 'this' and 'super' in a parameter.");
+        node = ast.fieldFormalParameter2(
+            identifier: name!,
+            comment: comment,
+            metadata: metadata,
+            covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
+            type: typeOrFunctionTypedParameter.returnType,
+            thisKeyword: thisKeyword,
+            period: periodAfterThisOrSuper!,
+            typeParameters: typeOrFunctionTypedParameter.typeParameters,
+            parameters: typeOrFunctionTypedParameter.parameters,
+            question: typeOrFunctionTypedParameter.question);
+      } else {
         node = ast.functionTypedFormalParameter2(
             identifier: name!,
             comment: comment,
@@ -1454,32 +1546,25 @@ class AstBuilder extends StackListener {
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
             parameters: typeOrFunctionTypedParameter.parameters,
             question: typeOrFunctionTypedParameter.question);
-      } else {
-        node = ast.fieldFormalParameter2(
-            identifier: name!,
-            comment: comment,
-            metadata: metadata,
-            covariantKeyword: covariantKeyword,
-            requiredKeyword: requiredKeyword,
-            type: typeOrFunctionTypedParameter.returnType,
-            thisKeyword: thisKeyword,
-            period: periodAfterThis!,
-            typeParameters: typeOrFunctionTypedParameter.typeParameters,
-            parameters: typeOrFunctionTypedParameter.parameters,
-            question: typeOrFunctionTypedParameter.question);
       }
     } else {
       var type = typeOrFunctionTypedParameter as TypeAnnotation?;
-      if (thisKeyword == null) {
-        node = ast.simpleFormalParameter2(
+      if (superKeyword != null) {
+        assert(thisKeyword == null,
+            "Can't have both 'this' and 'super' in a parameter.");
+        node = ast.superFormalParameter(
             comment: comment,
             metadata: metadata,
             covariantKeyword: covariantKeyword,
             requiredKeyword: requiredKeyword,
             keyword: keyword,
             type: type,
-            identifier: name);
-      } else {
+            superKeyword: superKeyword,
+            period: periodAfterThisOrSuper!,
+            identifier: name!);
+      } else if (thisKeyword != null) {
+        assert(superKeyword == null,
+            "Can't have both 'this' and 'super' in a parameter.");
         node = ast.fieldFormalParameter2(
             comment: comment,
             metadata: metadata,
@@ -1490,6 +1575,15 @@ class AstBuilder extends StackListener {
             thisKeyword: thisKeyword,
             period: thisKeyword.next!,
             identifier: name!);
+      } else {
+        node = ast.simpleFormalParameter2(
+            comment: comment,
+            metadata: metadata,
+            covariantKeyword: covariantKeyword,
+            requiredKeyword: requiredKeyword,
+            keyword: keyword,
+            type: type,
+            identifier: name);
       }
     }
 
@@ -1982,6 +2076,7 @@ class AstBuilder extends StackListener {
     }
     var withClause = pop(NullValue.WithClause) as WithClause;
     var superclass = pop() as NamedType;
+    var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
@@ -1996,6 +2091,7 @@ class AstBuilder extends StackListener {
         typeParameters,
         equalsToken,
         abstractKeyword,
+        macroKeyword,
         superclass,
         withClause,
         implementsClause,
@@ -2580,6 +2676,7 @@ class AstBuilder extends StackListener {
     var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
     var withClause = pop(NullValue.WithClause) as WithClause?;
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClause?;
+    var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterList?;
     var name = pop() as SimpleIdentifier;
@@ -2592,6 +2689,7 @@ class AstBuilder extends StackListener {
       comment,
       metadata,
       abstractKeyword,
+      macroKeyword,
       classKeyword,
       name,
       typeParameters,
@@ -2613,20 +2711,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
-    assert(optionalOrNull('implements', implementsKeyword));
-    debugEvent("ClassImplements");
-
-    if (implementsKeyword != null) {
-      var interfaces = popTypedList2<NamedType>(interfacesCount);
-      push(ast.implementsClause(implementsKeyword, interfaces));
-    } else {
-      push(NullValue.IdentifierList);
-    }
-  }
-
-  @override
   void handleClassWithClause(Token withKeyword) {
     assert(optional('with', withKeyword));
     var mixinTypes = pop() as List<NamedType>;
@@ -2635,13 +2719,26 @@ class AstBuilder extends StackListener {
 
   @override
   void handleCommentReference(
-      Token? newKeyword, Token? prefix, Token? period, Token token) {
-    Identifier identifier = ast.simpleIdentifier(token);
-    if (prefix != null) {
-      identifier = ast.prefixedIdentifier(ast.simpleIdentifier(prefix), period!,
-          identifier as SimpleIdentifier);
+    Token? newKeyword,
+    Token? firstToken,
+    Token? firstPeriod,
+    Token? secondToken,
+    Token? secondPeriod,
+    Token thirdToken,
+  ) {
+    var identifier = ast.simpleIdentifier(thirdToken);
+    if (firstToken != null) {
+      var target = ast.prefixedIdentifier(ast.simpleIdentifier(firstToken),
+          firstPeriod!, ast.simpleIdentifier(secondToken!));
+      var expression = ast.propertyAccess(target, secondPeriod!, identifier);
+      push(ast.commentReference(newKeyword, expression));
+    } else if (secondToken != null) {
+      var expression = ast.prefixedIdentifier(
+          ast.simpleIdentifier(secondToken), secondPeriod!, identifier);
+      push(ast.commentReference(newKeyword, expression));
+    } else {
+      push(ast.commentReference(newKeyword, identifier));
     }
-    push(ast.commentReference(newKeyword, identifier));
   }
 
   @override
@@ -2699,6 +2796,114 @@ class AstBuilder extends StackListener {
     debugEvent("EmptyStatement");
 
     push(ast.emptyStatement(semicolon));
+  }
+
+  @override
+  void handleEnumElement(Token beginToken) {
+    debugEvent("EnumElement");
+    var arguments = pop() as MethodInvocationImpl?;
+    var constructorName = pop() as ConstructorNameImpl?;
+
+    if (!enableEnhancedEnums &&
+        (arguments != null ||
+            constructorName != null &&
+                (constructorName.type2.typeArguments != null ||
+                    constructorName.name != null))) {
+      Token token = arguments != null
+          ? arguments.argumentList.beginToken
+          : constructorName!.beginToken;
+      var feature = ExperimentalFeatures.enhanced_enums;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        token,
+        token,
+      );
+    }
+  }
+
+  @override
+  void handleEnumElements(Token elementsEndToken, int elementsCount) {
+    debugEvent("EnumElements");
+
+    var constants = popTypedList2<EnumConstantDeclaration>(elementsCount);
+    enumDeclaration!.constants.addAll(constants);
+
+    if (!enableEnhancedEnums && optional(';', elementsEndToken)) {
+      var feature = ExperimentalFeatures.enhanced_enums;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        elementsEndToken,
+        elementsEndToken,
+      );
+    }
+  }
+
+  @override
+  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+    assert(optional('enum', enumKeyword));
+    assert(optional('{', leftBrace));
+    debugEvent("EnumHeader");
+
+    var implementsClause = pop(NullValue.IdentifierList) as ImplementsClause?;
+    var withClause = pop(NullValue.WithClause) as WithClause?;
+    var typeParameters = pop() as TypeParameterList?;
+    var name = pop() as SimpleIdentifier;
+    var metadata = pop() as List<Annotation>?;
+    var comment = _findComment(metadata, enumKeyword);
+
+    if (!enableEnhancedEnums &&
+        (withClause != null ||
+            implementsClause != null ||
+            typeParameters != null)) {
+      var token = withClause != null
+          ? withClause.withKeyword
+          : implementsClause != null
+              ? implementsClause.implementsKeyword
+              : typeParameters!.beginToken;
+      var feature = ExperimentalFeatures.enhanced_enums;
+      handleRecoverableError(
+        templateExperimentNotEnabled.withArguments(
+          feature.enableString,
+          _versionAsString(ExperimentStatus.currentVersion),
+        ),
+        token,
+        token,
+      );
+    }
+
+    declarations.add(
+      enumDeclaration = ast.enumDeclaration2(
+        comment: comment,
+        metadata: metadata,
+        enumKeyword: enumKeyword,
+        name: name,
+        typeParameters: typeParameters,
+        withClause: withClause,
+        implementsClause: implementsClause,
+        leftBracket: leftBrace,
+        constants: [],
+        members: [],
+        rightBracket: leftBrace.endGroup!,
+      ),
+    );
+  }
+
+  @override
+  void handleEnumNoWithClause() {
+    push(NullValue.WithClause);
+  }
+
+  @override
+  void handleEnumWithClause(Token withKeyword) {
+    assert(optional('with', withKeyword));
+    var mixinTypes = pop() as List<NamedType>;
+    push(ast.withClause(withKeyword, mixinTypes));
   }
 
   @override
@@ -2926,6 +3131,19 @@ class AstBuilder extends StackListener {
     debugEvent("IdentifierList");
 
     push(popTypedList<SimpleIdentifier>(count) ?? NullValue.IdentifierList);
+  }
+
+  @override
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
+    assert(optionalOrNull('implements', implementsKeyword));
+    debugEvent("Implements");
+
+    if (implementsKeyword != null) {
+      var interfaces = popTypedList2<NamedType>(interfacesCount);
+      push(ast.implementsClause(implementsKeyword, interfaces));
+    } else {
+      push(NullValue.IdentifierList);
+    }
   }
 
   @override
@@ -3368,6 +3586,14 @@ class AstBuilder extends StackListener {
     } else {
       push(ast.postfixExpression(pop() as Expression, bang));
     }
+  }
+
+  @override
+  void handleNoTypeNameInConstructorReference(Token token) {
+    debugEvent("NoTypeNameInConstructorReference");
+    assert(enumDeclaration != null);
+
+    push(ast.simpleIdentifier(enumDeclaration!.name.token));
   }
 
   @override

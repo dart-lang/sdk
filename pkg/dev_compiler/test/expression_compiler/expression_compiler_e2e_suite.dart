@@ -117,17 +117,19 @@ class TestCompiler {
     // compilers/components/names per module.
     setup.options.packagesFileUri = packages;
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
-    var component = await compiler.computeDelta();
+    var compilerResult = await compiler.computeDelta();
+    var component = compilerResult.component;
     component.computeCanonicalNames();
     // Initialize DDC.
     var moduleName = p.basenameWithoutExtension(output.toFilePath());
 
-    var classHierarchy = compiler.getClassHierarchy();
+    var classHierarchy = compilerResult.classHierarchy;
     var compilerOptions = SharedCompilerOptions(
         replCompile: true,
         moduleName: moduleName,
-        soundNullSafety: setup.soundNullSafety);
-    var coreTypes = compiler.getCoreTypes();
+        soundNullSafety: setup.soundNullSafety,
+        emitDebugMetadata: true);
+    var coreTypes = compilerResult.coreTypes;
 
     final importToSummary = Map<Library, Component>.identity();
     final summaryToModule = Map<Component, String>.identity();
@@ -145,10 +147,10 @@ class TestCompiler {
     var code = jsProgramToCode(
       module,
       setup.moduleFormat,
-      inlineSourceMap: true,
-      buildSourceMap: true,
-      emitDebugMetadata: true,
-      emitDebugSymbols: true,
+      inlineSourceMap: compilerOptions.inlineSourceMap,
+      buildSourceMap: compilerOptions.sourceMap,
+      emitDebugMetadata: compilerOptions.emitDebugMetadata,
+      emitDebugSymbols: compilerOptions.emitDebugSymbols,
       jsUrl: '$output',
       mapUrl: '$output.map',
       compiler: kernel2jsCompiler,

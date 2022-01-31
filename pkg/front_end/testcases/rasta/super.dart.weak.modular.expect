@@ -1,0 +1,687 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/super.dart:27:7: Error: 'n' is already declared in this scope.
+//   set n(_) {}
+//       ^
+// pkg/front_end/testcases/rasta/super.dart:26:8: Context: Previous declaration of 'n'.
+//   void n() {}
+//        ^
+//
+// pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator.
+// Try removing '+'.
+//     +super;
+//     ^
+//
+// pkg/front_end/testcases/rasta/super.dart:43:6: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//     +super;
+//      ^^^^^
+//
+// pkg/front_end/testcases/rasta/super.dart:44:9: Error: '+' is not a prefix operator.
+// Try removing '+'.
+//     use(+super);
+//         ^
+//
+// pkg/front_end/testcases/rasta/super.dart:44:10: Error: Can't use 'super' as an expression.
+// To delegate a constructor to a super constructor, put the super call as an initializer.
+//     use(+super);
+//          ^^^^^
+//
+// pkg/front_end/testcases/rasta/super.dart:62:11: Error: Superclass has no getter named 'g'.
+//     super.g;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:63:15: Error: Superclass has no getter named 'g'.
+//     use(super.g);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:83:11: Error: Superclass has no setter named 'e'.
+//     super.e++;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:84:15: Error: Superclass has no setter named 'e'.
+//     use(super.e++);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:85:11: Error: Superclass has no setter named 'f'.
+//     super.f++;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:86:15: Error: Superclass has no setter named 'f'.
+//     use(super.f++);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:87:11: Error: Superclass has no getter named 'g'.
+//     super.g++;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:88:15: Error: Superclass has no getter named 'g'.
+//     use(super.g++);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:95:11: Error: Superclass has no setter named 'm'.
+//     super.m++;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:96:15: Error: Superclass has no setter named 'm'.
+//     use(super.m++);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:108:13: Error: Superclass has no setter named 'e'.
+//     ++super.e;
+//             ^
+//
+// pkg/front_end/testcases/rasta/super.dart:109:17: Error: Superclass has no setter named 'e'.
+//     use(++super.e);
+//                 ^
+//
+// pkg/front_end/testcases/rasta/super.dart:110:13: Error: Superclass has no setter named 'f'.
+//     ++super.f;
+//             ^
+//
+// pkg/front_end/testcases/rasta/super.dart:111:17: Error: Superclass has no setter named 'f'.
+//     use(++super.f);
+//                 ^
+//
+// pkg/front_end/testcases/rasta/super.dart:112:13: Error: Superclass has no getter named 'g'.
+//     ++super.g;
+//             ^
+//
+// pkg/front_end/testcases/rasta/super.dart:113:17: Error: Superclass has no getter named 'g'.
+//     use(++super.g);
+//                 ^
+//
+// pkg/front_end/testcases/rasta/super.dart:120:13: Error: Superclass has no setter named 'm'.
+//     ++super.m;
+//             ^
+//
+// pkg/front_end/testcases/rasta/super.dart:121:17: Error: Superclass has no setter named 'm'.
+//     use(++super.m);
+//                 ^
+//
+// pkg/front_end/testcases/rasta/super.dart:137:11: Error: Superclass has no method named 'g'.
+//     super.g();
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:138:15: Error: Superclass has no method named 'g'.
+//     use(super.g());
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:160:11: Error: Superclass has no setter named 'e'.
+//     super.e = 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:161:15: Error: Superclass has no setter named 'e'.
+//     use(super.e = 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:162:11: Error: Superclass has no setter named 'f'.
+//     super.f = 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:163:15: Error: Superclass has no setter named 'f'.
+//     use(super.f = 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:172:11: Error: Superclass has no setter named 'm'.
+//     super.m = 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:173:15: Error: Superclass has no setter named 'm'.
+//     use(super.m = 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:185:11: Error: Superclass has no setter named 'e'.
+//     super.e ??= 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:186:15: Error: Superclass has no setter named 'e'.
+//     use(super.e ??= 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:187:11: Error: Superclass has no setter named 'f'.
+//     super.f ??= 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:188:15: Error: Superclass has no setter named 'f'.
+//     use(super.f ??= 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:189:11: Error: Superclass has no getter named 'g'.
+//     super.g ??= 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:190:15: Error: Superclass has no getter named 'g'.
+//     use(super.g ??= 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:197:11: Error: Superclass has no setter named 'm'.
+//     super.m ??= 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:198:15: Error: Superclass has no setter named 'm'.
+//     use(super.m ??= 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:210:11: Error: Superclass has no setter named 'e'.
+//     super.e += 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:211:15: Error: Superclass has no setter named 'e'.
+//     use(super.e += 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:212:11: Error: Superclass has no setter named 'f'.
+//     super.f += 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:213:15: Error: Superclass has no setter named 'f'.
+//     use(super.f += 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:214:11: Error: Superclass has no getter named 'g'.
+//     super.g += 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:215:15: Error: Superclass has no getter named 'g'.
+//     use(super.g += 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:222:11: Error: Superclass has no setter named 'm'.
+//     super.m += 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:223:15: Error: Superclass has no setter named 'm'.
+//     use(super.m += 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:235:11: Error: Superclass has no setter named 'e'.
+//     super.e -= 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:236:15: Error: Superclass has no setter named 'e'.
+//     use(super.e -= 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:237:11: Error: Superclass has no setter named 'f'.
+//     super.f -= 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:238:15: Error: Superclass has no setter named 'f'.
+//     use(super.f -= 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:239:11: Error: Superclass has no getter named 'g'.
+//     super.g -= 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:240:15: Error: Superclass has no getter named 'g'.
+//     use(super.g -= 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:247:11: Error: Superclass has no setter named 'm'.
+//     super.m -= 42;
+//           ^
+//
+// pkg/front_end/testcases/rasta/super.dart:248:15: Error: Superclass has no setter named 'm'.
+//     use(super.m -= 42);
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:95:12: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     super.m++;
+//            ^
+//
+// pkg/front_end/testcases/rasta/super.dart:96:16: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     use(super.m++);
+//                ^
+//
+// pkg/front_end/testcases/rasta/super.dart:97:12: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     super.n++;
+//            ^
+//
+// pkg/front_end/testcases/rasta/super.dart:98:16: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     use(super.n++);
+//                ^
+//
+// pkg/front_end/testcases/rasta/super.dart:120:5: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     ++super.m;
+//     ^
+//
+// pkg/front_end/testcases/rasta/super.dart:121:9: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     use(++super.m);
+//         ^
+//
+// pkg/front_end/testcases/rasta/super.dart:122:5: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     ++super.n;
+//     ^
+//
+// pkg/front_end/testcases/rasta/super.dart:123:9: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     use(++super.n);
+//         ^
+//
+// pkg/front_end/testcases/rasta/super.dart:146:15: Error: This expression has type 'void' and can't be used.
+//     use(super.m());
+//               ^
+//
+// pkg/front_end/testcases/rasta/super.dart:147:12: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     super.m(87);
+//            ^
+//
+// pkg/front_end/testcases/rasta/super.dart:148:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     use(super.m(87));
+//                ^
+//
+// pkg/front_end/testcases/rasta/super.dart:149:12: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     super.n(87);
+//            ^
+//
+// pkg/front_end/testcases/rasta/super.dart:150:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     use(super.n(87));
+//                ^
+//
+// pkg/front_end/testcases/rasta/super.dart:222:13: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     super.m += 42;
+//             ^
+//
+// pkg/front_end/testcases/rasta/super.dart:223:17: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     use(super.m += 42);
+//                 ^
+//
+// pkg/front_end/testcases/rasta/super.dart:224:13: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     super.n += 42;
+//             ^
+//
+// pkg/front_end/testcases/rasta/super.dart:225:17: Error: The operator '+' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '+' operator.
+//     use(super.n += 42);
+//                 ^
+//
+// pkg/front_end/testcases/rasta/super.dart:247:13: Error: The operator '-' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
+//     super.m -= 42;
+//             ^
+//
+// pkg/front_end/testcases/rasta/super.dart:248:17: Error: The operator '-' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
+//     use(super.m -= 42);
+//                 ^
+//
+// pkg/front_end/testcases/rasta/super.dart:249:13: Error: The operator '-' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
+//     super.n -= 42;
+//             ^
+//
+// pkg/front_end/testcases/rasta/super.dart:250:17: Error: The operator '-' isn't defined for the class 'void Function()'.
+// Try correcting the operator to an existing operator, or defining a '-' operator.
+//     use(super.n -= 42);
+//                 ^
+//
+// pkg/front_end/testcases/rasta/super.dart:11:9: Error: Final field 'f' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final f;
+//         ^
+//
+// pkg/front_end/testcases/rasta/super.dart:33:9: Error: Final field 'd' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final d;
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic a = null;
+  field dynamic b = null;
+  field dynamic c = null;
+  field dynamic d = null;
+  final field dynamic f = null;
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  get e() → dynamic
+    return null;
+  set g(dynamic _) → void {}
+  get h() → dynamic
+    return null;
+  set h(dynamic _) → void {}
+  get i() → dynamic
+    return null;
+  operator [](dynamic _) → dynamic
+    return null;
+  operator []=(dynamic a, dynamic b) → void {}
+  operator ~() → dynamic
+    return 117;
+  operator unary-() → dynamic
+    return 117;
+  operator ==(dynamic other) → core::bool*
+    return true;
+  method m() → void {}
+  method n() → void {}
+  set n(dynamic _) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  final field dynamic d = null;
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+  get b() → dynamic
+    return null;
+  set c(dynamic x) → void {}
+  set i(dynamic x) → void {}
+}
+class C extends self::B {
+  synthetic constructor •() → self::C*
+    : super self::B::•()
+    ;
+  method test() → dynamic {
+    super.{self::A::~}();
+    self::use(super.{self::A::~}());
+    super.{self::A::unary-}();
+    self::use(super.{self::A::unary-}());
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:43:5: Error: This couldn't be parsed.
+    +super;
+    ^"{<invalid>}.+(invalid-expression "pkg/front_end/testcases/rasta/super.dart:43:6: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    +super;
+     ^^^^^");
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:44:9: Error: This couldn't be parsed.
+    use(+super);
+        ^"{<invalid>}.+(invalid-expression "pkg/front_end/testcases/rasta/super.dart:44:10: Error: Can't use 'super' as an expression.
+To delegate a constructor to a super constructor, put the super call as an initializer.
+    use(+super);
+         ^^^^^"));
+    super.{self::A::==}(87);
+    self::use(super.{self::A::==}(87));
+    !super.{self::A::==}(87);
+    self::use(!super.{self::A::==}(87));
+    super.{self::A::a};
+    self::use(super.{self::A::a});
+    super.{self::B::b};
+    self::use(super.{self::B::b});
+    super.{self::A::c};
+    self::use(super.{self::A::c});
+    super.{self::B::d};
+    self::use(super.{self::B::d});
+    super.{self::A::e};
+    self::use(super.{self::A::e});
+    super.{self::A::f};
+    self::use(super.{self::A::f});
+    super.g;
+    self::use(super.g);
+    super.{self::A::h};
+    self::use(super.{self::A::h});
+    super.{self::A::i};
+    self::use(super.{self::A::i});
+    super.{self::A::[]}(87);
+    self::use(super.{self::A::[]}(87));
+    super.{self::A::m};
+    self::use(super.{self::A::m});
+    super.{self::A::n};
+    self::use(super.{self::A::n});
+    super.{self::A::a} = super.{self::A::a}{dynamic}.+(1);
+    self::use(let final dynamic #t1 = super.{self::A::a} in let final dynamic #t2 = super.{self::A::a} = #t1{dynamic}.+(1) in #t1);
+    super.{self::A::b} = super.{self::B::b}{dynamic}.+(1);
+    self::use(let final dynamic #t3 = super.{self::B::b} in let final dynamic #t4 = super.{self::A::b} = #t3{dynamic}.+(1) in #t3);
+    super.{self::B::c} = super.{self::A::c}{dynamic}.+(1);
+    self::use(let final dynamic #t5 = super.{self::A::c} in let final dynamic #t6 = super.{self::B::c} = #t5{dynamic}.+(1) in #t5);
+    super.{self::A::d} = super.{self::B::d}{dynamic}.+(1);
+    self::use(let final dynamic #t7 = super.{self::B::d} in let final dynamic #t8 = super.{self::A::d} = #t7{dynamic}.+(1) in #t7);
+    super.e = super.{self::A::e}{dynamic}.+(1);
+    self::use(let final dynamic #t9 = super.{self::A::e} in let final dynamic #t10 = super.e = #t9{dynamic}.+(1) in #t9);
+    super.f = super.{self::A::f}{dynamic}.+(1);
+    self::use(let final dynamic #t11 = super.{self::A::f} in let final dynamic #t12 = super.f = #t11{dynamic}.+(1) in #t11);
+    super.{self::A::g} = super.g{dynamic}.+(1);
+    self::use(let final dynamic #t13 = super.g in let final dynamic #t14 = super.{self::A::g} = #t13{dynamic}.+(1) in #t13);
+    super.{self::A::h} = super.{self::A::h}{dynamic}.+(1);
+    self::use(let final dynamic #t15 = super.{self::A::h} in let final dynamic #t16 = super.{self::A::h} = #t15{dynamic}.+(1) in #t15);
+    super.{self::B::i} = super.{self::A::i}{dynamic}.+(1);
+    self::use(let final dynamic #t17 = super.{self::A::i} in let final dynamic #t18 = super.{self::B::i} = #t17{dynamic}.+(1) in #t17);
+    let final core::int* #t19 = 87 in super.{self::A::[]=}(#t19, super.{self::A::[]}(#t19){dynamic}.+(1));
+    self::use(let final core::int* #t20 = 87 in let final dynamic #t21 = super.{self::A::[]}(#t20) in let final void #t22 = super.{self::A::[]=}(#t20, #t21{dynamic}.+(1)) in #t21);
+    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:95:12: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    super.m++;
+           ^" in super.{self::A::m}{<unresolved>}.+(1);
+    self::use(let final () →* void #t23 = super.{self::A::m} in let final dynamic #t24 = super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:96:16: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    use(super.m++);
+               ^" in #t23{<unresolved>}.+(1) in #t23);
+    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:97:12: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    super.n++;
+           ^" in super.{self::A::n}{<unresolved>}.+(1);
+    self::use(let final () →* void #t25 = super.{self::A::n} in let final dynamic #t26 = super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:98:16: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    use(super.n++);
+               ^" in #t25{<unresolved>}.+(1) in #t25);
+    super.{self::A::a} = super.{self::A::a}{dynamic}.+(1);
+    self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.+(1));
+    super.{self::A::b} = super.{self::B::b}{dynamic}.+(1);
+    self::use(super.{self::A::b} = super.{self::B::b}{dynamic}.+(1));
+    super.{self::B::c} = super.{self::A::c}{dynamic}.+(1);
+    self::use(super.{self::B::c} = super.{self::A::c}{dynamic}.+(1));
+    super.{self::A::d} = super.{self::B::d}{dynamic}.+(1);
+    self::use(super.{self::A::d} = super.{self::B::d}{dynamic}.+(1));
+    super.e = super.{self::A::e}{dynamic}.+(1);
+    self::use(super.e = super.{self::A::e}{dynamic}.+(1));
+    super.f = super.{self::A::f}{dynamic}.+(1);
+    self::use(super.f = super.{self::A::f}{dynamic}.+(1));
+    super.{self::A::g} = super.g{dynamic}.+(1);
+    self::use(super.{self::A::g} = super.g{dynamic}.+(1));
+    super.{self::A::h} = super.{self::A::h}{dynamic}.+(1);
+    self::use(super.{self::A::h} = super.{self::A::h}{dynamic}.+(1));
+    super.{self::B::i} = super.{self::A::i}{dynamic}.+(1);
+    self::use(super.{self::B::i} = super.{self::A::i}{dynamic}.+(1));
+    let final core::int* #t27 = 87 in let final dynamic #t28 = super.{self::A::[]}(#t27){dynamic}.+(1) in let final void #t29 = super.{self::A::[]=}(#t27, #t28) in #t28;
+    self::use(let final core::int* #t30 = 87 in let final dynamic #t31 = super.{self::A::[]}(#t30){dynamic}.+(1) in let final void #t32 = super.{self::A::[]=}(#t30, #t31) in #t31);
+    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:120:5: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    ++super.m;
+    ^" in super.{self::A::m}{<unresolved>}.+(1);
+    self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:121:9: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    use(++super.m);
+        ^" in super.{self::A::m}{<unresolved>}.+(1));
+    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:122:5: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    ++super.n;
+    ^" in super.{self::A::n}{<unresolved>}.+(1);
+    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:123:9: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    use(++super.n);
+        ^" in super.{self::A::n}{<unresolved>}.+(1));
+    super.{self::A::a}{dynamic}.call();
+    self::use(super.{self::A::a}{dynamic}.call());
+    super.{self::B::b}{dynamic}.call();
+    self::use(super.{self::B::b}{dynamic}.call());
+    super.{self::A::c}{dynamic}.call();
+    self::use(super.{self::A::c}{dynamic}.call());
+    super.{self::B::d}{dynamic}.call();
+    self::use(super.{self::B::d}{dynamic}.call());
+    super.{self::A::e}{dynamic}.call();
+    self::use(super.{self::A::e}{dynamic}.call());
+    super.{self::A::f}{dynamic}.call();
+    self::use(super.{self::A::f}{dynamic}.call());
+    super.g();
+    self::use(super.g());
+    super.{self::A::h}{dynamic}.call();
+    self::use(super.{self::A::h}{dynamic}.call());
+    super.{self::A::i}{dynamic}.call();
+    self::use(super.{self::A::i}{dynamic}.call());
+    super.{self::A::[]}(87){dynamic}.call();
+    self::use(super.{self::A::[]}(87){dynamic}.call());
+    super.{self::A::m}();
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:146:15: Error: This expression has type 'void' and can't be used.
+    use(super.m());
+              ^" in super.{self::A::m}());
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:147:12: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    super.m(87);
+           ^" in super.{self::A::m}(87);
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:148:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    use(super.m(87));
+               ^" in super.{self::A::m}(87));
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:149:12: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    super.n(87);
+           ^" in super.{self::A::n}(87);
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:150:16: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    use(super.n(87));
+               ^" in super.{self::A::n}(87));
+    super.{self::A::a} = 42;
+    self::use(super.{self::A::a} = 42);
+    super.{self::A::b} = 42;
+    self::use(super.{self::A::b} = 42);
+    super.{self::B::c} = 42;
+    self::use(super.{self::B::c} = 42);
+    super.{self::A::d} = 42;
+    self::use(super.{self::A::d} = 42);
+    super.e = 42;
+    self::use(super.e = 42);
+    super.f = 42;
+    self::use(super.f = 42);
+    super.{self::A::g} = 42;
+    self::use(super.{self::A::g} = 42);
+    super.{self::A::h} = 42;
+    self::use(super.{self::A::h} = 42);
+    super.{self::B::i} = 42;
+    self::use(super.{self::B::i} = 42);
+    super.{self::A::[]=}(87, 42);
+    self::use(let final core::int* #t33 = 87 in let final core::int* #t34 = 42 in let final void #t35 = super.{self::A::[]=}(#t33, #t34) in #t34);
+    super.m = 42;
+    self::use(super.m = 42);
+    super.{self::A::n} = 42;
+    self::use(super.{self::A::n} = 42);
+    super.{self::A::a} == null ?{dynamic} super.{self::A::a} = 42 : null;
+    self::use(let final dynamic #t36 = super.{self::A::a} in #t36 == null ?{dynamic} super.{self::A::a} = 42 : #t36);
+    super.{self::B::b} == null ?{dynamic} super.{self::A::b} = 42 : null;
+    self::use(let final dynamic #t37 = super.{self::B::b} in #t37 == null ?{dynamic} super.{self::A::b} = 42 : #t37);
+    super.{self::A::c} == null ?{dynamic} super.{self::B::c} = 42 : null;
+    self::use(let final dynamic #t38 = super.{self::A::c} in #t38 == null ?{dynamic} super.{self::B::c} = 42 : #t38);
+    super.{self::B::d} == null ?{dynamic} super.{self::A::d} = 42 : null;
+    self::use(let final dynamic #t39 = super.{self::B::d} in #t39 == null ?{dynamic} super.{self::A::d} = 42 : #t39);
+    super.{self::A::e} == null ?{dynamic} super.e = 42 : null;
+    self::use(let final dynamic #t40 = super.{self::A::e} in #t40 == null ?{dynamic} super.e = 42 : #t40);
+    super.{self::A::f} == null ?{dynamic} super.f = 42 : null;
+    self::use(let final dynamic #t41 = super.{self::A::f} in #t41 == null ?{dynamic} super.f = 42 : #t41);
+    super.g == null ?{dynamic} super.{self::A::g} = 42 : null;
+    self::use(let final dynamic #t42 = super.g in #t42 == null ?{dynamic} super.{self::A::g} = 42 : #t42);
+    super.{self::A::h} == null ?{dynamic} super.{self::A::h} = 42 : null;
+    self::use(let final dynamic #t43 = super.{self::A::h} in #t43 == null ?{dynamic} super.{self::A::h} = 42 : #t43);
+    super.{self::A::i} == null ?{dynamic} super.{self::B::i} = 42 : null;
+    self::use(let final dynamic #t44 = super.{self::A::i} in #t44 == null ?{dynamic} super.{self::B::i} = 42 : #t44);
+    let final core::int* #t45 = 87 in super.{self::A::[]}(#t45) == null ?{dynamic} super.{self::A::[]=}(#t45, 42) : null;
+    self::use(let final core::int* #t46 = 87 in let final dynamic #t47 = super.{self::A::[]}(#t46) in #t47 == null ?{dynamic} let final core::int* #t48 = 42 in let final void #t49 = super.{self::A::[]=}(#t46, #t48) in #t48 : #t47);
+    super.{self::A::m} == null ?{core::Object*} super.m = 42 : null;
+    self::use(let final () →* void #t50 = super.{self::A::m} in #t50 == null ?{core::Object*} super.m = 42 : #t50);
+    super.{self::A::n} == null ?{core::Object*} super.{self::A::n} = 42 : null;
+    self::use(let final () →* void #t51 = super.{self::A::n} in #t51 == null ?{core::Object*} super.{self::A::n} = 42 : #t51);
+    super.{self::A::a} = super.{self::A::a}{dynamic}.+(42);
+    self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.+(42));
+    super.{self::A::b} = super.{self::B::b}{dynamic}.+(42);
+    self::use(super.{self::A::b} = super.{self::B::b}{dynamic}.+(42));
+    super.{self::B::c} = super.{self::A::c}{dynamic}.+(42);
+    self::use(super.{self::B::c} = super.{self::A::c}{dynamic}.+(42));
+    super.{self::A::d} = super.{self::B::d}{dynamic}.+(42);
+    self::use(super.{self::A::d} = super.{self::B::d}{dynamic}.+(42));
+    super.e = super.{self::A::e}{dynamic}.+(42);
+    self::use(super.e = super.{self::A::e}{dynamic}.+(42));
+    super.f = super.{self::A::f}{dynamic}.+(42);
+    self::use(super.f = super.{self::A::f}{dynamic}.+(42));
+    super.{self::A::g} = super.g{dynamic}.+(42);
+    self::use(super.{self::A::g} = super.g{dynamic}.+(42));
+    super.{self::A::h} = super.{self::A::h}{dynamic}.+(42);
+    self::use(super.{self::A::h} = super.{self::A::h}{dynamic}.+(42));
+    super.{self::B::i} = super.{self::A::i}{dynamic}.+(42);
+    self::use(super.{self::B::i} = super.{self::A::i}{dynamic}.+(42));
+    let final core::int* #t52 = 87 in super.{self::A::[]=}(#t52, super.{self::A::[]}(#t52){dynamic}.+(42));
+    self::use(let final core::int* #t53 = 87 in let final dynamic #t54 = super.{self::A::[]}(#t53){dynamic}.+(42) in let final void #t55 = super.{self::A::[]=}(#t53, #t54) in #t54);
+    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:222:13: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    super.m += 42;
+            ^" in super.{self::A::m}{<unresolved>}.+(42);
+    self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:223:17: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    use(super.m += 42);
+                ^" in super.{self::A::m}{<unresolved>}.+(42));
+    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:224:13: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    super.n += 42;
+            ^" in super.{self::A::n}{<unresolved>}.+(42);
+    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:225:17: Error: The operator '+' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '+' operator.
+    use(super.n += 42);
+                ^" in super.{self::A::n}{<unresolved>}.+(42));
+    super.{self::A::a} = super.{self::A::a}{dynamic}.-(42);
+    self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.-(42));
+    super.{self::A::b} = super.{self::B::b}{dynamic}.-(42);
+    self::use(super.{self::A::b} = super.{self::B::b}{dynamic}.-(42));
+    super.{self::B::c} = super.{self::A::c}{dynamic}.-(42);
+    self::use(super.{self::B::c} = super.{self::A::c}{dynamic}.-(42));
+    super.{self::A::d} = super.{self::B::d}{dynamic}.-(42);
+    self::use(super.{self::A::d} = super.{self::B::d}{dynamic}.-(42));
+    super.e = super.{self::A::e}{dynamic}.-(42);
+    self::use(super.e = super.{self::A::e}{dynamic}.-(42));
+    super.f = super.{self::A::f}{dynamic}.-(42);
+    self::use(super.f = super.{self::A::f}{dynamic}.-(42));
+    super.{self::A::g} = super.g{dynamic}.-(42);
+    self::use(super.{self::A::g} = super.g{dynamic}.-(42));
+    super.{self::A::h} = super.{self::A::h}{dynamic}.-(42);
+    self::use(super.{self::A::h} = super.{self::A::h}{dynamic}.-(42));
+    super.{self::B::i} = super.{self::A::i}{dynamic}.-(42);
+    self::use(super.{self::B::i} = super.{self::A::i}{dynamic}.-(42));
+    let final core::int* #t56 = 87 in super.{self::A::[]=}(#t56, super.{self::A::[]}(#t56){dynamic}.-(42));
+    self::use(let final core::int* #t57 = 87 in let final dynamic #t58 = super.{self::A::[]}(#t57){dynamic}.-(42) in let final void #t59 = super.{self::A::[]=}(#t57, #t58) in #t58);
+    super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:247:13: Error: The operator '-' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
+    super.m -= 42;
+            ^" in super.{self::A::m}{<unresolved>}.-(42);
+    self::use(super.m = invalid-expression "pkg/front_end/testcases/rasta/super.dart:248:17: Error: The operator '-' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
+    use(super.m -= 42);
+                ^" in super.{self::A::m}{<unresolved>}.-(42));
+    super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:249:13: Error: The operator '-' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
+    super.n -= 42;
+            ^" in super.{self::A::n}{<unresolved>}.-(42);
+    self::use(super.{self::A::n} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:250:17: Error: The operator '-' isn't defined for the class 'void Function()'.
+Try correcting the operator to an existing operator, or defining a '-' operator.
+    use(super.n -= 42);
+                ^" in super.{self::A::n}{<unresolved>}.-(42));
+  }
+}
+static method use(dynamic x) → dynamic {
+  if(x =={core::Object::==}{(core::Object*) →* core::bool*} new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int*})
+    throw "Shouldn't happen";
+}
+static method main() → dynamic {
+  new self::C::•().{self::C::test}(){() →* dynamic};
+}

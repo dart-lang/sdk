@@ -1,0 +1,43 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class B<Y extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B<self::B::Y%>
+    : super core::Object::•()
+    ;
+  method bar(covariant-by-class FutureOr<self::B::Y%>y) → dynamic {}
+}
+class A<X extends core::Object? = dynamic> extends core::Object {
+  covariant-by-class final field self::B<self::A::X%> b = new self::B::•<self::A::X%>();
+  synthetic constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+  method foo([covariant-by-class FutureOr<self::A::X%>? x = #C1]) → dynamic {
+    if(x is{ForNonNullableByDefault} asy::Future<self::A::X%>) {
+      this.{self::A::b}{self::B<self::A::X%>}.{self::B::bar}(x{asy::Future<self::A::X%>} as{ForNonNullableByDefault} FutureOr<self::A::X%>){(FutureOr<self::A::X%>) → dynamic};
+    }
+  }
+}
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  method baz<covariant-by-class X extends FutureOr<self::C::T%>>(covariant-by-class FutureOr<self::C::T%>x) → FutureOr<self::C::T%>
+    return x;
+}
+class D<T extends core::Object? = dynamic> extends self::C<self::D::T%> {
+  synthetic constructor •() → self::D<self::D::T%>
+    : super self::C::•()
+    ;
+  method baz<covariant-by-class X extends FutureOr<self::D::T%>>(covariant-by-class FutureOr<self::D::T%>x) → FutureOr<self::D::T%>
+    return x;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

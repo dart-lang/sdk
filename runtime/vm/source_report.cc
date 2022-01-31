@@ -105,7 +105,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       return true;
   }
   if (func.is_abstract() || func.IsImplicitConstructor() ||
-      func.is_synthetic()) {
+      func.is_synthetic() || func.is_redirecting_factory()) {
     return true;
   }
   if (func.IsNonImplicitClosureFunction() &&
@@ -115,6 +115,36 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     // function failed to compile.
     return true;
   }
+
+  // There is an idiom where static utility classes are given a private
+  // constructor to prevent the the class from being instantiated. Ignore these
+  // constructors so that they don't lower the coverage rate. See #47021.
+  SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
+  if (func.kind() == UntaggedFunction::kConstructor &&
+      func.NumParameters() == func.NumImplicitParameters() &&
+      func.IsPrivate()) {
+    // Check that the class has no non-static members and no subclasses.
+    Class& cls = Class::Handle(func.Owner());
+    GrowableObjectArray& subclasses =
+        GrowableObjectArray::Handle(cls.direct_subclasses());
+    if (cls.is_abstract() && !cls.HasInstanceFields() &&
+        (subclasses.IsNull() || subclasses.Length() == 0)) {
+      // Check that the constructor is the only non-static function.
+      Array& clsFuncs = Array::Handle(cls.functions());
+      Function& otherFunc = Function::Handle();
+      intptr_t numNonStaticFunctions = 0;
+      for (intptr_t i = 0; i < clsFuncs.Length(); ++i) {
+        otherFunc ^= clsFuncs.At(i);
+        if (!otherFunc.IsStaticFunction()) {
+          ++numNonStaticFunctions;
+        }
+      }
+      if (numNonStaticFunctions == 1) {
+        return true;
+      }
+    }
+  }
+
   return false;
 }
 
@@ -232,6 +262,27 @@ intptr_t SourceReport::GetTokenPosOrLine(const Script& script,
   return line;
 }
 
+bool SourceReport::ShouldCoverageSkipCallSite(const ICData* ic_data) {
+  if (ic_data == NULL) return true;
+  if (!ic_data->is_static_call()) return false;
+  Function& func = Function::Handle(ic_data->GetTargetAt(0));
+
+  // Ignore calls to the LateError functions. These are used to throw errors to
+  // do with late variables. These errors shouldn't be hit in working code, so
+  // shouldn't count against the coverage total.
+  // See https://github.com/dart-lang/coverage/issues/341
+  if (late_error_class_id_ == ClassId::kIllegalCid) {
+    const Class& lateErrorClass =
+        Class::Handle(Library::LookupCoreClass(Symbols::LateError()));
+    late_error_class_id_ = lateErrorClass.id();
+  }
+  Class& cls = Class::Handle(func.Owner());
+  if (late_error_class_id_ == cls.id()) {
+    return true;
+  }
+  return false;
+}
+
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      const Function& function,
                                      const Code& code) {
@@ -285,7 +336,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     HANDLESCOPE(thread());
     ASSERT(iter.DeoptId() < ic_data_array->length());
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
-    if (ic_data != NULL) {
+    if (!ShouldCoverageSkipCallSite(ic_data)) {
       const TokenPosition& token_pos = iter.TokenPos();
       update_coverage(token_pos, ic_data->AggregateCount() > 0);
     }
@@ -295,11 +346,14 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
   const Array& coverage_array = Array::Handle(function.GetCoverageArray());
   if (!coverage_array.IsNull()) {
     for (intptr_t i = 0; i < coverage_array.Length(); i += 2) {
-      const TokenPosition token_pos = TokenPosition::Deserialize(
-          Smi::Value(Smi::RawCast(coverage_array.At(i))));
-      const bool was_executed =
-          Smi::Value(Smi::RawCast(coverage_array.At(i + 1))) != 0;
-      update_coverage(token_pos, was_executed);
+      bool is_branch_coverage;
+      const TokenPosition token_pos = TokenPosition::DecodeCoveragePosition(
+          Smi::Value(Smi::RawCast(coverage_array.At(i))), &is_branch_coverage);
+      if (!is_branch_coverage) {
+        const bool was_executed =
+            Smi::Value(Smi::RawCast(coverage_array.At(i + 1))) != 0;
+        update_coverage(token_pos, was_executed);
+      }
     }
   }
 

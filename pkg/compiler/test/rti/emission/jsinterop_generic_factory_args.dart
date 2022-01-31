@@ -7,7 +7,7 @@
 @JS()
 library foo;
 
-/*class: global#JavaScriptObject:*/
+/*class: global#LegacyJavaScriptObject:*/
 
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';

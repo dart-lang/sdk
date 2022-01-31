@@ -1,0 +1,49 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+import "dart:math" as math;
+
+class Trace extends core::Object {
+  field core::List<self::Frame*>* frames = <self::Frame*>[];
+  synthetic constructor •() → self::Trace*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Frame extends core::Object {
+  field core::String* location = "";
+  synthetic constructor •() → self::Frame*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  core::List<self::Trace*>* traces = <self::Trace*>[];
+  core::int* longest = traces.{core::Iterable::map}<core::int*>((self::Trace* trace) → core::int* {
+    return trace.{self::Trace::frames}{core::List<self::Frame*>*}.{core::Iterable::map}<core::int*>((self::Frame* frame) → core::int* => frame.{self::Frame::location}{core::String*}.{core::String::length}{core::int*}){((self::Frame*) →* core::int*) →* core::Iterable<core::int*>*}.{core::Iterable::fold}<core::int*>(0, #C2){(core::int*, (core::int*, core::int*) →* core::int*) →* core::int*};
+  }){((self::Trace*) →* core::int*) →* core::Iterable<core::int*>*}.{core::Iterable::fold}<core::int*>(0, #C2){(core::int*, (core::int*, core::int*) →* core::int*) →* core::int*};
+}
+
+constants  {
+  #C1 = static-tearoff math::max
+  #C2 = instantiation #C1 <core::int*>
+}

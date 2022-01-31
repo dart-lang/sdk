@@ -21,7 +21,7 @@ class RemoveArgumentBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.avoid_redundant_argument_values;
 
-  Future<void> test_singleFile() async {
+  Future<void> test_independentInvocations() async {
     await resolveTestCode('''
 void f({bool valWithDefault = true, bool val}) {}
 void f2({bool valWithDefault = true, bool val}) {}
@@ -41,6 +41,45 @@ void main() {
 }
 ''');
   }
+
+  Future<void> test_multipleInSingleInvocation_actual() async {
+    await resolveTestCode('''
+void f() {
+  g(a: 0, b: 1, c: 2);
+}
+
+void g({int a = 0, int b = 1, int c = 2}) {}
+''');
+    await assertHasFix('''
+void f() {
+  g(b: 1);
+}
+
+void g({int a = 0, int b = 1, int c = 2}) {}
+''');
+  }
+
+  @failingTest
+  Future<void> test_multipleInSingleInvocation_ideal() async {
+    // The edits currently conflict with each other because they're overlapping,
+    // so one of them isn't applied. This only impacts the fix-all-in-file case
+    // because the bulk-fix case catches the remaining argument on the second
+    // pass.
+    await resolveTestCode('''
+void f() {
+  g(a: 0, b: 1, c: 2);
+}
+
+void g({int a = 0, int b = 1, int c = 2}) {}
+''');
+    await assertHasFix('''
+void f() {
+  g();
+}
+
+void g({int a = 0, int b = 1, int c = 2}) {}
+''');
+  }
 }
 
 @reflectiveTest
@@ -51,7 +90,7 @@ class RemoveArgumentTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_redundant_argument_values;
 
-  Future<void> test_named_param() async {
+  Future<void> test_named() async {
     await resolveTestCode('''
 void f({bool valWithDefault = true, bool? val}) {}
 
@@ -68,7 +107,27 @@ void main() {
 ''');
   }
 
-  Future<void> test_named_param_2() async {
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/linter/issues/3082',
+  )
+  Future<void> test_named_betweenRequiredPositional() async {
+    await resolveTestCode('''
+void foo(int a, int b, {bool c = true}) {}
+
+void f() {
+  foo(0, c: true, 1);
+}
+''');
+    await assertHasFix('''
+void foo(int a, int b, {bool c = true}) {}
+
+void f() {
+  foo(0, 1);
+}
+''');
+  }
+
+  Future<void> test_named_hasOtherNamed() async {
     await resolveTestCode('''
 void f({bool valWithDefault = true, bool? val}) {}
 

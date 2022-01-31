@@ -1,0 +1,58 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:test" as test;
+
+import "dart:test";
+
+static method main() → dynamic {
+  test::Class1? c1;
+  test::Class2? c2;
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/platform_nonnullable_fields/patch_lib2.dart:32:14: Error: Field 'staticField' should be initialized because its type 'int' doesn't allow null.
+//   static int staticField;
+//              ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/platform_nonnullable_fields/patch_lib2.dart:30:7: Error: Field 'field' should be initialized because its type 'int' doesn't allow null.
+//   int field;
+//       ^^^^^
+//
+// pkg/front_end/testcases/nnbd/platform_nonnullable_fields/origin_lib.dart:8:3: Error: This constructor should initialize field 'field' because its type 'int' doesn't allow null.
+//   Class2.constructor1();
+//   ^
+// pkg/front_end/testcases/nnbd/platform_nonnullable_fields/patch_lib2.dart:37:7: Context: 'field' is defined here.
+//   int field;
+//       ^^^^^
+//
+import self as test;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@#C1
+class Class1 extends core::Object {
+  field core::int field = null /* from org-dartlang-testcase:///patch_lib2.dart */;
+  static field core::int staticField = null /* from org-dartlang-testcase:///patch_lib2.dart */;
+  synthetic constructor •() → test::Class1
+    : super core::Object::•()
+    ;
+}
+@#C1
+class Class2 extends core::Object {
+  field core::int field /* from org-dartlang-testcase:///patch_lib2.dart */;
+  constructor constructor2(core::int field) → test::Class2
+    : test::Class2::field = field, super core::Object::•()
+    ;
+  constructor constructor1() → test::Class2
+    : test::Class2::field = null, super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = _in::_Patch {}
+}

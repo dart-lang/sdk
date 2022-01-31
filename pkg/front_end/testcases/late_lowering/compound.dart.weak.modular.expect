@@ -1,0 +1,62 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
+//   local += 0;
+//   ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method main() → dynamic {
+  lowered core::int? #local1;
+  lowered core::bool #local1#isSet = false;
+  function #local1#get() → core::int
+    return #local1#isSet ?{core::int} #local1{core::int} : throw new _in::LateError::localNI("local1");
+  function #local1#set(core::int #t1) → dynamic {
+    #local1#isSet = true;
+    return #local1 = #t1;
+  }
+  #local1#set(0){(core::int) → dynamic};
+  self::expect(0, #local1#get(){() → core::int});
+  #local1#set(#local1#get(){() → core::int}.{core::num::+}(2){(core::num) → core::int}){(core::int) → dynamic};
+  self::expect(2, #local1#get(){() → core::int});
+  lowered core::int? #local2;
+  lowered core::bool #local2#isSet = false;
+  function #local2#get() → core::int {
+    if(!#local2#isSet) {
+      #local2 = 1;
+      #local2#isSet = true;
+    }
+    return #local2{core::int};
+  }
+  function #local2#set(core::int #t2) → dynamic {
+    #local2#isSet = true;
+    return #local2 = #t2;
+  }
+  self::expect(1, #local2#get(){() → core::int});
+  #local2#set(#local2#get(){() → core::int}.{core::num::+}(2){(core::num) → core::int}){(core::int) → dynamic};
+  self::expect(3, #local2#get(){() → core::int});
+}
+static method error() → dynamic {
+  lowered final core::int? #local;
+  lowered core::bool #local#isSet = false;
+  function #local#get() → core::int
+    return #local#isSet ?{core::int} #local{core::int} : throw new _in::LateError::localNI("local");
+  function #local#set(core::int #t3) → dynamic
+    if(#local#isSet)
+      throw new _in::LateError::localAI("local");
+    else {
+      #local#isSet = true;
+      return #local = #t3;
+    }
+  #local#set(invalid-expression "pkg/front_end/testcases/late_lowering/compound.dart:20:3: Error: Late variable 'local' without initializer is definitely unassigned.
+  local += 0;
+  ^^^^^" in #local#get(){() → core::int}.{core::num::+}(0){(core::num) → core::int}){(core::int) → dynamic};
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

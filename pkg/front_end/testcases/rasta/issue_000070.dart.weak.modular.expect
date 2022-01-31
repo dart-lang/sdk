@@ -1,0 +1,77 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+class A<N extends core::Object* = dynamic, S extends core::Object* = dynamic, U extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field core::List<self::A::U*>* field;
+  constructor •(self::A::N* n, self::A::S* s) → self::A<self::A::N*, self::A::S*, self::A::U*>*
+    : self::A::field = <self::A::U*>[], super core::Object::•() {
+    exp::Expect::isTrue(n is self::A::N*);
+    exp::Expect::isTrue(s is self::A::S*);
+  }
+  constructor empty() → self::A<self::A::N*, self::A::S*, self::A::U*>*
+    : self::A::field = null, super core::Object::•() {}
+  const constructor c(self::A::U* u, self::A::S* s) → self::A<self::A::N*, self::A::S*, self::A::U*>*
+    : self::A::field = #C2, super core::Object::•()
+    ;
+  static factory f<N extends core::Object* = dynamic, S extends core::Object* = dynamic, U extends core::Object* = dynamic>(self::A::f::S* s) → self::A<self::A::f::N*, self::A::f::S*, self::A::f::U*>* {
+    exp::Expect::isTrue(s is self::A::f::S*);
+    return new self::A::empty<self::A::f::N*, self::A::f::S*, self::A::f::U*>();
+  }
+  get getter() → core::List<self::A::U*>* {
+    return this.{self::A::field}{core::List<self::A::U*>*};
+  }
+  set setter(covariant-by-class self::A::S* s) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class J<Aa extends core::Object* = dynamic, B extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::J<self::J::Aa*, self::J::B*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class I<H extends core::Object* = dynamic, C extends core::Object* = dynamic, K extends core::Object* = dynamic> extends self::J<self::I::C*, self::I::K*> {
+  synthetic constructor •() → self::I<self::I::H*, self::I::C*, self::I::K*>*
+    : super self::J::•()
+    ;
+}
+static method main() → dynamic {
+  new self::A::•<core::num*, core::double*, core::List<dynamic>*>(1, 2.0);
+  self::A<dynamic, dynamic, dynamic>* a = self::A::f<core::int*, core::int*, core::int*>(1);
+  #C3;
+  core::List<dynamic>* z = a.{self::A::getter}{core::List<dynamic>*};
+  a.{self::A::setter} = 1;
+}
+
+constants  {
+  #C1 = null
+  #C2 = <Null>[#C1]
+  #C3 = self::A<core::int*, core::int*, core::List<dynamic>*> {field:#C2}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue_000070.dart:
+- A.c (from org-dartlang-testcase:///issue_000070.dart:22:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

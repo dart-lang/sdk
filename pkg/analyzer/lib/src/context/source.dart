@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/src/source/package_map_resolver.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/package_build.dart';
 
@@ -63,14 +64,6 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
-  void clearCache() {
-    _absoluteUriToSourceCache.clear();
-    for (var resolver in resolvers) {
-      resolver.clearCache();
-    }
-  }
-
-  @override
   Source? forUri(String absoluteUri) {
     try {
       Uri uri;
@@ -109,6 +102,17 @@ class SourceFactoryImpl implements SourceFactory {
   }
 
   @override
+  Uri? pathToUri(String path) {
+    for (var resolver in resolvers) {
+      var uri = resolver.pathToUri(path);
+      if (uri != null) {
+        return uri;
+      }
+    }
+    return null;
+  }
+
+  @override
   Source? resolveUri(Source? containingSource, String? containedUri) {
     if (containedUri == null) {
       return null;
@@ -135,18 +139,13 @@ class SourceFactoryImpl implements SourceFactory {
     }
   }
 
+  @Deprecated('Use pathToUri() instead')
   @override
   Uri? restoreUri(Source source) {
-    for (UriResolver resolver in resolvers) {
-      // First see if a resolver can restore the URI.
-      Uri? uri = resolver.restoreAbsolute(source);
-
-      if (uri != null) {
-        return uri;
-      }
+    if (source is InSummarySource) {
+      return source.uri;
     }
-
-    return null;
+    return pathToUri(source.fullName);
   }
 
   /// Return a source object representing the URI that results from resolving

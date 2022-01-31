@@ -62,6 +62,8 @@ class WrapInText extends CorrectionProducer {
         }
       }
     }
+
+    return null;
   }
 }
 

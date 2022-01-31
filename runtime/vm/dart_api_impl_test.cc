@@ -7854,7 +7854,8 @@ TEST_CASE(DartAPI_Multiroot_FailWhenUriIsWrong) {
                "'foo1:///.dart_tool");
 }
 
-void NewNativePort_send123(Dart_Port dest_port_id, Dart_CObject* message) {
+static void NewNativePort_send123(Dart_Port dest_port_id,
+                                  Dart_CObject* message) {
   // Gets a send port message.
   EXPECT_NOTNULL(message);
   EXPECT_EQ(Dart_CObject_kArray, message->type);
@@ -7869,7 +7870,8 @@ void NewNativePort_send123(Dart_Port dest_port_id, Dart_CObject* message) {
                    response);
 }
 
-void NewNativePort_send321(Dart_Port dest_port_id, Dart_CObject* message) {
+static void NewNativePort_send321(Dart_Port dest_port_id,
+                                  Dart_CObject* message) {
   // Gets a null message.
   EXPECT_NOTNULL(message);
   EXPECT_EQ(Dart_CObject_kArray, message->type);
@@ -7978,8 +7980,8 @@ VM_UNIT_TEST_CASE(DartAPI_NewNativePort) {
   EXPECT(Dart_CloseNativePort(port_id2));
 }
 
-void NewNativePort_sendInteger123(Dart_Port dest_port_id,
-                                  Dart_CObject* message) {
+static void NewNativePort_sendInteger123(Dart_Port dest_port_id,
+                                         Dart_CObject* message) {
   // Gets a send port message.
   EXPECT_NOTNULL(message);
   EXPECT_EQ(Dart_CObject_kArray, message->type);
@@ -7990,8 +7992,8 @@ void NewNativePort_sendInteger123(Dart_Port dest_port_id,
                    123);
 }
 
-void NewNativePort_sendInteger321(Dart_Port dest_port_id,
-                                  Dart_CObject* message) {
+static void NewNativePort_sendInteger321(Dart_Port dest_port_id,
+                                         Dart_CObject* message) {
   // Gets a null message.
   EXPECT_NOTNULL(message);
   EXPECT_EQ(Dart_CObject_kArray, message->type);
@@ -8053,8 +8055,132 @@ TEST_CASE(DartAPI_NativePortPostInteger) {
   EXPECT(Dart_CloseNativePort(port_id2));
 }
 
-void NewNativePort_nativeReceiveNull(Dart_Port dest_port_id,
-                                     Dart_CObject* message) {
+static void NewNativePort_Transferrable1(Dart_Port dest_port_id,
+                                         Dart_CObject* message) {
+  // Gets a send port message.
+  EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject_kTypedData, message->type);
+  EXPECT_EQ(Dart_TypedData_kUint8, message->value.as_typed_data.type);
+  EXPECT_EQ(10, message->value.as_typed_data.length);
+  EXPECT_EQ(42, message->value.as_typed_data.values[0]);
+  free(message->value.as_typed_data.values);
+}
+
+static void NewNativePort_Transferrable2(Dart_Port dest_port_id,
+                                         Dart_CObject* message) {
+  // Gets a send port message.
+  EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject_kArray, message->type);
+  EXPECT_EQ(1, message->value.as_array.length);
+  Dart_CObject* cobj = message->value.as_array.values[0];
+  EXPECT_EQ(Dart_CObject_kTypedData, cobj->type);
+  EXPECT_EQ(Dart_TypedData_kUint8, cobj->value.as_typed_data.type);
+  EXPECT_EQ(10, cobj->value.as_typed_data.length);
+  EXPECT_EQ(42, cobj->value.as_typed_data.values[0]);
+  free(cobj->value.as_typed_data.values);
+}
+
+TEST_CASE(DartAPI_NativePortPostTransferrableTypedData) {
+  const char* kScriptChars =
+      "import 'dart:typed_data';\n"
+      "import 'dart:isolate';\n"
+      "void callPort(SendPort port1, SendPort port2) {\n"
+      "  final td1 ="
+      "     TransferableTypedData.fromList([Uint8List(10)..[0] = 42]);\n"
+      "  final td2 ="
+      "     TransferableTypedData.fromList([Uint8List(10)..[0] = 42]);\n"
+      "  port1.send(td1);\n"
+      "  port2.send([td2]);\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  Dart_Port port_id1 =
+      Dart_NewNativePort("Port123", NewNativePort_Transferrable1, true);
+  Dart_Port port_id2 =
+      Dart_NewNativePort("Port321", NewNativePort_Transferrable2, true);
+
+  Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
+  EXPECT_VALID(send_port1);
+  Dart_Handle send_port2 = Dart_NewSendPort(port_id2);
+  EXPECT_VALID(send_port2);
+
+  // Test first port.
+  Dart_Handle dart_args[2];
+  dart_args[0] = send_port1;
+  dart_args[1] = send_port2;
+  Dart_Handle result = Dart_Invoke(lib, NewString("callPort"), 2, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT_VALID(result);
+
+  Dart_ExitScope();
+
+  // Delete the native ports.
+  EXPECT(Dart_CloseNativePort(port_id1));
+  EXPECT(Dart_CloseNativePort(port_id2));
+}
+
+static const intptr_t kSendLength = 16;
+
+static void NewNativePort_ExternalTypedData(Dart_Port dest_port_id,
+                                            Dart_CObject* message) {
+  // Gets a send port message.
+  EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject_kTypedData, message->type);
+  EXPECT_EQ(Dart_TypedData_kUint8, message->value.as_typed_data.type);
+  EXPECT_EQ(kSendLength, message->value.as_typed_data.length);
+  for (intptr_t i = 0; i < kSendLength; i++) {
+    EXPECT_EQ((0x41 + i), message->value.as_typed_data.values[i]);
+  }
+}
+
+static void FinalizeTypedData(void* isolate_callback_data, void* peer) {
+  delete[] reinterpret_cast<int8_t*>(peer);
+}
+
+TEST_CASE(DartAPI_NativePortPostExternalTypedData) {
+  int8_t* extTypedData = new int8_t[kSendLength];
+  for (int i = 0; i < kSendLength; i++) {
+    extTypedData[i] = 0x41 + i;
+  }
+  const char* kScriptChars =
+      "import 'dart:typed_data';\n"
+      "import 'dart:isolate';\n"
+      "void callPort(SendPort port, Uint8List data) {\n"
+      "  port.send(data);\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  Dart_Port port_id =
+      Dart_NewNativePort("Port123", NewNativePort_ExternalTypedData, true);
+
+  Dart_Handle send_port = Dart_NewSendPort(port_id);
+  EXPECT_VALID(send_port);
+
+  Dart_Handle extdata = Dart_NewExternalTypedDataWithFinalizer(
+      Dart_TypedData_kUint8, extTypedData, kSendLength, extTypedData,
+      kSendLength, FinalizeTypedData);
+  EXPECT_VALID(extdata);
+
+  // Test first port.
+  Dart_Handle dart_args[2];
+  dart_args[0] = send_port;
+  dart_args[1] = extdata;
+  Dart_Handle result = Dart_Invoke(lib, NewString("callPort"), 2, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT_VALID(result);
+
+  Dart_ExitScope();
+
+  // Delete the native ports.
+  EXPECT(Dart_CloseNativePort(port_id));
+}
+
+static void NewNativePort_nativeReceiveNull(Dart_Port dest_port_id,
+                                            Dart_CObject* message) {
   EXPECT_NOTNULL(message);
 
   if ((message->type == Dart_CObject_kArray) &&
@@ -8104,8 +8230,8 @@ TEST_CASE(DartAPI_NativePortReceiveNull) {
   EXPECT(Dart_CloseNativePort(port_id1));
 }
 
-void NewNativePort_nativeReceiveInteger(Dart_Port dest_port_id,
-                                        Dart_CObject* message) {
+static void NewNativePort_nativeReceiveInteger(Dart_Port dest_port_id,
+                                               Dart_CObject* message) {
   EXPECT_NOTNULL(message);
 
   if ((message->type == Dart_CObject_kArray) &&
@@ -9321,6 +9447,84 @@ TEST_CASE(DartAPI_TimelineClock) {
   EXPECT_NE(micros1, micros2);
   EXPECT_NE(ticks1, ticks2);
   EXPECT_EQ(frequency1, frequency2);
+}
+
+TEST_CASE(DartAPI_TimelineCategories) {
+  bool result;
+  {
+    result = Dart_SetEnabledTimelineCategory("all");
+    EXPECT_EQ(true, result);
+    JSONStream js;
+    JSONObject obj(&js);
+    JSONArray jstream(&obj, "available");
+    Timeline::PrintFlagsToJSONArray(&jstream);
+    const char* js_str = js.ToCString();
+#define TIMELINE_STREAM_CHECK(name, fuchsia_name)                              \
+  EXPECT_SUBSTRING(#name, js_str);
+    TIMELINE_STREAM_LIST(TIMELINE_STREAM_CHECK)
+#undef TIMELINE_STREAM_CHECK
+  }
+
+  {
+    result = Dart_SetEnabledTimelineCategory(nullptr);
+    EXPECT_EQ(false, result);
+    result = Dart_SetEnabledTimelineCategory("GC,api,compiler");
+    EXPECT_EQ(false, result);
+  }
+
+  {
+    result = Dart_SetEnabledTimelineCategory("GC,API,Compiler");
+    EXPECT_EQ(true, result);
+    JSONStream js;
+    JSONObject obj(&js);
+    JSONArray jstream(&obj, "available");
+    Timeline::PrintFlagsToJSONArray(&jstream);
+    const char* js_str = js.ToCString();
+    EXPECT_SUBSTRING("GC", js_str);
+    EXPECT_SUBSTRING("API", js_str);
+    EXPECT_SUBSTRING("Compiler", js_str);
+    EXPECT_NOTSUBSTRING("CompilerVerbose", js_str);
+    EXPECT_NOTSUBSTRING("Debugger", js_str);
+    EXPECT_NOTSUBSTRING("Embedder", js_str);
+    EXPECT_NOTSUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("VM", js_str);
+  }
+
+  {
+    result = Dart_SetEnabledTimelineCategory("Isolate");
+    EXPECT_EQ(true, result);
+    JSONStream js;
+    JSONObject obj(&js);
+    JSONArray jstream(&obj, "available");
+    Timeline::PrintFlagsToJSONArray(&jstream);
+    const char* js_str = js.ToCString();
+    EXPECT_NOTSUBSTRING("GC", js_str);
+    EXPECT_NOTSUBSTRING("API", js_str);
+    EXPECT_NOTSUBSTRING("Compiler", js_str);
+    EXPECT_NOTSUBSTRING("CompilerVerbose", js_str);
+    EXPECT_NOTSUBSTRING("Debugger", js_str);
+    EXPECT_NOTSUBSTRING("Embedder", js_str);
+    EXPECT_SUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("VM", js_str);
+  }
+
+  {
+    result = Dart_SetEnabledTimelineCategory("");
+    EXPECT_EQ(true, result);
+    JSONStream js;
+    JSONObject obj(&js);
+    JSONArray jstream(&obj, "available");
+    Timeline::PrintFlagsToJSONArray(&jstream);
+    const char* js_str = js.ToCString();
+    EXPECT_NOTSUBSTRING("GC", js_str);
+    EXPECT_NOTSUBSTRING("API", js_str);
+    EXPECT_NOTSUBSTRING("Compiler", js_str);
+    EXPECT_NOTSUBSTRING("CompilerVerbose", js_str);
+    EXPECT_NOTSUBSTRING("Debugger", js_str);
+    EXPECT_NOTSUBSTRING("Embedder", js_str);
+    EXPECT_NOTSUBSTRING("Isolate", js_str);
+    EXPECT_NOTSUBSTRING("VM", js_str);
+  }
 }
 
 static void HintFreedNative(Dart_NativeArguments args) {

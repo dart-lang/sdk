@@ -13,8 +13,8 @@ part of dart.core;
 /// elements are treated as being the same for any operation on the set.
 ///
 /// The default [Set] implementation, [LinkedHashSet], considers objects
-/// indistinguishable if they are equal with regard to
-/// operator [Object.==].
+/// indistinguishable if they are equal with regard to [Object.==] and
+/// [Object.hashCode].
 ///
 /// Iterating over elements of a set may be either unordered
 /// or ordered in some way. Examples:
@@ -57,7 +57,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// All the [elements] should be instances of [E].
   /// The `elements` iterable itself can have any type,
   /// so this constructor can be used to down-cast a `Set`, for example as:
-  /// ```dart
+  /// ```
   /// Set<SuperType> superSet = ...;
   /// Set<SubType> subSet =
   ///     Set<SubType>.from(superSet.where((e) => e is SubType));
@@ -68,6 +68,11 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   ///
   /// The set is equivalent to one created by
   /// `LinkedHashSet<E>.from(elements)`.
+  /// ```dart
+  /// final numbers = <num>{10, 20, 30};
+  /// final setFrom = Set<int>.from(numbers);
+  /// print(setFrom); // {10, 20, 30}
+  /// ```
   factory Set.from(Iterable elements) = LinkedHashSet<E>.from;
 
   /// Creates a [Set] from [elements].
@@ -78,12 +83,21 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   ///
   /// The set is equivalent to one created by
   /// `LinkedHashSet<E>.of(elements)`.
+  /// ```dart
+  /// final baseSet = <int>{1, 2, 3};
+  /// final setOf = Set<num>.of(baseSet);
+  /// print(setOf); // {1, 2, 3}
+  /// ```
   factory Set.of(Iterable<E> elements) = LinkedHashSet<E>.of;
 
   /// Creates an unmodifiable [Set] from [elements].
   ///
   /// The new set behaves like the result of [Set.of],
   /// except that the set returned by this constructor is not modifiable.
+  /// ```dart
+  /// final characters = <String>{'A', 'B', 'C'};
+  /// final unmodifiableSet = Set.unmodifiable(characters);
+  /// ```
   @Since("2.12")
   factory Set.unmodifiable(Iterable<E> elements) =>
       UnmodifiableSetView<E>(<E>{...elements});
@@ -103,7 +117,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// the store will throw unless the value is also an instance of [S].
   ///
   /// If all accessed elements of [source] are actually instances of [T],
-  /// and if all elements added to the returned set are actually instance
+  /// and if all elements added to the returned set are actually instances
   /// of [S],
   /// then the returned set can be used as a `Set<T>`.
   ///
@@ -121,7 +135,7 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// that is not an instance of [R], the access will throw instead.
   ///
   /// Elements added to the set (e.g., by using [add] or [addAll])
-  /// must be instance of [R] to be valid arguments to the adding function,
+  /// must be instances of [R] to be valid arguments to the adding function,
   /// and they must be instances of [E] as well to be accepted by
   /// this set as well.
   ///
@@ -140,6 +154,11 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   Iterator<E> get iterator;
 
   /// Whether [value] is in the set.
+  /// ```dart
+  /// final characters = <String>{'A', 'B', 'C'};
+  /// final containsB = characters.contains('B'); // true
+  /// final containsD = characters.contains('D'); // false
+  /// ```
   bool contains(Object? value);
 
   /// Adds [value] to the set.
@@ -149,18 +168,23 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   ///
   /// Example:
   /// ```dart
-  /// var set = Set();
-  /// var time1 = DateTime.fromMillisecondsSinceEpoch(0);
-  /// var time2 = DateTime.fromMillisecondsSinceEpoch(0);
+  /// final dateTimes = <DateTime>{};
+  /// final time1 = DateTime.fromMillisecondsSinceEpoch(0);
+  /// final time2 = DateTime.fromMillisecondsSinceEpoch(0);
   /// // time1 and time2 are equal, but not identical.
   /// assert(time1 == time2);
   /// assert(!identical(time1, time2));
-  /// set.add(time1);  // => true.
+  /// final time1Added = dateTimes.add(time1);
+  /// print(time1Added); // true
   /// // A value equal to time2 exists already in the set, and the call to
   /// // add doesn't change the set.
-  /// set.add(time2);  // => false.
-  /// assert(set.length == 1);
-  /// assert(identical(time1, set.first));
+  /// final time2Added = dateTimes.add(time2);
+  /// print(time2Added); // false
+  ///
+  /// print(dateTimes); // {1970-01-01 02:00:00.000}
+  /// assert(dateTimes.length == 1);
+  /// assert(identical(time1, dateTimes.first));
+  /// print(dateTimes.length);
   /// ```
   bool add(E value);
 
@@ -168,12 +192,23 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   ///
   /// Equivalent to adding each element in [elements] using [add],
   /// but some collections may be able to optimize it.
+  /// ```dart
+  /// final characters = <String>{'A', 'B'};
+  /// characters.addAll({'A', 'B', 'C'});
+  /// print(characters); // {A, B, C}
+  /// ```
   void addAll(Iterable<E> elements);
 
   /// Removes [value] from the set.
   ///
   /// Returns `true` if [value] was in the set, and `false` if not.
   /// The method has no effect if [value] was not in the set.
+  /// ```dart
+  /// final characters = <String>{'A', 'B', 'C'};
+  /// final didRemoveB = characters.remove('B'); // true
+  /// final didRemoveD = characters.remove('D'); // false
+  /// print(characters); // {A, C}
+  /// ```
   bool remove(Object? value);
 
   /// If an object equal to [object] is in the set, return it.
@@ -188,9 +223,21 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// rather than being based on an actual object instance,
   /// then there may not be a specific object instance representing the
   /// set element.
+  /// ```dart
+  /// final characters = <String>{'A', 'B', 'C'};
+  /// final containsB = characters.lookup('B');
+  /// print(containsB); // B
+  /// final containsD = characters.lookup('D');
+  /// print(containsD); // null
+  /// ```
   E? lookup(Object? object);
 
   /// Removes each element of [elements] from this set.
+  /// ```dart
+  /// final characters = <String>{'A', 'B', 'C'};
+  /// characters.removeAll({'A', 'B', 'X'});
+  /// print(characters); // {C}
+  /// ```
   void removeAll(Iterable<Object?> elements);
 
   /// Removes all elements of this set that are not elements in [elements].
@@ -199,36 +246,85 @@ abstract class Set<E> extends EfficientLengthIterable<E> {
   /// set that is equal to it (according to `this.contains`), and if so, the
   /// equal element in this set is retained, and elements that are not equal
   /// to any element in [elements] are removed.
+  /// ```dart
+  /// final characters = <String>{'A', 'B', 'C'};
+  /// characters.retainAll({'A', 'B', 'X'});
+  /// print(characters); // {A, B}
+  /// ```
   void retainAll(Iterable<Object?> elements);
 
   /// Removes all elements of this set that satisfy [test].
+  /// ```dart
+  /// final characters = <String>{'A', 'B', 'C'};
+  /// characters.removeWhere((element) => element.startsWith('B'));
+  /// print(characters); // {A, C}
+  /// ```
   void removeWhere(bool test(E element));
 
   /// Removes all elements of this set that fail to satisfy [test].
+  /// ```dart
+  /// final characters = <String>{'A', 'B', 'C'};
+  /// characters.retainWhere(
+  ///     (element) => element.startsWith('B') || element.startsWith('C'));
+  /// print(characters); // {B, C}
+  /// ```
   void retainWhere(bool test(E element));
 
   /// Whether this set contains all the elements of [other].
+  /// ```dart
+  /// final characters = <String>{'A', 'B', 'C'};
+  /// final containsAB = characters.containsAll({'A', 'B'});
+  /// print(containsAB); // true
+  /// final containsAD = characters.containsAll({'A', 'D'});
+  /// print(containsAD); // false
+  /// ```
   bool containsAll(Iterable<Object?> other);
 
   /// Creates a new set which is the intersection between this set and [other].
   ///
   /// That is, the returned set contains all the elements of this [Set] that
   /// are also elements of [other] according to `other.contains`.
+  /// ```dart
+  /// final characters1 = <String>{'A', 'B', 'C'};
+  /// final characters2 = <String>{'A', 'E', 'F'};
+  /// final unionSet = characters1.intersection(characters2);
+  /// print(unionSet); // {A}
+  /// ```
   Set<E> intersection(Set<Object?> other);
 
   /// Creates a new set which contains all the elements of this set and [other].
   ///
   /// That is, the returned set contains all the elements of this [Set] and
   /// all the elements of [other].
+  /// ```dart
+  /// final characters1 = <String>{'A', 'B', 'C'};
+  /// final characters2 = <String>{'A', 'E', 'F'};
+  /// final unionSet1 = characters1.union(characters2);
+  /// print(unionSet1); // {A, B, C, E, F}
+  /// final unionSet2 = characters2.union(characters1);
+  /// print(unionSet2); // {A, E, F, B, C}
+  /// ```
   Set<E> union(Set<E> other);
 
   /// Creates a new set with the elements of this that are not in [other].
   ///
   /// That is, the returned set contains all the elements of this [Set] that
   /// are not elements of [other] according to `other.contains`.
+  /// ```dart
+  /// final characters1 = <String>{'A', 'B', 'C'};
+  /// final characters2 = <String>{'A', 'E', 'F'};
+  /// final differenceSet1 = characters1.difference(characters2);
+  /// print(differenceSet1); // {B, C}
+  /// final differenceSet2 = characters2.difference(characters1);
+  /// print(differenceSet2); // {E, F}
+  /// ```
   Set<E> difference(Set<Object?> other);
 
   /// Removes all elements from the set.
+  /// ```dart
+  /// final characters = <String>{'A', 'B', 'C'};
+  /// characters.clear(); // {}
+  /// ```
   void clear();
 
   /// Creates a [Set] with the same elements and behavior as this `Set`.

@@ -590,6 +590,127 @@ ISOLATE_UNIT_TEST_CASE(TypePropagator_NonNullableLoadStaticField) {
   EXPECT_PROPERTY(load->AsLoadStaticField()->Type(), !it.is_nullable());
 }
 
+ISOLATE_UNIT_TEST_CASE(TypePropagator_RedefineCanBeSentinelWithCannotBe) {
+  const char* kScript = R"(
+    late final int x;
+  )";
+  Zone* const Z = Thread::Current()->zone();
+  const auto& root_library = Library::CheckedHandle(Z, LoadTestScript(kScript));
+  const auto& toplevel = Class::Handle(Z, root_library.toplevel_class());
+  const auto& field_x = Field::Handle(
+      Z, toplevel.LookupStaticField(String::Handle(Z, String::New("x"))));
+
+  using compiler::BlockBuilder;
+  CompilerState S(thread, /*is_aot=*/false, /*is_optimizing=*/true);
+  FlowGraphBuilderHelper H;
+
+  // We are going to build the following graph:
+  //
+  // B0[graph]:0 {
+  //     v2 <- Constant(#3)
+  // }
+  // B1[function entry]:2
+  //     v3 <- LoadStaticField:10(x, ThrowIfSentinel)
+  //     v5 <- Constant(#sentinel)
+  //     Branch if StrictCompare:12(===, v3, v5) goto (2, 3)
+  // B2[target]:4
+  //     goto:16 B4
+  // B3[target]:6
+  //     v7 <- Redefinition(v3 ^ T{int?})
+  //     goto:18 B4
+  // B4[join]:8 pred(B2, B3) {
+  //       v9 <- phi(v2, v7) alive
+  // }
+  //     Return:20(v9)
+
+  Definition* v2 = H.IntConstant(3);
+  Definition* v3;
+  Definition* v7;
+  PhiInstr* v9;
+  auto b1 = H.flow_graph()->graph_entry()->normal_entry();
+  auto b2 = H.TargetEntry();
+  auto b3 = H.TargetEntry();
+  auto b4 = H.JoinEntry();
+
+  {
+    BlockBuilder builder(H.flow_graph(), b1);
+    v3 = builder.AddDefinition(new LoadStaticFieldInstr(
+        field_x, {},
+        /*calls_initializer=*/false, S.GetNextDeoptId()));
+    auto v5 = builder.AddDefinition(new ConstantInstr(Object::sentinel()));
+    builder.AddBranch(new StrictCompareInstr(
+                          {}, Token::kEQ_STRICT, new Value(v3), new Value(v5),
+                          /*needs_number_check=*/false, S.GetNextDeoptId()),
+                      b2, b3);
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b2);
+    builder.AddInstruction(new GotoInstr(b4, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b3);
+    v7 = builder.AddDefinition(new RedefinitionInstr(new Value(v3)));
+    CompileType int_type = CompileType::FromAbstractType(
+        Type::Handle(Type::IntType()),
+        /*can_be_null=*/
+        !IsolateGroup::Current()->use_strict_null_safety_checks(),
+        /*can_be_sentinel=*/false);
+    v7->AsRedefinition()->set_constrained_type(new CompileType(int_type));
+    builder.AddInstruction(new GotoInstr(b4, S.GetNextDeoptId()));
+  }
+
+  {
+    BlockBuilder builder(H.flow_graph(), b4);
+    v9 = H.Phi(b4, {{b2, v2}, {b3, v7}});
+    builder.AddPhi(v9);
+    builder.AddReturn(new Value(v9));
+  }
+
+  H.FinishGraph();
+
+  FlowGraphPrinter::PrintGraph("Before TypePropagator", H.flow_graph());
+  FlowGraphTypePropagator::Propagate(H.flow_graph());
+  FlowGraphPrinter::PrintGraph("After TypePropagator", H.flow_graph());
+
+  auto& blocks = H.flow_graph()->reverse_postorder();
+  EXPECT_EQ(5, blocks.length());
+  EXPECT_PROPERTY(blocks[0], it.IsGraphEntry());
+
+  // We expect the following types:
+  //
+  // B1[function entry]:2
+  //     v3 <- LoadStaticField:10(x) T{int?~}  // T{int~} in null safe mode
+  //     v5 <- Constant(#sentinel) T{Sentinel~}
+  //     Branch if StrictCompare:12(===, v3, v5) goto (2, 3)
+
+  EXPECT_PROPERTY(blocks[1], it.IsFunctionEntry());
+  EXPECT_PROPERTY(blocks[1]->next(), it.IsLoadStaticField());
+  EXPECT_PROPERTY(blocks[1]->next()->AsLoadStaticField(), it.HasType());
+  EXPECT_PROPERTY(blocks[1]->next()->AsLoadStaticField()->Type(),
+                  it.can_be_sentinel());
+
+  // B3[target]:6
+  //     v7 <- Redefinition(v3 ^ T{int?}) T{int?}  // T{int} in null safe mode
+  //     goto:18 B4
+  EXPECT_PROPERTY(blocks[3], it.IsTargetEntry());
+  EXPECT_PROPERTY(blocks[3]->next(), it.IsRedefinition());
+  EXPECT_PROPERTY(blocks[3]->next()->AsRedefinition(), it.HasType());
+  EXPECT_PROPERTY(blocks[3]->next()->AsRedefinition()->Type(),
+                  !it.can_be_sentinel());
+
+  // B4[join]:8 pred(B2, B3) {
+  //       v9 <- phi(v2, v7) alive T{int?}  // T{int} in null safe mode
+  // }
+  //     Return:20(v9)
+  EXPECT_PROPERTY(blocks[4], it.IsJoinEntry());
+  EXPECT_PROPERTY(blocks[4], it.AsJoinEntry()->phis() != nullptr);
+  EXPECT_PROPERTY(blocks[4]->AsJoinEntry()->phis()->At(0), it.HasType());
+  EXPECT_PROPERTY(blocks[4]->AsJoinEntry()->phis()->At(0)->Type(),
+                  !it.can_be_sentinel());
+}
+
 #endif  // defined(DART_PRECOMPILER)
 
 }  // namespace dart

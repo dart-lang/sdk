@@ -790,6 +790,6 @@ extension on Namespace {
     if (source2 == null) {
       return false;
     }
-    return !source1.isInSystemLibrary && source2.isInSystemLibrary;
+    return !source1.uri.isScheme('dart') && source2.uri.isScheme('dart');
   }
 }

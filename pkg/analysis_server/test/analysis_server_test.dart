@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -94,7 +95,7 @@ class AnalysisServerTest with ResourceProviderMixin {
   }
 
   Future test_echo() {
-    server.handlers = [EchoHandler()];
+    server.handlers = [EchoHandler(server)];
     var request = Request('my22', 'echo');
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my22'));
@@ -215,8 +216,39 @@ analyzer:
     });
   }
 
+  Future test_slowEcho_cancelled() async {
+    server.handlers = [
+      ServerDomainHandler(server),
+      EchoHandler(server),
+    ];
+    // Send the normal request.
+    var responseFuture = channel.sendRequest(Request('my22', 'slowEcho'));
+    // Send a cancellation for it for waiting for it to complete.
+    channel.sendRequest(
+      Request(
+        'my23',
+        'server.cancelRequest',
+        {'id': 'my22'},
+      ),
+    );
+    var response = await responseFuture;
+    expect(response.id, equals('my22'));
+    expect(response.error, isNull);
+    expect(response.result!['cancelled'], isTrue);
+  }
+
+  Future test_slowEcho_notCancelled() {
+    server.handlers = [EchoHandler(server)];
+    var request = Request('my22', 'slowEcho');
+    return channel.sendRequest(request).then((Response response) {
+      expect(response.id, equals('my22'));
+      expect(response.error, isNull);
+      expect(response.result!['cancelled'], isFalse);
+    });
+  }
+
   Future test_unknownRequest() {
-    server.handlers = [EchoHandler()];
+    server.handlers = [EchoHandler(server)];
     var request = Request('my22', 'randomRequest');
     return channel.sendRequest(request).then((Response response) {
       expect(response.id, equals('my22'));
@@ -226,11 +258,29 @@ analyzer:
 }
 
 class EchoHandler implements RequestHandler {
+  final AnalysisServer server;
+
+  EchoHandler(this.server);
+
   @override
-  Response? handleRequest(Request request) {
+  Response? handleRequest(
+      Request request, CancellationToken cancellationToken) {
     if (request.method == 'echo') {
       return Response(request.id, result: {'echo': true});
+    } else if (request.method == 'slowEcho') {
+      _slowEcho(request, cancellationToken);
+      return Response.DELAYED_RESPONSE;
     }
     return null;
+  }
+
+  void _slowEcho(Request request, CancellationToken cancellationToken) async {
+    for (var i = 0; i < 100; i++) {
+      if (cancellationToken.isCancellationRequested) {
+        server.sendResponse(Response(request.id, result: {'cancelled': true}));
+      }
+      await Future.delayed(const Duration(milliseconds: 10));
+    }
+    server.sendResponse(Response(request.id, result: {'cancelled': false}));
   }
 }

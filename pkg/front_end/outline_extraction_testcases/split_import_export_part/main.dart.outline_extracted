@@ -1,0 +1,19 @@
+org-dartlang-testcase:///main.dart:
+import "package:f" "oobar" "/" "foo" ".dart";
+export "package:f" "oobar" "/" "foo" ".dart";
+part "package:f" "oobar" "/" "part" ".dart";
+Foo giveFoo() {}
+Bar giveBar() {}
+
+
+
+
+org-dartlang-testcase:///foo.dart:
+class Foo {}
+
+
+
+
+org-dartlang-testcase:///part.dart:
+part of "package:f" "oobar" "/" "main" ".dart";
+class Bar {}

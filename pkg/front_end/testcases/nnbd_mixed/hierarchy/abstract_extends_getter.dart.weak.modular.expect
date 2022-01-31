@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class AbstractSuper extends core::Object {
+  synthetic constructor •() → self::AbstractSuper
+    : super core::Object::•()
+    ;
+  get extendedConcreteGetter() → core::int
+    return 0;
+  abstract get extendedAbstractGetter() → core::int;
+  get declaredConcreteExtendsConcreteGetter() → core::int
+    return 0;
+  get declaredAbstractExtendsConcreteGetter() → core::int
+    return 0;
+  abstract get declaredConcreteExtendsAbstractGetter() → core::int;
+  abstract get declaredAbstractExtendsAbstractGetter() → core::int;
+}
+abstract class AbstractClass extends self::AbstractSuper {
+  synthetic constructor •() → self::AbstractClass
+    : super self::AbstractSuper::•()
+    ;
+  get declaredConcreteGetter() → core::int
+    return 0;
+  abstract get declaredAbstractGetter() → core::int;
+  get declaredConcreteExtendsConcreteGetter() → core::int
+    return 0;
+  abstract get declaredAbstractExtendsConcreteGetter() → core::int;
+  get declaredConcreteExtendsAbstractGetter() → core::int
+    return 0;
+  abstract get declaredAbstractExtendsAbstractGetter() → core::int;
+}
+static method main() → dynamic {}

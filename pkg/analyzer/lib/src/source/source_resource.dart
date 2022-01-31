@@ -65,9 +65,10 @@ class FileSource extends Source {
   /// See [contents].
   TimestampedData<String> get contentsFromFile {
     return TimestampedData<String>(
-        modificationStamp, fileReadMode(file.readAsStringSync()));
+        file.modificationStamp, fileReadMode(file.readAsStringSync()));
   }
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => _encoding ??= uri.toString();
 
@@ -77,9 +78,11 @@ class FileSource extends Source {
   @override
   int get hashCode => uri.hashCode;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
 
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp {
     try {
@@ -92,6 +95,7 @@ class FileSource extends Source {
   @override
   String get shortName => file.shortName;
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind => UriKind.fromScheme(uri.scheme);
 

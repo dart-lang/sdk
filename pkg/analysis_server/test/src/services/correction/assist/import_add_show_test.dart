@@ -85,7 +85,7 @@ void f() {
   }
 
   Future<void> test_setterOnDirective() async {
-    addSource('/home/test/lib/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 void set setter(int i) {}
 ''');
     await resolveTestCode('''

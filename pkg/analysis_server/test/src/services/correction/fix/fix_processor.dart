@@ -3,13 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
@@ -87,9 +84,11 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
   late String resultCode;
 
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, or `null` if there are no experiments that should be enabled.
-  List<String>? get experiments => null;
+  /// The processor used to compute bulk fixes.
+  late BulkFixProcessor processor;
+
+  @override
+  List<String> get experiments => const [];
 
   /// Return the lint code being tested.
   String? get lintCode => null;
@@ -140,7 +139,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
   /// Returns the source change for computed fixes in the specified [testUnit].
   Future<SourceChange> _computeSourceChange() async {
-    var processor = await computeFixes();
+    processor = await computeFixes();
     return processor.builder.sourceChange;
   }
 
@@ -195,21 +194,11 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    var analysisContext = contextFor(testFile);
-
-    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    tracker.addContext(analysisContext);
-
     var context = DartFixContextImpl(
       TestInstrumentationService(),
       workspace,
       testAnalysisResult,
       error,
-      (name) {
-        var provider = TopLevelDeclarationsProvider(tracker);
-        provider.doTrackerWork();
-        return provider.get(analysisContext, testFile, name);
-      },
     );
 
     var fixes = await FixInFileProcessor(context).compute();
@@ -254,17 +243,8 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
 
 /// A base class defining support for writing fix processor tests.
 abstract class FixProcessorTest extends BaseFixProcessorTest {
-  /// The extension cache used for test purposes.
-  ExtensionCache extensionCache = ExtensionCache();
-
   /// Return the kind of fixes being tested by this test class.
   FixKind get kind;
-
-  Future<void> addUnimportedFile(String filePath, String content) async {
-    addSource(filePath, content);
-    var result = await session.getResolvedUnit(convertPath(filePath));
-    extensionCache.cacheFromResult(result as ResolvedUnitResult);
-  }
 
   Future<void> assertHasFix(String expected,
       {bool Function(AnalysisError)? errorFilter,
@@ -516,23 +496,11 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
 
   /// Computes fixes for the given [error] in [testUnit].
   Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    var analysisContext = contextFor(testFile);
-
-    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    tracker.addContext(analysisContext);
-    extensionCache.cacheFromResult(testAnalysisResult);
-
     var context = DartFixContextImpl(
       TestInstrumentationService(),
       workspace,
       testAnalysisResult,
       error,
-      (name) {
-        var provider = TopLevelDeclarationsProvider(tracker);
-        provider.doTrackerWork();
-        return provider.get(analysisContext, testFile, name);
-      },
-      extensionCache: extensionCache,
     );
     return await DartFixContributor().computeFixes(context);
   }

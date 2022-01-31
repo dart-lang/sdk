@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class CreateConstructorSuper extends MultiCorrectionProducer {
   @override
-  Iterable<CorrectionProducer> get producers sync* {
+  Stream<CorrectionProducer> get producers async* {
     var targetClassNode = node.thisOrAncestorOfType<ClassDeclaration>();
     if (targetClassNode == null) {
       return;
@@ -76,26 +76,61 @@ class _CreateConstructor extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var constructorName = _constructor.name;
-    var requiredParameters = _constructor.parameters
+    var requiredPositionalParameters = _constructor.parameters
         .where((parameter) => parameter.isRequiredPositional);
+    var requiredNamedParameters =
+        _constructor.parameters.where((parameter) => parameter.isRequiredNamed);
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(_targetLocation.offset, (builder) {
-        void writeParameters(bool includeType) {
+        void writeParameters(bool isDefinition) {
+          void writeParameter(ParameterElement parameter) {
+            var parameterName = parameter.displayName;
+            var includeType = isDefinition;
+            var includeRequired = isDefinition && parameter.isRequiredNamed;
+            var includeLabel = !isDefinition && parameter.isRequiredNamed;
+
+            if (parameterName.length > 1 && parameterName.startsWith('_')) {
+              parameterName = parameterName.substring(1);
+            }
+            if (includeRequired) {
+              builder.write('required ');
+            }
+            if (includeType && builder.writeType(parameter.type)) {
+              builder.write(' ');
+            }
+            if (includeLabel) {
+              builder.write('$parameterName: ');
+            }
+            builder.write(parameterName);
+          }
+
           var firstParameter = true;
-          for (var parameter in requiredParameters) {
+          void writeComma() {
             if (firstParameter) {
               firstParameter = false;
             } else {
               builder.write(', ');
             }
-            var parameterName = parameter.displayName;
-            if (parameterName.length > 1 && parameterName.startsWith('_')) {
-              parameterName = parameterName.substring(1);
+          }
+
+          for (var parameter in requiredPositionalParameters) {
+            writeComma();
+            writeParameter(parameter);
+          }
+          if (requiredNamedParameters.isNotEmpty) {
+            var includeBraces = isDefinition;
+            if (includeBraces) {
+              writeComma();
+              firstParameter = true; // Reset since we just included a comma.
+              builder.write('{');
             }
-            if (includeType && builder.writeType(parameter.type)) {
-              builder.write(' ');
+            for (var parameter in requiredNamedParameters) {
+              writeComma();
+              writeParameter(parameter);
             }
-            builder.write(parameterName);
+            if (includeBraces) {
+              builder.write('}');
+            }
           }
         }
 

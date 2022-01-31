@@ -1,0 +1,33 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:10:3: Error: Inferred type argument 'C<dynamic> Function(C<dynamic>)' doesn't conform to the bound 'C<X> Function(C<X>)' of the type variable 'X' on 'A'.
+//  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   A a = throw 42; // Error.
+//   ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:7:11: Context: This is the type variable whose bound isn't conformed to.
+// typedef A<X extends G<C<X>>> = C<X>;
+//           ^
+// pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart:10:3: Context: If you want 'A<C<dynamic> Function(C<dynamic>)>' to be a super-bounded type, note that the inverted type 'A<G<C<Never>>>' must then satisfy its bounds, which it does not.
+//  - 'C' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue45519.dart'.
+//   A a = throw 42; // Error.
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef G<invariant X extends core::Object? = dynamic> = (X%) → X%;
+typedef A<X extends (self::C<X>) → self::C<X> = (self::C<dynamic>) → self::C<dynamic>> = self::C<X>;
+class C<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X%>
+    : super core::Object::•()
+    ;
+}
+static method test() → dynamic {
+  self::C<(self::C<dynamic>) → self::C<dynamic>> a = throw 42;
+}
+static method main() → dynamic {}
+static method _#A#new#tearOff<X extends (self::C<self::_#A#new#tearOff::X>) → self::C<self::_#A#new#tearOff::X> = (self::C<dynamic>) → self::C<dynamic>>() → self::C<self::_#A#new#tearOff::X>
+  return new self::C::•<self::_#A#new#tearOff::X>();

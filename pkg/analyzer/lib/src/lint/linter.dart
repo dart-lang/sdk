@@ -28,11 +28,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisErrorInfo,
-        AnalysisErrorInfoImpl,
-        AnalysisOptions,
-        AnalysisOptionsImpl;
+    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
 import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
 import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/lint/analysis.dart';
@@ -368,11 +364,26 @@ class LinterContextImpl implements LinterContext {
       isNonNullableByDefault: libraryElement.isNonNullableByDefault,
     );
 
+    var evaluationEngine = ConstantEvaluationEngine(
+      declaredVariables: declaredVariables,
+      isNonNullableByDefault: isEnabled(Feature.non_nullable),
+    );
+
+    var dependencies = <ConstantEvaluationTarget>[];
+    node.accept(
+      ReferenceFinder(dependencies.add),
+    );
+
+    computeConstants(
+      typeProvider,
+      typeSystem,
+      declaredVariables,
+      dependencies,
+      libraryElement.featureSet,
+    );
+
     var visitor = ConstantVisitor(
-      ConstantEvaluationEngine(
-        declaredVariables: declaredVariables,
-        isNonNullableByDefault: isEnabled(Feature.non_nullable),
-      ),
+      evaluationEngine,
       libraryElement,
       errorReporter,
     );
@@ -476,7 +487,7 @@ class LinterContextImpl implements LinterContext {
       typeSystem,
       declaredVariables,
       dependenciesFinder.dependencies.toList(),
-      (analysisOptions as AnalysisOptionsImpl).experimentStatus,
+      libraryElement.featureSet,
     );
 
     var listener = _ConstantAnalysisErrorListener();

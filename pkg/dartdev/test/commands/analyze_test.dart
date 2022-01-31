@@ -176,11 +176,11 @@ void defineAnalyze() {
 
   setUp(() => p = null);
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
-  test('--help', () {
+  test('--help', () async {
     p = project();
-    var result = p.runSync(['analyze', '--help']);
+    var result = await p.run(['analyze', '--help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -188,9 +188,9 @@ void defineAnalyze() {
     expect(result.stdout, contains(_analyzeUsageText));
   });
 
-  test('--help --verbose', () {
+  test('--help --verbose', () async {
     p = project();
-    var result = p.runSync(['analyze', '--help', '--verbose']);
+    var result = await p.run(['analyze', '--help', '--verbose']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -201,12 +201,12 @@ void defineAnalyze() {
   group('multiple items', () {
     TestProject secondProject;
 
-    tearDown(() => secondProject?.dispose());
+    tearDown(() async => await secondProject?.dispose());
 
-    test('folder and file', () {
+    test('folder and file', () async {
       p = project(mainSrc: "int get foo => 'str';\n");
       secondProject = project(mainSrc: "int get foo => 'str';\n");
-      var result = p.runSync(['analyze', p.dirPath, secondProject.mainPath]);
+      var result = await p.run(['analyze', p.dirPath, secondProject.mainPath]);
 
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
@@ -216,10 +216,10 @@ void defineAnalyze() {
       expect(result.stdout, contains('2 issues found.'));
     });
 
-    test('two folders', () {
+    test('two folders', () async {
       p = project(mainSrc: "int get foo => 'str';\n");
       secondProject = project(mainSrc: "int get foo => 'str';\n");
-      var result = p.runSync(['analyze', p.dirPath, secondProject.dirPath]);
+      var result = await p.run(['analyze', p.dirPath, secondProject.dirPath]);
 
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
@@ -230,9 +230,9 @@ void defineAnalyze() {
     });
   });
 
-  test('no such directory', () {
+  test('no such directory', () async {
     p = project();
-    var result = p.runSync(['analyze', '/no/such/dir1/']);
+    var result = await p.run(['analyze', '/no/such/dir1/']);
 
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
@@ -241,10 +241,10 @@ void defineAnalyze() {
     expect(result.stderr, contains(_analyzeUsageText));
   });
 
-  test('current working directory', () {
+  test('current working directory', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
 
-    var result = p.runSync(['analyze'], workingDir: p.dirPath);
+    var result = await p.run(['analyze'], workingDir: p.dirPath);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -252,18 +252,18 @@ void defineAnalyze() {
   });
 
   group('single directory', () {
-    test('no errors', () {
+    test('no errors', () async {
       p = project(mainSrc: 'int get foo => 1;\n');
-      var result = p.runSync(['analyze', p.dirPath]);
+      var result = await p.run(['analyze', p.dirPath]);
 
       expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
       expect(result.stdout, contains('No issues found!'));
     });
 
-    test('one error', () {
+    test('one error', () async {
       p = project(mainSrc: "int get foo => 'str';\n");
-      var result = p.runSync(['analyze', p.dirPath]);
+      var result = await p.run(['analyze', p.dirPath]);
 
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
@@ -273,9 +273,9 @@ void defineAnalyze() {
       expect(result.stdout, contains('1 issue found.'));
     });
 
-    test('two errors', () {
+    test('two errors', () async {
       p = project(mainSrc: "int get foo => 'str';\nint get bar => 'str';\n");
-      var result = p.runSync(['analyze', p.dirPath]);
+      var result = await p.run(['analyze', p.dirPath]);
 
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
@@ -284,18 +284,18 @@ void defineAnalyze() {
   });
 
   group('single file', () {
-    test('no errors', () {
+    test('no errors', () async {
       p = project(mainSrc: 'int get foo => 1;\n');
-      var result = p.runSync(['analyze', p.mainPath]);
+      var result = await p.run(['analyze', p.mainPath]);
 
       expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
       expect(result.stdout, contains('No issues found!'));
     });
 
-    test('one error', () {
+    test('one error', () async {
       p = project(mainSrc: "int get foo => 'str';\n");
-      var result = p.runSync(['analyze', p.mainPath]);
+      var result = await p.run(['analyze', p.mainPath]);
 
       expect(result.exitCode, 3);
       expect(result.stderr, isEmpty);
@@ -306,65 +306,65 @@ void defineAnalyze() {
     });
   });
 
-  test('warning --fatal-warnings', () {
+  test('warning --fatal-warnings', () async {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = p.runSync(['analyze', '--fatal-warnings', p.dirPath]);
+    var result = await p.run(['analyze', '--fatal-warnings', p.dirPath]);
 
     expect(result.exitCode, equals(2));
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('1 issue found.'));
   });
 
-  test('warning implicit --fatal-warnings', () {
+  test('warning implicit --fatal-warnings', () async {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = p.runSync(['analyze', p.dirPath]);
+    var result = await p.run(['analyze', p.dirPath]);
 
     expect(result.exitCode, equals(2));
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('1 issue found.'));
   });
 
-  test('warning --no-fatal-warnings', () {
+  test('warning --no-fatal-warnings', () async {
     p = project(
         mainSrc: _unusedImportCodeSnippet,
         analysisOptions: _unusedImportAnalysisOptions);
-    var result = p.runSync(['analyze', '--no-fatal-warnings', p.dirPath]);
+    var result = await p.run(['analyze', '--no-fatal-warnings', p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('1 issue found.'));
   });
 
-  test('info implicit no --fatal-infos', () {
+  test('info implicit no --fatal-infos', () async {
     p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
-    var result = p.runSync(['analyze', p.dirPath]);
+    var result = await p.run(['analyze', p.dirPath]);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('1 issue found.'));
   });
 
-  test('info --fatal-infos', () {
+  test('info --fatal-infos', () async {
     p = project(mainSrc: dartVersionFilePrefix2_9 + 'String foo() {}');
-    var result = p.runSync(['analyze', '--fatal-infos', p.dirPath]);
+    var result = await p.run(['analyze', '--fatal-infos', p.dirPath]);
 
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('1 issue found.'));
   });
 
-  test('--verbose', () {
+  test('--verbose', () async {
     p = project(mainSrc: '''
 int f() {
   var result = one + 2;
   var one = 1;
   return result;
 }''');
-    var result = p.runSync(['analyze', '--verbose', p.dirPath]);
+    var result = await p.run(['analyze', '--verbose', p.dirPath]);
 
     expect(result.exitCode, 3);
     expect(result.stderr, isEmpty);
@@ -377,7 +377,7 @@ int f() {
   });
 
   group('--packages', () {
-    test('existing', () {
+    test('existing', () async {
       final foo = project(name: 'foo');
       foo.file('lib/foo.dart', 'var my_foo = 0;');
 
@@ -399,7 +399,7 @@ void f() {
   ]
 }
 ''');
-      var result = p.runSync([
+      var result = await p.run([
         'analyze',
         '--packages=${p.findFile('my_packages.json').path}',
         p.dirPath,
@@ -410,9 +410,9 @@ void f() {
       expect(result.stdout, contains('No issues found!'));
     });
 
-    test('not existing', () {
+    test('not existing', () async {
       p = project();
-      var result = p.runSync([
+      var result = await p.run([
         'analyze',
         '--packages=no.such.file',
         p.dirPath,
@@ -424,11 +424,11 @@ void f() {
     });
   });
 
-  test('--cache', () {
+  test('--cache', () async {
     var cache = project(name: 'cache');
 
     p = project(mainSrc: 'var v = 0;');
-    var result = p.runSync([
+    var result = await p.run([
       'analyze',
       '--cache=${cache.dirPath}',
       p.mainPath,

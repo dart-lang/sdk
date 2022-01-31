@@ -1,0 +1,138 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "various_2_lib.dart" as var;
+
+import "org-dartlang-testcase:///various_2_lib.dart" as lib;
+
+typedef F1<invariant T extends core::Object? = dynamic> = (T%) → T%;
+typedef F2 = <T extends core::Object? = dynamic>(T%) → T%;
+static const field core::Type objectTypeLiteral = #C1;
+static const field (core::int) → core::int partialInstantiation = #C3;
+static const field var::Class<core::int> instance = #C5;
+static const field var::Class<dynamic> instance2 = #C8;
+static const field core::Type functionTypeLiteral = #C9;
+static const field core::Type genericFunctionTypeLiteral = #C10;
+static const field core::List<core::int> listLiteral = #C11;
+static const field core::List<dynamic> listLiteral2 = #C12;
+static const field core::Set<core::int> setLiteral = #C13;
+static const field core::Set<dynamic> setLiteral2 = #C14;
+static const field core::Map<core::int, core::String> mapLiteral = #C16;
+static const field core::Map<dynamic, dynamic> mapLiteral2 = #C18;
+static const field core::List<core::int> listConcatenation = #C11;
+static const field core::Set<core::int> setConcatenation = #C13;
+static const field core::Map<core::int, core::String> mapConcatenation = #C16;
+static const field core::bool objectTypeLiteralIdentical = #C19;
+static const field core::bool partialInstantiationIdentical = #C21;
+static const field core::bool instanceIdentical = #C19;
+static const field core::bool instance2Identical = #C19;
+static const field core::bool functionTypeLiteralIdentical = #C19;
+static const field core::bool genericFunctionTypeLiteralIdentical = #C19;
+static const field core::bool listLiteralIdentical = #C19;
+static const field core::bool listLiteral2Identical = #C19;
+static const field core::bool setLiteralIdentical = #C19;
+static const field core::bool setLiteral2Identical = #C19;
+static const field core::bool mapLiteralIdentical = #C19;
+static const field core::bool mapLiteral2Identical = #C19;
+static const field core::bool listConcatenationIdentical = #C19;
+static const field core::bool setConcatenationIdentical = #C19;
+static const field core::bool mapConcatenationIdentical = #C19;
+static method main() → dynamic {
+  self::test(#C1, #C1);
+  self::test(#C3, #C22);
+  self::test(#C5, #C5);
+  self::test(#C9, #C9);
+  self::test(#C10, #C10);
+  self::test(#C11, #C11);
+  self::test(#C13, #C13);
+  self::test(#C16, #C16);
+  self::test(#C11, #C11);
+  self::test(#C13, #C13);
+  self::test(#C16, #C16);
+  self::test(true, #C19);
+  self::test(true, #C21);
+  self::test(true, #C19);
+  self::test(true, #C19);
+  self::test(true, #C19);
+  self::test(true, #C19);
+  self::test(true, #C19);
+  self::test(true, #C19);
+  self::test(true, #C19);
+  self::test(true, #C19);
+  self::test(true, #C19);
+}
+static method test(dynamic expected, dynamic actual) → dynamic {
+  core::print("test(${expected}, ${actual})");
+  if(!core::identical(expected, actual)) {
+    throw "Expected ${expected}, actual ${actual}";
+  }
+}
+
+library /*isNonNullableByDefault*/;
+import self as var;
+import "dart:core" as core;
+
+typedef F1<invariant T extends core::Object? = dynamic> = (T%) → T%;
+typedef F2 = <T extends core::Object? = dynamic>(T%) → T%;
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field var::Class::T% field;
+  const constructor •(var::Class::T% field) → var::Class<var::Class::T%>
+    : var::Class::field = field, super core::Object::•()
+    ;
+}
+static const field core::Type objectTypeLiteral = #C1;
+static const field (core::Object?, core::Object?) → core::bool c2 = #C23;
+static const field (core::int) → core::int partialInstantiation = #C22;
+static const field var::Class<core::int> instance = #C5;
+static const field var::Class<dynamic> instance2 = #C8;
+static const field core::Type functionTypeLiteral = #C9;
+static const field core::Type genericFunctionTypeLiteral = #C10;
+static const field core::List<core::int> listLiteral = #C11;
+static const field core::List<dynamic> listLiteral2 = #C12;
+static const field core::Set<core::int> setLiteral = #C13;
+static const field core::Set<dynamic> setLiteral2 = #C14;
+static const field core::Map<core::int, core::String> mapLiteral = #C16;
+static const field core::Map<dynamic, dynamic> mapLiteral2 = #C18;
+static const field core::List<core::int> listConcatenation = #C11;
+static const field core::Set<core::int> setConcatenation = #C13;
+static const field core::Map<core::int, core::String> mapConcatenation = #C16;
+static method id1<T extends core::Object? = dynamic>(var::id1::T% t) → var::id1::T%
+  return t;
+static method id2<T extends core::Object? = dynamic>(var::id2::T% t) → var::id2::T%
+  return t;
+
+constants  {
+  #C1 = TypeLiteralConstant(core::Object*)
+  #C2 = static-tearoff var::id1
+  #C3 = instantiation #C2 <core::int*>
+  #C4 = 0
+  #C5 = var::Class<core::int*> {field:#C4}
+  #C6 = 42
+  #C7 = <core::int*>[#C6]
+  #C8 = var::Class<dynamic> {field:#C7}
+  #C9 = TypeLiteralConstant((dynamic) →* dynamic)
+  #C10 = TypeLiteralConstant(<T extends core::Object? = dynamic>(T*) →* T*)
+  #C11 = <core::int*>[#C4]
+  #C12 = <dynamic>[#C7]
+  #C13 = <core::int*>{#C4}
+  #C14 = <dynamic>{#C7}
+  #C15 = "foo"
+  #C16 = <core::int*, core::String*>{#C4:#C15)
+  #C17 = null
+  #C18 = <dynamic, dynamic>{#C7:#C15, #C17:#C7)
+  #C19 = true
+  #C20 = static-tearoff var::id2
+  #C21 = eval const core::identical(#C3, const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>)
+  #C22 = eval const core::bool::fromEnvironment(#C15) ?{(core::int) → core::int} #C2<core::int> : #C20<core::int>
+  #C23 = static-tearoff core::identical
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///various_2.dart:
+- Class. (from org-dartlang-testcase:///various_2_lib.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+
+org-dartlang-testcase:///various_2_lib.dart:
+- Class. (from org-dartlang-testcase:///various_2_lib.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

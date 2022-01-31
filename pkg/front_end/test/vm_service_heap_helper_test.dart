@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
@@ -144,9 +142,9 @@ class LeakFinderTest extends helper.VMServiceHeapHelperSpecificExactLeakFinder {
   Completer<List<String>> completer = new Completer<List<String>>();
 
   LeakFinderTest({
-    List<helper.Interest> interests,
-    List<helper.Interest> prettyPrints,
-    bool throwOnPossibleLeak,
+    required List<helper.Interest> interests,
+    required List<helper.Interest> prettyPrints,
+    required bool throwOnPossibleLeak,
   }) : super(
             interests: interests,
             prettyPrints: prettyPrints,

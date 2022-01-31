@@ -5,9 +5,9 @@ import "dart:core" as core;
 typedef Function2<contravariant S extends core::Object* = dynamic, T extends core::Object* = dynamic> = ([S*]) →* T*;
 class Foo extends core::Object {
   field core::List<core::int*>* x;
-  constructor •([core::List<core::int*>* x]) → self::Foo*
+  constructor •([core::List<core::int*>* x = const <core::int*>[1]]) → self::Foo*
     ;
-  constructor named([core::List<core::int*>* x]) → self::Foo*
+  constructor named([core::List<core::int*>* x = const <core::int*>[1]]) → self::Foo*
     ;
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -25,3 +25,9 @@ static method f([core::List<core::int*>* l]) → void
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///downwards_inference_initializing_formal_default_formal.dart:12:38 -> ListConstant(const <int*>[1])
+Evaluated: ListLiteral @ org-dartlang-testcase:///downwards_inference_initializing_formal_default_formal.dart:13:49 -> ListConstant(const <int*>[1])
+Extra constant evaluation: evaluated: 2, effectively constant: 2

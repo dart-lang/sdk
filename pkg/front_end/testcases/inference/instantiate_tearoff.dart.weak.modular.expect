@@ -1,0 +1,51 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  method f<T extends core::Object* = dynamic>(self::C::f::T* x) → self::C::f::T*
+    return x;
+  static method g<T extends core::Object* = dynamic>(self::C::g::T* x) → self::C::g::T*
+    return x;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D extends self::C {
+  synthetic constructor •() → self::D*
+    : super self::C::•()
+    ;
+  method test() → void {
+    (core::int*) →* core::int* func;
+    func = super.{self::C::f}<core::int*>;
+  }
+}
+static method f<T extends core::Object* = dynamic>(self::f::T* x) → self::f::T*
+  return x;
+static method test() → void {
+  function h<T extends core::Object* = dynamic>(T* x) → T*
+    return x;
+  (core::int*) →* core::int* func;
+  func = #C2;
+  func = new self::C::•().{self::C::f}{<T extends core::Object* = dynamic>(T*) →* T*}<core::int*>;
+  func = #C4;
+  func = h<core::int*>;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = static-tearoff self::f
+  #C2 = instantiation #C1 <core::int*>
+  #C3 = static-tearoff self::C::g
+  #C4 = instantiation #C3 <core::int*>
+}

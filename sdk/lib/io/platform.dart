@@ -75,9 +75,12 @@ class Platform {
 
   /// Get the name of the current locale.
   ///
-  /// The result should include a language and country code
-  /// (e.g. "en_US", "de_AT") and may include a character set
-  /// (e.g. "en_US.UTF-8").
+  /// The result usually consists of
+  ///  - a language (e.g., "en"), or
+  ///  - a language and country code (e.g. "en_US", "de_AT"), or
+  ///  - a language, country code and character set (e.g. "en_US.UTF-8").
+  ///
+  /// On macOS and iOS, the locale is taken from CFLocaleGetIdentifier.
   ///
   /// On Linux and Fushia, the locale is taken from the "LANG" environment
   /// variable, which may be set to any value. For example:
@@ -201,11 +204,6 @@ class Platform {
   /// the script name.
   /// Provides a new list every time the value is read.
   static List<String> get executableArguments => _Platform.executableArguments;
-
-  /// This returns `null`, as `packages/` directories are no longer supported.
-  ///
-  @Deprecated('packages/ directory resolution is not supported in Dart 2')
-  static String? get packageRoot => null; // TODO(mfairhurst): remove this
 
   /// The `--packages` flag passed to the executable used to run the script
   /// in this isolate.

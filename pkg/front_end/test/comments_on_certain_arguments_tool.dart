@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:convert' show utf8;
 
 import 'dart:io'
@@ -19,6 +17,8 @@ import 'package:front_end/src/api_prototype/compiler_options.dart' as api
 
 import 'package:front_end/src/api_prototype/file_system.dart' as api
     show FileSystem;
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
@@ -56,7 +56,7 @@ final Uri repoDir = computeRepoDirUri();
 
 Set<Uri> libUris = {};
 
-Component component;
+late Component component;
 
 Future<void> main(List<String> args) async {
   api.CompilerOptions compilerOptions = getOptions();
@@ -83,7 +83,9 @@ Future<void> main(List<String> args) async {
   CompilerContext context = new CompilerContext(options);
   IncrementalCompiler incrementalCompiler =
       new TestIncrementalCompiler(context);
-  component = await incrementalCompiler.computeDelta();
+  IncrementalCompilerResult incrementalCompilerResult =
+      await incrementalCompiler.computeDelta();
+  component = incrementalCompilerResult.component;
 
   for (Library library in component.libraries) {
     if (library.importUri.scheme == "dart") continue;
@@ -100,8 +102,9 @@ Future<void> main(List<String> args) async {
     List<Uri> editsPerformed = [];
     for (Uri uri in edits.keys) {
       print("\n\n\n");
-      if (edits[uri] != null && edits[uri].isNotEmpty) {
-        String update;
+      List<Edit>? theseEdits = edits[uri];
+      if (theseEdits != null && theseEdits.isNotEmpty) {
+        String? update;
         while (update != "y" &&
             update != "yes" &&
             update != "n" &&
@@ -111,9 +114,8 @@ Future<void> main(List<String> args) async {
         }
         if (update != "y" && update != "yes") continue;
 
-        List<Edit> theseEdits = edits[uri];
         theseEdits.sort();
-        String content = utf8.decode(component.uriToSource[uri].source,
+        String content = utf8.decode(component.uriToSource[uri]!.source,
             allowMalformed: true);
         StringBuffer sb = new StringBuffer();
         int latest = 0;
@@ -128,7 +130,7 @@ Future<void> main(List<String> args) async {
             case EditType.Delete:
               print(edit);
               // We "delete" by skipping...
-              latest = edit.offset + edit.length;
+              latest = edit.offset + edit.length!;
               break;
           }
         }
@@ -195,19 +197,19 @@ class InvocationVisitor extends RecursiveVisitor {
   @override
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     super.visitSuperMethodInvocation(node);
-    note(node.interfaceTargetReference.node, node.arguments, node);
+    note(node.interfaceTargetReference!.node!, node.arguments, node);
   }
 
   @override
   void visitStaticInvocation(StaticInvocation node) {
     super.visitStaticInvocation(node);
-    note(node.targetReference.node, node.arguments, node);
+    note(node.targetReference.node!, node.arguments, node);
   }
 
   @override
   void visitConstructorInvocation(ConstructorInvocation node) {
     super.visitConstructorInvocation(node);
-    note(node.targetReference.node, node.arguments, node);
+    note(node.targetReference.node!, node.arguments, node);
   }
 
   void note(
@@ -223,28 +225,25 @@ class InvocationVisitor extends RecursiveVisitor {
 
     for (int i = 0; i < arguments.positional.length; i++) {
       bool wantComment = false;
-      if (arguments.positional[i] is NullLiteral ||
-          arguments.positional[i] is BoolLiteral ||
-          arguments.positional[i] is IntLiteral) {
+      Expression argument = arguments.positional[i];
+      if (argument is NullLiteral ||
+          argument is BoolLiteral ||
+          argument is IntLiteral) {
         wantComment = true;
-      } else if (arguments.positional[i] is MapLiteral) {
-        MapLiteral literal = arguments.positional[i];
-        if (literal.entries.isEmpty) wantComment = true;
-      } else if (arguments.positional[i] is ListLiteral) {
-        ListLiteral literal = arguments.positional[i];
-        if (literal.expressions.isEmpty) wantComment = true;
-      } else if (arguments.positional[i] is InstanceInvocation) {
-        InstanceInvocation methodInvocation = arguments.positional[i];
-        if (methodInvocation.receiver is NullLiteral ||
-            methodInvocation.receiver is IntLiteral ||
-            methodInvocation.receiver is BoolLiteral) {
+      } else if (argument is MapLiteral) {
+        if (argument.entries.isEmpty) wantComment = true;
+      } else if (argument is ListLiteral) {
+        if (argument.expressions.isEmpty) wantComment = true;
+      } else if (argument is InstanceInvocation) {
+        if (argument.receiver is NullLiteral ||
+            argument.receiver is IntLiteral ||
+            argument.receiver is BoolLiteral) {
           wantComment = true;
         }
-      } else if (arguments.positional[i] is DynamicInvocation) {
-        DynamicInvocation methodInvocation = arguments.positional[i];
-        if (methodInvocation.receiver is NullLiteral ||
-            methodInvocation.receiver is IntLiteral ||
-            methodInvocation.receiver is BoolLiteral) {
+      } else if (argument is DynamicInvocation) {
+        if (argument.receiver is NullLiteral ||
+            argument.receiver is IntLiteral ||
+            argument.receiver is BoolLiteral) {
           wantComment = true;
         }
       }
@@ -269,10 +268,10 @@ void check(
     return;
   }
   if (argumentExpression.fileOffset == -1) return;
-  Location location = argumentExpression.location;
-  Token token = cache[location.file];
+  Location location = argumentExpression.location!;
+  Token token = cache[location.file]!;
   while (token.offset != argumentExpression.fileOffset) {
-    token = token.next;
+    token = token.next!;
     if (token.isEof) {
       throw "Couldn't find token for $argumentExpression "
           "(${argumentExpression.fileOffset}).";
@@ -280,7 +279,7 @@ void check(
   }
   bool foundComment = false;
   List<CommentToken> badComments = [];
-  CommentToken commentToken = token.precedingComments;
+  CommentToken? commentToken = token.precedingComments;
   while (commentToken != null) {
     if (commentToken.lexeme == expectedComment) {
       // Exact match.
@@ -291,17 +290,16 @@ void check(
         commentToken.lexeme.endsWith("= */")) {
       badComments.add(commentToken);
     }
-    commentToken = commentToken.next;
+    commentToken = commentToken.next as CommentToken?;
   }
   if (badComments.isNotEmpty) {
     for (CommentToken comment in badComments) {
       Location calculatedLocation =
-          component.getLocation(location.file, comment.offset);
+          component.getLocation(location.file, comment.offset)!;
       print("Please remove comment of length ${comment.lexeme.length} at "
           "${comment.offset} => "
           "${calculatedLocation}");
-      edits[location.file] ??= [];
-      edits[location.file]
+      (edits[location.file] ??= [])
           .add(new Edit.delete(comment.offset, comment.lexeme.length));
     }
   }
@@ -309,12 +307,12 @@ void check(
     return;
   }
   Location calculatedLocation =
-      component.getLocation(location.file, token.offset);
+      component.getLocation(location.file, token.offset)!;
   print("Please add comment $expectedComment at "
       "${token.offset} => "
       "${calculatedLocation}");
-  edits[location.file] ??= [];
-  edits[location.file].add(new Edit.insert(token.offset, expectedComment));
+  (edits[location.file] ??= [])
+      .add(new Edit.insert(token.offset, expectedComment));
 }
 
 Map<Uri, List<Edit>> edits = {};
@@ -323,8 +321,8 @@ enum EditType { Insert, Delete }
 
 class Edit implements Comparable<Edit> {
   final int offset;
-  final int length;
-  final String insertData;
+  final int? length;
+  final String? insertData;
   final EditType editType;
   Edit.insert(this.offset, this.insertData)
       : editType = EditType.Insert,

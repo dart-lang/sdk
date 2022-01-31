@@ -4698,7 +4698,14 @@ class CompletionGetSuggestions2Params implements RequestParams {
   /// to true.
   int maxResults;
 
-  CompletionGetSuggestions2Params(this.file, this.offset, this.maxResults);
+  /// The approximate time in milliseconds that the server should spend. The
+  /// server will perform some steps anyway, even if it takes longer than the
+  /// specified timeout. This field is intended to be used for benchmarking,
+  /// and usually should not be provided, so that the default timeout is used.
+  int? timeout;
+
+  CompletionGetSuggestions2Params(this.file, this.offset, this.maxResults,
+      {this.timeout});
 
   factory CompletionGetSuggestions2Params.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -4723,7 +4730,12 @@ class CompletionGetSuggestions2Params implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'maxResults');
       }
-      return CompletionGetSuggestions2Params(file, offset, maxResults);
+      int? timeout;
+      if (json.containsKey('timeout')) {
+        timeout = jsonDecoder.decodeInt(jsonPath + '.timeout', json['timeout']);
+      }
+      return CompletionGetSuggestions2Params(file, offset, maxResults,
+          timeout: timeout);
     } else {
       throw jsonDecoder.mismatch(
           jsonPath, 'completion.getSuggestions2 params', json);
@@ -4741,6 +4753,10 @@ class CompletionGetSuggestions2Params implements RequestParams {
     result['file'] = file;
     result['offset'] = offset;
     result['maxResults'] = maxResults;
+    var timeout = this.timeout;
+    if (timeout != null) {
+      result['timeout'] = timeout;
+    }
     return result;
   }
 
@@ -4757,7 +4773,8 @@ class CompletionGetSuggestions2Params implements RequestParams {
     if (other is CompletionGetSuggestions2Params) {
       return file == other.file &&
           offset == other.offset &&
-          maxResults == other.maxResults;
+          maxResults == other.maxResults &&
+          timeout == other.timeout;
     }
     return false;
   }
@@ -4767,6 +4784,7 @@ class CompletionGetSuggestions2Params implements RequestParams {
         file,
         offset,
         maxResults,
+        timeout,
       );
 }
 
@@ -11547,7 +11565,7 @@ class FlutterWidgetPropertyValue implements HasToJson {
       double? doubleValue;
       if (json.containsKey('doubleValue')) {
         doubleValue = jsonDecoder.decodeDouble(
-            jsonPath + '.doubleValue', json['doubleValue']);
+            jsonPath + '.doubleValue', json['doubleValue'] as Object);
       }
       int? intValue;
       if (json.containsKey('intValue')) {
@@ -15613,6 +15631,91 @@ class SearchResultsParams implements HasToJson {
         results,
         isLast,
       );
+}
+
+/// server.cancelRequest params
+///
+/// {
+///   "id": String
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerCancelRequestParams implements RequestParams {
+  /// The id of the request that should be cancelled.
+  String id;
+
+  ServerCancelRequestParams(this.id);
+
+  factory ServerCancelRequestParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      String id;
+      if (json.containsKey('id')) {
+        id = jsonDecoder.decodeString(jsonPath + '.id', json['id']);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'id');
+      }
+      return ServerCancelRequestParams(id);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'server.cancelRequest params', json);
+    }
+  }
+
+  factory ServerCancelRequestParams.fromRequest(Request request) {
+    return ServerCancelRequestParams.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['id'] = id;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'server.cancelRequest', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerCancelRequestParams) {
+      return id == other.id;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+}
+
+/// server.cancelRequest result
+///
+/// Clients may not extend, implement or mix-in this class.
+class ServerCancelRequestResult implements ResponseResult {
+  @override
+  Map<String, Object> toJson() => <String, Object>{};
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: null);
+  }
+
+  @override
+  bool operator ==(other) {
+    if (other is ServerCancelRequestResult) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => 183255719;
 }
 
 /// server.connected params

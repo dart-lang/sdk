@@ -322,6 +322,8 @@ class PubPackageService {
       final json = jsonDecode(contents);
       if (json is Map<String, Object?>) {
         return PackageDetailsCache.fromJson(json);
+      } else {
+        return null;
       }
     } catch (e) {
       _instrumentationService.logError('Error reading pub cache file: $e');

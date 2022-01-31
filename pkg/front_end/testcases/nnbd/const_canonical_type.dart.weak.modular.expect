@@ -1,0 +1,64 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef F1 = () → self::A<FutureOr<dynamic>>;
+typedef F2 = () → self::A<dynamic>;
+typedef F3 = () → self::A<FutureOr<FutureOr<dynamic>?>>;
+typedef F4 = () → self::A<dynamic>;
+class Check extends core::Object /*hasConstConstructor*/  {
+  final field dynamic _ignored;
+  const constructor •(dynamic x, dynamic y) → self::Check
+    : assert(core::identical(x, y)), self::Check::_ignored = core::identical(x, y) ?{core::int} 42 : 1.{core::num::~/}(0){(core::num) → core::int}, super core::Object::•()
+    ;
+}
+class A<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+}
+static method expectEqual(dynamic x, dynamic y) → void {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Arguments were supposed to be identical.";
+  }
+}
+static method test1() → dynamic {
+  core::Type v = #C1;
+  self::expectEqual(#C1, #C1);
+  self::expectEqual(#C1, #C1);
+  self::expectEqual(#C1, #C1);
+  self::expectEqual(v, v);
+  self::expectEqual(v, #C1);
+  core::Type vf1 = #C2;
+  core::Type vf2 = #C2;
+  core::Type vf3 = #C2;
+  core::Type vf4 = #C2;
+  self::expectEqual(#C2, #C2);
+  self::expectEqual(#C2, #C2);
+  self::expectEqual(#C2, #C2);
+  self::expectEqual(#C2, vf1);
+  self::expectEqual(vf1, vf2);
+  self::expectEqual(vf2, vf3);
+  self::expectEqual(vf3, vf4);
+  return #C5;
+}
+static method main() → dynamic {
+  self::test1();
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(self::A<dynamic>*)
+  #C2 = TypeLiteralConstant(() →* self::A<dynamic>*)
+  #C3 = 42
+  #C4 = self::Check {_ignored:#C3}
+  #C5 = <dynamic>[#C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4, #C4]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_canonical_type.dart:
+- A. (from org-dartlang-testcase:///const_canonical_type.dart:22:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)
+- Check. (from org-dartlang-testcase:///const_canonical_type.dart:10:9)

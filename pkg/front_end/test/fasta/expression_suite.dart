@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.test.expression_test;
 
 import "dart:convert" show JsonEncoder;
@@ -73,7 +71,7 @@ class Context extends ChainContext {
 
   ProcessedOptions get options => compilerContext.options;
 
-  MemoryFileSystem get fileSystem => options.fileSystem;
+  MemoryFileSystem get fileSystem => options.fileSystem as MemoryFileSystem;
 
   Future<T> runInContext<T>(Future<T> action(CompilerContext c)) {
     return compilerContext.runInContext<T>(action);
@@ -91,7 +89,7 @@ class Context extends ChainContext {
 }
 
 class CompilationResult {
-  Procedure compiledProcedure;
+  Procedure? compiledProcedure;
   List<DiagnosticMessage> errors;
   CompilationResult(this.compiledProcedure, this.errors);
 
@@ -115,7 +113,7 @@ class CompilationResult {
       buffer.write("<no procedure>");
     } else {
       Printer printer = new Printer(buffer);
-      printer.visitProcedure(compiledProcedure);
+      printer.visitProcedure(compiledProcedure!);
       printer.writeConstantTable(new Component());
     }
     Uri base = entryPoint.resolve(".");
@@ -126,9 +124,9 @@ class CompilationResult {
 class TestCase {
   final TestDescription description;
 
-  final Uri entryPoint;
+  final Uri? entryPoint;
 
-  final Uri import;
+  final Uri? import;
 
   final List<String> definitions;
 
@@ -136,13 +134,13 @@ class TestCase {
 
   final bool isStaticMethod;
 
-  final Uri library;
+  final Uri? library;
 
-  final String className;
+  final String? className;
 
-  final String methodName;
+  final String? methodName;
 
-  String expression;
+  String? expression;
 
   List<CompilationResult> results = [];
 
@@ -170,12 +168,12 @@ class TestCase {
         "static = $isStaticMethod)";
   }
 
-  String validate() {
+  String? validate() {
     print(this);
     if (entryPoint == null) {
       return "No entryPoint.";
     }
-    if (!(new File.fromUri(entryPoint)).existsSync()) {
+    if (!(new File.fromUri(entryPoint!)).existsSync()) {
       return "Entry point $entryPoint doesn't exist.";
     }
     if (library == null) {
@@ -202,10 +200,10 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
   Future<Result<Null>> run(List<TestCase> tests, Context context) async {
     String actual = "";
     for (var test in tests) {
-      var primary = test.results.first.printResult(test.entryPoint, context);
+      var primary = test.results.first.printResult(test.entryPoint!, context);
       actual += primary;
       for (int i = 1; i < test.results.length; ++i) {
-        var secondary = test.results[i].printResult(test.entryPoint, context);
+        var secondary = test.results[i].printResult(test.entryPoint!, context);
         if (primary != secondary) {
           return fail(
               null,
@@ -256,15 +254,15 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
     Uri uri = description.uri;
     String contents = await new File.fromUri(uri).readAsString();
 
-    Uri entryPoint;
-    Uri import;
+    Uri? entryPoint;
+    Uri? import;
     List<String> definitions = <String>[];
     List<String> typeDefinitions = <String>[];
     bool isStaticMethod = false;
-    Uri library;
-    String className;
-    String methodName;
-    String expression;
+    Uri? library;
+    String? className;
+    String? methodName;
+    String? expression;
 
     dynamic maps = loadYamlNode(contents, sourceUrl: uri);
     if (maps is YamlMap) maps = [maps];
@@ -282,7 +280,7 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
         } else if (key == "position") {
           Uri uri = description.uri.resolveUri(Uri.parse(value as String));
           library = uri.removeFragment();
-          if (uri.fragment != null && uri.fragment != '') {
+          if (uri.fragment != '') {
             className = uri.fragment;
           }
         } else if (key == "method") {
@@ -339,12 +337,12 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
           .add(new TypeParameter(name, new DynamicType(), new DynamicType()));
     }
 
-    Procedure compiledProcedure = await compiler.compileExpression(
-      test.expression,
+    Procedure? compiledProcedure = await compiler.compileExpression(
+      test.expression!,
       definitions,
       typeParams,
       "debugExpr",
-      test.library,
+      test.library!,
       className: test.className,
       methodName: test.methodName,
       isStatic: test.isStaticMethod,
@@ -363,23 +361,25 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
   Future<Result<List<TestCase>>> run(
       List<TestCase> tests, Context context) async {
     for (var test in tests) {
-      context.fileSystem.entityForUri(test.entryPoint).writeAsBytesSync(
-          await new File.fromUri(test.entryPoint).readAsBytes());
+      context.fileSystem.entityForUri(test.entryPoint!).writeAsBytesSync(
+          await new File.fromUri(test.entryPoint!).readAsBytes());
 
       if (test.import != null) {
-        context.fileSystem.entityForUri(test.import).writeAsBytesSync(
-            await new File.fromUri(test.import).readAsBytes());
+        context.fileSystem.entityForUri(test.import!).writeAsBytesSync(
+            await new File.fromUri(test.import!).readAsBytes());
       }
 
       var sourceCompiler = new IncrementalCompiler(context.compilerContext);
-      Component component =
-          await sourceCompiler.computeDelta(entryPoints: [test.entryPoint]);
+      var sourceCompilerResult =
+          await sourceCompiler.computeDelta(entryPoints: [test.entryPoint!]);
+      Component component = sourceCompilerResult.component;
       var errors = context.takeErrors();
       if (!errors.isEmpty) {
         return fail(tests, "Couldn't compile entry-point: $errors");
       }
       Uri dillFileUri = new Uri(
-          scheme: test.entryPoint.scheme, path: test.entryPoint.path + ".dill");
+          scheme: test.entryPoint!.scheme,
+          path: test.entryPoint!.path + ".dill");
       File dillFile = new File.fromUri(dillFileUri);
       if (!await dillFile.exists()) {
         await writeComponentToFile(component, dillFileUri);
@@ -390,8 +390,9 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 
       var dillCompiler =
           new IncrementalCompiler(context.compilerContext, dillFileUri);
-      component =
-          await dillCompiler.computeDelta(entryPoints: [test.entryPoint]);
+      var dillCompilerResult =
+          await dillCompiler.computeDelta(entryPoints: [test.entryPoint!]);
+      component = dillCompilerResult.component;
       component.computeCanonicalNames();
       await dillFile.delete();
 

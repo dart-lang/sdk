@@ -10,6 +10,7 @@
 #endif
 
 #include "vm/allocation.h"
+#include "vm/flags.h"
 #include "vm/simulator.h"
 
 namespace dart {
@@ -32,11 +33,7 @@ class HostCPUFeatures : public AllStatic {
   }
   static bool integer_division_supported() {
     DEBUG_ASSERT(initialized_);
-    return integer_division_supported_;
-  }
-  static bool vfp_supported() {
-    DEBUG_ASSERT(initialized_);
-    return vfp_supported_;
+    return integer_division_supported_ && !FLAG_target_unknown_cpu;
   }
   static bool neon_supported() {
     DEBUG_ASSERT(initialized_);
@@ -56,10 +53,6 @@ class HostCPUFeatures : public AllStatic {
     DEBUG_ASSERT(initialized_);
     integer_division_supported_ = supported;
   }
-  static void set_vfp_supported(bool supported) {
-    DEBUG_ASSERT(initialized_);
-    vfp_supported_ = supported;
-  }
   static void set_neon_supported(bool supported) {
     DEBUG_ASSERT(initialized_);
     neon_supported_ = supported;
@@ -69,7 +62,6 @@ class HostCPUFeatures : public AllStatic {
  private:
   static const char* hardware_;
   static bool integer_division_supported_;
-  static bool vfp_supported_;
   static bool neon_supported_;
   static bool hardfp_supported_;
   static intptr_t store_pc_read_offset_;
@@ -85,10 +77,6 @@ class TargetCPUFeatures : public AllStatic {
   static bool double_truncate_round_supported() { return false; }
   static bool integer_division_supported() {
     return HostCPUFeatures::integer_division_supported();
-  }
-  static bool vfp_supported() { return HostCPUFeatures::vfp_supported(); }
-  static bool can_divide() {
-    return integer_division_supported() || vfp_supported();
   }
   static bool neon_supported() { return HostCPUFeatures::neon_supported(); }
   static bool hardfp_supported() { return HostCPUFeatures::hardfp_supported(); }

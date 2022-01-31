@@ -6,6 +6,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/closure_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
@@ -37,6 +38,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -90,10 +92,11 @@ class DartCompletionManager {
   /// suggestions, or `null` if no notification should occur.
   final SuggestionListener? listener;
 
-  /// If specified, will be filled with URIs of libraries that are not yet
-  /// imported, but could be imported into the requested target. Corresponding
-  /// [CompletionSuggestion] will have the import index into this list.
-  final List<Uri>? librariesToImport;
+  /// If specified, will be filled with suggestions and URIs from libraries
+  /// that are not yet imported, but could be imported into the requested
+  /// target. It is up to the client to make copies of [CompletionSuggestion]s
+  /// with the import index property updated.
+  final Map<protocol.CompletionSuggestion, Uri>? notImportedSuggestions;
 
   /// Initialize a newly created completion manager. The parameters
   /// [includedElementKinds], [includedElementNames], and
@@ -105,7 +108,7 @@ class DartCompletionManager {
     this.includedElementNames,
     this.includedSuggestionRelevanceTags,
     this.listener,
-    this.librariesToImport,
+    this.notImportedSuggestions,
   }) : assert((includedElementKinds != null &&
                 includedElementNames != null &&
                 includedSuggestionRelevanceTags != null) ||
@@ -121,7 +124,7 @@ class DartCompletionManager {
   }) async {
     request.checkAborted();
     var pathContext = request.resourceProvider.pathContext;
-    if (!file_paths.isDart(pathContext, request.result.path)) {
+    if (!file_paths.isDart(pathContext, request.path)) {
       return const <CompletionSuggestion>[];
     }
 
@@ -136,6 +139,7 @@ class DartCompletionManager {
     var builder = SuggestionBuilder(request, listener: listener);
     var contributors = <DartCompletionContributor>[
       ArgListContributor(request, builder),
+      ClosureContributor(request, builder),
       CombinatorContributor(request, builder),
       ExtensionMemberContributor(request, builder),
       FieldFormalContributor(request, builder),
@@ -163,10 +167,11 @@ class DartCompletionManager {
       );
     }
 
-    final librariesToImport = this.librariesToImport;
-    if (librariesToImport != null) {
+    final notImportedSuggestions = this.notImportedSuggestions;
+    if (notImportedSuggestions != null) {
       contributors.add(
-        NotImportedContributor(request, builder, budget, librariesToImport),
+        NotImportedContributor(
+            request, builder, budget, notImportedSuggestions),
       );
     }
 
@@ -274,7 +279,13 @@ class DartCompletionManager {
 
 /// The information about a requested list of completions within a Dart file.
 class DartCompletionRequest {
+  /// The analysis session that produced the elements of the request.
+  final AnalysisSessionImpl analysisSession;
+
   final CompletionPreference completionPreference;
+
+  /// The content of the file in which completion is requested.
+  final String content;
 
   /// Return the type imposed on the target's `containingNode` based on its
   /// context, or `null` if the context does not impose any type.
@@ -289,6 +300,9 @@ class DartCompletionRequest {
   /// compute relevance scores for suggestions.
   final FeatureComputer featureComputer;
 
+  /// The library element of the file in which completion is requested.
+  final LibraryElement libraryElement;
+
   /// Return the offset within the source at which the completion is being
   /// requested.
   final int offset;
@@ -297,13 +311,12 @@ class DartCompletionRequest {
   /// request.
   final OpType opType;
 
+  /// The absolute path of the file where completion is requested.
+  final String path;
+
   /// The source range that represents the region of text that should be
   /// replaced when a suggestion is selected.
   final SourceRange replacementRange;
-
-  /// The analysis result for the file in which the completion is being
-  /// requested.
-  final ResolvedUnitResult result;
 
   /// Return the source in which the completion is being requested.
   final Source source;
@@ -317,17 +330,22 @@ class DartCompletionRequest {
   bool _aborted = false;
 
   factory DartCompletionRequest({
-    required ResolvedUnitResult resolvedUnit,
+    required AnalysisSession analysisSession,
+    required String filePath,
+    required String fileContent,
+    required CompilationUnitElement unitElement,
+    required AstNode enclosingNode,
     required int offset,
     DartdocDirectiveInfo? dartdocDirectiveInfo,
     CompletionPreference completionPreference = CompletionPreference.insert,
     DocumentationCache? documentationCache,
   }) {
-    var target = CompletionTarget.forOffset(resolvedUnit.unit, offset);
+    var target = CompletionTarget.forOffset(enclosingNode, offset);
 
+    var libraryElement = unitElement.library;
     var featureComputer = FeatureComputer(
-      resolvedUnit.typeSystem,
-      resolvedUnit.typeProvider,
+      libraryElement.typeSystem,
+      libraryElement.typeProvider,
     );
 
     var contextType = featureComputer.computeContextType(
@@ -341,33 +359,64 @@ class DartCompletionRequest {
     }
 
     return DartCompletionRequest._(
+      analysisSession: analysisSession as AnalysisSessionImpl,
       completionPreference: completionPreference,
+      content: fileContent,
       contextType: contextType,
       dartdocDirectiveInfo: dartdocDirectiveInfo ?? DartdocDirectiveInfo(),
       documentationCache: documentationCache,
       featureComputer: featureComputer,
+      libraryElement: libraryElement,
       offset: offset,
       opType: opType,
+      path: filePath,
       replacementRange: target.computeReplacementRange(offset),
-      result: resolvedUnit,
-      source: resolvedUnit.unit.declaredElement!.source,
+      source: unitElement.source,
       target: target,
     );
   }
 
+  factory DartCompletionRequest.forResolvedUnit({
+    required ResolvedUnitResult resolvedUnit,
+    required int offset,
+    DartdocDirectiveInfo? dartdocDirectiveInfo,
+    CompletionPreference completionPreference = CompletionPreference.insert,
+    DocumentationCache? documentationCache,
+  }) {
+    return DartCompletionRequest(
+      analysisSession: resolvedUnit.session,
+      filePath: resolvedUnit.path,
+      fileContent: resolvedUnit.content,
+      unitElement: resolvedUnit.unit.declaredElement!,
+      enclosingNode: resolvedUnit.unit,
+      offset: offset,
+      dartdocDirectiveInfo: dartdocDirectiveInfo,
+      completionPreference: completionPreference,
+      documentationCache: documentationCache,
+    );
+  }
+
   DartCompletionRequest._({
+    required this.analysisSession,
     required this.completionPreference,
+    required this.content,
     required this.contextType,
     required this.dartdocDirectiveInfo,
     required this.documentationCache,
     required this.featureComputer,
+    required this.libraryElement,
     required this.offset,
     required this.opType,
+    required this.path,
     required this.replacementRange,
-    required this.result,
     required this.source,
     required this.target,
   });
+
+  DriverBasedAnalysisContext get analysisContext {
+    var analysisContext = analysisSession.analysisContext;
+    return analysisContext as DriverBasedAnalysisContext;
+  }
 
   /// Return the feature set that was used to analyze the compilation unit in
   /// which suggestions are being made.
@@ -383,10 +432,6 @@ class DartCompletionRequest {
     var entity = target.entity;
     return entity is Expression && entity.inConstantContext;
   }
-
-  /// Return the library element which contains the unit in which the completion
-  /// is occurring.
-  LibraryElement get libraryElement => result.libraryElement;
 
   /// Answer the [DartType] for Object in dart:core
   DartType get objectType => libraryElement.typeProvider.objectType;
@@ -406,16 +451,11 @@ class DartCompletionRequest {
   int get replacementOffset => replacementRange.offset;
 
   /// Return the resource provider associated with this request.
-  ResourceProvider get resourceProvider => result.session.resourceProvider;
-
-  /// Return the content of the [source] in which the completion is being
-  /// requested, or `null` if the content could not be accessed.
-  String? get sourceContents => result.content;
+  ResourceProvider get resourceProvider => analysisSession.resourceProvider;
 
   /// Return the [SourceFactory] of the request.
   SourceFactory get sourceFactory {
-    var context = result.session.analysisContext as DriverBasedAnalysisContext;
-    return context.driver.sourceFactory;
+    return analysisContext.driver.sourceFactory;
   }
 
   /// Return prefix that already exists in the document for [target] or empty

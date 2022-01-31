@@ -42,8 +42,8 @@ constants  {
   #C8 = core::pragma {name:#C1, options:#C7}
   #C9 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C3, dimension2:#C6, dimension3:#C6, dimension4:#C6, dimension5:#C6, dimensions:#C6}
   #C10 = 0
-  #C11 = <core::int*>[#C10, #C10, #C10]
-  #C12 = <core::int*>[#C3, #C3, #C3]
+  #C11 = <core::int*>[#C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10]
+  #C12 = <core::int*>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
   #C13 = <core::int*>[]
   #C14 = "vm:prefer-inline"
   #C15 = core::pragma {name:#C14, options:#C6}
@@ -52,5 +52,5 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///ffi_struct_inline_array.dart:
-- _ArraySize. (from org-dartlang-sdk:///sdk/lib/ffi/ffi.dart:136:9)
+- _ArraySize. (from org-dartlang-sdk:///sdk/lib/ffi/ffi.dart:138:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

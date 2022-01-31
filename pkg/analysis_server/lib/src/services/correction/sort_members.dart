@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
+import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Sorter for unit/class members.
 class MemberSorter {
@@ -45,11 +48,14 @@ class MemberSorter {
 
   final CompilationUnit unit;
 
+  final LineInfo lineInfo;
+
   String code;
 
   String endOfLine = '\n';
 
-  MemberSorter(this.initialCode, this.unit) : code = initialCode {
+  MemberSorter(this.initialCode, this.unit, this.lineInfo)
+      : code = initialCode {
     endOfLine = getEOL(code);
   }
 
@@ -88,15 +94,17 @@ class MemberSorter {
   void _sortClassesMembers() {
     for (var unitMember in unit.declarations) {
       if (unitMember is ClassOrMixinDeclaration) {
-        _sortClassMembers(unitMember);
+        _sortClassMembers(unitMember.members);
+      } else if (unitMember is ExtensionDeclaration) {
+        _sortClassMembers(unitMember.members);
       }
     }
   }
 
   /// Sorts all members of the given [classDeclaration].
-  void _sortClassMembers(ClassOrMixinDeclaration classDeclaration) {
+  void _sortClassMembers(List<ClassMember> membersToSort) {
     var members = <_MemberInfo>[];
-    for (var member in classDeclaration.members) {
+    for (var member in membersToSort) {
       _MemberKind kind;
       var isStatic = false;
       String name;
@@ -136,8 +144,9 @@ class MemberSorter {
         throw StateError('Unsupported class of member: ${member.runtimeType}');
       }
       var item = _PriorityItem.forName(isStatic, name, kind);
-      var offset = member.offset;
-      var length = member.length;
+      var nodeRange = range.nodeWithComments(lineInfo, member);
+      var offset = nodeRange.offset;
+      var length = nodeRange.length;
       var text = code.substring(offset, offset + length);
       members.add(_MemberInfo(item, name, offset, length, text));
     }
@@ -212,8 +221,9 @@ class MemberSorter {
         throw StateError('Unsupported class of member: ${member.runtimeType}');
       }
       var item = _PriorityItem.forName(false, name, kind);
-      var offset = member.offset;
-      var length = member.length;
+      var nodeRange = range.nodeWithComments(lineInfo, member);
+      var offset = nodeRange.offset;
+      var length = nodeRange.length;
       var text = code.substring(offset, offset + length);
       members.add(_MemberInfo(item, name, offset, length, text));
     }

@@ -21,6 +21,7 @@ import 'src/commands/analyze.dart';
 import 'src/commands/compile.dart';
 import 'src/commands/create.dart';
 import 'src/commands/debug_adapter.dart';
+import 'src/commands/doc.dart';
 import 'src/commands/fix.dart';
 import 'src/commands/language_server.dart';
 import 'src/commands/migrate.dart';
@@ -114,6 +115,7 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(CreateCommand(verbose: verbose));
     addCommand(DebugAdapterCommand(verbose: verbose));
     addCommand(CompileCommand(verbose: verbose));
+    addCommand(DocCommand(verbose: verbose));
     addCommand(DevToolsCommand(
       verbose: verbose,
       customDevToolsPath: sdk.devToolsBinaries,
@@ -213,7 +215,10 @@ class DartdevRunner extends CommandRunner<int> {
     final path = commandNames.join('/');
     // Send the screen view to analytics
     unawaited(
-      analytics.sendScreenView(path),
+      analytics.sendScreenView(path, parameters:
+          // Starts a new analytics session.
+          // https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#sc
+          {'sc': 'start'}),
     );
 
     // The exit code for the dartdev process; null indicates that it has not been

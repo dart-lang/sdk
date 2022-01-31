@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:async" as asy;
+
+static method returnFutureOfVoid() → asy::Future<void>* async {}
+static method returnVoid() → void {}
+static method returnVoidAsync() → void async {}
+static method main() → dynamic async {
+  await self::returnVoid();
+  await self::returnFutureOfVoid();
+  await self::returnVoidAsync();
+}

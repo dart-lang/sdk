@@ -548,7 +548,7 @@ Future<api.CompilationResult> compile(List<String> argv,
         setWriteModularAnalysis),
     OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
     OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
-    OptionHandler(Flags.noClosedWorldInData, passThrough),
+    OptionHandler(Flags.noClosedWorldInData, ignoreOption),
     OptionHandler('${Flags.readClosedWorld}|${Flags.readClosedWorld}=.+',
         setReadClosedWorld),
     OptionHandler('${Flags.writeClosedWorld}|${Flags.writeClosedWorld}=.+',
@@ -627,6 +627,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     OptionHandler(Flags.benchmarkingExperiment, passThrough),
     OptionHandler(Flags.soundNullSafety, setNullSafetyMode),
     OptionHandler(Flags.noSoundNullSafety, setNullSafetyMode),
+    OptionHandler(Flags.dumpUnusedLibraries, passThrough),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly
@@ -664,10 +665,17 @@ Future<api.CompilationResult> compile(List<String> argv,
     // Wire up feature flags.
     OptionHandler(Flags.canary, passThrough),
     OptionHandler(Flags.noShipping, passThrough),
+    // Shipped features.
+    for (var feature in features.shipped)
+      OptionHandler('--${feature.flag}', passThrough),
+    for (var feature in features.shipped)
+      OptionHandler('--no-${feature.flag}', passThrough),
+    // Shipping features.
     for (var feature in features.shipping)
       OptionHandler('--${feature.flag}', passThrough),
     for (var feature in features.shipping)
       OptionHandler('--no-${feature.flag}', passThrough),
+    // Canary features.
     for (var feature in features.canary)
       OptionHandler('--${feature.flag}', passThrough),
     for (var feature in features.canary)
@@ -825,9 +833,7 @@ Future<api.CompilationResult> compile(List<String> argv,
       if (readStrategy == ReadStrategy.fromCodegen) {
         fail("Cannot read and write serialized codegen simultaneously.");
       }
-      // TODO(joshualitt) cleanup after google3 roll.
-      if (readStrategy != ReadStrategy.fromData &&
-          readStrategy != ReadStrategy.fromDataAndClosedWorld) {
+      if (readStrategy != ReadStrategy.fromDataAndClosedWorld) {
         fail("Can only write serialized codegen from serialized data.");
       }
       if (codegenShards == null) {
@@ -855,10 +861,7 @@ Future<api.CompilationResult> compile(List<String> argv,
       options.add('${Flags.readClosedWorld}=${readClosedWorldUri}');
       break;
     case ReadStrategy.fromData:
-      // TODO(joshualitt): fail after Google3 roll.
-      // fail("Must read from closed world and data.");
-      readDataUri ??= Uri.base.resolve('$scriptName.data');
-      options.add('${Flags.readData}=${readDataUri}');
+      fail("Must read from closed world and data.");
       break;
     case ReadStrategy.fromDataAndClosedWorld:
       readClosedWorldUri ??= Uri.base.resolve('$scriptName.world');
@@ -868,19 +871,6 @@ Future<api.CompilationResult> compile(List<String> argv,
       break;
     case ReadStrategy.fromCodegen:
     case ReadStrategy.fromCodegenAndData:
-      // TODO(joshualitt): fall through to fail after google3 roll.
-      readDataUri ??= Uri.base.resolve('$scriptName.data');
-      options.add('${Flags.readData}=${readDataUri}');
-      readCodegenUri ??= Uri.base.resolve('$scriptName.code');
-      options.add('${Flags.readCodegen}=${readCodegenUri}');
-      if (codegenShards == null) {
-        fail("Cannot write serialized codegen without setting "
-            "${Flags.codegenShards}.");
-      } else if (codegenShards <= 0) {
-        fail("${Flags.codegenShards} must be a positive integer.");
-      }
-      options.add('${Flags.codegenShards}=$codegenShards');
-      break;
     case ReadStrategy.fromCodegenAndClosedWorld:
       fail("Must read from closed world, data, and codegen");
       break;
@@ -929,7 +919,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     String summary;
     switch (readStrategy) {
       case ReadStrategy.fromDart:
-        inputName = 'characters Dart';
+        inputName = inputDillUri != null ? 'kernel bytes' : 'characters Dart';
         inputSize = inputProvider.dartCharactersRead;
         summary = 'Dart file $input ';
         break;
@@ -941,13 +931,7 @@ Future<api.CompilationResult> compile(List<String> argv,
         summary = 'Data files $input and $dataInput ';
         break;
       case ReadStrategy.fromData:
-        // TODO(joshualitt): fail after google3 roll.
-        //fail("Must read from closed world and data.");
-        inputName = 'bytes data';
-        inputSize = inputProvider.dartCharactersRead;
-        String dataInput =
-            fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
-        summary = 'Data files $input and $dataInput ';
+        fail("Must read from closed world and data.");
         break;
       case ReadStrategy.fromDataAndClosedWorld:
         inputName = 'bytes data';
@@ -960,16 +944,6 @@ Future<api.CompilationResult> compile(List<String> argv,
         break;
       case ReadStrategy.fromCodegen:
       case ReadStrategy.fromCodegenAndData:
-        // TODO(joshualitt): Fall through to fail after google3 roll.
-        inputName = 'bytes data';
-        inputSize = inputProvider.dartCharactersRead;
-        String dataInput =
-            fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
-        String codeInput =
-            fe.relativizeUri(Uri.base, readCodegenUri, Platform.isWindows);
-        summary = 'Data files $input, $dataInput and '
-            '${codeInput}[0-${codegenShards - 1}] ';
-        break;
       case ReadStrategy.fromCodegenAndClosedWorld:
         fail("Must read from closed world, data, and codegen");
         break;
@@ -1378,7 +1352,7 @@ void helpAndFail(String message) {
   fail(message);
 }
 
-void main(List<String> arguments) {
+Future<void> main(List<String> arguments) async {
   // Expand `@path/to/file`
   // When running from bazel, argument of the form `@path/to/file` might be
   // provided. It needs to be replaced by reading all the contents of the
@@ -1396,7 +1370,7 @@ void main(List<String> arguments) {
     batchMain(arguments.sublist(0, arguments.length - 1));
     return;
   }
-  internalMain(arguments);
+  await internalMain(arguments);
 }
 
 /// Return all non-empty lines in a file found at [path].

@@ -15,7 +15,6 @@ import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
-import 'package:analysis_server/src/services/completion/dart/extension_cache.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
@@ -44,12 +43,14 @@ import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -92,10 +93,6 @@ abstract class AbstractAnalysisServer {
   /// A map from analysis contexts to the documentation cache associated with
   /// each context.
   Map<AnalysisContext, DocumentationCache> documentationForContext = {};
-
-  /// A map from analysis contexts to the extension cache associated with
-  /// each context.
-  Map<AnalysisContext, ExtensionCache> extensionForContext = {};
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
@@ -250,7 +247,6 @@ abstract class AbstractAnalysisServer {
   void addContextsToDeclarationsTracker() {
     declarationsTracker?.discardContexts();
     documentationForContext.clear();
-    extensionForContext.clear();
     for (var driver in driverMap.values) {
       declarationsTracker?.addContext(driver.analysisContext!);
     }
@@ -302,8 +298,14 @@ abstract class AbstractAnalysisServer {
   }
 
   DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
+    return getDartdocDirectiveInfoForSession(result.session);
+  }
+
+  DartdocDirectiveInfo getDartdocDirectiveInfoForSession(
+    AnalysisSession session,
+  ) {
     return declarationsTracker
-            ?.getContext(result.session.analysisContext)
+            ?.getContext(session.analysisContext)
             ?.dartdocDirectiveInfo ??
         DartdocDirectiveInfo();
   }
@@ -312,7 +314,14 @@ abstract class AbstractAnalysisServer {
   /// context that produced the [result], or `null` if there is no cache for the
   /// context.
   DocumentationCache? getDocumentationCacheFor(ResolvedUnitResult result) {
-    var context = result.session.analysisContext;
+    return getDocumentationCacheForSession(result.session);
+  }
+
+  /// Return the object used to cache the documentation for elements in the
+  /// context that produced the [session], or `null` if there is no cache for
+  /// the context.
+  DocumentationCache? getDocumentationCacheForSession(AnalysisSession session) {
+    var context = session.analysisContext;
     var tracker = declarationsTracker?.getContext(context);
     if (tracker == null) {
       return null;
@@ -368,14 +377,6 @@ abstract class AbstractAnalysisServer {
     return element;
   }
 
-  /// Return the object used to cache information about extensions in the
-  /// context that produced the [result], or `null` if there is no cache for the
-  /// context.
-  ExtensionCache? getExtensionCacheFor(ResolvedUnitResult result) {
-    var context = result.session.analysisContext;
-    return extensionForContext.putIfAbsent(context, () => ExtensionCache());
-  }
-
   /// Return a [Future] that completes with the resolved [AstNode] at the
   /// given [offset] of the given [file], or with `null` if there is no node as
   /// the [offset].
@@ -416,7 +417,7 @@ abstract class AbstractAnalysisServer {
     return driver
         .getResult(path, sendCachedToStream: sendCachedToStream)
         .then((value) => value is ResolvedUnitResult ? value : null)
-        .catchError((e, st) {
+        .catchError((Object e, StackTrace st) {
       instrumentationService.logException(e, st);
       return null;
     });
@@ -462,11 +463,37 @@ abstract class AbstractAnalysisServer {
     contextManager.refresh();
   }
 
+  ResolvedForCompletionResultImpl? resolveForCompletion({
+    required String path,
+    required int offset,
+    required OperationPerformanceImpl performance,
+  }) {
+    if (!file_paths.isDart(resourceProvider.pathContext, path)) {
+      return null;
+    }
+
+    var driver = getAnalysisDriver(path);
+    if (driver == null) {
+      return null;
+    }
+
+    try {
+      return driver.resolveForCompletion(
+        path: path,
+        offset: offset,
+        performance: performance,
+      );
+    } catch (e, st) {
+      instrumentationService.logException(e, st);
+    }
+    return null;
+  }
+
   /// Sends an error notification to the user.
   void sendServerErrorNotification(
     String message,
-    dynamic exception,
-    /*StackTrace*/ stackTrace, {
+    Object exception,
+    StackTrace? stackTrace, {
     bool fatal = false,
   });
 

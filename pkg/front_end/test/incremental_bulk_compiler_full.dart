@@ -2,21 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:expect/expect.dart' show Expect;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;
 
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
-    show IncrementalKernelGenerator;
+    show IncrementalCompilerResult, IncrementalKernelGenerator;
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
-import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
 
 import 'package:kernel/kernel.dart' show Component;
 
@@ -49,7 +44,7 @@ class Context extends ChainContext {
     return result;
   }
 
-  IncrementalCompiler compiler;
+  IncrementalKernelGenerator? compiler;
 }
 
 CompilerOptions getOptions() {
@@ -78,25 +73,27 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
 
     // "One shot compile"
     bool oneShotFailed = false;
-    List<int> oneShotSerialized;
+    late List<int> oneShotSerialized;
     try {
-      IncrementalCompiler compiler =
+      IncrementalKernelGenerator compiler =
           new IncrementalKernelGenerator(getOptions(), uri);
-      oneShotSerialized = util.postProcess(await compiler.computeDelta());
+      oneShotSerialized =
+          util.postProcess((await compiler.computeDelta()).component);
     } catch (e) {
       oneShotFailed = true;
     }
 
     // Bulk
     bool bulkFailed = false;
-    List<int> bulkSerialized;
+    late List<int> bulkSerialized;
     try {
       globalDebuggingNames = new NameSystem();
       if (context.compiler == null) {
         context.compiler = new IncrementalKernelGenerator(getOptions(), uri);
       }
-      Component bulkCompiledComponent = await context.compiler
+      IncrementalCompilerResult compilerResult = await context.compiler!
           .computeDelta(entryPoints: [uri], fullComponent: true);
+      Component bulkCompiledComponent = compilerResult.component;
       bulkSerialized = util.postProcess(bulkCompiledComponent);
     } catch (e) {
       bulkFailed = true;
@@ -105,14 +102,15 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
 
     // Compile again - the serialized output should be the same.
     bool bulk2Failed = false;
-    List<int> bulkSerialized2;
+    late List<int> bulkSerialized2;
     try {
       globalDebuggingNames = new NameSystem();
       if (context.compiler == null) {
         context.compiler = new IncrementalKernelGenerator(getOptions(), uri);
       }
-      Component bulkCompiledComponent = await context.compiler
+      IncrementalCompilerResult compilerResult = await context.compiler!
           .computeDelta(entryPoints: [uri], fullComponent: true);
+      Component bulkCompiledComponent = compilerResult.component;
       bulkSerialized2 = util.postProcess(bulkCompiledComponent);
     } catch (e) {
       bulk2Failed = true;

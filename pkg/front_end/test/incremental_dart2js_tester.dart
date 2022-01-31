@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "dart:developer";
 import 'dart:io' show Platform;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
+
 import 'package:front_end/src/fasta/kernel/utils.dart';
 
 import 'package:kernel/kernel.dart'
@@ -49,9 +50,9 @@ class Dart2jsTester {
   final int limit;
 
   Stopwatch stopwatch = new Stopwatch();
-  List<int> firstCompileData;
-  Map<Uri, List<int>> libToData;
-  List<Uri> uris;
+  late List<int> firstCompileData;
+  late Map<Uri, List<int>> libToData;
+  late List<Uri> uris;
 
   List<Uri> diffs = <Uri>[];
   Set<Uri> componentUris = new Set<Uri>();
@@ -91,11 +92,14 @@ class Dart2jsTester {
     print("Invalidating $uri ($i)");
     compiler.invalidate(uri);
     localStopwatch.reset();
-    Component c2 = await compiler.computeDelta(fullComponent: true);
+    IncrementalCompilerResult compilerResult =
+        await compiler.computeDelta(fullComponent: true);
+    Component c2 = compilerResult.component;
     print("Recompiled in ${localStopwatch.elapsedMilliseconds} ms");
     print("invalidatedImportUrisForTesting: "
-        "${compiler.invalidatedImportUrisForTesting}");
-    print("rebuildBodiesCount: ${compiler.rebuildBodiesCount}");
+        "${compiler.recorderForTesting.invalidatedImportUrisForTesting}");
+    print("rebuildBodiesCount: "
+        "${compiler.recorderForTesting.rebuildBodiesCount}");
     localStopwatch.reset();
     Set<Uri> thisUris = new Set<Uri>.from(c2.libraries.map((l) => l.importUri));
     if (componentUris.isNotEmpty) {
@@ -136,7 +140,7 @@ class Dart2jsTester {
 
         List<int> libSerialized =
             serializeComponent(c2, filter: (l) => l == library);
-        if (!isEqual(libToData[library.importUri], libSerialized)) {
+        if (!isEqual(libToData[library.importUri]!, libSerialized)) {
           print("=====");
           print("=====");
           print("=====");
@@ -182,7 +186,8 @@ class Dart2jsTester {
         .alternativeInvalidationStrategy] = useExperimentalInvalidation;
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, input);
-    Component c = await compiler.computeDelta();
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+    Component? c = compilerResult.component;
     print("Compiled dart2js to Component with ${c.libraries.length} libraries "
         "in ${stopwatch.elapsedMilliseconds} ms.");
     stopwatch.reset();
@@ -213,8 +218,9 @@ class Dart2jsTester {
     stopwatch.reset();
 
     uris = c.uriToSource.values
-        .map((s) => s != null ? s.importUri : null)
-        .where((u) => u != null && u.scheme != "dart")
+        .map((s) => s.importUri)
+        .whereType<Uri>()
+        .where((u) => u.scheme != "dart")
         .toSet()
         .toList();
 

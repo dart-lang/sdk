@@ -83,6 +83,9 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
     codePositionListener.onPositions(
         node, startPosition, endPosition, closingPosition);
   }
+
+  @override
+  bool get isDebugContext => false;
 }
 
 /// Interface for ast nodes that encapsulate an ast that needs to be
@@ -98,9 +101,9 @@ abstract class TokenFinalizer {
 }
 
 /// Implements reference counting for instances of [ReferenceCountedAstNode]
-class TokenCounter extends BaseVisitor {
+class TokenCounter extends BaseVisitorVoid {
   @override
-  visitNode(Node node) {
+  void visitNode(Node node) {
     if (node is AstContainer) {
       for (Node element in node.containedNodes) {
         element.accept(this);

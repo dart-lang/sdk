@@ -40,9 +40,9 @@ Future<void> main() async {
     });
   });
 
-  test('Analytics control smoke test', () {
+  test('Analytics control smoke test', () async {
     final p = project(logAnalytics: true);
-    var result = p.runSync(['--disable-analytics']);
+    var result = await p.run(['--disable-analytics']);
     expect(result.stdout, contains('''
   ╔════════════════════════════════════════════════════════════════════════════╗
   ║ Analytics reporting disabled. In order to enable it, run:                  ║
@@ -52,7 +52,7 @@ Future<void> main() async {
   ╚════════════════════════════════════════════════════════════════════════════╝
 '''));
 
-    result = p.runSync(['--enable-analytics']);
+    result = await p.run(['--enable-analytics']);
     expect(result.stdout, contains('''
   ╔════════════════════════════════════════════════════════════════════════════╗
   ║ The Dart tool uses Google Analytics to report feature usage statistics     ║
@@ -69,13 +69,13 @@ Future<void> main() async {
 
   final experiments = await experimentsWithValidation();
   group('Sending analytics', () {
-    test('help', () {
+    test('help', () async {
       final p = project(logAnalytics: true);
-      final result = p.runSync(['help']);
+      final result = await p.run(['help']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'help'}
+          'message': {'viewName': 'help', 'sc': 'start'}
         },
         {
           'hitType': 'event',
@@ -97,14 +97,14 @@ Future<void> main() async {
         }
       ]);
     });
-    test('create', () {
+    test('create', () async {
       final p = project(logAnalytics: true);
       final result =
-          p.runSync(['create', '--no-pub', '-tpackage-simple', 'name']);
+          await p.run(['create', '--no-pub', '-tpackage-simple', 'name']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'create'}
+          'message': {'viewName': 'create', 'sc': 'start'}
         },
         {
           'hitType': 'event',
@@ -129,17 +129,17 @@ Future<void> main() async {
       ]);
     });
 
-    test('pub get dry run', () {
+    test('pub get dry run', () async {
       final p = project(logAnalytics: true, pubspec: {
         'name': 'foo',
         'environment': {'sdk': '>=2.10.0 <3.0.0'},
         'dependencies': {'_dummy_pkg': '0.0.1'}
       });
-      final result = p.runSync(['pub', 'get', '--dry-run']);
+      final result = await p.run(['pub', 'get', '--dry-run']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'pub/get'}
+          'message': {'viewName': 'pub/get', 'sc': 'start'}
         },
         {
           'hitType': 'event',
@@ -164,17 +164,17 @@ Future<void> main() async {
       ]);
     });
 
-    test('pub get', () {
+    test('pub get', () async {
       final p = project(logAnalytics: true, pubspec: {
         'name': 'foo',
         'environment': {'sdk': '>=2.10.0 <3.0.0'},
         'dependencies': {'_dummy_pkg': '0.0.1'}
       });
-      final result = p.runSync(['pub', 'get']);
+      final result = await p.run(['pub', 'get']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'pub/get'}
+          'message': {'viewName': 'pub/get', 'sc': 'start'},
         },
         {
           'hitType': 'event',
@@ -218,13 +218,13 @@ Future<void> main() async {
       ]);
     });
 
-    test('format', () {
+    test('format', () async {
       final p = project(logAnalytics: true);
-      final result = p.runSync(['format', '-l80', '.']);
+      final result = await p.run(['format', '-l80', '.']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'format'}
+          'message': {'viewName': 'format', 'sc': 'start'}
         },
         {
           'hitType': 'event',
@@ -249,11 +249,11 @@ Future<void> main() async {
       ]);
     });
 
-    test('run', () {
+    test('run', () async {
       final p = project(
           mainSrc: 'void main(List<String> args) => print(args)',
           logAnalytics: true);
-      final result = p.runSync([
+      final result = await p.run([
         'run',
         '--no-pause-isolates-on-exit',
         '--enable-asserts',
@@ -263,7 +263,7 @@ Future<void> main() async {
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'run'}
+          'message': {'viewName': 'run', 'sc': 'start'},
         },
         {
           'hitType': 'event',
@@ -289,11 +289,11 @@ Future<void> main() async {
     });
     group('run --enable-experiments', () {
       for (final experiment in experiments) {
-        test(experiment.name, () {
+        test(experiment.name, () async {
           final p = project(mainSrc: experiment.validation, logAnalytics: true);
           {
             for (final no in ['', 'no-']) {
-              final result = p.runSync([
+              final result = await p.run([
                 'run',
                 '--enable-experiment=$no${experiment.name}',
                 'lib/main.dart',
@@ -301,7 +301,7 @@ Future<void> main() async {
               expect(extractAnalytics(result), [
                 {
                   'hitType': 'screenView',
-                  'message': {'viewName': 'run'}
+                  'message': {'viewName': 'run', 'sc': 'start'},
                 },
                 {
                   'hitType': 'event',
@@ -330,16 +330,16 @@ Future<void> main() async {
       }
     });
 
-    test('compile', () {
+    test('compile', () async {
       final p = project(
           mainSrc: 'void main(List<String> args) => print(args);',
           logAnalytics: true);
-      final result = p
-          .runSync(['compile', 'kernel', 'lib/main.dart', '-o', 'main.kernel']);
+      final result = await p
+          .run(['compile', 'kernel', 'lib/main.dart', '-o', 'main.kernel']);
       expect(extractAnalytics(result), [
         {
           'hitType': 'screenView',
-          'message': {'viewName': 'compile/kernel'}
+          'message': {'viewName': 'compile/kernel', 'sc': 'start'},
         },
         {
           'hitType': 'event',

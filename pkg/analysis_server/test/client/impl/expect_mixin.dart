@@ -30,7 +30,7 @@ class ExpectMixin {
     } else if (x is _Predicate<Null>) {
       // x is a unary predicate, but expects a specific type
       // so wrap it.
-      return predicate((a) => (x as dynamic)(a));
+      return predicate((a) => (x as dynamic)(a) as bool);
     } else {
       return equals(x);
     }

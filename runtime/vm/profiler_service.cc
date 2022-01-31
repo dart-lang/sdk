@@ -170,7 +170,19 @@ void ProfileFunction::PrintToJSONObject(JSONObject* func) {
   func->AddProperty("_kind", KindToCString(kind()));
 }
 
-void ProfileFunction::PrintToJSONArray(JSONArray* functions) {
+void ProfileFunction::PrintToJSONArray(JSONArray* functions,
+                                       bool print_only_ids) {
+  if (print_only_ids) {
+    JSONObject obj(functions);
+    if (kind() == kDartFunction) {
+      ASSERT(!function_.IsNull());
+      obj.AddProperty("type", "@Object");
+      function_.AddFunctionServiceId(obj);
+    } else {
+      PrintToJSONObject(&obj);
+    }
+    return;
+  }
   JSONObject obj(functions);
   obj.AddProperty("type", "ProfileFunction");
   obj.AddProperty("kind", KindToCString(kind()));
@@ -943,12 +955,12 @@ class ProfileBuilder : public ValueObject {
     if (!FilterSamples()) {
       return;
     }
-
     Setup();
     BuildCodeTable();
     FinalizeCodeIndexes();
     BuildFunctionTable();
     PopulateFunctionTicks();
+    SanitizeMinMaxTimes();
   }
 
  private:
@@ -1050,7 +1062,6 @@ class ProfileBuilder : public ValueObject {
       TickExitFrame(sample->vm_tag(), sample_index, sample);
       thread_->CheckForSafepoint();
     }
-    SanitizeMinMaxTimes();
   }
 
   void FinalizeCodeIndexes() {
@@ -1728,10 +1739,16 @@ void Profile::PrintProfileJSON(JSONStream* stream, bool include_code_samples) {
   PrintProfileJSON(&obj, include_code_samples);
 }
 
-void Profile::PrintProfileJSON(JSONObject* obj, bool include_code_samples) {
+void Profile::PrintProfileJSON(JSONObject* obj,
+                               bool include_code_samples,
+                               bool is_event) {
   ScopeTimer sw("Profile::PrintProfileJSON", FLAG_trace_profiler);
   Thread* thread = Thread::Current();
-  obj->AddProperty("type", "CpuSamples");
+  if (is_event) {
+    obj->AddProperty("type", "CpuSamplesEvent");
+  } else {
+    obj->AddProperty("type", "CpuSamples");
+  }
   PrintHeaderJSON(obj);
   if (include_code_samples) {
     JSONArray codes(obj, "_codes");
@@ -1760,7 +1777,7 @@ void Profile::PrintProfileJSON(JSONObject* obj, bool include_code_samples) {
     for (intptr_t i = 0; i < functions_->length(); i++) {
       ProfileFunction* function = functions_->At(i);
       ASSERT(function != NULL);
-      function->PrintToJSONArray(&functions);
+      function->PrintToJSONArray(&functions, is_event);
       thread->CheckForSafepoint();
     }
   }

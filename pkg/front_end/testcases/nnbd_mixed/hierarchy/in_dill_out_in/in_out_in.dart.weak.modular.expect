@@ -1,0 +1,230 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:9:7: Error: The implementation of 'optionalArgumentsMethod' in the non-abstract class 'Class' does not conform to its interface.
+// class Class /* error */ extends LegacyClass implements SuperQ {
+//       ^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:9:7: Context: The method 'Super.optionalArgumentsMethod' has fewer positional arguments than those of overridden method 'SuperExtra.optionalArgumentsMethod'.
+//   int optionalArgumentsMethod(int i) => i;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:13:7: Context: This is the overridden method ('optionalArgumentsMethod').
+//   int optionalArgumentsMethod(int i, [int? j]) => i;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:34:7: Error: The implementation of 'optionalArgumentsMethod' in the non-abstract class 'ClassQ' does not conform to its interface.
+// class ClassQ /* error */ extends LegacyClassQ implements Super {
+//       ^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:20:8: Context: The method 'SuperQ.optionalArgumentsMethod' has fewer positional arguments than those of overridden method 'SuperExtra.optionalArgumentsMethod'.
+//   int? optionalArgumentsMethod(int? i) => i;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:13:7: Context: This is the overridden method ('optionalArgumentsMethod').
+//   int optionalArgumentsMethod(int i, [int? j]) => i;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:59:7: Error: The implementation of 'optionalArgumentsMethod' in the non-abstract class 'ClassMixedIn' does not conform to its interface.
+// class ClassMixedIn /* error */ extends LegacyMixedIn implements SuperQ {
+//       ^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:9:7: Context: The method 'Object with Super.optionalArgumentsMethod' has fewer positional arguments than those of overridden method 'SuperExtra.optionalArgumentsMethod'.
+//   int optionalArgumentsMethod(int i) => i;
+//       ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:13:7: Context: This is the overridden method ('optionalArgumentsMethod').
+//   int optionalArgumentsMethod(int i, [int? j]) => i;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:59:7: Error: Class 'ClassMixedIn' inherits multiple members named 'nullabilityMethod' with incompatible signatures.
+// Try adding a declaration of 'nullabilityMethod' to 'ClassMixedIn'.
+// class ClassMixedIn /* error */ extends LegacyMixedIn implements SuperQ {
+//       ^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:6:7: Context: This is one of the overridden members.
+//   int nullabilityMethod(int i, {required int j}) => i;
+//       ^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:17:8: Context: This is one of the overridden members.
+//   int? nullabilityMethod(int? i, {int? j}) => i;
+//        ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:84:7: Error: The implementation of 'optionalArgumentsMethod' in the non-abstract class 'ClassMixedInQ' does not conform to its interface.
+// class ClassMixedInQ /* error */ extends LegacyMixedInQ implements Super {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:20:8: Context: The method 'Object with SuperQ.optionalArgumentsMethod' has fewer positional arguments than those of overridden method 'SuperExtra.optionalArgumentsMethod'.
+//   int? optionalArgumentsMethod(int? i) => i;
+//        ^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:13:7: Context: This is the overridden method ('optionalArgumentsMethod').
+//   int optionalArgumentsMethod(int i, [int? j]) => i;
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:84:7: Error: Class 'ClassMixedInQ' inherits multiple members named 'nullabilityMethod' with incompatible signatures.
+// Try adding a declaration of 'nullabilityMethod' to 'ClassMixedInQ'.
+// class ClassMixedInQ /* error */ extends LegacyMixedInQ implements Super {
+//       ^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:17:8: Context: This is one of the overridden members.
+//   int? nullabilityMethod(int? i, {int? j}) => i;
+//        ^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in_lib1.dart:6:7: Context: This is one of the overridden members.
+//   int nullabilityMethod(int i, {required int j}) => i;
+//       ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:21:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     super.optionalArgumentsMethod(null, null); // error
+//                                  ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:46:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     super.optionalArgumentsMethod(null, null); // error
+//                                  ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:52:25: Error: The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
+//     nullabilitySetter = null; // error
+//                         ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:63:31: Error: Required named parameter 'j' must be provided.
+//     var v1 = nullabilityMethod(null); // ok
+//                               ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:71:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     super.optionalArgumentsMethod(null, null); // error
+//                                  ^
+//
+// pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:96:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     super.optionalArgumentsMethod(null, null); // error
+//                                  ^
+//
+import self as self;
+import "in_out_in_lib2.dart" as in_;
+import "in_out_in_lib1.dart" as in_2;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///in_out_in_lib1.dart";
+import "org-dartlang-testcase:///in_out_in_lib2.dart";
+
+class Class extends in_::LegacyClass implements in_2::SuperQ {
+  synthetic constructor •() → self::Class
+    : super in_::LegacyClass::•()
+    ;
+  method test() → dynamic {
+    core::int i;
+    core::int? v1 = this.{self::Class::nullabilityMethod}(null){(core::int?, {j: core::int?}) → core::int?};
+    i = super.{in_2::Super::nullabilityMethod}(null);
+    i = this.{in_::LegacyClass::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
+    i = super.{in_2::Super::optionalArgumentsMethod}(null);
+    invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:21:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+Try removing the extra positional arguments.
+    super.optionalArgumentsMethod(null, null); // error
+                                 ^" in super.{in_2::Super::optionalArgumentsMethod}(null, null);
+    core::int? v2 = this.{self::Class::nullabilityGetter}{core::int?};
+    i = super.{in_2::Super::nullabilityGetter};
+    this.{self::Class::nullabilitySetter} = null;
+    super.{in_2::Super::nullabilitySetter} = null;
+  }
+  abstract member-signature method nullabilityMethod(core::int? i, {core::int? j}) → core::int?; -> in_2::Super::nullabilityMethod
+  abstract member-signature get nullabilityGetter() → core::int?; -> in_2::Super::nullabilityGetter
+  abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
+  abstract member-signature set nullabilitySetter(core::int? value) → void; -> in_2::Super::nullabilitySetter
+}
+class ClassQ extends in_::LegacyClassQ implements in_2::Super {
+  synthetic constructor •() → self::ClassQ
+    : super in_::LegacyClassQ::•()
+    ;
+  method test() → dynamic {
+    core::int i;
+    this.{in_::LegacyClassQ::nullabilityMethod}(null){(core::int*, {j: core::int*}) →* core::int*};
+    i = super.{in_2::SuperQ::nullabilityMethod}(null);
+    i = this.{in_::LegacyClassQ::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
+    i = super.{in_2::SuperQ::optionalArgumentsMethod}(null);
+    invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:46:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+Try removing the extra positional arguments.
+    super.optionalArgumentsMethod(null, null); // error
+                                 ^" in super.{in_2::SuperQ::optionalArgumentsMethod}(null, null);
+    i = this.{self::ClassQ::nullabilityGetter}{core::int};
+    i = super.{in_2::SuperQ::nullabilityGetter};
+    this.{self::ClassQ::nullabilitySetter} = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:52:25: Error: The value 'null' can't be assigned to a variable of type 'int' because 'int' is not nullable.
+    nullabilitySetter = null; // error
+                        ^" in null as{TypeError,ForNonNullableByDefault} core::int;
+    super.{in_2::SuperQ::nullabilitySetter} = null;
+  }
+  abstract member-signature get nullabilityGetter() → core::int; -> in_2::SuperQ::nullabilityGetter
+  abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
+  abstract member-signature set nullabilitySetter(core::int value) → void; -> in_2::SuperQ::nullabilitySetter
+}
+class ClassMixedIn extends in_::LegacyMixedIn implements in_2::SuperQ {
+  synthetic constructor •() → self::ClassMixedIn
+    : super in_::LegacyMixedIn::•()
+    ;
+  method test() → dynamic {
+    core::int i;
+    invalid-type v1 = invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:63:31: Error: Required named parameter 'j' must be provided.
+    var v1 = nullabilityMethod(null); // ok
+                              ^" in this.{in_::_LegacyMixedIn&Object&Super::nullabilityMethod}{<inapplicable>}.(null){(invalid-type) → invalid-type};
+    i = super.{in_::_LegacyMixedIn&Object&Super::nullabilityMethod}(null);
+    i = this.{in_::LegacyMixedIn::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
+    i = super.{in_::_LegacyMixedIn&Object&Super::optionalArgumentsMethod}(null);
+    invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:71:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+Try removing the extra positional arguments.
+    super.optionalArgumentsMethod(null, null); // error
+                                 ^" in super.{in_::_LegacyMixedIn&Object&Super::optionalArgumentsMethod}(null, null);
+    core::int v2 = this.{in_::_LegacyMixedIn&Object&Super::nullabilityGetter}{core::int};
+    i = super.{in_::_LegacyMixedIn&Object&Super::nullabilityGetter};
+    this.{self::ClassMixedIn::nullabilitySetter} = null;
+    super.{in_::_LegacyMixedIn&Object&Super::nullabilitySetter} = null;
+  }
+  abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
+  abstract member-signature set nullabilitySetter(core::int? value) → void; -> in_2::SuperQ::nullabilitySetter
+}
+class ClassMixedInQ extends in_::LegacyMixedInQ implements in_2::Super {
+  synthetic constructor •() → self::ClassMixedInQ
+    : super in_::LegacyMixedInQ::•()
+    ;
+  method test() → dynamic {
+    core::int i;
+    this.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilityMethod}(null){(core::int?, {j: core::int?}) →* core::int?};
+    i = super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilityMethod}(null);
+    i = this.{in_::LegacyMixedInQ::optionalArgumentsMethod}(null, null){(core::int*, [core::int*]) →* core::int*};
+    i = super.{in_::_LegacyMixedInQ&Object&SuperQ::optionalArgumentsMethod}(null);
+    invalid-expression "pkg/front_end/testcases/nnbd_mixed/hierarchy/in_dill_out_in/in_out_in.dart:96:34: Error: Too many positional arguments: 1 allowed, but 2 found.
+Try removing the extra positional arguments.
+    super.optionalArgumentsMethod(null, null); // error
+                                 ^" in super.{in_::_LegacyMixedInQ&Object&SuperQ::optionalArgumentsMethod}(null, null);
+    i = this.{self::ClassMixedInQ::nullabilityGetter}{core::int};
+    i = super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilityGetter};
+    this.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilitySetter} = null;
+    super.{in_::_LegacyMixedInQ&Object&SuperQ::nullabilitySetter} = null;
+  }
+  abstract member-signature get nullabilityGetter() → core::int; -> in_2::Super::nullabilityGetter
+  abstract member-signature get _identityHashCode() → core::int; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature get hashCode() → core::int; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

@@ -10,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/documentation_cache.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
@@ -95,7 +94,7 @@ Future<void> main(List<String> args) async {
   var provider = PhysicalResourceProvider.INSTANCE;
   if (result.wasParsed('reduceDir')) {
     var targetMetrics = <CompletionMetrics>[];
-    var dir = provider.getFolder(result['reduceDir']);
+    var dir = provider.getFolder(result['reduceDir'] as String);
     var computer = CompletionMetricsComputer('', options);
     for (var child in dir.getChildren()) {
       if (child is File) {
@@ -240,7 +239,7 @@ bool validArguments(ArgParser parser, ArgResults result) {
     printUsage(parser);
     return false;
   } else if (result.wasParsed('reduceDir')) {
-    return validateDir(parser, result['reduceDir']);
+    return validateDir(parser, result['reduceDir'] as String);
   } else if (result.rest.length != 1) {
     printUsage(parser, error: 'No package path specified.');
     return false;
@@ -403,13 +402,14 @@ class CompletionMetrics {
         in (map['groupMrrComputers'] as Map<String, dynamic>).entries) {
       var group = CompletionGroup.values[int.parse(entry.key)];
       metrics.groupMrrComputers[group] = MeanReciprocalRankComputer(group.name)
-        ..fromJson(entry.value);
+        ..fromJson(entry.value as Map<String, Object?>);
     }
     for (var entry
         in (map['locationMrrComputers'] as Map<String, dynamic>).entries) {
       var location = entry.key;
       metrics.locationMrrComputers[location] =
-          MeanReciprocalRankComputer(location)..fromJson(entry.value);
+          MeanReciprocalRankComputer(location)
+            ..fromJson(entry.value as Map<String, Object?>);
     }
     metrics.charsBeforeTop
         .fromJson(map['charsBeforeTop'] as Map<String, dynamic>);
@@ -418,11 +418,11 @@ class CompletionMetrics {
     metrics.insertionLengthTheoretical
         .fromJson(map['insertionLengthTheoretical'] as Map<String, dynamic>);
     for (var element in map['missingCompletionLocations'] as List<dynamic>) {
-      metrics.missingCompletionLocations.add(element);
+      metrics.missingCompletionLocations.add(element as String);
     }
     for (var element
         in map['missingCompletionLocationTables'] as List<dynamic>) {
-      metrics.missingCompletionLocationTables.add(element);
+      metrics.missingCompletionLocationTables.add(element as String);
     }
     for (var entry in (map['slowestResults'] as Map<String, dynamic>).entries) {
       var group = CompletionGroup.values[int.parse(entry.key)];
@@ -1227,7 +1227,7 @@ class CompletionMetricsComputer {
         listener: listener,
       ).computeSuggestions(dartRequest, performance);
 
-      computeIncludedSetList(declarationsTracker, dartRequest.result,
+      computeIncludedSetList(declarationsTracker, dartRequest,
           includedSuggestionSetList, includedElementNames);
 
       var includedSuggestionSetMap = {
@@ -1369,27 +1369,19 @@ class CompletionMetricsComputer {
             {required MetricsSuggestionListener listener,
             required CompletionMetrics metrics}) async {
           var stopwatch = Stopwatch()..start();
-          var request = DartCompletionRequest(
+          var request = DartCompletionRequest.forResolvedUnit(
             resolvedUnit: resolvedUnitResult,
             offset: expectedCompletion.offset,
             documentationCache: documentationCache,
           );
 
-          late OpType opType;
-          late List<protocol.CompletionSuggestion> suggestions;
-          await CompletionPerformance().runRequestOperation(
-            (performance) async {
-              opType = OpType.forCompletion(request.target, request.offset);
-              suggestions = await _computeCompletionSuggestions(
-                listener,
-                performance,
-                request,
-                metrics.availableSuggestions ? declarationsTracker : null,
-                metrics.availableSuggestions
-                    ? availableSuggestionsParams
-                    : null,
-              );
-            },
+          var opType = OpType.forCompletion(request.target, request.offset);
+          var suggestions = await _computeCompletionSuggestions(
+            listener,
+            OperationPerformanceImpl('<root>'),
+            request,
+            metrics.availableSuggestions ? declarationsTracker : null,
+            metrics.availableSuggestions ? availableSuggestionsParams : null,
           );
           stopwatch.stop();
 
@@ -1678,15 +1670,17 @@ class CompletionMetricsOptions {
 
   factory CompletionMetricsOptions(results) {
     return CompletionMetricsOptions._(
-        overlay: results[OVERLAY],
-        printMissedCompletionDetails: results[PRINT_MISSED_COMPLETION_DETAILS],
-        printMissedCompletionSummary: results[PRINT_MISSED_COMPLETION_SUMMARY],
-        printMissingInformation: results[PRINT_MISSING_INFORMATION],
-        printMrrByLocation: results[PRINT_MRR_BY_LOCATION],
+        overlay: results[OVERLAY] as String,
+        printMissedCompletionDetails:
+            results[PRINT_MISSED_COMPLETION_DETAILS] as bool,
+        printMissedCompletionSummary:
+            results[PRINT_MISSED_COMPLETION_SUMMARY] as bool,
+        printMissingInformation: results[PRINT_MISSING_INFORMATION] as bool,
+        printMrrByLocation: results[PRINT_MRR_BY_LOCATION] as bool,
         printShadowedCompletionDetails:
-            results[PRINT_SHADOWED_COMPLETION_DETAILS],
-        printSlowestResults: results[PRINT_SLOWEST_RESULTS],
-        printWorstResults: results[PRINT_WORST_RESULTS]);
+            results[PRINT_SHADOWED_COMPLETION_DETAILS] as bool,
+        printSlowestResults: results[PRINT_SLOWEST_RESULTS] as bool,
+        printWorstResults: results[PRINT_WORST_RESULTS] as bool);
   }
 
   CompletionMetricsOptions._(

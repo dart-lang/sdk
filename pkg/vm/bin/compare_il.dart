@@ -5,185 +5,157 @@
 // This is a helper script which performs IL matching for AOT IL tests.
 // See runtime/docs/infra/il_tests.md for more information.
 
+import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:mirrors';
 
-void main(List<String> args) {
-  if (args.length != 2) {
-    throw 'Usage: compare_il <*_il_test.dart> <output.il>';
+import 'package:collection/collection.dart';
+
+import 'package:vm/testing/il_matchers.dart';
+
+void main(List<String> args) async {
+  getName = MirrorSystem.getName;
+
+  if (args.length < 2 || args.length > 3) {
+    throw 'Usage: compare_il <*_il_test.dart> <output.il> [<renames.json>]';
   }
 
   final testFile = args[0];
   final ilFile = args[1];
+  final renamesFile = args.length == 3 ? args[2] : null;
 
-  final graphs = _extractGraphs(ilFile);
+  final rename = _loadRenames(renamesFile);
+  final graphs = _loadGraphs(ilFile, rename);
+  final tests = await _loadTestCases(testFile);
 
-  final expectations = _extractExpectations(testFile);
+  Map<String, FlowGraph> findMatchingGraphs(String name) {
+    final suffix = '_${rename(name)}';
+    return graphs.entries.firstWhere((f) => f.key.contains(suffix)).value;
+  }
 
-  for (var expectation in expectations.entries) {
-    // Find a graph for this expectation. We expect that function names are
-    // unique enough to identify a specific graph.
-    final graph =
-        graphs.entries.singleWhere((e) => e.key.contains(expectation.key));
-
-    // Extract the list of opcodes, ignoring irrelevant things like
-    // ParallelMove.
-    final gotOpcodesIgnoringMoves = graph.value
-        .where((instr) => instr.opcode != 'ParallelMove')
-        .map((instr) => instr.opcode)
-        .toList();
-
-    // Check that expectations are the prefix of gotOpcodesIgnoringMoves.
-    print('Matching ${graph.key}');
-    for (var i = 0; i < expectation.value.length; i++) {
-      final gotOpcode = gotOpcodesIgnoringMoves[i];
-      final expectedOpcode = expectation.value[i];
-      if (gotOpcode != expectedOpcode) {
-        throw 'Failed to match graph of ${graph.key} to '
-            'expectations for ${expectation.key} at instruction ${i}: '
-            'got ${gotOpcode} expected ${expectedOpcode}';
-      }
-    }
-    print('... ok');
+  for (var test in tests) {
+    test.run(findMatchingGraphs(test.name));
   }
 
   exit(0); // Success.
 }
 
-// IL instruction extracted from flow graph dump.
-class Instruction {
-  final String raw;
+class TestCase {
+  final String name;
+  final String phasesFilter;
+  final LibraryMirror library;
 
-  Instruction(this.raw);
+  late final phases =
+      phasesFilter.split(',').expand(_expandPhasePattern).toList();
 
-  String get opcode {
-    final match = instructionPattern.firstMatch(raw)!;
-    final op = match.namedGroup('opcode')!;
-    final blockType = match.namedGroup('block_type');
+  TestCase({
+    required this.name,
+    required this.phasesFilter,
+    required this.library,
+  });
 
-    // Handle blocks which look like "B%d[%s]".
-    if (blockType != null) {
-      return blockTypes[blockType]!;
-    }
-
-    // Handle parallel moves specially.
-    if (op.startsWith('ParallelMove')) {
-      return 'ParallelMove';
-    }
-
-    // Handle branches.
-    if (op.startsWith(branchIfPrefix)) {
-      return 'Branch(${op.substring(branchIfPrefix.length)})';
-    }
-
-    // Normal instruction.
-    return op;
+  void run(Map<String, FlowGraph> graphs) {
+    print('matching IL (${phases.join(', ')}) for $name');
+    library.invoke(MirrorSystem.getSymbol('matchIL\$$name'),
+        phases.map((phase) => graphs[phase]!).toList());
+    print('... ok');
   }
 
-  @override
-  String toString() => 'Instruction($opcode)';
+  /// Parses phase filter components (same format as --compiler-passes flag).
+  static List<String> _expandPhasePattern(String pattern) {
+    bool printBefore = false, printAfter = false;
+    switch (pattern[0]) {
+      case '[':
+        printBefore = true;
+        break;
+      case ']':
+        printAfter = true;
+        break;
+      case '*':
+        printBefore = printAfter = true;
+        break;
+    }
 
-  static final instructionPattern = RegExp(
-      r'^\s*\d+:\s+(v\d+ <- )?(?<opcode>[^:[(]+(?<block_type>\[[\w ]+\])?)');
+    final phaseName =
+        (printBefore || printAfter) ? pattern.substring(1) : pattern;
 
-  static const blockTypes = {
-    '[join]': 'JoinEntry',
-    '[target]': 'TargetEntry',
-    '[graph]': 'GraphEntry',
-    '[function entry]': 'FunctionEntry'
-  };
+    if (!printBefore && !printAfter) {
+      printAfter = true;
+    }
 
-  static const branchIfPrefix = 'Branch if ';
+    return [
+      if (printBefore) 'Before $phaseName',
+      if (printAfter) 'After $phaseName',
+    ];
+  }
 }
 
-Map<String, List<Instruction>> _extractGraphs(String ilFile) {
-  final graphs = <String, List<Instruction>>{};
+/// Extracts test cases from the given file by looking for functions
+/// marked with @pragma('vm:testing:print-flow-graph', ...).
+Future<Set<TestCase>> _loadTestCases(String testFile) async {
+  final mirrorSystem = currentMirrorSystem();
+  final library =
+      await mirrorSystem.isolate.loadUri(File(testFile).absolute.uri);
 
-  final reader = LineReader(ilFile);
+  pragma? getPragma(DeclarationMirror decl, String name) => decl.metadata
+      .map((m) => m.reflectee)
+      .whereType<pragma>()
+      .firstWhereOrNull((p) => p.name == name);
 
-  var instructions = <Instruction>[];
-  while (reader.hasMore) {
-    if (reader.testNext('*** BEGIN CFG')) {
-      reader.next(); // Skip phase name.
-      final functionName = reader.next();
-      while (!reader.testNext('*** END CFG')) {
-        var curr = reader.next();
+  final cases = LinkedHashSet<TestCase>(
+    equals: (a, b) => a.name == b.name,
+    hashCode: (a) => a.name.hashCode,
+  );
 
-        // If instruction line ends with '{' search for a matching '}' (it will
-        // be on its own line).
-        if (curr.endsWith('{')) {
-          do {
-            curr += '\n' + reader.current;
-          } while (reader.next() != '}');
-        }
-
-        instructions.add(Instruction(curr));
-      }
-
-      graphs[functionName] = instructions;
-      instructions = <Instruction>[];
-    } else {
-      reader.next();
+  void processDeclaration(DeclarationMirror decl) {
+    final p = getPragma(decl, 'vm:testing:print-flow-graph');
+    if (p != null) {
+      final name = MirrorSystem.getName(decl.simpleName);
+      final added = cases.add(TestCase(
+        name: name,
+        phasesFilter: (p.options as String?) ?? 'AllocateRegisters',
+        library: library,
+      ));
+      if (!added) throw 'duplicate test case with name $name';
     }
+  }
+
+  for (var decl in library.declarations.values) {
+    if (decl is ClassMirror) {
+      decl.declarations.values.forEach(processDeclaration);
+    } else {
+      processDeclaration(decl);
+    }
+  }
+
+  return cases;
+}
+
+Map<String, Map<String, FlowGraph>> _loadGraphs(String ilFile, Renamer rename) {
+  final graphs = <String, Map<String, FlowGraph>>{};
+
+  for (var graph in File(ilFile).readAsLinesSync()) {
+    final m = jsonDecode(graph) as Map<String, dynamic>;
+    graphs.putIfAbsent(m['f'], () => {})[m['p']] =
+        FlowGraph(m['b'], m['desc'], m['flags'], rename: rename);
   }
 
   return graphs;
 }
 
-Map<String, List<String>> _extractExpectations(String testFile) {
-  final expectations = <String, List<String>>{};
-
-  final reader = LineReader(testFile);
-
-  final matchILPattern = RegExp(r'^// MatchIL\[AOT\]=(?<value>.*)$');
-  final matcherPattern = RegExp(r'^// __ (?<value>.*)$');
-
-  var matchers = <String>[];
-  while (reader.hasMore) {
-    var functionName = reader.matchNext(matchILPattern);
-    if (functionName != null) {
-      // Read comment block which follows `// MatchIL[AOT]=...`.
-      while (reader.hasMore && reader.current.startsWith('//')) {
-        final match = matcherPattern.firstMatch(reader.next());
-        if (match != null) {
-          matchers.add(match.namedGroup('value')!);
-        }
-      }
-      expectations[functionName] = matchers;
-      matchers = <String>[];
-    } else {
-      reader.next();
-    }
+Renamer _loadRenames(String? renamesFile) {
+  // Load renames map if present.
+  if (renamesFile == null) {
+    return (v) => v;
   }
 
-  return expectations;
-}
+  final list =
+      (jsonDecode(File(renamesFile).readAsStringSync()) as List).cast<String>();
 
-class LineReader {
-  final List<String> lines;
-  int lineno = 0;
+  final renamesMap = <String, String>{
+    for (var i = 0; i < list.length; i += 2) list[i]: list[i + 1],
+  };
 
-  LineReader(String path) : lines = File(path).readAsLinesSync();
-
-  String get current => lines[lineno];
-
-  bool get hasMore => lineno < lines.length;
-
-  String next() {
-    final curr = current;
-    lineno++;
-    return curr;
-  }
-
-  bool testNext(String expected) {
-    if (current == expected) {
-      next();
-      return true;
-    }
-    return false;
-  }
-
-  String? matchNext(RegExp pattern) {
-    final m = pattern.firstMatch(current);
-    return m?.namedGroup('value');
-  }
+  return (v) => renamesMap[v] ?? v;
 }

@@ -174,7 +174,7 @@ class StrongModeConstraint {
     if (nativeBasicData.isJsInteropClass(cls)) {
       // We can not tell js-interop classes apart, so we just assume the
       // receiver could be any js-interop class.
-      cls = commonElements.jsJavaScriptObjectClass;
+      cls = commonElements.jsLegacyJavaScriptObjectClass;
       relation = ClassRelation.subtype;
     }
     return StrongModeConstraint.internal(cls, relation);

@@ -11,8 +11,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
@@ -46,25 +44,22 @@ class AnalyzerImpl {
   /// specified on the command line as though it is reached via a "package:"
   /// URI, but avoid suppressing its output in the event that the user has not
   /// specified the "--package-warnings" option.
-  String _selfPackageName;
+  String? _selfPackageName;
 
   AnalyzerImpl(this.analysisOptions, this.analysisDriver, this.libraryFile,
       this.options, this.stats, this.startTime);
 
   void addCompilationUnitSource(
       CompilationUnitElement unit, Set<CompilationUnitElement> units) {
-    if (unit == null || !units.add(unit)) {
+    if (!units.add(unit)) {
       return;
     }
-    var source = unit.source;
-    if (source != null) {
-      files.add(source.fullName);
-    }
+    files.add(unit.source.fullName);
   }
 
   void addLibrarySources(LibraryElement library, Set<LibraryElement> libraries,
       Set<CompilationUnitElement> units) {
-    if (library == null || !libraries.add(library)) {
+    if (!libraries.add(library)) {
       return;
     }
     // Maybe skip library.
@@ -104,7 +99,7 @@ class AnalyzerImpl {
         if (_defaultSeverityProcessor(error) == null) {
           continue;
         }
-        status = status.max(computeSeverity(error, options, analysisOptions));
+        status = status.max(computeSeverity(error, options, analysisOptions)!);
       }
     }
     return status;
@@ -162,22 +157,21 @@ class AnalyzerImpl {
     return computeMaxErrorSeverity();
   }
 
-  ErrorSeverity _defaultSeverityProcessor(AnalysisError error) =>
+  ErrorSeverity? _defaultSeverityProcessor(AnalysisError error) =>
       determineProcessedSeverity(error, options, analysisOptions);
 
   /// Returns true if we want to report diagnostics for this library.
   bool _isAnalyzedLibrary(LibraryElement library) {
     var source = library.source;
-    switch (source.uriKind) {
-      case UriKind.DART_URI:
-        return options.showSdkWarnings;
-      case UriKind.PACKAGE_URI:
-        if (_isPathInPubCache(source.fullName)) {
-          return false;
-        }
-        return _isAnalyzedPackage(source.uri);
-      default:
-        return true;
+    if (source.uri.isScheme('dart')) {
+      return options.showSdkWarnings;
+    } else if (source.uri.isScheme('package')) {
+      if (_isPathInPubCache(source.fullName)) {
+        return false;
+      }
+      return _isAnalyzedPackage(source.uri);
+    } else {
+      return true;
     }
   }
 
@@ -194,7 +188,7 @@ class AnalyzerImpl {
     } else if (options.showPackageWarningsPrefix == null) {
       return true;
     } else {
-      return packageName.startsWith(options.showPackageWarningsPrefix);
+      return packageName.startsWith(options.showPackageWarningsPrefix!);
     }
   }
 
@@ -238,14 +232,14 @@ class StdInstrumentation extends NoopInstrumentationService {
 
   @override
   void logException(dynamic exception,
-      [StackTrace stackTrace,
-      List<InstrumentationServiceAttachment> attachments = const []]) {
+      [StackTrace? stackTrace,
+      List<InstrumentationServiceAttachment>? attachments = const []]) {
     errorSink.writeln(exception);
     errorSink.writeln(stackTrace);
   }
 
   @override
-  void logInfo(String message, [Object exception]) {
+  void logInfo(String message, [Object? exception]) {
     outSink.writeln(message);
     if (exception != null) {
       outSink.writeln(exception);

@@ -1,0 +1,142 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+static method main() → dynamic {
+  core::List<core::int>? list = null;
+  core::print( block {
+    final core::List<core::int> #t1 = <core::int>[1, 2];
+    final core::Iterable<core::int>? #t2 = list;
+    if(!(#t2 == null))
+      #t1.{core::List::addAll}{Invariant}(#t2{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+    #t1.{core::List::add}{Invariant}(3){(core::int) → void};
+  } =>#t1);
+  core::print( block {
+    final core::List<core::int> #t3 = <core::int>[1, 2];
+    final core::Iterable<core::int>? #t4 = null;
+    if(!(#t4 == null))
+      #t3.{core::List::addAll}{Invariant}(#t4{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+    #t3.{core::List::add}{Invariant}(3){(core::int) → void};
+  } =>#t3);
+  core::List<core::int> list1 = block {
+    final core::List<core::int> #t5 = <core::int>[];
+    final core::Iterable<core::int>? #t6 = list;
+    if(!(#t6 == null))
+      #t5.{core::List::addAll}{Invariant}(#t6{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+  } =>#t5;
+  core::List<Never> list2 = block {
+    final core::List<Never> #t7 = <Never>[];
+    final core::Iterable<Never>? #t8 = null;
+    if(!(#t8 == null))
+      #t7.{core::List::addAll}{Invariant}(#t8{core::Iterable<Never>}){(core::Iterable<Never>) → void};
+  } =>#t7;
+  core::List<core::int> list3 = block {
+    final core::List<core::int> #t9 = <core::int>[1, 2];
+    final core::Iterable<core::int>? #t10 = list;
+    if(!(#t10 == null))
+      #t9.{core::List::addAll}{Invariant}(#t10{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+    #t9.{core::List::add}{Invariant}(3){(core::int) → void};
+  } =>#t9;
+  core::List<core::int> list4 = block {
+    final core::List<core::int> #t11 = <core::int>[1, 2];
+    final core::Iterable<core::int>? #t12 = null;
+    if(!(#t12 == null))
+      #t11.{core::List::addAll}{Invariant}(#t12{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+    #t11.{core::List::add}{Invariant}(3){(core::int) → void};
+  } =>#t11;
+  core::Set<core::int>? set = null;
+  core::print( block {
+    final core::Set<core::int> #t13 = col::LinkedHashSet::•<core::int>();
+    #t13.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
+    #t13.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
+    final core::Iterable<core::int>? #t14 = set;
+    if(!(#t14 == null))
+      #t13.{core::Set::addAll}{Invariant}(#t14{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+    #t13.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
+  } =>#t13);
+  core::print( block {
+    final core::Set<core::int> #t15 = col::LinkedHashSet::•<core::int>();
+    #t15.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
+    #t15.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
+    final core::Iterable<core::int>? #t16 = null;
+    if(!(#t16 == null))
+      #t15.{core::Set::addAll}{Invariant}(#t16{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+    #t15.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
+  } =>#t15);
+  core::Set<core::int> set1 = block {
+    final core::Set<core::int> #t17 = col::LinkedHashSet::•<core::int>();
+    final core::Iterable<dynamic>? #t18 = set;
+    if(!(#t18 == null))
+      for (final dynamic #t19 in #t18{core::Iterable<dynamic>}) {
+        final core::int #t20 = #t19 as{TypeError,ForNonNullableByDefault} core::int;
+        #t17.{core::Set::add}{Invariant}(#t20){(core::int) → core::bool};
+      }
+  } =>#t17;
+  core::Set<core::int> set3 = block {
+    final core::Set<core::int> #t21 = col::LinkedHashSet::•<core::int>();
+    #t21.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
+    #t21.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
+    final core::Iterable<core::int>? #t22 = set;
+    if(!(#t22 == null))
+      #t21.{core::Set::addAll}{Invariant}(#t22{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+    #t21.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
+  } =>#t21;
+  core::Set<core::int> set4 = block {
+    final core::Set<core::int> #t23 = col::LinkedHashSet::•<core::int>();
+    #t23.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
+    #t23.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
+    final core::Iterable<core::int>? #t24 = null;
+    if(!(#t24 == null))
+      #t23.{core::Set::addAll}{Invariant}(#t24{core::Iterable<core::int>}){(core::Iterable<core::int>) → void};
+    #t23.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
+  } =>#t23;
+  core::Map<core::int, core::int>? map = null;
+  core::print( block {
+    final core::Map<core::int, core::int> #t25 = <core::int, core::int>{};
+    #t25.{core::Map::[]=}{Invariant}(1, 1){(core::int, core::int) → void};
+    #t25.{core::Map::[]=}{Invariant}(2, 2){(core::int, core::int) → void};
+    final core::Map<core::int, core::int>? #t26 = map;
+    if(!(#t26 == null))
+      for (final core::MapEntry<core::int, core::int> #t27 in #t26{core::Map<core::int, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>})
+        #t25.{core::Map::[]=}{Invariant}(#t27.{core::MapEntry::key}{core::int}, #t27.{core::MapEntry::value}{core::int}){(core::int, core::int) → void};
+    #t25.{core::Map::[]=}{Invariant}(3, 3){(core::int, core::int) → void};
+  } =>#t25);
+  core::print( block {
+    final core::Map<core::int, core::int> #t28 = <core::int, core::int>{};
+    #t28.{core::Map::[]=}{Invariant}(1, 1){(core::int, core::int) → void};
+    #t28.{core::Map::[]=}{Invariant}(2, 2){(core::int, core::int) → void};
+    final core::Map<core::int, core::int>? #t29 = null;
+    if(!(#t29 == null))
+      for (final core::MapEntry<core::int, core::int> #t30 in #t29{core::Map<core::int, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>})
+        #t28.{core::Map::[]=}{Invariant}(#t30.{core::MapEntry::key}{core::int}, #t30.{core::MapEntry::value}{core::int}){(core::int, core::int) → void};
+    #t28.{core::Map::[]=}{Invariant}(3, 3){(core::int, core::int) → void};
+  } =>#t28);
+  core::Map<core::int, core::int> map1 = block {
+    final core::Map<core::int, core::int> #t31 = <core::int, core::int>{};
+    final core::Map<core::int, core::int>? #t32 = map;
+    if(!(#t32 == null))
+      for (final core::MapEntry<core::int, core::int> #t33 in #t32{core::Map<core::int, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>})
+        #t31.{core::Map::[]=}{Invariant}(#t33.{core::MapEntry::key}{core::int}, #t33.{core::MapEntry::value}{core::int}){(core::int, core::int) → void};
+  } =>#t31;
+  core::Map<core::int, core::int> map3 = block {
+    final core::Map<core::int, core::int> #t34 = <core::int, core::int>{};
+    #t34.{core::Map::[]=}{Invariant}(1, 1){(core::int, core::int) → void};
+    #t34.{core::Map::[]=}{Invariant}(2, 2){(core::int, core::int) → void};
+    final core::Map<core::int, core::int>? #t35 = map;
+    if(!(#t35 == null))
+      for (final core::MapEntry<core::int, core::int> #t36 in #t35{core::Map<core::int, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>})
+        #t34.{core::Map::[]=}{Invariant}(#t36.{core::MapEntry::key}{core::int}, #t36.{core::MapEntry::value}{core::int}){(core::int, core::int) → void};
+    #t34.{core::Map::[]=}{Invariant}(3, 3){(core::int, core::int) → void};
+  } =>#t34;
+  core::Map<core::int, core::int> map4 = block {
+    final core::Map<core::int, core::int> #t37 = <core::int, core::int>{};
+    #t37.{core::Map::[]=}{Invariant}(1, 1){(core::int, core::int) → void};
+    #t37.{core::Map::[]=}{Invariant}(2, 2){(core::int, core::int) → void};
+    final core::Map<core::int, core::int>? #t38 = null;
+    if(!(#t38 == null))
+      for (final core::MapEntry<core::int, core::int> #t39 in #t38{core::Map<core::int, core::int>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>})
+        #t37.{core::Map::[]=}{Invariant}(#t39.{core::MapEntry::key}{core::int}, #t39.{core::MapEntry::value}{core::int}){(core::int, core::int) → void};
+    #t37.{core::Map::[]=}{Invariant}(3, 3){(core::int, core::int) → void};
+  } =>#t37;
+}

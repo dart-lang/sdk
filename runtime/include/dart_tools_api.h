@@ -222,25 +222,6 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamCancelCallback cancel_callback);
 
 /**
- * A callback invoked when the VM service receives an event.
- */
-typedef void (*Dart_NativeStreamConsumer)(const uint8_t* event_json,
-                                          intptr_t event_json_length);
-
-/**
- * Sets the native VM service stream callbacks for a particular stream.
- * Note: The function may be called on multiple threads concurrently.
- *
- * \param consumer A function pointer to an event handler callback function.
- *   A NULL value removes the existing listen callback function if any.
- *
- * \param stream_id The ID of the stream on which to set the callback.
- */
-DART_EXPORT void Dart_SetNativeServiceStreamCallback(
-    Dart_NativeStreamConsumer consumer,
-    const char* stream_id);
-
-/**
  * Sends a data event to clients of the VM Service.
  *
  * A data event is used to pass an array of bytes to subscribed VM
@@ -361,6 +342,37 @@ DART_EXPORT bool Dart_IsReloading();
  * Timeline
  * ========
  */
+
+/**
+ * Enable tracking of specified timeline category. This is operational
+ * only when systrace timeline functionality is turned on.
+ *
+ * \param categories A comma seperated list of categories that need to
+ *   be enabled, the categories are
+ *   "all" : All categories
+ *   "API" - Execution of Dart C API functions
+ *   "Compiler" - Execution of Dart JIT compiler
+ *   "CompilerVerbose" - More detailed Execution of Dart JIT compiler
+ *   "Dart" - Execution of Dart code
+ *   "Debugger" - Execution of Dart debugger
+ *   "Embedder" - Execution of Dart embedder code
+ *   "GC" - Execution of Dart Garbage Collector
+ *   "Isolate" - Dart Isolate lifecycle execution
+ *   "VM" - Excution in Dart VM runtime code
+ *   "" - None
+ *
+ *  When "all" is specified all the categories are enabled.
+ *  When a comma seperated list of categories is specified, the categories
+ *   that are specified will be enabled and the rest will be disabled. 
+ *  When "" is specified all the categories are disabled.
+ *  The category names are case sensitive.
+ *  eg:  Dart_EnableTimelineCategory("all");
+ *       Dart_EnableTimelineCategory("GC,API,Isolate");
+ *       Dart_EnableTimelineCategory("GC,Debugger,Dart");
+ *
+ * \return True if the categories were successfully enabled, False otherwise.
+ */
+DART_EXPORT bool Dart_SetEnabledTimelineCategory(const char* categories);
 
 /**
  * Returns a timestamp in microseconds. This timestamp is suitable for

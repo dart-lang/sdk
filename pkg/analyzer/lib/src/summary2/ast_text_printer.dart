@@ -145,6 +145,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     _compilationUnitMember(node);
     _token(node.abstractKeyword);
+    _token(node.macroKeyword);
     _token(node.classKeyword);
     node.name.accept(this);
     node.typeParameters?.accept(this);
@@ -161,6 +162,7 @@ class AstTextPrinter extends ThrowingAstVisitor<void> {
   void visitClassTypeAlias(ClassTypeAlias node) {
     _compilationUnitMember(node);
     _token(node.abstractKeyword);
+    _token(node.macroKeyword);
     _token(node.typedefKeyword);
     node.name.accept(this);
     node.typeParameters?.accept(this);

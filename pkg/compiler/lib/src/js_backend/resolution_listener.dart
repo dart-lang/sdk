@@ -394,6 +394,9 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       _addInterceptors(_commonElements.jsNumberClass, impactBuilder);
     } else if (cls == _commonElements.jsJavaScriptObjectClass) {
       _addInterceptors(_commonElements.jsJavaScriptObjectClass, impactBuilder);
+    } else if (cls == _commonElements.jsLegacyJavaScriptObjectClass) {
+      _addInterceptors(
+          _commonElements.jsLegacyJavaScriptObjectClass, impactBuilder);
     } else if (cls == _commonElements.jsPlainJavaScriptObjectClass) {
       _addInterceptors(
           _commonElements.jsPlainJavaScriptObjectClass, impactBuilder);

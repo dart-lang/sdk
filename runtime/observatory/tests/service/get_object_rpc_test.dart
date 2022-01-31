@@ -14,8 +14,12 @@ import 'test_helper.dart';
 class _DummyClass {
   static var dummyVar = 11;
   final List<String> dummyList = new List<String>.filled(20, '');
+  static var dummyVarWithInit = foo();
+  late String dummyLateVarWithInit = 'bar';
+  late String dummyLateVar;
   void dummyFunction(int a, [bool b = false]) {}
   void dummyGenericFunction<K, V>(K a, {required V param}) {}
+  static List foo() => List<String>.filled(20, '');
 }
 
 class _DummySubClass extends _DummyClass {}
@@ -980,6 +984,83 @@ var tests = <IsolateTest>[
     expect(result['_guardNullable'], isNotNull);
     expect(result['_guardClass'], isNotNull);
     expect(result['_guardLength'], isNotNull);
+  },
+
+  // static field initializer
+  (Isolate isolate) async {
+    // Call eval to get a class id.
+    var evalResult = await invoke(isolate, 'getDummyClass');
+    var id = "${evalResult['class']['id']}/field_inits/dummyVarWithInit";
+    var params = {
+      'objectId': id,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Function'));
+    expect(result['id'], equals(id));
+    expect(result['name'], equals('dummyVarWithInit'));
+    expect(result['_kind'], equals('FieldInitializer'));
+    expect(result['static'], equals(true));
+    expect(result['const'], equals(false));
+    expect(result['implicit'], equals(false));
+    expect(result['signature']['typeParameters'], isNull);
+    expect(result['signature']['returnType'], isNotNull);
+    expect(result['signature']['parameters'].length, 0);
+    expect(result['location']['type'], equals('SourceLocation'));
+    expect(result['code']['type'], equals('@Code'));
+    expect(result['_optimizable'], equals(true));
+    expect(result['_inlinable'], equals(false));
+    expect(result['_usageCounter'], isZero);
+    expect(result['_optimizedCallSiteCount'], isZero);
+    expect(result['_deoptimizations'], isZero);
+  },
+
+  // late field initializer
+  (Isolate isolate) async {
+    // Call eval to get a class id.
+    var evalResult = await invoke(isolate, 'getDummyClass');
+    var id = "${evalResult['class']['id']}/field_inits/dummyLateVarWithInit";
+    var params = {
+      'objectId': id,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Function'));
+    expect(result['id'], equals(id));
+    expect(result['name'], equals('dummyLateVarWithInit'));
+    expect(result['_kind'], equals('FieldInitializer'));
+    expect(result['static'], equals(false));
+    expect(result['const'], equals(false));
+    expect(result['implicit'], equals(false));
+    expect(result['signature']['typeParameters'], isNull);
+    expect(result['signature']['returnType'], isNotNull);
+    expect(result['signature']['parameters'].length, 1);
+    expect(result['location']['type'], equals('SourceLocation'));
+    expect(result['code']['type'], equals('@Code'));
+    expect(result['_optimizable'], equals(true));
+    expect(result['_inlinable'], equals(false));
+    expect(result['_usageCounter'], isZero);
+    expect(result['_optimizedCallSiteCount'], isZero);
+    expect(result['_deoptimizations'], isZero);
+  },
+
+  // invalid late field initialize.
+  (Isolate isolate) async {
+    // Call eval to get a class id.
+    var evalResult = await invoke(isolate, 'getDummyClass');
+    var id = "${evalResult['class']['id']}/field_inits/dummyLateVar";
+    var params = {
+      'objectId': id,
+    };
+    bool caughtException = false;
+    try {
+      await isolate.invokeRpcNoUpgrade('getObject', params);
+      expect(false, isTrue, reason: 'Unreachable');
+    } on ServerRpcException catch (e) {
+      caughtException = true;
+      expect(e.code, equals(ServerRpcException.kInvalidParams));
+      expect(
+          e.message, startsWith("getObject: invalid 'objectId' parameter: "));
+    }
+    expect(caughtException, isTrue);
   },
 
   // field with guards

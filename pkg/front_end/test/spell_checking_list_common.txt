@@ -11,6 +11,7 @@
 
 a
 abbreviations
+abi
 ability
 able
 abort
@@ -436,7 +437,6 @@ checker
 checking
 checkpoints
 checks
-chian
 child
 children
 choice
@@ -598,6 +598,7 @@ conservatively
 consider
 considered
 considers
+consist
 consistency
 consistent
 consistently
@@ -2045,6 +2046,7 @@ often
 ok
 old
 older
+omission
 omit
 omitted
 on

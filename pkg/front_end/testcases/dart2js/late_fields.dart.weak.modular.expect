@@ -1,0 +1,40 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  late field core::int a;
+  late final [setter] field core::int b;
+  late field core::int c = 1.{core::int::unary-}(){() → core::int};
+  late final field core::int d = 1.{core::int::unary-}(){() → core::int};
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff() → self::C
+    return new self::C::•();
+}
+static field self::C c = new self::C::•();
+static method main() → void {
+  self::testUninitializedNonFinalInstanceField();
+  self::testUninitializedFinalInstanceField();
+  self::testInitializedNonFinalInstanceField();
+  self::testInitializedFinalInstanceField();
+}
+static method testUninitializedNonFinalInstanceField() → void {
+  core::print(self::c.{self::C::a}{core::int});
+  self::c.{self::C::a} = 42;
+  core::print(self::c.{self::C::a}{core::int});
+}
+static method testUninitializedFinalInstanceField() → void {
+  core::print(self::c.{self::C::b}{core::int});
+  self::c.{self::C::b} = 42;
+  core::print(self::c.{self::C::b}{core::int});
+}
+static method testInitializedNonFinalInstanceField() → void {
+  core::print(self::c.{self::C::c}{core::int});
+  self::c.{self::C::c} = 42;
+  core::print(self::c.{self::C::c}{core::int});
+}
+static method testInitializedFinalInstanceField() → void {
+  core::print(self::c.{self::C::d}{core::int});
+}

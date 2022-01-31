@@ -667,7 +667,7 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
       }
     }
     return _httpClient
-        ._openUrlFromRequest(method, url, _httpRequest)
+        ._openUrlFromRequest(method, url, _httpRequest, isRedirect: true)
         .then((request) {
       request._responseRedirects
         ..addAll(redirects)
@@ -751,7 +751,8 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
       return drain().then((_) {
         return _httpClient
             ._openUrlFromRequest(
-                _httpRequest.method, _httpRequest.uri, _httpRequest)
+                _httpRequest.method, _httpRequest.uri, _httpRequest,
+                isRedirect: false)
             .then((request) => request.close());
       });
     }
@@ -2715,8 +2716,31 @@ class _HttpClient implements HttpClient {
     });
   }
 
+  static bool _isSubdomain(Uri subdomain, Uri domain) {
+    return (subdomain.scheme == domain.scheme &&
+        subdomain.port == domain.port &&
+        (subdomain.host == domain.host ||
+            subdomain.host.endsWith("." + domain.host)));
+  }
+
+  static bool _shouldCopyHeaderOnRedirect(
+      String headerKey, Uri originalUrl, Uri redirectUri) {
+    if (_isSubdomain(redirectUri, originalUrl)) {
+      return true;
+    }
+
+    const nonRedirectHeaders = [
+      "authorization",
+      "www-authenticate",
+      "cookie",
+      "cookie2"
+    ];
+    return !nonRedirectHeaders.contains(headerKey.toLowerCase());
+  }
+
   Future<_HttpClientRequest> _openUrlFromRequest(
-      String method, Uri uri, _HttpClientRequest previous) {
+      String method, Uri uri, _HttpClientRequest previous,
+      {required bool isRedirect}) {
     // If the new URI is relative (to either '/' or some sub-path),
     // construct a full URI from the previous one.
     Uri resolved = previous.uri.resolveUri(uri);
@@ -2728,7 +2752,9 @@ class _HttpClient implements HttpClient {
         ..maxRedirects = previous.maxRedirects;
       // Copy headers.
       for (var header in previous.headers._headers.keys) {
-        if (request.headers[header] == null) {
+        if (request.headers[header] == null &&
+            (!isRedirect ||
+                _shouldCopyHeaderOnRedirect(header, resolved, previous.uri))) {
           request.headers.set(header, previous.headers[header]!);
         }
       }

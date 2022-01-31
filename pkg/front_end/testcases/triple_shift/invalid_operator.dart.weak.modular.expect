@@ -1,0 +1,90 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/triple_shift/invalid_operator.dart:6:12: Error: Operator '>>>' should have exactly one parameter.
+//   operator >>>() => true;
+//            ^^^
+//
+// pkg/front_end/testcases/triple_shift/invalid_operator.dart:10:12: Error: Operator '>>>' should have exactly one parameter.
+//   operator >>>(a, b) => true;
+//            ^^^
+//
+// pkg/front_end/testcases/triple_shift/invalid_operator.dart:14:17: Error: An operator can't have optional parameters.
+//   operator >>>([a]) => true;
+//                 ^
+//
+// pkg/front_end/testcases/triple_shift/invalid_operator.dart:18:17: Error: An operator can't have optional parameters.
+//   operator >>>({a}) => true;
+//                 ^
+//
+// pkg/front_end/testcases/triple_shift/invalid_operator.dart:22:12: Error: Operator '>>>' should have exactly one parameter.
+//   operator >>>(a, [b]) => true;
+//            ^^^
+//
+// pkg/front_end/testcases/triple_shift/invalid_operator.dart:26:12: Error: Operator '>>>' should have exactly one parameter.
+//   operator >>>(a, {b}) => true;
+//            ^^^
+//
+// pkg/front_end/testcases/triple_shift/invalid_operator.dart:30:16: Error: Types parameters aren't allowed when defining an operator.
+// Try removing the type parameters.
+//   operator >>><T>(a) => true;
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Operators1 extends core::Object {
+  synthetic constructor •() → self::Operators1
+    : super core::Object::•()
+    ;
+  operator >>>() → dynamic
+    return true;
+}
+class Operators2 extends core::Object {
+  synthetic constructor •() → self::Operators2
+    : super core::Object::•()
+    ;
+  operator >>>(dynamic a, dynamic b) → dynamic
+    return true;
+}
+class Operators3 extends core::Object {
+  synthetic constructor •() → self::Operators3
+    : super core::Object::•()
+    ;
+  operator >>>([dynamic a = #C1]) → dynamic
+    return true;
+}
+class Operators4 extends core::Object {
+  synthetic constructor •() → self::Operators4
+    : super core::Object::•()
+    ;
+  operator >>>({dynamic a = #C1}) → dynamic
+    return true;
+}
+class Operators5 extends core::Object {
+  synthetic constructor •() → self::Operators5
+    : super core::Object::•()
+    ;
+  operator >>>(dynamic a, [dynamic b = #C1]) → dynamic
+    return true;
+}
+class Operators6 extends core::Object {
+  synthetic constructor •() → self::Operators6
+    : super core::Object::•()
+    ;
+  operator >>>(dynamic a, {dynamic b = #C1}) → dynamic
+    return true;
+}
+class Operators7 extends core::Object {
+  synthetic constructor •() → self::Operators7
+    : super core::Object::•()
+    ;
+  operator >>><T extends core::Object? = dynamic>(dynamic a) → dynamic
+    return true;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

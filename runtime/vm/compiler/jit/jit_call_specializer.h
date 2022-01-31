@@ -27,7 +27,6 @@ class JitCallSpecializer : public CallSpecializer {
   // Find a better place for them.
   virtual void VisitAllocateContext(AllocateContextInstr* instr);
   virtual void VisitCloneContext(CloneContextInstr* instr);
-  virtual void VisitStoreInstanceField(StoreInstanceFieldInstr* instr);
 
  private:
   virtual bool IsAllowedForInlining(intptr_t deopt_id) const;

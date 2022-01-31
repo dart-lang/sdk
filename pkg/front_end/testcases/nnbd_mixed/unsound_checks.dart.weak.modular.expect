@@ -1,0 +1,626 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "unsound_checks_lib.dart" as uns;
+
+import "org-dartlang-testcase:///unsound_checks_lib.dart";
+
+class OptOutClass1 extends core::Object {
+  synthetic constructor •() → self::OptOutClass1*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class OptOutClass2 extends core::Object {
+  synthetic constructor •() → self::OptOutClass2*
+    : super core::Object::•()
+    ;
+  operator [](core::int* index) → core::int*
+    return index;
+  operator []=(core::int* index, core::int* value) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class OptOutClass3 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::OptOutClass3*
+    : self::OptOutClass3::field = field, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class OptOutSuperClass4 extends core::Object {
+  synthetic constructor •() → self::OptOutSuperClass4*
+    : super core::Object::•()
+    ;
+  operator [](core::int* index) → core::int*
+    return index;
+  operator []=(core::int* index, core::int* value) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class OptOutClass4 extends self::OptOutSuperClass4 {
+  synthetic constructor •() → self::OptOutClass4*
+    : super self::OptOutSuperClass4::•()
+    ;
+  method method(core::int* i) → dynamic
+    return let final core::int* #t1 = i in let final core::int* #t2 = super.{self::OptOutSuperClass4::[]}(#t1) in #t2 == null ?{core::int*} let final core::int* #t3 = 42 in let final void #t4 = super.{self::OptOutSuperClass4::[]=}(#t1, #t3) in #t3 : #t2;
+  method methodForEffect(core::int* i) → dynamic {
+    let final core::int* #t5 = i in super.{self::OptOutSuperClass4::[]}(#t5) == null ?{core::int*} super.{self::OptOutSuperClass4::[]=}(#t5, 42) : null;
+  }
+}
+class OptOutClass5 extends core::Object {
+  field core::int* field;
+  constructor •(core::int* field) → self::OptOutClass5*
+    : self::OptOutClass5::field = field, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension OptOutExtension on self::OptOutClass1* {
+  operator [] = self::OptOutExtension|[];
+  operator []= = self::OptOutExtension|[]=;
+}
+static method isNullOptOut1(core::int* i) → dynamic
+  return i == null;
+static method isNotNullOptOut1(core::int* i) → dynamic
+  return !(i == null);
+static method isNullOptOut2(core::int* i) → dynamic
+  return i == null;
+static method isNotNullOptOut2(core::int* i) → dynamic
+  return !(i == null);
+static method ifNullOptOut(core::int* i) → dynamic
+  return let final core::int* #t6 = i in #t6 == null ?{core::int*} 42 : #t6;
+static method OptOutExtension|[](lowered final self::OptOutClass1* #this, core::int* index) → core::int*
+  return index;
+static method OptOutExtension|[]=(lowered final self::OptOutClass1* #this, core::int* index, core::int* value) → void {}
+static method extensionIfNullOptOut1(core::int* i) → dynamic
+  return let final self::OptOutClass1* #t7 = new self::OptOutClass1::•() in let final core::int* #t8 = i in let final core::int* #t9 = self::OptOutExtension|[](#t7, #t8) in #t9 == null ?{core::int*} let final core::int* #t10 = 42 in let final void #t11 = self::OptOutExtension|[]=(#t7, #t8, #t10) in #t10 : #t9;
+static method extensionIfNullOptOut1ForEffect(core::int* i) → dynamic {
+  let final self::OptOutClass1* #t12 = new self::OptOutClass1::•() in let final core::int* #t13 = i in self::OptOutExtension|[](#t12, #t13) == null ?{core::int*} self::OptOutExtension|[]=(#t12, #t13, 42) : null;
+}
+static method extensionIfNullOptOut2(core::int* i) → dynamic
+  return let final self::OptOutClass1* #t14 = new self::OptOutClass1::•() in let final core::int* #t15 = i in let final core::int* #t16 = self::OptOutExtension|[](#t14, #t15) in #t16 == null ?{core::int*} let final core::int* #t17 = 42 in let final void #t18 = self::OptOutExtension|[]=(#t14, #t15, #t17) in #t17 : #t16;
+static method extensionIfNullOptOut2ForEffect(core::int* i) → dynamic {
+  let final self::OptOutClass1* #t19 = new self::OptOutClass1::•() in let final core::int* #t20 = i in self::OptOutExtension|[](#t19, #t20) == null ?{core::int*} self::OptOutExtension|[]=(#t19, #t20, 42) : null;
+}
+static method ifNullIndexSetOptOut(core::int* i) → dynamic
+  return let final self::OptOutClass2* #t21 = new self::OptOutClass2::•() in let final core::int* #t22 = i in let final core::int* #t23 = #t21.{self::OptOutClass2::[]}(#t22){(core::int*) →* core::int*} in #t23 == null ?{core::int*} let final core::int* #t24 = 42 in let final void #t25 = #t21.{self::OptOutClass2::[]=}(#t22, #t24){(core::int*, core::int*) →* void} in #t24 : #t23;
+static method ifNullIndexSetOptOutForEffect(core::int* i) → dynamic {
+  let final self::OptOutClass2* #t26 = new self::OptOutClass2::•() in let final core::int* #t27 = i in #t26.{self::OptOutClass2::[]}(#t27){(core::int*) →* core::int*} == null ?{core::int*} #t26.{self::OptOutClass2::[]=}(#t27, 42){(core::int*, core::int*) →* void} : null;
+}
+static method ifNullPropertySetOptOut(core::int* i) → dynamic
+  return let final self::OptOutClass3* #t28 = new self::OptOutClass3::•(i) in let final core::int* #t29 = #t28.{self::OptOutClass3::field}{core::int*} in #t29 == null ?{core::int*} #t28.{self::OptOutClass3::field} = 42 : #t29;
+static method ifNullPropertySetOptOutForEffect(core::int* i) → dynamic {
+  let final self::OptOutClass3* #t30 = new self::OptOutClass3::•(i) in #t30.{self::OptOutClass3::field}{core::int*} == null ?{core::int*} #t30.{self::OptOutClass3::field} = 42 : null;
+}
+static method ifNullSetOptOut(core::int* i) → dynamic
+  return let final core::int* #t31 = i in #t31 == null ?{core::int*} i = 42 : #t31;
+static method ifNullSetOptOutForEffect(core::int* i) → dynamic {
+  i == null ?{core::int*} i = 42 : null;
+}
+static method ifNullSuperIndexSetOptOut(core::int* i) → dynamic
+  return new self::OptOutClass4::•().{self::OptOutClass4::method}(i){(core::int*) →* dynamic};
+static method ifNullSuperIndexSetOptOutForEffect(core::int* i) → dynamic {
+  new self::OptOutClass4::•().{self::OptOutClass4::methodForEffect}(i){(core::int*) →* dynamic};
+}
+static method nullAwareIfNullSetOptOut(core::int* i) → dynamic {
+  self::OptOutClass5* o = new self::OptOutClass5::•(i);
+  return let final self::OptOutClass5* #t32 = o in #t32 == null ?{core::int*} null : let final core::int* #t33 = #t32.{self::OptOutClass5::field}{core::int*} in #t33 == null ?{core::int*} #t32.{self::OptOutClass5::field} = 42 : #t33;
+}
+static method nullAwareIfNullSetOptOutForEffect(core::int* i) → dynamic {
+  self::OptOutClass5* o = new self::OptOutClass5::•(i);
+  let final self::OptOutClass5* #t34 = o in #t34 == null ?{core::int*} null : #t34.{self::OptOutClass5::field}{core::int*} == null ?{core::int*} #t34.{self::OptOutClass5::field} = 42 : null;
+}
+static method isTestOptOut(core::int* i) → dynamic
+  return i is core::int*;
+static method isNotTestOptOut(core::int* i) → dynamic
+  return !(i is core::int*);
+static method main() → dynamic {
+  self::expect(false, uns::isNullOptIn1(0));
+  self::expect(false, self::isNullOptOut1(0));
+  self::expect(true, uns::isNullOptIn1(null));
+  self::expect(true, self::isNullOptOut1(null));
+  self::expect(true, uns::isNotNullOptIn1(0));
+  self::expect(true, self::isNotNullOptOut1(0));
+  self::expect(false, uns::isNotNullOptIn1(null));
+  self::expect(false, self::isNotNullOptOut1(null));
+  self::expect(false, uns::isNullOptIn2(0));
+  self::expect(false, self::isNullOptOut2(0));
+  self::expect(true, uns::isNullOptIn2(null));
+  self::expect(true, self::isNullOptOut2(null));
+  self::expect(true, uns::isNotNullOptIn2(0));
+  self::expect(true, self::isNotNullOptOut2(0));
+  self::expect(false, uns::isNotNullOptIn2(null));
+  self::expect(false, self::isNotNullOptOut2(null));
+  self::expect(0, uns::ifNullOptIn(0));
+  self::expect(0, self::ifNullOptOut(0));
+  self::expect(42, uns::ifNullOptIn(null));
+  self::expect(42, self::ifNullOptOut(null));
+  self::expect(0, uns::extensionIfNullOptIn1(0));
+  self::expect(0, self::extensionIfNullOptOut1(0));
+  self::expect(42, uns::extensionIfNullOptIn1(null));
+  self::expect(42, self::extensionIfNullOptOut1(null));
+  uns::extensionIfNullOptIn1ForEffect(0);
+  self::extensionIfNullOptOut1ForEffect(0);
+  uns::extensionIfNullOptIn1ForEffect(null);
+  self::extensionIfNullOptOut1ForEffect(null);
+  self::expect(0, uns::extensionIfNullOptIn2(0));
+  self::expect(0, self::extensionIfNullOptOut2(0));
+  self::expect(42, uns::extensionIfNullOptIn2(null));
+  self::expect(42, self::extensionIfNullOptOut2(null));
+  uns::extensionIfNullOptIn2ForEffect(0);
+  self::extensionIfNullOptOut2ForEffect(0);
+  uns::extensionIfNullOptIn2ForEffect(null);
+  self::extensionIfNullOptOut2ForEffect(null);
+  self::expect(0, uns::ifNullIndexSetOptIn(0));
+  self::expect(0, self::ifNullIndexSetOptOut(0));
+  self::expect(42, uns::ifNullIndexSetOptIn(null));
+  self::expect(42, self::ifNullIndexSetOptOut(null));
+  uns::ifNullIndexSetOptInForEffect(0);
+  self::ifNullIndexSetOptOutForEffect(0);
+  uns::ifNullIndexSetOptInForEffect(null);
+  self::ifNullIndexSetOptOutForEffect(null);
+  self::expect(0, uns::ifNullPropertySetOptIn(0));
+  self::expect(0, self::ifNullPropertySetOptOut(0));
+  self::expect(42, uns::ifNullPropertySetOptIn(null));
+  self::expect(42, self::ifNullPropertySetOptOut(null));
+  uns::ifNullPropertySetOptInForEffect(0);
+  self::ifNullPropertySetOptOutForEffect(0);
+  uns::ifNullPropertySetOptInForEffect(null);
+  self::ifNullPropertySetOptOutForEffect(null);
+  self::expect(0, uns::ifNullSetOptIn(0));
+  self::expect(0, self::ifNullSetOptOut(0));
+  self::expect(42, uns::ifNullSetOptIn(null));
+  self::expect(42, self::ifNullSetOptOut(null));
+  uns::ifNullSetOptInForEffect(0);
+  self::ifNullSetOptOutForEffect(0);
+  uns::ifNullSetOptInForEffect(null);
+  self::ifNullSetOptOutForEffect(null);
+  self::expect(0, uns::ifNullSuperIndexSetOptIn(0));
+  self::expect(0, self::ifNullSuperIndexSetOptOut(0));
+  self::expect(42, uns::ifNullSuperIndexSetOptIn(null));
+  self::expect(42, self::ifNullSuperIndexSetOptOut(null));
+  uns::ifNullSuperIndexSetOptInForEffect(0);
+  self::ifNullSuperIndexSetOptOutForEffect(0);
+  uns::ifNullSuperIndexSetOptInForEffect(null);
+  self::ifNullSuperIndexSetOptOutForEffect(null);
+  self::expect(0, uns::nullAwareIfNullSetOptIn(0));
+  self::expect(0, self::nullAwareIfNullSetOptOut(0));
+  self::expect(42, uns::nullAwareIfNullSetOptIn(null));
+  self::expect(42, self::nullAwareIfNullSetOptOut(null));
+  uns::nullAwareIfNullSetOptInForEffect(0);
+  self::nullAwareIfNullSetOptOutForEffect(0);
+  uns::nullAwareIfNullSetOptInForEffect(null);
+  self::nullAwareIfNullSetOptOutForEffect(null);
+  self::expect(true, uns::isTestOptIn(0));
+  self::expect(true, self::isTestOptOut(0));
+  self::expect(false, uns::isTestOptIn(null));
+  self::expect(false, self::isTestOptOut(null));
+  self::expect(false, uns::isNotTestOptIn(0));
+  self::expect(false, self::isNotTestOptOut(0));
+  self::expect(true, uns::isNotTestOptIn(null));
+  self::expect(true, self::isNotTestOptOut(null));
+  self::expect(true, uns::nullAwareAccess1(0));
+  self::expect(null, uns::nullAwareAccess1(null));
+  uns::promotionToNever(0);
+  uns::promotionToNever(null);
+  uns::unnecessaryNullCheck(() → core::int* => 0);
+  uns::unnecessaryNullCheck(() → Null => null);
+  self::expect(0, uns::unnecessaryIfNull(() → core::int* => 0, () → core::int* => 42));
+  self::expect(42, uns::unnecessaryIfNull(() → Null => null, () → core::int* => 42));
+  uns::unnecessaryIfNullAssign(<core::int*>[0], () → core::int* => 42);
+  uns::unnecessaryIfNullAssign(<core::int*>[null], () → core::int* => 42);
+  uns::unnecessaryNullAwareAccess(() → core::int* => 0);
+  uns::unnecessaryNullAwareAccess(() → Null => null);
+  self::throws(() → dynamic => uns::callReturningNever(() → Null => throw "foo"), (core::Object* e) → core::bool* => e =={core::Object::==}{(core::Object*) →* core::bool*} "foo");
+  () →* Null f = () → Null => null;
+  self::throws(() → dynamic => uns::callReturningNever(f));
+  uns::switchOnEnum(#C3);
+  uns::switchOnEnum(#C6);
+  self::throws(() → dynamic => uns::switchOnEnum(null));
+  uns::switchOnEnumWithBreak(#C3);
+  uns::switchOnEnumWithBreak(#C6);
+  self::throws(() → dynamic => uns::switchOnEnumWithBreak(null));
+  uns::switchOnEnumWithFallThrough1(#C3);
+  uns::switchOnEnumWithFallThrough1(#C6);
+  self::throws(() → dynamic => uns::switchOnEnumWithFallThrough1(null));
+  uns::switchOnEnumWithFallThrough2(#C3);
+  uns::switchOnEnumWithFallThrough2(#C6);
+  self::throws(() → dynamic => uns::switchOnEnumWithFallThrough2(null));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() →* void f, [(core::Object*) →* core::bool* testException = #C7]) → dynamic {
+  try {
+    f(){() →* void};
+  }
+  on dynamic catch(final dynamic e) {
+    if(!(testException == null) && !testException(e){(core::Object*) →* core::bool*}) {
+      throw "Unexpected exception: ${e}";
+    }
+    core::print(e);
+    return;
+  }
+  throw "Missing exception.";
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:13:23: Warning: Operand of null-aware operation '??' has type 'int' which excludes null.
+// ifNullOptIn(int i) => i ?? 42;
+//                       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:22:66: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+// extensionIfNullOptIn1(int i) => OptInExtension(new OptInClass1())[i] ??= 42;
+//                                                                  ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:25:36: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   OptInExtension(new OptInClass1())[i] ??= 42;
+//                                    ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:28:50: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+// extensionIfNullOptIn2(int i) => new OptInClass1()[i] ??= 42;
+//                                                  ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:31:20: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   new OptInClass1()[i] ??= 42;
+//                    ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:39:48: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+// ifNullIndexSetOptIn(int i) => new OptInClass2()[i] ??= 42;
+//                                                ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:42:20: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   new OptInClass2()[i] ??= 42;
+//                    ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:51:53: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+// ifNullPropertySetOptIn(int i) => new OptInClass3(i).field ??= 42;
+//                                                     ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:54:22: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   new OptInClass3(i).field ??= 42;
+//                      ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:57:26: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+// ifNullSetOptIn(int i) => i ??= 42;
+//                          ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:60:3: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   i ??= 42;
+//   ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:69:25: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   method(int i) => super[i] ??= 42;
+//                         ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:71:10: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//     super[i] ??= 42;
+//          ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:113:28: Warning: Operand of null-aware operation '?.' has type 'int' which excludes null.
+// nullAwareAccess1(int i) => i?.isEven;
+//                            ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:116:3: Warning: Operand of null-aware operation '?.' has type 'int' which excludes null.
+//   i?.isEven;
+//   ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:128:11: Warning: Operand of null-aware operation '??' has type 'int' which excludes null.
+//   return f() ??
+//           ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:134:4: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   x[0] ??= f();
+//    ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:138:4: Warning: Operand of null-aware operation '?.' has type 'int' which excludes null.
+//   f()?.gcd(0); // Should not throw if `f` returns null
+//    ^
+//
+// pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:195:10: Error: Not enough type information to disambiguate between literal set and literal map.
+// Try providing type arguments for the literal explicitly to disambiguate it.
+//   return {...d}; // Should not throw ReachabilityError.
+//          ^
+//
+import self as uns;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class OptInClass1 extends core::Object {
+  synthetic constructor •() → uns::OptInClass1
+    : super core::Object::•()
+    ;
+}
+class OptInClass2 extends core::Object {
+  synthetic constructor •() → uns::OptInClass2
+    : super core::Object::•()
+    ;
+  operator [](core::int index) → core::int
+    return index;
+  operator []=(core::int index, core::int value) → void {}
+}
+class OptInClass3 extends core::Object {
+  field core::int field;
+  constructor •(core::int field) → uns::OptInClass3
+    : uns::OptInClass3::field = field, super core::Object::•()
+    ;
+}
+class OptInSuperClass4 extends core::Object {
+  synthetic constructor •() → uns::OptInSuperClass4
+    : super core::Object::•()
+    ;
+  operator [](core::int index) → core::int
+    return index;
+  operator []=(core::int index, core::int value) → void {}
+}
+class OptInClass4 extends uns::OptInSuperClass4 {
+  synthetic constructor •() → uns::OptInClass4
+    : super uns::OptInSuperClass4::•()
+    ;
+  method method(core::int i) → dynamic
+    return let final core::int #t35 = i in let final core::int #t36 = super.{uns::OptInSuperClass4::[]}(#t35) in #t36 == null ?{core::int} let final core::int #t37 = 42 in let final void #t38 = super.{uns::OptInSuperClass4::[]=}(#t35, #t37) in #t37 : #t36;
+  method methodForEffect(core::int i) → dynamic {
+    let final core::int #t39 = i in super.{uns::OptInSuperClass4::[]}(#t39) == null ?{core::int} super.{uns::OptInSuperClass4::[]=}(#t39, 42) : null;
+  }
+}
+class OptInClass5 extends core::Object {
+  field core::int field;
+  constructor •(core::int field) → uns::OptInClass5
+    : uns::OptInClass5::field = field, super core::Object::•()
+    ;
+}
+class OptInClass6a extends core::Object {
+  final field uns::OptInClass6b cls;
+  constructor •(uns::OptInClass6b cls) → uns::OptInClass6a
+    : uns::OptInClass6a::cls = cls, super core::Object::•()
+    ;
+}
+class OptInClass6b extends core::Object {
+  final field core::int field;
+  constructor •(core::int field) → uns::OptInClass6b
+    : uns::OptInClass6b::field = field, super core::Object::•()
+    ;
+}
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<uns::E> values = #C8;
+  static const field uns::E e1 = #C3;
+  static const field uns::E e2 = #C6;
+  const constructor •(core::int index, core::String name) → uns::E
+    : super core::_Enum::•(index, name)
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+extension OptInExtension on uns::OptInClass1 {
+  operator [] = uns::OptInExtension|[];
+  operator []= = uns::OptInExtension|[]=;
+}
+static method isNullOptIn1(core::int i) → dynamic
+  return i == null;
+static method isNotNullOptIn1(core::int i) → dynamic
+  return !(i == null);
+static method isNullOptIn2(core::int i) → dynamic
+  return i == null;
+static method isNotNullOptIn2(core::int i) → dynamic
+  return !(i == null);
+static method ifNullOptIn(core::int i) → dynamic
+  return let final core::int #t40 = i in #t40 == null ?{core::int} 42 : #t40;
+static method OptInExtension|[](lowered final uns::OptInClass1 #this, core::int index) → core::int
+  return index;
+static method OptInExtension|[]=(lowered final uns::OptInClass1 #this, core::int index, core::int value) → void {}
+static method extensionIfNullOptIn1(core::int i) → dynamic
+  return let final uns::OptInClass1 #t41 = new uns::OptInClass1::•() in let final core::int #t42 = i in let final core::int #t43 = uns::OptInExtension|[](#t41, #t42) in #t43 == null ?{core::int} let final core::int #t44 = 42 in let final void #t45 = uns::OptInExtension|[]=(#t41, #t42, #t44) in #t44 : #t43;
+static method extensionIfNullOptIn1ForEffect(core::int i) → dynamic {
+  let final uns::OptInClass1 #t46 = new uns::OptInClass1::•() in let final core::int #t47 = i in uns::OptInExtension|[](#t46, #t47) == null ?{core::int} uns::OptInExtension|[]=(#t46, #t47, 42) : null;
+}
+static method extensionIfNullOptIn2(core::int i) → dynamic
+  return let final uns::OptInClass1 #t48 = new uns::OptInClass1::•() in let final core::int #t49 = i in let final core::int #t50 = uns::OptInExtension|[](#t48, #t49) in #t50 == null ?{core::int} let final core::int #t51 = 42 in let final void #t52 = uns::OptInExtension|[]=(#t48, #t49, #t51) in #t51 : #t50;
+static method extensionIfNullOptIn2ForEffect(core::int i) → dynamic {
+  let final uns::OptInClass1 #t53 = new uns::OptInClass1::•() in let final core::int #t54 = i in uns::OptInExtension|[](#t53, #t54) == null ?{core::int} uns::OptInExtension|[]=(#t53, #t54, 42) : null;
+}
+static method ifNullIndexSetOptIn(core::int i) → dynamic
+  return let final uns::OptInClass2 #t55 = new uns::OptInClass2::•() in let final core::int #t56 = i in let final core::int #t57 = #t55.{uns::OptInClass2::[]}(#t56){(core::int) → core::int} in #t57 == null ?{core::int} let final core::int #t58 = 42 in let final void #t59 = #t55.{uns::OptInClass2::[]=}(#t56, #t58){(core::int, core::int) → void} in #t58 : #t57;
+static method ifNullIndexSetOptInForEffect(core::int i) → dynamic {
+  let final uns::OptInClass2 #t60 = new uns::OptInClass2::•() in let final core::int #t61 = i in #t60.{uns::OptInClass2::[]}(#t61){(core::int) → core::int} == null ?{core::int} #t60.{uns::OptInClass2::[]=}(#t61, 42){(core::int, core::int) → void} : null;
+}
+static method ifNullPropertySetOptIn(core::int i) → dynamic
+  return let final uns::OptInClass3 #t62 = new uns::OptInClass3::•(i) in let final core::int #t63 = #t62.{uns::OptInClass3::field}{core::int} in #t63 == null ?{core::int} #t62.{uns::OptInClass3::field} = 42 : #t63;
+static method ifNullPropertySetOptInForEffect(core::int i) → dynamic {
+  let final uns::OptInClass3 #t64 = new uns::OptInClass3::•(i) in #t64.{uns::OptInClass3::field}{core::int} == null ?{core::int} #t64.{uns::OptInClass3::field} = 42 : null;
+}
+static method ifNullSetOptIn(core::int i) → dynamic
+  return let final core::int #t65 = i in #t65 == null ?{core::int} i = 42 : #t65;
+static method ifNullSetOptInForEffect(core::int i) → dynamic {
+  i == null ?{core::int} i = 42 : null;
+}
+static method ifNullSuperIndexSetOptIn(core::int i) → dynamic
+  return new uns::OptInClass4::•().{uns::OptInClass4::method}(i){(core::int) → dynamic};
+static method ifNullSuperIndexSetOptInForEffect(core::int i) → dynamic {
+  new uns::OptInClass4::•().{uns::OptInClass4::methodForEffect}(i){(core::int) → dynamic};
+}
+static method nullAwareIfNullSetOptIn(core::int i) → dynamic {
+  uns::OptInClass5? o = new uns::OptInClass5::•(i) as{ForNonNullableByDefault} uns::OptInClass5?;
+  return let final uns::OptInClass5? #t66 = o in #t66 == null ?{core::int?} null : let final core::int #t67 = #t66.{uns::OptInClass5::field}{core::int} in #t67 == null ?{core::int} #t66.{uns::OptInClass5::field} = 42 : #t67;
+}
+static method nullAwareIfNullSetOptInForEffect(core::int i) → dynamic {
+  uns::OptInClass5? o = new uns::OptInClass5::•(i) as{ForNonNullableByDefault} uns::OptInClass5?;
+  let final uns::OptInClass5? #t68 = o in #t68 == null ?{core::int?} null : #t68.{uns::OptInClass5::field}{core::int} == null ?{core::int} #t68.{uns::OptInClass5::field} = 42 : null;
+}
+static method isTestOptIn(core::int i) → dynamic
+  return i is{ForNonNullableByDefault} core::int;
+static method isNotTestOptIn(core::int i) → dynamic
+  return !(i is{ForNonNullableByDefault} core::int);
+static method nullAwareAccess1(core::int i) → dynamic
+  return let final core::int #t69 = i in #t69 == null ?{core::bool?} null : #t69.{core::int::isEven}{core::bool};
+static method nullAwareAccessForEffect1(core::int i) → dynamic {
+  let final core::int #t70 = i in #t70 == null ?{core::bool?} null : #t70.{core::int::isEven}{core::bool};
+}
+static method promotionToNever(core::int i) → dynamic {
+  if(i is{ForNonNullableByDefault} core::int)
+    return;
+}
+static method unnecessaryNullCheck(() → core::int f) → dynamic {
+  if(!(f(){() → core::int} == null))
+    return;
+}
+static method unnecessaryIfNull(() → core::int f, () → core::int g) → dynamic {
+  return let final core::int #t71 = f(){() → core::int} in #t71 == null ?{core::int} g(){() → core::int} : #t71;
+}
+static method unnecessaryIfNullAssign(core::List<core::int> x, () → core::int f) → dynamic {
+  let final core::List<core::int> #t72 = x in let final core::int #t73 = 0 in #t72.{core::List::[]}(#t73){(core::int) → core::int} == null ?{core::int} #t72.{core::List::[]=}(#t73, f(){() → core::int}){(core::int, core::int) → void} : null;
+}
+static method unnecessaryNullAwareAccess(() → core::int f) → dynamic {
+  let final core::int #t74 = f(){() → core::int} in #t74 == null ?{core::int?} null : #t74.{core::int::gcd}(0){(core::int) → core::int};
+}
+static method callReturningNever(() → Never f) → dynamic {
+  let final Never #t75 = f(){() → Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
+}
+static method switchOnEnum(uns::E e) → dynamic {
+  switch(e) {
+    #L1:
+    case #C3:
+      {
+        return;
+      }
+    #L2:
+    case #C6:
+      {
+        return;
+      }
+    #L3:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+  }
+}
+static method switchOnEnumWithBreak(uns::E e) → dynamic {
+  #L4:
+  switch(e) {
+    #L5:
+    case #C3:
+      {
+        break #L4;
+      }
+    #L6:
+    case #C6:
+      {
+        break #L4;
+      }
+    #L7:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+  }
+}
+static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
+  #L8:
+  switch(e) {
+    #L9:
+    case #C3:
+      {
+        break #L8;
+      }
+    #L10:
+    case #C6:
+      {
+        break #L8;
+      }
+    #L11:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+  }
+}
+static method switchOnEnumWithFallThrough2(uns::E e) → dynamic {
+  #L12:
+  switch(e) {
+    #L13:
+    case #C3:
+    case #C6:
+      {
+        break #L12;
+      }
+    #L14:
+    default:
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
+  }
+}
+static method handleThrow() → dynamic {
+  throw "";
+}
+static method handleRethrow() → dynamic {
+  try {
+    uns::handleThrow();
+  }
+  on core::Object catch(final core::Object _) {
+    rethrow;
+  }
+}
+static method handleInvalid(dynamic d) → dynamic {
+  return invalid-expression "pkg/front_end/testcases/nnbd_mixed/unsound_checks_lib.dart:195:10: Error: Not enough type information to disambiguate between literal set and literal map.
+Try providing type arguments for the literal explicitly to disambiguate it.
+  return {...d}; // Should not throw ReachabilityError.
+         ^";
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "e1"
+  #C3 = uns::E {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "e2"
+  #C6 = uns::E {index:#C4, _name:#C5}
+  #C7 = null
+  #C8 = <uns::E*>[#C3, #C6]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///unsound_checks_lib.dart:
+- E. (from org-dartlang-testcase:///unsound_checks_lib.dart:145:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart:76:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

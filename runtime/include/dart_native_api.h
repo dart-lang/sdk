@@ -181,12 +181,12 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
  *
  * TODO(turnidge): Document.
  */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_CompileAll();
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_CompileAll(void);
 
 /**
  * Finalizes all classes.
  */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_FinalizeAllClasses();
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_FinalizeAllClasses(void);
 
 /*  This function is intentionally undocumented.
  *

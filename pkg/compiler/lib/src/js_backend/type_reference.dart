@@ -161,6 +161,15 @@ class TypeReference extends js.DeferredExpression implements js.AstContainer {
 
   @override
   Iterable<js.Node> get containedNodes => isFinalized ? [_value] : const [];
+
+  @override
+  String nonfinalizedDebugText() {
+    TypeRecipe typeRecipe = this.typeRecipe;
+    if (typeRecipe is TypeExpressionRecipe) {
+      return 'TypeReference"${typeRecipe.type.toString()}"';
+    }
+    return super.nonfinalizedDebugText();
+  }
 }
 
 /// A [TypeReferenceResource] is a deferred JavaScript statement determined by
@@ -524,7 +533,7 @@ class _ReferenceSet {
 ///
 /// The state is kept in the finalizer so that this scan could be extended to
 /// look for other deferred expressions in one pass.
-class _TypeReferenceCollectorVisitor extends js.BaseVisitor<void> {
+class _TypeReferenceCollectorVisitor extends js.BaseVisitorVoid {
   final TypeReferenceFinalizerImpl _finalizer;
 
   _TypeReferenceCollectorVisitor(this._finalizer);

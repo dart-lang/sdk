@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
@@ -16,10 +17,12 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/fuzzy_filter_sort.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -29,6 +32,7 @@ import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:collection/collection.dart';
 
 /// Instances of the class [CompletionDomainHandler] implement a
 /// [RequestHandler] that handles requests in the completion domain.
@@ -44,9 +48,6 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   /// The next completion response id.
   int _nextCompletionId = 0;
-
-  /// Code completion performance for the last completion operation.
-  CompletionPerformance? performance;
 
   /// A list of code completion performance measurements for the latest
   /// completion operation up to [performanceListMaxLength] measurements.
@@ -75,7 +76,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
     Set<ElementKind>? includedElementKinds,
     Set<String>? includedElementNames,
     List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags,
-    List<Uri>? librariesToImport,
+    Map<CompletionSuggestion, Uri>? notImportedSuggestions,
   }) async {
     //
     // Allow plugins to start computing fixes.
@@ -94,7 +95,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
         includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-        librariesToImport: librariesToImport,
+        notImportedSuggestions: notImportedSuggestions,
       );
 
       suggestions.addAll(
@@ -267,16 +268,34 @@ class CompletionDomainHandler extends AbstractRequestHandler {
 
   /// Implement the 'completion.getSuggestions2' request.
   void getSuggestions2(Request request) async {
-    var budget = CompletionBudget(budgetDuration);
-
     var params = CompletionGetSuggestions2Params.fromRequest(request);
     var file = params.file;
     var offset = params.offset;
 
+    var timeoutMilliseconds = params.timeout;
+    var budget = CompletionBudget(
+      timeoutMilliseconds != null
+          ? Duration(milliseconds: timeoutMilliseconds)
+          : budgetDuration,
+    );
+
     var provider = server.resourceProvider;
     var pathContext = provider.pathContext;
 
-    // TODO(scheglov) Support non-Dart files.
+    if (file.endsWith('.yaml')) {
+      final suggestions = computeYamlSuggestions(file, offset);
+      server.sendResponse(
+        CompletionGetSuggestions2Result(
+          suggestions.replacementOffset,
+          suggestions.replacementLength,
+          suggestions.suggestions,
+          [],
+          false,
+        ).toResponse(request.id),
+      );
+      return;
+    }
+
     if (!file_paths.isDart(pathContext, file)) {
       server.sendResponse(
         CompletionGetSuggestions2Result(offset, 0, [], [], false)
@@ -285,85 +304,130 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       return;
     }
 
-    var resolvedUnit = await server.getResolvedUnit(file);
-    if (resolvedUnit == null) {
-      server.sendResponse(Response.fileNotAnalyzed(request, file));
-      return;
-    }
-
-    server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
-
-    if (offset < 0 || offset > resolvedUnit.content.length) {
-      server.sendResponse(Response.invalidParameter(
-          request,
-          'params.offset',
-          'Expected offset between 0 and source length inclusive,'
-              ' but found $offset'));
-      return;
-    }
-
-    final completionPerformance = CompletionPerformance();
-    recordRequest(completionPerformance, file, resolvedUnit.content, offset);
-
-    await completionPerformance.runRequestOperation((performance) async {
-      var completionRequest = DartCompletionRequest(
-        resolvedUnit: resolvedUnit,
-        offset: offset,
-        dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
-          resolvedUnit,
-        ),
-        documentationCache: server.getDocumentationCacheFor(resolvedUnit),
-      );
-      setNewRequest(completionRequest);
-
-      var librariesToImport = <Uri>[];
-      var suggestions = <CompletionSuggestion>[];
-      try {
-        suggestions = await computeSuggestions(
-          budget: budget,
-          performance: performance,
-          request: completionRequest,
-          librariesToImport: librariesToImport,
+    var performance = OperationPerformanceImpl('<root>');
+    performance.runAsync(
+      'request',
+      (performance) async {
+        var resolvedUnit = performance.run(
+          'resolveForCompletion',
+          (performance) {
+            return server.resolveForCompletion(
+              path: file,
+              offset: offset,
+              performance: performance,
+            );
+          },
         );
-      } on AbortCompletion {
-        return server.sendResponse(
-          CompletionGetSuggestions2Result(
-            completionRequest.replacementOffset,
-            completionRequest.replacementLength,
-            [],
-            [],
-            true,
-          ).toResponse(request.id),
+        if (resolvedUnit == null) {
+          server.sendResponse(Response.fileNotAnalyzed(request, file));
+          return;
+        }
+
+        if (offset < 0 || offset > resolvedUnit.content.length) {
+          server.sendResponse(Response.invalidParameter(
+              request,
+              'params.offset',
+              'Expected offset between 0 and source length inclusive,'
+                  ' but found $offset'));
+          return;
+        }
+
+        final completionPerformance = CompletionPerformance(
+          operation: performance,
+          path: file,
+          content: resolvedUnit.content,
+          offset: offset,
         );
-      }
+        performanceList.add(completionPerformance);
 
-      performance.run('filter', (performance) {
-        performance.getDataInt('count').add(suggestions.length);
-        suggestions = fuzzyFilterSort(
-          pattern: completionRequest.targetPrefix,
-          suggestions: suggestions,
+        var analysisSession = resolvedUnit.analysisSession;
+        var enclosingNode =
+            resolvedUnit.resolvedNodes.lastOrNull ?? resolvedUnit.parsedUnit;
+
+        var completionRequest = DartCompletionRequest(
+          analysisSession: analysisSession,
+          filePath: resolvedUnit.path,
+          fileContent: resolvedUnit.content,
+          unitElement: resolvedUnit.unitElement,
+          enclosingNode: enclosingNode,
+          offset: offset,
+          dartdocDirectiveInfo:
+              server.getDartdocDirectiveInfoForSession(analysisSession),
+          documentationCache:
+              server.getDocumentationCacheForSession(analysisSession),
         );
-        performance.getDataInt('matchCount').add(suggestions.length);
-      });
+        setNewRequest(completionRequest);
 
-      var lengthRestricted = suggestions.take(params.maxResults).toList();
-      var isIncomplete = lengthRestricted.length < suggestions.length;
-      completionPerformance.suggestionCount = lengthRestricted.length;
+        var notImportedSuggestions =
+            HashMap<CompletionSuggestion, Uri>.identity();
+        var suggestions = <CompletionSuggestion>[];
+        try {
+          suggestions = await computeSuggestions(
+            budget: budget,
+            performance: performance,
+            request: completionRequest,
+            notImportedSuggestions: notImportedSuggestions,
+          );
+        } on AbortCompletion {
+          return server.sendResponse(
+            CompletionGetSuggestions2Result(
+              completionRequest.replacementOffset,
+              completionRequest.replacementLength,
+              [],
+              [],
+              true,
+            ).toResponse(request.id),
+          );
+        }
 
-      server.sendResponse(
-        CompletionGetSuggestions2Result(
-          completionRequest.replacementOffset,
-          completionRequest.replacementLength,
-          lengthRestricted,
-          librariesToImport.map((e) => '$e').toList(),
-          isIncomplete,
-        ).toResponse(request.id),
-      );
-    });
+        performance.run('filter', (performance) {
+          performance.getDataInt('count').add(suggestions.length);
+          suggestions = fuzzyFilterSort(
+            pattern: completionRequest.targetPrefix,
+            suggestions: suggestions,
+          );
+          performance.getDataInt('matchCount').add(suggestions.length);
+        });
+
+        var lengthRestricted = suggestions.take(params.maxResults).toList();
+        var isIncomplete = lengthRestricted.length < suggestions.length;
+        completionPerformance.suggestionCount = lengthRestricted.length;
+
+        // Update `libraryUriToImportIndex` for not yet imported.
+        // Gather referenced unique libraries to import.
+        var librariesToImport = <Uri, int>{};
+        for (var i = 0; i < lengthRestricted.length; i++) {
+          var suggestion = lengthRestricted[i];
+          var libraryToImport = notImportedSuggestions[suggestion];
+          if (libraryToImport != null) {
+            var index = librariesToImport.putIfAbsent(
+              libraryToImport,
+              () => librariesToImport.length,
+            );
+            lengthRestricted[i] = suggestion.copyWith(
+              libraryUriToImportIndex: CopyWithValue(index),
+            );
+          }
+        }
+
+        performance.run('sendResponse', (_) {
+          server.sendResponse(
+            CompletionGetSuggestions2Result(
+              completionRequest.replacementOffset,
+              completionRequest.replacementLength,
+              lengthRestricted,
+              librariesToImport.keys.map((e) => '$e').toList(),
+              isIncomplete,
+            ).toResponse(request.id),
+          );
+        });
+      },
+    );
   }
 
   @override
-  Response? handleRequest(Request request) {
+  Response? handleRequest(
+      Request request, CancellationToken cancellationToken) {
     if (!server.options.featureSet.completion) {
       return Response.invalidParameter(
         request,
@@ -410,161 +474,159 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   Future<void> processRequest(Request request) async {
     var budget = CompletionBudget(budgetDuration);
 
-    final performance = this.performance = CompletionPerformance();
+    // extract and validate params
+    var params = CompletionGetSuggestionsParams.fromRequest(request);
+    var file = params.file;
+    var offset = params.offset;
 
-    await performance.runRequestOperation((perf) async {
-      // extract and validate params
-      var params = CompletionGetSuggestionsParams.fromRequest(request);
-      var file = params.file;
-      var offset = params.offset;
-
-      if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
-        return;
-      }
-      if (file.endsWith('.yaml')) {
-        // Return the response without results.
-        var completionId = (_nextCompletionId++).toString();
-        server.sendResponse(CompletionGetSuggestionsResult(completionId)
-            .toResponse(request.id));
-        // Send a notification with results.
-        final suggestions = computeYamlSuggestions(file, offset);
-        sendCompletionNotification(
-          completionId,
-          suggestions.replacementOffset,
-          suggestions.replacementLength,
-          suggestions.suggestions,
-          null,
-          null,
-          null,
-          null,
-        );
-        return;
-      } else if (!file.endsWith('.dart')) {
-        // Return the response without results.
-        var completionId = (_nextCompletionId++).toString();
-        server.sendResponse(CompletionGetSuggestionsResult(completionId)
-            .toResponse(request.id));
-        // Send a notification with results.
-        sendCompletionNotification(
-            completionId, offset, 0, [], null, null, null, null);
-        return;
-      }
-
-      var resolvedUnit = await server.getResolvedUnit(file);
-      if (resolvedUnit == null) {
-        server.sendResponse(Response.fileNotAnalyzed(request, 'params.offset'));
-        return;
-      }
-
-      server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
-
-      if (offset < 0 || offset > resolvedUnit.content.length) {
-        server.sendResponse(Response.invalidParameter(
-            request,
-            'params.offset',
-            'Expected offset between 0 and source length inclusive,'
-                ' but found $offset'));
-        return;
-      }
-
-      recordRequest(performance, file, resolvedUnit.content, offset);
-
-      var declarationsTracker = server.declarationsTracker;
-      if (declarationsTracker == null) {
-        server.sendResponse(Response.unsupportedFeature(
-            request.id, 'Completion is not enabled.'));
-        return;
-      }
-
-      var completionRequest = DartCompletionRequest(
-        resolvedUnit: resolvedUnit,
-        offset: offset,
-        dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
-          resolvedUnit,
-        ),
-        documentationCache: server.getDocumentationCacheFor(resolvedUnit),
-      );
-
-      var completionId = (_nextCompletionId++).toString();
-
-      setNewRequest(completionRequest);
-
-      // initial response without results
-      server.sendResponse(
-          CompletionGetSuggestionsResult(completionId).toResponse(request.id));
-
-      // If the client opted into using available suggestion sets,
-      // create the kinds set, so signal the completion manager about opt-in.
-      Set<ElementKind>? includedElementKinds;
-      Set<String>? includedElementNames;
-      List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
-      if (subscriptions.contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
-        includedElementKinds = <ElementKind>{};
-        includedElementNames = <String>{};
-        includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
-      }
-
-      // Compute suggestions in the background
-      try {
-        var suggestions = <CompletionSuggestion>[];
-        try {
-          suggestions = await computeSuggestions(
-            budget: budget,
-            performance: perf,
-            request: completionRequest,
-            includedElementKinds: includedElementKinds,
-            includedElementNames: includedElementNames,
-            includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-          );
-        } on AbortCompletion {
-          // Continue with empty suggestions list.
-        }
-        String? libraryFile;
-        var includedSuggestionSets = <IncludedSuggestionSet>[];
-        if (includedElementKinds != null && includedElementNames != null) {
-          libraryFile = resolvedUnit.libraryElement.source.fullName;
-          server.sendNotification(
-            createExistingImportsNotification(resolvedUnit),
-          );
-          computeIncludedSetList(
-            declarationsTracker,
-            resolvedUnit,
-            includedSuggestionSets,
-            includedElementNames,
-          );
-        }
-
-        const SEND_NOTIFICATION_TAG = 'send notification';
-        perf.run(SEND_NOTIFICATION_TAG, (_) {
-          sendCompletionNotification(
-            completionId,
-            completionRequest.replacementOffset,
-            completionRequest.replacementLength,
-            suggestions,
-            libraryFile,
-            includedSuggestionSets,
-            includedElementKinds?.toList(),
-            includedSuggestionRelevanceTags,
-          );
-        });
-
-        performance.suggestionCount = suggestions.length;
-      } finally {
-        ifMatchesRequestClear(completionRequest);
-      }
-    });
-  }
-
-  /// If tracking code completion performance over time, then
-  /// record addition information about the request in the performance record.
-  void recordRequest(CompletionPerformance performance, String path,
-      String content, int offset) {
-    performance.path = path;
-    if (performanceListMaxLength == 0) {
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
       return;
     }
-    performance.setContentsAndOffset(content, offset);
-    performanceList.add(performance);
+
+    var performance = OperationPerformanceImpl('<root>');
+    performance.runAsync(
+      'request',
+      (performance) async {
+        if (file.endsWith('.yaml')) {
+          // Return the response without results.
+          var completionId = (_nextCompletionId++).toString();
+          server.sendResponse(CompletionGetSuggestionsResult(completionId)
+              .toResponse(request.id));
+          // Send a notification with results.
+          final suggestions = computeYamlSuggestions(file, offset);
+          sendCompletionNotification(
+            completionId,
+            suggestions.replacementOffset,
+            suggestions.replacementLength,
+            suggestions.suggestions,
+            null,
+            null,
+            null,
+            null,
+          );
+          return;
+        } else if (!file.endsWith('.dart')) {
+          // Return the response without results.
+          var completionId = (_nextCompletionId++).toString();
+          server.sendResponse(CompletionGetSuggestionsResult(completionId)
+              .toResponse(request.id));
+          // Send a notification with results.
+          sendCompletionNotification(
+              completionId, offset, 0, [], null, null, null, null);
+          return;
+        }
+
+        var resolvedUnit = await server.getResolvedUnit(file);
+        if (resolvedUnit == null) {
+          server.sendResponse(Response.fileNotAnalyzed(request, file));
+          return;
+        }
+
+        server.requestStatistics?.addItemTimeNow(request, 'resolvedUnit');
+
+        if (offset < 0 || offset > resolvedUnit.content.length) {
+          server.sendResponse(Response.invalidParameter(
+              request,
+              'params.offset',
+              'Expected offset between 0 and source length inclusive,'
+                  ' but found $offset'));
+          return;
+        }
+
+        final completionPerformance = CompletionPerformance(
+          operation: performance,
+          path: file,
+          content: resolvedUnit.content,
+          offset: offset,
+        );
+        performanceList.add(completionPerformance);
+
+        var declarationsTracker = server.declarationsTracker;
+        if (declarationsTracker == null) {
+          server.sendResponse(Response.unsupportedFeature(
+              request.id, 'Completion is not enabled.'));
+          return;
+        }
+
+        var completionRequest = DartCompletionRequest.forResolvedUnit(
+          resolvedUnit: resolvedUnit,
+          offset: offset,
+          dartdocDirectiveInfo: server.getDartdocDirectiveInfoFor(
+            resolvedUnit,
+          ),
+          documentationCache: server.getDocumentationCacheFor(resolvedUnit),
+        );
+
+        var completionId = (_nextCompletionId++).toString();
+
+        setNewRequest(completionRequest);
+
+        // initial response without results
+        server.sendResponse(CompletionGetSuggestionsResult(completionId)
+            .toResponse(request.id));
+
+        // If the client opted into using available suggestion sets,
+        // create the kinds set, so signal the completion manager about opt-in.
+        Set<ElementKind>? includedElementKinds;
+        Set<String>? includedElementNames;
+        List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
+        if (subscriptions
+            .contains(CompletionService.AVAILABLE_SUGGESTION_SETS)) {
+          includedElementKinds = <ElementKind>{};
+          includedElementNames = <String>{};
+          includedSuggestionRelevanceTags = <IncludedSuggestionRelevanceTag>[];
+        }
+
+        // Compute suggestions in the background
+        try {
+          var suggestions = <CompletionSuggestion>[];
+          try {
+            suggestions = await computeSuggestions(
+              budget: budget,
+              performance: performance,
+              request: completionRequest,
+              includedElementKinds: includedElementKinds,
+              includedElementNames: includedElementNames,
+              includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
+            );
+          } on AbortCompletion {
+            // Continue with empty suggestions list.
+          }
+          String? libraryFile;
+          var includedSuggestionSets = <IncludedSuggestionSet>[];
+          if (includedElementKinds != null && includedElementNames != null) {
+            libraryFile = resolvedUnit.libraryElement.source.fullName;
+            server.sendNotification(
+              createExistingImportsNotification(resolvedUnit),
+            );
+            computeIncludedSetList(
+              declarationsTracker,
+              completionRequest,
+              includedSuggestionSets,
+              includedElementNames,
+            );
+          }
+
+          const SEND_NOTIFICATION_TAG = 'send notification';
+          performance.run(SEND_NOTIFICATION_TAG, (_) {
+            sendCompletionNotification(
+              completionId,
+              completionRequest.replacementOffset,
+              completionRequest.replacementLength,
+              suggestions,
+              libraryFile,
+              includedSuggestionSets,
+              includedElementKinds?.toList(),
+              includedSuggestionRelevanceTags,
+            );
+          });
+
+          completionPerformance.suggestionCount = suggestions.length;
+        } finally {
+          ifMatchesRequestClear(completionRequest);
+        }
+      },
+    );
   }
 
   /// Send completion notification results.
@@ -670,11 +732,8 @@ class CompletionDomainHandler extends AbstractRequestHandler {
   _RequestToPlugins? _sendRequestToPlugins(
     DartCompletionRequest completionRequest,
   ) {
-    var resolvedUnit = completionRequest.result;
-    var analysisContext = resolvedUnit.session.analysisContext;
-
     var pluginRequestParameters = plugin.CompletionGetSuggestionsParams(
-      resolvedUnit.path,
+      completionRequest.path,
       completionRequest.offset,
     );
 
@@ -683,7 +742,7 @@ class CompletionDomainHandler extends AbstractRequestHandler {
       parameters: pluginRequestParameters,
       futures: server.pluginManager.broadcastRequest(
         pluginRequestParameters,
-        contextRoot: analysisContext.contextRoot,
+        contextRoot: completionRequest.analysisContext.contextRoot,
       ),
     );
   }

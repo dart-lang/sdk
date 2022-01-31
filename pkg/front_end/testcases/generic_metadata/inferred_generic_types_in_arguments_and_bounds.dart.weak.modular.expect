@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X%>
+    : super core::Object::•()
+    ;
+}
+static method foo<Y extends core::Object? = dynamic>(self::foo::Y% y) → self::A<self::foo::Y%>
+  return throw 42;
+static method test() → dynamic {
+  self::A<<Z extends core::Object? = dynamic>(dynamic) → Never> x = self::foo<<Z extends core::Object? = dynamic>(dynamic) → Never>(<Z extends core::Object? = dynamic>(dynamic Z) → Never => throw 42);
+  core::List<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>> y = <<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>>[#C1];
+  core::Set<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>> z = block {
+    final core::Set<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>> #t1 = col::LinkedHashSet::•<<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>>();
+    #t1.{core::Set::add}{Invariant}(y.{core::Iterable::first}{<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>}){(<Y extends core::Object? = dynamic>(Y%) → self::A<Y%>) → core::bool};
+  } =>#t1;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = static-tearoff self::foo
+}

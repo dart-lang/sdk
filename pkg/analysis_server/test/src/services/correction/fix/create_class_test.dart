@@ -73,7 +73,7 @@ class BaseClass {
   }
 
   Future<void> test_inLibraryOfPrefix() async {
-    addSource('/home/test/lib/lib.dart', r'''
+    addSource('$testPackageLibPath/lib.dart', r'''
 class A {}
 ''');
 
@@ -92,7 +92,7 @@ class A {}
 
 class Test {
 }
-''', target: '/home/test/lib/lib.dart');
+''', target: '$testPackageLibPath/lib.dart');
     expect(change.linkedEditGroups, hasLength(1));
   }
 

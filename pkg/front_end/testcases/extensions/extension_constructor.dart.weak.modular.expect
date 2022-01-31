@@ -1,0 +1,50 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/extension_constructor.dart:8:3: Error: Extensions can't declare constructors.
+// Try removing the constructor declaration.
+//   Extension() {}
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_constructor.dart:9:3: Error: Extensions can't declare constructors.
+// Try removing the constructor declaration.
+//   Extension.named() {}
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_constructor.dart:10:3: Error: Extensions can't declare constructors.
+// Try removing the constructor declaration.
+//   factory Extension.fact() => null;
+//   ^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_constructor.dart:11:3: Error: Extensions can't declare constructors.
+// Try removing the constructor declaration.
+//   factory Extension.redirect() = Extension;
+//   ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension on self::Class* {
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+}
+static method Extension|method(lowered final self::Class* #this) → dynamic {}
+static method Extension|get#method(lowered final self::Class* #this) → () →* dynamic
+  return () → dynamic => self::Extension|method(#this);
+static method main() → dynamic {}

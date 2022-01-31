@@ -161,12 +161,12 @@ class LinkMock extends FileSystemEntity implements Link {
 }
 
 Future<Socket> socketConnect(host, int port,
-    {sourceAddress, Duration timeout}) {
+    {sourceAddress, int sourcePort, Duration timeout}) {
   return null;
 }
 
 Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
-    {sourceAddress}) {
+    {sourceAddress, int sourcePort}) {
   return null;
 }
 
@@ -175,7 +175,30 @@ Future<ServerSocket> serverSocketBind(address, int port,
   return null;
 }
 
+class StdinMock extends Stream<List<int>> implements Stdin {
+  bool echoMode = false;
+  bool lineMode = false;
+  bool get hasTerminal => throw "";
+  bool get supportsAnsiEscapes => throw "";
+
+  int readByteSync() => throw "";
+  String readLineSync(
+          {Encoding encoding = systemEncoding, bool retainNewlines = false}) =>
+      throw "";
+  StreamSubscription<List<int>> listen(void onData(List<int> event),
+      {Function onError, void onDone(), bool cancelOnError}) {
+    throw "";
+  }
+}
+
+class StdoutMock implements Stdout {
+  void noSuchMethod(Invocation i) => throw "";
+}
+
 Future<Null> ioOverridesRunTest() async {
+  StdoutMock stdoutMock = StdoutMock();
+  StdoutMock stderrMock = StdoutMock();
+
   Future<Null> f = IOOverrides.runZoned(
     () async {
       Expect.isTrue(new Directory("directory") is DirectoryMock);
@@ -196,6 +219,9 @@ Future<Null> ioOverridesRunTest() async {
       Expect.isNull(Socket.connect(null, 0));
       Expect.isNull(Socket.startConnect(null, 0));
       Expect.isNull(ServerSocket.bind(null, 0));
+      Expect.isTrue(stdin is StdinMock);
+      Expect.identical(stdout, stdoutMock);
+      Expect.identical(stderr, stderrMock);
     },
     createDirectory: DirectoryMock.createDirectory,
     getCurrentDirectory: DirectoryMock.getCurrent,
@@ -214,6 +240,9 @@ Future<Null> ioOverridesRunTest() async {
     socketConnect: socketConnect,
     socketStartConnect: socketStartConnect,
     serverSocketBind: serverSocketBind,
+    stdin: () => StdinMock(),
+    stdout: () => stdoutMock,
+    stderr: () => stderrMock,
   );
   Expect.isFalse(new Directory("directory") is DirectoryMock);
   Expect.isTrue(new Directory("directory") is Directory);

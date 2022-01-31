@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -784,7 +783,9 @@ abstract class AstNodeImpl implements AstNode {
   }
 
   @override
-  E? thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate) {
+  E? thisOrAncestorMatching<E extends AstNode>(
+    bool Function(AstNode) predicate,
+  ) {
     AstNode? node = this;
     while (node != null && !predicate(node)) {
       node = node.parent;
@@ -1394,6 +1395,10 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   @override
   Token? abstractKeyword;
 
+  /// The 'macro' keyword, or `null` if the keyword was absent.
+  @override
+  Token? macroKeyword;
+
   /// The token representing the 'class' keyword.
   @override
   Token classKeyword;
@@ -1422,6 +1427,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
       CommentImpl? comment,
       List<Annotation>? metadata,
       this.abstractKeyword,
+      this.macroKeyword,
       this.classKeyword,
       SimpleIdentifierImpl name,
       TypeParameterListImpl? typeParameters,
@@ -1440,6 +1446,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
   @override
   Iterable<SyntacticEntity> get childEntities => super._childEntities
     ..add(abstractKeyword)
+    ..add(macroKeyword)
     ..add(classKeyword)
     ..add(_name)
     ..add(_typeParameters)
@@ -1463,7 +1470,7 @@ class ClassDeclarationImpl extends ClassOrMixinDeclarationImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return abstractKeyword ?? classKeyword;
+    return abstractKeyword ?? macroKeyword ?? classKeyword;
   }
 
   @override
@@ -1643,6 +1650,11 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   Token? abstractKeyword;
 
+  /// The token for the 'macro' keyword, or `null` if this is not defining a
+  /// macro class.
+  @override
+  Token? macroKeyword;
+
   /// The name of the superclass of the class being declared.
   NamedTypeImpl _superclass;
 
@@ -1667,6 +1679,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
       this._typeParameters,
       this.equals,
       this.abstractKeyword,
+      this.macroKeyword,
       this._superclass,
       this._withClause,
       this._implementsClause,
@@ -1685,6 +1698,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..add(_typeParameters)
     ..add(equals)
     ..add(abstractKeyword)
+    ..add(macroKeyword)
     ..add(_superclass)
     ..add(_withClause)
     ..add(_implementsClause)
@@ -1695,7 +1709,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return abstractKeyword ?? typedefKeyword;
+    return abstractKeyword ?? macroKeyword ?? typedefKeyword;
   }
 
   @override
@@ -1708,10 +1722,6 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @override
   bool get isAbstract => abstractKeyword != null;
-
-  @Deprecated('Use superclass2 instead')
-  @override
-  NamedTypeImpl get superclass => _superclass;
 
   set superclass(NamedType superclass) {
     _superclass = _becomeParentOf(superclass as NamedTypeImpl);
@@ -2654,10 +2664,6 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     _name = _becomeParentOf(name as SimpleIdentifierImpl?);
   }
 
-  @Deprecated('Use type2 instead')
-  @override
-  NamedTypeImpl get type => _type;
-
   set type(NamedType type) {
     _type = _becomeParentOf(type as NamedTypeImpl);
   }
@@ -3286,13 +3292,26 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
 /// The declaration of an enumeration.
 ///
 ///    enumType ::=
-///        metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier]
-///        (',' [SimpleIdentifier])* (',')? '}'
+///        metadata 'enum' [SimpleIdentifier] [TypeParameterList]?
+///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
+///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
 class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements EnumDeclaration {
   /// The 'enum' keyword.
   @override
   Token enumKeyword;
+
+  /// The type parameters, or `null` if the enumeration does not have any
+  /// type parameters.
+  TypeParameterListImpl? _typeParameters;
+
+  /// The `with` clause for the enumeration, or `null` if the class does not
+  /// have a `with` clause.
+  WithClauseImpl? _withClause;
+
+  /// The `implements` clause for the enumeration, or `null` if the enumeration
+  /// does not implement any interfaces.
+  ImplementsClauseImpl? _implementsClause;
 
   /// The left curly bracket.
   @override
@@ -3300,6 +3319,9 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   /// The enumeration constants being declared.
   final NodeListImpl<EnumConstantDeclaration> _constants = NodeListImpl._();
+
+  /// The members defined by the enum.
+  final NodeListImpl<ClassMember> _members = NodeListImpl._();
 
   /// The right curly bracket.
   @override
@@ -3314,11 +3336,19 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
       List<Annotation>? metadata,
       this.enumKeyword,
       SimpleIdentifierImpl name,
+      this._typeParameters,
+      this._withClause,
+      this._implementsClause,
       this.leftBracket,
       List<EnumConstantDeclaration> constants,
+      List<ClassMember> members,
       this.rightBracket)
       : super(comment, metadata, name) {
+    _becomeParentOf(_typeParameters);
+    _becomeParentOf(_withClause);
+    _becomeParentOf(_implementsClause);
     _constants._initialize(this, constants);
+    _members._initialize(this, members);
   }
 
   @override
@@ -3326,8 +3356,12 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   Iterable<SyntacticEntity> get childEntities => super._childEntities
     ..add(enumKeyword)
     ..add(_name)
+    ..add(_typeParameters)
+    ..add(_withClause)
+    ..add(_implementsClause)
     ..add(leftBracket)
     ..addAll(_constants)
+    ..addAll(_members)
     ..add(rightBracket);
 
   @override
@@ -3343,13 +3377,42 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   Token get firstTokenAfterCommentAndMetadata => enumKeyword;
 
   @override
+  ImplementsClauseImpl? get implementsClause => _implementsClause;
+
+  set implementsClause(ImplementsClause? implementsClause) {
+    _implementsClause =
+        _becomeParentOf(implementsClause as ImplementsClauseImpl?);
+  }
+
+  @override
+  NodeListImpl<ClassMember> get members => _members;
+
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  set typeParameters(TypeParameterList? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  }
+
+  @override
+  WithClauseImpl? get withClause => _withClause;
+
+  set withClause(WithClause? withClause) {
+    _withClause = _becomeParentOf(withClause as WithClauseImpl?);
+  }
+
+  @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumDeclaration(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     _name.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _withClause?.accept(visitor);
+    _implementsClause?.accept(visitor);
     _constants.accept(visitor);
+    _members.accept(visitor);
   }
 }
 
@@ -3667,10 +3730,6 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 
   @override
   Token get endToken => _superclass.endToken;
-
-  @Deprecated('Use superclass2 instead')
-  @override
-  NamedTypeImpl get superclass => _superclass;
 
   set superclass(NamedType name) {
     _superclass = _becomeParentOf(name as NamedTypeImpl);
@@ -5800,10 +5859,6 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   @override
   Token get endToken => _interfaces.endToken!;
 
-  @Deprecated('Use interfaces2 instead')
-  @override
-  NodeList<TypeName> get interfaces => _DelegatingTypeNameList(_interfaces);
-
   @override
   NodeListImpl<NamedType> get interfaces2 => _interfaces;
 
@@ -7459,7 +7514,7 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
 ///    typeName ::=
 ///        [Identifier] typeArguments? '?'?
 /// ignore: deprecated_member_use_from_same_package
-class NamedTypeImpl extends TypeAnnotationImpl implements TypeName {
+class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   /// The name of the type.
   IdentifierImpl _name;
 
@@ -8008,11 +8063,6 @@ class OnClauseImpl extends AstNodeImpl implements OnClause {
 
   @override
   Token get endToken => _superclassConstraints.endToken!;
-
-  @Deprecated('Use superclassConstraints2 instead')
-  @override
-  NodeList<TypeName> get superclassConstraints =>
-      _DelegatingTypeNameList(_superclassConstraints);
 
   @override
   NodeListImpl<NamedType> get superclassConstraints2 => _superclassConstraints;
@@ -9300,12 +9350,11 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   Token literal;
 
   /// The value of the literal.
-  String _value;
+  @override
+  String value;
 
   /// Initialize a newly created simple string literal.
-  SimpleStringLiteralImpl(this.literal, this._value) {
-    _value = StringUtilities.intern(value);
-  }
+  SimpleStringLiteralImpl(this.literal, this.value);
 
   @override
   Token get beginToken => literal;
@@ -9333,13 +9382,6 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 
   @override
   bool get isSynthetic => literal.isSynthetic;
-
-  @override
-  String get value => _value;
-
-  set value(String string) {
-    _value = StringUtilities.intern(_value);
-  }
 
   StringLexemeHelper get _helper {
     return StringLexemeHelper(literal.lexeme, true, true);
@@ -9543,12 +9585,12 @@ class StringLexemeHelper {
       if (isRaw) {
         start++;
       }
-      if (StringUtilities.startsWith3(lexeme, start, 0x27, 0x27, 0x27)) {
+      if (lexeme.startsWith("'''", start)) {
         isSingleQuoted = true;
         isMultiline = true;
         start += 3;
         start = _trimInitialWhitespace(start);
-      } else if (StringUtilities.startsWith3(lexeme, start, 0x22, 0x22, 0x22)) {
+      } else if (lexeme.startsWith('"""', start)) {
         isSingleQuoted = false;
         isMultiline = true;
         start += 3;
@@ -9566,12 +9608,10 @@ class StringLexemeHelper {
     end = lexeme.length;
     if (isLast) {
       if (start + 3 <= end &&
-          (StringUtilities.endsWith3(lexeme, 0x22, 0x22, 0x22) ||
-              StringUtilities.endsWith3(lexeme, 0x27, 0x27, 0x27))) {
+          (lexeme.endsWith("'''") || lexeme.endsWith('"""'))) {
         end -= 3;
       } else if (start + 1 <= end &&
-          (StringUtilities.endsWithChar(lexeme, 0x22) ||
-              StringUtilities.endsWithChar(lexeme, 0x27))) {
+          (lexeme.endsWith("'") || lexeme.endsWith('"'))) {
         end -= 1;
       }
     }
@@ -9748,6 +9788,144 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
+  }
+}
+
+/// A super-initializer formal parameter.
+///
+///    fieldFormalParameter ::=
+///        ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
+///        'super' '.' [SimpleIdentifier]
+///        ([TypeParameterList]? [FormalParameterList])?
+class SuperFormalParameterImpl extends NormalFormalParameterImpl
+    implements SuperFormalParameter {
+  /// The token representing either the 'final', 'const' or 'var' keyword, or
+  /// `null` if no keyword was used.
+  @override
+  Token? keyword;
+
+  /// The name of the declared type of the parameter, or `null` if the parameter
+  /// does not have a declared type.
+  TypeAnnotationImpl? _type;
+
+  /// The token representing the 'super' keyword.
+  @override
+  Token superKeyword;
+
+  /// The token representing the period.
+  @override
+  Token period;
+
+  /// The type parameters associated with the method, or `null` if the method is
+  /// not a generic method.
+  TypeParameterListImpl? _typeParameters;
+
+  /// The parameters of the function-typed parameter, or `null` if this is not a
+  /// function-typed field formal parameter.
+  FormalParameterListImpl? _parameters;
+
+  @override
+  Token? question;
+
+  /// Initialize a newly created formal parameter. Either or both of the
+  /// [comment] and [metadata] can be `null` if the parameter does not have the
+  /// corresponding attribute. The [keyword] can be `null` if there is a type.
+  /// The [type] must be `null` if the keyword is 'var'. The [thisKeyword] and
+  /// [period] can be `null` if the keyword 'this' was not provided.  The
+  /// [parameters] can be `null` if this is not a function-typed field formal
+  /// parameter.
+  SuperFormalParameterImpl(
+      CommentImpl? comment,
+      List<Annotation>? metadata,
+      Token? covariantKeyword,
+      Token? requiredKeyword,
+      this.keyword,
+      this._type,
+      this.superKeyword,
+      this.period,
+      SimpleIdentifierImpl identifier,
+      this._typeParameters,
+      this._parameters,
+      this.question)
+      : super(
+            comment, metadata, covariantKeyword, requiredKeyword, identifier) {
+    _becomeParentOf(_type);
+    _becomeParentOf(_typeParameters);
+    _becomeParentOf(_parameters);
+  }
+
+  @override
+  Token get beginToken {
+    final metadata = this.metadata;
+    if (metadata.isNotEmpty) {
+      return metadata.beginToken!;
+    } else if (requiredKeyword != null) {
+      return requiredKeyword!;
+    } else if (covariantKeyword != null) {
+      return covariantKeyword!;
+    } else if (keyword != null) {
+      return keyword!;
+    } else if (_type != null) {
+      return _type!.beginToken;
+    }
+    return superKeyword;
+  }
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => super._childEntities
+    ..add(keyword)
+    ..add(_type)
+    ..add(superKeyword)
+    ..add(period)
+    ..add(identifier)
+    ..add(_parameters);
+
+  @override
+  Token get endToken {
+    return question ?? _parameters?.endToken ?? identifier.endToken;
+  }
+
+  @override
+  SimpleIdentifierImpl get identifier => super.identifier!;
+
+  @override
+  bool get isConst => keyword?.keyword == Keyword.CONST;
+
+  @override
+  bool get isFinal => keyword?.keyword == Keyword.FINAL;
+
+  @override
+  FormalParameterListImpl? get parameters => _parameters;
+
+  set parameters(FormalParameterList? parameters) {
+    _parameters = _becomeParentOf(parameters as FormalParameterListImpl?);
+  }
+
+  @override
+  TypeAnnotationImpl? get type => _type;
+
+  set type(TypeAnnotation? type) {
+    _type = _becomeParentOf(type as TypeAnnotationImpl);
+  }
+
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  set typeParameters(TypeParameterList? typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl?);
+  }
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitSuperFormalParameter(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    _type?.accept(visitor);
+    identifier.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
   }
 }
 
@@ -10392,10 +10570,6 @@ class TypeLiteralImpl extends CommentReferableExpressionImpl
   @override
   NamedTypeImpl get type => _typeName;
 
-  @Deprecated('Use namedType instead')
-  @override
-  NamedTypeImpl get typeName => _typeName;
-
   set typeName(NamedTypeImpl value) {
     _typeName = _becomeParentOf(value);
   }
@@ -10976,10 +11150,6 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
   @override
   Token get endToken => _mixinTypes.endToken!;
 
-  @Deprecated('Use mixinTypes2 instead')
-  @override
-  NodeList<TypeName> get mixinTypes => _DelegatingTypeNameList(_mixinTypes);
-
   @override
   NodeListImpl<NamedType> get mixinTypes2 => _mixinTypes;
 
@@ -11049,77 +11219,6 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @override
   void visitChildren(AstVisitor visitor) {
     _expression.accept(visitor);
-  }
-}
-
-/// Implementation of `NodeList<TypeName>` that delegates.
-@Deprecated('Use NamedType instead')
-class _DelegatingTypeNameList
-    with ListMixin<TypeName>
-    implements NodeList<TypeName> {
-  final NodeListImpl<NamedType> _delegate;
-
-  _DelegatingTypeNameList(this._delegate);
-
-  @override
-  Token? get beginToken {
-    return _delegate.beginToken;
-  }
-
-  @override
-  Token? get endToken {
-    return _delegate.endToken;
-  }
-
-  @override
-  int get length => _delegate.length;
-
-  @override
-  set length(int newLength) {
-    _delegate.length = newLength;
-  }
-
-  @override
-  AstNodeImpl get owner => _delegate.owner;
-
-  @override
-  TypeName operator [](int index) {
-    return _delegate[index] as TypeName;
-  }
-
-  @override
-  void operator []=(int index, TypeName node) {
-    _delegate[index] = node;
-  }
-
-  @override
-  void accept(AstVisitor visitor) {
-    _delegate.accept(visitor);
-  }
-
-  @override
-  void add(NamedType node) {
-    _delegate.add(node);
-  }
-
-  @override
-  void addAll(Iterable<TypeName> nodes) {
-    _delegate.addAll(nodes);
-  }
-
-  @override
-  void clear() {
-    _delegate.clear();
-  }
-
-  @override
-  void insert(int index, TypeName node) {
-    _delegate.insert(index, node);
-  }
-
-  @override
-  TypeName removeAt(int index) {
-    return _delegate.removeAt(index) as TypeName;
   }
 }
 

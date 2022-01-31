@@ -56,6 +56,12 @@ config("libdart_vm_config") {
     if (!is_android) {
       libs += [ "pthread" ]
     }
+
+    # Clang with libc++ does not require an explicit atomic library reference.
+    # (similar to https://github.com/flutter/buildroot/blob/master/build/config/compiler/BUILD.gn#L562)
+    if (!is_clang) {
+      libs += [ "atomic" ]
+    }
   }
 }
 

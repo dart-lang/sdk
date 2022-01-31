@@ -1,0 +1,62 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_3.dart:13:7: Error: Type argument 'Comparable<dynamic>' doesn't conform to the bound 'Comparable<Y>' of the type variable 'Y' on 'M0' in the supertype 'M0' of class 'M1 with M0'.
+//  - 'Comparable' is from 'dart:core'.
+// Try changing type arguments so that they conform to the bounds.
+// class A extends M1 with M0 {}
+//       ^
+// pkg/front_end/testcases/inference/mixin_inference_instantiate_to_bounds_3.dart:7:13: Context: This is the type variable whose bound isn't conformed to.
+// class M0<X, Y extends Comparable<Y>> extends I<X> {}
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class I<X extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::I<self::I::X*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class M0<X extends core::Object* = dynamic, Y extends core::Comparable<self::M0::Y*>* = core::Comparable<dynamic>*> extends self::I<self::M0::X*> {
+  synthetic constructor •() → self::M0<self::M0::X*, self::M0::Y*>*
+    : super self::I::•()
+    ;
+}
+class M1 extends core::Object implements self::I<core::int*> {
+  synthetic constructor •() → self::M1*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class _A&M1&M0 = self::M1 with self::M0<core::int*, core::Comparable<dynamic>*> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A&M1&M0*
+    : super self::M1::•()
+    ;
+}
+class A extends self::_A&M1&M0 {
+  synthetic constructor •() → self::A*
+    : super self::_A&M1&M0::•()
+    ;
+}
+static method main() → dynamic {}

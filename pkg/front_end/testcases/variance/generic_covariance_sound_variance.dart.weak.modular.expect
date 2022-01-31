@@ -1,0 +1,128 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef ContraFunction<contravariant T extends core::Object? = dynamic> = (T%) → void;
+typedef InvFunction<invariant T extends core::Object? = dynamic> = (T%) → T%;
+class Contravariant<contravariant T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Contravariant<self::Contravariant::T%>
+    : super core::Object::•()
+    ;
+}
+class Invariant<invariant T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Invariant<self::Invariant::T%>
+    : super core::Object::•()
+    ;
+}
+class A<contravariant T extends core::Object? = dynamic, U extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  final field (self::A::T%) →? void field = null;
+  synthetic constructor •() → self::A<self::A::T%, self::A::U%, self::A::V%>
+    : super core::Object::•()
+    ;
+  method method(self::A::T% t, (self::A::U%) → void u, covariant-by-class self::A::V% v) → void {}
+  method method2(self::A::T% x, [self::A::T? y = #C1]) → void {}
+  set x(self::A::T% t) → void {}
+  get mapContra() → core::Map<self::A::U%, self::Contravariant<self::A::V%>>
+    return core::Map::•<self::A::U%, self::Contravariant<self::A::V%>>();
+  get mapContraFn() → core::Map<self::A::U%, (self::A::V%) → void>
+    return core::Map::•<self::A::U%, (self::A::V%) → void>();
+  get mapInv() → core::Map<self::A::U%, self::Invariant<self::A::V%>>
+    return core::Map::•<self::A::U%, self::Invariant<self::A::V%>>();
+  get mapInvFn() → core::Map<self::A::U%, (self::A::V%) → self::A::V%>
+    return core::Map::•<self::A::U%, (self::A::V%) → self::A::V%>();
+}
+class B<invariant T extends core::Object? = dynamic> extends core::Object {
+  field self::B::T? x = null;
+  synthetic constructor •() → self::B<self::B::T%>
+    : super core::Object::•()
+    ;
+  method method(self::B::T% x) → self::B::T%
+    return x;
+  set y(self::B::T% x) → void {}
+}
+class C<contravariant T extends core::Object? = dynamic> extends core::Object {
+  final field (self::C::T%) →? void field = null;
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  method method(self::C::T% x, [self::C::T? y = #C1]) → void {}
+  set x(self::C::T% t) → void {}
+}
+abstract class D<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::D<self::D::T%>
+    : super core::Object::•()
+    ;
+  abstract method method(covariant-by-class self::D::T% x) → core::int;
+}
+class E<invariant T extends core::Object? = dynamic> extends core::Object {
+  final field (self::E::T%) → void f;
+  constructor •((self::E::T%) → void f) → self::E<self::E::T%>
+    : self::E::f = f, super core::Object::•()
+    ;
+  method method(self::E::T% x) → core::int {
+    let final self::E::T% #t1 = x in this.{self::E::f}{(self::E::T%) → void}(#t1){(self::E::T%) → void};
+    return 0;
+  }
+}
+class F<invariant T extends core::Object? = dynamic> extends self::E<self::F::T%> implements self::D<self::F::T%> {
+  constructor •((self::F::T%) → void f) → self::F<self::F::T%>
+    : super self::E::•(f)
+    ;
+  forwarding-stub method method(covariant-by-class self::F::T% x) → core::int
+    return super.{self::E::method}(x);
+}
+class NoSuchMethod<invariant T extends core::Object? = dynamic> extends core::Object implements self::B<self::NoSuchMethod::T%> {
+  synthetic constructor •() → self::NoSuchMethod<self::NoSuchMethod::T%>
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation _) → dynamic
+    return 3;
+  no-such-method-forwarder get x() → self::NoSuchMethod::T?
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} self::NoSuchMethod::T?;
+  no-such-method-forwarder method method(self::NoSuchMethod::T% x) → self::NoSuchMethod::T%
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} self::NoSuchMethod::T%;
+  no-such-method-forwarder set y(self::NoSuchMethod::T% x) → void
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+  no-such-method-forwarder set x(self::NoSuchMethod::T? value) → void
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
+}
+static method main() → dynamic {
+  self::A<core::int, core::num, core::String> a = new self::A::•<core::int, core::num, core::String>();
+  self::expect(null, a.{self::A::field}{(core::int) →? void});
+  a.{self::A::method}(3, (core::num num) → void {}, "test"){(core::int, (core::num) → void, core::String) → void};
+  a.{self::A::method2}(3){(core::int, [core::int?]) → void};
+  a.{self::A::x} = 3;
+  core::Map<core::num, self::Contravariant<core::String>> mapContra = a.{self::A::mapContra}{core::Map<core::num, self::Contravariant<core::String>>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} core::Map<core::num, self::Contravariant<core::String>>;
+  core::Map<core::num, (core::String) → void> mapContraFn = a.{self::A::mapContraFn}{core::Map<core::num, (core::String) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} core::Map<core::num, (core::String) → void>;
+  core::Map<core::num, self::Invariant<core::String>> mapInv = a.{self::A::mapInv}{core::Map<core::num, self::Invariant<core::String>>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} core::Map<core::num, self::Invariant<core::String>>;
+  core::Map<core::num, (core::String) → core::String> mapInvFn = a.{self::A::mapInvFn}{core::Map<core::num, (core::String) → core::String>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} core::Map<core::num, (core::String) → core::String>;
+  self::B<core::int> b = new self::B::•<core::int>();
+  b.{self::B::x} = 3;
+  self::expect(3, b.{self::B::x}{core::int?});
+  self::expect(3, b.{self::B::method}(3){(core::int) → core::int});
+  b.{self::B::y} = 3;
+  self::C<core::int> c = new self::C::•<core::int>();
+  self::expect(null, c.{self::C::field}{(core::int) →? void});
+  c.{self::C::method}(3, 2){(core::int, [core::int?]) → void};
+  c.{self::C::x} = 3;
+  self::D<core::Object> d = new self::F::•<core::String>((core::String s) → void {});
+  d.{self::D::method}("test"){(core::Object) → core::int};
+  self::NoSuchMethod<core::num> nsm = new self::NoSuchMethod::•<core::num>();
+  self::expect(3, nsm.{self::B::method}(3){(core::num) → core::num});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}
+
+constants  {
+  #C1 = null
+  #C2 = #x
+  #C3 = <core::Type*>[]
+  #C4 = <dynamic>[]
+  #C5 = <core::Symbol*, dynamic>{)
+  #C6 = #method
+  #C7 = #y=
+  #C8 = #x=
+}

@@ -199,11 +199,17 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken, Token name) {
+  void beginClassDeclaration(
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     seen(begin);
     seen(abstractToken);
+    seen(macroToken);
     seen(name);
-    doPrint('beginClassDeclaration(' '$begin, ' '$abstractToken, ' '$name)');
+    doPrint('beginClassDeclaration('
+        '$begin, '
+        '$abstractToken, '
+        '$macroToken, '
+        '$name)');
     indent++;
   }
 
@@ -214,12 +220,9 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
     seen(implementsKeyword);
-    doPrint('handleClassOrMixinImplements('
-        '$implementsKeyword, '
-        '$interfacesCount)');
+    doPrint('handleImplements(' '$implementsKeyword, ' '$interfacesCount)');
   }
 
   @override
@@ -450,11 +453,60 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int count) {
+  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
     indent--;
     seen(enumKeyword);
     seen(leftBrace);
-    doPrint('endEnum(' '$enumKeyword, ' '$leftBrace, ' '$count)');
+    doPrint('endEnum(' '$enumKeyword, ' '$leftBrace, ' '$memberCount)');
+  }
+
+  @override
+  void endEnumConstructor(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    indent--;
+    seen(getOrSet);
+    seen(beginToken);
+    seen(beginParam);
+    seen(beginInitializers);
+    seen(endToken);
+    doPrint('endEnumConstructor('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
+  }
+
+  @override
+  void handleEnumElements(Token elementsEndToken, int elementsCount) {
+    seen(elementsEndToken);
+    doPrint('handleEnumElements(' '$elementsEndToken, ' '$elementsCount)');
+  }
+
+  @override
+  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
+    seen(enumKeyword);
+    seen(leftBrace);
+    doPrint('handleEnumHeader(' '$enumKeyword, ' '$leftBrace)');
+  }
+
+  @override
+  void handleEnumElement(Token beginToken) {
+    seen(beginToken);
+    doPrint('handleEnumElement(' '$beginToken)');
+  }
+
+  @override
+  void endEnumFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    indent--;
+    seen(beginToken);
+    seen(factoryKeyword);
+    seen(endToken);
+    doPrint('endEnumFactoryMethod('
+        '$beginToken, '
+        '$factoryKeyword, '
+        '$endToken)');
   }
 
   @override
@@ -556,7 +608,8 @@ class ParserTestListener implements Listener {
   @override
   void endFormalParameter(
       Token? thisKeyword,
-      Token? periodAfterThis,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
       Token? initializerStart,
       Token? initializerEnd,
@@ -564,13 +617,15 @@ class ParserTestListener implements Listener {
       MemberKind memberKind) {
     indent--;
     seen(thisKeyword);
-    seen(periodAfterThis);
+    seen(superKeyword);
+    seen(periodAfterThisOrSuper);
     seen(nameToken);
     seen(initializerStart);
     seen(initializerEnd);
     doPrint('endFormalParameter('
         '$thisKeyword, '
-        '$periodAfterThis, '
+        '$superKeyword, '
+        '$periodAfterThisOrSuper, '
         '$nameToken, '
         '$initializerStart, '
         '$initializerEnd, '
@@ -697,6 +752,55 @@ class ParserTestListener implements Listener {
         '$varFinalOrConst, '
         '$count, '
         '$beginToken, '
+        '$endToken)');
+  }
+
+  @override
+  void endEnumFields(
+      Token? abstractToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    indent--;
+    seen(abstractToken);
+    seen(externalToken);
+    seen(staticToken);
+    seen(covariantToken);
+    seen(lateToken);
+    seen(varFinalOrConst);
+    seen(beginToken);
+    seen(endToken);
+    doPrint('endEnumFields('
+        '$abstractToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$count, '
+        '$beginToken, '
+        '$endToken)');
+  }
+
+  @override
+  void endEnumMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
+    indent--;
+    seen(getOrSet);
+    seen(beginToken);
+    seen(beginParam);
+    seen(beginInitializers);
+    seen(endToken);
+    doPrint('endEnumMethod('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
         '$endToken)');
   }
 
@@ -907,13 +1011,28 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleEnumWithClause(Token withKeyword) {
+    seen(withKeyword);
+    doPrint('handleEnumWithClause(' '$withKeyword)');
+  }
+
+  @override
+  void handleEnumNoWithClause() {
+    doPrint('handleEnumNoWithClause()');
+  }
+
+  @override
   void beginNamedMixinApplication(
-      Token begin, Token? abstractToken, Token name) {
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     seen(begin);
     seen(abstractToken);
+    seen(macroToken);
     seen(name);
-    doPrint(
-        'beginNamedMixinApplication(' '$begin, ' '$abstractToken, ' '$name)');
+    doPrint('beginNamedMixinApplication('
+        '$begin, '
+        '$abstractToken, '
+        '$macroToken, '
+        '$name)');
     indent++;
   }
 
@@ -2308,6 +2427,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleNoTypeNameInConstructorReference(Token token) {
+    seen(token);
+    doPrint('handleNoTypeNameInConstructorReference(' '$token)');
+  }
+
+  @override
   void handleNoType(Token lastConsumed) {
     seen(lastConsumed);
     doPrint('handleNoType(' '$lastConsumed)');
@@ -2545,16 +2670,25 @@ class ParserTestListener implements Listener {
 
   @override
   void handleCommentReference(
-      Token? newKeyword, Token? prefix, Token? period, Token token) {
+      Token? newKeyword,
+      Token? firstToken,
+      Token? firstPeriod,
+      Token? secondToken,
+      Token? secondPeriod,
+      Token thirdToken) {
     seen(newKeyword);
-    seen(prefix);
-    seen(period);
-    seen(token);
+    seen(firstToken);
+    seen(firstPeriod);
+    seen(secondToken);
+    seen(secondPeriod);
+    seen(thirdToken);
     doPrint('handleCommentReference('
         '$newKeyword, '
-        '$prefix, '
-        '$period, '
-        '$token)');
+        '$firstToken, '
+        '$firstPeriod, '
+        '$secondToken, '
+        '$secondPeriod, '
+        '$thirdToken)');
   }
 
   @override

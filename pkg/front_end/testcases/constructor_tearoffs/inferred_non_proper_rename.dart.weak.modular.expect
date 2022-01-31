@@ -1,0 +1,56 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef F<X extends core::num> = self::A<X>;
+typedef G<unrelated Y extends core::Object? = dynamic> = self::A<core::int>;
+typedef H<X extends core::Object? = dynamic, unrelated Y extends core::Object? = dynamic> = self::A<X%>;
+class A<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::A<self::A::T%>
+    : super core::Object::•()
+    ;
+}
+static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static const field () → self::A<core::int> f1a = #C2;
+static const field () → self::A<core::int> f1b = #C2;
+static const field () → self::A<core::int> f1c = #C2;
+static const field () → self::A<core::int> g1a = #C2;
+static const field () → self::A<core::int> g1b = #C2;
+static const field () → self::A<core::int> g1c = #C2;
+static const field () → self::A<core::int> h1a = #C2;
+static const field () → self::A<core::int> h1b = #C2;
+static const field () → self::A<core::int> h1c = #C2;
+static method main() → dynamic {
+  self::test<core::int>();
+  core::identical(#C2, #C2);
+  core::identical(#C2, #C2);
+  core::identical(#C2, #C2);
+  core::identical(#C2, #C2);
+  core::identical(#C2, #C2);
+  core::identical(#C2, #C2);
+}
+static method test<T extends core::num>() → dynamic {
+  () → self::A<self::test::T> f2a = #C1<self::test::T>;
+  () → self::A<self::test::T> f2b = #C1<self::test::T>;
+  () → self::A<self::test::T> f2c = #C1<self::test::T>;
+  () → self::A<core::int> g2a = #C2;
+  () → self::A<core::int> g2b = #C2;
+  () → self::A<core::int> g2c = #C2;
+  () → self::A<self::test::T> h2a = #C1<self::test::T>;
+  () → self::A<self::test::T> h2b = #C1<self::test::T>;
+  () → self::A<self::test::T> h2c = #C1<self::test::T>;
+  self::expect(#C2, g2a);
+  self::expect(g2a, g2b);
+  if(self::inSoundMode) {
+    self::expect(g2a, g2c);
+  }
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::•
+  #C2 = instantiation #C1 <core::int*>
+}

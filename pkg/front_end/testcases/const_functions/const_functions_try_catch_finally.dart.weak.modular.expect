@@ -1,0 +1,137 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+static const field core::int var1 = #C1;
+static const field core::int var2 = #C2;
+static const field core::int var3 = #C3;
+static const field core::int var4 = #C2;
+static const field core::int var5 = #C4;
+static const field core::int var6 = #C4;
+static const field core::int var7 = #C4;
+static const field core::int var8 = #C4;
+static const field core::int var9 = #C4;
+static const field core::int var10 = #C1;
+static const field core::int var11 = #C1;
+static const field core::String var12 = #C5;
+static const field core::int var13 = #C2;
+static method fn(dynamic error) → core::int {
+  try {
+    throw error;
+  }
+  on core::String catch(no-exception-var) {
+    return 0;
+  }
+  on core::Object catch(final core::Object e) {
+    return 1;
+  }
+}
+static method fn1(dynamic error) → core::int {
+  try {
+    throw error;
+  }
+  on core::int catch(final core::int e) {
+    return e;
+  }
+  on core::Object catch(final core::Object e) {
+    return 1;
+  }
+}
+static method finallyReturn(dynamic error) → core::int {
+  try
+    try {
+      if(!(error =={core::Object::==}{(core::Object) → core::bool} 1))
+        throw error;
+    }
+    on core::int catch(final core::int e) {
+      return e;
+    }
+    on core::Object catch(final core::Object e) {
+      return 1;
+    }
+  finally {
+    return 100;
+  }
+}
+static method finallyReturn1(core::int x) → core::int {
+  try {
+    if(x =={core::num::==}{(core::Object) → core::bool} 1) {
+      throw x;
+    }
+    else {
+      return 0;
+    }
+  }
+  finally {
+    return 100;
+  }
+}
+static method finallyMutate() → core::int {
+  core::int x = 0;
+  try {
+    return x;
+  }
+  finally {
+    x = x.{core::num::+}(1){(core::num) → core::int};
+  }
+}
+static method subtypeFn() → core::int {
+  try {
+    throw 2.5;
+  }
+  on core::num catch(final core::num e) {
+    return 0;
+  }
+}
+static method orderFn() → core::String {
+  core::String x = "st";
+  try
+    try {
+      x = x.{core::String::+}("ri"){(core::String) → core::String};
+      throw 2;
+    }
+    on core::Object catch(final core::Object e) {
+      x = x.{core::String::+}("n"){(core::String) → core::String};
+    }
+  finally {
+    return x.{core::String::+}("g"){(core::String) → core::String};
+  }
+}
+static method notThrowStatement() → core::int {
+  core::int count = 0;
+  try {
+    for (core::int i = 0; i.{core::num::<}(1){(core::num) → core::bool}; throw "a") {
+      count = count.{core::num::+}(i){(core::num) → core::int};
+    }
+  }
+  on core::Object catch(final core::Object e) {
+    return 1;
+  }
+  return 0;
+}
+static method main() → void {
+  exp::Expect::equals(#C1, 0);
+  exp::Expect::equals(#C2, 1);
+  exp::Expect::equals(#C3, 10);
+  exp::Expect::equals(#C2, 1);
+  exp::Expect::equals(#C4, 100);
+  exp::Expect::equals(#C4, 100);
+  exp::Expect::equals(#C4, 100);
+  exp::Expect::equals(#C4, 100);
+  exp::Expect::equals(#C4, 100);
+  exp::Expect::equals(#C1, 0);
+  exp::Expect::equals(#C1, 0);
+  exp::Expect::equals(#C5, "string");
+  exp::Expect::equals(#C2, 1);
+}
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+  #C3 = 10
+  #C4 = 100
+  #C5 = "string"
+}

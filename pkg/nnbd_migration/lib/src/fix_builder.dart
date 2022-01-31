@@ -292,6 +292,7 @@ class FixBuilder {
     return TypeSystemImpl(
         implicitCasts: typeSystem.implicitCasts,
         isNonNullableByDefault: true,
+        strictCasts: typeSystem.strictCasts,
         strictInference: typeSystem.strictInference,
         typeProvider: nnbdTypeProvider);
   }
@@ -671,6 +672,31 @@ class MigrationResolutionHooksImpl
     return null;
   }
 
+  bool _isSubtypeOrCoercible(DartType type, DartType context) {
+    var fixBuilder = _fixBuilder!;
+    var typeSystem = fixBuilder._typeSystem;
+    if (typeSystem.isSubtypeOf(type, context)) {
+      return true;
+    }
+    if (context is FunctionType && type is InterfaceType) {
+      var callMethod =
+          type.lookUpMethod2('call', fixBuilder.unit!.declaredElement!.library);
+      if (callMethod != null) {
+        var variables = fixBuilder._variables!;
+        var callMethodType = variables.toFinalType(
+            variables.decoratedElementType(callMethod.declaration));
+        if (callMethod is MethodMember) {
+          callMethodType =
+              callMethod.substitution.substituteType(callMethodType);
+        }
+        if (typeSystem.isSubtypeOf(callMethodType, context)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   DartType _modifyRValueType(Expression node, DartType type,
       {DartType? context}) {
     if (node is MethodInvocation) {
@@ -696,7 +722,7 @@ class MigrationResolutionHooksImpl
     var ancestor = _findNullabilityContextAncestor(node);
     context ??=
         InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
-    if (!_fixBuilder!._typeSystem.isSubtypeOf(type, context)) {
+    if (!_isSubtypeOrCoercible(type, context)) {
       var transformationInfo =
           _fixBuilder!._whereOrNullTransformer.tryTransformOrElseArgument(node);
       if (transformationInfo != null) {
@@ -1029,8 +1055,22 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
       if (explicitTypeNeeded) {
         var firstNeededType = neededTypes[0];
         if (neededTypes.any((t) => t != firstNeededType)) {
-          throw UnimplementedError(
-              'Different explicit types needed in multi-variable declaration');
+          // Different variables need different types.  We handle this by
+          // introducing casts, which is not great but gets the job done.
+          for (int i = 0; i < node.variables.length; i++) {
+            if (neededTypes[i] != inferredTypes[i]) {
+              // We only have to worry about variables with initializers because
+              // variables without initializers will get the type `dynamic`.
+              var initializer = node.variables[i].initializer;
+              if (initializer != null) {
+                (_fixBuilder._getChange(initializer) as NodeChangeForExpression)
+                    .addExpressionChange(
+                        IntroduceAsChange(neededTypes[i], isDowncast: false),
+                        AtomicEditInfo(
+                            NullabilityFixDescription.otherCastExpression, {}));
+              }
+            }
+          }
         } else {
           (_fixBuilder._getChange(node) as NodeChangeForVariableDeclarationList)
               .addExplicitType = firstNeededType;

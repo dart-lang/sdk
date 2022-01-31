@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method f() → self::D?
+    return new self::D::•();
+  method h() → void {}
+}
+class D extends core::Object {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  method g() → void {}
+}
+static method test(self::C x) → void {
+  let final self::C #t1 = x in block {
+    #t1.{self::C::f}(){() → self::D?}!.{self::D::g}(){() → void};
+    #t1.{self::C::h}(){() → void};
+  } =>#t1;
+}
+static method main() → dynamic {
+  self::test(new self::C::•());
+}

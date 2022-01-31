@@ -262,14 +262,34 @@ class JSInvocationMirror implements Invocation {
 }
 
 class Primitives {
+  static Object? _identityHashCodeProperty;
+
   static int objectHashCode(object) {
-    int? hash = JS('int|Null', r'#.$identityHash', object);
+    Object property =
+        _identityHashCodeProperty ??= _computeIdentityHashCodeProperty();
+    int? hash = JS('int|Null', r'#[#]', object, property);
     if (hash == null) {
       hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
-      JS('void', r'#.$identityHash = #', object, hash);
+      JS('void', r'#[#] = #', object, property, hash);
     }
     return JS('int', '#', hash);
   }
+
+  static Object _computeIdentityHashCodeProperty() =>
+      JS_GET_FLAG('LEGACY_JAVASCRIPT')
+          ? _computeIdentityHashCodePropertyLegacy()
+          : _computeIdentityHashCodePropertyModern();
+
+  static Object _computeIdentityHashCodePropertyLegacy() {
+    if (JS<bool>('bool', 'typeof Symbol == "function"') ||
+        JS<bool>('bool', 'typeof Symbol() == "symbol"')) {
+      return _computeIdentityHashCodePropertyModern();
+    }
+    return r'$identityHashCode';
+  }
+
+  static Object _computeIdentityHashCodePropertyModern() =>
+      JS('', 'Symbol("identityHashCode")');
 
   static int? parseInt(String source, int? radix) {
     checkString(source);
@@ -395,19 +415,21 @@ class Primitives {
 
     var interceptor = getInterceptor(object);
     if (identical(interceptor, JS_INTERCEPTOR_CONSTANT(Interceptor)) ||
+        identical(interceptor, JS_INTERCEPTOR_CONSTANT(JavaScriptObject)) ||
         object is UnknownJavaScriptObject) {
       // Try to do better.  If we do not find something better, fallthrough to
-      // Dart-type based name that leave the name as 'UnknownJavaScriptObject'
-      // or 'Interceptor' (or the minified versions thereof).
+      // Dart-type based name that leave the name as 'UnknownJavaScriptObject',
+      // 'Interceptor', or 'JavaScriptObject' (or their minified versions).
       //
       // When we get here via the UnknownJavaScriptObject test (for JavaScript
       // objects from outside the program), the object's constructor has a
       // better name that 'UnknownJavaScriptObject'.
       //
-      // When we get here the Interceptor test (for Native classes that are
-      // declared in the Dart program but have been 'folded' into Interceptor),
-      // the native class's constructor name is better than the generic
-      // 'Interceptor' (an abstract class).
+      // When we get here via either the Interceptor or JavaScriptObject test
+      // (for Native classes that are declared in the Dart program but have been
+      // 'folded' into one of those interceptors), the native class's
+      // constructor name is better than the generic 'Interceptor' or
+      // 'JavaScriptObject'.
 
       // Try the [constructorNameFallback]. This gets the constructor name for
       // any browser (used by [getNativeInterceptor]).

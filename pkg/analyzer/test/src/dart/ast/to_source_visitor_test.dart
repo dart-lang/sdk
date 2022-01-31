@@ -2,25 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ToSourceVisitor2Test);
+    defineReflectiveTests(ToSourceVisitorTest);
   });
 }
 
 @reflectiveTest
-class ToSourceVisitor2Test {
+class ToSourceVisitorTest {
   void test_visitAdjacentStrings() {
     _assertSource(
         "'a' 'b'",
@@ -46,7 +49,7 @@ class ToSourceVisitor2Test {
         AstTestFactory.annotation2(AstTestFactory.identifier3("A"),
             AstTestFactory.identifier3("c"), AstTestFactory.argumentList(),
             typeArguments: AstTestFactory.typeArgumentList2(
-                [AstTestFactory.typeName4('T')])));
+                [AstTestFactory.namedType4('T')])));
   }
 
   void test_visitArgumentList() {
@@ -62,7 +65,7 @@ class ToSourceVisitor2Test {
     _assertSource(
         "e as T",
         AstTestFactory.asExpression(
-            AstTestFactory.identifier3("e"), AstTestFactory.typeName4("T")));
+            AstTestFactory.identifier3("e"), AstTestFactory.namedType4("T")));
   }
 
   void test_visitAssertStatement() {
@@ -193,12 +196,12 @@ class ToSourceVisitor2Test {
 
   void test_visitCatchClause_on() {
     _assertSource(
-        "on E {}", AstTestFactory.catchClause3(AstTestFactory.typeName4("E")));
+        "on E {}", AstTestFactory.catchClause3(AstTestFactory.namedType4("E")));
   }
 
   void test_visitCatchClause_on_catch() {
     _assertSource("on E catch (e) {}",
-        AstTestFactory.catchClause4(AstTestFactory.typeName4("E"), "e"));
+        AstTestFactory.catchClause4(AstTestFactory.namedType4("E"), "e"));
   }
 
   void test_visitClassDeclaration_abstract() {
@@ -206,6 +209,13 @@ class ToSourceVisitor2Test {
         "abstract class C {}",
         AstTestFactory.classDeclaration(
             Keyword.ABSTRACT, "C", null, null, null, null));
+  }
+
+  void test_visitClassDeclaration_abstractMacro() {
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        Keyword.ABSTRACT, "C", null, null, null, null,
+        isMacro: true);
+    _assertSource("abstract macro class C {}", declaration);
   }
 
   void test_visitClassDeclaration_empty() {
@@ -220,7 +230,7 @@ class ToSourceVisitor2Test {
             null,
             "C",
             null,
-            AstTestFactory.extendsClause(AstTestFactory.typeName4("A")),
+            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
             null,
             null));
   }
@@ -232,9 +242,9 @@ class ToSourceVisitor2Test {
             null,
             "C",
             null,
-            AstTestFactory.extendsClause(AstTestFactory.typeName4("A")),
+            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
             null,
-            AstTestFactory.implementsClause([AstTestFactory.typeName4("B")])));
+            AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
   }
 
   void test_visitClassDeclaration_extends_with() {
@@ -244,8 +254,8 @@ class ToSourceVisitor2Test {
             null,
             "C",
             null,
-            AstTestFactory.extendsClause(AstTestFactory.typeName4("A")),
-            AstTestFactory.withClause([AstTestFactory.typeName4("M")]),
+            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M")]),
             null));
   }
 
@@ -256,27 +266,35 @@ class ToSourceVisitor2Test {
             null,
             "C",
             null,
-            AstTestFactory.extendsClause(AstTestFactory.typeName4("A")),
-            AstTestFactory.withClause([AstTestFactory.typeName4("M")]),
-            AstTestFactory.implementsClause([AstTestFactory.typeName4("B")])));
+            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M")]),
+            AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
   }
 
   void test_visitClassDeclaration_implements() {
     _assertSource(
         "class C implements B {}",
         AstTestFactory.classDeclaration(null, "C", null, null, null,
-            AstTestFactory.implementsClause([AstTestFactory.typeName4("B")])));
+            AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
+  }
+
+  void test_visitClassDeclaration_macro() {
+    ClassDeclaration declaration = AstTestFactory.classDeclaration(
+        null, "C", null, null, null, null,
+        isMacro: true);
+    _assertSource("macro class C {}", declaration);
   }
 
   void test_visitClassDeclaration_multipleMember() {
     _assertSource(
         "class C {var a; var b;}",
-        AstTestFactory.classDeclaration(null, "C", null, null, null, null, [
-          AstTestFactory.fieldDeclaration2(
-              false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")]),
-          AstTestFactory.fieldDeclaration2(
-              false, Keyword.VAR, [AstTestFactory.variableDeclaration("b")])
-        ]));
+        AstTestFactory.classDeclaration(null, "C", null, null, null, null,
+            members: [
+              AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
+                  [AstTestFactory.variableDeclaration("a")]),
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration("b")])
+            ]));
   }
 
   void test_visitClassDeclaration_parameters() {
@@ -293,7 +311,7 @@ class ToSourceVisitor2Test {
             null,
             "C",
             AstTestFactory.typeParameterList(["E"]),
-            AstTestFactory.extendsClause(AstTestFactory.typeName4("A")),
+            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
             null,
             null));
   }
@@ -305,9 +323,9 @@ class ToSourceVisitor2Test {
             null,
             "C",
             AstTestFactory.typeParameterList(["E"]),
-            AstTestFactory.extendsClause(AstTestFactory.typeName4("A")),
+            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
             null,
-            AstTestFactory.implementsClause([AstTestFactory.typeName4("B")])));
+            AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
   }
 
   void test_visitClassDeclaration_parameters_extends_with() {
@@ -317,8 +335,8 @@ class ToSourceVisitor2Test {
             null,
             "C",
             AstTestFactory.typeParameterList(["E"]),
-            AstTestFactory.extendsClause(AstTestFactory.typeName4("A")),
-            AstTestFactory.withClause([AstTestFactory.typeName4("M")]),
+            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M")]),
             null));
   }
 
@@ -329,9 +347,9 @@ class ToSourceVisitor2Test {
             null,
             "C",
             AstTestFactory.typeParameterList(["E"]),
-            AstTestFactory.extendsClause(AstTestFactory.typeName4("A")),
-            AstTestFactory.withClause([AstTestFactory.typeName4("M")]),
-            AstTestFactory.implementsClause([AstTestFactory.typeName4("B")])));
+            AstTestFactory.extendsClause(AstTestFactory.namedType4("A")),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M")]),
+            AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
   }
 
   void test_visitClassDeclaration_parameters_implements() {
@@ -343,16 +361,17 @@ class ToSourceVisitor2Test {
             AstTestFactory.typeParameterList(["E"]),
             null,
             null,
-            AstTestFactory.implementsClause([AstTestFactory.typeName4("B")])));
+            AstTestFactory.implementsClause([AstTestFactory.namedType4("B")])));
   }
 
   void test_visitClassDeclaration_singleMember() {
     _assertSource(
         "class C {var a;}",
-        AstTestFactory.classDeclaration(null, "C", null, null, null, null, [
-          AstTestFactory.fieldDeclaration2(
-              false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")])
-        ]));
+        AstTestFactory.classDeclaration(null, "C", null, null, null, null,
+            members: [
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration("a")])
+            ]));
   }
 
   void test_visitClassDeclaration_withMetadata() {
@@ -370,8 +389,8 @@ class ToSourceVisitor2Test {
             "C",
             null,
             Keyword.ABSTRACT,
-            AstTestFactory.typeName4("S"),
-            AstTestFactory.withClause([AstTestFactory.typeName4("M1")]),
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
             null));
   }
 
@@ -382,9 +401,22 @@ class ToSourceVisitor2Test {
             "C",
             null,
             Keyword.ABSTRACT,
-            AstTestFactory.typeName4("S"),
-            AstTestFactory.withClause([AstTestFactory.typeName4("M1")]),
-            AstTestFactory.implementsClause([AstTestFactory.typeName4("I")])));
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            AstTestFactory.implementsClause([AstTestFactory.namedType4("I")])));
+  }
+
+  void test_visitClassTypeAlias_abstractMacro() {
+    _assertSource(
+        "abstract macro class C = S with M1;",
+        AstTestFactory.classTypeAlias(
+            "C",
+            null,
+            Keyword.ABSTRACT,
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            null,
+            isMacro: true));
   }
 
   void test_visitClassTypeAlias_generic() {
@@ -394,9 +426,9 @@ class ToSourceVisitor2Test {
             "C",
             AstTestFactory.typeParameterList(["E"]),
             null,
-            AstTestFactory.typeName4("S", [AstTestFactory.typeName4("E")]),
+            AstTestFactory.namedType4("S", [AstTestFactory.namedType4("E")]),
             AstTestFactory.withClause([
-              AstTestFactory.typeName4("M1", [AstTestFactory.typeName4("E")])
+              AstTestFactory.namedType4("M1", [AstTestFactory.namedType4("E")])
             ]),
             null));
   }
@@ -408,9 +440,22 @@ class ToSourceVisitor2Test {
             "C",
             null,
             null,
-            AstTestFactory.typeName4("S"),
-            AstTestFactory.withClause([AstTestFactory.typeName4("M1")]),
-            AstTestFactory.implementsClause([AstTestFactory.typeName4("I")])));
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            AstTestFactory.implementsClause([AstTestFactory.namedType4("I")])));
+  }
+
+  void test_visitClassTypeAlias_macro() {
+    _assertSource(
+        "macro class C = S with M1;",
+        AstTestFactory.classTypeAlias(
+            "C",
+            null,
+            null,
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            null,
+            isMacro: true));
   }
 
   void test_visitClassTypeAlias_minimal() {
@@ -420,8 +465,8 @@ class ToSourceVisitor2Test {
             "C",
             null,
             null,
-            AstTestFactory.typeName4("S"),
-            AstTestFactory.withClause([AstTestFactory.typeName4("M1")]),
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
             null));
   }
 
@@ -432,8 +477,8 @@ class ToSourceVisitor2Test {
             "C",
             AstTestFactory.typeParameterList(["E"]),
             Keyword.ABSTRACT,
-            AstTestFactory.typeName4("S"),
-            AstTestFactory.withClause([AstTestFactory.typeName4("M1")]),
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
             null));
   }
 
@@ -444,9 +489,9 @@ class ToSourceVisitor2Test {
             "C",
             AstTestFactory.typeParameterList(["E"]),
             Keyword.ABSTRACT,
-            AstTestFactory.typeName4("S"),
-            AstTestFactory.withClause([AstTestFactory.typeName4("M1")]),
-            AstTestFactory.implementsClause([AstTestFactory.typeName4("I")])));
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            AstTestFactory.implementsClause([AstTestFactory.namedType4("I")])));
   }
 
   void test_visitClassTypeAlias_parameters_implements() {
@@ -456,9 +501,9 @@ class ToSourceVisitor2Test {
             "C",
             AstTestFactory.typeParameterList(["E"]),
             null,
-            AstTestFactory.typeName4("S"),
-            AstTestFactory.withClause([AstTestFactory.typeName4("M1")]),
-            AstTestFactory.implementsClause([AstTestFactory.typeName4("I")])));
+            AstTestFactory.namedType4("S"),
+            AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
+            AstTestFactory.implementsClause([AstTestFactory.namedType4("I")])));
   }
 
   void test_visitClassTypeAlias_withMetadata() {
@@ -466,8 +511,8 @@ class ToSourceVisitor2Test {
         "C",
         null,
         null,
-        AstTestFactory.typeName4("S"),
-        AstTestFactory.withClause([AstTestFactory.typeName4("M1")]),
+        AstTestFactory.namedType4("S"),
+        AstTestFactory.withClause([AstTestFactory.namedType4("M1")]),
         null);
     declaration.metadata.add(
         AstTestFactory.annotation(AstTestFactory.identifier3("deprecated")));
@@ -684,19 +729,19 @@ class ToSourceVisitor2Test {
     _assertSource(
         "p.C.n",
         AstTestFactory.constructorName(
-            AstTestFactory.typeName4("p.C.n"), null));
+            AstTestFactory.namedType4("p.C.n"), null));
   }
 
   void test_visitConstructorName_unnamed_noPrefix() {
     _assertSource("C",
-        AstTestFactory.constructorName(AstTestFactory.typeName4("C"), null));
+        AstTestFactory.constructorName(AstTestFactory.namedType4("C"), null));
   }
 
   void test_visitConstructorName_unnamed_prefix() {
     _assertSource(
         "p.C",
         AstTestFactory.constructorName(
-            AstTestFactory.typeName3(AstTestFactory.identifier5("p", "C")),
+            AstTestFactory.namedType3(AstTestFactory.identifier5("p", "C")),
             null));
   }
 
@@ -765,14 +810,62 @@ class ToSourceVisitor2Test {
     _assertSource(";", AstTestFactory.emptyStatement());
   }
 
-  void test_visitEnumDeclaration_multiple() {
-    _assertSource("enum E {ONE, TWO}",
-        AstTestFactory.enumDeclaration2("E", ["ONE", "TWO"]));
+  void test_visitEnumDeclaration_constants_multiple() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {one, two}
+''');
+    _assertSource(
+      'enum E {one, two}',
+      findNode.enumDeclaration('E'),
+    );
   }
 
-  void test_visitEnumDeclaration_single() {
+  void test_visitEnumDeclaration_constants_single() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {one}
+''');
     _assertSource(
-        "enum E {ONE}", AstTestFactory.enumDeclaration2("E", ["ONE"]));
+      'enum E {one}',
+      findNode.enumDeclaration('E'),
+    );
+  }
+
+  void test_visitEnumDeclaration_field_constructor() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {
+  one, two;
+  final int field;
+  E(this.field);
+}
+''');
+    _assertSource(
+      'enum E {one, two; final int field; E(this.field);}',
+      findNode.enumDeclaration('enum E'),
+    );
+  }
+
+  void test_visitEnumDeclaration_method() {
+    var findNode = _parseStringToFindNode(r'''
+enum E {
+  one, two;
+  void myMethod() {}
+  int get myGetter => 0;
+}
+''');
+    _assertSource(
+      'enum E {one, two; void myMethod() {} int get myGetter => 0;}',
+      findNode.enumDeclaration('enum E'),
+    );
+  }
+
+  void test_visitEnumDeclaration_withoutMembers() {
+    var findNode = _parseStringToFindNode(r'''
+enum E<T> with M1, M2 implements I1, I2 {one, two}
+''');
+    _assertSource(
+      'enum E<T> with M1, M2 implements I1, I2 {one, two}',
+      findNode.enumDeclaration('E'),
+    );
   }
 
   void test_visitExportDirective_combinator() {
@@ -845,7 +938,7 @@ export 'foo.dart'
 
   void test_visitExtendsClause() {
     _assertSource("extends C",
-        AstTestFactory.extendsClause(AstTestFactory.typeName4("C")));
+        AstTestFactory.extendsClause(AstTestFactory.namedType4("C")));
   }
 
   void test_visitExtensionDeclaration_empty() {
@@ -853,7 +946,7 @@ export 'foo.dart'
         'extension E on C {}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             isExtensionTypeDeclaration: false));
   }
 
@@ -862,7 +955,7 @@ export 'foo.dart'
         'extension E on C {var a; var b;}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             members: [
               AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
                   [AstTestFactory.variableDeclaration('a')]),
@@ -878,7 +971,7 @@ export 'foo.dart'
         AstTestFactory.extensionDeclaration(
             name: 'E',
             typeParameters: AstTestFactory.typeParameterList(['T']),
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             isExtensionTypeDeclaration: false));
   }
 
@@ -887,7 +980,7 @@ export 'foo.dart'
         'extension E on C {var a;}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             members: [
               AstTestFactory.fieldDeclaration2(
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
@@ -900,9 +993,9 @@ export 'foo.dart'
         'extension type E on C hide B {}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             hideClause:
-                AstTestFactory.hideClause([AstTestFactory.typeName4("B")]),
+                AstTestFactory.hideClause([AstTestFactory.namedType4("B")]),
             isExtensionTypeDeclaration: true));
   }
 
@@ -911,7 +1004,7 @@ export 'foo.dart'
         'extension type E on C hide B {var a; var b;}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             members: [
               AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
                   [AstTestFactory.variableDeclaration('a')]),
@@ -919,7 +1012,7 @@ export 'foo.dart'
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('b')])
             ],
             hideClause:
-                AstTestFactory.hideClause([AstTestFactory.typeName4("B")]),
+                AstTestFactory.hideClause([AstTestFactory.namedType4("B")]),
             isExtensionTypeDeclaration: true));
   }
 
@@ -929,9 +1022,9 @@ export 'foo.dart'
         AstTestFactory.extensionDeclaration(
             name: 'E',
             typeParameters: AstTestFactory.typeParameterList(['T']),
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             hideClause:
-                AstTestFactory.hideClause([AstTestFactory.typeName4("B")]),
+                AstTestFactory.hideClause([AstTestFactory.namedType4("B")]),
             isExtensionTypeDeclaration: true));
   }
 
@@ -940,13 +1033,13 @@ export 'foo.dart'
         'extension type E on C hide B {var a;}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             members: [
               AstTestFactory.fieldDeclaration2(
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
             ],
             hideClause:
-                AstTestFactory.hideClause([AstTestFactory.typeName4("B")]),
+                AstTestFactory.hideClause([AstTestFactory.namedType4("B")]),
             isExtensionTypeDeclaration: true));
   }
 
@@ -955,7 +1048,7 @@ export 'foo.dart'
         'extension type E on C show foo {}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             showClause: AstTestFactory.showClause(
                 [AstTestFactory.showHideElement("foo")]),
             isExtensionTypeDeclaration: true));
@@ -966,9 +1059,9 @@ export 'foo.dart'
         'extension type E on C show B {}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             showClause:
-                AstTestFactory.showClause([AstTestFactory.typeName4("B")]),
+                AstTestFactory.showClause([AstTestFactory.namedType4("B")]),
             isExtensionTypeDeclaration: true));
   }
 
@@ -977,7 +1070,7 @@ export 'foo.dart'
         'extension type E on C show get foo {}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             showClause: AstTestFactory.showClause(
                 [AstTestFactory.showHideElementGetter("foo")]),
             isExtensionTypeDeclaration: true));
@@ -988,7 +1081,7 @@ export 'foo.dart'
         'extension type E on C show B {var a; var b;}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             members: [
               AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
                   [AstTestFactory.variableDeclaration('a')]),
@@ -996,7 +1089,7 @@ export 'foo.dart'
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('b')])
             ],
             showClause:
-                AstTestFactory.showClause([AstTestFactory.typeName4("B")]),
+                AstTestFactory.showClause([AstTestFactory.namedType4("B")]),
             isExtensionTypeDeclaration: true));
   }
 
@@ -1005,7 +1098,7 @@ export 'foo.dart'
         'extension type E on C show operator * {}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             showClause: AstTestFactory.showClause(
                 [AstTestFactory.showHideElementOperator("*")]),
             isExtensionTypeDeclaration: true));
@@ -1017,9 +1110,9 @@ export 'foo.dart'
         AstTestFactory.extensionDeclaration(
             name: 'E',
             typeParameters: AstTestFactory.typeParameterList(['T']),
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             showClause:
-                AstTestFactory.showClause([AstTestFactory.typeName4("B")]),
+                AstTestFactory.showClause([AstTestFactory.namedType4("B")]),
             isExtensionTypeDeclaration: true));
   }
 
@@ -1028,9 +1121,9 @@ export 'foo.dart'
         'extension type E on C show prefix.B {}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             showClause: AstTestFactory.showClause([
-              AstTestFactory.typeName3(
+              AstTestFactory.namedType3(
                   AstTestFactory.identifier5('prefix', 'B'))
             ]),
             isExtensionTypeDeclaration: true));
@@ -1041,7 +1134,7 @@ export 'foo.dart'
         'extension type E on C show set foo {}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             showClause: AstTestFactory.showClause(
                 [AstTestFactory.showHideElementSetter("foo")]),
             isExtensionTypeDeclaration: true));
@@ -1052,13 +1145,13 @@ export 'foo.dart'
         'extension type E on C show B {var a;}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             members: [
               AstTestFactory.fieldDeclaration2(
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
             ],
             showClause:
-                AstTestFactory.showClause([AstTestFactory.typeName4("B")]),
+                AstTestFactory.showClause([AstTestFactory.namedType4("B")]),
             isExtensionTypeDeclaration: true));
   }
 
@@ -1067,11 +1160,11 @@ export 'foo.dart'
         'extension type E on C show B<int, String> {}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             showClause: AstTestFactory.showClause([
-              AstTestFactory.typeName3(AstTestFactory.identifier3('B'), [
-                AstTestFactory.typeName4('int'),
-                AstTestFactory.typeName4('String')
+              AstTestFactory.namedType3(AstTestFactory.identifier3('B'), [
+                AstTestFactory.namedType4('int'),
+                AstTestFactory.namedType4('String')
               ])
             ]),
             isExtensionTypeDeclaration: true));
@@ -1082,9 +1175,9 @@ export 'foo.dart'
         'extension type E on C show B hide foo {}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             showClause:
-                AstTestFactory.showClause([AstTestFactory.typeName4("B")]),
+                AstTestFactory.showClause([AstTestFactory.namedType4("B")]),
             hideClause: AstTestFactory.hideClause(
                 [AstTestFactory.showHideElement("foo")]),
             isExtensionTypeDeclaration: true));
@@ -1105,7 +1198,7 @@ export 'foo.dart'
         AstTestFactory.extensionOverride(
             extensionName: AstTestFactory.identifier5('p', 'E'),
             typeArguments: AstTestFactory.typeArgumentList(
-                [AstTestFactory.typeName4('A')]),
+                [AstTestFactory.namedType4('A')]),
             argumentList: AstTestFactory.argumentList(
                 [AstTestFactory.identifier3('o')])));
   }
@@ -1125,7 +1218,7 @@ export 'foo.dart'
         AstTestFactory.extensionOverride(
             extensionName: AstTestFactory.identifier3('E'),
             typeArguments: AstTestFactory.typeArgumentList(
-                [AstTestFactory.typeName4('A')]),
+                [AstTestFactory.namedType4('A')]),
             argumentList: AstTestFactory.argumentList(
                 [AstTestFactory.identifier3('o')])));
   }
@@ -1135,7 +1228,7 @@ export 'foo.dart'
         'extension type E on C {}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             isExtensionTypeDeclaration: true));
   }
 
@@ -1144,7 +1237,7 @@ export 'foo.dart'
         'extension type E on C {var a; var b;}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             members: [
               AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
                   [AstTestFactory.variableDeclaration('a')]),
@@ -1160,7 +1253,7 @@ export 'foo.dart'
         AstTestFactory.extensionDeclaration(
             name: 'E',
             typeParameters: AstTestFactory.typeParameterList(['T']),
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             isExtensionTypeDeclaration: true));
   }
 
@@ -1169,7 +1262,7 @@ export 'foo.dart'
         'extension type E on C {var a;}',
         AstTestFactory.extensionDeclaration(
             name: 'E',
-            extendedType: AstTestFactory.typeName4('C'),
+            extendedType: AstTestFactory.namedType4('C'),
             members: [
               AstTestFactory.fieldDeclaration2(
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
@@ -1227,7 +1320,7 @@ export 'foo.dart'
         "A this.a(b)",
         AstTestFactory.fieldFormalParameter(
             null,
-            AstTestFactory.typeName4("A"),
+            AstTestFactory.namedType4("A"),
             "a",
             AstTestFactory.formalParameterList(
                 [AstTestFactory.simpleFormalParameter3("b")])));
@@ -1237,7 +1330,7 @@ export 'foo.dart'
     _assertSource(
         "A this.a<E, F>(b)",
         astFactory.fieldFormalParameter2(
-            type: AstTestFactory.typeName4('A'),
+            type: AstTestFactory.namedType4('A'),
             thisKeyword: TokenFactory.tokenFromKeyword(Keyword.THIS),
             period: TokenFactory.tokenFromType(TokenType.PERIOD),
             identifier: AstTestFactory.identifier3('a'),
@@ -1255,19 +1348,19 @@ export 'foo.dart'
     _assertSource(
         "final A this.a",
         AstTestFactory.fieldFormalParameter(
-            Keyword.FINAL, AstTestFactory.typeName4("A"), "a"));
+            Keyword.FINAL, AstTestFactory.namedType4("A"), "a"));
   }
 
   void test_visitFieldFormalParameter_type() {
     _assertSource(
         "A this.a",
         AstTestFactory.fieldFormalParameter(
-            null, AstTestFactory.typeName4("A"), "a"));
+            null, AstTestFactory.namedType4("A"), "a"));
   }
 
   void test_visitFieldFormalParameter_type_covariant() {
     var expected = AstTestFactory.fieldFormalParameter(
-        null, AstTestFactory.typeName4("A"), "a");
+        null, AstTestFactory.namedType4("A"), "a");
     expected.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _assertSource("covariant A this.a", expected);
@@ -1370,7 +1463,7 @@ export 'foo.dart'
               null),
           AstTestFactory.namedFormalParameter(
               AstTestFactory.simpleFormalParameter2(
-                  null, AstTestFactory.typeName4('A'), "b")
+                  null, AstTestFactory.namedType4('A'), "b")
                 ..requiredKeyword =
                     TokenFactory.tokenFromKeyword(Keyword.REQUIRED),
               null),
@@ -1819,14 +1912,14 @@ export 'foo.dart'
         "f<A>()",
         AstTestFactory.functionExpressionInvocation2(
             AstTestFactory.identifier3("f"),
-            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('A')])));
+            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('A')])));
   }
 
   void test_visitFunctionTypeAlias_generic() {
     _assertSource(
         "typedef A F<B>();",
         AstTestFactory.typeAlias(
-            AstTestFactory.typeName4("A"),
+            AstTestFactory.namedType4("A"),
             "F",
             AstTestFactory.typeParameterList(["B"]),
             AstTestFactory.formalParameterList()));
@@ -1835,13 +1928,13 @@ export 'foo.dart'
   void test_visitFunctionTypeAlias_nonGeneric() {
     _assertSource(
         "typedef A F();",
-        AstTestFactory.typeAlias(AstTestFactory.typeName4("A"), "F", null,
+        AstTestFactory.typeAlias(AstTestFactory.namedType4("A"), "F", null,
             AstTestFactory.formalParameterList()));
   }
 
   void test_visitFunctionTypeAlias_withMetadata() {
     FunctionTypeAlias declaration = AstTestFactory.typeAlias(
-        AstTestFactory.typeName4("A"),
+        AstTestFactory.namedType4("A"),
         "F",
         null,
         AstTestFactory.formalParameterList());
@@ -1867,7 +1960,7 @@ export 'foo.dart'
     _assertSource(
         "T f()?",
         astFactory.functionTypedFormalParameter2(
-            returnType: AstTestFactory.typeName4("T"),
+            returnType: AstTestFactory.namedType4("T"),
             identifier: AstTestFactory.identifier3('f'),
             parameters: AstTestFactory.formalParameterList([]),
             question: TokenFactory.tokenFromType(TokenType.QUESTION)));
@@ -1877,12 +1970,12 @@ export 'foo.dart'
     _assertSource(
         "T f()",
         AstTestFactory.functionTypedFormalParameter(
-            AstTestFactory.typeName4("T"), "f"));
+            AstTestFactory.namedType4("T"), "f"));
   }
 
   void test_visitFunctionTypedFormalParameter_type_covariant() {
     var expected = AstTestFactory.functionTypedFormalParameter(
-        AstTestFactory.typeName4("T"), "f");
+        AstTestFactory.namedType4("T"), "f");
     expected.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _assertSource("covariant T f()", expected);
@@ -1892,7 +1985,7 @@ export 'foo.dart'
     _assertSource(
         "T f<E>()",
         astFactory.functionTypedFormalParameter2(
-            returnType: AstTestFactory.typeName4("T"),
+            returnType: AstTestFactory.namedType4("T"),
             identifier: AstTestFactory.identifier3('f'),
             typeParameters: AstTestFactory.typeParameterList(['E']),
             parameters: AstTestFactory.formalParameterList([])));
@@ -1902,11 +1995,11 @@ export 'foo.dart'
     _assertSource(
         "int Function<T>(T)",
         AstTestFactory.genericFunctionType(
-            AstTestFactory.typeName4("int"),
+            AstTestFactory.namedType4("int"),
             AstTestFactory.typeParameterList2(['T']),
             AstTestFactory.formalParameterList([
               AstTestFactory.simpleFormalParameter4(
-                  AstTestFactory.typeName4("T"), null)
+                  AstTestFactory.namedType4("T"), null)
             ])));
   }
 
@@ -1914,11 +2007,11 @@ export 'foo.dart'
     _assertSource(
         "int Function<T>(T)?",
         AstTestFactory.genericFunctionType(
-            AstTestFactory.typeName4("int"),
+            AstTestFactory.namedType4("int"),
             AstTestFactory.typeParameterList2(['T']),
             AstTestFactory.formalParameterList([
               AstTestFactory.simpleFormalParameter4(
-                  AstTestFactory.typeName4("T"), null)
+                  AstTestFactory.namedType4("T"), null)
             ]),
             question: true));
   }
@@ -1930,11 +2023,11 @@ export 'foo.dart'
             'X',
             AstTestFactory.typeParameterList2(['S']),
             AstTestFactory.genericFunctionType(
-                AstTestFactory.typeName4("S"),
+                AstTestFactory.namedType4("S"),
                 AstTestFactory.typeParameterList2(['T']),
                 AstTestFactory.formalParameterList([
                   AstTestFactory.simpleFormalParameter4(
-                      AstTestFactory.typeName4("T"), null)
+                      AstTestFactory.namedType4("T"), null)
                 ]))));
   }
 
@@ -1980,12 +2073,12 @@ export 'foo.dart'
     _assertSource(
         "implements A, B",
         AstTestFactory.implementsClause(
-            [AstTestFactory.typeName4("A"), AstTestFactory.typeName4("B")]));
+            [AstTestFactory.namedType4("A"), AstTestFactory.namedType4("B")]));
   }
 
   void test_visitImplementsClause_single() {
     _assertSource("implements A",
-        AstTestFactory.implementsClause([AstTestFactory.typeName4("A")]));
+        AstTestFactory.implementsClause([AstTestFactory.namedType4("A")]));
   }
 
   void test_visitImportDirective_combinator() {
@@ -2101,21 +2194,21 @@ import 'foo.dart'
     _assertSource(
         "const C()",
         AstTestFactory.instanceCreationExpression2(
-            Keyword.CONST, AstTestFactory.typeName4("C")));
+            Keyword.CONST, AstTestFactory.namedType4("C")));
   }
 
   void test_visitInstanceCreationExpression_named() {
     _assertSource(
         "new C.c()",
         AstTestFactory.instanceCreationExpression3(
-            Keyword.NEW, AstTestFactory.typeName4("C"), "c"));
+            Keyword.NEW, AstTestFactory.namedType4("C"), "c"));
   }
 
   void test_visitInstanceCreationExpression_unnamed() {
     _assertSource(
         "new C()",
         AstTestFactory.instanceCreationExpression2(
-            Keyword.NEW, AstTestFactory.typeName4("C")));
+            Keyword.NEW, AstTestFactory.namedType4("C")));
   }
 
   void test_visitIntegerLiteral() {
@@ -2141,14 +2234,14 @@ import 'foo.dart'
     _assertSource(
         "a is! C",
         AstTestFactory.isExpression(AstTestFactory.identifier3("a"), true,
-            AstTestFactory.typeName4("C")));
+            AstTestFactory.namedType4("C")));
   }
 
   void test_visitIsExpression_normal() {
     _assertSource(
         "a is C",
         AstTestFactory.isExpression(AstTestFactory.identifier3("a"), false,
-            AstTestFactory.typeName4("C")));
+            AstTestFactory.namedType4("C")));
   }
 
   void test_visitLabel() {
@@ -2201,7 +2294,7 @@ import 'foo.dart'
         '<int>[0, for (e in l) 0, if (b) 1, ...[0]]',
         astFactory.listLiteral(
             null,
-            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
+            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('int')]),
             Tokens.openSquareBracket(),
             [
               AstTestFactory.integer(0),
@@ -2267,7 +2360,7 @@ import 'foo.dart'
         'const <int>[0]',
         astFactory.listLiteral(
             TokenFactory.tokenFromKeyword(Keyword.CONST),
-            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
+            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('int')]),
             Tokens.openSquareBracket(),
             [AstTestFactory.integer(0)],
             Tokens.closeSquareBracket()));
@@ -2285,7 +2378,7 @@ import 'foo.dart'
         '<int>[0]',
         astFactory.listLiteral(
             null,
-            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
+            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('int')]),
             Tokens.openSquareBracket(),
             [AstTestFactory.integer(0)],
             Tokens.closeSquareBracket()));
@@ -2332,7 +2425,7 @@ import 'foo.dart'
         "external T m();",
         AstTestFactory.methodDeclaration(
             null,
-            AstTestFactory.typeName4("T"),
+            AstTestFactory.namedType4("T"),
             null,
             null,
             AstTestFactory.identifier3("m"),
@@ -2357,7 +2450,7 @@ import 'foo.dart'
         "T get m {}",
         AstTestFactory.methodDeclaration2(
             null,
-            AstTestFactory.typeName4("T"),
+            AstTestFactory.namedType4("T"),
             Keyword.GET,
             null,
             AstTestFactory.identifier3("m"),
@@ -2370,7 +2463,7 @@ import 'foo.dart'
         "T set m(var v) {}",
         AstTestFactory.methodDeclaration2(
             null,
-            AstTestFactory.typeName4("T"),
+            AstTestFactory.namedType4("T"),
             Keyword.SET,
             null,
             AstTestFactory.identifier3("m"),
@@ -2426,7 +2519,7 @@ import 'foo.dart'
         "T operator +() {}",
         AstTestFactory.methodDeclaration2(
             null,
-            AstTestFactory.typeName4("T"),
+            AstTestFactory.namedType4("T"),
             null,
             Keyword.OPERATOR,
             AstTestFactory.identifier3("+"),
@@ -2439,7 +2532,7 @@ import 'foo.dart'
         "T m() {}",
         AstTestFactory.methodDeclaration2(
             null,
-            AstTestFactory.typeName4("T"),
+            AstTestFactory.namedType4("T"),
             null,
             null,
             AstTestFactory.identifier3("m"),
@@ -2479,7 +2572,7 @@ import 'foo.dart'
         "static T m() {}",
         AstTestFactory.methodDeclaration2(
             Keyword.STATIC,
-            AstTestFactory.typeName4("T"),
+            AstTestFactory.namedType4("T"),
             null,
             null,
             AstTestFactory.identifier3("m"),
@@ -2535,7 +2628,7 @@ import 'foo.dart'
     _assertSource(
         "m<A>()",
         AstTestFactory.methodInvocation3(null, "m",
-            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('A')])));
+            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('A')])));
   }
 
   void test_visitNamedExpression() {
@@ -2681,8 +2774,8 @@ import 'foo.dart'
       astFactory.setOrMapLiteral(
         leftBracket: Tokens.openCurlyBracket(),
         typeArguments: AstTestFactory.typeArgumentList([
-          AstTestFactory.typeName4('String'),
-          AstTestFactory.typeName4('String')
+          AstTestFactory.namedType4('String'),
+          AstTestFactory.namedType4('String')
         ]),
         elements: [
           AstTestFactory.mapLiteralEntry3('a', 'b'),
@@ -2736,8 +2829,8 @@ import 'foo.dart'
       astFactory.setOrMapLiteral(
         constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
         typeArguments: AstTestFactory.typeArgumentList([
-          AstTestFactory.typeName4('String'),
-          AstTestFactory.typeName4('String')
+          AstTestFactory.namedType4('String'),
+          AstTestFactory.namedType4('String')
         ]),
         leftBracket: Tokens.openCurlyBracket(),
         elements: [AstTestFactory.mapLiteralEntry3('a', 'b')],
@@ -2762,8 +2855,8 @@ import 'foo.dart'
       "<String, String>{'a' : 'b'}",
       astFactory.setOrMapLiteral(
         typeArguments: AstTestFactory.typeArgumentList([
-          AstTestFactory.typeName4('String'),
-          AstTestFactory.typeName4('String')
+          AstTestFactory.namedType4('String'),
+          AstTestFactory.namedType4('String')
         ]),
         leftBracket: Tokens.openCurlyBracket(),
         elements: [AstTestFactory.mapLiteralEntry3('a', 'b')],
@@ -2777,7 +2870,7 @@ import 'foo.dart'
       '<int>{0, for (e in l) 0, if (b) 1, ...[0]}',
       astFactory.setOrMapLiteral(
         typeArguments:
-            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
+            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('int')]),
         leftBracket: Tokens.openCurlyBracket(),
         elements: [
           AstTestFactory.integer(0),
@@ -2833,7 +2926,7 @@ import 'foo.dart'
       astFactory.setOrMapLiteral(
         constKeyword: TokenFactory.tokenFromKeyword(Keyword.CONST),
         typeArguments:
-            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
+            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('int')]),
         leftBracket: Tokens.openCurlyBracket(),
         elements: [AstTestFactory.integer(0)],
         rightBracket: Tokens.closeCurlyBracket(),
@@ -2857,7 +2950,7 @@ import 'foo.dart'
       '<int>{0}',
       astFactory.setOrMapLiteral(
         typeArguments:
-            AstTestFactory.typeArgumentList([AstTestFactory.typeName4('int')]),
+            AstTestFactory.typeArgumentList([AstTestFactory.namedType4('int')]),
         leftBracket: Tokens.openCurlyBracket(),
         elements: [AstTestFactory.integer(0)],
         rightBracket: Tokens.closeCurlyBracket(),
@@ -2882,19 +2975,19 @@ import 'foo.dart'
     _assertSource(
         "final A a",
         AstTestFactory.simpleFormalParameter2(
-            Keyword.FINAL, AstTestFactory.typeName4("A"), "a"));
+            Keyword.FINAL, AstTestFactory.namedType4("A"), "a"));
   }
 
   void test_visitSimpleFormalParameter_type() {
     _assertSource(
         "A a",
         AstTestFactory.simpleFormalParameter4(
-            AstTestFactory.typeName4("A"), "a"));
+            AstTestFactory.namedType4("A"), "a"));
   }
 
   void test_visitSimpleFormalParameter_type_covariant() {
     var expected = AstTestFactory.simpleFormalParameter4(
-        AstTestFactory.typeName4("A"), "a");
+        AstTestFactory.namedType4("A"), "a");
     expected.covariantKeyword =
         TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
     _assertSource("covariant A a", expected);
@@ -2960,6 +3053,64 @@ import 'foo.dart'
 
   void test_visitSuperExpression() {
     _assertSource("super", AstTestFactory.superExpression());
+  }
+
+  void test_visitSuperFormalParameter_annotation() {
+    SuperFormalParameter parameter = AstTestFactory.superFormalParameter2('f');
+    parameter.metadata
+        .add(AstTestFactory.annotation(AstTestFactory.identifier3("A")));
+    _assertSource('@A super.f', parameter);
+  }
+
+  void test_visitSuperFormalParameter_functionTyped() {
+    _assertSource(
+        "A super.a(b)",
+        AstTestFactory.superFormalParameter(
+            null,
+            AstTestFactory.namedType4("A"),
+            "a",
+            AstTestFactory.formalParameterList(
+                [AstTestFactory.simpleFormalParameter3("b")])));
+  }
+
+  void test_visitSuperFormalParameter_functionTyped_typeParameters() {
+    _assertSource(
+        "A super.a<E, F>(b)",
+        astFactory.superFormalParameter(
+            type: AstTestFactory.namedType4('A'),
+            superKeyword: TokenFactory.tokenFromKeyword(Keyword.SUPER),
+            period: TokenFactory.tokenFromType(TokenType.PERIOD),
+            identifier: AstTestFactory.identifier3('a'),
+            typeParameters: AstTestFactory.typeParameterList(['E', 'F']),
+            parameters: AstTestFactory.formalParameterList(
+                [AstTestFactory.simpleFormalParameter3("b")])));
+  }
+
+  void test_visitSuperFormalParameter_keyword() {
+    _assertSource("var super.a",
+        AstTestFactory.superFormalParameter(Keyword.VAR, null, "a"));
+  }
+
+  void test_visitSuperFormalParameter_keywordAndType() {
+    _assertSource(
+        "final A super.a",
+        AstTestFactory.superFormalParameter(
+            Keyword.FINAL, AstTestFactory.namedType4("A"), "a"));
+  }
+
+  void test_visitSuperFormalParameter_type() {
+    _assertSource(
+        "A super.a",
+        AstTestFactory.superFormalParameter(
+            null, AstTestFactory.namedType4("A"), "a"));
+  }
+
+  void test_visitSuperFormalParameter_type_covariant() {
+    var expected = AstTestFactory.superFormalParameter(
+        null, AstTestFactory.namedType4("A"), "a");
+    expected.covariantKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+    _assertSource("covariant A super.a", expected);
   }
 
   void test_visitSwitchCase_multipleLabels() {
@@ -3074,15 +3225,15 @@ import 'foo.dart'
     _assertSource(
         "try {} on E {}",
         AstTestFactory.tryStatement2(AstTestFactory.block(),
-            [AstTestFactory.catchClause3(AstTestFactory.typeName4("E"))]));
+            [AstTestFactory.catchClause3(AstTestFactory.namedType4("E"))]));
   }
 
   void test_visitTryStatement_catches() {
     _assertSource(
         "try {} on E {} on F {}",
         AstTestFactory.tryStatement2(AstTestFactory.block(), [
-          AstTestFactory.catchClause3(AstTestFactory.typeName4("E")),
-          AstTestFactory.catchClause3(AstTestFactory.typeName4("F"))
+          AstTestFactory.catchClause3(AstTestFactory.namedType4("E")),
+          AstTestFactory.catchClause3(AstTestFactory.namedType4("F"))
         ]));
   }
 
@@ -3091,7 +3242,7 @@ import 'foo.dart'
         "try {} on E {} finally {}",
         AstTestFactory.tryStatement3(
             AstTestFactory.block(),
-            [AstTestFactory.catchClause3(AstTestFactory.typeName4("E"))],
+            [AstTestFactory.catchClause3(AstTestFactory.namedType4("E"))],
             AstTestFactory.block()));
   }
 
@@ -3106,45 +3257,45 @@ import 'foo.dart'
     _assertSource(
         "<E, F>",
         AstTestFactory.typeArgumentList2(
-            [AstTestFactory.typeName4("E"), AstTestFactory.typeName4("F")]));
+            [AstTestFactory.namedType4("E"), AstTestFactory.namedType4("F")]));
   }
 
   void test_visitTypeArgumentList_single() {
     _assertSource("<E>",
-        AstTestFactory.typeArgumentList2([AstTestFactory.typeName4("E")]));
+        AstTestFactory.typeArgumentList2([AstTestFactory.namedType4("E")]));
   }
 
   void test_visitTypeName_multipleArgs() {
     _assertSource(
         "C<D, E>",
-        AstTestFactory.typeName4("C",
-            [AstTestFactory.typeName4("D"), AstTestFactory.typeName4("E")]));
+        AstTestFactory.namedType4("C",
+            [AstTestFactory.namedType4("D"), AstTestFactory.namedType4("E")]));
   }
 
   void test_visitTypeName_nestedArg() {
     _assertSource(
         "C<D<E>>",
-        AstTestFactory.typeName4("C", [
-          AstTestFactory.typeName4("D", [AstTestFactory.typeName4("E")])
+        AstTestFactory.namedType4("C", [
+          AstTestFactory.namedType4("D", [AstTestFactory.namedType4("E")])
         ]));
   }
 
   void test_visitTypeName_noArgs() {
-    _assertSource("C", AstTestFactory.typeName4("C"));
+    _assertSource("C", AstTestFactory.namedType4("C"));
   }
 
   void test_visitTypeName_noArgs_withQuestion() {
-    _assertSource("C?", AstTestFactory.typeName4("C", null, true));
+    _assertSource("C?", AstTestFactory.namedType4("C", null, true));
   }
 
   void test_visitTypeName_singleArg() {
-    _assertSource(
-        "C<D>", AstTestFactory.typeName4("C", [AstTestFactory.typeName4("D")]));
+    _assertSource("C<D>",
+        AstTestFactory.namedType4("C", [AstTestFactory.namedType4("D")]));
   }
 
   void test_visitTypeName_singleArg_withQuestion() {
     _assertSource("C<D>?",
-        AstTestFactory.typeName4("C", [AstTestFactory.typeName4("D")], true));
+        AstTestFactory.namedType4("C", [AstTestFactory.namedType4("D")], true));
   }
 
   void test_visitTypeParameter_variance_contravariant() {
@@ -3161,7 +3312,7 @@ import 'foo.dart'
 
   void test_visitTypeParameter_withExtends() {
     _assertSource("E extends C",
-        AstTestFactory.typeParameter2("E", AstTestFactory.typeName4("C")));
+        AstTestFactory.typeParameter2("E", AstTestFactory.namedType4("C")));
   }
 
   void test_visitTypeParameter_withMetadata() {
@@ -3205,7 +3356,7 @@ import 'foo.dart'
     _assertSource(
         "const C a, b",
         AstTestFactory.variableDeclarationList(
-            Keyword.CONST, AstTestFactory.typeName4("C"), [
+            Keyword.CONST, AstTestFactory.namedType4("C"), [
           AstTestFactory.variableDeclaration("a"),
           AstTestFactory.variableDeclaration("b")
         ]));
@@ -3235,7 +3386,7 @@ import 'foo.dart'
     _assertSource(
         "C a, b",
         AstTestFactory.variableDeclarationList(
-            null, AstTestFactory.typeName4("C"), [
+            null, AstTestFactory.namedType4("C"), [
           AstTestFactory.variableDeclaration("a"),
           AstTestFactory.variableDeclaration("b")
         ]));
@@ -3255,7 +3406,7 @@ import 'foo.dart'
         "C c;",
         AstTestFactory.variableDeclarationStatement(
             null,
-            AstTestFactory.typeName4("C"),
+            AstTestFactory.namedType4("C"),
             [AstTestFactory.variableDeclaration("c")]));
   }
 
@@ -3270,15 +3421,15 @@ import 'foo.dart'
     _assertSource(
         "with A, B, C",
         AstTestFactory.withClause([
-          AstTestFactory.typeName4("A"),
-          AstTestFactory.typeName4("B"),
-          AstTestFactory.typeName4("C")
+          AstTestFactory.namedType4("A"),
+          AstTestFactory.namedType4("B"),
+          AstTestFactory.namedType4("C")
         ]));
   }
 
   void test_visitWithClause_single() {
     _assertSource(
-        "with A", AstTestFactory.withClause([AstTestFactory.typeName4("A")]));
+        "with A", AstTestFactory.withClause([AstTestFactory.namedType4("A")]));
   }
 
   void test_visitYieldStatement() {
@@ -3291,11 +3442,25 @@ import 'foo.dart'
         AstTestFactory.yieldEachStatement(AstTestFactory.identifier3("e")));
   }
 
-  /// Assert that a `ToSourceVisitor2` will produce the [expectedSource] when
+  /// Assert that a [ToSourceVisitor] will produce the [expectedSource] when
   /// visiting the given [node].
   void _assertSource(String expectedSource, AstNode node) {
     StringBuffer buffer = StringBuffer();
     node.accept(ToSourceVisitor(buffer));
     expect(buffer.toString(), expectedSource);
+  }
+
+  FindNode _parseStringToFindNode(String content) {
+    var parseResult = parseString(
+      content: content,
+      featureSet: FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.currentVersion,
+        flags: [
+          Feature.enhanced_enums.enableString,
+          Feature.super_parameters.enableString,
+        ],
+      ),
+    );
+    return FindNode(parseResult.content, parseResult.unit);
   }
 }

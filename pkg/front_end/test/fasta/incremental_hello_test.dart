@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.test.incremental_dynamic_test;
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
+
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
 
 import 'package:kernel/ast.dart' show Component;
 
@@ -34,7 +35,7 @@ void diagnosticMessageHandler(DiagnosticMessage message) {
   throw "Unexpected message: ${message.plainTextFormatted.join('\n')}";
 }
 
-Future<void> test({bool sdkFromSource}) async {
+Future<void> test({required bool sdkFromSource}) async {
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..packagesFileUri = Uri.base.resolve(".packages")
     ..target = new VmTarget(new TargetFlags())
@@ -60,7 +61,8 @@ Future<void> test({bool sdkFromSource}) async {
   IncrementalCompiler compiler =
       new IncrementalCompiler(new CompilerContext(options));
 
-  Component component = await compiler.computeDelta();
+  IncrementalCompilerResult compilerResult = await compiler.computeDelta();
+  Component component = compilerResult.component;
 
   if (sdkFromSource) {
     // Expect that the new component contains at least the following libraries:
@@ -75,12 +77,14 @@ Future<void> test({bool sdkFromSource}) async {
 
   compiler.invalidate(helloDart);
 
-  component = await compiler.computeDelta(entryPoints: [helloDart]);
+  compilerResult = await compiler.computeDelta(entryPoints: [helloDart]);
+  component = compilerResult.component;
   // Expect that the new component contains exactly hello.dart
   Expect.isTrue(
       component.libraries.length == 1, "${component.libraries.length} != 1");
 
-  component = await compiler.computeDelta(entryPoints: [helloDart]);
+  compilerResult = await compiler.computeDelta(entryPoints: [helloDart]);
+  component = compilerResult.component;
   Expect.isTrue(component.libraries.isEmpty);
 }
 

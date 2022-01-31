@@ -934,7 +934,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           case 'bool':
             return FromJsonFunction('jsonDecoder.decodeBool');
           case 'double':
-            return FromJsonFunction('jsonDecoder.decodeDouble');
+            return FromJsonFunction('jsonDecoder.decodeDouble',
+                castType: 'Object');
           case 'int':
           case 'long':
             return FromJsonFunction('jsonDecoder.decodeInt');
@@ -1120,14 +1121,17 @@ class FromJsonFunction extends FromJsonCode {
   @override
   final String asClosure;
 
-  FromJsonFunction(this.asClosure);
+  final String? castType;
+
+  FromJsonFunction(this.asClosure, {this.castType});
 
   @override
   bool get isIdentity => false;
 
   @override
-  String asSnippet(String jsonPath, String json) =>
-      '$asClosure($jsonPath, $json)';
+  String asSnippet(String jsonPath, String json) => castType == null
+      ? '$asClosure($jsonPath, $json)'
+      : '$asClosure($jsonPath, $json as $castType)';
 }
 
 /// Representation of FromJsonCode for the identity transformation.

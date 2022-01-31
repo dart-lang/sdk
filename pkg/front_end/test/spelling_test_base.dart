@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io' show File, Platform;
 
 import 'dart:typed_data' show Uint8List;
@@ -37,7 +35,7 @@ abstract class SpellContext extends ChainContext {
   final bool interactive;
   final bool onlyInGit;
 
-  SpellContext({this.interactive, this.onlyInGit});
+  SpellContext({required this.interactive, required this.onlyInGit});
 
   // Override special handling of negative tests.
   @override
@@ -75,7 +73,7 @@ abstract class SpellContext extends ChainContext {
         dictionaries,
         interactive,
         '"$dartPath" "$suitePath" -DonlyInGit=$onlyInGit -Dinteractive=true');
-    return null;
+    return new Future.value();
   }
 }
 
@@ -97,14 +95,13 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
     Utf8BytesScanner scanner =
         new Utf8BytesScanner(bytes, includeComments: true);
     Token firstToken = scanner.tokenize();
-    if (firstToken == null) return null;
-    Token token = firstToken;
+    Token? token = firstToken;
 
-    List<String> errors;
+    List<String>? errors;
     Source source = new Source(
         scanner.lineStarts, rawBytes, description.uri, description.uri);
     void addErrorMessage(
-        int offset, String word, bool denylisted, List<String> alternatives) {
+        int offset, String word, bool denylisted, List<String>? alternatives) {
       errors ??= <String>[];
       String message;
       if (denylisted) {
@@ -128,7 +125,7 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
             "- $dictionaryPathString\n";
       }
       Location location = source.getLocation(description.uri, offset);
-      errors.add(command_line_reporting.formatErrorMessage(
+      errors!.add(command_line_reporting.formatErrorMessage(
           source.getTextLine(location.line),
           location,
           word.length,
@@ -142,20 +139,20 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
         return pass(description);
       }
       if (token.precedingComments != null) {
-        Token comment = token.precedingComments;
+        Token? comment = token.precedingComments;
         while (comment != null) {
           spell.SpellingResult spellingResult = spell.spellcheckString(
               comment.lexeme,
               splitAsCode: true,
               dictionaries: context.dictionaries);
           if (spellingResult.misspelledWords != null) {
-            for (int i = 0; i < spellingResult.misspelledWords.length; i++) {
-              bool denylisted = spellingResult.misspelledWordsDenylisted[i];
+            for (int i = 0; i < spellingResult.misspelledWords!.length; i++) {
+              bool denylisted = spellingResult.misspelledWordsDenylisted![i];
               if (context.onlyDenylisted && !denylisted) continue;
               int offset =
-                  comment.offset + spellingResult.misspelledWordsOffset[i];
-              addErrorMessage(offset, spellingResult.misspelledWords[i],
-                  denylisted, spellingResult.misspelledWordsAlternatives[i]);
+                  comment.offset + spellingResult.misspelledWordsOffset![i];
+              addErrorMessage(offset, spellingResult.misspelledWords![i],
+                  denylisted, spellingResult.misspelledWordsAlternatives![i]);
             }
           }
           comment = comment.next;
@@ -167,12 +164,13 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
             splitAsCode: true,
             dictionaries: context.dictionaries);
         if (spellingResult.misspelledWords != null) {
-          for (int i = 0; i < spellingResult.misspelledWords.length; i++) {
-            bool denylisted = spellingResult.misspelledWordsDenylisted[i];
+          for (int i = 0; i < spellingResult.misspelledWords!.length; i++) {
+            bool denylisted = spellingResult.misspelledWordsDenylisted![i];
             if (context.onlyDenylisted && !denylisted) continue;
-            int offset = token.offset + spellingResult.misspelledWordsOffset[i];
-            addErrorMessage(offset, spellingResult.misspelledWords[i],
-                denylisted, spellingResult.misspelledWordsAlternatives[i]);
+            int offset =
+                token.offset + spellingResult.misspelledWordsOffset![i];
+            addErrorMessage(offset, spellingResult.misspelledWords![i],
+                denylisted, spellingResult.misspelledWordsAlternatives![i]);
           }
         }
       } else if (token is KeywordToken || token is BeginToken) {
@@ -191,7 +189,7 @@ class SpellTest extends Step<TestDescription, TestDescription, SpellContext> {
     if (errors == null) {
       return pass(description);
     } else {
-      return fail(description, errors.join("\n\n"));
+      return fail(description, errors!.join("\n\n"));
     }
   }
 }

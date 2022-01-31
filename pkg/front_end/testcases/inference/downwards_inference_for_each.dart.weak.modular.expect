@@ -1,0 +1,105 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+abstract class MyStream<T extends core::Object* = dynamic> extends asy::Stream<self::MyStream::T*> {
+  static factory •<T extends core::Object* = dynamic>() → self::MyStream<self::MyStream::•::T*>*
+    return null;
+  abstract member-signature get isBroadcast() → core::bool*; -> asy::Stream::isBroadcast
+  abstract member-signature method asBroadcastStream({(asy::StreamSubscription<self::MyStream::T*>*) →* void onListen = #C1, (asy::StreamSubscription<self::MyStream::T*>*) →* void onCancel = #C1}) → asy::Stream<self::MyStream::T*>*; -> asy::Stream::asBroadcastStream
+  abstract member-signature method where((self::MyStream::T*) →* core::bool* test) → asy::Stream<self::MyStream::T*>*; -> asy::Stream::where
+  abstract member-signature method map<S extends core::Object* = dynamic>((self::MyStream::T*) →* self::MyStream::map::S* convert) → asy::Stream<self::MyStream::map::S*>*; -> asy::Stream::map
+  abstract member-signature method asyncMap<E extends core::Object* = dynamic>((self::MyStream::T*) →* FutureOr<self::MyStream::asyncMap::E*>* convert) → asy::Stream<self::MyStream::asyncMap::E*>*; -> asy::Stream::asyncMap
+  abstract member-signature method asyncExpand<E extends core::Object* = dynamic>((self::MyStream::T*) →* asy::Stream<self::MyStream::asyncExpand::E*>* convert) → asy::Stream<self::MyStream::asyncExpand::E*>*; -> asy::Stream::asyncExpand
+  abstract member-signature method handleError(core::Function* onError, {(dynamic) →* core::bool* test = #C1}) → asy::Stream<self::MyStream::T*>*; -> asy::Stream::handleError
+  abstract member-signature method expand<S extends core::Object* = dynamic>((self::MyStream::T*) →* core::Iterable<self::MyStream::expand::S*>* convert) → asy::Stream<self::MyStream::expand::S*>*; -> asy::Stream::expand
+  abstract member-signature method pipe(covariant-by-class asy::StreamConsumer<self::MyStream::T*>* streamConsumer) → asy::Future<dynamic>*; -> asy::Stream::pipe
+  abstract member-signature method transform<S extends core::Object* = dynamic>(covariant-by-class asy::StreamTransformer<self::MyStream::T*, self::MyStream::transform::S*>* streamTransformer) → asy::Stream<self::MyStream::transform::S*>*; -> asy::Stream::transform
+  abstract member-signature method reduce(covariant-by-class (self::MyStream::T*, self::MyStream::T*) →* self::MyStream::T* combine) → asy::Future<self::MyStream::T*>*; -> asy::Stream::reduce
+  abstract member-signature method fold<S extends core::Object* = dynamic>(self::MyStream::fold::S* initialValue, (self::MyStream::fold::S*, self::MyStream::T*) →* self::MyStream::fold::S* combine) → asy::Future<self::MyStream::fold::S*>*; -> asy::Stream::fold
+  abstract member-signature method join([core::String* separator = #C2]) → asy::Future<core::String*>*; -> asy::Stream::join
+  abstract member-signature method contains(core::Object* needle) → asy::Future<core::bool*>*; -> asy::Stream::contains
+  abstract member-signature method forEach((self::MyStream::T*) →* void action) → asy::Future<dynamic>*; -> asy::Stream::forEach
+  abstract member-signature method every((self::MyStream::T*) →* core::bool* test) → asy::Future<core::bool*>*; -> asy::Stream::every
+  abstract member-signature method any((self::MyStream::T*) →* core::bool* test) → asy::Future<core::bool*>*; -> asy::Stream::any
+  abstract member-signature get length() → asy::Future<core::int*>*; -> asy::Stream::length
+  abstract member-signature get isEmpty() → asy::Future<core::bool*>*; -> asy::Stream::isEmpty
+  abstract member-signature method cast<R extends core::Object* = dynamic>() → asy::Stream<self::MyStream::cast::R*>*; -> asy::Stream::cast
+  abstract member-signature method toList() → asy::Future<core::List<self::MyStream::T*>*>*; -> asy::Stream::toList
+  abstract member-signature method toSet() → asy::Future<core::Set<self::MyStream::T*>*>*; -> asy::Stream::toSet
+  abstract member-signature method drain<E extends core::Object* = dynamic>([self::MyStream::drain::E* futureValue = #C1]) → asy::Future<self::MyStream::drain::E*>*; -> asy::Stream::drain
+  abstract member-signature method take(core::int* count) → asy::Stream<self::MyStream::T*>*; -> asy::Stream::take
+  abstract member-signature method takeWhile((self::MyStream::T*) →* core::bool* test) → asy::Stream<self::MyStream::T*>*; -> asy::Stream::takeWhile
+  abstract member-signature method skip(core::int* count) → asy::Stream<self::MyStream::T*>*; -> asy::Stream::skip
+  abstract member-signature method skipWhile((self::MyStream::T*) →* core::bool* test) → asy::Stream<self::MyStream::T*>*; -> asy::Stream::skipWhile
+  abstract member-signature method distinct([(self::MyStream::T*, self::MyStream::T*) →* core::bool* equals = #C1]) → asy::Stream<self::MyStream::T*>*; -> asy::Stream::distinct
+  abstract member-signature get first() → asy::Future<self::MyStream::T*>*; -> asy::Stream::first
+  abstract member-signature get last() → asy::Future<self::MyStream::T*>*; -> asy::Stream::last
+  abstract member-signature get single() → asy::Future<self::MyStream::T*>*; -> asy::Stream::single
+  abstract member-signature method firstWhere((self::MyStream::T*) →* core::bool* test, {covariant-by-class () →* self::MyStream::T* orElse = #C1}) → asy::Future<self::MyStream::T*>*; -> asy::Stream::firstWhere
+  abstract member-signature method lastWhere((self::MyStream::T*) →* core::bool* test, {covariant-by-class () →* self::MyStream::T* orElse = #C1}) → asy::Future<self::MyStream::T*>*; -> asy::Stream::lastWhere
+  abstract member-signature method singleWhere((self::MyStream::T*) →* core::bool* test, {covariant-by-class () →* self::MyStream::T* orElse = #C1}) → asy::Future<self::MyStream::T*>*; -> asy::Stream::singleWhere
+  abstract member-signature method elementAt(core::int* index) → asy::Future<self::MyStream::T*>*; -> asy::Stream::elementAt
+  abstract member-signature method timeout(core::Duration* timeLimit, {(asy::EventSink<self::MyStream::T*>*) →* void onTimeout = #C1}) → asy::Stream<self::MyStream::T*>*; -> asy::Stream::timeout
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature method listen((self::MyStream::T*) →* void onData, {core::Function* onError = #C1, () →* void onDone = #C1, core::bool* cancelOnError = #C1}) → asy::StreamSubscription<self::MyStream::T*>*; -> asy::Stream::listen
+}
+static method F<T extends core::Object* = dynamic>() → self::F::T*
+  return null;
+static method f() → asy::Future<dynamic>* async {
+  dynamic d;
+  core::Object* o;
+  for (dynamic x in self::F<core::Iterable<dynamic>*>()) {
+  }
+  for (dynamic x in self::F<core::Iterable<dynamic>*>()) {
+  }
+  for (core::Object* x in self::F<core::Iterable<core::Object*>*>()) {
+  }
+  for (final dynamic #t1 in self::F<core::Iterable<dynamic>*>()) {
+    d = #t1;
+  }
+  for (final core::Object* #t2 in self::F<core::Iterable<core::Object*>*>()) {
+    o = #t2;
+  }
+  await for (dynamic x in self::F<asy::Stream<dynamic>*>()) {
+  }
+  await for (dynamic x in self::F<asy::Stream<dynamic>*>()) {
+  }
+  await for (core::Object* x in self::F<asy::Stream<core::Object*>*>()) {
+  }
+  await for (final dynamic #t3 in self::F<asy::Stream<dynamic>*>()) {
+    d = #t3;
+  }
+  await for (final core::Object* #t4 in self::F<asy::Stream<core::Object*>*>()) {
+    o = #t4;
+  }
+}
+static method main() → asy::Future<dynamic>* async {
+  for (core::int* x in <core::int*>[1, 2, 3]) {
+  }
+  for (core::num* x in <core::num*>[1, 2, 3]) {
+  }
+  for (core::int* x in <core::int*>[1, 2, 3]) {
+  }
+  await for (core::int* x in self::MyStream::•<core::int*>()) {
+  }
+  await for (core::int* x in self::MyStream::•<core::int*>()) {
+  }
+}
+
+constants  {
+  #C1 = null
+  #C2 = ""
+}

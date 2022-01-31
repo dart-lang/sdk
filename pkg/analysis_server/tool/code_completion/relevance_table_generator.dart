@@ -59,7 +59,7 @@ Future<void> main(List<String> args) async {
 
     if (result.wasParsed('reduceDir')) {
       var data = RelevanceData();
-      var dir = provider.getFolder(result['reduceDir']);
+      var dir = provider.getFolder(result['reduceDir'] as String);
       var suffix = result.rest.isNotEmpty ? result.rest[0] : '';
       for (var child in dir.getChildren()) {
         if (child is File) {
@@ -76,7 +76,7 @@ Future<void> main(List<String> args) async {
 
     var computer = RelevanceMetricsComputer();
     var stopwatch = Stopwatch()..start();
-    await computer.compute(rootPath, verbose: result['verbose']);
+    await computer.compute(rootPath, verbose: result['verbose'] as bool);
     if (result.wasParsed('mapFile')) {
       var mapFile = provider.getFile(result['mapFile'] as String);
       mapFile.writeAsStringSync(computer.data.toJson());
@@ -139,7 +139,7 @@ bool validArguments(ArgParser parser, ArgResults result) {
     printUsage(parser);
     return false;
   } else if (result.wasParsed('reduceDir')) {
-    return validateDir(parser, result['reduceDir']);
+    return validateDir(parser, result['reduceDir'] as String);
   } else if (result.rest.length != 1) {
     printUsage(parser, error: 'No package path specified.');
     return false;

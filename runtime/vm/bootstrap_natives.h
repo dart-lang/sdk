@@ -18,7 +18,6 @@ namespace dart {
   V(DartAsync_fatal, 1)                                                        \
   V(Object_equals, 2)                                                          \
   V(Object_getHash, 1)                                                         \
-  V(Object_setHashIfNotSetYet, 2)                                              \
   V(Object_toString, 1)                                                        \
   V(Object_runtimeType, 1)                                                     \
   V(Object_haveSameRuntimeType, 2)                                             \
@@ -160,7 +159,7 @@ namespace dart {
   V(DateTime_localTimeZoneAdjustmentInSeconds, 0)                              \
   V(AssertionError_throwNew, 3)                                                \
   V(AssertionError_throwNewSource, 4)                                          \
-  V(Async_rethrow, 2)                                                          \
+  V(Error_throwWithStackTrace, 2)                                              \
   V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 4)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
@@ -366,6 +365,8 @@ namespace dart {
   V(VMService_CancelStream, 1)                                                 \
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
+  V(VMService_AddUserTagsToStreamableSampleList, 1)                            \
+  V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_loadInt8, 2)                                                           \
   V(Ffi_loadInt16, 2)                                                          \
   V(Ffi_loadInt32, 2)                                                          \
@@ -400,7 +401,16 @@ namespace dart {
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \
   V(Ffi_dl_providesSymbol, 2)                                                  \
-  V(Ffi_asExternalTypedData, 2)                                                \
+  V(Ffi_asExternalTypedDataInt8, 2)                                            \
+  V(Ffi_asExternalTypedDataInt16, 2)                                           \
+  V(Ffi_asExternalTypedDataInt32, 2)                                           \
+  V(Ffi_asExternalTypedDataInt64, 2)                                           \
+  V(Ffi_asExternalTypedDataUint8, 2)                                           \
+  V(Ffi_asExternalTypedDataUint16, 2)                                          \
+  V(Ffi_asExternalTypedDataUint32, 2)                                          \
+  V(Ffi_asExternalTypedDataUint64, 2)                                          \
+  V(Ffi_asExternalTypedDataFloat, 2)                                           \
+  V(Ffi_asExternalTypedDataDouble, 2)                                          \
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
   V(Ffi_GetFfiNativeResolver, 0)                                               \

@@ -1,0 +1,67 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "opt_in_lib1.dart" as opt;
+import "opt_out_lib.dart" as opt2;
+import "opt_in_lib2.dart" as opt3;
+
+import "org-dartlang-testcase:///opt_in_lib1.dart";
+import "org-dartlang-testcase:///opt_in_lib2.dart";
+import "org-dartlang-testcase:///opt_out_lib.dart";
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super*
+    : super core::Object::•()
+    ;
+  get getter() → opt::B*
+    return new opt::B::•();
+  set setter(opt::A* a) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class _Class1&Super&Mixin1 = self::Super with opt2::Mixin1 /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class1&Super&Mixin1*
+    : super self::Super::•()
+    ;
+}
+class Class1 extends self::_Class1&Super&Mixin1 {
+  synthetic constructor •() → self::Class1*
+    : super self::_Class1&Super&Mixin1::•()
+    ;
+}
+abstract class _Class2&Base&Mixin2 = opt::Base with opt3::Mixin2 /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class2&Base&Mixin2*
+    : super opt::Base::•()
+    ;
+  abstract member-signature get _privateGetter() → opt::B*; -> opt::Base::_privateGetter
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+  abstract member-signature set _privateSetter(opt::A* a) → void; -> opt::Base::_privateSetter
+}
+class Class2 extends self::_Class2&Base&Mixin2 {
+  synthetic constructor •() → self::Class2*
+    : super self::_Class2&Base&Mixin2::•()
+    ;
+}
+static method main() → dynamic {
+  self::Class1* c = new self::Class1::•();
+  c.{self::Super::getter}{opt::B*}.{opt::B::property}{core::int*};
+  c.{self::Super::setter} = new opt::B::•();
+  opt::testInterface2(new opt3::Mixin2::•());
+}

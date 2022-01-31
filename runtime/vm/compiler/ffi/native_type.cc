@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/class_id.h"
+#include "vm/compiler/ffi/abi.h"
 #include "vm/constants.h"
 #include "vm/zone_text_buffer.h"
 
@@ -386,53 +387,22 @@ static PrimitiveType TypeRepresentation(classid_t class_id) {
   }
 }
 
-NativeType& NativeType::FromTypedDataClassId(Zone* zone, classid_t class_id) {
+const NativeType& NativeType::FromTypedDataClassId(Zone* zone,
+                                                   classid_t class_id) {
   ASSERT(IsFfiPredefinedClassId(class_id));
   const auto fundamental_rep = TypeRepresentation(class_id);
   return *new (zone) NativePrimitiveType(fundamental_rep);
 }
 
 #if !defined(FFI_UNIT_TESTS)
-NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
-  const classid_t class_id = type.type_class_id();
-  if (IsFfiPredefinedClassId(class_id)) {
-    return NativeType::FromTypedDataClassId(zone, class_id);
-  }
-
-  // User-defined structs.
-  const auto& cls = Class::Handle(zone, type.type_class());
-  const auto& superClass = Class::Handle(zone, cls.SuperClass());
-  const bool is_struct = String::Handle(zone, superClass.UserVisibleName())
-                             .Equals(Symbols::Struct());
-  ASSERT(is_struct || String::Handle(zone, superClass.UserVisibleName())
-                          .Equals(Symbols::Union()));
-
-  auto& pragmas = Object::Handle(zone);
-  Library::FindPragma(dart::Thread::Current(), /*only_core=*/false, cls,
-                      Symbols::vm_ffi_struct_fields(), /*multiple=*/true,
-                      &pragmas);
-  ASSERT(!pragmas.IsNull());
-  ASSERT(pragmas.IsGrowableObjectArray());
-  const auto& pragmas_array = GrowableObjectArray::Cast(pragmas);
-  auto& pragma = Instance::Handle(zone);
-  auto& clazz = Class::Handle(zone);
-  auto& library = Library::Handle(zone);
-  for (intptr_t i = 0; i < pragmas_array.Length(); i++) {
-    pragma ^= pragmas_array.At(i);
-    clazz ^= pragma.clazz();
-    library ^= clazz.library();
-    if (String::Handle(zone, clazz.UserVisibleName())
-            .Equals(Symbols::FfiStructLayout()) &&
-        String::Handle(zone, library.url()).Equals(Symbols::DartFfi())) {
-      break;
-    }
-  }
-
+static const NativeType* CompoundFromPragma(Zone* zone,
+                                            const Instance& pragma,
+                                            bool is_struct,
+                                            const char** error) {
   const auto& struct_layout = pragma;
-  const auto& struct_layout_class = clazz;
-  ASSERT(String::Handle(zone, struct_layout_class.UserVisibleName())
+  const auto& clazz = Class::Handle(zone, struct_layout.clazz());
+  ASSERT(String::Handle(zone, clazz.UserVisibleName())
              .Equals(Symbols::FfiStructLayout()));
-  ASSERT(String::Handle(zone, library.url()).Equals(Symbols::DartFfi()));
   const auto& struct_layout_fields = Array::Handle(zone, clazz.fields());
   ASSERT(struct_layout_fields.Length() == 2);
   const auto& types_field =
@@ -460,8 +430,11 @@ NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
       // Subtype of NativeType: Struct, native integer or native float.
       field_type ^= field_types.At(i);
       const auto& field_native_type =
-          NativeType::FromAbstractType(zone, field_type);
-      field_native_types.Add(&field_native_type);
+          NativeType::FromAbstractType(zone, field_type, error);
+      if (*error != nullptr) {
+        return nullptr;
+      }
+      field_native_types.Add(field_native_type);
     } else {
       // Inline array.
       const auto& struct_layout_array_class =
@@ -482,19 +455,110 @@ NativeType& NativeType::FromAbstractType(Zone* zone, const AbstractType& type) {
                  .Equals(Symbols::Length()));
       const auto& length = Smi::Handle(
           zone, Smi::RawCast(field_instance.GetField(length_field)));
-      const auto& element_type = NativeType::FromAbstractType(zone, field_type);
-      const auto& field_native_type =
-          *new (zone) NativeArrayType(element_type, length.AsInt64Value());
-      field_native_types.Add(&field_native_type);
+      const auto element_type =
+          NativeType::FromAbstractType(zone, field_type, error);
+      if (*error != nullptr) {
+        return nullptr;
+      }
+      const auto field_native_type =
+          new (zone) NativeArrayType(*element_type, length.AsInt64Value());
+      field_native_types.Add(field_native_type);
     }
   }
 
   if (is_struct) {
-    return NativeStructType::FromNativeTypes(zone, field_native_types,
-                                             member_packing);
+    return &NativeStructType::FromNativeTypes(zone, field_native_types,
+                                              member_packing);
   } else {
-    return NativeUnionType::FromNativeTypes(zone, field_native_types);
+    return &NativeUnionType::FromNativeTypes(zone, field_native_types);
   }
+}
+
+static const NativeType* AbiSpecificFromPragma(Zone* zone,
+                                               const Instance& pragma,
+                                               const Class& abi_specific_int,
+                                               const char** error) {
+  const auto& clazz = Class::Handle(zone, pragma.clazz());
+  const auto& fields = Array::Handle(zone, clazz.fields());
+  ASSERT(fields.Length() == 1);
+  const auto& native_types_field =
+      Field::Handle(zone, Field::RawCast(fields.At(0)));
+  ASSERT(String::Handle(zone, native_types_field.name())
+             .Equals(Symbols::FfiNativeTypes()));
+  const auto& native_types =
+      Array::Handle(zone, Array::RawCast(pragma.GetField(native_types_field)));
+
+  ASSERT(native_types.Length() == num_abis);
+  const int64_t abi_index = static_cast<int64_t>(TargetAbi());
+  const auto& abi_abstract_type = AbstractType::Handle(
+      zone, AbstractType::RawCast(native_types.At(abi_index)));
+  if (abi_abstract_type.IsNull()) {
+    *error = zone->PrintToString(
+        "AbiSpecificInteger '%s' is missing mapping for '%s'.",
+        abi_specific_int.UserVisibleNameCString(), target_abi_name);
+    return nullptr;
+  }
+  return NativeType::FromAbstractType(zone, abi_abstract_type, error);
+}
+
+const NativeType* NativeType::FromAbstractType(Zone* zone,
+                                               const AbstractType& type,
+                                               const char** error) {
+  const classid_t class_id = type.type_class_id();
+  if (IsFfiPredefinedClassId(class_id)) {
+    return &NativeType::FromTypedDataClassId(zone, class_id);
+  }
+
+  // User-defined structs, unions, or Abi-specific integers.
+  const auto& cls = Class::Handle(zone, type.type_class());
+  const auto& superClass = Class::Handle(zone, cls.SuperClass());
+  const bool is_struct = String::Handle(zone, superClass.UserVisibleName())
+                             .Equals(Symbols::Struct());
+  const bool is_union = String::Handle(zone, superClass.UserVisibleName())
+                            .Equals(Symbols::Union());
+  const bool is_abi_specific_int =
+      String::Handle(zone, superClass.UserVisibleName())
+          .Equals(Symbols::AbiSpecificInteger());
+  RELEASE_ASSERT(is_struct || is_union || is_abi_specific_int);
+
+  auto& pragmas = Object::Handle(zone);
+  String& pragma_name = String::Handle(zone);
+  if (is_struct || is_union) {
+    pragma_name = Symbols::vm_ffi_struct_fields().ptr();
+  } else {
+    ASSERT(is_abi_specific_int);
+    pragma_name = Symbols::vm_ffi_abi_specific_mapping().ptr();
+  }
+  Library::FindPragma(dart::Thread::Current(), /*only_core=*/false, cls,
+                      pragma_name, /*multiple=*/true, &pragmas);
+  ASSERT(!pragmas.IsNull());
+  ASSERT(pragmas.IsGrowableObjectArray());
+  const auto& pragmas_array = GrowableObjectArray::Cast(pragmas);
+  auto& pragma = Instance::Handle(zone);
+  auto& clazz = Class::Handle(zone);
+  auto& library = Library::Handle(zone);
+  String& class_symbol = String::Handle(zone);
+  if (is_struct || is_union) {
+    class_symbol = Symbols::FfiStructLayout().ptr();
+  } else {
+    ASSERT(is_abi_specific_int);
+    class_symbol = Symbols::FfiAbiSpecificMapping().ptr();
+  }
+  for (intptr_t i = 0; i < pragmas_array.Length(); i++) {
+    pragma ^= pragmas_array.At(i);
+    clazz ^= pragma.clazz();
+    library ^= clazz.library();
+    if (String::Handle(zone, clazz.UserVisibleName()).Equals(class_symbol) &&
+        String::Handle(zone, library.url()).Equals(Symbols::DartFfi())) {
+      break;
+    }
+  }
+
+  if (is_struct || is_union) {
+    return CompoundFromPragma(zone, pragma, is_struct, error);
+  }
+  ASSERT(is_abi_specific_int);
+  return AbiSpecificFromPragma(zone, pragma, cls, error);
 }
 #endif
 

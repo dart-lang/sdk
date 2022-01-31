@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // SharedObjects=ffi_test_functions
-// VMOptions=--no-enable-isolate-groups
-// VMOptions=--enable-isolate-groups --disable-heap-verification
+// VMOptions=--disable-heap-verification
 
 import 'dart:async';
 import 'dart:ffi';
@@ -17,8 +16,6 @@ import 'package:ffi/ffi.dart';
 import 'test_utils.dart' show isArtificialReloadMode;
 import '../../../../../tests/ffi/dylib_utils.dart';
 
-final bool isolateGroupsEnabled =
-    Platform.executableArguments.contains('--enable-isolate-groups');
 final bool usesDwarfStackTraces = Platform.executableArguments
     .any((entry) => RegExp('--dwarf[-_]stack[-_]traces').hasMatch(entry));
 final bool hasSymbolicStackTraces = !usesDwarfStackTraces;
@@ -223,25 +220,7 @@ Future testJitOrAot() async {
   await testFatalError();
 }
 
-Future testNotSupported() async {
-  dynamic exception;
-  try {
-    FfiBindings.createLightweightIsolate('debug-name', Pointer.fromAddress(0));
-  } catch (e) {
-    exception = e;
-  }
-  Expect.contains(
-      'Lightweight isolates need to be explicitly enabled by passing '
-      '--enable-isolate-groups.',
-      exception.toString());
-}
-
 Future main(args) async {
-  if (!isolateGroupsEnabled) {
-    await testNotSupported();
-    return;
-  }
-
   // This test should not run in hot-reload because of the way it is written
   // (embedder related code written in Dart instead of C)
   if (isArtificialReloadMode) return;

@@ -239,9 +239,9 @@ class ResultMerger {
     /// Return the index of the region in the collection of [mergedRegions] that
     /// covers exactly the same region as the [newRegion], or `-1` if there is
     /// no such region.
-    int matchingRegion(newRegion) {
-      int newOffset = newRegion.offset;
-      int newLength = newRegion.length;
+    int matchingRegion(NavigationRegion newRegion) {
+      var newOffset = newRegion.offset;
+      var newLength = newRegion.length;
       for (var i = 0; i < mergedRegions.length; i++) {
         var mergedRegion = mergedRegions[i];
         if (newOffset == mergedRegion.offset &&

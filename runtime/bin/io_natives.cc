@@ -144,7 +144,7 @@ namespace bin {
   V(SocketBase_IsBindError, 2)                                                 \
   V(Socket_Available, 1)                                                       \
   V(Socket_AvailableDatagram, 1)                                               \
-  V(Socket_CreateBindConnect, 5)                                               \
+  V(Socket_CreateBindConnect, 6)                                               \
   V(Socket_CreateUnixDomainBindConnect, 4)                                     \
   V(Socket_CreateBindDatagram, 6)                                              \
   V(Socket_CreateConnect, 4)                                                   \

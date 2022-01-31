@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.52.0';
+const String vmServiceVersion = '3.55.0';
 
 /// @optional
 const String optional = 'optional';
@@ -123,6 +123,7 @@ Map<String, Function> _typeFactories = {
   'Context': Context.parse,
   'ContextElement': ContextElement.parse,
   'CpuSamples': CpuSamples.parse,
+  'CpuSamplesEvent': CpuSamplesEvent.parse,
   'CpuSample': CpuSample.parse,
   '@Error': ErrorRef.parse,
   'Error': Error.parse,
@@ -236,6 +237,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'resume': const ['Success'],
   'setBreakpointState': const ['Breakpoint'],
   'setExceptionPauseMode': const ['Success'],
+  'setIsolatePauseMode': const ['Success'],
   'setFlag': const ['Success', 'Error'],
   'setLibraryDebuggable': const ['Success'],
   'setName': const ['Success'],
@@ -243,6 +245,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'setVMName': const ['Success'],
   'setVMTimelineFlags': const ['Success'],
   'streamCancel': const ['Success'],
+  'streamCpuSamplesWithUserTag': const ['Success'],
   'streamListen': const ['Success'],
 };
 
@@ -1078,8 +1081,33 @@ abstract class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
+  @Deprecated('Use setIsolatePauseMode instead')
   Future<Success> setExceptionPauseMode(
       String isolateId, /*ExceptionPauseMode*/ String mode);
+
+  /// The `setIsolatePauseMode` RPC is used to control if or when an isolate
+  /// will pause due to a change in execution state.
+  ///
+  /// The `shouldPauseOnExit` parameter specify whether the target isolate
+  /// should pause on exit.
+  ///
+  /// The `setExceptionPauseMode` RPC is used to control if an isolate pauses
+  /// when an exception is thrown.
+  ///
+  /// mode | meaning
+  /// ---- | -------
+  /// None | Do not pause isolate on thrown exceptions
+  /// Unhandled | Pause isolate on unhandled exceptions
+  /// All  | Pause isolate on all thrown exceptions
+  ///
+  /// If `isolateId` refers to an isolate which has exited, then the `Collected`
+  /// [Sentinel] is returned.
+  ///
+  /// This method will throw a [SentinelException] in the case a [Sentinel] is
+  /// returned.
+  Future<Success> setIsolatePauseMode(String isolateId,
+      {/*ExceptionPauseMode*/ String? exceptionPauseMode,
+      bool? shouldPauseOnExit});
 
   /// The `setFlag` RPC is used to set a VM flag at runtime. Returns an error if
   /// the named flag does not exist, the flag may not be set at runtime, or the
@@ -1101,6 +1129,7 @@ abstract class VmServiceInterface {
   /// provided value. If set to false when the profiler is already running, the
   /// profiler will be stopped but may not free its sample buffer depending on
   /// platform limitations.
+  /// - Isolate pause settings will only be applied to newly spawned isolates.
   ///
   /// See [Success].
   ///
@@ -1176,6 +1205,15 @@ abstract class VmServiceInterface {
   ///
   /// See [Success].
   Future<Success> streamCancel(String streamId);
+
+  /// The `streamCpuSamplesWithUserTag` RPC allows for clients to specify which
+  /// CPU samples collected by the profiler should be sent over the `Profiler`
+  /// stream. When called, the VM will stream `CpuSamples` events containing
+  /// `CpuSample`'s collected while a user tag contained in `userTags` was
+  /// active.
+  ///
+  /// See [Success].
+  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags);
 
   /// The `streamListen` RPC subscribes to a stream in the VM. Once subscribed,
   /// the client will begin receiving events from the stream.
@@ -1549,9 +1587,17 @@ class VmServerConnection {
           );
           break;
         case 'setExceptionPauseMode':
+          // ignore: deprecated_member_use_from_same_package
           response = await _serviceImplementation.setExceptionPauseMode(
             params!['isolateId'],
             params['mode'],
+          );
+          break;
+        case 'setIsolatePauseMode':
+          response = await _serviceImplementation.setIsolatePauseMode(
+            params!['isolateId'],
+            exceptionPauseMode: params['exceptionPauseMode'],
+            shouldPauseOnExit: params['shouldPauseOnExit'],
           );
           break;
         case 'setFlag':
@@ -1603,6 +1649,11 @@ class VmServerConnection {
           }
           await existing.cancel();
           response = Success();
+          break;
+        case 'streamCpuSamplesWithUserTag':
+          response = await _serviceImplementation.streamCpuSamplesWithUserTag(
+            List<String>.from(params!['userTags'] ?? []),
+          );
           break;
         case 'streamListen':
           var id = params!['streamId'];
@@ -2081,10 +2132,22 @@ class VmService implements VmServiceInterface {
         'enable': enable
       });
 
+  @Deprecated('Use setIsolatePauseMode instead')
   @override
   Future<Success> setExceptionPauseMode(
           String isolateId, /*ExceptionPauseMode*/ String mode) =>
       _call('setExceptionPauseMode', {'isolateId': isolateId, 'mode': mode});
+
+  @override
+  Future<Success> setIsolatePauseMode(String isolateId,
+          {/*ExceptionPauseMode*/ String? exceptionPauseMode,
+          bool? shouldPauseOnExit}) =>
+      _call('setIsolatePauseMode', {
+        'isolateId': isolateId,
+        if (exceptionPauseMode != null)
+          'exceptionPauseMode': exceptionPauseMode,
+        if (shouldPauseOnExit != null) 'shouldPauseOnExit': shouldPauseOnExit,
+      });
 
   @override
   Future<Response> setFlag(String name, String value) =>
@@ -2119,6 +2182,10 @@ class VmService implements VmServiceInterface {
   @override
   Future<Success> streamCancel(String streamId) =>
       _call('streamCancel', {'streamId': streamId});
+
+  @override
+  Future<Success> streamCpuSamplesWithUserTag(List<String> userTags) =>
+      _call('streamCpuSamplesWithUserTag', {'userTags': userTags});
 
   @override
   Future<Success> streamListen(String streamId) =>
@@ -3611,6 +3678,92 @@ class CpuSamples extends Response {
   String toString() => '[CpuSamples]';
 }
 
+class CpuSamplesEvent {
+  static CpuSamplesEvent? parse(Map<String, dynamic>? json) =>
+      json == null ? null : CpuSamplesEvent._fromJson(json);
+
+  /// The sampling rate for the profiler in microseconds.
+  int? samplePeriod;
+
+  /// The maximum possible stack depth for samples.
+  int? maxStackDepth;
+
+  /// The number of samples returned.
+  int? sampleCount;
+
+  /// The timespan the set of returned samples covers, in microseconds
+  /// (deprecated).
+  ///
+  /// Note: this property is deprecated and will always return -1. Use
+  /// `timeExtentMicros` instead.
+  int? timeSpan;
+
+  /// The start of the period of time in which the returned samples were
+  /// collected.
+  int? timeOriginMicros;
+
+  /// The duration of time covered by the returned samples.
+  int? timeExtentMicros;
+
+  /// The process ID for the VM.
+  int? pid;
+
+  /// A list of references to functions seen in the relevant samples. These
+  /// references can be looked up using the indicies provided in a `CpuSample`
+  /// `stack` to determine which function was on the stack.
+  List<dynamic>? functions;
+
+  /// A list of samples collected in the range `[timeOriginMicros,
+  /// timeOriginMicros + timeExtentMicros]`
+  List<CpuSample>? samples;
+
+  CpuSamplesEvent({
+    required this.samplePeriod,
+    required this.maxStackDepth,
+    required this.sampleCount,
+    required this.timeSpan,
+    required this.timeOriginMicros,
+    required this.timeExtentMicros,
+    required this.pid,
+    required this.functions,
+    required this.samples,
+  });
+
+  CpuSamplesEvent._fromJson(Map<String, dynamic> json) {
+    samplePeriod = json['samplePeriod'] ?? -1;
+    maxStackDepth = json['maxStackDepth'] ?? -1;
+    sampleCount = json['sampleCount'] ?? -1;
+    timeSpan = json['timeSpan'] ?? -1;
+    timeOriginMicros = json['timeOriginMicros'] ?? -1;
+    timeExtentMicros = json['timeExtentMicros'] ?? -1;
+    pid = json['pid'] ?? -1;
+    functions = List<dynamic>.from(
+        createServiceObject(json['functions'], const ['dynamic']) as List? ??
+            []);
+    samples = List<CpuSample>.from(
+        createServiceObject(json['samples'], const ['CpuSample']) as List? ??
+            []);
+  }
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+    json.addAll({
+      'samplePeriod': samplePeriod,
+      'maxStackDepth': maxStackDepth,
+      'sampleCount': sampleCount,
+      'timeSpan': timeSpan,
+      'timeOriginMicros': timeOriginMicros,
+      'timeExtentMicros': timeExtentMicros,
+      'pid': pid,
+      'functions': functions?.map((f) => f.toJson()).toList(),
+      'samples': samples?.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[CpuSamplesEvent]';
+}
+
 /// See [getCpuSamples] and [CpuSamples].
 class CpuSample {
   static CpuSample? parse(Map<String, dynamic>? json) =>
@@ -4004,7 +4157,7 @@ class Event extends Response {
 
   /// A CPU profile containing recent samples.
   @optional
-  CpuSamples? cpuSamples;
+  CpuSamplesEvent? cpuSamples;
 
   /// Binary data associated with the event.
   ///
@@ -4085,8 +4238,9 @@ class Event extends Response {
     last = json['last'];
     updatedTag = json['updatedTag'];
     previousTag = json['previousTag'];
-    cpuSamples = createServiceObject(json['cpuSamples'], const ['CpuSamples'])
-        as CpuSamples?;
+    cpuSamples =
+        createServiceObject(json['cpuSamples'], const ['CpuSamplesEvent'])
+            as CpuSamplesEvent?;
     data = json['data'];
   }
 

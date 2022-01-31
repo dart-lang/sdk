@@ -24,7 +24,7 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testPath = convertPath('/home/test/lib/test.dart');
+    testPath = convertPath('$testPackageLibPath/test.dart');
   }
 
   Future<Outline> _computeOutline(String code) async {
@@ -123,7 +123,7 @@ MyWidget
     void writeOutline(Outline outline, String indent) {
       buffer.write(indent);
       buffer.writeln(outline.element.name);
-      for (var child in outline.children ?? const []) {
+      for (var child in outline.children ?? const <Outline>[]) {
         writeOutline(child, '$indent  ');
       }
     }

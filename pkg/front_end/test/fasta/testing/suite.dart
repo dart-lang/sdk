@@ -40,6 +40,9 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
 import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
+    show IncrementalCompilerResult;
+
 import 'package:front_end/src/api_prototype/standard_file_system.dart'
     show StandardFileSystem;
 
@@ -63,11 +66,11 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
-import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
-    show ClassHierarchyNode;
-
-import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart'
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart'
     show ClassHierarchyBuilder;
+
+import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart'
+    show ClassHierarchyNode;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -82,10 +85,10 @@ import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyComponent;
 
-import 'package:front_end/src/fasta/util/direct_parser_ast.dart'
-    show DirectParserASTContentVisitor, getAST;
+import 'package:front_end/src/fasta/util/parser_ast.dart'
+    show ParserAstVisitor, getAST;
 
-import 'package:front_end/src/fasta/util/direct_parser_ast_helper.dart';
+import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 
 import 'package:kernel/ast.dart'
     show
@@ -168,7 +171,7 @@ import '../../utils/validating_instrumentation.dart'
 
 export 'package:testing/testing.dart' show Chain, runMe;
 
-const String ENABLE_FULL_COMPILE = " full compile ";
+const String COMPILATION_MODE = " compilation mode ";
 
 const String UPDATE_EXPECTATIONS = "updateExpectations";
 const String UPDATE_COMMENTS = "updateComments";
@@ -223,7 +226,7 @@ const String KERNEL_TEXT_SERIALIZATION = " kernel text serialization ";
 final Expectation runtimeError = ExpectationSet.Default["RuntimeError"];
 
 const String experimentalFlagOptions = '--enable-experiment=';
-const Option<String> overwriteCurrentSdkVersion =
+const Option<String?> overwriteCurrentSdkVersion =
     const Option('--overwrite-current-sdk-version', const StringValue());
 const Option<bool> noVerifyCmd =
     const Option('--no-verify', const BoolValue(false));
@@ -375,55 +378,61 @@ class FastaContext extends ChainContext with MatchContext {
       this.skipVm,
       this.semiFuzz,
       bool kernelTextSerialization,
-      bool fullCompile,
+      CompileMode compileMode,
       this.verify,
       this.soundNullSafety)
       : steps = <Step>[
-          new Outline(fullCompile, updateComments: updateComments),
+          new Outline(compileMode, updateComments: updateComments),
           const Print(),
-          new Verify(fullCompile)
+          new Verify(compileMode)
         ] {
-    String fullPrefix;
-    String outlinePrefix;
+    String prefix;
+    String infix;
     if (soundNullSafety) {
-      fullPrefix = '.strong';
-      outlinePrefix = '.strong.outline';
+      prefix = '.strong';
     } else {
-      fullPrefix = '.weak';
-      outlinePrefix = '.weak.outline';
+      prefix = '.weak';
+    }
+    switch (compileMode) {
+      case CompileMode.outline:
+        infix = '.outline';
+        break;
+      case CompileMode.modular:
+        infix = '.modular';
+        break;
+      case CompileMode.full:
+        infix = '';
+        break;
     }
 
-    if (!fullCompile) {
-      // If not doing a full compile this is the only expect file so we run the
-      // extra constant evaluation now. If we do a full compilation, we'll do
-      // if after the transformation. That also ensures we don't get the same
-      // 'extra constant evaluation' output twice (in .transformed and not).
+    if (compileMode == CompileMode.outline) {
+      // If doing an outline compile, this is the only expect file so we run the
+      // extra constant evaluation now. If we do a full or modular compilation,
+      // we'll do if after the transformation. That also ensures we don't get
+      // the same 'extra constant evaluation' output twice (in .transformed and
+      // not).
       steps.add(const StressConstantEvaluatorStep());
     }
     if (!ignoreExpectations) {
-      steps.add(new MatchExpectation(
-          fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
-          serializeFirst: false,
-          isLastMatchStep: false));
-      steps.add(new MatchExpectation(
-          fullCompile ? "$fullPrefix.expect" : "$outlinePrefix.expect",
-          serializeFirst: true,
-          isLastMatchStep: true));
+      steps.add(new MatchExpectation("$prefix$infix.expect",
+          serializeFirst: false, isLastMatchStep: false));
+      steps.add(new MatchExpectation("$prefix$infix.expect",
+          serializeFirst: true, isLastMatchStep: true));
     }
     steps.add(const TypeCheck());
     steps.add(const EnsureNoErrors());
     if (kernelTextSerialization) {
       steps.add(const KernelTextSerialization());
     }
-    if (fullCompile) {
+    if (compileMode == CompileMode.full) {
       steps.add(const Transform());
-      steps.add(const Verify(true));
+      steps.add(const Verify(CompileMode.full));
       steps.add(const StressConstantEvaluatorStep());
       if (!ignoreExpectations) {
-        steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
+        steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
             serializeFirst: false, isLastMatchStep: updateExpectations));
         if (!updateExpectations) {
-          steps.add(new MatchExpectation("$fullPrefix.transformed.expect",
+          steps.add(new MatchExpectation("$prefix$infix.transformed.expect",
               serializeFirst: true, isLastMatchStep: true));
         }
       }
@@ -479,7 +488,7 @@ class FastaContext extends ChainContext with MatchContext {
               ParsedOptions.parse(arguments, folderOptionsSpecification);
           List<String> experimentalFlagsArguments =
               Options.enableExperiment.read(parsedOptions) ?? <String>[];
-          String overwriteCurrentSdkVersionArgument =
+          String? overwriteCurrentSdkVersionArgument =
               overwriteCurrentSdkVersion.read(parsedOptions);
           enableUnscheduledExperiments =
               Options.enableUnscheduledExperiments.read(parsedOptions);
@@ -764,7 +773,7 @@ class FastaContext extends ChainContext with MatchContext {
       "verify",
       KERNEL_TEXT_SERIALIZATION,
       "platformBinaries",
-      ENABLE_FULL_COMPILE,
+      COMPILATION_MODE,
     };
     checkEnvironment(environment, knownEnvironmentKeys);
 
@@ -812,7 +821,7 @@ class FastaContext extends ChainContext with MatchContext {
         skipVm,
         semiFuzz,
         kernelTextSerialization,
-        environment.containsKey(ENABLE_FULL_COMPILE),
+        compileModeFromName(environment[COMPILATION_MODE]),
         verify,
         soundNullSafety));
   }
@@ -1207,7 +1216,9 @@ class FuzzCompiles
     IncrementalCompiler incrementalCompiler =
         new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
-    final Component component = await incrementalCompiler.computeDelta();
+    IncrementalCompilerResult incrementalCompilerResult =
+        await incrementalCompiler.computeDelta();
+    final Component component = incrementalCompilerResult.component;
     if (!canSerialize(component)) {
       return new Result<ComponentResult>(result, semiFuzzFailure,
           "Couldn't serialize initial component for fuzzing");
@@ -1237,8 +1248,9 @@ class FuzzCompiles
     compilationSetup.errors.clear();
     for (Uri importUri in userLibraries) {
       incrementalCompiler.invalidate(importUri);
-      final Component newComponent =
+      final IncrementalCompilerResult newResult =
           await incrementalCompiler.computeDelta(fullComponent: true);
+      final Component newComponent = newResult.component;
       if (!canSerialize(newComponent)) {
         return new Result<ComponentResult>(
             result, semiFuzzFailure, "Couldn't serialize fuzzed component");
@@ -1329,7 +1341,9 @@ class FuzzCompiles
     IncrementalCompiler incrementalCompiler =
         new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
-    Component initialComponent = await incrementalCompiler.computeDelta();
+    IncrementalCompilerResult initialResult =
+        await incrementalCompiler.computeDelta();
+    Component initialComponent = initialResult.component;
     if (!canSerialize(initialComponent)) {
       return new Result<ComponentResult>(result, semiFuzzFailure,
           "Couldn't serialize initial component for fuzzing");
@@ -1343,13 +1357,14 @@ class FuzzCompiles
     // Create lookup-table from file uri to whatever.
     Map<Uri, LibraryBuilder> builders = {};
     for (LibraryBuilder builder
-        in incrementalCompiler.userCode!.loader.libraryBuilders) {
+        in incrementalCompiler.kernelTargetForTesting!.loader.libraryBuilders) {
       if (builder.importUri.scheme == "dart" && !builder.isSynthetic) continue;
       builders[builder.fileUri] = builder;
       for (LibraryPart part in builder.library.parts) {
         Uri thisPartUri = builder.importUri.resolve(part.partUri);
         if (thisPartUri.scheme == "package") {
-          thisPartUri = incrementalCompiler.userCode!.uriTranslator
+          thisPartUri = incrementalCompiler
+              .kernelTargetForTesting!.uriTranslator
               .translate(thisPartUri)!;
         }
         builders[thisPartUri] = builder;
@@ -1392,7 +1407,9 @@ class FuzzCompiles
         incrementalCompiler = new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
         try {
-          Component component = await incrementalCompiler.computeDelta();
+          IncrementalCompilerResult incrementalCompilerResult =
+              await incrementalCompiler.computeDelta();
+          Component component = incrementalCompilerResult.component;
           if (!canSerialize(component)) {
             return new Result<ComponentResult>(
                 result, semiFuzzFailure, "Couldn't serialize fuzzed component");
@@ -1465,13 +1482,13 @@ class FuzzAstVisitorSorterChunk {
 
 enum FuzzSorterState { nonSortable, importExportSortable, sortableRest }
 
-class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
+class FuzzAstVisitorSorter extends ParserAstVisitor {
   final Uint8List bytes;
   final String asString;
   final bool nnbd;
 
   FuzzAstVisitorSorter(this.bytes, this.nnbd) : asString = utf8.decode(bytes) {
-    DirectParserASTContentCompilationUnitEnd ast = getAST(bytes,
+    CompilationUnitEnd ast = getAST(bytes,
         includeBody: false,
         includeComments: true,
         enableExtensionMethods: true,
@@ -1580,48 +1597,45 @@ class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitExport(DirectParserASTContentExportEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitExport(ExportEnd node, Token startInclusive, Token endInclusive) {
     handleData(
         FuzzSorterState.importExportSortable, startInclusive, endInclusive);
   }
 
   @override
-  void visitImport(DirectParserASTContentImportEnd node, Token startInclusive,
-      Token? endInclusive) {
+  void visitImport(ImportEnd node, Token startInclusive, Token? endInclusive) {
     handleData(
         FuzzSorterState.importExportSortable, startInclusive, endInclusive!);
   }
 
   @override
-  void visitClass(DirectParserASTContentClassDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitClass(
+      ClassDeclarationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitEnum(DirectParserASTContentEnumEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitEnum(EnumEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitExtension(DirectParserASTContentExtensionDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitExtension(
+      ExtensionDeclarationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitLibraryName(DirectParserASTContentLibraryNameEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitLibraryName(
+      LibraryNameEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
   }
 
   @override
-  void visitMetadata(DirectParserASTContentMetadataEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitMetadata(
+      MetadataEnd node, Token startInclusive, Token endInclusive) {
     if (metadataStart == null) {
       metadataStart = startInclusive;
       metadataEndInclusive = endInclusive;
@@ -1631,46 +1645,43 @@ class FuzzAstVisitorSorter extends DirectParserASTContentVisitor {
   }
 
   @override
-  void visitMixin(DirectParserASTContentMixinDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitMixin(
+      MixinDeclarationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitNamedMixin(DirectParserASTContentNamedMixinApplicationEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitNamedMixin(
+      NamedMixinApplicationEnd node, Token startInclusive, Token endInclusive) {
     // TODO(jensj): Possibly sort stuff inside of this too.
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitPart(DirectParserASTContentPartEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitPart(PartEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
   }
 
   @override
-  void visitPartOf(DirectParserASTContentPartOfEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitPartOf(PartOfEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.nonSortable, startInclusive, endInclusive);
   }
 
   @override
-  void visitTopLevelFields(DirectParserASTContentTopLevelFieldsEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitTopLevelFields(
+      TopLevelFieldsEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitTopLevelMethod(DirectParserASTContentTopLevelMethodEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitTopLevelMethod(
+      TopLevelMethodEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 
   @override
-  void visitTypedef(DirectParserASTContentTypedefEnd node, Token startInclusive,
-      Token endInclusive) {
+  void visitTypedef(TypedefEnd node, Token startInclusive, Token endInclusive) {
     handleData(FuzzSorterState.sortableRest, startInclusive, endInclusive);
   }
 }
@@ -1772,13 +1783,15 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
 }
 
 Set<Uri> createUserLibrariesImportUriSet(
-    Component component, UriTranslator uriTranslator) {
+    Component component, UriTranslator uriTranslator,
+    {Set<Library> excludedLibraries: const {}}) {
   Set<Uri> knownUris =
       component.libraries.map((Library library) => library.importUri).toSet();
   Set<Uri> userLibraries = component.libraries
       .where((Library library) =>
           library.importUri.scheme != 'dart' &&
-          library.importUri.scheme != 'package')
+          library.importUri.scheme != 'package' &&
+          !excludedLibraries.contains(library))
       .map((Library library) => library.importUri)
       .toSet();
   // Mark custom "dart:" libraries defined in the test-specific libraries.json
@@ -1792,19 +1805,47 @@ Set<Uri> createUserLibrariesImportUriSet(
   return userLibraries.intersection(knownUris);
 }
 
-class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
-  final bool fullCompile;
+enum CompileMode {
+  /// Compiles only the outline of the test and its linked dependencies.
+  outline,
 
-  const Outline(this.fullCompile, {this.updateComments: false});
+  /// Fully compiles the test but compiles only the outline of its linked
+  /// dependencies.
+  ///
+  /// This mimics how modular compilation is performed with dartdevc.
+  modular,
+
+  /// Fully compiles the test and its linked dependencies.
+  full,
+}
+
+CompileMode compileModeFromName(String? name) {
+  for (CompileMode mode in CompileMode.values) {
+    if (name == mode.name) {
+      return mode;
+    }
+  }
+  return CompileMode.outline;
+}
+
+class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
+  final CompileMode compileMode;
+
+  const Outline(this.compileMode, {this.updateComments: false});
 
   final bool updateComments;
 
   @override
   String get name {
-    return fullCompile ? "compile" : "outline";
+    switch (compileMode) {
+      case CompileMode.outline:
+        return "outline";
+      case CompileMode.modular:
+        return "modular";
+      case CompileMode.full:
+        return "compile";
+    }
   }
-
-  bool get isCompiler => fullCompile;
 
   @override
   Future<Result<ComponentResult>> run(
@@ -1834,7 +1875,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           compilationSetup.errors.addAll(compilationSetup.testOptions.errors!);
         }
         Component p = (await sourceTarget.buildOutlines())!;
-        if (fullCompile) {
+        if (compileMode == CompileMode.full) {
           p = (await sourceTarget.buildComponent(
               verify: compilationSetup.folderOptions.noVerify
                   ? false
@@ -1880,6 +1921,13 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       if (description.uri.pathSegments.last.endsWith(".no_link.dart")) {
         alsoAppend = null;
       }
+
+      Set<Library>? excludedLibraries;
+      if (compileMode == CompileMode.modular) {
+        excludedLibraries = alsoAppend?.libraries.toSet();
+      }
+      excludedLibraries ??= const {};
+
       KernelTarget sourceTarget = await outlineInitialization(context,
           description, compilationSetup.options, <Uri>[description.uri],
           alsoAppend: alsoAppend);
@@ -1888,9 +1936,10 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       await instrumentation.loadExpectations(description.uri);
       sourceTarget.loader.instrumentation = instrumentation;
       Component p = (await sourceTarget.buildOutlines())!;
-      Set<Uri> userLibraries =
-          createUserLibrariesImportUriSet(p, sourceTarget.uriTranslator);
-      if (fullCompile) {
+      Set<Uri> userLibraries = createUserLibrariesImportUriSet(
+          p, sourceTarget.uriTranslator,
+          excludedLibraries: excludedLibraries);
+      if (compileMode != CompileMode.outline) {
         p = (await sourceTarget.buildComponent(
             verify: compilationSetup.folderOptions.noVerify
                 ? false
@@ -1993,9 +2042,9 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
 }
 
 class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
-  final bool fullCompile;
+  final CompileMode compileMode;
 
-  const Verify(this.fullCompile);
+  const Verify(this.compileMode);
 
   @override
   String get name => "verify";
@@ -2026,7 +2075,7 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
       compilerContext.uriToSource.addAll(component.uriToSource);
       List<LocatedMessage> verificationErrors = verifyComponent(
           component, result.options.target,
-          isOutline: !fullCompile, skipPlatform: true);
+          isOutline: compileMode == CompileMode.outline, skipPlatform: true);
       assert(verificationErrors.isEmpty || messages.isNotEmpty);
       if (messages.isEmpty) {
         return pass(result);
@@ -2143,7 +2192,7 @@ class MatchHierarchy
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri.scheme == "file");
     KernelTarget target = result.sourceTarget;
-    ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
+    ClassHierarchyBuilder hierarchy = target.loader.hierarchyBuilder;
     StringBuffer sb = new StringBuffer();
     for (ClassHierarchyNode node in hierarchy.nodes.values) {
       sb.writeln(node);

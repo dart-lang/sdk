@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "opt_out_lib.dart" as opt;
+
+import "org-dartlang-testcase:///opt_out_lib.dart";
+
+static method foo(dynamic d, void v, core::Object? onull, core::Object o, core::String? snull, core::String s) → dynamic {
+  opt::f<dynamic>(d);
+  opt::f<void>(v);
+  opt::f<core::Object?>(onull);
+  opt::f<core::Object>(o);
+  opt::f<core::String?>(snull);
+  opt::f<core::String>(s);
+}
+static method main() → dynamic {}
+
+library;
+import self as opt;
+import "dart:core" as core;
+
+static method f<T extends core::Object* = dynamic>(opt::f::T* a) → opt::f::T*
+  return a;

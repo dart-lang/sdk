@@ -49,7 +49,7 @@ class YamlNodeLocator {
     } else if (node is YamlMap) {
       var nodeMap = node.nodes;
       for (var entry in nodeMap.entries) {
-        _searchWithin(path, entry.key);
+        _searchWithin(path, entry.key as YamlNode);
         if (path.isNotEmpty) {
           path.add(node);
           return;

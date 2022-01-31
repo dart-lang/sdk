@@ -1,0 +1,248 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "infer_constraints_from_opt_in_lib.dart" as inf;
+import "dart:collection" as col;
+
+import "org-dartlang-testcase:///infer_constraints_from_opt_in_lib.dart";
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  method baz(inf::B* b) → dynamic {
+    b.{inf::B::foo}(b.{inf::B::bar}<core::List<core::int*>*>(){() →* core::List<core::int*>*}){(core::List<core::int*>*) →* dynamic};
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  core::List<dynamic>* local0 = <dynamic>[];
+  core::List<inf::C<dynamic>*>* local1a = <inf::C<dynamic>*>[inf::field1];
+  core::List<inf::C<dynamic>*>* local1b = <inf::C<dynamic>*>[inf::field2];
+  core::List<inf::C<core::int*>*>* local1c = <inf::C<core::int*>*>[inf::field3];
+  core::List<inf::C<core::int*>*>* local1d = <inf::C<core::int*>*>[inf::field4];
+  core::List<inf::C<core::int*>*>* local1e = <inf::C<core::int*>*>[inf::field5];
+  core::List<inf::C<core::int*>*>* local1f = <inf::C<core::int*>*>[inf::field6];
+  core::List<core::int*>* local1g = <core::int*>[inf::field7];
+  core::List<core::int*>* local1h = <core::int*>[inf::field8];
+  core::List<Null>* local1i = <Null>[null];
+  core::Set<inf::C<dynamic>*>* local2a = block {
+    final core::Set<inf::C<dynamic>*>* #t1 = col::LinkedHashSet::•<inf::C<dynamic>*>();
+    #t1.{core::Set::add}{Invariant}(inf::field1){(inf::C<dynamic>*) →* core::bool*};
+    #t1.{core::Set::add}{Invariant}(null){(inf::C<dynamic>*) →* core::bool*};
+  } =>#t1;
+  core::Set<inf::C<dynamic>*>* local2b = block {
+    final core::Set<inf::C<dynamic>*>* #t2 = col::LinkedHashSet::•<inf::C<dynamic>*>();
+    #t2.{core::Set::add}{Invariant}(inf::field2){(inf::C<dynamic>*) →* core::bool*};
+    #t2.{core::Set::add}{Invariant}(null){(inf::C<dynamic>*) →* core::bool*};
+  } =>#t2;
+  core::Set<inf::C<core::int*>*>* local2c = block {
+    final core::Set<inf::C<core::int*>*>* #t3 = col::LinkedHashSet::•<inf::C<core::int*>*>();
+    #t3.{core::Set::add}{Invariant}(inf::field3){(inf::C<core::int*>*) →* core::bool*};
+    #t3.{core::Set::add}{Invariant}(null){(inf::C<core::int*>*) →* core::bool*};
+  } =>#t3;
+  core::Set<inf::C<core::int*>*>* local2d = block {
+    final core::Set<inf::C<core::int*>*>* #t4 = col::LinkedHashSet::•<inf::C<core::int*>*>();
+    #t4.{core::Set::add}{Invariant}(inf::field4){(inf::C<core::int*>*) →* core::bool*};
+    #t4.{core::Set::add}{Invariant}(null){(inf::C<core::int*>*) →* core::bool*};
+  } =>#t4;
+  core::Set<inf::C<core::int*>*>* local2e = block {
+    final core::Set<inf::C<core::int*>*>* #t5 = col::LinkedHashSet::•<inf::C<core::int*>*>();
+    #t5.{core::Set::add}{Invariant}(inf::field5){(inf::C<core::int*>*) →* core::bool*};
+    #t5.{core::Set::add}{Invariant}(null){(inf::C<core::int*>*) →* core::bool*};
+  } =>#t5;
+  core::Set<inf::C<core::int*>*>* local2f = block {
+    final core::Set<inf::C<core::int*>*>* #t6 = col::LinkedHashSet::•<inf::C<core::int*>*>();
+    #t6.{core::Set::add}{Invariant}(inf::field6){(inf::C<core::int*>*) →* core::bool*};
+    #t6.{core::Set::add}{Invariant}(null){(inf::C<core::int*>*) →* core::bool*};
+  } =>#t6;
+  core::Set<core::int*>* local2g = block {
+    final core::Set<core::int*>* #t7 = col::LinkedHashSet::•<core::int*>();
+    #t7.{core::Set::add}{Invariant}(inf::field7){(core::int*) →* core::bool*};
+    #t7.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
+  } =>#t7;
+  core::Set<core::int*>* local2h = block {
+    final core::Set<core::int*>* #t8 = col::LinkedHashSet::•<core::int*>();
+    #t8.{core::Set::add}{Invariant}(inf::field8){(core::int*) →* core::bool*};
+    #t8.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
+  } =>#t8;
+  core::Set<inf::C<dynamic>*>* local3a = block {
+    final core::Set<inf::C<dynamic>*>* #t9 = col::LinkedHashSet::•<inf::C<dynamic>*>();
+    #t9.{core::Set::add}{Invariant}(null){(inf::C<dynamic>*) →* core::bool*};
+    #t9.{core::Set::add}{Invariant}(inf::field1){(inf::C<dynamic>*) →* core::bool*};
+  } =>#t9;
+  core::Set<inf::C<dynamic>*>* local3b = block {
+    final core::Set<inf::C<dynamic>*>* #t10 = col::LinkedHashSet::•<inf::C<dynamic>*>();
+    #t10.{core::Set::add}{Invariant}(null){(inf::C<dynamic>*) →* core::bool*};
+    #t10.{core::Set::add}{Invariant}(inf::field2){(inf::C<dynamic>*) →* core::bool*};
+  } =>#t10;
+  core::Set<inf::C<core::int*>*>* local3c = block {
+    final core::Set<inf::C<core::int*>*>* #t11 = col::LinkedHashSet::•<inf::C<core::int*>*>();
+    #t11.{core::Set::add}{Invariant}(null){(inf::C<core::int*>*) →* core::bool*};
+    #t11.{core::Set::add}{Invariant}(inf::field3){(inf::C<core::int*>*) →* core::bool*};
+  } =>#t11;
+  core::Set<inf::C<core::int*>*>* local3d = block {
+    final core::Set<inf::C<core::int*>*>* #t12 = col::LinkedHashSet::•<inf::C<core::int*>*>();
+    #t12.{core::Set::add}{Invariant}(null){(inf::C<core::int*>*) →* core::bool*};
+    #t12.{core::Set::add}{Invariant}(inf::field4){(inf::C<core::int*>*) →* core::bool*};
+  } =>#t12;
+  core::Set<inf::C<core::int*>*>* local3e = block {
+    final core::Set<inf::C<core::int*>*>* #t13 = col::LinkedHashSet::•<inf::C<core::int*>*>();
+    #t13.{core::Set::add}{Invariant}(null){(inf::C<core::int*>*) →* core::bool*};
+    #t13.{core::Set::add}{Invariant}(inf::field5){(inf::C<core::int*>*) →* core::bool*};
+  } =>#t13;
+  core::Set<inf::C<core::int*>*>* local3f = block {
+    final core::Set<inf::C<core::int*>*>* #t14 = col::LinkedHashSet::•<inf::C<core::int*>*>();
+    #t14.{core::Set::add}{Invariant}(null){(inf::C<core::int*>*) →* core::bool*};
+    #t14.{core::Set::add}{Invariant}(inf::field6){(inf::C<core::int*>*) →* core::bool*};
+  } =>#t14;
+  core::Set<core::int*>* local3g = block {
+    final core::Set<core::int*>* #t15 = col::LinkedHashSet::•<core::int*>();
+    #t15.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
+    #t15.{core::Set::add}{Invariant}(inf::field7){(core::int*) →* core::bool*};
+  } =>#t15;
+  core::Set<core::int*>* local3h = block {
+    final core::Set<core::int*>* #t16 = col::LinkedHashSet::•<core::int*>();
+    #t16.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
+    #t16.{core::Set::add}{Invariant}(inf::field8){(core::int*) →* core::bool*};
+  } =>#t16;
+}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/infer_constraints_from_opt_in_lib.dart:11:9: Error: Field 'field5' should be initialized because its type 'C<int?>' doesn't allow null.
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/infer_constraints_from_opt_in_lib.dart'.
+// C<int?> field5;
+//         ^^^^^^
+//
+// pkg/front_end/testcases/nnbd_mixed/infer_constraints_from_opt_in_lib.dart:13:5: Error: Field 'field7' should be initialized because its type 'int' doesn't allow null.
+// int field7;
+//     ^^^^^^
+//
+import self as inf;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class C<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → inf::C<inf::C::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → inf::B
+    : super core::Object::•()
+    ;
+  abstract method bar<X extends core::List<core::int?>?>() → inf::B::bar::X%;
+  abstract method foo(core::List<core::int> list) → dynamic;
+}
+static field inf::C<dynamic> field1 = new inf::C::•<dynamic>();
+static field inf::C<dynamic>? field2;
+static field inf::C<core::int> field3 = new inf::C::•<core::int>();
+static field inf::C<core::int>? field4;
+static field inf::C<core::int?> field5;
+static field inf::C<core::int?>? field6;
+static field core::int field7;
+static field core::int? field8;
+static method method() → dynamic {
+  core::List<dynamic> local0 = <dynamic>[];
+  core::List<inf::C<dynamic>> local1a = <inf::C<dynamic>>[inf::field1];
+  core::List<inf::C<dynamic>?> local1b = <inf::C<dynamic>?>[inf::field2];
+  core::List<inf::C<core::int>> local1c = <inf::C<core::int>>[inf::field3];
+  core::List<inf::C<core::int>?> local1d = <inf::C<core::int>?>[inf::field4];
+  core::List<inf::C<core::int?>> local1e = <inf::C<core::int?>>[inf::field5];
+  core::List<inf::C<core::int?>?> local1f = <inf::C<core::int?>?>[inf::field6];
+  core::List<core::int> local1g = <core::int>[inf::field7];
+  core::List<core::int?> local1h = <core::int?>[inf::field8];
+  core::List<Null> local1i = <Null>[null];
+  core::Set<inf::C<dynamic>?> local2a = block {
+    final core::Set<inf::C<dynamic>?> #t17 = col::LinkedHashSet::•<inf::C<dynamic>?>();
+    #t17.{core::Set::add}{Invariant}(inf::field1){(inf::C<dynamic>?) → core::bool};
+    #t17.{core::Set::add}{Invariant}(null){(inf::C<dynamic>?) → core::bool};
+  } =>#t17;
+  core::Set<inf::C<dynamic>?> local2b = block {
+    final core::Set<inf::C<dynamic>?> #t18 = col::LinkedHashSet::•<inf::C<dynamic>?>();
+    #t18.{core::Set::add}{Invariant}(inf::field2){(inf::C<dynamic>?) → core::bool};
+    #t18.{core::Set::add}{Invariant}(null){(inf::C<dynamic>?) → core::bool};
+  } =>#t18;
+  core::Set<inf::C<core::int>?> local2c = block {
+    final core::Set<inf::C<core::int>?> #t19 = col::LinkedHashSet::•<inf::C<core::int>?>();
+    #t19.{core::Set::add}{Invariant}(inf::field3){(inf::C<core::int>?) → core::bool};
+    #t19.{core::Set::add}{Invariant}(null){(inf::C<core::int>?) → core::bool};
+  } =>#t19;
+  core::Set<inf::C<core::int>?> local2d = block {
+    final core::Set<inf::C<core::int>?> #t20 = col::LinkedHashSet::•<inf::C<core::int>?>();
+    #t20.{core::Set::add}{Invariant}(inf::field4){(inf::C<core::int>?) → core::bool};
+    #t20.{core::Set::add}{Invariant}(null){(inf::C<core::int>?) → core::bool};
+  } =>#t20;
+  core::Set<inf::C<core::int?>?> local2e = block {
+    final core::Set<inf::C<core::int?>?> #t21 = col::LinkedHashSet::•<inf::C<core::int?>?>();
+    #t21.{core::Set::add}{Invariant}(inf::field5){(inf::C<core::int?>?) → core::bool};
+    #t21.{core::Set::add}{Invariant}(null){(inf::C<core::int?>?) → core::bool};
+  } =>#t21;
+  core::Set<inf::C<core::int?>?> local2f = block {
+    final core::Set<inf::C<core::int?>?> #t22 = col::LinkedHashSet::•<inf::C<core::int?>?>();
+    #t22.{core::Set::add}{Invariant}(inf::field6){(inf::C<core::int?>?) → core::bool};
+    #t22.{core::Set::add}{Invariant}(null){(inf::C<core::int?>?) → core::bool};
+  } =>#t22;
+  core::Set<core::int?> local2g = block {
+    final core::Set<core::int?> #t23 = col::LinkedHashSet::•<core::int?>();
+    #t23.{core::Set::add}{Invariant}(inf::field7){(core::int?) → core::bool};
+    #t23.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t23;
+  core::Set<core::int?> local2h = block {
+    final core::Set<core::int?> #t24 = col::LinkedHashSet::•<core::int?>();
+    #t24.{core::Set::add}{Invariant}(inf::field8){(core::int?) → core::bool};
+    #t24.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+  } =>#t24;
+  core::Set<inf::C<dynamic>?> local3a = block {
+    final core::Set<inf::C<dynamic>?> #t25 = col::LinkedHashSet::•<inf::C<dynamic>?>();
+    #t25.{core::Set::add}{Invariant}(null){(inf::C<dynamic>?) → core::bool};
+    #t25.{core::Set::add}{Invariant}(inf::field1){(inf::C<dynamic>?) → core::bool};
+  } =>#t25;
+  core::Set<inf::C<dynamic>?> local3b = block {
+    final core::Set<inf::C<dynamic>?> #t26 = col::LinkedHashSet::•<inf::C<dynamic>?>();
+    #t26.{core::Set::add}{Invariant}(null){(inf::C<dynamic>?) → core::bool};
+    #t26.{core::Set::add}{Invariant}(inf::field2){(inf::C<dynamic>?) → core::bool};
+  } =>#t26;
+  core::Set<inf::C<core::int>?> local3c = block {
+    final core::Set<inf::C<core::int>?> #t27 = col::LinkedHashSet::•<inf::C<core::int>?>();
+    #t27.{core::Set::add}{Invariant}(null){(inf::C<core::int>?) → core::bool};
+    #t27.{core::Set::add}{Invariant}(inf::field3){(inf::C<core::int>?) → core::bool};
+  } =>#t27;
+  core::Set<inf::C<core::int>?> local3d = block {
+    final core::Set<inf::C<core::int>?> #t28 = col::LinkedHashSet::•<inf::C<core::int>?>();
+    #t28.{core::Set::add}{Invariant}(null){(inf::C<core::int>?) → core::bool};
+    #t28.{core::Set::add}{Invariant}(inf::field4){(inf::C<core::int>?) → core::bool};
+  } =>#t28;
+  core::Set<inf::C<core::int?>?> local3e = block {
+    final core::Set<inf::C<core::int?>?> #t29 = col::LinkedHashSet::•<inf::C<core::int?>?>();
+    #t29.{core::Set::add}{Invariant}(null){(inf::C<core::int?>?) → core::bool};
+    #t29.{core::Set::add}{Invariant}(inf::field5){(inf::C<core::int?>?) → core::bool};
+  } =>#t29;
+  core::Set<inf::C<core::int?>?> local3f = block {
+    final core::Set<inf::C<core::int?>?> #t30 = col::LinkedHashSet::•<inf::C<core::int?>?>();
+    #t30.{core::Set::add}{Invariant}(null){(inf::C<core::int?>?) → core::bool};
+    #t30.{core::Set::add}{Invariant}(inf::field6){(inf::C<core::int?>?) → core::bool};
+  } =>#t30;
+  core::Set<core::int?> local3g = block {
+    final core::Set<core::int?> #t31 = col::LinkedHashSet::•<core::int?>();
+    #t31.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+    #t31.{core::Set::add}{Invariant}(inf::field7){(core::int?) → core::bool};
+  } =>#t31;
+  core::Set<core::int?> local3h = block {
+    final core::Set<core::int?> #t32 = col::LinkedHashSet::•<core::int?>();
+    #t32.{core::Set::add}{Invariant}(null){(core::int?) → core::bool};
+    #t32.{core::Set::add}{Invariant}(inf::field8){(core::int?) → core::bool};
+  } =>#t32;
+}

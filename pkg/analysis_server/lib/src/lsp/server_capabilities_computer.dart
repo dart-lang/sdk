@@ -30,6 +30,7 @@ class ClientDynamicRegistrations {
     Method.textDocument_signatureHelp,
     Method.textDocument_references,
     Method.textDocument_documentHighlight,
+    Method.textDocument_documentColor,
     Method.textDocument_formatting,
     Method.textDocument_onTypeFormatting,
     Method.textDocument_rangeFormatting,
@@ -51,6 +52,9 @@ class ClientDynamicRegistrations {
 
   bool get codeActions =>
       _capabilities.textDocument?.foldingRange?.dynamicRegistration ?? false;
+
+  bool get colorProvider =>
+      _capabilities.textDocument?.colorProvider?.dynamicRegistration ?? false;
 
   bool get completion =>
       _capabilities.textDocument?.completion?.dynamicRegistration ?? false;
@@ -130,8 +134,15 @@ class ServerCapabilitiesComputer {
   Set<Registration> currentRegistrations = {};
   var _lastRegistrationId = 0;
 
-  ServerCapabilitiesComputer(this._server);
+  final dartFiles = DocumentFilter(language: 'dart', scheme: 'file');
+  final pubspecFile = DocumentFilter(
+      language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
+  final analysisOptionsFile = DocumentFilter(
+      language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
+  final fixDataFile = DocumentFilter(
+      language: 'yaml', scheme: 'file', pattern: '**/lib/fix_data.yaml');
 
+  ServerCapabilitiesComputer(this._server);
   ServerCapabilities computeServerCapabilities(
       LspClientCapabilities clientCapabilities) {
     final codeActionLiteralSupport = clientCapabilities.literalCodeActions;
@@ -210,6 +221,11 @@ class ServerCapabilitiesComputer {
                   codeActionKinds: DartCodeActionKind.serverSupportedKinds,
                 ))
               : Either2<bool, CodeActionOptions>.t1(true),
+      colorProvider: dynamicRegistrations.colorProvider
+          ? null
+          : Either3<bool, DocumentColorOptions,
+                  DocumentColorRegistrationOptions>.t3(
+              DocumentColorRegistrationOptions(documentSelector: [dartFiles])),
       documentFormattingProvider: dynamicRegistrations.formatting
           ? null
           : Either2<bool, DocumentFormattingOptions>.t1(enableFormatter),
@@ -279,14 +295,6 @@ class ServerCapabilitiesComputer {
   /// support and it will be up to them to decide which file types they will
   /// send requests for.
   Future<void> performDynamicRegistration() async {
-    final dartFiles = DocumentFilter(language: 'dart', scheme: 'file');
-    final pubspecFile = DocumentFilter(
-        language: 'yaml', scheme: 'file', pattern: '**/pubspec.yaml');
-    final analysisOptionsFile = DocumentFilter(
-        language: 'yaml', scheme: 'file', pattern: '**/analysis_options.yaml');
-    final fixDataFile = DocumentFilter(
-        language: 'yaml', scheme: 'file', pattern: '**/lib/fix_data.yaml');
-
     final pluginTypes = _server.pluginManager.plugins
         .expand((plugin) => plugin.currentSession?.interestingFiles ?? const [])
         // All published plugins use something like `*.extension` as
@@ -410,6 +418,12 @@ class ServerCapabilitiesComputer {
       TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
     );
     register(
+      dynamicRegistrations.colorProvider,
+      // This registration covers both documentColor and colorPresentation.
+      Method.textDocument_documentColor,
+      DocumentColorRegistrationOptions(documentSelector: [dartFiles]),
+    );
+    register(
       enableFormatter && dynamicRegistrations.formatting,
       Method.textDocument_formatting,
       TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes),
@@ -523,30 +537,43 @@ class ServerCapabilitiesComputer {
       ..removeAll(registrationsToRemove)
       ..addAll(registrationsToAdd);
 
+    Future<void>? unregistrationRequest;
     if (registrationsToRemove.isNotEmpty) {
       final unregistrations = registrationsToRemove
           .map((r) => Unregistration(id: r.id, method: r.method))
           .toList();
-      await _server.sendRequest(Method.client_unregisterCapability,
+      // It's important not to await this request here, as we must ensure
+      // we cannot re-enter this method until we have sent both the unregister
+      // and register requests to the client atomically.
+      // https://github.com/dart-lang/sdk/issues/47851#issuecomment-988093109
+      unregistrationRequest = _server.sendRequest(
+          Method.client_unregisterCapability,
           UnregistrationParams(unregisterations: unregistrations));
     }
 
+    Future<void>? registrationRequest;
     // Only send the registration request if we have at least one (since
     // otherwise we don't know that the client supports registerCapability).
     if (registrationsToAdd.isNotEmpty) {
-      final registrationResponse = await _server.sendRequest(
-        Method.client_registerCapability,
-        RegistrationParams(registrations: registrationsToAdd),
-      );
-
-      final error = registrationResponse.error;
-      if (error != null) {
-        _server.logErrorToClient(
-          'Failed to register capabilities with client: '
-          '(${error.code}) '
-          '${error.message}',
-        );
-      }
+      registrationRequest = _server
+          .sendRequest(Method.client_registerCapability,
+              RegistrationParams(registrations: registrationsToAdd))
+          .then((registrationResponse) {
+        final error = registrationResponse.error;
+        if (error != null) {
+          _server.logErrorToClient(
+            'Failed to register capabilities with client: '
+            '(${error.code}) '
+            '${error.message}',
+          );
+        }
+      });
     }
+
+    // Only after we have sent both unregistration + registration events may
+    // we await them, knowing another "thread" could not have executed this
+    // method between them.
+    await unregistrationRequest;
+    await registrationRequest;
   }
 }

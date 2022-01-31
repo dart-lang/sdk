@@ -117,21 +117,30 @@ void OldPage::AllocateForwardingPage() {
   forwarding_page_ = reinterpret_cast<ForwardingPage*>(object_end_);
 }
 
+struct Partition {
+  OldPage* head;
+  OldPage* tail;
+};
+
 class CompactorTask : public ThreadPool::Task {
  public:
   CompactorTask(IsolateGroup* isolate_group,
                 GCCompactor* compactor,
                 ThreadBarrier* barrier,
+                RelaxedAtomic<intptr_t>* next_planning_task,
+                RelaxedAtomic<intptr_t>* next_sliding_task,
                 RelaxedAtomic<intptr_t>* next_forwarding_task,
-                OldPage* head,
-                OldPage** tail,
+                intptr_t num_tasks,
+                Partition* partitions,
                 FreeList* freelist)
       : isolate_group_(isolate_group),
         compactor_(compactor),
         barrier_(barrier),
+        next_planning_task_(next_planning_task),
+        next_sliding_task_(next_sliding_task),
         next_forwarding_task_(next_forwarding_task),
-        head_(head),
-        tail_(tail),
+        num_tasks_(num_tasks),
+        partitions_(partitions),
         freelist_(freelist),
         free_page_(NULL),
         free_current_(0),
@@ -150,9 +159,11 @@ class CompactorTask : public ThreadPool::Task {
   IsolateGroup* isolate_group_;
   GCCompactor* compactor_;
   ThreadBarrier* barrier_;
+  RelaxedAtomic<intptr_t>* next_planning_task_;
+  RelaxedAtomic<intptr_t>* next_sliding_task_;
   RelaxedAtomic<intptr_t>* next_forwarding_task_;
-  OldPage* head_;
-  OldPage** tail_;
+  intptr_t num_tasks_;
+  Partition* partitions_;
   FreeList* freelist_;
   OldPage* free_page_;
   uword free_current_;
@@ -184,8 +195,8 @@ void GCCompactor::Compact(OldPage* pages,
   if (num_pages < num_tasks) {
     num_tasks = num_pages;
   }
-  OldPage** heads = new OldPage*[num_tasks];
-  OldPage** tails = new OldPage*[num_tasks];
+
+  Partition* partitions = new Partition[num_tasks];
 
   {
     const intptr_t pages_per_task = num_pages / num_tasks;
@@ -195,8 +206,8 @@ void GCCompactor::Compact(OldPage* pages,
     OldPage* prev = NULL;
     while (task_index < num_tasks) {
       if (page_index % pages_per_task == 0) {
-        heads[task_index] = page;
-        tails[task_index] = NULL;
+        partitions[task_index].head = page;
+        partitions[task_index].tail = NULL;
         if (prev != NULL) {
           prev->set_next(NULL);
         }
@@ -232,29 +243,34 @@ void GCCompactor::Compact(OldPage* pages,
                                    page->object_end() - page->object_start());
 
         // The compactor slides down: add the empty pages to the beginning.
-        page->set_next(heads[task_index]);
-        heads[task_index] = page;
+        page->set_next(partitions[task_index].head);
+        partitions[task_index].head = page;
       }
     }
   }
 
   {
-    ThreadBarrier barrier(num_tasks, heap_->barrier(), heap_->barrier_done());
+    ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
+    RelaxedAtomic<intptr_t> next_planning_task = {0};
+    RelaxedAtomic<intptr_t> next_sliding_task = {0};
     RelaxedAtomic<intptr_t> next_forwarding_task = {0};
 
     for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
       if (task_index < (num_tasks - 1)) {
         // Begin compacting on a helper thread.
         Dart::thread_pool()->Run<CompactorTask>(
-            thread()->isolate_group(), this, &barrier, &next_forwarding_task,
-            heads[task_index], &tails[task_index], freelist);
+            thread()->isolate_group(), this, barrier, &next_planning_task,
+            &next_sliding_task, &next_forwarding_task, num_tasks, partitions,
+            freelist);
       } else {
         // Last worker is the main thread.
-        CompactorTask task(thread()->isolate_group(), this, &barrier,
-                           &next_forwarding_task, heads[task_index],
-                           &tails[task_index], freelist);
+        CompactorTask task(thread()->isolate_group(), this, barrier,
+                           &next_planning_task, &next_sliding_task,
+                           &next_forwarding_task, num_tasks, partitions,
+                           freelist);
         task.RunEnteredIsolateGroup();
-        barrier.Exit();
+        barrier->Sync();
+        barrier->Release();
       }
     }
   }
@@ -289,7 +305,7 @@ void GCCompactor::Compact(OldPage* pages,
   }
 
   for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
-    ASSERT(tails[task_index] != NULL);
+    ASSERT(partitions[task_index].tail != NULL);
   }
 
   {
@@ -304,7 +320,7 @@ void GCCompactor::Compact(OldPage* pages,
 
     // Free empty pages.
     for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
-      OldPage* page = tails[task_index]->next();
+      OldPage* page = partitions[task_index].tail->next();
       while (page != NULL) {
         OldPage* next = page->next();
         heap_->old_space()->IncreaseCapacityInWordsLocked(
@@ -316,18 +332,22 @@ void GCCompactor::Compact(OldPage* pages,
 
     // Re-join the heap.
     for (intptr_t task_index = 0; task_index < num_tasks - 1; task_index++) {
-      tails[task_index]->set_next(heads[task_index + 1]);
+      partitions[task_index].tail->set_next(partitions[task_index + 1].head);
     }
-    tails[num_tasks - 1]->set_next(NULL);
-    heap_->old_space()->pages_ = pages = heads[0];
-    heap_->old_space()->pages_tail_ = tails[num_tasks - 1];
+    partitions[num_tasks - 1].tail->set_next(NULL);
+    heap_->old_space()->pages_ = pages = partitions[0].head;
+    heap_->old_space()->pages_tail_ = partitions[num_tasks - 1].tail;
 
-    delete[] heads;
-    delete[] tails;
+    delete[] partitions;
   }
 }
 
 void CompactorTask::Run() {
+  if (!barrier_->TryEnter()) {
+    barrier_->Release();
+    return;
+  }
+
   bool result =
       Thread::EnterIsolateGroupAsHelper(isolate_group_, Thread::kCompactorTask,
                                         /*bypass_safepoint=*/true);
@@ -338,7 +358,8 @@ void CompactorTask::Run() {
   Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/true);
 
   // This task is done. Notify the original thread.
-  barrier_->Exit();
+  barrier_->Sync();
+  barrier_->Release();
 }
 
 void CompactorTask::RunEnteredIsolateGroup() {
@@ -346,26 +367,34 @@ void CompactorTask::RunEnteredIsolateGroup() {
   Thread* thread = Thread::Current();
 #endif
   {
-    {
-      TIMELINE_FUNCTION_GC_DURATION(thread, "Plan");
-      free_page_ = head_;
-      free_current_ = free_page_->object_start();
-      free_end_ = free_page_->object_end();
+    while (true) {
+      intptr_t planning_task = next_planning_task_->fetch_add(1u);
+      if (planning_task >= num_tasks_) break;
 
-      for (OldPage* page = head_; page != NULL; page = page->next()) {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "Plan");
+      OldPage* head = partitions_[planning_task].head;
+      free_page_ = head;
+      free_current_ = head->object_start();
+      free_end_ = head->object_end();
+
+      for (OldPage* page = head; page != NULL; page = page->next()) {
         PlanPage(page);
       }
     }
 
     barrier_->Sync();
 
-    {
-      TIMELINE_FUNCTION_GC_DURATION(thread, "Slide");
-      free_page_ = head_;
-      free_current_ = free_page_->object_start();
-      free_end_ = free_page_->object_end();
+    while (true) {
+      intptr_t sliding_task = next_sliding_task_->fetch_add(1u);
+      if (sliding_task >= num_tasks_) break;
 
-      for (OldPage* page = head_; page != NULL; page = page->next()) {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "Slide");
+      OldPage* head = partitions_[sliding_task].head;
+      free_page_ = head;
+      free_current_ = head->object_start();
+      free_end_ = head->object_end();
+
+      for (OldPage* page = head; page != NULL; page = page->next()) {
         SlidePage(page);
       }
 
@@ -377,7 +406,7 @@ void CompactorTask::RunEnteredIsolateGroup() {
       }
 
       ASSERT(free_page_ != NULL);
-      *tail_ = free_page_;  // Last live page.
+      partitions_[sliding_task].tail = free_page_;  // Last live page.
     }
 
     // Heap: Regular pages already visited during sliding. Code and image pages
@@ -434,8 +463,6 @@ void CompactorTask::RunEnteredIsolateGroup() {
           more_forwarding_tasks = false;
       }
     }
-
-    barrier_->Sync();
   }
 }
 

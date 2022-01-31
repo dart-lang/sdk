@@ -148,7 +148,7 @@ class DapTestClient {
       sendRequest(ContinueArguments(threadId: threadId));
 
   /// Sends a custom request to the server and waits for a response.
-  Future<Response> custom(String name, Object? args) async {
+  Future<Response> custom(String name, [Object? args]) async {
     return sendRequest(args, overrideCommand: name);
   }
 
@@ -189,6 +189,11 @@ class DapTestClient {
     FutureOr<Object?> Function(Object?) handler,
   ) {
     _serverRequestHandlers[request] = handler;
+  }
+
+  /// Send a custom 'hotReload' request to the server.
+  Future<Response> hotReload() async {
+    return custom('hotReload');
   }
 
   /// Send an initialize request to the server.
@@ -399,7 +404,7 @@ class DapTestClient {
       } else {
         completer.completeError(message);
       }
-    } else if (message is Event) {
+    } else if (message is Event && !_eventController.isClosed) {
       _eventController.add(message);
 
       // When we see a terminated event, close the event stream so if any
@@ -483,11 +488,13 @@ extension DapTestClientExtension on DapTestClient {
   Future<StoppedEventBody> hitBreakpoint(
     File file,
     int line, {
+    File? entryFile,
     String? condition,
     String? cwd,
     List<String>? args,
     Future<Response> Function()? launch,
   }) async {
+    entryFile ??= file;
     final stop = expectStop('breakpoint', file: file, line: line);
 
     await Future.wait([
@@ -498,7 +505,7 @@ extension DapTestClientExtension on DapTestClient {
           breakpoints: [SourceBreakpoint(line: line, condition: condition)],
         ),
       ),
-      launch?.call() ?? this.launch(file.path, cwd: cwd, args: args),
+      launch?.call() ?? this.launch(entryFile.path, cwd: cwd, args: args),
     ], eagerError: true);
 
     return stop;

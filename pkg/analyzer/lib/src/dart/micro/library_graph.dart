@@ -43,39 +43,9 @@ void computeLibraryCycle(Uint32List linkedSalt, FileState file) {
   libraryWalker.walk(libraryWalker.getNode(file));
 }
 
-class CiderUnitTopLevelDeclarations {
-  final List<String> extensionNames;
-  final List<String> functionNames;
-  final List<String> typeNames;
-  final List<String> variableNames;
-
-  CiderUnitTopLevelDeclarations({
-    required this.extensionNames,
-    required this.functionNames,
-    required this.typeNames,
-    required this.variableNames,
-  });
-
-  factory CiderUnitTopLevelDeclarations.read(SummaryDataReader reader) {
-    return CiderUnitTopLevelDeclarations(
-      extensionNames: reader.readStringUtf8List(),
-      functionNames: reader.readStringUtf8List(),
-      typeNames: reader.readStringUtf8List(),
-      variableNames: reader.readStringUtf8List(),
-    );
-  }
-
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8Iterable(extensionNames);
-    sink.writeStringUtf8Iterable(functionNames);
-    sink.writeStringUtf8Iterable(typeNames);
-    sink.writeStringUtf8Iterable(variableNames);
-  }
-}
-
 class CiderUnlinkedUnit {
   /// Top-level declarations of the unit.
-  final CiderUnitTopLevelDeclarations topLevelDeclarations;
+  final Set<String> topLevelDeclarations;
 
   /// Unlinked summary of the compilation unit.
   final UnlinkedUnit unit;
@@ -93,7 +63,7 @@ class CiderUnlinkedUnit {
 
   factory CiderUnlinkedUnit.read(SummaryDataReader reader) {
     return CiderUnlinkedUnit(
-      topLevelDeclarations: CiderUnitTopLevelDeclarations.read(reader),
+      topLevelDeclarations: reader.readStringUtf8Set(),
       unit: UnlinkedUnit.read(reader),
     );
   }
@@ -106,7 +76,7 @@ class CiderUnlinkedUnit {
   }
 
   void write(BufferedSink sink) {
-    topLevelDeclarations.write(sink);
+    sink.writeStringUtf8Iterable(topLevelDeclarations);
     unit.write(sink);
   }
 }
@@ -335,10 +305,7 @@ class FileSystemState {
       return file;
     }
 
-    var fileUri = _resourceProvider.pathContext.toUri(path);
-    var uri = _sourceFactory.restoreUri(
-      _FakeSource(path, fileUri),
-    );
+    var uri = _sourceFactory.pathToUri(path);
     if (uri == null) {
       throw StateError('Unable to convert path to URI: $path');
     }
@@ -389,50 +356,18 @@ class FileSystemState {
   }
 
   /// Return files that have a top-level declaration with the [name].
-  List<FileWithTopLevelDeclaration> getFilesWithTopLevelDeclarations(
-    String name,
-  ) {
-    var result = <FileWithTopLevelDeclaration>[];
-
+  List<FileState> getFilesWithTopLevelDeclarations(String name) {
+    var result = <FileState>[];
     for (var file in _pathToFile.values) {
-      void addDeclaration(
-        List<String> names,
-        FileTopLevelDeclarationKind kind,
-      ) {
-        if (names.contains(name)) {
-          result.add(
-            FileWithTopLevelDeclaration(file: file, kind: kind),
-          );
-        }
+      if (file._unlinked.unlinked.topLevelDeclarations.contains(name)) {
+        result.add(file);
       }
-
-      var topLevelDeclarations = file._unlinked.unlinked.topLevelDeclarations;
-      addDeclaration(
-        topLevelDeclarations.extensionNames,
-        FileTopLevelDeclarationKind.extension,
-      );
-      addDeclaration(
-        topLevelDeclarations.functionNames,
-        FileTopLevelDeclarationKind.function,
-      );
-      addDeclaration(
-        topLevelDeclarations.typeNames,
-        FileTopLevelDeclarationKind.type,
-      );
-      addDeclaration(
-        topLevelDeclarations.variableNames,
-        FileTopLevelDeclarationKind.variable,
-      );
     }
     return result;
   }
 
   String? getPathForUri(Uri uri) {
-    var source = _sourceFactory.forUri2(uri);
-    if (source == null) {
-      return null;
-    }
-    return source.fullName;
+    return _sourceFactory.forUri2(uri)?.fullName;
   }
 
   /// Computes the set of [FileState]'s used/not used to analyze the given
@@ -534,20 +469,6 @@ class FileSystemStateTimers {
   }
 }
 
-/// The kind in [FileWithTopLevelDeclaration].
-enum FileTopLevelDeclarationKind { extension, function, type, variable }
-
-/// The data structure for top-level declarations response.
-class FileWithTopLevelDeclaration {
-  final FileState file;
-  final FileTopLevelDeclarationKind kind;
-
-  FileWithTopLevelDeclaration({
-    required this.file,
-    required this.kind,
-  });
-}
-
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
   /// The libraries that belong to this cycle.
@@ -591,19 +512,6 @@ class _ContentWithDigest {
     required this.content,
     required this.digest,
   });
-}
-
-class _FakeSource implements Source {
-  @override
-  final String fullName;
-
-  @override
-  final Uri uri;
-
-  _FakeSource(this.fullName, this.uri);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FileStateFiles {
@@ -712,19 +620,28 @@ class _FileStateLocation {
     return _fsState._resourceProvider.getFile(path);
   }
 
+  Uri? resolveRelativeUriStr(String relativeUriStr) {
+    if (relativeUriStr.isEmpty) {
+      return null;
+    }
+
+    Uri relativeUri;
+    try {
+      relativeUri = Uri.parse(relativeUriStr);
+    } on FormatException {
+      return null;
+    }
+
+    return resolveRelativeUri(uri, relativeUri);
+  }
+
   FileState? _fileForRelativeUri({
     FileState? containingLibrary,
     required String relativeUri,
     required OperationPerformanceImpl performance,
   }) {
-    if (relativeUri.isEmpty) {
-      return null;
-    }
-
-    Uri absoluteUri;
-    try {
-      absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
-    } on FormatException {
+    var absoluteUri = resolveRelativeUriStr(relativeUri);
+    if (absoluteUri == null) {
       return null;
     }
 
@@ -760,6 +677,7 @@ class _FileStateLocation {
         }
       }
     }
+    return null;
   }
 
   _ContentWithDigest _getContent() {
@@ -890,51 +808,46 @@ class _FileStateUnlinked {
     }
 
     var libraryUri = unlinked.unit.partOfUri;
-    if (libraryUri != null) {
-      location._fsState.testView.partsDiscoveredLibraries.add(location.path);
-      return _partOfLibrary = location._fileForRelativeUri(
-        relativeUri: libraryUri,
-        performance: performance,
-      );
+    if (libraryUri == null) {
+      return null;
     }
+    location._fsState.testView.partsDiscoveredLibraries.add(location.path);
+    return _partOfLibrary = location._fileForRelativeUri(
+      relativeUri: libraryUri,
+      performance: performance,
+    );
   }
 
   void _prefetchDirectReferences() {
-    if (location._fsState.prefetchFiles == null) {
+    var prefetchFiles = location._fsState.prefetchFiles;
+    if (prefetchFiles == null) {
       return;
     }
 
     var paths = <String>{};
 
-    /// TODO(scheglov) This is duplicate.
-    void findPathForUri(String relativeUri) {
-      if (relativeUri.isEmpty) {
-        return;
-      }
-      Uri absoluteUri;
-      try {
-        absoluteUri = resolveRelativeUri(location.uri, Uri.parse(relativeUri));
-      } on FormatException {
-        return;
-      }
-      var p = location._fsState.getPathForUri(absoluteUri);
-      if (p != null) {
-        paths.add(p);
+    void addRelativeUri(String relativeUri) {
+      var absoluteUri = location.resolveRelativeUriStr(relativeUri);
+      if (absoluteUri != null) {
+        var path = location._fsState.getPathForUri(absoluteUri);
+        if (path != null) {
+          paths.add(path);
+        }
       }
     }
 
     var unlinkedUnit = unlinked.unit;
     for (var directive in unlinkedUnit.imports) {
-      findPathForUri(directive.uri);
+      addRelativeUri(directive.uri);
     }
     for (var directive in unlinkedUnit.exports) {
-      findPathForUri(directive.uri);
+      addRelativeUri(directive.uri);
     }
     for (var uri in unlinkedUnit.parts) {
-      findPathForUri(uri);
+      addRelativeUri(uri);
     }
 
-    location._fsState.prefetchFiles!(paths.toList());
+    prefetchFiles(paths.toList());
   }
 
   static CompilationUnitImpl parse(AnalysisErrorListener errorListener,
@@ -1019,27 +932,24 @@ class _FileStateUnlinked {
       );
     }
 
-    var declaredExtensions = <String>[];
-    var declaredFunctions = <String>[];
-    var declaredTypes = <String>[];
-    var declaredVariables = <String>[];
+    var topLevelDeclarations = <String>{};
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
-        declaredTypes.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.name);
       } else if (declaration is EnumDeclaration) {
-        declaredTypes.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.name);
       } else if (declaration is ExtensionDeclaration) {
         var name = declaration.name;
         if (name != null) {
-          declaredExtensions.add(name.name);
+          topLevelDeclarations.add(name.name);
         }
       } else if (declaration is FunctionDeclaration) {
-        declaredFunctions.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.name);
       } else if (declaration is MixinDeclaration) {
-        declaredTypes.add(declaration.name.name);
+        topLevelDeclarations.add(declaration.name.name);
       } else if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
-          declaredVariables.add(variable.name.name);
+          topLevelDeclarations.add(variable.name.name);
         }
       }
     }
@@ -1059,12 +969,7 @@ class _FileStateUnlinked {
 
     return CiderUnlinkedUnit(
       unit: unlinkedUnit,
-      topLevelDeclarations: CiderUnitTopLevelDeclarations(
-        extensionNames: declaredExtensions,
-        functionNames: declaredFunctions,
-        typeNames: declaredTypes,
-        variableNames: declaredVariables,
-      ),
+      topLevelDeclarations: topLevelDeclarations,
     );
   }
 

@@ -274,7 +274,7 @@ const _Sealed sealed = _Sealed();
 
 /// Used to annotate a method, field, or getter within a class, mixin, or
 /// extension, or a or top-level getter, variable or function to indicate that
-/// the value obtained by invoking it should be use. A value is considered used
+/// the value obtained by invoking it should be used. A value is considered used
 /// if it is assigned to a variable, passed to a function, or used as the target
 /// of an invocation, or invoked (if the result is itself a function).
 ///

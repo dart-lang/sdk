@@ -215,6 +215,9 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
                                     (gn_args['target_cpu'] != 'arm') and
                                     sanitizer == 'none')
 
+    # Use mallinfo2 if specified on the command line
+    gn_args['dart_use_mallinfo2'] = args.use_mallinfo2
+
     if gn_args['target_os'] == 'linux':
         if gn_args['target_cpu'] == 'arm':
             # Default to -mfloat-abi=hard and -mfpu=neon for arm on Linux as we're
@@ -490,6 +493,11 @@ def AddCommonGnOptionArgs(parser):
         '-s',
         type=str,
         help='Comma-separated list of arch=/path/to/sysroot mappings')
+    parser.add_argument('--use-mallinfo2',
+                        help='Use mallinfo2 to collect malloc stats.',
+                        default=False,
+                        dest='use_mallinfo2',
+                        action='store_true')
 
 
 def AddCommonConfigurationArgs(parser):

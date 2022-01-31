@@ -1,0 +1,65 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   A.x = /*error:INVALID_ASSIGNMENT*/ "hi";
+//                                      ^
+//
+// pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   B.y = /*error:INVALID_ASSIGNMENT*/ "hi";
+//                                      ^
+//
+import self as self;
+import "dart:core" as core;
+import "infer_from_variables_in_non_cycle_imports_with_flag2_a.dart" as inf;
+
+import "org-dartlang-testcase:///infer_from_variables_in_non_cycle_imports_with_flag2_a.dart";
+
+class B extends core::Object {
+  static field core::int* y = inf::A::x;
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method test1() → dynamic {
+  inf::A::x = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:15:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  A.x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                     ^" in "hi" as{TypeError} core::int*;
+  self::B::y = invalid-expression "pkg/front_end/testcases/inference/infer_from_variables_in_non_cycle_imports_with_flag2.dart:16:38: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  B.y = /*error:INVALID_ASSIGNMENT*/ \"hi\";
+                                     ^" in "hi" as{TypeError} core::int*;
+}
+static method main() → dynamic {}
+
+library;
+import self as inf;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static field core::int* x = 2;
+  synthetic constructor •() → inf::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {}

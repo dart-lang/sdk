@@ -25,7 +25,7 @@ class Highlights2ComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    sourcePath = convertPath('/home/test/lib/test.dart');
+    sourcePath = convertPath('$testPackageLibPath/test.dart');
   }
 
   Future<void> test_comment() async {

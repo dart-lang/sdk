@@ -310,7 +310,7 @@ class DirectChainedHashMap
             ASSERT_NOTNULL(zone),
             initial_size) {}
 
-  // There is a current use of the copy constructor in CSEInstructionMap
+  // There is a current use of the copy constructor in CSEInstructionSet
   // (compiler/backend/redundancy_elimination.cc), so work is needed if we
   // want to disallow it.
   DirectChainedHashMap(const DirectChainedHashMap& other)

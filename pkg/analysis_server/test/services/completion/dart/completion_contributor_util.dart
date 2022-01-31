@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequest;
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
@@ -103,6 +102,19 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     content = content.substring(0, _completionOffset) +
         content.substring(_completionOffset + 1);
     addSource(testFile, content);
+  }
+
+  /// A variant of [addTestSource] that can be invoked more than once,
+  /// and will notify the driver that the file changed.
+  void addTestSource2(String content) {
+    _completionOffset = content.indexOf('^');
+    expect(_completionOffset, greaterThanOrEqualTo(0), reason: 'missing ^');
+    var nextOffset = content.indexOf('^', _completionOffset + 1);
+    expect(nextOffset, equals(-1), reason: 'too many ^');
+    content = content.substring(0, _completionOffset) +
+        content.substring(_completionOffset + 1);
+    addSource(testFile, content);
+    driverFor(testFile).changeFile(testFile);
   }
 
   void assertCoreTypeSuggestions() {
@@ -530,24 +542,21 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
 
   Future computeSuggestions({int times = 200}) async {
     result = await session.getResolvedUnit(testFile) as ResolvedUnitResult;
-    return await CompletionPerformance().runRequestOperation(
-      (performance) async {
-        // Build the request
-        var request = DartCompletionRequest(
-          resolvedUnit: result,
-          offset: completionOffset,
-          dartdocDirectiveInfo: dartdocInfo,
-        );
 
-        var range = request.target.computeReplacementRange(request.offset);
-        replacementOffset = range.offset;
-        replacementLength = range.length;
-
-        // Request completions
-        suggestions = await computeContributedSuggestions(request);
-        expect(suggestions, isNotNull, reason: 'expected suggestions');
-      },
+    // Build the request
+    var request = DartCompletionRequest.forResolvedUnit(
+      resolvedUnit: result,
+      offset: completionOffset,
+      dartdocDirectiveInfo: dartdocInfo,
     );
+
+    var range = request.target.computeReplacementRange(request.offset);
+    replacementOffset = range.offset;
+    replacementLength = range.length;
+
+    // Request completions
+    suggestions = await computeContributedSuggestions(request);
+    expect(suggestions, isNotNull, reason: 'expected suggestions');
   }
 
   Never failedCompletion(String message,
@@ -613,7 +622,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    testFile = convertPath('/home/test/lib/test.dart');
+    testFile = convertPath('$testPackageLibPath/test.dart');
   }
 
   CompletionSuggestion suggestionWith(

@@ -105,6 +105,7 @@ test:third_party/pkg/test/pkgs/test/lib
 test_api:third_party/pkg/test/pkgs/test_api/lib
 test_core:third_party/pkg/test/pkgs/test_core/lib
 test_descriptor:third_party/pkg/test_descriptor/lib
+test_package:pkg/vm_service/test/test_package
 test_process:third_party/pkg/test_process/lib
 test_reflective_loader:third_party/pkg/test_reflective_loader/lib
 test_runner:pkg/test_runner/lib

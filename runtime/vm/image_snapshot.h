@@ -251,13 +251,8 @@ class ImageWriter : public ValueObject {
     if (FLAG_precompiled_mode) {
       // We reserve space for the initial InstructionsSection object. It is
       // manually serialized since it includes offsets to other snapshot parts.
-      // In bare instructions mode, it contains all the payloads and so we
-      // start after the header, whereas in non-bare mode, it contains no
-      // payload and Instructions start after it.
-      next_text_offset_ +=
-          FLAG_use_bare_instructions
-              ? compiler::target::InstructionsSection::HeaderSize()
-              : compiler::target::InstructionsSection::InstanceSize(0);
+      // It contains all the payloads which start directly after the header.
+      next_text_offset_ += compiler::target::InstructionsSection::HeaderSize();
     }
 #endif
     objects_.Clear();
@@ -276,6 +271,8 @@ class ImageWriter : public ValueObject {
   }
   int32_t GetTextOffsetFor(InstructionsPtr instructions, CodePtr code);
   uint32_t GetDataOffsetFor(ObjectPtr raw_object);
+
+  uint32_t AddBytesToData(uint8_t* bytes, intptr_t length);
 
   void Write(NonStreamingWriteStream* clustered_stream, bool vm);
   intptr_t data_size() const { return next_data_offset_; }
@@ -359,12 +356,20 @@ class ImageWriter : public ValueObject {
   };
 
   struct ObjectData {
-    explicit ObjectData(ObjectPtr raw_obj) : raw_obj_(raw_obj) {}
+    explicit ObjectData(ObjectPtr raw_obj)
+        : raw_obj(raw_obj), is_object(true) {}
+    ObjectData(uint8_t* buf, intptr_t length)
+        : bytes({buf, length}), is_object(false) {}
 
     union {
-      ObjectPtr raw_obj_;
-      const Object* obj_;
+      struct {
+        uint8_t* buf;
+        intptr_t length;
+      } bytes;
+      ObjectPtr raw_obj;
+      const Object* obj;
     };
+    bool is_object;
   };
 
   // Methods abstracting out the particulars of the underlying concrete writer.
@@ -452,6 +457,8 @@ class ImageWriter : public ValueObject {
   friend class SnapshotTextObjectNamer;  // For InstructionsData.
 
  private:
+  static intptr_t SizeInSnapshotForBytes(intptr_t length);
+
   DISALLOW_COPY_AND_ASSIGN(ImageWriter);
 };
 

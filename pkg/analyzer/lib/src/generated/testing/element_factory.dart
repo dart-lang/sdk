@@ -17,12 +17,14 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 /// The class `ElementFactory` defines utility methods used to create elements
 /// for testing purposes. The elements that are created are complete in the
 /// sense that as much of the element model as can be created, given the
 /// provided information, has been created.
+@internal
 class ElementFactory {
   /// The element representing the class 'Object'.
   static ClassElementImpl? _objectElement;
@@ -90,8 +92,7 @@ class ElementFactory {
 
   static CompilationUnitElementImpl compilationUnit(String fileName,
       [Source? librarySource]) {
-    Source source =
-        NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
+    Source source = NonExistingSource(fileName, toUri(fileName));
     CompilationUnitElementImpl unit = CompilationUnitElementImpl();
     unit.source = source;
     librarySource ??= source;
@@ -358,7 +359,7 @@ class ElementFactory {
           ConstTopLevelVariableElementImpl(name, -1);
       var typeElement = type.element as ClassElement;
       var initializer = AstTestFactory.instanceCreationExpression2(
-          Keyword.CONST, AstTestFactory.typeName(typeElement));
+          Keyword.CONST, AstTestFactory.namedType(typeElement));
       if (type is InterfaceType) {
         var element = typeElement.unnamedConstructor;
         initializer.constructorName.staticElement = element;

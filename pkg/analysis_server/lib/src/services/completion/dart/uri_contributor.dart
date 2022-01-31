@@ -57,7 +57,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
             // Quoted empty string
             visitSimpleStringLiteral(uri);
           } else {
-            var data = request.sourceContents!;
+            var data = request.content;
             if (end == data.length) {
               var ch = data[end - 1];
               if (ch != '"' && ch != "'") {
@@ -69,7 +69,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
           }
         }
       } else if (offset == start && offset == end) {
-        var data = request.sourceContents!;
+        var data = request.content;
         if (end == data.length) {
           var ch = data[end - 1];
           if (ch == '"' || ch == "'") {

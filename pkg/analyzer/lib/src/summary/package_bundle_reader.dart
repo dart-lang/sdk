@@ -72,9 +72,11 @@ class InSummarySource extends BasicSource {
   @override
   TimestampedData<String> get contents => TimestampedData<String>(0, '');
 
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp => 0;
 
+  @Deprecated('Use Source.uri instead')
   @override
   UriKind get uriKind => UriKind.PACKAGE_URI;
 
@@ -88,11 +90,12 @@ class InSummarySource extends BasicSource {
 /// The [UriResolver] that knows about sources that are served from their
 /// summaries.
 class InSummaryUriResolver extends UriResolver {
-  /// TODO(scheglov) Remove it, we don't need it.
-  ResourceProvider? resourceProvider;
   final SummaryDataStore _dataStore;
 
-  InSummaryUriResolver(this.resourceProvider, this._dataStore);
+  InSummaryUriResolver(this._dataStore);
+
+  @override
+  Uri? pathToUri(String path) => null;
 
   @override
   Source? resolveAbsolute(Uri uri) {

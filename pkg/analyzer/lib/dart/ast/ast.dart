@@ -38,7 +38,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 
 /// Two or more string literals that are implicitly concatenated because of
@@ -318,7 +317,9 @@ abstract class AstNode implements SyntacticEntity {
 
   /// Return either this node or the most immediate ancestor of this node for
   /// which the [predicate] returns `true`, or `null` if there is no such node.
-  E? thisOrAncestorMatching<E extends AstNode>(Predicate<AstNode> predicate);
+  E? thisOrAncestorMatching<E extends AstNode>(
+    bool Function(AstNode) predicate,
+  );
 
   /// Return either this node or the most immediate ancestor of this node that
   /// has the given type, or `null` if there is no such node.
@@ -570,6 +571,8 @@ abstract class AstVisitor<R> {
 
   R? visitSuperExpression(SuperExpression node);
 
+  R? visitSuperFormalParameter(SuperFormalParameter node);
+
   R? visitSwitchCase(SwitchCase node);
 
   R? visitSwitchDefault(SwitchDefault node);
@@ -589,9 +592,6 @@ abstract class AstVisitor<R> {
   R? visitTypeArgumentList(TypeArgumentList node);
 
   R? visitTypeLiteral(TypeLiteral node);
-
-  @Deprecated('Override visitNamedType instead')
-  R? visitTypeName(TypeName node);
 
   R? visitTypeParameter(TypeParameter node);
 
@@ -814,6 +814,9 @@ abstract class ClassDeclaration implements ClassOrMixinDeclaration {
   /// Return `true` if this class is declared to be an abstract class.
   bool get isAbstract;
 
+  /// Return the 'macro' keyword, or `null` if the keyword was absent.
+  Token? get macroKeyword;
+
   /// Return the native clause for this class, or `null` if the class does not
   /// have a native clause.
   NativeClause? get nativeClause;
@@ -901,12 +904,12 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// Return `true` if this class is declared to be an abstract class.
   bool get isAbstract;
 
+  /// Return the token for the 'macro' keyword, or `null` if this is not
+  /// defining a macro class.
+  Token? get macroKeyword;
+
   @override
   SimpleIdentifier get name;
-
-  /// Return the name of the superclass of the class being declared.
-  @Deprecated('Use superclass2 instead')
-  TypeName get superclass;
 
   /// Return the name of the superclass of the class being declared.
   NamedType get superclass2;
@@ -1335,10 +1338,6 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
   Token? get period;
 
   /// Return the name of the type defining the constructor.
-  @Deprecated('Use type2 instead')
-  TypeName get type;
-
-  /// Return the name of the type defining the constructor.
   NamedType get type2;
 }
 
@@ -1575,7 +1574,9 @@ abstract class EnumConstantDeclaration implements Declaration {
 /// The declaration of an enumeration.
 ///
 ///    enumType ::=
-///        metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier] (',' [SimpleIdentifier])* (',')? '}'
+///        metadata 'enum' [SimpleIdentifier] [TypeParameterList]?
+///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
+///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class EnumDeclaration implements NamedCompilationUnitMember {
@@ -1588,14 +1589,29 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
   /// Return the 'enum' keyword.
   Token get enumKeyword;
 
+  /// Returns the `implements` clause for the enumeration, or `null` if the
+  /// enumeration does not implement any interfaces.
+  ImplementsClause? get implementsClause;
+
   /// Return the left curly bracket.
   Token get leftBracket;
+
+  /// Return the members declared by the enumeration.
+  NodeList<ClassMember> get members;
 
   @override
   SimpleIdentifier get name;
 
   /// Return the right curly bracket.
   Token get rightBracket;
+
+  /// Returns the type parameters for the enumeration, or `null` if the
+  /// enumeration does not have any type parameters.
+  TypeParameterList? get typeParameters;
+
+  /// Return the `with` clause for the enumeration, or `null` if the
+  /// enumeration does not have a `with` clause.
+  WithClause? get withClause;
 }
 
 /// An export directive.
@@ -1713,10 +1729,6 @@ abstract class ExpressionStatement implements Statement {
 abstract class ExtendsClause implements AstNode {
   /// Return the token representing the 'extends' keyword.
   Token get extendsKeyword;
-
-  /// Return the name of the class that is being extended.
-  @Deprecated('Use superclass2 instead')
-  TypeName get superclass;
 
   /// Return the name of the class that is being extended.
   NamedType get superclass2;
@@ -2200,6 +2212,7 @@ abstract class ForStatement implements Statement {
 ///        [BlockFunctionBody]
 ///      | [EmptyFunctionBody]
 ///      | [ExpressionFunctionBody]
+///      | [NativeFunctionBody]
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionBody implements AstNode {
@@ -2613,10 +2626,6 @@ abstract class IfStatement implements Statement {
 abstract class ImplementsClause implements AstNode {
   /// Return the token representing the 'implements' keyword.
   Token get implementsKeyword;
-
-  /// Return the list of the interfaces that are being implemented.
-  @Deprecated('Use interfaces2 instead')
-  NodeList<TypeName> get interfaces;
 
   /// Return the list of the interfaces that are being implemented.
   NodeList<NamedType> get interfaces2;
@@ -3471,10 +3480,6 @@ abstract class OnClause implements AstNode {
   Token get onKeyword;
 
   /// Return the list of the classes are superclass constraints for the mixin.
-  @Deprecated('Use superclassConstraints2 instead')
-  NodeList<TypeName> get superclassConstraints;
-
-  /// Return the list of the classes are superclass constraints for the mixin.
   NodeList<NamedType> get superclassConstraints2;
 }
 
@@ -4058,6 +4063,48 @@ abstract class SuperExpression implements Expression {
   Token get superKeyword;
 }
 
+/// A super-initializer formal parameter.
+///
+///    superFormalParameter ::=
+///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' | [TypeAnnotation])?
+///        'super' '.' [SimpleIdentifier] ([TypeParameterList]? [FormalParameterList])?
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class SuperFormalParameter implements NormalFormalParameter {
+  @override
+  SimpleIdentifier get identifier;
+
+  /// Return the token representing either the 'final', 'const' or 'var'
+  /// keyword, or `null` if no keyword was used.
+  Token? get keyword;
+
+  /// Return the parameters of the function-typed parameter, or `null` if this
+  /// is not a function-typed field formal parameter.
+  FormalParameterList? get parameters;
+
+  /// Return the token representing the period.
+  Token get period;
+
+  /// If the parameter is function-typed, and has the question mark, then its
+  /// function type is nullable. Having a nullable function type means that the
+  /// parameter can be null.
+  Token? get question;
+
+  /// Return the token representing the 'super' keyword.
+  Token get superKeyword;
+
+  /// Return the declared type of the parameter, or `null` if the parameter does
+  /// not have a declared type.
+  ///
+  /// Note that if this is a function-typed field formal parameter this is the
+  /// return type of the function.
+  TypeAnnotation? get type;
+
+  /// Return the type parameters associated with this method, or `null` if this
+  /// method is not a generic method.
+  TypeParameterList? get typeParameters;
+}
+
 /// A case in a switch statement.
 ///
 ///    switchCase ::=
@@ -4314,20 +4361,7 @@ abstract class TypedLiteral implements Literal {
 abstract class TypeLiteral implements Expression, CommentReferableExpression {
   /// The type represented by this literal.
   NamedType get type;
-
-  /// The type represented by this literal.
-  @Deprecated('Use namedType instead')
-  TypeName get typeName;
 }
-
-/// The name of a type, which can optionally include type arguments.
-///
-///    typeName ::=
-///        [Identifier] typeArguments?
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Use NamedType instead')
-abstract class TypeName implements NamedType {}
 
 /// A type parameter.
 ///
@@ -4528,10 +4562,6 @@ abstract class WhileStatement implements Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class WithClause implements AstNode {
-  /// Return the names of the mixins that were specified.
-  @Deprecated('Use mixinTypes2 instead')
-  NodeList<TypeName> get mixinTypes;
-
   /// Return the names of the mixins that were specified.
   NodeList<NamedType> get mixinTypes2;
 

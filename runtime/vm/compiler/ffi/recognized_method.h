@@ -23,10 +23,17 @@ namespace ffi {
 // TypedData class id for a NativeType type, except for Void and NativeFunction.
 classid_t ElementTypedDataCid(classid_t class_id);
 
+// ExternalTypedData class id for a NativeType type, except for Void,
+// NativeFunction, IntPtr and Pointer.
+classid_t ElementExternalTypedDataCid(classid_t class_id);
+
 // Returns the kFFi<type>Cid for the recognized load/store method [kind].
 classid_t RecognizedMethodTypeArgCid(MethodRecognizer::Kind kind);
 
 AlignmentType RecognizedMethodAlignment(MethodRecognizer::Kind kind);
+
+MethodRecognizer::Kind FfiLoad(const NativeType& native_type);
+MethodRecognizer::Kind FfiStore(const NativeType& native_type);
 
 }  // namespace ffi
 

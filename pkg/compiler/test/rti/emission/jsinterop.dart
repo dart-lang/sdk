@@ -7,7 +7,7 @@
 @JS()
 library jsinterop;
 
-/*class: global#JavaScriptObject:checks=[$isA,$isC],instance*/
+/*class: global#LegacyJavaScriptObject:checks=[$isA,$isC],instance*/
 
 import 'package:js/js.dart';
 

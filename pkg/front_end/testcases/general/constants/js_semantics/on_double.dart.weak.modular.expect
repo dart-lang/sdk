@@ -1,0 +1,151 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:27:26: Error: Constant evaluation error:
+//   const Class c2 = Class.doubleShift(b, 1);
+//                          ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:21:45: Context: Binary operator '>>' on '1.5' requires operand of type 'int', but was of type 'double'.
+//   const Class.doubleShift(i1, i2) : a = (i1 >> i2);
+//                                             ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:27:15: Context: While analyzing:
+//   const Class c2 = Class.doubleShift(b, 1);
+//               ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:29:26: Error: Constant evaluation error:
+//   const Class c4 = Class.tripleShift(b, 1);
+//                          ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:22:45: Context: Binary operator '>>>' on '1.5' requires operand of type 'int', but was of type 'double'.
+//   const Class.tripleShift(i1, i2) : a = (i1 >>> i2);
+//                                             ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:29:15: Context: While analyzing:
+//   const Class c4 = Class.tripleShift(b, 1);
+//               ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:32:26: Error: Constant evaluation error:
+//   const Class d2 = Class.doubleShift(1, b);
+//                          ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:21:45: Context: Binary operator '>>' on '1.5' requires operand of type 'int', but was of type 'double'.
+//   const Class.doubleShift(i1, i2) : a = (i1 >> i2);
+//                                             ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:32:15: Context: While analyzing:
+//   const Class d2 = Class.doubleShift(1, b);
+//               ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:34:26: Error: Constant evaluation error:
+//   const Class d4 = Class.tripleShift(1, b);
+//                          ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:22:45: Context: Binary operator '>>>' on '1.5' requires operand of type 'int', but was of type 'double'.
+//   const Class.tripleShift(i1, i2) : a = (i1 >>> i2);
+//                                             ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:34:15: Context: While analyzing:
+//   const Class d4 = Class.tripleShift(1, b);
+//               ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:37:26: Error: Constant evaluation error:
+//   const Class e2 = Class.doubleShift(1.5, 1);
+//                          ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:21:45: Context: Binary operator '>>' on '1.5' requires operand of type 'int', but was of type 'double'.
+//   const Class.doubleShift(i1, i2) : a = (i1 >> i2);
+//                                             ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:37:15: Context: While analyzing:
+//   const Class e2 = Class.doubleShift(1.5, 1);
+//               ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:39:26: Error: Constant evaluation error:
+//   const Class e4 = Class.tripleShift(1.5, 1);
+//                          ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:22:45: Context: Binary operator '>>>' on '1.5' requires operand of type 'int', but was of type 'double'.
+//   const Class.tripleShift(i1, i2) : a = (i1 >>> i2);
+//                                             ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:39:15: Context: While analyzing:
+//   const Class e4 = Class.tripleShift(1.5, 1);
+//               ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:9:22: Error: Constant evaluation error:
+// const dynamic c1 = b >> 1;
+//                      ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:9:22: Context: Binary operator '>>' on '1.5' requires operand of type 'int', but was of type 'double'.
+// const dynamic c1 = b >> 1;
+//                      ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:9:15: Context: While analyzing:
+// const dynamic c1 = b >> 1;
+//               ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:11:22: Error: Constant evaluation error:
+// const dynamic c3 = b >>> 1;
+//                      ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:11:22: Context: Binary operator '>>>' on '1.5' requires operand of type 'int', but was of type 'double'.
+// const dynamic c3 = b >>> 1;
+//                      ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:11:15: Context: While analyzing:
+// const dynamic c3 = b >>> 1;
+//               ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:14:22: Error: Constant evaluation error:
+// const dynamic d1 = 1 >> b;
+//                      ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:14:25: Context: Expected constant '1.5' to be of type 'int', but was of type 'double'.
+// const dynamic d1 = 1 >> b;
+//                         ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:14:15: Context: While analyzing:
+// const dynamic d1 = 1 >> b;
+//               ^
+//
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:16:22: Error: Constant evaluation error:
+// const dynamic d3 = 1 >>> b;
+//                      ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:16:26: Context: Expected constant '1.5' to be of type 'int', but was of type 'double'.
+// const dynamic d3 = 1 >>> b;
+//                          ^
+// pkg/front_end/testcases/general/constants/js_semantics/on_double.dart:16:15: Context: While analyzing:
+// const dynamic d3 = 1 >>> b;
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  const constructor doubleShift(dynamic i1, dynamic i2) → self::Class
+    : self::Class::a = i1{dynamic}.>>(i2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int, super core::Object::•()
+    ;
+  const constructor tripleShift(dynamic i1, dynamic i2) → self::Class
+    : self::Class::a = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int, super core::Object::•()
+    ;
+  static method _#doubleShift#tearOff(dynamic i1, dynamic i2) → self::Class
+    return new self::Class::doubleShift(i1, i2);
+  static method _#tripleShift#tearOff(dynamic i1, dynamic i2) → self::Class
+    return new self::Class::tripleShift(i1, i2);
+}
+static const field dynamic a = #C1;
+static const field dynamic b = #C2;
+static const field dynamic c0 = #C3;
+static const field dynamic c1 = invalid-expression "Binary operator '>>' on '1.5' requires operand of type 'int', but was of type 'double'.";
+static const field dynamic c2 = #C3;
+static const field dynamic c3 = invalid-expression "Binary operator '>>>' on '1.5' requires operand of type 'int', but was of type 'double'.";
+static const field dynamic d0 = #C3;
+static const field dynamic d1 = invalid-expression "Expected constant '1.5' to be of type 'int', but was of type 'double'.";
+static const field dynamic d2 = #C3;
+static const field dynamic d3 = invalid-expression "Expected constant '1.5' to be of type 'int', but was of type 'double'.";
+static method main() → dynamic {
+  const self::Class c2 = invalid-expression "Binary operator '>>' on '1.5' requires operand of type 'int', but was of type 'double'.";
+  const self::Class c4 = invalid-expression "Binary operator '>>>' on '1.5' requires operand of type 'int', but was of type 'double'.";
+  const self::Class d2 = invalid-expression "Binary operator '>>' on '1.5' requires operand of type 'int', but was of type 'double'.";
+  const self::Class d4 = invalid-expression "Binary operator '>>>' on '1.5' requires operand of type 'int', but was of type 'double'.";
+  const self::Class e2 = invalid-expression "Binary operator '>>' on '1.5' requires operand of type 'int', but was of type 'double'.";
+  const self::Class e4 = invalid-expression "Binary operator '>>>' on '1.5' requires operand of type 'int', but was of type 'double'.";
+}
+
+constants  {
+  #C1 = 1.0
+  #C2 = 1.5
+  #C3 = 0.0
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///on_double.dart:
+- Class.doubleShift (from org-dartlang-testcase:///on_double.dart:21:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart:25:9)
+- Class.tripleShift (from org-dartlang-testcase:///on_double.dart:22:9)

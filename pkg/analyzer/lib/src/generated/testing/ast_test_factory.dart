@@ -240,13 +240,15 @@ class AstTestFactory {
           ExtendsClause? extendsClause,
           WithClause? withClause,
           ImplementsClause? implementsClause,
-          [List<ClassMember> members = const []]) =>
+          {List<ClassMember> members = const [],
+          bool isMacro = false}) =>
       astFactory.classDeclaration(
           null,
           null,
           abstractKeyword == null
               ? null
               : TokenFactory.tokenFromKeyword(abstractKeyword),
+          isMacro ? TokenFactory.tokenFromString('macro') : null,
           TokenFactory.tokenFromKeyword(Keyword.CLASS),
           identifier3(name),
           typeParameters,
@@ -263,7 +265,8 @@ class AstTestFactory {
           Keyword? abstractKeyword,
           NamedType superclass,
           WithClause withClause,
-          ImplementsClause? implementsClause) =>
+          ImplementsClause? implementsClause,
+          {bool isMacro = false}) =>
       astFactory.classTypeAlias(
           null,
           null,
@@ -274,6 +277,7 @@ class AstTestFactory {
           abstractKeyword == null
               ? null
               : TokenFactory.tokenFromKeyword(abstractKeyword),
+          isMacro ? TokenFactory.tokenFromString('macro') : null,
           superclass,
           withClause,
           implementsClause,
@@ -457,29 +461,6 @@ class AstTestFactory {
 
   static EmptyStatementImpl emptyStatement() => astFactory
       .emptyStatement(TokenFactory.tokenFromType(TokenType.SEMICOLON));
-
-  static EnumDeclarationImpl enumDeclaration(
-          SimpleIdentifier name, List<EnumConstantDeclaration> constants) =>
-      astFactory.enumDeclaration(
-          null,
-          null,
-          TokenFactory.tokenFromKeyword(Keyword.ENUM),
-          name,
-          TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
-          constants,
-          TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
-
-  static EnumDeclarationImpl enumDeclaration2(
-      String name, List<String> constantNames) {
-    var constants = constantNames.map((name) {
-      return astFactory.enumConstantDeclaration(
-        null,
-        null,
-        identifier3(name),
-      );
-    }).toList();
-    return enumDeclaration(identifier3(name), constants);
-  }
 
   static ExportDirectiveImpl exportDirective(
           List<Annotation> metadata, String uri,
@@ -1100,6 +1081,42 @@ class AstTestFactory {
               : TokenFactory.tokenFromType(TokenType.COLON),
           expression);
 
+  /// Create a type name whose name has been resolved to the given [element] and
+  /// whose type has been resolved to the type of the given element.
+  ///
+  /// <b>Note:</b> This method does not correctly handle class elements that
+  /// have type parameters.
+  static NamedTypeImpl namedType(ClassElement element,
+      [List<TypeAnnotation>? arguments]) {
+    var name = identifier3(element.name);
+    name.staticElement = element;
+    var typeName = namedType3(name, arguments);
+    typeName.type = element.instantiate(
+      typeArguments: List.filled(
+        element.typeParameters.length,
+        DynamicTypeImpl.instance,
+      ),
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+    return typeName;
+  }
+
+  static NamedTypeImpl namedType3(Identifier name,
+          [List<TypeAnnotation>? arguments]) =>
+      astFactory.namedType(
+        name: name,
+        typeArguments: typeArgumentList(arguments),
+      );
+
+  static NamedTypeImpl namedType4(String name,
+          [List<TypeAnnotation>? arguments, bool question = false]) =>
+      astFactory.namedType(
+        name: identifier3(name),
+        typeArguments: typeArgumentList(arguments),
+        question:
+            question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null,
+      );
+
   static NativeClauseImpl nativeClause(String nativeCode) =>
       astFactory.nativeClause(
           TokenFactory.tokenFromString("native"), string2(nativeCode));
@@ -1296,6 +1313,21 @@ class AstTestFactory {
   static SuperExpressionImpl superExpression() =>
       astFactory.superExpression(TokenFactory.tokenFromKeyword(Keyword.SUPER));
 
+  static SuperFormalParameterImpl superFormalParameter(
+          Keyword? keyword, TypeAnnotation? type, String identifier,
+          [FormalParameterList? parameterList]) =>
+      astFactory.superFormalParameter(
+          keyword:
+              keyword == null ? null : TokenFactory.tokenFromKeyword(keyword),
+          type: type,
+          superKeyword: TokenFactory.tokenFromKeyword(Keyword.SUPER),
+          period: TokenFactory.tokenFromType(TokenType.PERIOD),
+          identifier: identifier3(identifier),
+          parameters: parameterList);
+
+  static SuperFormalParameterImpl superFormalParameter2(String identifier) =>
+      superFormalParameter(null, null, identifier);
+
   static SwitchCaseImpl switchCase(
           Expression expression, List<Statement> statements) =>
       switchCase2(<Label>[], expression, statements);
@@ -1421,42 +1453,6 @@ class AstTestFactory {
     return astFactory.typeArgumentList(TokenFactory.tokenFromType(TokenType.LT),
         types, TokenFactory.tokenFromType(TokenType.GT));
   }
-
-  /// Create a type name whose name has been resolved to the given [element] and
-  /// whose type has been resolved to the type of the given element.
-  ///
-  /// <b>Note:</b> This method does not correctly handle class elements that
-  /// have type parameters.
-  static NamedTypeImpl typeName(ClassElement element,
-      [List<TypeAnnotation>? arguments]) {
-    var name = identifier3(element.name);
-    name.staticElement = element;
-    var typeName = typeName3(name, arguments);
-    typeName.type = element.instantiate(
-      typeArguments: List.filled(
-        element.typeParameters.length,
-        DynamicTypeImpl.instance,
-      ),
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-    return typeName;
-  }
-
-  static NamedTypeImpl typeName3(Identifier name,
-          [List<TypeAnnotation>? arguments]) =>
-      astFactory.namedType(
-        name: name,
-        typeArguments: typeArgumentList(arguments),
-      );
-
-  static NamedTypeImpl typeName4(String name,
-          [List<TypeAnnotation>? arguments, bool question = false]) =>
-      astFactory.namedType(
-        name: identifier3(name),
-        typeArguments: typeArgumentList(arguments),
-        question:
-            question ? TokenFactory.tokenFromType(TokenType.QUESTION) : null,
-      );
 
   static TypeParameterImpl typeParameter(String name) =>
       astFactory.typeParameter(null, null, identifier3(name), null, null);

@@ -1,0 +1,2 @@
+enum E { a.b() ; const E.b(); }
+main() {}

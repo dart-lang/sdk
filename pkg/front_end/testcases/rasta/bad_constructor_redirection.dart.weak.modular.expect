@@ -1,0 +1,46 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/bad_constructor_redirection.dart:6:21: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//   const C() : this.x(1);
+//                     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/bad_constructor_redirection.dart:6:21: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+  const C() : this.x(1);
+                    ^"
+    ;
+  const constructor x() → self::C*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  new self::C::•();
+  invalid-expression "pkg/front_end/testcases/rasta/bad_constructor_redirection.dart:6:21: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+  const C() : this.x(1);
+                    ^";
+}
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///bad_constructor_redirection.dart:
+- C. (from org-dartlang-testcase:///bad_constructor_redirection.dart:6:9)

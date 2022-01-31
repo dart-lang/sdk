@@ -17,32 +17,13 @@ import '../protocol_common.dart';
 mixin PackageConfigUtils {
   /// Find the `package_config.json` file for the program being launched.
   ///
-  /// TODO(dantup): Remove this once
-  ///   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
-  ///   necessary.
+  /// It is no longer necessary to call this method as the package config file
+  /// is no longer used. URI lookups are done via the VM Service.
+  @Deprecated('No longer necessary, URI lookups are done via VM Service')
   File? findPackageConfigFile(String possibleRoot) {
-    File? packageConfig;
-    while (true) {
-      packageConfig =
-          File(path.join(possibleRoot, '.dart_tool', 'package_config.json'));
-
-      // If this packageconfig exists, use it.
-      if (packageConfig.existsSync()) {
-        break;
-      }
-
-      final parent = path.dirname(possibleRoot);
-
-      // If we can't go up anymore, the search failed.
-      if (parent == possibleRoot) {
-        packageConfig = null;
-        break;
-      }
-
-      possibleRoot = parent;
-    }
-
-    return packageConfig;
+    // TODO(dantup): Remove this method after Flutter DA is updated not to use
+    // it.
+    return null;
   }
 }
 
@@ -179,7 +160,7 @@ mixin VmServiceInfoFileUtils {
     final completer = Completer<Uri>();
     late final StreamSubscription<FileSystemEvent> vmServiceInfoFileWatcher;
 
-    Uri? tryParseServiceInfoFile(FileSystemEvent event) {
+    void tryParseServiceInfoFile(FileSystemEvent event) {
       final uri = _readVmServiceInfoFile(logger, vmServiceInfoFile);
       if (uri != null && !completer.isCompleted) {
         vmServiceInfoFileWatcher.cancel();
@@ -219,6 +200,7 @@ mixin VmServiceInfoFileUtils {
       // It's possible we tried to read the file before it was completely
       // written so ignore and try again on the next event.
       logger?.call('Ignoring error parsing vm-service-info file: $e');
+      return null;
     }
   }
 }

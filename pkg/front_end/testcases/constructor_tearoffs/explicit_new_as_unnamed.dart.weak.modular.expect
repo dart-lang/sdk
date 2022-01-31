@@ -1,0 +1,105 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:15:3: Error: 'C' is already declared in this scope.
+//   C.new(); // Error.
+//   ^
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:14:3: Context: Previous declaration of 'C'.
+//   C();
+//   ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:20:3: Error: 'D' is already declared in this scope.
+//   D(); // Error.
+//   ^
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:19:3: Context: Previous declaration of 'D'.
+//   D.new();
+//   ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:26:11: Error: 'E1' is already declared in this scope.
+//   factory E1.new() => E1._(); // Error.
+//           ^^
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:25:3: Context: Previous declaration of 'E1'.
+//   E1();
+//   ^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:32:3: Error: 'E2' is already declared in this scope.
+//   E2();
+//   ^^
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:31:11: Context: Previous declaration of 'E2'.
+//   factory E2.new() => E2._(); // Error.
+//           ^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:38:11: Error: 'E3' is already declared in this scope.
+//   factory E3.new() = E3._; // Error.
+//           ^^
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:37:3: Context: Previous declaration of 'E3'.
+//   E3();
+//   ^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:44:3: Error: 'E4' is already declared in this scope.
+//   E4(); // Error.
+//   ^^
+// pkg/front_end/testcases/constructor_tearoffs/explicit_new_as_unnamed.dart:43:11: Context: Previous declaration of 'E4'.
+//   factory E4.new() = E4._;
+//           ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+class D extends core::Object {
+  constructor •() → self::D
+    : super core::Object::•()
+    ;
+}
+class E1 extends core::Object {
+  constructor _() → self::E1
+    : super core::Object::•()
+    ;
+  constructor •() → self::E1
+    : super core::Object::•()
+    ;
+}
+class E2 extends core::Object {
+  constructor _() → self::E2
+    : super core::Object::•()
+    ;
+  static factory •() → self::E2
+    return new self::E2::_();
+}
+class E3 extends core::Object {
+  constructor _() → self::E3
+    : super core::Object::•()
+    ;
+  constructor •() → self::E3
+    : super core::Object::•()
+    ;
+}
+class E4 extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor _() → self::E4
+    : super core::Object::•()
+    ;
+  static factory •() → self::E4
+    return new self::E4::_();
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::E4::•
+}

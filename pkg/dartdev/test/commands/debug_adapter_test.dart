@@ -13,9 +13,9 @@ void main() {
 void debugAdapter() {
   // Implementation of debug_adapter is tested in the DDS package where the
   // DAP implementation lives.
-  test('--help', () {
+  test('--help', () async {
     final p = project();
-    var result = p.runSync(['debug_adapter', '--help']);
+    var result = await p.run(['debug_adapter', '--help']);
 
     expect(
         result.stdout,

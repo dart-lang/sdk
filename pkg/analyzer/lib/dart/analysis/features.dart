@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Information about a single language feature whose presence or absence
@@ -23,6 +22,9 @@ abstract class Feature {
   static final control_flow_collections =
       ExperimentalFeatures.control_flow_collections;
 
+  /// Feature information for enhanced enums.
+  static final enhanced_enums = ExperimentalFeatures.enhanced_enums;
+
   /// Feature information for extension methods.
   static final extension_methods = ExperimentalFeatures.extension_methods;
 
@@ -32,11 +34,17 @@ abstract class Feature {
   /// Feature information for generic metadata.
   static final generic_metadata = ExperimentalFeatures.generic_metadata;
 
+  /// Feature information for macros.
+  static final macros = ExperimentalFeatures.macros;
+
   /// Feature information for spread collections.
   static final spread_collections = ExperimentalFeatures.spread_collections;
 
   /// Feature information for set literals.
   static final set_literals = ExperimentalFeatures.set_literals;
+
+  /// Feature information for super parameters.
+  static final super_parameters = ExperimentalFeatures.super_parameters;
 
   /// Feature information for the triple-shift operator.
   static final triple_shift = ExperimentalFeatures.triple_shift;
@@ -68,23 +76,6 @@ abstract class Feature {
 
 /// An unordered collection of [Feature] objects.
 abstract class FeatureSet {
-  /// Computes a set of features for use in a unit test.  Computes the set of
-  /// features enabled in [sdkVersion], plus any specified [additionalFeatures].
-  ///
-  /// If [sdkVersion] is not supplied (or is `null`), then the current set of
-  /// enabled features is used as the starting point.
-  @visibleForTesting
-  factory FeatureSet.forTesting(
-          {String sdkVersion, List<Feature> additionalFeatures}) =
-      // ignore: invalid_use_of_visible_for_testing_member
-      ExperimentStatus.forTesting;
-
-  /// Computes the set of features implied by the given set of experimental
-  /// enable flags.
-  @Deprecated("Use 'fromEnableFlags2' instead")
-  factory FeatureSet.fromEnableFlags(List<String> flags) =
-      ExperimentStatus.fromStrings;
-
   /// Computes the set of features implied by the given set of experimental
   /// enable flags.
   factory FeatureSet.fromEnableFlags2({

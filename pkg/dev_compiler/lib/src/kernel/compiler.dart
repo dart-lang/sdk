@@ -595,7 +595,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var node = export.node;
     if (node is Procedure && node.name.text == 'main') {
       // Don't allow redefining names from this library.
-      var name = _emitTopLevelName(export.node);
+      var name = _emitTopLevelName(node);
       moduleItems.add(js.statement(
           '#.# = #;', [emitLibraryName(library), name.selector, name]));
     }
@@ -1612,14 +1612,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fn = node.function;
     var body = _emitArgumentInitializers(fn, node.name.text);
 
-    // Redirecting constructors: these are not allowed to have initializers,
-    // and the redirecting ctor invocation runs before field initializers.
-    var redirectCall = node.initializers
-            .firstWhere((i) => i is RedirectingInitializer, orElse: () => null)
-        as RedirectingInitializer;
-
-    if (redirectCall != null) {
-      body.add(_emitRedirectingConstructor(redirectCall, className));
+    // Redirecting constructors are not allowed to have conventional
+    // initializers but can have variable declarations in the form of
+    // initializers to support named arguments appearing anywhere in the
+    // arguments list.
+    if (node.initializers.any((i) => i is RedirectingInitializer)) {
+      body.add(_emitRedirectingConstructor(node.initializers, className));
       return body;
     }
 
@@ -1652,15 +1650,23 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Statement _emitRedirectingConstructor(
-      RedirectingInitializer node, js_ast.Expression className) {
-    var ctor = node.target;
-    // We can't dispatch to the constructor with `this.new` as that might hit a
-    // derived class constructor with the same name.
-    return js.statement('#.#.call(this, #);', [
-      className,
-      _constructorName(ctor.name.text),
-      _emitArgumentList(node.arguments, types: false)
-    ]);
+      List<Initializer> initializers, js_ast.Expression className) {
+    var jsInitializers = <js_ast.Statement>[
+      for (var init in initializers)
+        if (init is LocalInitializer)
+          // Temporary locals are created when named arguments don't appear at
+          // the end of the arguments list.
+          visitVariableDeclaration(init.variable)
+        else if (init is RedirectingInitializer)
+          // We can't dispatch to the constructor with `this.new` as that might
+          // hit a derived class constructor with the same name.
+          js.statement('#.#.call(this, #);', [
+            className,
+            _constructorName(init.target.name.text),
+            _emitArgumentList(init.arguments, types: false)
+          ])
+    ];
+    return js_ast.Block(jsInitializers);
   }
 
   js_ast.Statement _emitSuperConstructorCallIfNeeded(
@@ -2384,10 +2390,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
   js_ast.Expression _declareMemberName(Member m, {bool useExtension}) {
+    var c = m.enclosingClass;
     return _emitMemberName(m.name.text,
         isStatic: m is Field ? m.isStatic : (m as Procedure).isStatic,
         useExtension:
-            useExtension ?? _extensionTypes.isNativeClass(m.enclosingClass),
+            useExtension ?? c != null && _extensionTypes.isNativeClass(c),
         member: m);
   }
 
@@ -4691,15 +4698,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// null-checked in sound null-safety.
   ///
   /// This is true for non-nullable native return types.
-  bool _isNullCheckableNative(Member member) =>
-      _options.soundNullSafety &&
-      member != null &&
-      member.isExternal &&
-      _extensionTypes.isNativeClass(member.enclosingClass) &&
-      member is Procedure &&
-      member.function != null &&
-      member.function.returnType.isPotentiallyNonNullable &&
-      _isWebLibrary(member.enclosingLibrary?.importUri);
+  bool _isNullCheckableNative(Member member) {
+    var c = member.enclosingClass;
+    return _options.soundNullSafety &&
+        member != null &&
+        member.isExternal &&
+        c != null &&
+        _extensionTypes.isNativeClass(c) &&
+        member is Procedure &&
+        member.function != null &&
+        member.function.returnType.isPotentiallyNonNullable &&
+        _isWebLibrary(member.enclosingLibrary?.importUri);
+  }
 
   // TODO(jmesserly): can we encapsulate REPL name lookups and remove this?
   // _emitMemberName would be a nice place to handle it, but we don't have
@@ -5373,7 +5383,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // setter, or method. For the case of tearing off a `super` method in
     // contexts where `super` isn't allowed, see [_emitSuperTearoff].
     var name = member.name.text;
-    var jsMethod = _superHelpers.putIfAbsent(name, () {
+    var getter = (member is Field && !setter) ||
+        (member is Procedure && member.isGetter);
+    // Prefix applied to the name only used in the compiler for a map key. This
+    // name does not make its way into the compiled program.
+    var lookupPrefix = setter
+        ? r'set$'
+        : getter
+            ? r'get$'
+            : '';
+    var jsMethod = _superHelpers.putIfAbsent('$lookupPrefix$name', () {
       var isAccessor = member is Procedure ? member.isAccessor : true;
       if (isAccessor) {
         assert(member is Procedure

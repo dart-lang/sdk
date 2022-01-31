@@ -1,0 +1,55 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/type_parameter_type_named_int.dart:13:12: Error: A value of type 'List<int/*1*/>' can't be assigned to a variable of type 'List<int/*2*/>'.
+//  - 'List' is from 'dart:core'.
+//  - 'int/*1*/' is from 'pkg/front_end/testcases/general/type_parameter_type_named_int.dart'.
+//  - 'int/*2*/' is from 'dart:core'.
+//     list = value;
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class Foo<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Foo<self::Foo::T*>*
+    : super core::Object::•()
+    ;
+  abstract get list() → core::List<self::Foo::T*>*;
+  abstract method setList<T extends core::Object* = dynamic>(core::List<self::Foo::setList::T*>* value) → void;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Bar extends core::Object implements self::Foo<core::int*> {
+  field core::List<core::int*>* list = null;
+  synthetic constructor •() → self::Bar*
+    : super core::Object::•()
+    ;
+  method setList<int extends core::Object* = dynamic>(core::List<self::Bar::setList::int*>* value) → void {
+    this.{self::Bar::list} = invalid-expression "pkg/front_end/testcases/general/type_parameter_type_named_int.dart:13:12: Error: A value of type 'List<int/*1*/>' can't be assigned to a variable of type 'List<int/*2*/>'.
+ - 'List' is from 'dart:core'.
+ - 'int/*1*/' is from 'pkg/front_end/testcases/general/type_parameter_type_named_int.dart'.
+ - 'int/*2*/' is from 'dart:core'.
+    list = value;
+           ^" in value as{TypeError} core::List<core::int*>*;
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}

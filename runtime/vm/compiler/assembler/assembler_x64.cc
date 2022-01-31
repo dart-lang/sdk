@@ -1845,7 +1845,7 @@ static const RegisterSet kVolatileRegisterSet(
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   Comment("EnterCallRuntimeFrame");
   EnterFrame(0);
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     pushq(CODE_REG);
     pushq(PP);
   }
@@ -1939,7 +1939,7 @@ void Assembler::LoadPoolPointer(Register pp) {
 void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
   ASSERT(!constant_pool_allowed());
   EnterFrame(0);
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     pushq(CODE_REG);
     pushq(PP);
     if (new_pp == kNoRegister) {
@@ -1956,7 +1956,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size, Register new_pp) {
 
 void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   // Restore caller's PP register that was pushed in EnterDartFrame.
-  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
+  if (!FLAG_precompiled_mode) {
     if (restore_pp == kRestoreCallerPP) {
       movq(PP, Address(RBP, (target::frame_layout.saved_caller_pp_from_fp *
                              target::kWordSize)));

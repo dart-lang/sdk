@@ -1,0 +1,75 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension on self::Class* {
+  method method0 = self::Extension|method0;
+  tearoff method0 = self::Extension|get#method0;
+  method method1 = self::Extension|method1;
+  tearoff method1 = self::Extension|get#method1;
+  method method2 = self::Extension|method2;
+  tearoff method2 = self::Extension|get#method2;
+  method method3 = self::Extension|method3;
+  tearoff method3 = self::Extension|get#method3;
+  static method staticMethod = self::Extension|staticMethod;
+}
+static method Extension|method0(lowered final self::Class* #this, [dynamic a = #C1]) → dynamic
+  return a;
+static method Extension|get#method0(lowered final self::Class* #this) → ([dynamic]) →* dynamic
+  return ([dynamic a = #C1]) → dynamic => self::Extension|method0(#this, a);
+static method Extension|method1(lowered final self::Class* #this, [dynamic a = #C2]) → dynamic
+  return a;
+static method Extension|get#method1(lowered final self::Class* #this) → ([dynamic]) →* dynamic
+  return ([dynamic a = #C2]) → dynamic => self::Extension|method1(#this, a);
+static method Extension|method2(lowered final self::Class* #this, {dynamic b = #C3}) → dynamic
+  return b;
+static method Extension|get#method2(lowered final self::Class* #this) → ({b: dynamic}) →* dynamic
+  return ({dynamic b = #C3}) → dynamic => self::Extension|method2(#this, b: b);
+static method Extension|method3(lowered final self::Class* #this, {dynamic c = #C4}) → dynamic
+  return c{dynamic}.call();
+static method Extension|get#method3(lowered final self::Class* #this) → ({c: dynamic}) →* dynamic
+  return ({dynamic c = #C4}) → dynamic => self::Extension|method3(#this, c: c);
+static method Extension|staticMethod() → dynamic
+  return 123;
+static method main() → dynamic {
+  self::Class* c = new self::Class::•();
+  ([dynamic]) →* dynamic tearOff0 = self::Extension|get#method0(c);
+  self::expect(0, tearOff0(0){([dynamic]) →* dynamic});
+  self::expect(null, tearOff0(){([dynamic]) →* dynamic});
+  ([dynamic]) →* dynamic tearOff1 = self::Extension|get#method1(c);
+  self::expect(0, tearOff1(0){([dynamic]) →* dynamic});
+  self::expect(42, tearOff1(){([dynamic]) →* dynamic});
+  ({b: dynamic}) →* dynamic tearOff2 = self::Extension|get#method2(c);
+  self::expect(0, tearOff2(b: 0){({b: dynamic}) →* dynamic});
+  self::expect(87, tearOff2(){({b: dynamic}) →* dynamic});
+  ({c: dynamic}) →* dynamic tearOff3 = self::Extension|get#method3(c);
+  self::expect(0, tearOff3(c: () → core::int* => 0){({c: dynamic}) →* dynamic});
+  self::expect(123, tearOff3(){({c: dynamic}) →* dynamic});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}
+
+constants  {
+  #C1 = null
+  #C2 = 42
+  #C3 = 87
+  #C4 = static-tearoff self::Extension|staticMethod
+}

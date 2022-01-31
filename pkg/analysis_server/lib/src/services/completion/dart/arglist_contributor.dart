@@ -7,10 +7,9 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 
 /// A contributor that produces suggestions for named expression labels that
 /// correspond to named parameters when completing in argument lists.
@@ -100,7 +99,9 @@ class ArgListContributor extends DartCompletionContributor {
     if (_isEditingNamedArgLabel() ||
         _isAppendingToArgList() ||
         _isAddingLabelToPositional()) {
-      if (requiredCount == 0 || requiredCount < _argCount()) {
+      if (request.featureSet.isEnabled(Feature.named_arguments_anywhere) ||
+          requiredCount == 0 ||
+          requiredCount < _argCount()) {
         // If there's a replacement range that starts at the caret, it will be
         // for an identifier that is not the named label and therefore it should
         // not be replaced.
@@ -110,7 +111,8 @@ class ArgListContributor extends DartCompletionContributor {
                 ? 0
                 : null;
 
-        var addTrailingComma = !_isFollowedByAComma() && _isInFlutterCreation();
+        var addTrailingComma =
+            !request.target.isFollowedByComma && _isInFlutterCreation();
         _addDefaultParamSuggestions(parameters,
             appendComma: addTrailingComma,
             replacementLength: replacementLength);
@@ -119,12 +121,7 @@ class ArgListContributor extends DartCompletionContributor {
       _addDefaultParamSuggestions(parameters, appendComma: true);
     } else if (_isInsertingToArgListWithSynthetic()) {
       _addDefaultParamSuggestions(parameters,
-          appendComma: !_isFollowedByAComma());
-    } else {
-      var argument = request.target.containingNode;
-      if (argument is NamedExpression) {
-        _buildClosureSuggestions(argument);
-      }
+          appendComma: !request.target.isFollowedByComma);
     }
   }
 
@@ -142,15 +139,6 @@ class ArgListContributor extends DartCompletionContributor {
       return argumentList.arguments.length;
     }
     return 0;
-  }
-
-  void _buildClosureSuggestions(NamedExpression argument) {
-    var type = argument.staticParameterElement?.type;
-    if (type is FunctionType) {
-      builder.suggestClosure(type,
-          includeTrailingComma:
-              argument.endToken.next?.type != TokenType.COMMA);
-    }
   }
 
   /// Return `true` if the caret is preceding an arg where a name could be added
@@ -217,24 +205,6 @@ class ArgListContributor extends DartCompletionContributor {
       }
     }
     return false;
-  }
-
-  bool _isFollowedByAComma() {
-    // new A(^); NO
-    // new A(one: 1, ^); NO
-    // new A(^ , one: 1); YES
-    // new A(^), ... NO
-
-    var containingNode = request.target.containingNode;
-    var entity = request.target.entity;
-    var token = entity is AstNode
-        ? entity.endToken
-        : entity is Token
-            ? entity
-            : null;
-    return (token != containingNode.endToken) &&
-        token?.next?.type == TokenType.COMMA &&
-        !(token?.next?.isSynthetic ?? false);
   }
 
   bool _isInFlutterCreation() {

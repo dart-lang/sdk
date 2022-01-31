@@ -165,7 +165,7 @@ class DartObjectImpl implements DartObject {
   /// Create an object to represent an unknown value.
   factory DartObjectImpl.validWithUnknownValue(
     TypeSystemImpl typeSystem,
-    ParameterizedType type,
+    DartType type,
   ) {
     if (type.element!.library!.isDartCore) {
       if (type.isDartCoreBool) {
@@ -518,6 +518,7 @@ class DartObjectImpl implements DartObject {
     var typeSystem = TypeSystemImpl(
       implicitCasts: false,
       isNonNullableByDefault: false,
+      strictCasts: false,
       strictInference: false,
       typeProvider: typeProvider,
     );

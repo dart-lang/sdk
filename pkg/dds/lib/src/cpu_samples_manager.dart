@@ -15,34 +15,15 @@ class CpuSamplesManager {
     }
   }
 
-  void handleUserTagEvent(Event event) {
-    assert(event.kind! == EventKind.kUserTagChanged);
-    _currentTag = event.updatedTag!;
-    final previousTag = event.previousTag!;
-    if (cpuSamplesCaches.containsKey(previousTag)) {
-      _lastCachedTag = previousTag;
-    }
-  }
-
   void handleCpuSamplesEvent(Event event) {
-    assert(event.kind! == EventKind.kCpuSamples);
-    // There might be some samples left in the buffer for the previously set
-    // user tag. We'll check for them here and then close out the cache.
-    if (_lastCachedTag != null) {
-      cpuSamplesCaches[_lastCachedTag]!.cacheSamples(
-        event.cpuSamples!,
-      );
-      _lastCachedTag = null;
+    for (final userTag in dds.cachedUserTags) {
+      cpuSamplesCaches[userTag]!.cacheSamples(event.cpuSamples!);
     }
-    cpuSamplesCaches[_currentTag]?.cacheSamples(event.cpuSamples!);
   }
 
   final DartDevelopmentServiceImpl dds;
   final String isolateId;
   final cpuSamplesCaches = <String, CpuSamplesRepository>{};
-
-  String _currentTag = '';
-  String? _lastCachedTag;
 }
 
 class CpuSamplesRepository extends RingBuffer<CpuSample> {
@@ -52,21 +33,31 @@ class CpuSamplesRepository extends RingBuffer<CpuSample> {
     int bufferSize = 1000000,
   ]) : super(bufferSize);
 
-  void cacheSamples(CpuSamples samples) {
-    String getFunctionId(ProfileFunction function) {
-      final functionObject = function.function;
-      if (functionObject is NativeFunction) {
-        return 'native/${functionObject.name}';
-      }
-      return functionObject.id!;
-    }
+  ProfileFunction _buildProfileFunction(dynamic function) {
+    // `kind` and `resolvedUrl` are populated in `populateFunctionDetails()`.
+    return ProfileFunction(
+      kind: '',
+      inclusiveTicks: -1,
+      exclusiveTicks: -1,
+      resolvedUrl: '',
+      function: function,
+    );
+  }
 
+  String _getFunctionId(dynamic function) {
+    if (function is NativeFunction) {
+      return 'native/${function.name}';
+    }
+    return function.id!;
+  }
+
+  void cacheSamples(CpuSamplesEvent samples) {
     // Initialize upon seeing our first samples.
     if (functions.isEmpty) {
       samplePeriod = samples.samplePeriod!;
       maxStackDepth = samples.maxStackDepth!;
       pid = samples.pid!;
-      functions.addAll(samples.functions!);
+      functions.addAll(samples.functions!.map(_buildProfileFunction));
 
       // Build the initial id to function index mapping. This allows for us to
       // lookup a ProfileFunction in the global function list stored in this
@@ -77,7 +68,7 @@ class CpuSamplesRepository extends RingBuffer<CpuSample> {
       // TODO(bkonyi): investigate creating some form of stable ID for
       // Functions tied to closures.
       for (int i = 0; i < functions.length; ++i) {
-        idToFunctionIndex[getFunctionId(functions[i])] = i;
+        idToFunctionIndex[_getFunctionId(functions[i].function)] = i;
       }
 
       // Clear tick information as we'll need to recalculate these values later
@@ -94,14 +85,14 @@ class CpuSamplesRepository extends RingBuffer<CpuSample> {
 
       // Check to see if we've got a function object we've never seen before.
       for (int i = 0; i < newFunctions.length; ++i) {
-        final key = getFunctionId(newFunctions[i]);
+        final key = _getFunctionId(newFunctions[i]);
         if (!idToFunctionIndex.containsKey(key)) {
           idToFunctionIndex[key] = functions.length;
           // Keep track of the original index and the location of the function
           // in the master function list so we can update the function indicies
           // for each sample in this batch.
           indexMapping[i] = functions.length;
-          functions.add(newFunctions[i]);
+          functions.add(_buildProfileFunction(newFunctions[i]));
 
           // Reset tick state as we'll recalculate later.
           functions.last.inclusiveTicks = 0;
@@ -157,6 +148,28 @@ class CpuSamplesRepository extends RingBuffer<CpuSample> {
     updateTicksForSample(sample, 1);
 
     return evicted;
+  }
+
+  Future<void> populateFunctionDetails(
+      DartDevelopmentServiceImpl dds, String isolateId) async {
+    final cpuSamples = await dds.vmServiceClient.sendRequest('getCpuSamples', {
+      'isolateId': isolateId,
+      'timeOriginMicros': 0,
+      'timeExtentMicros': 0,
+    });
+    final fullFunctions = cpuSamples['functions'];
+    for (final func in fullFunctions) {
+      final profileFunc = ProfileFunction.parse(func)!;
+      final id = _getFunctionId(profileFunc.function!);
+      final index = idToFunctionIndex[id];
+      if (index == null) {
+        continue;
+      }
+      final result = functions[index];
+      result.kind = profileFunc.kind;
+      result.resolvedUrl = profileFunc.resolvedUrl;
+      result.function = profileFunc.function;
+    }
   }
 
   Map<String, dynamic> toJson() {

@@ -1,0 +1,101 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class A extends core::Object {
+  field core::int? _#A#x = null;
+  field core::bool _#A#x#isSet = false;
+  field core::int? _#A#y = null;
+  field core::bool _#A#y#isSet = false;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return this.{self::A::_#A#x#isSet}{core::bool} ?{core::int} let final core::int? #t1 = this.{self::A::_#A#x}{core::int?} in #t1{core::int} : throw new _in::LateError::fieldNI("x");
+  set x(core::int #t2) → void
+    if(this.{self::A::_#A#x#isSet}{core::bool})
+      throw new _in::LateError::fieldAI("x");
+    else {
+      this.{self::A::_#A#x#isSet} = true;
+      this.{self::A::_#A#x} = #t2;
+    }
+  get y() → core::int?
+    return this.{self::A::_#A#y#isSet}{core::bool} ?{core::int?} this.{self::A::_#A#y}{core::int?} : throw new _in::LateError::fieldNI("y");
+  set y(core::int? #t3) → void
+    if(this.{self::A::_#A#y#isSet}{core::bool})
+      throw new _in::LateError::fieldAI("y");
+    else {
+      this.{self::A::_#A#y#isSet} = true;
+      this.{self::A::_#A#y} = #t3;
+    }
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  get x() → core::int
+    return 1;
+  get y() → core::int?
+    return 1;
+}
+class C extends self::A {
+  field core::int? _#C#x = null;
+  field core::bool _#C#x#isSet = false;
+  field core::int? _#C#y = null;
+  field core::bool _#C#y#isSet = false;
+  synthetic constructor •() → self::C
+    : super self::A::•()
+    ;
+  get x() → core::int {
+    if(!this.{self::C::_#C#x#isSet}{core::bool}) {
+      final core::int #t4 = 2;
+      if(this.{self::C::_#C#x#isSet}{core::bool})
+        throw new _in::LateError::fieldADI("x");
+      this.{self::C::_#C#x} = #t4;
+      this.{self::C::_#C#x#isSet} = true;
+    }
+    return let final core::int? #t5 = this.{self::C::_#C#x}{core::int?} in #t5{core::int};
+  }
+  get y() → core::int? {
+    if(!this.{self::C::_#C#y#isSet}{core::bool}) {
+      final core::int? #t6 = 2;
+      if(this.{self::C::_#C#y#isSet}{core::bool})
+        throw new _in::LateError::fieldADI("y");
+      this.{self::C::_#C#y} = #t6;
+      this.{self::C::_#C#y#isSet} = true;
+    }
+    return this.{self::C::_#C#y}{core::int?};
+  }
+}
+static method main() → dynamic {
+  self::B b = new self::B::•();
+  b.{self::A::x} = 3;
+  self::C c = new self::C::•();
+  self::throws(() → core::int => b.{self::A::x} = 14, "Write to B.x");
+  c.{self::A::x} = 3;
+  self::throws(() → core::int => c.{self::A::x} = 14, "Write to C.x");
+  self::expect(1, b.{self::B::x}{core::int});
+  self::expect(2, c.{self::C::x}{core::int});
+  b.{self::A::y} = 3;
+  self::throws(() → core::int => b.{self::A::y} = 14, "Write to B.y");
+  c.{self::A::y} = 3;
+  self::throws(() → core::int => c.{self::A::y} = 14, "Write to C.y");
+  self::expect(1, b.{self::B::y}{core::int?});
+  self::expect(2, c.{self::C::y}{core::int?});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, core::String message) → dynamic {
+  dynamic value;
+  try {
+    value = f(){() → dynamic};
+  }
+  on core::Error catch(final core::Error e) {
+    core::print(e);
+    return;
+  }
+  throw "${message}: ${value}";
+}

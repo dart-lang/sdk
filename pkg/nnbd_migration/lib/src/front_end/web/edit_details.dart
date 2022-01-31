@@ -37,12 +37,12 @@ class EditDetails {
       this.traces = const []});
 
   EditDetails.fromJson(dynamic json)
-      : edits = _decodeEdits(json['edits']),
+      : edits = _decodeEdits(json['edits'] as List<Object?>?),
         explanation = json['explanation'] as String?,
         line = json['line'] as int?,
         displayPath = json['displayPath'] as String?,
         uriPath = json['uriPath'] as String?,
-        traces = _decodeTraces(json['traces']);
+        traces = _decodeTraces(json['traces'] as List<Object?>?);
 
   Map<String, Object?> toJson() => {
         if (edits != null) 'edits': [for (var edit in edits!) edit.toJson()],
@@ -54,10 +54,10 @@ class EditDetails {
           'traces': [for (var trace in traces!) trace.toJson()],
       };
 
-  static List<EditLink>? _decodeEdits(dynamic json) =>
+  static List<EditLink>? _decodeEdits(List<Object?>? json) =>
       json == null ? null : [for (var edit in json) EditLink.fromJson(edit)];
 
-  static List<Trace>? _decodeTraces(dynamic json) =>
+  static List<Trace>? _decodeTraces(List<Object?>? json) =>
       json == null ? null : [for (var trace in json) Trace.fromJson(trace)];
 }
 
@@ -125,7 +125,8 @@ class Trace {
   Trace.fromJson(dynamic json)
       : description = json['description'] as String?,
         entries = [
-          for (var entry in json['entries']) TraceEntry.fromJson(entry)
+          for (var entry in json['entries'] as List<Object?>)
+            TraceEntry.fromJson(entry)
         ];
 
   Map<String, Object?> toJson() => {

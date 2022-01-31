@@ -1,0 +1,60 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:15:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   get w => /*error:RETURN_OF_INVALID_TYPE*/ "hello";
+//                                             ^
+//
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:19:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.x*/ x;
+//                                                                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object* = dynamic> extends core::Object {
+  final field self::A::T* x = null;
+  final field self::A::T* w = null;
+  synthetic constructor •() → self::A<self::A::T*>*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends core::Object implements self::A<core::int*> {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+  get x() → core::int*
+    return 3;
+  get w() → core::int*
+    return invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:15:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+  get w => /*error:RETURN_OF_INVALID_TYPE*/ \"hello\";
+                                            ^" in "hello" as{TypeError} core::int*;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method foo() → dynamic {
+  core::String* y = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_3.dart:19:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B.x*/ x;
+                                                                   ^" in new self::B::•().{self::B::x}{core::int*} as{TypeError} core::String*;
+  core::int* z = new self::B::•().{self::B::x}{core::int*};
+}
+static method main() → dynamic {}

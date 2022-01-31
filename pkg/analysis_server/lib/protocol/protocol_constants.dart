@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.32.7';
+const String PROTOCOL_VERSION = '1.32.8';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -141,6 +141,7 @@ const String COMPLETION_REQUEST_GET_SUGGESTIONS2 = 'completion.getSuggestions2';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS2_FILE = 'file';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS2_MAX_RESULTS = 'maxResults';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS2_OFFSET = 'offset';
+const String COMPLETION_REQUEST_GET_SUGGESTIONS2_TIMEOUT = 'timeout';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS_FILE = 'file';
 const String COMPLETION_REQUEST_GET_SUGGESTIONS_OFFSET = 'offset';
 const String COMPLETION_REQUEST_GET_SUGGESTION_DETAILS =
@@ -355,6 +356,8 @@ const String SERVER_NOTIFICATION_LOG_ENTRY = 'entry';
 const String SERVER_NOTIFICATION_STATUS = 'server.status';
 const String SERVER_NOTIFICATION_STATUS_ANALYSIS = 'analysis';
 const String SERVER_NOTIFICATION_STATUS_PUB = 'pub';
+const String SERVER_REQUEST_CANCEL_REQUEST = 'server.cancelRequest';
+const String SERVER_REQUEST_CANCEL_REQUEST_ID = 'id';
 const String SERVER_REQUEST_GET_VERSION = 'server.getVersion';
 const String SERVER_REQUEST_SET_SUBSCRIPTIONS = 'server.setSubscriptions';
 const String SERVER_REQUEST_SET_SUBSCRIPTIONS_SUBSCRIPTIONS = 'subscriptions';

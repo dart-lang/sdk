@@ -1,0 +1,35 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  const constructor •({dynamic x = #C1}) → self::C
+    : super core::Object::•()
+    ;
+}
+class B<X extends core::Object? = dynamic> extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B<self::B::X%>
+    : super self::A::•()
+    ;
+}
+abstract class A extends core::Object /*hasConstConstructor*/  {
+  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+  static factory foo() → self::A
+    return new self::B::•<dynamic>();
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = self::B<dynamic> {}
+  #C2 = constructor-tearoff self::A::foo
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue45003_2.dart:
+- B. (from org-dartlang-testcase:///issue45003_2.dart:10:9)
+- A. (from org-dartlang-testcase:///issue45003_2.dart:14:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

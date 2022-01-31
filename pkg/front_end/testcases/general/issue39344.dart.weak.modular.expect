@@ -1,0 +1,116 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue39344.dart:19:12: Error: A value of type 'List<T>' can't be assigned to a variable of type 'List<B>'.
+//  - 'List' is from 'dart:core'.
+//  - 'B' is from 'pkg/front_end/testcases/general/issue39344.dart'.
+//       xs = ys;
+//            ^
+//
+// pkg/front_end/testcases/general/issue39344.dart:31:13: Error: A value of type 'List<List<T>>' can't be assigned to a variable of type 'List<List<B>>'.
+//  - 'List' is from 'dart:core'.
+//  - 'B' is from 'pkg/front_end/testcases/general/issue39344.dart'.
+//       xss = yss;
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+class Class<T extends self::A*> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T*>*
+    : super core::Object::•()
+    ;
+  method method1a(covariant-by-class self::Class::T* t) → void {
+    if(t is self::B*) {
+      core::List<self::Class::T*>* ys = <self::Class::T*>[t{self::Class::T* & self::B* /* '*' & '*' = '*' */}];
+      self::xs = invalid-expression "pkg/front_end/testcases/general/issue39344.dart:19:12: Error: A value of type 'List<T>' can't be assigned to a variable of type 'List<B>'.
+ - 'List' is from 'dart:core'.
+ - 'B' is from 'pkg/front_end/testcases/general/issue39344.dart'.
+      xs = ys;
+           ^" in ys as{TypeError} core::List<self::B*>*;
+    }
+  }
+  method method1b(covariant-by-class self::Class::T* t) → void {
+    if(t is self::B*) {
+      core::List<core::List<self::Class::T*>*>* yss = <core::List<self::Class::T*>*>[<self::Class::T*>[t{self::Class::T* & self::B* /* '*' & '*' = '*' */}]];
+      self::xss = invalid-expression "pkg/front_end/testcases/general/issue39344.dart:31:13: Error: A value of type 'List<List<T>>' can't be assigned to a variable of type 'List<List<B>>'.
+ - 'List' is from 'dart:core'.
+ - 'B' is from 'pkg/front_end/testcases/general/issue39344.dart'.
+      xss = yss;
+            ^" in yss as{TypeError} core::List<core::List<self::B*>*>*;
+    }
+  }
+  method method2a(covariant-by-class self::Class::T* t) → void {
+    dynamic alias;
+    if(t is self::B*) {
+      core::List<self::Class::T*>* ys = <self::Class::T*>[t{self::Class::T* & self::B* /* '*' & '*' = '*' */}];
+      alias = ys;
+      self::xs = alias as{TypeError,ForDynamic} core::List<self::B*>*;
+    }
+  }
+  method method2b(covariant-by-class self::Class::T* t) → void {
+    dynamic alias;
+    if(t is self::B*) {
+      core::List<core::List<self::Class::T*>*>* yss = <core::List<self::Class::T*>*>[<self::Class::T*>[t{self::Class::T* & self::B* /* '*' & '*' = '*' */}]];
+      alias = yss;
+      self::xss = alias as{TypeError,ForDynamic} core::List<core::List<self::B*>*>*;
+    }
+  }
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static field core::List<self::B*>* xs;
+static field core::List<core::List<self::B*>*>* xss;
+static method main() → void {
+  self::throws(() → Null {
+    new self::Class::•<self::A*>().{self::Class::method2a}(new self::B::•()){(self::A*) →* void};
+    core::print(self::xs.{core::Object::runtimeType}{core::Type*});
+  });
+  self::throws(() → Null {
+    new self::Class::•<self::A*>().{self::Class::method2b}(new self::B::•()){(self::A*) →* void};
+    core::print(self::xs.{core::Object::runtimeType}{core::Type*});
+  });
+}
+static method errors() → void {
+  new self::Class::•<self::A*>().{self::Class::method1a}(new self::B::•()){(self::A*) →* void};
+  new self::Class::•<self::A*>().{self::Class::method1b}(new self::B::•()){(self::A*) →* void};
+}
+static method throws(() →* void f) → void {
+  try {
+    f(){() →* void};
+  }
+  on dynamic catch(final dynamic e) {
+    core::print(e);
+    return;
+  }
+  throw "Expected throws";
+}

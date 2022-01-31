@@ -184,8 +184,12 @@ EOF
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety UseDartApi
     out/ReleaseIA32/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart2/Example.dart
     out/ReleaseIA32/dart --sound-null-safety --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
+    out/ReleaseIA32/dart benchmarks/NativeCall/dart2/NativeCall.dart
+    out/ReleaseIA32/dart --sound-null-safety benchmarks/NativeCall/dart/NativeCall.dart
     out/ReleaseIA32/dart benchmarks/FfiBoringssl/dart2/FfiBoringssl.dart
     out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiBoringssl/dart/FfiBoringssl.dart
+    out/ReleaseIA32/dart benchmarks/FfiAsTypedList/dart2/FfiAsTypedList.dart
+    out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiAsTypedList/dart/FfiAsTypedList.dart
     out/ReleaseIA32/dart benchmarks/FfiCall/dart2/FfiCall.dart
     out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiCall/dart/FfiCall.dart
     out/ReleaseIA32/dart benchmarks/FfiMemory/dart2/FfiMemory.dart

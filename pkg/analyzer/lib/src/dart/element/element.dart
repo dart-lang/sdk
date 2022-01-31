@@ -34,9 +34,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart'
     show Namespace, NamespaceBuilder;
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -45,6 +43,7 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/task/inference_error.dart';
+import 'package:collection/collection.dart';
 
 /// A concrete implementation of a [ClassElement].
 abstract class AbstractClassElementImpl extends _ExistingElementImpl
@@ -391,7 +390,7 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     // TODO (jwren) revisit- should we append '=' here or require clients to
     // include it?
     // Do we need the check for isSetter below?
-    if (!StringUtilities.endsWithChar(setterName, 0x3D)) {
+    if (!setterName.endsWith('=')) {
       setterName += '=';
     }
     for (PropertyAccessorElement accessor in accessors) {
@@ -927,6 +926,9 @@ class ClassElementImpl extends AbstractClassElementImpl
         implicitConstructor.parameters = implicitParameters;
       }
       implicitConstructor.enclosingElement = this;
+      // TODO(scheglov) Why do we manually map parameters types above?
+      implicitConstructor.superConstructor =
+          ConstructorMember.from(superclassConstructor, supertype!);
 
       var isNamed = superclassConstructor.name.isNotEmpty;
       implicitConstructor.constantInitializers = [
@@ -1298,6 +1300,9 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   bool get hasInitializer => false;
 
   @override
+  bool get isEnumConstant => true;
+
+  @override
   Element get nonSynthetic => this;
 
   @override
@@ -1410,6 +1415,14 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
 class ConstructorElementImpl extends ExecutableElementImpl
     with ConstructorElementMixin
     implements ConstructorElement {
+  /// The super-constructor which this constructor is invoking, or `null` if
+  /// this constructor is not generative, or is redirecting, or the
+  /// super-constructor is not resolved, or the enclosing class is `Object`.
+  ///
+  /// TODO(scheglov) We cannot have both super and redirecting constructors.
+  /// So, ideally we should have some kind of "either" or "variant" here.
+  ConstructorElement? _superConstructor;
+
   /// The constructor to which this constructor is redirecting.
   ConstructorElement? _redirectedConstructor;
 
@@ -1540,6 +1553,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
     return (_returnType ??= enclosingElement.thisType) as InterfaceType;
   }
 
+  ConstructorElement? get superConstructor {
+    linkedData?.read(this);
+    return _superConstructor;
+  }
+
+  set superConstructor(ConstructorElement? superConstructor) {
+    _superConstructor = superConstructor;
+  }
+
   @override
   FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
 
@@ -1572,9 +1594,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// of formal parameters, are evaluated.
   void computeConstantDependencies() {
     if (!isConstantEvaluated) {
-      var analysisOptions = context.analysisOptions as AnalysisOptionsImpl;
       computeConstants(library.typeProvider, library.typeSystem,
-          context.declaredVariables, [this], analysisOptions.experimentStatus);
+          context.declaredVariables, [this], library.featureSet);
     }
   }
 }
@@ -1650,9 +1671,17 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   /// of this variable could not be computed because of errors.
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      var analysisOptions = context.analysisOptions as AnalysisOptionsImpl;
-      computeConstants(library!.typeProvider, library!.typeSystem,
-          context.declaredVariables, [this], analysisOptions.experimentStatus);
+      final library = this.library;
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/47915
+      if (library == null) {
+        throw StateError(
+          '[library: null][this: ($runtimeType) $this]'
+          '[enclosingElement: $enclosingElement]'
+          '[reference: $reference]',
+        );
+      }
+      computeConstants(library.typeProvider, library.typeSystem,
+          context.declaredVariables, [this], library.featureSet);
     }
     return evaluationResult?.value;
   }
@@ -1686,6 +1715,26 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   /// [nameOffset].
   DefaultParameterElementImpl({
     required String? name,
+    required int nameOffset,
+    required ParameterKind parameterKind,
+  }) : super(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: parameterKind,
+        );
+
+  @override
+  String? get defaultValueCode {
+    return constantInitializer?.toSource();
+  }
+}
+
+class DefaultSuperFormalParameterElementImpl
+    extends SuperFormalParameterElementImpl with ConstVariableElement {
+  /// Initialize a newly created parameter element to have the given [name] and
+  /// [nameOffset].
+  DefaultSuperFormalParameterElementImpl({
+    required String name,
     required int nameOffset,
     required ParameterKind parameterKind,
   }) : super(
@@ -1982,10 +2031,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
-      var analysisOptions = context.analysisOptions as AnalysisOptionsImpl;
       var library = compilationUnit.library;
       computeConstants(library.typeProvider, library.typeSystem,
-          context.declaredVariables, [this], analysisOptions.experimentStatus);
+          context.declaredVariables, [this], library.featureSet);
     }
     return evaluationResult?.value;
   }
@@ -2033,6 +2081,10 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
 /// A base class for concrete implementations of an [Element].
 abstract class ElementImpl implements Element {
+  static const _metadataFlag_isReady = 1 << 0;
+  static const _metadataFlag_hasDeprecated = 1 << 1;
+  static const _metadataFlag_hasOverride = 1 << 2;
+
   /// An Unicode right arrow.
   @deprecated
   static final String RIGHT_ARROW = " \u2192 ";
@@ -2061,6 +2113,9 @@ abstract class ElementImpl implements Element {
   /// A list containing all of the metadata associated with this element.
   List<ElementAnnotation> _metadata = const [];
 
+  /// Cached flags denoting presence of specific annotations in [_metadata].
+  int _metadataFlags = 0;
+
   /// A cached copy of the calculated hashCode for this element.
   int? _cachedHashCode;
 
@@ -2079,8 +2134,7 @@ abstract class ElementImpl implements Element {
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
-  ElementImpl(String? name, this._nameOffset, {this.reference}) {
-    _name = name != null ? StringUtilities.intern(name) : null;
+  ElementImpl(this._name, this._nameOffset, {this.reference}) {
     reference?.element = this;
   }
 
@@ -2138,14 +2192,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasDeprecated {
-    final metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isDeprecated) {
-        return true;
-      }
-    }
-    return false;
+    return (_getMetadataFlags() & _metadataFlag_hasDeprecated) != 0;
   }
 
   @override
@@ -2277,14 +2324,7 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get hasOverride {
-    final metadata = this.metadata;
-    for (var i = 0; i < metadata.length; i++) {
-      var annotation = metadata[i];
-      if (annotation.isOverride) {
-        return true;
-      }
-    }
-    return false;
+    return (_getMetadataFlags() & _metadataFlag_hasOverride) != 0;
   }
 
   /// Return `true` if this element has an annotation of the form
@@ -2561,7 +2601,9 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  E thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate) {
+  E thisOrAncestorMatching<E extends Element>(
+    bool Function(Element) predicate,
+  ) {
     Element? element = this;
     while (element != null && !predicate(element)) {
       element = element.enclosingElement;
@@ -2586,6 +2628,29 @@ abstract class ElementImpl implements Element {
   @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
+  }
+
+  /// Return flags that denote presence of a few specific annotations.
+  int _getMetadataFlags() {
+    var result = _metadataFlags;
+
+    // Has at least `_metadataFlag_isReady`.
+    if (result != 0) {
+      return result;
+    }
+
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isDeprecated) {
+        result |= _metadataFlag_hasDeprecated;
+      } else if (annotation.isOverride) {
+        result |= _metadataFlag_hasOverride;
+      }
+    }
+
+    result |= _metadataFlag_isReady;
+    return _metadataFlags = result;
   }
 }
 
@@ -2775,10 +2840,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
   bool get hasStaticMember => true;
 
   @override
-  List<InterfaceType> get interfaces {
-    var enumType = library.typeProvider.enumType;
-    return enumType != null ? <InterfaceType>[enumType] : const [];
-  }
+  List<InterfaceType> get interfaces => const [];
 
   @override
   bool get isAbstract => false;
@@ -2819,7 +2881,10 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  InterfaceType get supertype => library.typeProvider.objectType;
+  InterfaceType get supertype {
+    var enumType = library.typeProvider.enumType;
+    return enumType ?? library.typeProvider.objectType;
+  }
 
   @override
   List<TypeParameterElement> get typeParameters =>
@@ -3272,10 +3337,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   @override
-  bool get isEnumConstant =>
-      enclosingElement is ClassElement &&
-      (enclosingElement as ClassElement).isEnum &&
-      !isSynthetic;
+  bool get isEnumConstant => false;
 
   @override
   bool get isExternal {
@@ -4605,8 +4667,11 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @override
-  E? thisOrAncestorMatching<E extends Element>(Predicate<Element> predicate) =>
-      null;
+  E? thisOrAncestorMatching<E extends Element>(
+    bool Function(Element) predicate,
+  ) {
+    return null;
+  }
 
   @override
   E? thisOrAncestorOfType<E extends Element>() => null;
@@ -4711,8 +4776,8 @@ class ParameterElementImpl extends VariableElementImpl
   @override
   final ParameterKind parameterKind;
 
-  /// The Dart code of the default value.
-  String? _defaultValueCode;
+  @override
+  String? defaultValueCode;
 
   /// True if this parameter inherits from a covariant parameter. This happens
   /// when it overrides a method in a supertype that has a corresponding
@@ -4744,18 +4809,6 @@ class ParameterElementImpl extends VariableElementImpl
   ParameterElement get declaration => this;
 
   @override
-  String? get defaultValueCode {
-    return _defaultValueCode;
-  }
-
-  /// Set Dart code of the default value.
-  set defaultValueCode(String? defaultValueCode) {
-    _defaultValueCode = defaultValueCode != null
-        ? StringUtilities.intern(defaultValueCode)
-        : null;
-  }
-
-  @override
   bool get hasDefaultValue {
     return defaultValueCode != null;
   }
@@ -4784,6 +4837,9 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   bool get isLate => false;
+
+  @override
+  bool get isSuperFormal => false;
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
@@ -5399,6 +5455,56 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
   }
 }
 
+class SuperFormalParameterElementImpl extends ParameterElementImpl
+    implements SuperFormalParameterElement {
+  /// Initialize a newly created parameter element to have the given [name] and
+  /// [nameOffset].
+  SuperFormalParameterElementImpl({
+    required String name,
+    required int nameOffset,
+    required ParameterKind parameterKind,
+  }) : super(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: parameterKind,
+        );
+
+  /// Super parameters are visible only in the initializer list scope,
+  /// and introduce final variables.
+  @override
+  bool get isFinal => true;
+
+  @override
+  bool get isSuperFormal => true;
+
+  @override
+  ParameterElement? get superConstructorParameter {
+    final enclosingElement = this.enclosingElement;
+    if (enclosingElement is ConstructorElementImpl) {
+      var superConstructor = enclosingElement.superConstructor;
+      if (superConstructor != null) {
+        var superParameters = superConstructor.parameters;
+        if (isNamed) {
+          return superParameters.firstWhereOrNull((e) => e.name == name);
+        } else {
+          var index = enclosingElement.parameters
+              .whereType<SuperFormalParameterElementImpl>()
+              .toList()
+              .indexOf(this);
+          if (index >= 0 && index < superParameters.length) {
+            return superParameters[index];
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) =>
+      visitor.visitSuperFormalParameterElement(this);
+}
+
 /// A concrete implementation of a [TopLevelVariableElement].
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     implements TopLevelVariableElement {
@@ -5481,6 +5587,34 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   CompilationUnitElement get enclosingElement =>
       super.enclosingElement as CompilationUnitElement;
+
+  /// Returns whether this alias is a "proper rename" of [aliasedClass], as
+  /// defined in the constructor-tearoffs specification.
+  bool get isProperRename {
+    var aliasedType_ = aliasedType;
+    if (aliasedType_ is! InterfaceType) {
+      return false;
+    }
+    var aliasedClass = aliasedType_.element;
+    var typeArguments = aliasedType_.typeArguments;
+    var typeParameterCount = typeParameters.length;
+    if (typeParameterCount != aliasedClass.typeParameters.length) {
+      return false;
+    }
+    for (var i = 0; i < typeParameterCount; i++) {
+      var bound = typeParameters[i].bound ?? library.typeProvider.dynamicType;
+      var aliasedBound = aliasedClass.typeParameters[i].bound ??
+          library.typeProvider.dynamicType;
+      if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
+          !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
+        return false;
+      }
+      if (typeParameters[i] != typeArguments[i].element) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   ElementKind get kind {
@@ -5580,37 +5714,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
     } else {
       return (type as TypeImpl).withNullability(resultNullability);
     }
-  }
-
-  /// Returns whether this alias is a "proper rename" of [aliasedClass], as
-  /// defined in the constructor-tearoffs specification.
-  bool isProperRename() {
-    var aliasedType_ = aliasedType;
-    if (aliasedType_ is! InterfaceType) {
-      return false;
-    }
-    var aliasedClass = aliasedType_.element;
-    var typeArguments = aliasedType_.typeArguments;
-    var typeParameterCount = typeParameters.length;
-    if (typeParameterCount != aliasedClass.typeParameters.length) {
-      return false;
-    }
-    if (typeParameterCount != typeArguments.length) {
-      return false;
-    }
-    for (var i = 0; i < typeParameterCount; i++) {
-      var bound = typeParameters[i].bound ?? library.typeProvider.dynamicType;
-      var aliasedBound = aliasedClass.typeParameters[i].bound ??
-          library.typeProvider.dynamicType;
-      if (!library.typeSystem.isSubtypeOf(bound, aliasedBound) ||
-          !library.typeSystem.isSubtypeOf(aliasedBound, bound)) {
-        return false;
-      }
-      if (typeParameters[i] != typeArguments[i].element) {
-        return false;
-      }
-    }
-    return true;
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {

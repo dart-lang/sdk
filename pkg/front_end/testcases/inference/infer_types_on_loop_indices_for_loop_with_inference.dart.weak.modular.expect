@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  for (core::int* i = 0; i.{core::num::<}(10){(core::num*) →* core::bool*}; i = i.{core::num::+}(1){(core::num*) →* core::int*}) {
+    core::int* j = i.{core::num::+}(1){(core::num*) →* core::int*};
+  }
+}
+static method main() → dynamic {}

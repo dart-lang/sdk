@@ -1,0 +1,77 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  abstract method m(covariant-by-declaration core::int a) → core::Object?;
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  abstract method m(covariant-by-declaration core::num a) → dynamic;
+}
+abstract class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  abstract method m(core::num a) → void;
+}
+abstract class D extends core::Object implements self::A {
+  synthetic constructor •() → self::D
+    : super core::Object::•()
+    ;
+  abstract method m(covariant-by-declaration core::int a) → core::Object?;
+}
+abstract class E extends core::Object implements self::B {
+  synthetic constructor •() → self::E
+    : super core::Object::•()
+    ;
+  abstract method m(covariant-by-declaration core::num a) → dynamic;
+}
+abstract class F extends core::Object {
+  synthetic constructor •() → self::F
+    : super core::Object::•()
+    ;
+  abstract method m(core::int a) → core::Object?;
+}
+abstract class G extends core::Object implements self::C {
+  synthetic constructor •() → self::G
+    : super core::Object::•()
+    ;
+  abstract method m(core::num a) → void;
+}
+abstract class H extends core::Object implements self::D, self::E, self::F, self::C {
+  synthetic constructor •() → self::H
+    : super core::Object::•()
+    ;
+  abstract member-signature method m(covariant-by-declaration core::num a) → core::Object?; -> self::E::m
+}
+abstract class I extends core::Object implements self::D {
+  synthetic constructor •() → self::I
+    : super core::Object::•()
+    ;
+  abstract method m(covariant-by-declaration core::int a) → core::Object?;
+}
+abstract class J extends core::Object implements self::H {
+  synthetic constructor •() → self::J
+    : super core::Object::•()
+    ;
+  abstract method m(covariant-by-declaration core::num a) → core::Object?;
+}
+abstract class K extends core::Object implements self::I, self::E, self::G {
+  synthetic constructor •() → self::K
+    : super core::Object::•()
+    ;
+  abstract member-signature method m(covariant-by-declaration core::num a) → core::Object?; -> self::E::m
+}
+abstract class L extends core::Object implements self::K {
+  synthetic constructor •() → self::L
+    : super core::Object::•()
+    ;
+  abstract method m(covariant-by-declaration core::num a) → core::Object?;
+}
+static method main() → dynamic {}

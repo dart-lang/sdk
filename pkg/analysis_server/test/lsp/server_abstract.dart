@@ -261,9 +261,11 @@ mixin ClientCapabilitiesHelperMixin {
 
   void mergeJson(Map<String, dynamic> source, Map<String, dynamic> dest) {
     source.keys.forEach((key) {
-      if (source[key] is Map<String, dynamic> &&
-          dest[key] is Map<String, dynamic>) {
-        mergeJson(source[key], dest[key]);
+      var sourceValue = source[key];
+      var destValue = dest[key];
+      if (sourceValue is Map<String, dynamic> &&
+          destValue is Map<String, dynamic>) {
+        mergeJson(sourceValue, destValue);
       } else {
         dest[key] = source[key];
       }
@@ -284,6 +286,7 @@ mixin ClientCapabilitiesHelperMixin {
       'references': {'dynamicRegistration': true},
       'documentHighlight': {'dynamicRegistration': true},
       'documentSymbol': {'dynamicRegistration': true},
+      'colorProvider': {'dynamicRegistration': true},
       'formatting': {'dynamicRegistration': true},
       'onTypeFormatting': {'dynamicRegistration': true},
       'rangeFormatting': {'dynamicRegistration': true},
@@ -877,7 +880,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return expectSuccessfulResponseTo(request, (result) => result);
   }
 
-  void expect(actual, matcher, {String? reason}) =>
+  void expect(Object? actual, Matcher matcher, {String? reason}) =>
       test.expect(actual, matcher, reason: reason);
 
   void expectDocumentVersion(
@@ -1035,6 +1038,22 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
+  Future<List<ColorPresentation>> getColorPresentation(
+      String fileUri, Range range, Color color) {
+    final request = makeRequest(
+      Method.textDocument_colorPresentation,
+      ColorPresentationParams(
+        textDocument: TextDocumentIdentifier(uri: fileUri),
+        range: range,
+        color: color,
+      ),
+    );
+    return expectSuccessfulResponseTo(
+      request,
+      _fromJsonList(ColorPresentation.fromJson),
+    );
+  }
+
   Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
       {CompletionContext? context}) {
     final request = makeRequest(
@@ -1091,6 +1110,19 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       null,
     );
     return expectSuccessfulResponseTo(request, DartDiagnosticServer.fromJson);
+  }
+
+  Future<List<ColorInformation>> getDocumentColors(String fileUri) {
+    final request = makeRequest(
+      Method.textDocument_documentColor,
+      DocumentColorParams(
+        textDocument: TextDocumentIdentifier(uri: fileUri),
+      ),
+    );
+    return expectSuccessfulResponseTo(
+      request,
+      _fromJsonList(ColorInformation.fromJson),
+    );
   }
 
   Future<List<DocumentHighlight>?> getDocumentHighlights(
@@ -1164,7 +1196,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Future<List<Location>> getReferences(
     Uri uri,
     Position pos, {
-    includeDeclarations = false,
+    bool includeDeclarations = false,
   }) {
     final request = makeRequest(
       Method.textDocument_references,

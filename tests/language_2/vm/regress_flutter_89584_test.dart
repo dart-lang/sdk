@@ -8,9 +8,6 @@
 // https://github.com/flutter/flutter/issues/89584.
 // Verifies a Field::RecordStore is not done before all fields populated.
 
-// VMOptions=--no-enable-isolate-groups
-// VMOptions=--enable-isolate-groups
-
 import 'dart:isolate';
 import 'dart:typed_data';
 

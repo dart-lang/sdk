@@ -1037,7 +1037,7 @@ Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Location right = locs()->in(1);
   if (right.IsConstant()) {
     ASSERT(right.constant().IsSmi());
-    const int64_t imm = static_cast<int64_t>(right.constant().ptr());
+    const int64_t imm = Smi::RawValue(Smi::Cast(right.constant()).Value());
     __ TestImmediate(left_reg, compiler::Immediate(imm),
                      compiler::kObjectBytes);
   } else {
@@ -1154,8 +1154,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
 
-  // Pass a pointer to the first argument in RAX.
-  __ leaq(RAX, compiler::Address(RSP, ArgumentCount() * kWordSize));
+  // Pass a pointer to the first argument in R13 (we avoid using RAX here to
+  // simplify the stub code that will call native code).
+  __ leaq(R13, compiler::Address(RSP, ArgumentCount() * kWordSize));
 
   __ LoadImmediate(R10, compiler::Immediate(argc_tag));
   const Code* stub;
@@ -1240,7 +1241,24 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (is_leaf_) {
+#if !defined(PRODUCT)
+    // Set the thread object's top_exit_frame_info and VMTag to enable the
+    // profiler to determine that thread is no longer executing Dart code.
+    __ movq(compiler::Address(
+                THR, compiler::target::Thread::top_exit_frame_info_offset()),
+            FPREG);
+    __ movq(compiler::Assembler::VMTagAddress(), target_address);
+#endif
+
     __ CallCFunction(target_address, /*restore_rsp=*/true);
+
+#if !defined(PRODUCT)
+    __ movq(compiler::Assembler::VMTagAddress(),
+            compiler::Immediate(compiler::target::Thread::vm_tag_dart_id()));
+    __ movq(compiler::Address(
+                THR, compiler::target::Thread::top_exit_frame_info_offset()),
+            compiler::Immediate(0));
+#endif
   } else {
     // We need to copy a dummy return address up into the dummy stack frame so
     // the stack walker will know which safepoint to use. RIP points to the
@@ -1292,7 +1310,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LeaveDartFrame(compiler::kRestoreCallerPP);
     // Restore the global object pool after returning from runtime (old space is
     // moving, so the GOP could have been relocated).
-    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (FLAG_precompiled_mode) {
       __ movq(PP, compiler::Address(THR, Thread::global_object_pool_offset()));
     }
     __ set_constant_pool_allowed(true);
@@ -1401,7 +1419,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                             kPcMarkerSlotFromFp * compiler::target::kWordSize),
           CODE_REG);
 
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ movq(PP,
             compiler::Address(
                 THR, compiler::target::Thread::global_object_pool_offset()));
@@ -2288,7 +2306,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         offset_reg,
         compiler::FieldAddress(
             field_reg, Field::guarded_list_length_in_object_offset_offset()));
-    __ LoadCompressed(
+    __ LoadCompressedSmi(
         length_reg,
         compiler::FieldAddress(field_reg, Field::guarded_list_length_offset()));
 
@@ -3487,7 +3505,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 
 static bool CanBeImmediate(const Object& constant) {
   return constant.IsSmi() &&
-         compiler::Immediate(static_cast<int64_t>(constant.ptr())).is_int32();
+         compiler::Immediate(Smi::RawValue(Smi::Cast(constant).Value()))
+             .is_int32();
 }
 
 static bool IsSmiValue(const Object& constant, intptr_t value) {
@@ -3620,7 +3639,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    const int64_t imm = static_cast<int64_t>(constant.ptr());
+    const int64_t imm = Smi::RawValue(Smi::Cast(constant).Value());
     switch (op_kind()) {
       case Token::kADD: {
         __ AddImmediate(left, compiler::Immediate(imm), compiler::kObjectBytes);
@@ -4395,7 +4414,7 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
-  // FLAG_use_bare_instructions mode and only after VM isolate stubs where
+  // precompiled mode and only after VM isolate stubs where
   // replaced with isolate-specific stubs.
   auto object_store = IsolateGroup::Current()->object_store();
   const bool stubs_in_vm_isolate =
@@ -4406,7 +4425,6 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
           ->untag()
           ->InVMIsolateHeap();
   const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
-                                     FLAG_use_bare_instructions &&
                                      !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
@@ -5223,11 +5241,12 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddSlowPathCode(slow_path);
 
   if (recognized_kind() != MethodRecognizer::kDoubleToInteger) {
-    // In JIT mode VM knows target CPU features at compile time
-    // and can pick more optimal representation for DoubleToDouble
-    // conversion. In AOT mode we test if roundsd instruction is
-    // available at run time and fall back to stub if it isn't.
-    ASSERT(CompilerState::Current().is_aot());
+    // In JIT mode without --target-unknown-cpu VM knows target CPU features
+    // at compile time and can pick more optimal representation
+    // for DoubleToDouble conversion. In AOT mode and with
+    // --target-unknown-cpu we test if roundsd instruction is available
+    // at run time and fall back to stub if it isn't.
+    ASSERT(CompilerState::Current().is_aot() || FLAG_target_unknown_cpu);
     if (FLAG_use_slow_path) {
       __ jmp(slow_path->entry_label());
       __ Bind(slow_path->exit_label());
@@ -5823,8 +5842,7 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ThrowErrorSlowPathCode* slow_path =
-      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  ThrowErrorSlowPathCode* slow_path = new NullErrorSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
   Register value_reg = locs()->in(0).reg();
@@ -5944,11 +5962,9 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
  public:
   Int64DivideSlowPath(BinaryInt64OpInstr* instruction,
                       Register divisor,
-                      Range* divisor_range,
-                      intptr_t try_index)
+                      Range* divisor_range)
       : ThrowErrorSlowPathCode(instruction,
-                               kIntegerDivisionByZeroExceptionRuntimeEntry,
-                               try_index),
+                               kIntegerDivisionByZeroExceptionRuntimeEntry),
         is_mod_(instruction->op_kind() == Token::kMOD),
         divisor_(divisor),
         divisor_range_(divisor_range),
@@ -6105,8 +6121,8 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
 
   // Prepare a slow path.
   Range* right_range = instruction->right()->definition()->range();
-  Int64DivideSlowPath* slow_path = new (Z) Int64DivideSlowPath(
-      instruction, right, right_range, compiler->CurrentTryIndex());
+  Int64DivideSlowPath* slow_path =
+      new (Z) Int64DivideSlowPath(instruction, right, right_range);
 
   // Handle modulo/division by zero exception on slow path.
   if (slow_path->has_divide_by_zero()) {
@@ -6372,10 +6388,9 @@ static void EmitShiftUint32ByRCX(FlowGraphCompiler* compiler,
 
 class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction, intptr_t try_index)
+  explicit ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "int64 shift"; }
 
@@ -6442,8 +6457,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Jump to a slow path if shift count is > 63 or negative.
     ShiftInt64OpSlowPath* slow_path = NULL;
     if (!IsShiftCountInRange()) {
-      slow_path =
-          new (Z) ShiftInt64OpSlowPath(this, compiler->CurrentTryIndex());
+      slow_path = new (Z) ShiftInt64OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
 
       __ cmpq(RCX, compiler::Immediate(kShiftCountLimit));
@@ -6500,10 +6514,9 @@ void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 class ShiftUint32OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction, intptr_t try_index)
+  explicit ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "uint32 shift"; }
 
@@ -6559,8 +6572,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Jump to a slow path if shift count is > 31 or negative.
     ShiftUint32OpSlowPath* slow_path = NULL;
     if (!IsShiftCountInRange(kUint32ShiftCountLimit)) {
-      slow_path =
-          new (Z) ShiftUint32OpSlowPath(this, compiler->CurrentTryIndex());
+      slow_path = new (Z) ShiftUint32OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
 
       __ cmpq(RCX, compiler::Immediate(kUint32ShiftCountLimit));
@@ -6924,7 +6936,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(R10, arguments_descriptor);
 
   ASSERT(locs()->in(0).reg() == RAX);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     // RAX: Closure with cached entry point.
     __ movq(RCX, compiler::FieldAddress(
                      RAX, compiler::target::Closure::entry_point_offset()));

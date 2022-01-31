@@ -76,18 +76,19 @@ class TestCompiler {
     // initialize incremental compiler and create component
     setup.options.packagesFileUri = packages;
     var compiler = DevelopmentIncrementalCompiler(setup.options, input);
-    var component = await compiler.computeDelta();
+    var compilerResult = await compiler.computeDelta();
+    var component = compilerResult.component;
     component.computeCanonicalNames();
 
     // initialize ddc
     var moduleName = 'foo.dart';
-    var classHierarchy = compiler.getClassHierarchy();
+    var classHierarchy = compilerResult.classHierarchy;
     var compilerOptions = SharedCompilerOptions(
         replCompile: true,
         moduleName: moduleName,
         soundNullSafety: setup.soundNullSafety,
         moduleFormats: [setup.moduleFormat]);
-    var coreTypes = compiler.getCoreTypes();
+    var coreTypes = compilerResult.coreTypes;
 
     final importToSummary = Map<Library, Component>.identity();
     final summaryToModule = Map<Component, String>.identity();

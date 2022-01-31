@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
@@ -76,7 +77,6 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   /// breakpoints, and resume.
   Future<void> launchImpl() async {
     final args = this.args as DartLaunchRequestArguments;
-    final vmPath = Platform.resolvedExecutable;
     File? vmServiceInfoFile;
 
     final debug = !(args.noDebug ?? false);
@@ -87,6 +87,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     }
 
     final vmArgs = <String>[
+      ...?args.vmAdditionalArgs,
       if (debug) ...[
         '--enable-vm-service=${args.vmServicePort ?? 0}${ipv6 ? '/::1' : ''}',
         '--pause_isolates_on_start',
@@ -101,24 +102,20 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       // editor-spawned debug sessions.
       if (args.enableAsserts ?? true) '--enable-asserts',
     ];
+
+    // Handle customTool and deletion of any arguments for it.
+    final executable = args.customTool ?? Platform.resolvedExecutable;
+    final removeArgs = args.customToolReplacesArgs;
+    if (args.customTool != null && removeArgs != null) {
+      vmArgs.removeRange(0, math.min(removeArgs, vmArgs.length));
+    }
+
     final processArgs = [
       ...vmArgs,
       ...?args.toolArgs,
       args.program,
       ...?args.args,
     ];
-
-    // Find the package_config file for this script.
-    // TODO(dantup): Remove this once
-    //   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
-    //   necessary.
-    var possibleRoot = path.isAbsolute(args.program)
-        ? path.dirname(args.program)
-        : path.dirname(path.normalize(path.join(args.cwd ?? '', args.program)));
-    final packageConfig = findPackageConfigFile(possibleRoot);
-    if (packageConfig != null) {
-      this.usePackageConfigFile(packageConfig);
-    }
 
     // If the client supports runInTerminal and args.console is set to either
     // 'terminal' or 'runInTerminal' we won't run the process ourselves, but
@@ -136,12 +133,22 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
                 : null
         : null;
 
-    // TODO(dantup): Support passing env to both of these.
-
     if (terminalKind != null) {
-      await launchInEditorTerminal(debug, terminalKind, vmPath, processArgs);
+      await launchInEditorTerminal(
+        debug,
+        terminalKind,
+        executable,
+        processArgs,
+        workingDirectory: args.cwd,
+        env: args.env,
+      );
     } else {
-      await launchAsProcess(vmPath, processArgs);
+      await launchAsProcess(
+        executable,
+        processArgs,
+        workingDirectory: args.cwd,
+        env: args.env,
+      );
     }
 
     // Delay responding until the debugger is connected.
@@ -166,18 +173,6 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       return;
     }
 
-    // Find the package_config file for this script.
-    // TODO(dantup): Remove this once
-    //   https://github.com/dart-lang/sdk/issues/45530 is done as it will not be
-    //   necessary.
-    final cwd = args.cwd;
-    if (cwd != null) {
-      final packageConfig = findPackageConfigFile(cwd);
-      if (packageConfig != null) {
-        this.usePackageConfigFile(packageConfig);
-      }
-    }
-
     final uri = vmServiceUri != null
         ? Uri.parse(vmServiceUri)
         : await waitForVmServiceInfoFile(logger, File(vmServiceInfoFile!));
@@ -190,11 +185,13 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   Future<void> launchInEditorTerminal(
     bool debug,
     String terminalKind,
-    String vmPath,
-    List<String> processArgs,
-  ) async {
+    String executable,
+    List<String> processArgs, {
+    required String? workingDirectory,
+    required Map<String, String>? env,
+  }) async {
     final args = this.args as DartLaunchRequestArguments;
-    logger?.call('Spawning $vmPath with $processArgs in ${args.cwd}'
+    logger?.call('Spawning $executable with $processArgs in $workingDirectory'
         ' via client ${terminalKind} terminal');
 
     // runInTerminal is a DAP request that goes from server-to-client that
@@ -203,8 +200,9 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     // for debugging will rely on the process writing the service-info file that
     // we can detect with the normal watching code.
     final requestArgs = RunInTerminalRequestArguments(
-      args: [vmPath, ...processArgs],
-      cwd: args.cwd ?? path.dirname(args.program),
+      args: [executable, ...processArgs],
+      cwd: workingDirectory ?? path.dirname(args.program),
+      env: env,
       kind: terminalKind,
       title: args.name ?? 'Dart',
     );
@@ -234,12 +232,18 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   ///
   /// Output to `stdout`/`stderr` will be sent to the editor using
   /// [OutputEvent]s.
-  Future<void> launchAsProcess(String vmPath, List<String> processArgs) async {
-    logger?.call('Spawning $vmPath with $processArgs in ${args.cwd}');
+  Future<void> launchAsProcess(
+    String executable,
+    List<String> processArgs, {
+    required String? workingDirectory,
+    required Map<String, String>? env,
+  }) async {
+    logger?.call('Spawning $executable with $processArgs in $workingDirectory');
     final process = await Process.start(
-      vmPath,
+      executable,
       processArgs,
-      workingDirectory: args.cwd,
+      workingDirectory: workingDirectory,
+      environment: env,
     );
     _process = process;
     pidsToTerminate.add(process.pid);

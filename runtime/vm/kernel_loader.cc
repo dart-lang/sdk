@@ -1588,6 +1588,25 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       fields_[0]->set_is_nullable(true);
     }
 
+    // Check that subclasses of AbiSpecificInteger have a mapping for the
+    // current ABI.
+    //
+    // TODO(https://github.com/dart-lang/language/issues/1889): If we make
+    // kernel know about the target platform, we can move this check to the
+    // frontend.
+    const auto& super_class = Class::Handle(Z, klass.SuperClass());
+    if (!super_class.IsNull() &&
+        super_class.UserVisibleName() == Symbols::AbiSpecificInteger().ptr() &&
+        Library::Handle(Z, super_class.library()).url() ==
+            Symbols::DartFfi().ptr()) {
+      const char* error = nullptr;
+      compiler::ffi::NativeType::FromAbstractType(
+          Z, AbstractType::Handle(Z, klass.DeclarationType()), &error);
+      if (error != nullptr) {
+        H.ReportError("%s", error);
+      }
+    }
+
     // Due to ReadVMAnnotations(), the klass may have been loaded at this point
     // (loading the class while evaluating annotations).
     if (klass.is_loaded()) {
@@ -1952,6 +1971,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   }
   function.set_kernel_offset(procedure_offset);
   function.set_is_extension_member(is_extension_member);
+  function.set_is_redirecting_factory(procedure_helper.IsRedirectingFactory());
   if ((library.is_dart_scheme() &&
        H.IsPrivate(procedure_helper.canonical_name_)) ||
       (function.is_static() && (library.ptr() == Library::InternalLibrary()))) {

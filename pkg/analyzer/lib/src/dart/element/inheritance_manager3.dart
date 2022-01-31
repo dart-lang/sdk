@@ -401,7 +401,9 @@ class InheritanceManager3 {
       }
     }
 
-    if (getter != null && method != null) {
+    if (getter == null || method == null) {
+      return null;
+    } else {
       return GetterMethodConflict(name: name, getter: getter, method: method);
     }
   }

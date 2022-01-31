@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dart2js/flutter_issue94561/main.dart:8:9: Error: Setter not found: 'a'.
+//   MyInt.a = 42;
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/dart2js/flutter_issue94561/main.dart:8:9: Error: Setter not found: 'a'.
+  MyInt.a = 42;
+        ^";
+  core::print(mai::_#MyInt|a);
+  mai::MyInt|b = 87;
+  core::print(mai::MyInt|b);
+}
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+import "dart:_late_helper" as _la;
+
+extension MyInt on core::int {
+  static field a = mai::_#MyInt|a;
+  static field b = mai::MyInt|b;
+}
+static final field _la::_Cell _#MyInt|a = new _la::_Cell::named("MyInt|a");
+late static field core::int MyInt|b = 42;
+static get MyInt|a() → core::int
+  return mai::_#MyInt|a.{_la::_Cell::readField}<core::int>(){() → core::int};
+static set MyInt|a(core::int value) → void
+  return mai::_#MyInt|a.{_la::_Cell::value} = value;

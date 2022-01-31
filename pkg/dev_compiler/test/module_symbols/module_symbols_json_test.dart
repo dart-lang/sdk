@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'package:dev_compiler/src/kernel/module_symbols.dart';
 import 'package:test/test.dart';
 
@@ -26,7 +24,12 @@ class MyClass<T>                     // pos:20
 ''';
 
 void main() {
-  var intType = ClassSymbol(name: 'int', localId: 'int', scopeId: 'dart:core');
+  var intType = ClassSymbol(
+      name: 'int',
+      localId: 'int',
+      scopeId: 'dart:core',
+      location: SourceLocation(
+          scriptId: 'sdkIdForTest', tokenPos: 42, endTokenPos: 42));
 
   var libraryId = 'lib1';
   var main = Script(
@@ -243,14 +246,16 @@ void main() {
 
   test('Read supported version', () {
     var version = SemanticVersion(0, 2, 3).version;
-    var json = ModuleSymbols(version: version).toJson();
+    var json = ModuleSymbols(version: version, moduleName: 'moduleNameForTest')
+        .toJson();
 
     expect(ModuleSymbols.fromJson(json).version, equals(version));
   });
 
   test('Read unsupported version', () {
     var version = SemanticVersion(1, 2, 3).version;
-    var json = ModuleSymbols(version: version).toJson();
+    var json = ModuleSymbols(version: version, moduleName: 'moduleNameForTest')
+        .toJson();
 
     expect(() => ModuleSymbols.fromJson(json), throwsException);
   });
@@ -300,7 +305,8 @@ TypeMatcher<ClassSymbol> matchesClass(ClassSymbol other) => isA<ClassSymbol>()
     .having((cls) => cls.libraryId, 'libraryId', other.libraryId)
     .having((cls) => cls.scopeIds, 'scopeIds', other.scopeIds)
     .having((cls) => cls.variableIds, 'variableIds', other.variableIds)
-    .having((cls) => cls.location, 'location', matchesLocation(other.location));
+    .having(
+        (cls) => cls.location, 'location', matchesLocation(other.location!));
 
 TypeMatcher<FunctionTypeSymbol> matchesFunctionType(FunctionTypeSymbol other) =>
     isA<FunctionTypeSymbol>()
@@ -315,8 +321,8 @@ TypeMatcher<FunctionTypeSymbol> matchesFunctionType(FunctionTypeSymbol other) =>
             'optionalParameterTypeIds', other.optionalParameterTypeIds)
         .having((fun) => fun.namedParameterTypeIds, 'namedParameterTypeIds',
             other.namedParameterTypeIds)
-        .having(
-            (fun) => fun.location, 'location', matchesLocation(other.location));
+        .having((fun) => fun.location, 'location',
+            matchesLocation(other.location!));
 
 TypeMatcher<FunctionSymbol> matchesFunction(FunctionSymbol other) =>
     isA<FunctionSymbol>()
@@ -329,8 +335,8 @@ TypeMatcher<FunctionSymbol> matchesFunction(FunctionSymbol other) =>
         .having((fun) => fun.typeId, 'typeId', other.typeId)
         .having((fun) => fun.scopeIds, 'scopeIds', other.scopeIds)
         .having((fun) => fun.variableIds, 'variableIds', other.variableIds)
-        .having(
-            (fun) => fun.location, 'location', matchesLocation(other.location));
+        .having((fun) => fun.location, 'location',
+            matchesLocation(other.location!));
 
 TypeMatcher<ScopeSymbol> matchesScope(ScopeSymbol other) => isA<ScopeSymbol>()
     .having((scope) => scope.localId, 'localId', other.localId)
@@ -338,8 +344,8 @@ TypeMatcher<ScopeSymbol> matchesScope(ScopeSymbol other) => isA<ScopeSymbol>()
     .having((scope) => scope.id, 'id', other.id)
     .having((scope) => scope.scopeIds, 'scopeIds', other.scopeIds)
     .having((scope) => scope.variableIds, 'variableIds', other.variableIds)
-    .having(
-        (scope) => scope.location, 'location', matchesLocation(other.location));
+    .having((scope) => scope.location, 'location',
+        matchesLocation(other.location!));
 
 TypeMatcher<VariableSymbol> matchesVariable(VariableSymbol other) =>
     isA<VariableSymbol>()
@@ -351,7 +357,7 @@ TypeMatcher<VariableSymbol> matchesVariable(VariableSymbol other) =>
         .having((variable) => variable.isStatic, 'isStatic', other.isStatic)
         .having((variable) => variable.isFinal, 'isFinal', other.isFinal)
         .having((variable) => variable.location, 'location',
-            matchesLocation(other.location));
+            matchesLocation(other.location!));
 
 TypeMatcher<Script> matchesScript(Script other) => isA<Script>()
     .having((script) => script.uri, 'uri', other.uri)

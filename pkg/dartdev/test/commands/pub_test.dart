@@ -15,7 +15,7 @@ void main() {
 void pub() {
   TestProject p;
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
   void _assertPubHelpInvoked(ProcessResult result) {
     expect(result, isNotNull);
@@ -25,8 +25,8 @@ void pub() {
     expect(result.stderr, isEmpty);
   }
 
-  test('implicit --help', () {
-    final result = project().runSync(['pub']);
+  test('implicit --help', () async {
+    final result = await project().run(['pub']);
     expect(result, isNotNull);
     expect(result.exitCode, 64);
     expect(result.stderr, contains('Missing subcommand for "dart pub".'));
@@ -34,18 +34,18 @@ void pub() {
     expect(result.stdout, isEmpty);
   });
 
-  test('--help', () {
-    _assertPubHelpInvoked(project().runSync(['pub', '--help']));
+  test('--help', () async {
+    _assertPubHelpInvoked(await project().run(['pub', '--help']));
   });
 
-  test('-h', () {
-    _assertPubHelpInvoked(project().runSync(['pub', '-h']));
+  test('-h', () async {
+    _assertPubHelpInvoked(await project().run(['pub', '-h']));
   });
 
-  test('help cache', () {
+  test('help cache', () async {
     p = project();
-    var result = p.runSync(['help', 'pub', 'cache']);
-    var result2 = p.runSync(['pub', 'cache', '--help']);
+    var result = await p.run(['help', 'pub', 'cache']);
+    var result2 = await p.run(['pub', 'cache', '--help']);
 
     expect(result.exitCode, 0);
 
@@ -56,10 +56,10 @@ void pub() {
     expect(result.stderr, result2.stderr);
   });
 
-  test('help publish', () {
+  test('help publish', () async {
     p = project();
-    var result = p.runSync(['help', 'pub', 'publish']);
-    var result2 = p.runSync(['pub', 'publish', '--help']);
+    var result = await p.run(['help', 'pub', 'publish']);
+    var result2 = await p.run(['pub', 'publish', '--help']);
 
     expect(result.exitCode, 0);
 
@@ -71,17 +71,17 @@ void pub() {
     expect(result.stderr, result2.stderr);
   });
 
-  test('failure', () {
+  test('failure', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync(['pub', 'deps']);
+    var result = await p.run(['pub', 'deps']);
     expect(result.exitCode, 65);
     expect(result.stdout, isEmpty);
     expect(result.stderr, contains('No pubspec.lock file found'));
   });
 
-  test('failure unknown option', () {
+  test('failure unknown option', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync(['pub', 'deps', '--foo']);
+    var result = await p.run(['pub', 'deps', '--foo']);
     expect(result.exitCode, 64);
     expect(result.stdout, isEmpty);
     expect(result.stderr, startsWith('Could not find an option named "foo".'));

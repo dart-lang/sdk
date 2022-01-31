@@ -31,7 +31,7 @@ ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
           Either2<TextDocumentContentChangeEvent1,
               TextDocumentContentChangeEvent2>>
       changes, {
-  failureIsCritical = false,
+  bool failureIsCritical = false,
 }) {
   var newContent = oldContent;
   final serverEdits = <server.SourceEdit>[];
@@ -45,9 +45,9 @@ ErrorOr<Pair<String, List<plugin.SourceEdit>>> applyAndConvertEditsToServer(
       (change) {
         final lines = LineInfo.fromContent(newContent);
         final offsetStart = toOffset(lines, change.range.start,
-            failureIsCritial: failureIsCritical);
+            failureIsCritical: failureIsCritical);
         final offsetEnd = toOffset(lines, change.range.end,
-            failureIsCritial: failureIsCritical);
+            failureIsCritical: failureIsCritical);
         if (offsetStart.isError) {
           return ErrorOr.error(offsetStart.error);
         }
@@ -180,7 +180,10 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
       // To handle this, if both unformatted/formatted contain at least one
       // newline, split this change into two around the last newline so that the
       // final part (likely leading whitespace) can be included without
-      // including the whole change.
+      // including the whole change. This cannot be done if the newline is at
+      // the end of the source whitespace though, as this would create a split
+      // where the first part is the same and the second part is empty,
+      // resulting in an infinite loop/stack overflow.
       //
       // Without this, functionality like VS Code's "format modified lines"
       // (which uses Git status to know which lines are edited) may appear to
@@ -188,7 +191,8 @@ ErrorOr<List<TextEdit>> _generateMinimalEdits(
       if (unformattedStart < rangeStart.result &&
           unformattedEnd > rangeStart.result &&
           unformattedWhitespace.contains('\n') &&
-          formattedWhitespace.contains('\n')) {
+          formattedWhitespace.contains('\n') &&
+          !unformattedWhitespace.endsWith('\n')) {
         // Find the offsets of the character after the last newlines.
         final unformattedOffset = unformattedWhitespace.lastIndexOf('\n') + 1;
         final formattedOffset = formattedWhitespace.lastIndexOf('\n') + 1;

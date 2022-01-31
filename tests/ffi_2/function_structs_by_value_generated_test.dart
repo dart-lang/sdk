@@ -18,6 +18,9 @@ import 'dart:ffi';
 import "package:expect/expect.dart";
 import "package:ffi/ffi.dart";
 
+// Reuse the AbiSpecificInts.
+import 'abi_specific_ints.dart';
+
 import 'dylib_utils.dart';
 
 // Reuse the compound classes.
@@ -91,6 +94,7 @@ void main() {
     testPassUint8Boolx9Struct10BytesHomogeneousBoolBool();
     testPassUint8Boolx9Struct10BytesInlineArrayBoolBool();
     testPassUint8Struct1ByteBool();
+    testPassWCharStructInlineArrayIntUintPtrx2LongUnsigned();
     testReturnStruct1ByteInt();
     testReturnStruct3BytesHomogeneousUint8();
     testReturnStruct3BytesInt2ByteAligned();
@@ -5383,6 +5387,49 @@ void testPassUint8Struct1ByteBool() {
   print("result = $result");
 
   Expect.equals(1 % 2 != 0, result);
+
+  calloc.free(a1Pointer);
+}
+
+final passWCharStructInlineArrayIntUintPtrx2LongUnsigned =
+    ffiTestFunctions.lookupFunction<
+        WChar Function(
+            WChar, StructInlineArrayInt, UintPtr, UintPtr, Long, UnsignedLong),
+        int Function(int, StructInlineArrayInt, int, int, int,
+            int)>("PassWCharStructInlineArrayIntUintPtrx2LongUnsigned");
+
+/// Returning a wchar.
+void testPassWCharStructInlineArrayIntUintPtrx2LongUnsigned() {
+  int a0;
+  final a1Pointer = calloc<StructInlineArrayInt>();
+  final StructInlineArrayInt a1 = a1Pointer.ref;
+  int a2;
+  int a3;
+  int a4;
+  int a5;
+
+  a0 = 1;
+  a1.a0[0] = 2;
+  a1.a0[1] = 3;
+  a1.a0[2] = 4;
+  a1.a0[3] = 5;
+  a1.a0[4] = 6;
+  a1.a0[5] = 7;
+  a1.a0[6] = 8;
+  a1.a0[7] = 9;
+  a1.a0[8] = 10;
+  a1.a0[9] = 11;
+  a2 = 12;
+  a3 = 13;
+  a4 = 14;
+  a5 = 15;
+
+  final result = passWCharStructInlineArrayIntUintPtrx2LongUnsigned(
+      a0, a1, a2, a3, a4, a5);
+
+  print("result = $result");
+
+  Expect.equals(120, result);
 
   calloc.free(a1Pointer);
 }

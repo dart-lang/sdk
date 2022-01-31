@@ -157,7 +157,7 @@ class A {
   test() {}
 }
 ''');
-    await indexUnit('/home/test/lib/lib.dart', '''
+    await indexUnit('$testPackageLibPath/lib.dart', '''
 library my.lib;
 import 'test.dart';
 
@@ -181,7 +181,7 @@ class A {
   var foo = 1;
 }
 ''');
-    await indexUnit('/home/test/lib/lib.dart', '''
+    await indexUnit('$testPackageLibPath/lib.dart', '''
 import 'test.dart';
 
 void f(A a) {
@@ -387,7 +387,7 @@ class A {
   newName() {} // marker
 }
 ''';
-    await indexUnit('/home/test/lib/lib.dart', libCode);
+    await indexUnit('$testPackageLibPath/lib.dart', libCode);
     await indexTestUnit('''
 import 'lib.dart';
 class B extends A {
@@ -738,7 +738,7 @@ void f(var a) {
   }
 
   Future<void> test_createChange_MethodElement_potential_inPubCache() async {
-    var externalPath = '/.pub-cache/aaa/lib/lib.dart';
+    var externalPath = '$packagesRootPath/aaa/lib/lib.dart';
     newFile(externalPath, content: r'''
 processObj(p) {
   p.test();
@@ -747,7 +747,7 @@ processObj(p) {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '/.pub-cache/aaa/'),
+        ..add(name: 'aaa', rootPath: '$packagesRootPath/aaa'),
     );
 
     await indexTestUnit('''

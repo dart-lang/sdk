@@ -222,7 +222,7 @@ static bool OnIsolateInitialize(void** child_callback_data, char** error) {
     if (Dart_IsError(result)) goto failed;
   } else {
     result = DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
-    if (Dart_IsError(result)) return result != nullptr;
+    if (Dart_IsError(result)) goto failed;
 
     if (isolate_group_data->kernel_buffer().get() != nullptr) {
       // Various core-library parts will send requests to the Loader to resolve
@@ -637,36 +637,36 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
       delete app_snapshot;
     }
 
-    if (dartdev_path.get() != nullptr) {
-      isolate_group_data =
-          new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config, nullptr,
-                               isolate_run_app_snapshot);
-      uint8_t* application_kernel_buffer = NULL;
-      intptr_t application_kernel_buffer_size = 0;
-      dfe.ReadScript(dartdev_path.get(), &application_kernel_buffer,
-                     &application_kernel_buffer_size, /*decode_uri=*/false);
-      isolate_group_data->SetKernelBufferNewlyOwned(
-          application_kernel_buffer, application_kernel_buffer_size);
-
-      isolate_data = new IsolateData(isolate_group_data);
-      isolate = Dart_CreateIsolateGroup(
-          DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
-          isolate_snapshot_instructions, flags, isolate_group_data,
-          isolate_data, error);
+    if (dartdev_path.get() == nullptr) {
+      Syslog::PrintErr(
+          "Failed to start the Dart CLI isolate. Could not resolve DartDev "
+          "snapshot or kernel.\n");
+      delete isolate_data;
+      delete isolate_group_data;
+      return nullptr;
     }
+
+    isolate_group_data =
+        new IsolateGroupData(DART_DEV_ISOLATE_NAME, packages_config, nullptr,
+                             isolate_run_app_snapshot);
+    uint8_t* application_kernel_buffer = NULL;
+    intptr_t application_kernel_buffer_size = 0;
+    dfe.ReadScript(dartdev_path.get(), &application_kernel_buffer,
+                   &application_kernel_buffer_size, /*decode_uri=*/false);
+    isolate_group_data->SetKernelBufferNewlyOwned(
+        application_kernel_buffer, application_kernel_buffer_size);
+
+    isolate_data = new IsolateData(isolate_group_data);
+    isolate = Dart_CreateIsolateGroup(
+        DART_DEV_ISOLATE_NAME, DART_DEV_ISOLATE_NAME, isolate_snapshot_data,
+        isolate_snapshot_instructions, flags, isolate_group_data, isolate_data,
+        error);
   }
 
-  Dart_Isolate created_isolate = nullptr;
-  if (isolate == nullptr) {
-    Syslog::PrintErr("Failed to start the Dart CLI isolate\n");
-    delete isolate_data;
-    delete isolate_group_data;
-    return nullptr;
-  } else {
-    created_isolate = IsolateSetupHelper(
-        isolate, false, DART_DEV_ISOLATE_NAME, packages_config,
-        isolate_run_app_snapshot, flags, error, exit_code);
-  }
+  Dart_Isolate created_isolate =
+      IsolateSetupHelper(isolate, false, DART_DEV_ISOLATE_NAME, packages_config,
+                         isolate_run_app_snapshot, flags, error, exit_code);
+
   int64_t end = Dart_TimelineGetMicros();
   Dart_TimelineEvent("CreateAndSetupDartDevIsolate", start, end,
                      Dart_Timeline_Event_Duration, 0, NULL, NULL);
@@ -827,6 +827,20 @@ static Dart_Isolate CreateIsolateGroupAndSetup(const char* script_uri,
   ASSERT(flags != NULL);
   ASSERT(flags->version == DART_FLAGS_CURRENT_VERSION);
   ASSERT(package_root == nullptr);
+
+  bool dontneed_safe = true;
+#if defined(DART_HOST_OS_LINUX)
+  // This would also be true in Linux, except that Google3 overrides the default
+  // ELF interpreter to one that apparently doesn't create proper mappings.
+  dontneed_safe = false;
+#elif defined(DEBUG)
+  // If the snapshot isn't file-backed, madvise(DONT_NEED) is destructive.
+  if (Options::force_load_elf_from_memory()) {
+    dontneed_safe = false;
+  }
+#endif
+  flags->snapshot_is_dontneed_safe = dontneed_safe;
+
   int exit_code = 0;
 #if !defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   if (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0) {
@@ -946,6 +960,18 @@ void RunMainIsolate(const char* script_name,
   Dart_IsolateFlags flags;
   Dart_IsolateFlagsInitialize(&flags);
   flags.is_system_isolate = Options::mark_main_isolate_as_system_isolate();
+  bool dontneed_safe = true;
+#if defined(DART_HOST_OS_LINUX)
+  // This would also be true in Linux, except that Google3 overrides the default
+  // ELF interpreter to one that apparently doesn't create proper mappings.
+  dontneed_safe = false;
+#elif defined(DEBUG)
+  // If the snapshot isn't file-backed, madvise(DONT_NEED) is destructive.
+  if (Options::force_load_elf_from_memory()) {
+    dontneed_safe = false;
+  }
+#endif
+  flags.snapshot_is_dontneed_safe = dontneed_safe;
 
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
       /* is_main_isolate */ true, script_name, "main",
@@ -1213,12 +1239,15 @@ void main(int argc, char** argv) {
     try_load_snapshots_lambda();
   }
 
-  if (Options::gen_snapshot_kind() == kAppJIT) {
-    vm_options.AddArgument("--fields_may_be_reset");
-  }
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
+  if (Options::gen_snapshot_kind() == kAppJIT) {
+    // App-jit snapshot can be deployed to another machine,
+    // so generated code should not depend on the CPU features
+    // of the system where snapshot was generated.
+    vm_options.AddArgument("--target-unknown-cpu");
+  }
   // If we need to write an app-jit snapshot or a depfile, then add an exit
   // hook that writes the snapshot and/or depfile as appropriate.
   if ((Options::gen_snapshot_kind() == kAppJIT) ||

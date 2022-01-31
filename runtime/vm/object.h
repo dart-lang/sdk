@@ -2014,7 +2014,6 @@ class SingleTargetCache : public Object {
 
 class MonomorphicSmiableCall : public Object {
  public:
-  CodePtr target() const { return untag()->target(); }
   classid_t expected_cid() const { return untag()->expected_cid_; }
 
   static intptr_t InstanceSize() {
@@ -2026,10 +2025,6 @@ class MonomorphicSmiableCall : public Object {
 
   static intptr_t expected_cid_offset() {
     return OFFSET_OF(UntaggedMonomorphicSmiableCall, expected_cid_);
-  }
-
-  static intptr_t target_offset() {
-    return OFFSET_OF(UntaggedMonomorphicSmiableCall, target_);
   }
 
   static intptr_t entrypoint_offset() {
@@ -2709,6 +2704,8 @@ class Function : public Object {
                                 intptr_t num_free_fun_type_params = kAllFree,
                                 TrailPtr trail = nullptr) const;
 
+  bool IsPrivate() const;
+
   ClassPtr Owner() const;
   void set_owner(const Object& value) const;
   ClassPtr origin() const;
@@ -2950,8 +2947,6 @@ class Function : public Object {
   // invalid (e.g., mismatched argument shapes after a reload).
   FunctionPtr ImplicitClosureTarget(Zone* zone) const;
 
-  intptr_t ComputeClosureHash() const;
-
   FunctionPtr ForwardingTarget() const;
   void SetForwardingTarget(const Function& target) const;
 
@@ -3180,8 +3175,8 @@ class Function : public Object {
   // run.
   bool ForceOptimize() const {
     return IsFfiFromAddress() || IsFfiGetAddress() || IsFfiLoad() ||
-           IsFfiStore() || IsFfiTrampoline() || IsTypedDataViewFactory() ||
-           IsUtf8Scan() || IsGetNativeField();
+           IsFfiStore() || IsFfiTrampoline() || IsFfiAsExternalTypedData() ||
+           IsTypedDataViewFactory() || IsUtf8Scan() || IsGetNativeField();
   }
 
   bool CanBeInlined() const;
@@ -3513,6 +3508,12 @@ class Function : public Object {
     return kind == MethodRecognizer::kFfiGetAddress;
   }
 
+  bool IsFfiAsExternalTypedData() const {
+    const auto kind = recognized_kind();
+    return MethodRecognizer::kFfiAsExternalTypedDataInt8 <= kind &&
+           kind <= MethodRecognizer::kFfiAsExternalTypedDataDouble;
+  }
+
   bool IsGetNativeField() const {
     const auto kind = recognized_kind();
     return kind == MethodRecognizer::kGetNativeField;
@@ -3700,6 +3701,9 @@ class Function : public Object {
   //   element 2 * i + 1 is coverage hit (zero meaning code was not hit)
   ArrayPtr GetCoverageArray() const;
 
+  // Outputs this function's service ID to the provided JSON object.
+  void AddFunctionServiceId(const JSONObject& obj) const;
+
   // Sets deopt reason in all ICData-s with given deopt_id.
   void SetDeoptReasonForAll(intptr_t deopt_id, ICData::DeoptReasonId reason);
 
@@ -3794,7 +3798,8 @@ class Function : public Object {
   V(PolymorphicTarget, is_polymorphic_target)                                  \
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
-  V(IsExtensionMember, is_extension_member)
+  V(IsExtensionMember, is_extension_member)                                    \
+  V(IsRedirectingFactory, is_redirecting_factory)
 // Bit that is updated after function is constructed, has to be updated in
 // concurrent-safe manner.
 #define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V) V(Inlinable, is_inlinable)
@@ -5445,7 +5450,8 @@ class Instructions : public Object {
   // _not_ at the start of the payload.
   static const intptr_t kBarePayloadAlignment = 4;
 
-  // In non-bare mode, we align the payloads on word boundaries.
+  // When instructions reside in the heap we align the payloads on word
+  // boundaries.
   static const intptr_t kNonBarePayloadAlignment = kWordSize;
 
   // In the precompiled runtime when running in bare instructions mode,
@@ -5454,9 +5460,7 @@ class Instructions : public Object {
 
   static intptr_t HeaderSize() {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_use_bare_instructions) {
-      UNREACHABLE();
-    }
+    UNREACHABLE();
 #endif
     return Utils::RoundUp(sizeof(UntaggedInstructions),
                           kNonBarePayloadAlignment);
@@ -5470,18 +5474,14 @@ class Instructions : public Object {
 
   static intptr_t InstanceSize(intptr_t size) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_use_bare_instructions) {
-      UNREACHABLE();
-    }
+    UNREACHABLE();
 #endif
     return RoundedAllocationSize(HeaderSize() + size);
   }
 
   static InstructionsPtr FromPayloadStart(uword payload_start) {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_use_bare_instructions) {
-      UNREACHABLE();
-    }
+    UNREACHABLE();
 #endif
     return static_cast<InstructionsPtr>(payload_start - HeaderSize() +
                                         kHeapObjectTag);
@@ -5492,9 +5492,19 @@ class Instructions : public Object {
   }
 
   static bool Equals(InstructionsPtr a, InstructionsPtr b) {
-    if (Size(a) != Size(b)) return false;
+    // This method should only be called on non-null Instructions objects.
+    ASSERT_EQUAL(a->GetClassId(), kInstructionsCid);
+    ASSERT_EQUAL(b->GetClassId(), kInstructionsCid);
+    // Don't include the object header tags wholesale in the comparison,
+    // because the GC tags may differ in JIT mode. In fact, we can skip checking
+    // the object header entirely, as we're guaranteed that the cids match,
+    // because there are no subclasses for the Instructions class, and the sizes
+    // should match if the content size encoded in size_and_flags_ matches.
+    if (a->untag()->size_and_flags_ != b->untag()->size_and_flags_) {
+      return false;
+    }
     NoSafepointScope no_safepoint;
-    return memcmp(a->untag(), b->untag(), InstanceSize(Size(a))) == 0;
+    return memcmp(a->untag()->data(), b->untag()->data(), Size(a)) == 0;
   }
 
   uint32_t Hash() const {
@@ -5580,58 +5590,29 @@ class InstructionsSection : public Object {
 // Used in AOT in bare instructions mode.
 class InstructionsTable : public Object {
  public:
-  static const intptr_t kBytesPerElement = sizeof(uint32_t);
-  static const intptr_t kMaxElements = kIntptrMax / kBytesPerElement;
-
-  static const uint32_t kHasMonomorphicEntrypointFlag = 0x1;
-  static const uint32_t kPayloadAlignment = Instructions::kBarePayloadAlignment;
-  static const uint32_t kPayloadMask = ~(kPayloadAlignment - 1);
-  COMPILE_ASSERT((kPayloadMask & kHasMonomorphicEntrypointFlag) == 0);
-
-  struct ArrayTraits {
-    static intptr_t elements_start_offset() {
-      return sizeof(UntaggedInstructionsTable);
-    }
-    static constexpr intptr_t kElementSize = kBytesPerElement;
-  };
-
-  static intptr_t InstanceSize() {
-    ASSERT_EQUAL(sizeof(UntaggedInstructionsTable),
-                 OFFSET_OF_RETURNED_VALUE(UntaggedInstructionsTable, data));
-    return 0;
-  }
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(sizeof(UntaggedInstructionsTable) +
-                                 len * kBytesPerElement);
-  }
+  static intptr_t InstanceSize() { return sizeof(UntaggedInstructionsTable); }
 
   static InstructionsTablePtr New(intptr_t length,
                                   uword start_pc,
-                                  uword end_pc);
+                                  uword end_pc,
+                                  uword rodata);
 
-  void SetEntryAt(intptr_t index,
-                  uword payload_start,
-                  bool has_monomorphic_entrypoint,
-                  ObjectPtr descriptor) const;
+  void SetCodeAt(intptr_t index, CodePtr code) const;
 
   bool ContainsPc(uword pc) const { return ContainsPc(ptr(), pc); }
   static bool ContainsPc(InstructionsTablePtr table, uword pc);
 
-  // Looks for the entry in the [table] by the given [pc].
-  // Returns index of an entry which contains [pc], or -1 if not found.
-  static intptr_t FindEntry(InstructionsTablePtr table, uword pc);
+  static CodePtr FindCode(InstructionsTablePtr table, uword pc);
 
-  intptr_t length() const { return InstructionsTable::length(this->ptr()); }
-  static intptr_t length(InstructionsTablePtr table) {
-    return table->untag()->length_;
-  }
+  static const UntaggedCompressedStackMaps::Payload*
+  FindStackMap(InstructionsTablePtr table, uword pc, uword* start_pc);
 
-  // Returns descriptor object for the entry with given index.
-  ObjectPtr DescriptorAt(intptr_t index) const {
-    return InstructionsTable::DescriptorAt(this->ptr(), index);
+  static const UntaggedCompressedStackMaps::Payload* GetCanonicalStackMap(
+      InstructionsTablePtr table);
+
+  const UntaggedInstructionsTable::Data* rodata() const {
+    return ptr()->untag()->rodata_;
   }
-  static ObjectPtr DescriptorAt(InstructionsTablePtr table, intptr_t index);
 
   // Returns start address of the instructions entry with given index.
   uword PayloadStartAt(intptr_t index) const {
@@ -5653,34 +5634,26 @@ class InstructionsTable : public Object {
     return table->untag()->end_pc_;
   }
 
-  ArrayPtr descriptors() const { return untag()->descriptors_; }
-
-  static uint32_t DataAt(InstructionsTablePtr table, intptr_t index) {
-    ASSERT((0 <= index) && (index < InstructionsTable::length(table)));
-    return table->untag()->data()[index];
-  }
-  uint32_t PcOffsetAt(intptr_t index) const {
-    return InstructionsTable::PcOffsetAt(this->ptr(), index);
-  }
-  static uint32_t PcOffsetAt(InstructionsTablePtr table, intptr_t index) {
-    return DataAt(table, index) & kPayloadMask;
-  }
-  bool HasMonomorphicEntryPointAt(intptr_t index) const {
-    return (DataAt(this->ptr(), index) & kHasMonomorphicEntrypointFlag) != 0;
-  }
+  ArrayPtr code_objects() const { return untag()->code_objects_; }
 
   void set_length(intptr_t value) const;
   void set_start_pc(uword value) const;
   void set_end_pc(uword value) const;
-  void set_descriptors(const Array& value) const;
+  void set_code_objects(const Array& value) const;
+  void set_rodata(uword rodata) const;
 
   uint32_t ConvertPcToOffset(uword pc) const {
     return InstructionsTable::ConvertPcToOffset(this->ptr(), pc);
   }
   static uint32_t ConvertPcToOffset(InstructionsTablePtr table, uword pc);
 
+  static intptr_t FindEntry(InstructionsTablePtr table,
+                            uword pc,
+                            intptr_t start_index = 0);
+
   FINAL_HEAP_OBJECT_IMPLEMENTATION(InstructionsTable, Object);
   friend class Class;
+  friend class Deserializer;
 };
 
 class LocalVarDescriptors : public Object {
@@ -5910,13 +5883,16 @@ class CompressedStackMaps : public Object {
   uintptr_t payload_size() const { return PayloadSizeOf(ptr()); }
   static uintptr_t PayloadSizeOf(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::SizeField::decode(
-        raw->untag()->flags_and_size_);
+        raw->untag()->payload()->flags_and_size);
   }
+
+  const uint8_t* data() const { return ptr()->untag()->payload()->data(); }
 
   // Methods to allow use with PointerKeyValueTrait to create sets of CSMs.
   bool Equals(const CompressedStackMaps& other) const {
     // All of the table flags and payload size must match.
-    if (untag()->flags_and_size_ != other.untag()->flags_and_size_) {
+    if (untag()->payload()->flags_and_size !=
+        other.untag()->payload()->flags_and_size) {
       return false;
     }
     NoSafepointScope no_safepoint;
@@ -5924,7 +5900,10 @@ class CompressedStackMaps : public Object {
   }
   uword Hash() const;
 
-  static intptr_t HeaderSize() { return sizeof(UntaggedCompressedStackMaps); }
+  static intptr_t HeaderSize() {
+    return sizeof(UntaggedCompressedStackMaps) +
+           sizeof(UntaggedCompressedStackMaps::Payload);
+  }
   static intptr_t UnroundedSize(CompressedStackMapsPtr maps) {
     return UnroundedSize(CompressedStackMaps::PayloadSizeOf(maps));
   }
@@ -5932,8 +5911,6 @@ class CompressedStackMaps : public Object {
     return HeaderSize() + length;
   }
   static intptr_t InstanceSize() {
-    ASSERT_EQUAL(sizeof(UntaggedCompressedStackMaps),
-                 OFFSET_OF_RETURNED_VALUE(UntaggedCompressedStackMaps, data));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t length) {
@@ -5943,13 +5920,13 @@ class CompressedStackMaps : public Object {
   bool UsesGlobalTable() const { return UsesGlobalTable(ptr()); }
   static bool UsesGlobalTable(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::UsesTableBit::decode(
-        raw->untag()->flags_and_size_);
+        raw->untag()->payload()->flags_and_size);
   }
 
   bool IsGlobalTable() const { return IsGlobalTable(ptr()); }
   static bool IsGlobalTable(const CompressedStackMapsPtr raw) {
     return UntaggedCompressedStackMaps::GlobalTableBit::decode(
-        raw->untag()->flags_and_size_);
+        raw->untag()->payload()->flags_and_size);
   }
 
   static CompressedStackMapsPtr NewInlined(const void* payload, intptr_t size) {
@@ -5968,17 +5945,128 @@ class CompressedStackMaps : public Object {
                /*uses_global_table=*/false);
   }
 
+  class RawPayloadHandle {
+   public:
+    RawPayloadHandle() {}
+    RawPayloadHandle(const RawPayloadHandle&) = default;
+    RawPayloadHandle& operator=(const RawPayloadHandle&) = default;
+
+    const UntaggedCompressedStackMaps::Payload* payload() const {
+      return payload_;
+    }
+    bool IsNull() const { return payload_ == nullptr; }
+
+    RawPayloadHandle& operator=(
+        const UntaggedCompressedStackMaps::Payload* payload) {
+      payload_ = payload;
+      return *this;
+    }
+
+    RawPayloadHandle& operator=(const CompressedStackMaps& maps) {
+      ASSERT(!maps.IsNull());
+      payload_ = maps.untag()->payload();
+      return *this;
+    }
+
+    RawPayloadHandle& operator=(CompressedStackMapsPtr maps) {
+      ASSERT(maps != CompressedStackMaps::null());
+      payload_ = maps.untag()->payload();
+      return *this;
+    }
+
+    uintptr_t payload_size() const {
+      return UntaggedCompressedStackMaps::SizeField::decode(
+          payload()->flags_and_size);
+    }
+    const uint8_t* data() const { return payload()->data(); }
+
+    bool UsesGlobalTable() const {
+      return UntaggedCompressedStackMaps::UsesTableBit::decode(
+          payload()->flags_and_size);
+    }
+
+    bool IsGlobalTable() const {
+      return UntaggedCompressedStackMaps::GlobalTableBit::decode(
+          payload()->flags_and_size);
+    }
+
+   private:
+    const UntaggedCompressedStackMaps::Payload* payload_ = nullptr;
+  };
+
+  template <typename PayloadHandle>
   class Iterator {
    public:
-    Iterator(const CompressedStackMaps& maps,
-             const CompressedStackMaps& global_table);
-    Iterator(Thread* thread, const CompressedStackMaps& maps);
+    Iterator(const PayloadHandle& maps, const PayloadHandle& global_table)
+        : maps_(maps),
+          bits_container_(maps.UsesGlobalTable() ? global_table : maps) {
+      ASSERT(!maps_.IsNull());
+      ASSERT(!bits_container_.IsNull());
+      ASSERT(!maps_.IsGlobalTable());
+      ASSERT(!maps_.UsesGlobalTable() || bits_container_.IsGlobalTable());
+    }
 
-    explicit Iterator(const CompressedStackMaps::Iterator& it);
+    Iterator(const Iterator& it)
+        : maps_(it.maps_),
+          bits_container_(it.bits_container_),
+          next_offset_(it.next_offset_),
+          current_pc_offset_(it.current_pc_offset_),
+          current_global_table_offset_(it.current_global_table_offset_),
+          current_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
+          current_non_spill_slot_bit_count_(it.current_spill_slot_bit_count_),
+          current_bits_offset_(it.current_bits_offset_) {}
 
     // Loads the next entry from [maps_], if any. If [maps_] is the null value,
     // this always returns false.
-    bool MoveNext();
+    bool MoveNext() {
+      if (next_offset_ >= maps_.payload_size()) {
+        return false;
+      }
+
+      NoSafepointScope scope;
+      ReadStream stream(maps_.data(), maps_.payload_size(), next_offset_);
+
+      auto const pc_delta = stream.ReadLEB128();
+      ASSERT(pc_delta <= (kMaxUint32 - current_pc_offset_));
+      current_pc_offset_ += pc_delta;
+
+      // Table-using CSMs have a table offset after the PC offset delta, whereas
+      // the post-delta part of inlined entries has the same information as
+      // global table entries.
+      // See comments in UntaggedCompressedStackMaps for description of
+      // encoding.
+      if (maps_.UsesGlobalTable()) {
+        current_global_table_offset_ = stream.ReadLEB128();
+        ASSERT(current_global_table_offset_ < bits_container_.payload_size());
+
+        // Since generally we only use entries in the GC and the GC only needs
+        // the rest of the entry information if the PC offset matches, we lazily
+        // load and cache the information stored in the global object when it is
+        // actually requested.
+        current_spill_slot_bit_count_ = -1;
+        current_non_spill_slot_bit_count_ = -1;
+        current_bits_offset_ = -1;
+
+        next_offset_ = stream.Position();
+      } else {
+        current_spill_slot_bit_count_ = stream.ReadLEB128();
+        ASSERT(current_spill_slot_bit_count_ >= 0);
+
+        current_non_spill_slot_bit_count_ = stream.ReadLEB128();
+        ASSERT(current_non_spill_slot_bit_count_ >= 0);
+
+        const auto stackmap_bits =
+            current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
+        const uintptr_t stackmap_size =
+            Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
+        ASSERT(stackmap_size <= (maps_.payload_size() - stream.Position()));
+
+        current_bits_offset_ = stream.Position();
+        next_offset_ = current_bits_offset_ + stackmap_size;
+      }
+
+      return true;
+    }
 
     // Finds the entry with the given PC offset starting at the current position
     // of the iterator. If [maps_] is the null value, this always returns false.
@@ -6002,21 +6090,56 @@ class CompressedStackMaps : public Object {
     }
 
     // Returns the bit length of the loaded entry.
-    intptr_t Length() const;
+    intptr_t Length() const {
+      EnsureFullyLoadedEntry();
+      return current_spill_slot_bit_count_ + current_non_spill_slot_bit_count_;
+    }
     // Returns the number of spill slot bits of the loaded entry.
-    intptr_t SpillSlotBitCount() const;
+    intptr_t SpillSlotBitCount() const {
+      EnsureFullyLoadedEntry();
+      return current_spill_slot_bit_count_;
+    }
     // Returns whether the stack entry represented by the offset contains
-    // a tagged objecet.
-    bool IsObject(intptr_t bit_offset) const;
-
-    void WriteToBuffer(BaseTextBuffer* buffer, const char* separator) const;
+    // a tagged object.
+    bool IsObject(intptr_t bit_index) const {
+      EnsureFullyLoadedEntry();
+      ASSERT(bit_index >= 0 && bit_index < Length());
+      const intptr_t byte_index = bit_index >> kBitsPerByteLog2;
+      const intptr_t bit_remainder = bit_index & (kBitsPerByte - 1);
+      uint8_t byte_mask = 1U << bit_remainder;
+      const intptr_t byte_offset = current_bits_offset_ + byte_index;
+      NoSafepointScope scope;
+      return (bits_container_.data()[byte_offset] & byte_mask) != 0;
+    }
 
    private:
     bool HasLoadedEntry() const { return next_offset_ > 0; }
 
     // Caches the corresponding values from the global table in the mutable
     // fields. We lazily load these as some clients only need the PC offset.
-    void LazyLoadGlobalTableEntry() const;
+    void LazyLoadGlobalTableEntry() const {
+      ASSERT(maps_.UsesGlobalTable());
+      ASSERT(HasLoadedEntry());
+      ASSERT(current_global_table_offset_ < bits_container_.payload_size());
+
+      NoSafepointScope scope;
+      ReadStream stream(bits_container_.data(), bits_container_.payload_size(),
+                        current_global_table_offset_);
+
+      current_spill_slot_bit_count_ = stream.ReadLEB128();
+      ASSERT(current_spill_slot_bit_count_ >= 0);
+
+      current_non_spill_slot_bit_count_ = stream.ReadLEB128();
+      ASSERT(current_non_spill_slot_bit_count_ >= 0);
+
+      const auto stackmap_bits = Length();
+      const uintptr_t stackmap_size =
+          Utils::RoundUp(stackmap_bits, kBitsPerByte) >> kBitsPerByteLog2;
+      ASSERT(stackmap_size <=
+             (bits_container_.payload_size() - stream.Position()));
+
+      current_bits_offset_ = stream.Position();
+    }
 
     void EnsureFullyLoadedEntry() const {
       ASSERT(HasLoadedEntry());
@@ -6026,8 +6149,8 @@ class CompressedStackMaps : public Object {
       }
     }
 
-    const CompressedStackMaps& maps_;
-    const CompressedStackMaps& bits_container_;
+    const PayloadHandle& maps_;
+    const PayloadHandle& bits_container_;
 
     uintptr_t next_offset_ = 0;
     uint32_t current_pc_offset_ = 0;
@@ -6042,6 +6165,10 @@ class CompressedStackMaps : public Object {
 
     friend class StackMapEntry;
   };
+
+  Iterator<CompressedStackMaps> iterator(Thread* thread) const;
+
+  void WriteToBuffer(BaseTextBuffer* buffer, const char* separator) const;
 
  private:
   static CompressedStackMapsPtr New(const void* payload,
@@ -6274,6 +6401,10 @@ class Code : public Object {
 #else
     return Instructions::EntryPoint(InstructionsOf(code));
 #endif
+  }
+
+  static uword UncheckedEntryPointOf(const CodePtr code) {
+    return code->untag()->unchecked_entry_point_;
   }
 
   // Returns the unchecked entry point of [instructions()].
@@ -7505,7 +7636,7 @@ class Instance : public Object {
   virtual ObjectPtr HashCode() const;
 
   // Equivalent to invoking identityHashCode with this instance.
-  ObjectPtr IdentityHashCode() const;
+  IntegerPtr IdentityHashCode(Thread* thread) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedInstance));
@@ -9752,6 +9883,7 @@ class OneByteString : public AllStatic {
   friend class Symbols;
   friend class Utf8;
   friend class OneByteStringMessageSerializationCluster;
+  friend class Deserializer;
 };
 
 class TwoByteString : public AllStatic {
@@ -10053,6 +10185,11 @@ class ExternalTwoByteString : public AllStatic {
   friend class Symbols;
 };
 
+// Matches null_patch.dart / bool_patch.dart.
+static constexpr intptr_t kNullIdentityHash = 2011;
+static constexpr intptr_t kTrueIdentityHash = 1231;
+static constexpr intptr_t kFalseIdentityHash = 1237;
+
 // Class Bool implements Dart core class bool.
 class Bool : public Instance {
  public:
@@ -10071,7 +10208,7 @@ class Bool : public Instance {
   }
 
   virtual uint32_t CanonicalizeHash() const {
-    return ptr() == True().ptr() ? 1231 : 1237;
+    return ptr() == True().ptr() ? kTrueIdentityHash : kFalseIdentityHash;
   }
 
  private:
@@ -11893,6 +12030,12 @@ class UserTag : public Instance {
     ASSERT(t < UserTags::kUserTagIdOffset + UserTags::kMaxUserTags);
     StoreNonPointer(&untag()->tag_, t);
   }
+
+  bool streamable() const { return untag()->streamable(); }
+  void set_streamable(bool streamable) {
+    StoreNonPointer(&untag()->streamable_, streamable);
+  }
+
   static intptr_t tag_offset() { return OFFSET_OF(UntaggedUserTag, tag_); }
 
   StringPtr label() const { return untag()->label(); }
@@ -11908,6 +12051,9 @@ class UserTag : public Instance {
 
   static bool TagTableIsFull(Thread* thread);
   static UserTagPtr FindTagById(uword tag_id);
+  static UserTagPtr FindTagInIsolate(Isolate* isolate,
+                                     Thread* thread,
+                                     const String& label);
 
  private:
   static UserTagPtr FindTagInIsolate(Thread* thread, const String& label);

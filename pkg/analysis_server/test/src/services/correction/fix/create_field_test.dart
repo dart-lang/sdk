@@ -131,7 +131,7 @@ void f(A a) {
   }
 
   Future<void> test_getter_qualified_instance_differentLibrary() async {
-    addSource('/home/test/lib/other.dart', '''
+    addSource('$testPackageLibPath/other.dart', '''
 /**
  * A comment to push the offset of the braces for the following class
  * declaration past the end of the content of the test file. Used to catch an
@@ -161,7 +161,7 @@ void f(A a) {
 class A {
   int test;
 }
-''', target: '/home/test/lib/other.dart');
+''', target: '$testPackageLibPath/other.dart');
   }
 
   Future<void> test_getter_qualified_instance_dynamicType() async {
@@ -317,11 +317,11 @@ void f(A a) {
   }
 
   Future<void> test_importType() async {
-    addSource('/home/test/lib/a.dart', r'''
+    addSource('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    addSource('/home/test/lib/b.dart', r'''
+    addSource('$testPackageLibPath/b.dart', r'''
 import 'package:test/a.dart';
 
 A getA() => null;
@@ -365,7 +365,7 @@ void f() {
   }
 
   Future<void> test_inPart_imported() async {
-    addSource('/home/test/lib/a.dart', '''
+    addSource('$testPackageLibPath/a.dart', '''
 part of lib;
 class A {}
 ''');

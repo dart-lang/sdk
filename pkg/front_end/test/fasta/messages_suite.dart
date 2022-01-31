@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import "dart:convert" show utf8;
 
 import 'dart:io' show File, Platform;
@@ -66,23 +64,23 @@ class MessageTestDescription extends TestDescription {
 
   final YamlMap data;
 
-  final Example example;
+  final Example? example;
 
-  final String problem;
+  final String? problem;
 
   MessageTestDescription(this.uri, this.shortName, this.name, this.data,
       this.example, this.problem);
 }
 
 class Configuration {
-  final NnbdMode nnbdMode;
+  final NnbdMode? nnbdMode;
   final Set<InvocationMode> invocationModes;
 
   const Configuration(this.nnbdMode, this.invocationModes);
 
   CompilerOptions apply(CompilerOptions options) {
     if (nnbdMode != null) {
-      options.nnbdMode = nnbdMode;
+      options.nnbdMode = nnbdMode!;
     }
     options.invocationModes = invocationModes;
     return options;
@@ -125,7 +123,7 @@ class MessageTestSuite extends ChainContext {
         [spell.Dictionaries.cfeMessages],
         interactive,
         '"$dartPath" "$suitePath" -DfastOnly=true -Dinteractive=true');
-    return null;
+    return new Future.value();
   }
 
   MessageTestSuite(this.fastOnly, this.interactive)
@@ -151,30 +149,30 @@ class MessageTestSuite extends ChainContext {
     Uri uri = suite.uri.resolve("messages.yaml");
     File file = new File.fromUri(uri);
     String fileContent = file.readAsStringSync();
-    YamlMap messages = loadYamlNode(fileContent, sourceUrl: uri);
+    YamlMap messages = loadYamlNode(fileContent, sourceUrl: uri) as YamlMap;
     for (String name in messages.keys) {
-      YamlNode messageNode = messages.nodes[name];
-      var message = messageNode.value;
+      YamlMap messageNode = messages.nodes[name] as YamlMap;
+      dynamic message = messageNode.value;
       if (message is String) continue;
 
       List<String> unknownKeys = <String>[];
       bool exampleAllowMoreCodes = false;
       List<Example> examples = <Example>[];
-      String externalTest;
+      String? externalTest;
       bool frontendInternal = false;
-      List<String> analyzerCodes;
-      Severity severity;
-      YamlNode badSeverity;
-      YamlNode unnecessarySeverity;
+      List<String>? analyzerCodes;
+      Severity? severity;
+      YamlNode? badSeverity;
+      YamlNode? unnecessarySeverity;
       List<String> badHasPublishedDocsValue = <String>[];
-      List<String> spellingMessages;
+      List<String>? spellingMessages;
       const String spellingPostMessage = "\nIf the word(s) look okay, update "
           "'spell_checking_list_messages.txt' or "
           "'spell_checking_list_common.txt'.";
-      Configuration configuration;
-      Map<ExperimentalFlag, bool> experimentalFlags;
+      Configuration? configuration;
+      Map<ExperimentalFlag, bool>? experimentalFlags;
 
-      Source source;
+      Source? source;
       List<String> formatSpellingMistakes(spell.SpellingResult spellResult,
           int offset, String message, String messageForDenyListed) {
         if (source == null) {
@@ -189,23 +187,23 @@ class MessageTestSuite extends ChainContext {
           source = new Source(lineStarts, bytes, uri, uri);
         }
         List<String> result = <String>[];
-        for (int i = 0; i < spellResult.misspelledWords.length; i++) {
-          Location location = source.getLocation(
-              uri, offset + spellResult.misspelledWordsOffset[i]);
-          bool denylisted = spellResult.misspelledWordsDenylisted[i];
+        for (int i = 0; i < spellResult.misspelledWords!.length; i++) {
+          Location location = source!
+              .getLocation(uri, offset + spellResult.misspelledWordsOffset![i]);
+          bool denylisted = spellResult.misspelledWordsDenylisted![i];
           String messageToUse = message;
           if (denylisted) {
             messageToUse = messageForDenyListed;
-            reportedWordsDenylisted.add(spellResult.misspelledWords[i]);
+            reportedWordsDenylisted.add(spellResult.misspelledWords![i]);
           } else {
-            reportedWords.add(spellResult.misspelledWords[i]);
+            reportedWords.add(spellResult.misspelledWords![i]);
           }
           result.add(command_line_reporting.formatErrorMessage(
-              source.getTextLine(location.line),
+              source!.getTextLine(location.line),
               location,
-              spellResult.misspelledWords[i].length,
+              spellResult.misspelledWords![i].length,
               relativize(uri),
-              "$messageToUse: '${spellResult.misspelledWords[i]}'."));
+              "$messageToUse: '${spellResult.misspelledWords![i]}'."));
         }
         return result;
       }
@@ -280,11 +278,12 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "bytes":
-            YamlList list = node;
+            YamlList list = node as YamlList;
             if (list.first is List) {
-              for (YamlList bytes in list.nodes) {
+              for (YamlNode bytes in list.nodes) {
                 int i = 0;
-                examples.add(new BytesExample("bytes${++i}", name, bytes));
+                examples.add(
+                    new BytesExample("bytes${++i}", name, bytes as YamlList));
               }
             } else {
               examples.add(new BytesExample("bytes", name, list));
@@ -355,7 +354,7 @@ class MessageTestSuite extends ChainContext {
 
           case "configuration":
             if (value is String) {
-              NnbdMode nnbdMode;
+              NnbdMode? nnbdMode;
               Set<InvocationMode> invocationModes = {};
               for (String part in value.split(',')) {
                 if (part.isEmpty) continue;
@@ -364,7 +363,8 @@ class MessageTestSuite extends ChainContext {
                 } else if (part == "nnbd-strong") {
                   nnbdMode = NnbdMode.Strong;
                 } else {
-                  InvocationMode invocationMode = InvocationMode.fromName(part);
+                  InvocationMode? invocationMode =
+                      InvocationMode.fromName(part);
                   if (invocationMode != null) {
                     invocationModes.add(invocationMode);
                   } else {
@@ -418,7 +418,7 @@ class MessageTestSuite extends ChainContext {
       }
 
       MessageTestDescription createDescription(
-          String subName, Example example, String problem,
+          String subName, Example? example, String? problem,
           {location}) {
         String shortName = "$name/$subName";
         if (problem != null) {
@@ -467,7 +467,7 @@ class MessageTestSuite extends ChainContext {
           badSeverity != null
               ? "Unknown severity: '${badSeverity.value}'."
               : null,
-          location: badSeverity?.span?.start);
+          location: badSeverity?.span.start);
 
       yield createDescription(
           "unnecessarySeverity",
@@ -475,7 +475,7 @@ class MessageTestSuite extends ChainContext {
           unnecessarySeverity != null
               ? "The 'ERROR' severity is the default and not necessary."
               : null,
-          location: unnecessarySeverity?.span?.start);
+          location: unnecessarySeverity?.span.start);
 
       yield createDescription(
           "spelling",
@@ -528,7 +528,7 @@ class MessageTestSuite extends ChainContext {
     var span = example.node.span;
     StringBuffer buffer = new StringBuffer();
     buffer
-      ..write(relativize(span.sourceUrl))
+      ..write(relativize(span.sourceUrl!))
       ..write(":")
       ..write(span.start.line + 1)
       ..write(":")
@@ -537,7 +537,7 @@ class MessageTestSuite extends ChainContext {
       ..write(message);
     buffer.write("\n${span.text}");
     for (DiagnosticMessage message in messages) {
-      buffer.write("\nCode: ${getMessageCodeObject(message).name}");
+      buffer.write("\nCode: ${getMessageCodeObject(message)!.name}");
       buffer.write("\n  > ");
       buffer.write(
           message.plainTextFormatted.join("\n").replaceAll("\n", "\n  > "));
@@ -554,9 +554,9 @@ abstract class Example {
 
   bool allowMoreCodes = false;
 
-  Configuration configuration;
+  late Configuration configuration;
 
-  Map<ExperimentalFlag, bool> experimentalFlags;
+  Map<ExperimentalFlag, bool>? experimentalFlags;
 
   Example(this.name, this.expectedCode);
 
@@ -677,7 +677,7 @@ class ScriptExample extends Example {
       });
       return scriptFiles;
     } else {
-      return {mainFilename: new Script.fromSource(script)};
+      return {mainFilename: new Script.fromSource(script as String)};
     }
   }
 }
@@ -709,7 +709,7 @@ class PartWrapExample extends Example {
       throw "Framework failure: "
           "Wanted to create wrapper file, but the file already exists!";
     }
-    Script originalMainScript = scriptFiles[example.mainFilename];
+    Script originalMainScript = scriptFiles[example.mainFilename]!;
     String preamble = originalMainScript.preamble;
     scriptFiles[mainFilename] = new Script.fromSource("""
 ${preamble}part "${example.mainFilename}";
@@ -718,7 +718,7 @@ ${preamble}part "${example.mainFilename}";
     // Modify the original main file to be part of the wrapper and add lots of
     // gunk so every actual position in the file is not a valid position in the
     // wrapper.
-    String originalMainSource = originalMainScript.sourceWithoutPreamble;
+    String? originalMainSource = originalMainScript.sourceWithoutPreamble;
     String partPrefix = """
 ${preamble}part of "${mainFilename}";
 // La la la la la la la la la la la la la.
@@ -746,14 +746,15 @@ ${preamble}part of "${mainFilename}";
   YamlNode get node => example.node;
 }
 
-class Validate extends Step<MessageTestDescription, Example, MessageTestSuite> {
+class Validate
+    extends Step<MessageTestDescription, Example?, MessageTestSuite> {
   const Validate();
 
   @override
   String get name => "validate";
 
   @override
-  Future<Result<Example>> run(
+  Future<Result<Example?>> run(
       MessageTestDescription description, MessageTestSuite suite) {
     if (description.problem != null) {
       return new Future.value(fail(null, description.problem));
@@ -763,14 +764,14 @@ class Validate extends Step<MessageTestDescription, Example, MessageTestSuite> {
   }
 }
 
-class Compile extends Step<Example, Null, MessageTestSuite> {
+class Compile extends Step<Example?, Null, MessageTestSuite> {
   const Compile();
 
   @override
   String get name => "compile";
 
   @override
-  Future<Result<Null>> run(Example example, MessageTestSuite suite) async {
+  Future<Result<Null>> run(Example? example, MessageTestSuite suite) async {
     if (example == null) return pass(null);
     String dir = "${example.expectedCode}/${example.name}";
     example.scripts.forEach((String fileName, Script script) {
@@ -812,14 +813,14 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
     if (example.allowMoreCodes) {
       List<DiagnosticMessage> messagesFiltered = <DiagnosticMessage>[];
       for (DiagnosticMessage message in messages) {
-        if (getMessageCodeObject(message).name == example.expectedCode) {
+        if (getMessageCodeObject(message)!.name == example.expectedCode) {
           messagesFiltered.add(message);
         }
       }
       messages = messagesFiltered;
     }
     for (DiagnosticMessage message in messages) {
-      if (getMessageCodeObject(message).name != example.expectedCode) {
+      if (getMessageCodeObject(message)!.name != example.expectedCode) {
         unexpectedMessages.add(message);
       }
     }
@@ -868,7 +869,7 @@ String relativize(Uri uri) {
 class Script {
   final Uint8List bytes;
   final String preamble;
-  final String sourceWithoutPreamble;
+  final String? sourceWithoutPreamble;
 
   Script(this.bytes, this.preamble, this.sourceWithoutPreamble);
 

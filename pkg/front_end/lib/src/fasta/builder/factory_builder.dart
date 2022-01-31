@@ -8,9 +8,9 @@ import 'package:kernel/type_algebra.dart';
 
 import '../dill/dill_member_builder.dart';
 
-import '../kernel/class_hierarchy_builder.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/forest.dart';
+import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/redirecting_factory_body.dart'

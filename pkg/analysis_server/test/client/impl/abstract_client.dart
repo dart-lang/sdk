@@ -10,6 +10,7 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -132,7 +133,7 @@ abstract class AbstractClient {
   /// Validate that the given [request] is handled successfully.
   Response handleSuccessfulRequest(Request request, {RequestHandler? handler}) {
     handler ??= analysisHandler;
-    var response = handler.handleRequest(request)!;
+    var response = handler.handleRequest(request, NotCancelableToken())!;
     expect(response, isResponseSuccess(request.id));
     return response;
   }

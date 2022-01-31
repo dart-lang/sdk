@@ -1,0 +1,298 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:93:59: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart'.
+// Try accessing using ?. instead.
+//   throws(() => (Extension1(n1)?.nullable1 = new Class1()).nullable1);
+//                                                           ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:94:55: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart'.
+// Try accessing using ?. instead.
+//   throws(() => (Extension1(n1)?.nonNullable1Method()).nullable1);
+//                                                       ^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:244:45: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart'.
+//   throws(() => Extension1(n1)?.nonNullable1 + 0);
+//                                             ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:245:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
+//  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart'.
+//   throws(() => -Extension1(n1)?.nonNullable1);
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    : super core::Object::•()
+    ;
+  get property() → self::Class1?
+    return null;
+  set property(self::Class1? value) → void {}
+  get property1() → self::Class1
+    return new self::Class1::•();
+  get property2() → self::Class2
+    return new self::Class2::•();
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    : super core::Object::•()
+    ;
+  get property() → self::Class2
+    return this;
+  set property(self::Class2 value) → void {}
+}
+class Class3 extends core::Object {
+  synthetic constructor •() → self::Class3
+    : super core::Object::•()
+    ;
+  get property() → self::Class2?
+    return null;
+}
+extension Extension1 on self::Class1 {
+  get nullable1 = self::Extension1|get#nullable1;
+  method nonNullable1Method = self::Extension1|nonNullable1Method;
+  tearoff nonNullable1Method = self::Extension1|get#nonNullable1Method;
+  operator [] = self::Extension1|[];
+  operator []= = self::Extension1|[]=;
+  operator + = self::Extension1|+;
+  operator unary- = self::Extension1|unary-;
+  get nonNullable1 = self::Extension1|get#nonNullable1;
+  get nonNullable2 = self::Extension1|get#nonNullable2;
+  set nullable1 = self::Extension1|set#nullable1;
+}
+extension Extension2 on self::Class2 {
+  method nonNullable2Method = self::Extension2|nonNullable2Method;
+  tearoff nonNullable2Method = self::Extension2|get#nonNullable2Method;
+  operator [] = self::Extension2|[];
+  operator []= = self::Extension2|[]=;
+  operator + = self::Extension2|+;
+  operator unary- = self::Extension2|unary-;
+  get nonNullable2 = self::Extension2|get#nonNullable2;
+  set nonNullable2 = self::Extension2|set#nonNullable2;
+}
+extension Extension3 on self::Class3 {
+  operator [] = self::Extension3|[];
+}
+static method Extension1|get#nullable1(lowered final self::Class1 #this) → self::Class1?
+  return #this.{self::Class1::property1}{self::Class1};
+static method Extension1|set#nullable1(lowered final self::Class1 #this, self::Class1? value) → void {
+  #this.{self::Class1::property} = value;
+}
+static method Extension1|nonNullable1Method(lowered final self::Class1 #this) → self::Class1
+  return self::Extension1|get#nonNullable1(#this);
+static method Extension1|get#nonNullable1Method(lowered final self::Class1 #this) → () → self::Class1
+  return () → self::Class1 => self::Extension1|nonNullable1Method(#this);
+static method Extension1|[](lowered final self::Class1 #this, self::Class1? key) → self::Class1?
+  return self::Extension1|get#nullable1(#this);
+static method Extension1|[]=(lowered final self::Class1 #this, self::Class1? key, self::Class1? value) → void {
+  #this.{self::Class1::property} = value;
+}
+static method Extension1|+(lowered final self::Class1 #this, core::int value) → self::Class1?
+  return self::Extension1|get#nullable1(#this);
+static method Extension1|unary-(lowered final self::Class1 #this) → self::Class1?
+  return self::Extension1|get#nullable1(#this);
+static method Extension1|get#nonNullable1(lowered final self::Class1 #this) → self::Class1
+  return #this.{self::Class1::property1}{self::Class1};
+static method Extension1|get#nonNullable2(lowered final self::Class1 #this) → self::Class2
+  return #this.{self::Class1::property2}{self::Class2};
+static method Extension2|nonNullable2Method(lowered final self::Class2 #this) → self::Class2
+  return self::Extension2|get#nonNullable2(#this);
+static method Extension2|get#nonNullable2Method(lowered final self::Class2 #this) → () → self::Class2
+  return () → self::Class2 => self::Extension2|nonNullable2Method(#this);
+static method Extension2|[](lowered final self::Class2 #this, self::Class2? key) → self::Class2
+  return #this.{self::Class2::property}{self::Class2};
+static method Extension2|[]=(lowered final self::Class2 #this, self::Class2? key, self::Class2? value) → void
+  return #this.{self::Class2::property}{self::Class2};
+static method Extension2|+(lowered final self::Class2 #this, core::int value) → self::Class2
+  return #this.{self::Class2::property}{self::Class2};
+static method Extension2|unary-(lowered final self::Class2 #this) → self::Class2
+  return #this.{self::Class2::property}{self::Class2};
+static method Extension2|get#nonNullable2(lowered final self::Class2 #this) → self::Class2
+  return #this.{self::Class2::property}{self::Class2};
+static method Extension2|set#nonNullable2(lowered final self::Class2 #this, self::Class2 value) → void {
+  #this.{self::Class2::property} = value;
+}
+static method Extension3|[](lowered final self::Class3 #this, self::Class3? key) → self::Class2?
+  return #this.{self::Class3::property}{self::Class2?};
+static method main() → dynamic {
+  self::propertyAccess(null);
+  self::indexAccess(null, null, null);
+  self::operatorAccess(null, null);
+  self::ifNull(null);
+}
+static method propertyAccess(self::Class1? n1) → void {
+  self::Class1? nullable1 = n1;
+  let final self::Class1? #t1 = n1 in #t1 == null ?{self::Class1?} null : self::Extension1|get#nullable1(#t1{self::Class1});
+  let final self::Class1? #t2 = n1 in #t2 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t2{self::Class1}, new self::Class1::•());
+  nullable1 = let final self::Class1? #t3 = n1 in #t3 == null ?{self::Class1?} null : let final self::Class1 #t4 = new self::Class1::•() in let final void #t5 = self::Extension1|set#nullable1(#t3{self::Class1}, #t4) in #t4;
+  let final self::Class1? #t6 = n1 in #t6 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(#t6{self::Class1});
+  let final self::Class1? #t7 = n1 in #t7 == null ?{self::Class1?} null : self::Extension1|get#nullable1(self::Extension1|get#nonNullable1(#t7{self::Class1}));
+  let final self::Class1? #t8 = n1 in #t8 == null ?{self::Class1?} null : let final self::Class1? #t9 = self::Extension1|get#nullable1(#t8{self::Class1}) in #t9 == null ?{self::Class1?} null : self::Extension1|get#nullable1(#t9{self::Class1});
+  let final self::Class1? #t10 = n1 in #t10 == null ?{self::Class1?} null : let final self::Class1? #t11 = self::Extension1|get#nullable1(self::Extension1|get#nonNullable1(#t10{self::Class1})) in #t11 == null ?{self::Class1?} null : self::Extension1|get#nullable1(#t11{self::Class1});
+  let final self::Class1? #t12 = n1 in #t12 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(#t12{self::Class1}), new self::Class1::•());
+  let final self::Class1? #t13 = n1 in #t13 == null ?{self::Class1?} null : let final self::Class1? #t14 = self::Extension1|get#nullable1(#t13{self::Class1}) in #t14 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t14{self::Class1}, new self::Class1::•());
+  let final self::Class1? #t15 = n1 in #t15 == null ?{self::Class1?} null : let final self::Class1? #t16 = self::Extension1|get#nullable1(self::Extension1|get#nonNullable1(#t15{self::Class1})) in #t16 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t16{self::Class1}, new self::Class1::•());
+  let final self::Class1? #t17 = let final self::Class1? #t18 = n1 in #t18 == null ?{self::Class1?} null : self::Extension1|get#nullable1(#t18{self::Class1}) in #t17 == null ?{self::Class1?} null : self::Extension1|get#nullable1(#t17{self::Class1});
+  self::throws(() → void => invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:93:59: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+ - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart'.
+Try accessing using ?. instead.
+  throws(() => (Extension1(n1)?.nullable1 = new Class1()).nullable1);
+                                                          ^^^^^^^^^" in self::Extension1|get#nullable1(let final self::Class1? #t19 = n1 in #t19 == null ?{self::Class1?} null : let final self::Class1 #t20 = new self::Class1::•() in let final void #t21 = self::Extension1|set#nullable1(#t19{self::Class1}, #t20) in #t20));
+  self::throws(() → void => invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:94:55: Error: Property 'nullable1' cannot be accessed on 'Class1?' because it is potentially null.
+ - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart'.
+Try accessing using ?. instead.
+  throws(() => (Extension1(n1)?.nonNullable1Method()).nullable1);
+                                                      ^^^^^^^^^" in self::Extension1|get#nullable1(let final self::Class1? #t22 = n1 in #t22 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(#t22{self::Class1})));
+  nullable1 = let final self::Class1? #t23 = n1 in #t23 == null ?{self::Class1?} null : let final self::Class1 #t24 = new self::Class1::•() in let final void #t25 = self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(#t23{self::Class1}), #t24) in #t24;
+  nullable1 = let final self::Class1? #t26 = n1 in #t26 == null ?{self::Class1?} null : let final self::Class1? #t27 = self::Extension1|get#nullable1(#t26{self::Class1}) in #t27 == null ?{self::Class1?} null : let final self::Class1 #t28 = new self::Class1::•() in let final void #t29 = self::Extension1|set#nullable1(#t27{self::Class1}, #t28) in #t28;
+  nullable1 = let final self::Class1? #t30 = n1 in #t30 == null ?{self::Class1?} null : let final self::Class1? #t31 = self::Extension1|get#nullable1(self::Extension1|get#nonNullable1(#t30{self::Class1})) in #t31 == null ?{self::Class1?} null : let final self::Class1 #t32 = new self::Class1::•() in let final void #t33 = self::Extension1|set#nullable1(#t31{self::Class1}, #t32) in #t32;
+  let final self::Class1? #t34 = n1 in #t34 == null ?{self::Class1?} null : let final self::Class1? #t35 = self::Extension1|get#nullable1(#t34{self::Class1}) in #t35 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(#t35{self::Class1});
+  let final self::Class1? #t36 = n1 in #t36 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t36{self::Class1}, self::Extension1|get#nullable1(new self::Class1::•()));
+  nullable1 = let final self::Class1? #t37 = n1 in #t37 == null ?{self::Class1?} null : let final self::Class1? #t38 = self::Extension1|get#nullable1(new self::Class1::•()) in let final void #t39 = self::Extension1|set#nullable1(#t37{self::Class1}, #t38) in #t38;
+  let final self::Class1? #t40 = n1 in #t40 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t40{self::Class1}, let final self::Class1 #t41 = new self::Class1::•() in let final void #t42 = self::Extension1|set#nullable1(new self::Class1::•(), #t41) in #t41);
+  nullable1 = let final self::Class1? #t43 = n1 in #t43 == null ?{self::Class1?} null : let final self::Class1 #t44 = let final self::Class1 #t45 = new self::Class1::•() in let final void #t46 = self::Extension1|set#nullable1(new self::Class1::•(), #t45) in #t45 in let final void #t47 = self::Extension1|set#nullable1(#t43{self::Class1}, #t44) in #t44;
+  let final self::Class1? #t48 = n1 in #t48 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t48{self::Class1}, self::Extension1|nonNullable1Method(new self::Class1::•()));
+  nullable1 = let final self::Class1? #t49 = n1 in #t49 == null ?{self::Class1?} null : let final self::Class1 #t50 = self::Extension1|nonNullable1Method(new self::Class1::•()) in let final void #t51 = self::Extension1|set#nullable1(#t49{self::Class1}, #t50) in #t50;
+  let final self::Class1? #t52 = n1 in #t52 == null ?{self::Class1?} null : self::Extension1|get#nullable1(self::Extension1|nonNullable1Method(#t52{self::Class1}));
+  let final self::Class1? #t53 = n1 in #t53 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(#t53{self::Class1}), new self::Class1::•());
+  let final self::Class1? #t54 = n1 in #t54 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(self::Extension1|nonNullable1Method(#t54{self::Class1}));
+  let final self::Class1? #t55 = n1 in #t55 == null ?{self::Class1?} null : self::Extension1|get#nullable1(self::Extension1|get#nonNullable1(self::Extension1|get#nonNullable1(#t55{self::Class1})));
+  let final self::Class1? #t56 = n1 in #t56 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(self::Extension1|get#nonNullable1(#t56{self::Class1})), new self::Class1::•());
+  nullable1 = let final self::Class1? #t57 = n1 in #t57 == null ?{self::Class1?} null : let final self::Class1 #t58 = new self::Class1::•() in let final void #t59 = self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(self::Extension1|get#nonNullable1(#t57{self::Class1})), #t58) in #t58;
+  let final self::Class1? #t60 = n1 in #t60 == null ?{self::Class1?} null : let final self::Class1? #t61 = self::Extension1|get#nullable1(self::Extension1|get#nonNullable1(#t60{self::Class1})) in #t61 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(#t61{self::Class1});
+  let final self::Class1? #t62 = n1 in #t62 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t62{self::Class1}, self::Extension1|get#nullable1(self::Extension1|get#nonNullable1(new self::Class1::•())));
+  nullable1 = let final self::Class1? #t63 = n1 in #t63 == null ?{self::Class1?} null : let final self::Class1? #t64 = self::Extension1|get#nullable1(self::Extension1|get#nonNullable1(new self::Class1::•())) in let final void #t65 = self::Extension1|set#nullable1(#t63{self::Class1}, #t64) in #t64;
+  let final self::Class1? #t66 = n1 in #t66 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t66{self::Class1}, let final self::Class1 #t67 = new self::Class1::•() in let final void #t68 = self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(new self::Class1::•()), #t67) in #t67);
+  nullable1 = let final self::Class1? #t69 = n1 in #t69 == null ?{self::Class1?} null : let final self::Class1 #t70 = let final self::Class1 #t71 = new self::Class1::•() in let final void #t72 = self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(new self::Class1::•()), #t71) in #t71 in let final void #t73 = self::Extension1|set#nullable1(#t69{self::Class1}, #t70) in #t70;
+  let final self::Class1? #t74 = n1 in #t74 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t74{self::Class1}, self::Extension1|nonNullable1Method(self::Extension1|get#nonNullable1(new self::Class1::•())));
+  nullable1 = let final self::Class1? #t75 = n1 in #t75 == null ?{self::Class1?} null : let final self::Class1 #t76 = self::Extension1|nonNullable1Method(self::Extension1|get#nonNullable1(new self::Class1::•())) in let final void #t77 = self::Extension1|set#nullable1(#t75{self::Class1}, #t76) in #t76;
+  let final self::Class1? #t78 = n1 in #t78 == null ?{self::Class1?} null : self::Extension1|get#nullable1(self::Extension1|get#nonNullable1(self::Extension1|nonNullable1Method(#t78{self::Class1})));
+  let final self::Class1? #t79 = n1 in #t79 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(self::Extension1|nonNullable1Method(#t79{self::Class1})), new self::Class1::•());
+  let final self::Class1? #t80 = n1 in #t80 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(self::Extension1|get#nonNullable1(self::Extension1|nonNullable1Method(#t80{self::Class1})));
+  let final self::Class1? #t81 = n1 in #t81 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(#t81{self::Class1}), self::Extension1|get#nullable1(new self::Class1::•()));
+  nullable1 = let final self::Class1? #t82 = n1 in #t82 == null ?{self::Class1?} null : let final self::Class1? #t83 = self::Extension1|get#nullable1(new self::Class1::•()) in let final void #t84 = self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(#t82{self::Class1}), #t83) in #t83;
+  let final self::Class1? #t85 = n1 in #t85 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(#t85{self::Class1}), let final self::Class1 #t86 = new self::Class1::•() in let final void #t87 = self::Extension1|set#nullable1(new self::Class1::•(), #t86) in #t86);
+  nullable1 = let final self::Class1? #t88 = n1 in #t88 == null ?{self::Class1?} null : let final self::Class1 #t89 = let final self::Class1 #t90 = new self::Class1::•() in let final void #t91 = self::Extension1|set#nullable1(new self::Class1::•(), #t90) in #t90 in let final void #t92 = self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(#t88{self::Class1}), #t89) in #t89;
+  let final self::Class1? #t93 = n1 in #t93 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(#t93{self::Class1}), self::Extension1|nonNullable1Method(new self::Class1::•()));
+  nullable1 = let final self::Class1? #t94 = n1 in #t94 == null ?{self::Class1?} null : let final self::Class1 #t95 = self::Extension1|nonNullable1Method(new self::Class1::•()) in let final void #t96 = self::Extension1|set#nullable1(self::Extension1|get#nonNullable1(#t94{self::Class1}), #t95) in #t95;
+  let final self::Class1? #t97 = n1 in #t97 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t97{self::Class1}, let final self::Class1? #t98 = self::Extension1|get#nullable1(new self::Class1::•()) in let final void #t99 = self::Extension1|set#nullable1(new self::Class1::•(), #t98) in #t98);
+  nullable1 = let final self::Class1? #t100 = n1 in #t100 == null ?{self::Class1?} null : let final self::Class1? #t101 = let final self::Class1? #t102 = self::Extension1|get#nullable1(new self::Class1::•()) in let final void #t103 = self::Extension1|set#nullable1(new self::Class1::•(), #t102) in #t102 in let final void #t104 = self::Extension1|set#nullable1(#t100{self::Class1}, #t101) in #t101;
+  let final self::Class1? #t105 = n1 in #t105 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t105{self::Class1}, let final self::Class1 #t106 = let final self::Class1 #t107 = new self::Class1::•() in let final void #t108 = self::Extension1|set#nullable1(new self::Class1::•(), #t107) in #t107 in let final void #t109 = self::Extension1|set#nullable1(new self::Class1::•(), #t106) in #t106);
+  nullable1 = let final self::Class1? #t110 = n1 in #t110 == null ?{self::Class1?} null : let final self::Class1 #t111 = let final self::Class1 #t112 = let final self::Class1 #t113 = new self::Class1::•() in let final void #t114 = self::Extension1|set#nullable1(new self::Class1::•(), #t113) in #t113 in let final void #t115 = self::Extension1|set#nullable1(new self::Class1::•(), #t112) in #t112 in let final void #t116 = self::Extension1|set#nullable1(#t110{self::Class1}, #t111) in #t111;
+  let final self::Class1? #t117 = n1 in #t117 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t117{self::Class1}, let final self::Class1 #t118 = self::Extension1|nonNullable1Method(new self::Class1::•()) in let final void #t119 = self::Extension1|set#nullable1(new self::Class1::•(), #t118) in #t118);
+  nullable1 = let final self::Class1? #t120 = n1 in #t120 == null ?{self::Class1?} null : let final self::Class1 #t121 = let final self::Class1 #t122 = self::Extension1|nonNullable1Method(new self::Class1::•()) in let final void #t123 = self::Extension1|set#nullable1(new self::Class1::•(), #t122) in #t122 in let final void #t124 = self::Extension1|set#nullable1(#t120{self::Class1}, #t121) in #t121;
+  let final self::Class1? #t125 = n1 in #t125 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(#t125{self::Class1}), self::Extension1|get#nullable1(new self::Class1::•()));
+  nullable1 = let final self::Class1? #t126 = n1 in #t126 == null ?{self::Class1?} null : let final self::Class1? #t127 = self::Extension1|get#nullable1(new self::Class1::•()) in let final void #t128 = self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(#t126{self::Class1}), #t127) in #t127;
+  let final self::Class1? #t129 = n1 in #t129 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(#t129{self::Class1}), let final self::Class1 #t130 = new self::Class1::•() in let final void #t131 = self::Extension1|set#nullable1(new self::Class1::•(), #t130) in #t130);
+  nullable1 = let final self::Class1? #t132 = n1 in #t132 == null ?{self::Class1?} null : let final self::Class1 #t133 = let final self::Class1 #t134 = new self::Class1::•() in let final void #t135 = self::Extension1|set#nullable1(new self::Class1::•(), #t134) in #t134 in let final void #t136 = self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(#t132{self::Class1}), #t133) in #t133;
+  let final self::Class1? #t137 = n1 in #t137 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(#t137{self::Class1}), self::Extension1|nonNullable1Method(new self::Class1::•()));
+  nullable1 = let final self::Class1? #t138 = n1 in #t138 == null ?{self::Class1?} null : let final self::Class1 #t139 = self::Extension1|nonNullable1Method(new self::Class1::•()) in let final void #t140 = self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(#t138{self::Class1}), #t139) in #t139;
+  let final self::Class1? #t141 = n1 in #t141 == null ?{self::Class1?} null : self::Extension1|get#nullable1(self::Extension1|nonNullable1Method(self::Extension1|get#nonNullable1(#t141{self::Class1})));
+  let final self::Class1? #t142 = n1 in #t142 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(self::Extension1|get#nonNullable1(#t142{self::Class1})), new self::Class1::•());
+  nullable1 = let final self::Class1? #t143 = n1 in #t143 == null ?{self::Class1?} null : let final self::Class1 #t144 = new self::Class1::•() in let final void #t145 = self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(self::Extension1|get#nonNullable1(#t143{self::Class1})), #t144) in #t144;
+  let final self::Class1? #t146 = n1 in #t146 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(self::Extension1|nonNullable1Method(self::Extension1|get#nonNullable1(#t146{self::Class1})));
+  let final self::Class1? #t147 = n1 in #t147 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t147{self::Class1}, self::Extension1|get#nullable1(self::Extension1|nonNullable1Method(new self::Class1::•())));
+  nullable1 = let final self::Class1? #t148 = n1 in #t148 == null ?{self::Class1?} null : let final self::Class1? #t149 = self::Extension1|get#nullable1(self::Extension1|nonNullable1Method(new self::Class1::•())) in let final void #t150 = self::Extension1|set#nullable1(#t148{self::Class1}, #t149) in #t149;
+  let final self::Class1? #t151 = n1 in #t151 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t151{self::Class1}, let final self::Class1 #t152 = new self::Class1::•() in let final void #t153 = self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(new self::Class1::•()), #t152) in #t152);
+  nullable1 = let final self::Class1? #t154 = n1 in #t154 == null ?{self::Class1?} null : let final self::Class1 #t155 = let final self::Class1 #t156 = new self::Class1::•() in let final void #t157 = self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(new self::Class1::•()), #t156) in #t156 in let final void #t158 = self::Extension1|set#nullable1(#t154{self::Class1}, #t155) in #t155;
+  let final self::Class1? #t159 = n1 in #t159 == null ?{self::Class1?} null : self::Extension1|set#nullable1(#t159{self::Class1}, self::Extension1|nonNullable1Method(self::Extension1|nonNullable1Method(new self::Class1::•())));
+  nullable1 = let final self::Class1? #t160 = n1 in #t160 == null ?{self::Class1?} null : let final self::Class1 #t161 = self::Extension1|nonNullable1Method(self::Extension1|nonNullable1Method(new self::Class1::•())) in let final void #t162 = self::Extension1|set#nullable1(#t160{self::Class1}, #t161) in #t161;
+  let final self::Class1? #t163 = n1 in #t163 == null ?{self::Class1?} null : self::Extension1|get#nullable1(self::Extension1|nonNullable1Method(self::Extension1|nonNullable1Method(#t163{self::Class1})));
+  let final self::Class1? #t164 = n1 in #t164 == null ?{self::Class1?} null : self::Extension1|set#nullable1(self::Extension1|nonNullable1Method(self::Extension1|nonNullable1Method(#t164{self::Class1})), new self::Class1::•());
+  let final self::Class1? #t165 = n1 in #t165 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(self::Extension1|nonNullable1Method(self::Extension1|nonNullable1Method(#t165{self::Class1})));
+  let final self::Class1? #t166 = n1 in #t166 == null ?{self::Class1?} null : let final self::Class1? #t167 = self::Extension1|nonNullable1Method(#t166{self::Class1}) in #t167 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(#t167{self::Class1});
+}
+static method indexAccess(self::Class1? n1, self::Class2? n2, self::Class3? n3) → void {
+  self::Class1? nullable1 = n1;
+  self::Class2? nullable2 = n2;
+  self::Class3? nullable3 = n3;
+  let final self::Class1? #t168 = n1 in #t168 == null ?{self::Class1?} null : self::Extension1|[](#t168{self::Class1}, nullable1);
+  let final self::Class1? #t169 = n1 in #t169 == null ?{void} null : self::Extension1|[]=(#t169{self::Class1}, nullable1, new self::Class1::•());
+  let final self::Class1? #t170 = n1 in #t170 == null ?{self::Class1?} null : let final self::Class1? #t171 = self::Extension1|[](#t170{self::Class1}, nullable1) in #t171 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(#t171{self::Class1});
+  let final self::Class1? #t172 = n1 in #t172 == null ?{self::Class1?} null : self::Extension1|[](self::Extension1|get#nonNullable1(#t172{self::Class1}), nullable1);
+  let final self::Class1? #t173 = n1 in #t173 == null ?{self::Class1?} null : self::Extension1|[]=(self::Extension1|get#nonNullable1(#t173{self::Class1}), nullable1, new self::Class1::•());
+  nullable1 = let final self::Class1? #t174 = n1 in #t174 == null ?{self::Class1?} null : let final self::Class1 #t175 = self::Extension1|get#nonNullable1(#t174{self::Class1}) in let final self::Class1? #t176 = nullable1 in let final self::Class1 #t177 = new self::Class1::•() in let final void #t178 = self::Extension1|[]=(#t175, #t176, #t177) in #t177;
+  let final self::Class1? #t179 = n1 in #t179 == null ?{self::Class1?} null : let final self::Class1? #t180 = self::Extension1|[](self::Extension1|get#nonNullable1(#t179{self::Class1}), nullable1) in #t180 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(#t180{self::Class1});
+  let final self::Class1? #t181 = n1 in #t181 == null ?{self::Class2?} null : let final self::Class2 #t182 = self::Extension1|get#nonNullable2(#t181{self::Class1}) in let final self::Class2? #t183 = nullable2 in self::Extension2|[]=(#t182, #t183, self::Extension2|+(self::Extension2|[](#t182, #t183), 0));
+  nullable2 = let final self::Class1? #t184 = n1 in #t184 == null ?{self::Class2?} null : let final self::Class2 #t185 = self::Extension1|get#nonNullable2(#t184{self::Class1}) in let final self::Class2? #t186 = nullable2 in let final self::Class2 #t187 = self::Extension2|+(self::Extension2|[](#t185, #t186), 0) in let final void #t188 = self::Extension2|[]=(#t185, #t186, #t187) in #t187;
+  let final self::Class1? #t189 = n1 in #t189 == null ?{self::Class1?} null : let final self::Class1? #t190 = nullable1 in self::Extension1|[](#t189{self::Class1}, #t190) == null ?{self::Class1?} self::Extension1|[]=(#t189{self::Class1}, #t190, nullable1) : null;
+  nullable1 = let final self::Class1? #t191 = n1 in #t191 == null ?{self::Class1?} null : let final self::Class1? #t192 = nullable1 in let final self::Class1? #t193 = self::Extension1|[](#t191{self::Class1}, #t192) in #t193 == null ?{self::Class1?} let final self::Class1? #t194 = nullable1 in let final void #t195 = self::Extension1|[]=(#t191{self::Class1}, #t192, #t194) in #t194 : #t193{self::Class1};
+  let final self::Class2? #t196 = n2 in #t196 == null ?{self::Class2?} null : let final self::Class2? #t197 = nullable2 in self::Extension2|[]=(#t196{self::Class2}, #t197, self::Extension2|+(self::Extension2|[](#t196{self::Class2}, #t197), 0));
+  nullable2 = let final self::Class2? #t198 = n2 in #t198 == null ?{self::Class2?} null : let final self::Class2? #t199 = nullable2 in let final self::Class2 #t200 = self::Extension2|+(self::Extension2|[](#t198{self::Class2}, #t199), 0) in let final void #t201 = self::Extension2|[]=(#t198{self::Class2}, #t199, #t200) in #t200;
+  let final self::Class2? #t202 = n2 in #t202 == null ?{self::Class2?} null : let final self::Class2? #t203 = nullable2 in self::Extension2|[]=(#t202{self::Class2}, #t203, self::Extension2|+(self::Extension2|[](#t202{self::Class2}, #t203), 0));
+  nullable2 = let final self::Class2? #t204 = n2 in #t204 == null ?{self::Class2?} null : let final self::Class2? #t205 = nullable2 in let final self::Class2 #t206 = self::Extension2|+(self::Extension2|[](#t204{self::Class2}, #t205), 0) in let final void #t207 = self::Extension2|[]=(#t204{self::Class2}, #t205, #t206) in #t206;
+  let final self::Class2? #t208 = n2 in #t208 == null ?{self::Class2?} null : let final self::Class2? #t209 = nullable2 in self::Extension2|[]=(#t208{self::Class2}, #t209, self::Extension2|+(self::Extension2|[](#t208{self::Class2}, #t209), 1));
+  nullable2 = let final self::Class2? #t210 = n2 in #t210 == null ?{self::Class2?} null : let final self::Class2? #t211 = nullable2 in let final self::Class2 #t212 = self::Extension2|[](#t210{self::Class2}, #t211) in let final void #t213 = self::Extension2|[]=(#t210{self::Class2}, #t211, self::Extension2|+(#t212, 1)) in #t212;
+  let final self::Class2? #t214 = n2 in #t214 == null ?{self::Class2?} null : let final self::Class2? #t215 = nullable2 in let final self::Class2 #t216 = self::Extension2|+(self::Extension2|[](#t214{self::Class2}, #t215), 1) in let final void #t217 = self::Extension2|[]=(#t214{self::Class2}, #t215, #t216) in #t216;
+  nullable2 = let final self::Class2? #t218 = n2 in #t218 == null ?{self::Class2?} null : let final self::Class2? #t219 = nullable2 in let final self::Class2 #t220 = self::Extension2|+(self::Extension2|[](#t218{self::Class2}, #t219), 1) in let final void #t221 = self::Extension2|[]=(#t218{self::Class2}, #t219, #t220) in #t220;
+  let final self::Class1? #t222 = n1 in #t222 == null ?{self::Class2?} null : let final self::Class2 #t223 = self::Extension1|get#nonNullable2(#t222{self::Class1}) in let final self::Class2? #t224 = nullable2 in self::Extension2|[]=(#t223, #t224, self::Extension2|+(self::Extension2|[](#t223, #t224), 1));
+  nullable2 = let final self::Class1? #t225 = n1 in #t225 == null ?{self::Class2?} null : let final self::Class2 #t226 = self::Extension1|get#nonNullable2(#t225{self::Class1}) in let final self::Class2? #t227 = nullable2 in let final self::Class2 #t228 = self::Extension2|[](#t226, #t227) in let final void #t229 = self::Extension2|[]=(#t226, #t227, self::Extension2|+(#t228, 1)) in #t228;
+  let final self::Class1? #t230 = n1 in #t230 == null ?{self::Class2?} null : let final self::Class2 #t231 = self::Extension1|get#nonNullable2(#t230{self::Class1}) in let final self::Class2? #t232 = nullable2 in let final self::Class2 #t233 = self::Extension2|+(self::Extension2|[](#t231, #t232), 1) in let final void #t234 = self::Extension2|[]=(#t231, #t232, #t233) in #t233;
+  nullable2 = let final self::Class1? #t235 = n1 in #t235 == null ?{self::Class2?} null : let final self::Class2 #t236 = self::Extension1|get#nonNullable2(#t235{self::Class1}) in let final self::Class2? #t237 = nullable2 in let final self::Class2 #t238 = self::Extension2|+(self::Extension2|[](#t236, #t237), 1) in let final void #t239 = self::Extension2|[]=(#t236, #t237, #t238) in #t238;
+  let final self::Class1? #t240 = n1 in #t240 == null ?{self::Class2?} null : self::Extension2|[](self::Extension2|[](self::Extension1|get#nonNullable2(#t240{self::Class1}), nullable2), nullable2);
+  let final self::Class1? #t241 = n1 in #t241 == null ?{self::Class2?} null : self::Extension2|[]=(self::Extension2|[](self::Extension1|get#nonNullable2(#t241{self::Class1}), nullable2), nullable2, new self::Class2::•());
+  nullable2 = let final self::Class1? #t242 = n1 in #t242 == null ?{self::Class2?} null : let final self::Class2 #t243 = self::Extension2|[](self::Extension1|get#nonNullable2(#t242{self::Class1}), nullable2) in let final self::Class2? #t244 = nullable2 in let final self::Class2 #t245 = new self::Class2::•() in let final void #t246 = self::Extension2|[]=(#t243, #t244, #t245) in #t245;
+  let final self::Class1? #t247 = n1 in #t247 == null ?{self::Class2?} null : let final self::Class2? #t248 = self::Extension2|[](self::Extension2|[](self::Extension1|get#nonNullable2(#t247{self::Class1}), nullable2), nullable2) in #t248 == null ?{self::Class2?} null : self::Extension2|nonNullable2Method(#t248{self::Class2});
+  let final self::Class1? #t249 = n1 in #t249 == null ?{self::Class2?} null : let final self::Class2 #t250 = self::Extension2|[](self::Extension1|get#nonNullable2(#t249{self::Class1}), nullable2) in let final self::Class2? #t251 = nullable2 in self::Extension2|[]=(#t250, #t251, self::Extension2|+(self::Extension2|[](#t250, #t251), 0));
+  nullable2 = let final self::Class1? #t252 = n1 in #t252 == null ?{self::Class2?} null : let final self::Class2 #t253 = self::Extension2|[](self::Extension1|get#nonNullable2(#t252{self::Class1}), nullable2) in let final self::Class2? #t254 = nullable2 in let final self::Class2 #t255 = self::Extension2|+(self::Extension2|[](#t253, #t254), 0) in let final void #t256 = self::Extension2|[]=(#t253, #t254, #t255) in #t255;
+  let final self::Class1? #t257 = n1 in #t257 == null ?{self::Class2?} null : let final self::Class2 #t258 = self::Extension2|[](self::Extension1|get#nonNullable2(#t257{self::Class1}), nullable2) in let final self::Class2? #t259 = nullable2 in self::Extension2|[]=(#t258, #t259, self::Extension2|+(self::Extension2|[](#t258, #t259), 1));
+  nullable2 = let final self::Class1? #t260 = n1 in #t260 == null ?{self::Class2?} null : let final self::Class2 #t261 = self::Extension2|[](self::Extension1|get#nonNullable2(#t260{self::Class1}), nullable2) in let final self::Class2? #t262 = nullable2 in let final self::Class2 #t263 = self::Extension2|[](#t261, #t262) in let final void #t264 = self::Extension2|[]=(#t261, #t262, self::Extension2|+(#t263, 1)) in #t263;
+  let final self::Class1? #t265 = n1 in #t265 == null ?{self::Class2?} null : let final self::Class2 #t266 = self::Extension2|[](self::Extension1|get#nonNullable2(#t265{self::Class1}), nullable2) in let final self::Class2? #t267 = nullable2 in let final self::Class2 #t268 = self::Extension2|+(self::Extension2|[](#t266, #t267), 1) in let final void #t269 = self::Extension2|[]=(#t266, #t267, #t268) in #t268;
+  nullable2 = let final self::Class1? #t270 = n1 in #t270 == null ?{self::Class2?} null : let final self::Class2 #t271 = self::Extension2|[](self::Extension1|get#nonNullable2(#t270{self::Class1}), nullable2) in let final self::Class2? #t272 = nullable2 in let final self::Class2 #t273 = self::Extension2|+(self::Extension2|[](#t271, #t272), 1) in let final void #t274 = self::Extension2|[]=(#t271, #t272, #t273) in #t273;
+  let final self::Class1? #t275 = n1 in #t275 == null ?{self::Class1?} null : let final self::Class1? #t276 = self::Extension1|[](#t275{self::Class1}, nullable1) in #t276 == null ?{self::Class1?} null : self::Extension1|[](#t276{self::Class1}, nullable1);
+  let final self::Class1? #t277 = n1 in #t277 == null ?{self::Class1?} null : let final self::Class1? #t278 = self::Extension1|[](#t277{self::Class1}, nullable1) in #t278 == null ?{self::Class1?} null : self::Extension1|[]=(#t278{self::Class1}, nullable1, new self::Class1::•());
+  nullable1 = let final self::Class1? #t279 = n1 in #t279 == null ?{self::Class1?} null : let final self::Class1? #t280 = self::Extension1|[](#t279{self::Class1}, nullable1) in #t280 == null ?{self::Class1?} null : let final self::Class1? #t281 = nullable1 in let final self::Class1 #t282 = new self::Class1::•() in let final void #t283 = self::Extension1|[]=(#t280{self::Class1}, #t281, #t282) in #t282;
+  let final self::Class1? #t284 = n1 in #t284 == null ?{self::Class1?} null : let final self::Class1? #t285 = self::Extension1|[](#t284{self::Class1}, nullable1) in #t285 == null ?{self::Class1?} null : let final self::Class1? #t286 = self::Extension1|[](#t285{self::Class1}, nullable1) in #t286 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(#t286{self::Class1});
+  nullable1 = let final self::Class1? #t287 = n1 in #t287 == null ?{self::Class1?} null : let final self::Class1? #t288 = self::Extension1|[](#t287{self::Class1}, nullable1) in #t288 == null ?{self::Class1?} null : let final self::Class1? #t289 = self::Extension1|[](#t288{self::Class1}, nullable1) in #t289 == null ?{self::Class1?} null : self::Extension1|nonNullable1Method(#t289{self::Class1});
+  let final self::Class1? #t290 = n1 in #t290 == null ?{self::Class1?} null : let final self::Class1? #t291 = self::Extension1|[](#t290{self::Class1}, nullable1) in #t291 == null ?{self::Class1?} null : let final self::Class1? #t292 = nullable1 in self::Extension1|[](#t291{self::Class1}, #t292) == null ?{self::Class1?} self::Extension1|[]=(#t291{self::Class1}, #t292, nullable1) : null;
+  nullable1 = let final self::Class1? #t293 = n1 in #t293 == null ?{self::Class1?} null : let final self::Class1? #t294 = self::Extension1|[](#t293{self::Class1}, nullable1) in #t294 == null ?{self::Class1?} null : let final self::Class1? #t295 = nullable1 in let final self::Class1? #t296 = self::Extension1|[](#t294{self::Class1}, #t295) in #t296 == null ?{self::Class1?} let final self::Class1? #t297 = nullable1 in let final void #t298 = self::Extension1|[]=(#t294{self::Class1}, #t295, #t297) in #t297 : #t296{self::Class1};
+  let final self::Class3? #t299 = n3 in #t299 == null ?{self::Class2?} null : let final self::Class2? #t300 = self::Extension3|[](#t299{self::Class3}, nullable3) in #t300 == null ?{self::Class2?} null : let final self::Class2? #t301 = nullable2 in self::Extension2|[]=(#t300{self::Class2}, #t301, self::Extension2|+(self::Extension2|[](#t300{self::Class2}, #t301), 0));
+  nullable2 = let final self::Class3? #t302 = n3 in #t302 == null ?{self::Class2?} null : let final self::Class2? #t303 = self::Extension3|[](#t302{self::Class3}, nullable3) in #t303 == null ?{self::Class2?} null : let final self::Class2? #t304 = nullable2 in let final self::Class2 #t305 = self::Extension2|+(self::Extension2|[](#t303{self::Class2}, #t304), 0) in let final void #t306 = self::Extension2|[]=(#t303{self::Class2}, #t304, #t305) in #t305;
+  let final self::Class3? #t307 = n3 in #t307 == null ?{self::Class2?} null : let final self::Class2? #t308 = self::Extension3|[](#t307{self::Class3}, nullable3) in #t308 == null ?{self::Class2?} null : let final self::Class2? #t309 = nullable2 in self::Extension2|[]=(#t308{self::Class2}, #t309, self::Extension2|+(self::Extension2|[](#t308{self::Class2}, #t309), 1));
+  nullable2 = let final self::Class3? #t310 = n3 in #t310 == null ?{self::Class2?} null : let final self::Class2? #t311 = self::Extension3|[](#t310{self::Class3}, nullable3) in #t311 == null ?{self::Class2?} null : let final self::Class2? #t312 = nullable2 in let final self::Class2 #t313 = self::Extension2|[](#t311{self::Class2}, #t312) in let final void #t314 = self::Extension2|[]=(#t311{self::Class2}, #t312, self::Extension2|+(#t313, 1)) in #t313;
+  let final self::Class3? #t315 = n3 in #t315 == null ?{self::Class2?} null : let final self::Class2? #t316 = self::Extension3|[](#t315{self::Class3}, nullable3) in #t316 == null ?{self::Class2?} null : let final self::Class2? #t317 = nullable2 in let final self::Class2 #t318 = self::Extension2|+(self::Extension2|[](#t316{self::Class2}, #t317), 1) in let final void #t319 = self::Extension2|[]=(#t316{self::Class2}, #t317, #t318) in #t318;
+  nullable2 = let final self::Class3? #t320 = n3 in #t320 == null ?{self::Class2?} null : let final self::Class2? #t321 = self::Extension3|[](#t320{self::Class3}, nullable3) in #t321 == null ?{self::Class2?} null : let final self::Class2? #t322 = nullable2 in let final self::Class2 #t323 = self::Extension2|+(self::Extension2|[](#t321{self::Class2}, #t322), 1) in let final void #t324 = self::Extension2|[]=(#t321{self::Class2}, #t322, #t323) in #t323;
+}
+static method operatorAccess(self::Class1? n1, self::Class2? n2) → void {
+  self::Class2? nullable2 = n2;
+  self::throws(() → void => invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:244:45: Error: Operator '+' cannot be called on 'Class1?' because it is potentially null.
+ - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart'.
+  throws(() => Extension1(n1)?.nonNullable1 + 0);
+                                            ^" in self::Extension1|+(let final self::Class1? #t325 = n1 in #t325 == null ?{self::Class1?} null : self::Extension1|get#nonNullable1(#t325{self::Class1}), 0));
+  self::throws(() → void => invalid-expression "pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart:245:16: Error: Operator 'unary-' cannot be called on 'Class1?' because it is potentially null.
+ - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting_explicit_extension.dart'.
+  throws(() => -Extension1(n1)?.nonNullable1);
+               ^" in self::Extension1|unary-(let final self::Class1? #t326 = n1 in #t326 == null ?{self::Class1?} null : self::Extension1|get#nonNullable1(#t326{self::Class1})));
+  let final self::Class2? #t327 = n2 in #t327 == null ?{self::Class2?} null : self::Extension2|set#nonNullable2(#t327{self::Class2}, self::Extension2|+(self::Extension2|get#nonNullable2(#t327{self::Class2}), 0));
+  nullable2 = let final self::Class2? #t328 = n2 in #t328 == null ?{self::Class2?} null : let final self::Class2 #t329 = self::Extension2|+(self::Extension2|get#nonNullable2(#t328{self::Class2}), 0) in let final void #t330 = self::Extension2|set#nonNullable2(#t328{self::Class2}, #t329) in #t329;
+  let final self::Class2? #t331 = n2 in #t331 == null ?{self::Class2?} null : let final self::Class2 #t332 = self::Extension2|get#nonNullable2(#t331{self::Class2}) in self::Extension2|set#nonNullable2(#t332, self::Extension2|+(self::Extension2|get#nonNullable2(#t332), 0));
+  nullable2 = let final self::Class2? #t333 = n2 in #t333 == null ?{self::Class2?} null : let final self::Class2 #t334 = self::Extension2|get#nonNullable2(#t333{self::Class2}) in let final self::Class2 #t335 = self::Extension2|+(self::Extension2|get#nonNullable2(#t334), 0) in let final void #t336 = self::Extension2|set#nonNullable2(#t334, #t335) in #t335;
+  let final self::Class2? #t337 = n2 in #t337 == null ?{self::Class2?} null : self::Extension2|set#nonNullable2(#t337{self::Class2}, self::Extension2|+(self::Extension2|get#nonNullable2(#t337{self::Class2}), 1));
+  nullable2 = let final self::Class2? #t338 = n2 in #t338 == null ?{self::Class2?} null : let final self::Class2 #t339 = self::Extension2|get#nonNullable2(#t338{self::Class2}) in let final self::Class2 #t340 = let final self::Class2 #t341 = self::Extension2|+(#t339, 1) in let final void #t342 = self::Extension2|set#nonNullable2(#t338{self::Class2}, #t341) in #t341 in #t339;
+  let final self::Class2? #t343 = n2 in #t343 == null ?{self::Class2?} null : let final self::Class2 #t344 = self::Extension2|+(self::Extension2|get#nonNullable2(#t343{self::Class2}), 1) in let final void #t345 = self::Extension2|set#nonNullable2(#t343{self::Class2}, #t344) in #t344;
+  nullable2 = let final self::Class2? #t346 = n2 in #t346 == null ?{self::Class2?} null : let final self::Class2 #t347 = self::Extension2|+(self::Extension2|get#nonNullable2(#t346{self::Class2}), 1) in let final void #t348 = self::Extension2|set#nonNullable2(#t346{self::Class2}, #t347) in #t347;
+}
+static method ifNull(self::Class1? n1) → void {
+  self::Class1? nullable1 = n1;
+  let final self::Class1? #t349 = n1 in #t349 == null ?{self::Class1?} null : self::Extension1|get#nullable1(#t349) == null ?{self::Class1} self::Extension1|set#nullable1(#t349, n1{self::Class1}) : null;
+  n1 = let final self::Class1? #t350 = n1 in #t350 == null ?{self::Class1?} null : let final self::Class1? #t351 = self::Extension1|get#nullable1(#t350) in #t351 == null ?{self::Class1} let final self::Class1 #t352 = n1{self::Class1} in let final void #t353 = self::Extension1|set#nullable1(#t350, #t352) in #t352 : #t351{self::Class1};
+  let final self::Class1? #t354 = n1 in #t354 == null ?{self::Class1?} null : let final self::Class1 #t355 = self::Extension1|get#nonNullable1(#t354{self::Class1}) in self::Extension1|get#nullable1(#t355) == null ?{self::Class1} self::Extension1|set#nullable1(#t355, n1{self::Class1}) : null;
+  n1 = let final self::Class1? #t356 = n1 in #t356 == null ?{self::Class1?} null : let final self::Class1 #t357 = self::Extension1|get#nonNullable1(#t356{self::Class1}) in let final self::Class1? #t358 = self::Extension1|get#nullable1(#t357) in #t358 == null ?{self::Class1} let final self::Class1 #t359 = n1{self::Class1} in let final void #t360 = self::Extension1|set#nullable1(#t357, #t359) in #t359 : #t358{self::Class1};
+  let final self::Class1? #t361 = n1 in #t361 == null ?{self::Class1?} null : let final self::Class1 #t362 = self::Extension1|get#nonNullable1(#t361{self::Class1}) in let final self::Class1 #t363 = n1{self::Class1} in self::Extension1|[](#t362, #t363) == null ?{self::Class1} self::Extension1|[]=(#t362, #t363, n1{self::Class1}) : null;
+  n1 = let final self::Class1? #t364 = n1 in #t364 == null ?{self::Class1?} null : let final self::Class1 #t365 = self::Extension1|get#nonNullable1(#t364{self::Class1}) in let final self::Class1 #t366 = n1{self::Class1} in let final self::Class1? #t367 = self::Extension1|[](#t365, #t366) in #t367 == null ?{self::Class1} let final self::Class1 #t368 = n1{self::Class1} in let final void #t369 = self::Extension1|[]=(#t365, #t366, #t368) in #t368 : #t367{self::Class1};
+}
+static method throws(() → void f) → void {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object _) {
+    return;
+  }
+  throw "Expected exception.";
+}

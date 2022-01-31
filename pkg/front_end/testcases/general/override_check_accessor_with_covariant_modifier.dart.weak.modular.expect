@@ -1,0 +1,79 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/override_check_accessor_with_covariant_modifier.dart:22:17: Error: The parameter 'value' of the method 'D.x4' has type 'B', which does not match the corresponding type, 'A', in the overridden method, 'C.x4'.
+//  - 'B' is from 'pkg/front_end/testcases/general/override_check_accessor_with_covariant_modifier.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_accessor_with_covariant_modifier.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void set x4(B value) {} // Not covariant
+//                 ^
+// pkg/front_end/testcases/general/override_check_accessor_with_covariant_modifier.dart:13:12: Context: This is the overridden method ('x4').
+//   void set x4(A value) {}
+//            ^
+//
+// pkg/front_end/testcases/general/override_check_accessor_with_covariant_modifier.dart:23:32: Error: The parameter 'value' of the method 'D.x5' has type 'String', which does not match the corresponding type, 'A', in the overridden method, 'C.x5'.
+//  - 'A' is from 'pkg/front_end/testcases/general/override_check_accessor_with_covariant_modifier.dart'.
+// Change to a supertype of 'A', or, for a covariant parameter, a subtype.
+//   void set x5(covariant String value) {}
+//                                ^
+// pkg/front_end/testcases/general/override_check_accessor_with_covariant_modifier.dart:14:12: Context: This is the overridden method ('x5').
+//   void set x5(covariant A value) {}
+//            ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  set x1(covariant-by-declaration self::A* value) → void {}
+  set x2(self::A* value) → void {}
+  set x3(covariant-by-declaration self::A* value) → void {}
+  set x4(self::A* value) → void {}
+  set x5(covariant-by-declaration self::A* value) → void {}
+  set x6(covariant-by-declaration self::B* value) → void {}
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class D extends self::C {
+  synthetic constructor •() → self::D*
+    : super self::C::•()
+    ;
+  set x1(covariant-by-declaration self::B* value) → void {}
+  set x2(covariant-by-declaration self::B* value) → void {}
+  set x3(covariant-by-declaration self::B* value) → void {}
+  set x4(self::B* value) → void {}
+  set x5(covariant-by-declaration core::String* value) → void {}
+  set x6(covariant-by-declaration self::A* value) → void {}
+}
+static method main() → dynamic {}

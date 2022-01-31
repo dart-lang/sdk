@@ -8,6 +8,7 @@ import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 
 export 'package:analyzer_plugin/protocol/protocol.dart' show Enum;
 
@@ -28,7 +29,7 @@ class Notification {
 
   /// A table mapping the names of notification parameters to their values, or
   /// `null` if there are no notification parameters.
-  final Map<String, Object>? params;
+  final Map<String, Object?>? params;
 
   /// Initialize a newly created [Notification] to have the given [event] name.
   /// If [params] is provided, it will be used as the params; otherwise no
@@ -37,8 +38,8 @@ class Notification {
 
   /// Initialize a newly created instance based on the given JSON data.
   factory Notification.fromJson(Map json) {
-    return Notification(json[Notification.EVENT],
-        json[Notification.PARAMS] as Map<String, Object>?);
+    return Notification(json[Notification.EVENT] as String,
+        json[Notification.PARAMS] as Map<String, Object?>?);
   }
 
   /// Return a table representing the structure of the Json object that will be
@@ -270,7 +271,7 @@ abstract class RequestHandler {
   /// this handler, return `null` so that other handlers will be given a chance
   /// to handle it. Otherwise, return the response that should be passed back to
   /// the client.
-  Response? handleRequest(Request request);
+  Response? handleRequest(Request request, CancellationToken cancellationToken);
 }
 
 /// A response to a request.

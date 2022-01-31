@@ -1,0 +1,44 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/issue_000034.dart:6:15: Error: Expected an assignment after the field name.
+// To initialize a field, use the syntax 'name = value'.
+//   const C() : this.x;
+//               ^^^^
+//
+// pkg/front_end/testcases/rasta/issue_000034.dart:6:15: Error: Can't access 'this' in a field initializer.
+//   const C() : this.x;
+//               ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C*
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/rasta/issue_000034.dart:6:15: Error: This couldn't be parsed.
+  const C() : this.x;
+              ^"
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+static method main() → dynamic {
+  invalid-expression "pkg/front_end/testcases/rasta/issue_000034.dart:6:15: Error: This couldn't be parsed.
+  const C() : this.x;
+              ^";
+}
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue_000034.dart:
+- C. (from org-dartlang-testcase:///issue_000034.dart:6:9)

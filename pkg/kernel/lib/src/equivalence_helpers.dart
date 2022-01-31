@@ -236,8 +236,20 @@ enum ReferenceNameKind {
   /// A reference name of a class or extension.
   Declaration,
 
-  /// A reference name of a typedef or member.
-  Member,
+  /// A reference name of a typedef.
+  Typedef,
+
+  /// A reference name of a method or constructor.
+  Function,
+
+  /// A reference name of a field.
+  Field,
+
+  /// A reference name of a getter.
+  Getter,
+
+  /// A reference name of a setter.
+  Setter,
 }
 
 /// Abstract representation of a [Reference] or [CanonicalName].
@@ -251,25 +263,29 @@ class ReferenceName {
   final String? name;
   final String? uri;
 
-  ReferenceName.internal(this.kind, this.name, [this.parent, this.uri]);
+  ReferenceName.internal(this.kind, this.name, {this.parent, this.uri});
 
-  factory ReferenceName.fromNamedNode(NamedNode node) {
+  factory ReferenceName.fromNamedNode(NamedNode node,
+      [ReferenceNameKind? memberKind]) {
     if (node is Library) {
       return new ReferenceName.internal(
           ReferenceNameKind.Library, node.importUri.toString());
     } else if (node is Extension) {
-      return new ReferenceName.internal(ReferenceNameKind.Declaration,
-          node.name, new ReferenceName.fromNamedNode(node.enclosingLibrary));
+      return new ReferenceName.internal(
+          ReferenceNameKind.Declaration, node.name,
+          parent: new ReferenceName.fromNamedNode(node.enclosingLibrary));
     } else if (node is Class) {
-      return new ReferenceName.internal(ReferenceNameKind.Declaration,
-          node.name, new ReferenceName.fromNamedNode(node.enclosingLibrary));
+      return new ReferenceName.internal(
+          ReferenceNameKind.Declaration, node.name,
+          parent: new ReferenceName.fromNamedNode(node.enclosingLibrary));
     } else if (node is Typedef) {
-      return new ReferenceName.internal(ReferenceNameKind.Member, node.name,
-          new ReferenceName.fromNamedNode(node.enclosingLibrary));
+      return new ReferenceName.internal(ReferenceNameKind.Typedef, node.name,
+          parent: new ReferenceName.fromNamedNode(node.enclosingLibrary));
     } else if (node is Member) {
       TreeNode? parent = node.parent;
       Reference? libraryReference = node.name.libraryName;
       String? uri;
+
       if (libraryReference != null) {
         Library? library = libraryReference.node as Library?;
         if (library != null) {
@@ -278,15 +294,31 @@ class ReferenceName {
           uri = libraryReference.canonicalName?.name;
         }
       }
+
+      String name = node.name.text;
+      if (memberKind == null) {
+        if (node is Procedure) {
+          if (node.isGetter) {
+            memberKind = ReferenceNameKind.Getter;
+          } else if (node.isSetter) {
+            memberKind = ReferenceNameKind.Setter;
+          } else {
+            memberKind = ReferenceNameKind.Function;
+          }
+        } else if (node is Constructor) {
+          memberKind = ReferenceNameKind.Function;
+        } else {
+          memberKind = ReferenceNameKind.Field;
+        }
+      }
       if (parent is Class) {
-        return new ReferenceName.internal(ReferenceNameKind.Member,
-            node.name.text, new ReferenceName.fromNamedNode(parent), uri);
+        return new ReferenceName.internal(memberKind, name,
+            parent: new ReferenceName.fromNamedNode(parent), uri: uri);
       } else if (parent is Library) {
-        return new ReferenceName.internal(ReferenceNameKind.Member,
-            node.name.text, new ReferenceName.fromNamedNode(parent), uri);
+        return new ReferenceName.internal(memberKind, name,
+            parent: new ReferenceName.fromNamedNode(parent), uri: uri);
       } else {
-        return new ReferenceName.internal(
-            ReferenceNameKind.Member, node.name.text, null, uri);
+        return new ReferenceName.internal(memberKind, name, uri: uri);
       }
     } else {
       throw new ArgumentError(
@@ -305,27 +337,44 @@ class ReferenceName {
     ReferenceName? referenceName;
     ReferenceNameKind kind = ReferenceNameKind.Declaration;
     for (int index = 1; index < parents.length; index++) {
+      String name = parents[index].name;
       if (index == 1) {
         // Library reference.
-        referenceName = new ReferenceName.internal(
-            ReferenceNameKind.Library, parents[index].name);
-      } else if (CanonicalName.isSymbolicName(parents[index].name)) {
+        referenceName =
+            new ReferenceName.internal(ReferenceNameKind.Library, name);
+      } else if (CanonicalName.isSymbolicName(name)) {
         // Skip symbolic names
-        kind = ReferenceNameKind.Member;
+        kind = kindFromSymbolicName(name);
       } else {
         if (index + 2 == parents.length) {
           // This is a private name.
-          referenceName = new ReferenceName.internal(ReferenceNameKind.Member,
-              parents[index + 1].name, referenceName, parents[index].name);
+          referenceName = new ReferenceName.internal(
+              kind, parents[index + 1].name,
+              parent: referenceName, uri: name);
           break;
         } else {
-          referenceName = new ReferenceName.internal(
-              kind, parents[index].name, referenceName);
+          referenceName =
+              new ReferenceName.internal(kind, name, parent: referenceName);
         }
       }
     }
     return referenceName ??
         new ReferenceName.internal(ReferenceNameKind.Unknown, null);
+  }
+
+  static ReferenceNameKind kindFromSymbolicName(String name) {
+    assert(CanonicalName.isSymbolicName(name));
+    if (name == CanonicalName.typedefsName) {
+      return ReferenceNameKind.Typedef;
+    } else if (name == CanonicalName.fieldsName) {
+      return ReferenceNameKind.Field;
+    } else if (name == CanonicalName.gettersName) {
+      return ReferenceNameKind.Getter;
+    } else if (name == CanonicalName.settersName) {
+      return ReferenceNameKind.Setter;
+    } else {
+      return ReferenceNameKind.Function;
+    }
   }
 
   String? get libraryUri {
@@ -344,15 +393,30 @@ class ReferenceName {
     }
   }
 
+  bool get isMember {
+    switch (kind) {
+      case ReferenceNameKind.Unknown:
+      case ReferenceNameKind.Library:
+      case ReferenceNameKind.Declaration:
+        return false;
+      case ReferenceNameKind.Typedef:
+      case ReferenceNameKind.Function:
+      case ReferenceNameKind.Field:
+      case ReferenceNameKind.Getter:
+      case ReferenceNameKind.Setter:
+        return true;
+    }
+  }
+
   String? get memberName {
-    if (kind == ReferenceNameKind.Member) {
+    if (isMember) {
       return name;
     }
     return null;
   }
 
   String? get memberUri {
-    if (kind == ReferenceNameKind.Member) {
+    if (isMember) {
       return uri;
     }
     return null;
@@ -364,7 +428,18 @@ class ReferenceName {
     }
     NamedNode? node = reference.node;
     if (node != null) {
-      return new ReferenceName.fromNamedNode(node);
+      ReferenceNameKind? memberKind;
+      if (node is Field) {
+        if (node.getterReference == reference) {
+          memberKind = ReferenceNameKind.Getter;
+        } else if (node.setterReference == reference) {
+          memberKind = ReferenceNameKind.Setter;
+        } else {
+          assert(node.fieldReference == reference);
+          memberKind = ReferenceNameKind.Field;
+        }
+      }
+      return new ReferenceName.fromNamedNode(node, memberKind);
     }
     CanonicalName? canonicalName = reference.canonicalName;
     if (canonicalName != null) {
@@ -375,23 +450,37 @@ class ReferenceName {
 
   @override
   int get hashCode =>
-      name.hashCode * 13 + uri.hashCode * 17 + parent.hashCode * 19;
+      kind.hashCode * 11 +
+      name.hashCode * 13 +
+      uri.hashCode * 17 +
+      parent.hashCode * 19;
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ReferenceName &&
+        kind == other.kind &&
         name == other.name &&
         uri == other.uri &&
         parent == other.parent;
   }
 
-  @override
-  String toString() {
+  String _toStringInternal() {
     if (parent != null) {
       return '${parent}/$name';
     } else if (name != null) {
       return '/$name';
+    } else {
+      return '<null>';
+    }
+  }
+
+  @override
+  String toString() {
+    if (parent != null) {
+      return '${kind}:${parent!._toStringInternal()}/$name';
+    } else if (name != null) {
+      return '${kind}:/$name';
     } else {
       return '<null>';
     }

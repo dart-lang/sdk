@@ -1211,14 +1211,14 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
         "Invalid Dart_InitializeParams version.");
   }
 
-  return Dart::Init(params->vm_snapshot_data, params->vm_snapshot_instructions,
-                    params->create_group, params->initialize_isolate,
-                    params->shutdown_isolate, params->cleanup_isolate,
-                    params->cleanup_group, params->thread_exit,
-                    params->file_open, params->file_read, params->file_write,
-                    params->file_close, params->entropy_source,
-                    params->get_service_assets, params->start_kernel_isolate,
-                    params->code_observer);
+  return Dart::Init(
+      params->vm_snapshot_data, params->vm_snapshot_instructions,
+      params->create_group, params->initialize_isolate,
+      params->shutdown_isolate, params->cleanup_isolate, params->cleanup_group,
+      params->thread_exit, params->file_open, params->file_read,
+      params->file_write, params->file_close, params->entropy_source,
+      params->get_service_assets, params->start_kernel_isolate,
+      params->code_observer, params->post_task, params->post_task_data);
 }
 
 DART_EXPORT char* Dart_Cleanup() {
@@ -1462,13 +1462,6 @@ Dart_CreateIsolateInGroup(Dart_Isolate group_member,
   }
 
   *error = nullptr;
-
-  if (!FLAG_enable_isolate_groups) {
-    *error = Utils::StrDup(
-        "Lightweight isolates need to be explicitly enabled by passing "
-        "--enable-isolate-groups.");
-    return nullptr;
-  }
 
   Isolate* isolate;
   isolate = CreateWithinExistingIsolateGroup(member->group(), name, error);
@@ -2068,6 +2061,16 @@ DART_EXPORT bool Dart_RunLoopAsync(bool errors_are_fatal,
   Dart_ExitIsolate();
   isolate->Run();
   return true;
+}
+
+DART_EXPORT void Dart_RunTask(Dart_Task task) {
+  Thread* T = Thread::Current();
+  Isolate* I = T == nullptr ? nullptr : T->isolate();
+  CHECK_NO_ISOLATE(I);
+  API_TIMELINE_BEGIN_END(T);
+  ThreadPool::Task* task_impl = reinterpret_cast<ThreadPool::Task*>(task);
+  task_impl->Run();
+  delete task_impl;
 }
 
 DART_EXPORT Dart_Handle Dart_HandleMessage() {
@@ -6202,14 +6205,6 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
 #endif
 }
 
-DART_EXPORT void Dart_SetNativeServiceStreamCallback(
-    Dart_NativeStreamConsumer consumer,
-    const char* stream_id) {
-#if !defined(PRODUCT)
-  Service::SetNativeServiceStreamCallback(consumer, stream_id);
-#endif
-}
-
 DART_EXPORT char* Dart_ServiceSendDataEvent(const char* stream_id,
                                             const char* event_kind,
                                             const uint8_t* bytes,
@@ -6276,6 +6271,20 @@ DART_EXPORT bool Dart_IsReloading() {
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   return isolate->group()->IsReloading();
+#endif
+}
+
+DART_EXPORT bool Dart_SetEnabledTimelineCategory(const char* categories) {
+#if defined(SUPPORT_TIMELINE)
+  bool result = false;
+  if (categories != nullptr) {
+    char* carray = Utils::SCreate("[%s]", categories);
+    result = Service::EnableTimelineStreams(carray);
+    free(carray);
+  }
+  return result;
+#else
+  return false;
 #endif
 }
 

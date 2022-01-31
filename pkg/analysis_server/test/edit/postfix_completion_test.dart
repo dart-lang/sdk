@@ -67,21 +67,12 @@ main() {
     );
   }
 
-  void _assertHasChange(String message, String expectedCode, [Function? cmp]) {
+  void _assertHasChange(String message, String expectedCode) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
         var resultCode =
             SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
-        if (cmp != null) {
-          int offset = cmp(resultCode);
-          expect(change.selection!.offset, offset);
-        }
-      } else {
-        if (cmp != null) {
-          int offset = cmp(testCode);
-          expect(change.selection!.offset, offset);
-        }
       }
       return;
     }

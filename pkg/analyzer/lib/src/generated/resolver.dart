@@ -472,7 +472,6 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   }
 
   void checkForBodyMayCompleteNormally({
-    required DartType? returnType,
     required FunctionBody body,
     required AstNode errorNode,
   }) {
@@ -481,6 +480,12 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       return;
     }
 
+    // TODO(scheglov) encapsulate
+    var bodyContext = BodyInferenceContext.of(body);
+    if (bodyContext == null) {
+      return null;
+    }
+    var returnType = bodyContext.contextType;
     if (returnType == null) {
       return;
     }
@@ -490,23 +495,58 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
         return;
       }
 
-      if (typeSystem.isPotentiallyNonNullable(returnType)) {
-        if (errorNode is ConstructorDeclaration) {
-          errorReporter.reportErrorForName(
-            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-            errorNode,
-          );
-        } else if (errorNode is BlockFunctionBody) {
-          errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-            errorNode.block.leftBracket,
-          );
-        } else {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY,
-            errorNode,
-          );
+      if (body.isAsynchronous) {
+        // Check whether the return type is legal. If not, return rather than
+        // reporting a second error.
+
+        // This is the same check as [ReturnTypeVerifier._isLegalReturnType].
+        // TODO(srawlins): When this check is moved into the resolution stage,
+        // use the result of that check to determine whether this check should
+        // be done.
+        var lowerBound = typeProvider.futureElement.instantiate(
+          typeArguments: [NeverTypeImpl.instance],
+          nullabilitySuffix: NullabilitySuffix.star,
+        );
+        var imposedType = bodyContext.imposedType;
+        if (imposedType != null &&
+            !typeSystem.isSubtypeOf(lowerBound, imposedType)) {
+          // [imposedType] is an illegal return type for an asynchronous
+          // non-generator function; do not report an additional error here.
+          return;
         }
+      }
+
+      ErrorCode errorCode;
+      if (typeSystem.isPotentiallyNonNullable(returnType)) {
+        errorCode = CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY;
+      } else {
+        var returnTypeBase = typeSystem.futureOrBase(returnType);
+        if (returnTypeBase.isVoid ||
+            returnTypeBase.isDynamic ||
+            returnTypeBase.isDartCoreNull) {
+          return;
+        } else {
+          errorCode = HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
+        }
+      }
+      if (errorNode is ConstructorDeclaration) {
+        errorReporter.reportErrorForName(
+          errorCode,
+          errorNode,
+          arguments: [returnType],
+        );
+      } else if (errorNode is BlockFunctionBody) {
+        errorReporter.reportErrorForToken(
+          errorCode,
+          errorNode.block.leftBracket,
+          [returnType],
+        );
+      } else {
+        errorReporter.reportErrorForNode(
+          errorCode,
+          errorNode,
+          [returnType],
+        );
       }
     }
   }
@@ -800,8 +840,10 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
     if (parent is CompilationUnit) {
       return node is ClassDeclaration ||
+          node is Directive ||
           node is ExtensionDeclaration ||
-          node is FunctionDeclaration;
+          node is FunctionDeclaration ||
+          node is TopLevelVariableDeclaration;
     }
 
     void forClassElement(ClassElement parentElement) {
@@ -810,6 +852,11 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
 
     if (parent is ClassDeclaration) {
       forClassElement(parent.declaredElement!);
+      return true;
+    }
+
+    if (parent is ExtensionDeclaration) {
+      enclosingExtension = parent.declaredElement!;
       return true;
     }
 
@@ -1038,20 +1085,16 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     var callerType = InferenceContext.getContext(node);
     NodeList<Expression> arguments = node.arguments;
     if (callerType is FunctionType) {
-      Map<String, DartType> namedParameterTypes =
-          callerType.namedParameterTypes;
-      List<DartType> normalParameterTypes = callerType.normalParameterTypes;
-      List<DartType> optionalParameterTypes = callerType.optionalParameterTypes;
-      int normalCount = normalParameterTypes.length;
-      int optionalCount = optionalParameterTypes.length;
+      var parameters = callerType.parameters;
 
-      Iterable<Expression> positional =
-          arguments.takeWhile((l) => l is! NamedExpression);
-      Iterable<Expression> required = positional.take(normalCount);
-      Iterable<Expression> optional =
-          positional.skip(normalCount).take(optionalCount);
-      Iterable<Expression> named =
-          arguments.skipWhile((l) => l is! NamedExpression);
+      var namedParameters = <String, ParameterElement>{};
+      for (var i = 0; i < parameters.length; i++) {
+        var parameter = parameters[i];
+        if (parameter.isNamed) {
+          namedParameters[parameter.name] = parameter;
+        }
+      }
+
       var parent = node.parent;
       DartType? targetType;
       Element? methodElement;
@@ -1065,28 +1108,29 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
       //TODO(leafp): Consider using the parameter elements here instead.
       //TODO(leafp): Make sure that the parameter elements are getting
       // setup correctly with inference.
-      int index = 0;
-      for (Expression argument in required) {
-        var parameterType = normalParameterTypes[index++];
-        if (targetType != null) {
-          InferenceContext.setType(
-              argument,
-              typeSystem.refineNumericInvocationContext(
-                  targetType, methodElement, invocationContext, parameterType));
-        } else {
-          InferenceContext.setType(argument, parameterType);
-        }
-      }
-      index = 0;
-      for (Expression argument in optional) {
-        InferenceContext.setType(argument, optionalParameterTypes[index++]);
-      }
-
-      for (Expression argument in named) {
+      var positionalParameterIndex = 0;
+      for (var i = 0; i < arguments.length; i++) {
+        var argument = arguments[i];
+        ParameterElement? parameter;
         if (argument is NamedExpression) {
-          var type = namedParameterTypes[argument.name.label.name];
-          if (type != null) {
-            InferenceContext.setType(argument, type);
+          parameter = namedParameters[argument.name.label.name];
+        } else {
+          while (positionalParameterIndex < parameters.length) {
+            parameter = parameters[positionalParameterIndex++];
+            if (!parameter.isNamed) {
+              break;
+            }
+          }
+        }
+        if (parameter != null) {
+          var parameterType = parameter.type;
+          if (targetType != null) {
+            InferenceContext.setType(
+                argument,
+                typeSystem.refineNumericInvocationContext(targetType,
+                    methodElement, invocationContext, parameterType));
+          } else {
+            InferenceContext.setType(argument, parameterType);
           }
         }
       }
@@ -1249,7 +1293,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
   @override
   void visitCommentReference(CommentReference node) {
     //
-    // We do not visit the identifier because it needs to be visited in the
+    // We do not visit the expression because it needs to be visited in the
     // context of the reference.
     //
     node.accept(elementResolver);
@@ -1338,9 +1382,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     }
 
     if (node.factoryKeyword != null) {
-      var bodyContext = BodyInferenceContext.of(node.body);
       checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
         body: node.body,
         errorNode: node,
       );
@@ -1569,12 +1611,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     }
 
     if (!node.isSetter) {
-      // TODO(scheglov) encapsulate
-      var bodyContext = BodyInferenceContext.of(
-        node.functionExpression.body,
-      );
       checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
         body: node.functionExpression.body,
         errorNode: node.name,
       );
@@ -1800,10 +1837,7 @@ class ResolverVisitor extends ResolverBase with ErrorDetectionHelpers {
     }
 
     if (!node.isSetter) {
-      // TODO(scheglov) encapsulate
-      var bodyContext = BodyInferenceContext.of(node.body);
       checkForBodyMayCompleteNormally(
-        returnType: bodyContext?.contextType,
         body: node.body,
         errorNode: node.name,
       );

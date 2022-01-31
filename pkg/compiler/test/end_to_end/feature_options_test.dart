@@ -12,6 +12,8 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/options.dart' show FeatureOptions, FeatureOption;
 
 class TestFeatureOptions extends FeatureOptions {
+  FeatureOption f1 = FeatureOption('f1');
+  FeatureOption noF2 = FeatureOption('f2', isNegativeFlag: true);
   FeatureOption sf1 = FeatureOption('sf1');
   FeatureOption sf2 = FeatureOption('sf2');
   FeatureOption noSf3 = FeatureOption('sf3', isNegativeFlag: true);
@@ -22,6 +24,9 @@ class TestFeatureOptions extends FeatureOptions {
   FeatureOption noCf4 = FeatureOption('cf4', isNegativeFlag: true);
 
   @override
+  List<FeatureOption> shipped;
+
+  @override
   List<FeatureOption> shipping;
 
   @override
@@ -29,6 +34,7 @@ class TestFeatureOptions extends FeatureOptions {
 
   // Initialize feature lists.
   TestFeatureOptions() {
+    shipped = [f1, noF2];
     shipping = [sf1, sf2, noSf3, noSf4];
     canary = [cf1, cf2, noCf3, noCf4];
   }
@@ -40,8 +46,14 @@ TestFeatureOptions test(List<String> flags) {
   return tfo;
 }
 
+void expectShipped(TestFeatureOptions tfo) {
+  Expect.isTrue(tfo.f1.isEnabled);
+  Expect.isTrue(tfo.noF2.isDisabled);
+}
+
 void testShipping() {
   var tfo = test([]);
+  expectShipped(tfo);
   Expect.isTrue(tfo.sf1.isEnabled);
   Expect.isTrue(tfo.sf2.isEnabled);
   Expect.isTrue(tfo.noSf3.isDisabled);
@@ -54,6 +66,7 @@ void testShipping() {
 
 void testNoShipping() {
   var tfo = test([Flags.noShipping]);
+  expectShipped(tfo);
   Expect.isTrue(tfo.sf1.isDisabled);
   Expect.isTrue(tfo.sf2.isDisabled);
   Expect.isTrue(tfo.noSf3.isEnabled);
@@ -66,6 +79,7 @@ void testNoShipping() {
 
 void testCanary() {
   var tfo = test([Flags.canary]);
+  expectShipped(tfo);
   Expect.isTrue(tfo.sf1.isEnabled);
   Expect.isTrue(tfo.sf2.isEnabled);
   Expect.isTrue(tfo.noSf3.isDisabled);
@@ -78,6 +92,7 @@ void testCanary() {
 
 void testShippingDisabled() {
   var tfo = test(['--no-sf2', '--sf3']);
+  expectShipped(tfo);
   Expect.isTrue(tfo.sf1.isEnabled);
   Expect.isTrue(tfo.sf2.isDisabled);
   Expect.isTrue(tfo.noSf3.isEnabled);
@@ -90,6 +105,7 @@ void testShippingDisabled() {
 
 void testCanaryDisabled() {
   var tfo = test([Flags.canary, '--no-sf2', '--sf3', '--no-cf1', '--cf3']);
+  expectShipped(tfo);
   Expect.isTrue(tfo.sf1.isEnabled);
   Expect.isTrue(tfo.sf2.isDisabled);
   Expect.isTrue(tfo.noSf3.isEnabled);
@@ -102,6 +118,7 @@ void testCanaryDisabled() {
 
 void testNoShippingEnabled() {
   var tfo = test([Flags.noShipping, '--sf1', '--no-sf3', '--cf2', '--no-cf3']);
+  expectShipped(tfo);
   Expect.isTrue(tfo.sf1.isEnabled);
   Expect.isTrue(tfo.sf2.isDisabled);
   Expect.isTrue(tfo.noSf3.isDisabled);
@@ -114,6 +131,7 @@ void testNoShippingEnabled() {
 
 void testNoCanaryEnabled() {
   var tfo = test(['--cf1', '--no-cf3']);
+  expectShipped(tfo);
   Expect.isTrue(tfo.sf1.isEnabled);
   Expect.isTrue(tfo.sf2.isEnabled);
   Expect.isTrue(tfo.noSf3.isDisabled);
@@ -126,6 +144,11 @@ void testNoCanaryEnabled() {
 
 void testFlagCollision() {
   Expect.throwsArgumentError(() => test(['--cf1', '--no-cf1']));
+}
+
+void testNoShippedDisable() {
+  Expect.throwsArgumentError(() => test(['--no-f1']));
+  Expect.throwsArgumentError(() => test(['--f2']));
 }
 
 void flavorStringTest(List<String> options, String expectedFlavorString) {
@@ -159,6 +182,7 @@ void main() {
   testNoCanaryEnabled();
   testNoShippingEnabled();
   testFlagCollision();
+  testNoShippedDisable();
 
   // Supplemental tests.
   flavorStringTests();

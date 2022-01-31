@@ -454,7 +454,8 @@ void ProgramVisitor::ShareMegamorphicBuckets(Thread* thread) {
 
 class StackMapEntry : public ZoneAllocated {
  public:
-  StackMapEntry(Zone* zone, const CompressedStackMaps::Iterator& it)
+  StackMapEntry(Zone* zone,
+                const CompressedStackMaps::Iterator<CompressedStackMaps>& it)
       : maps_(CompressedStackMaps::Handle(zone, it.maps_.ptr())),
         bits_container_(
             CompressedStackMaps::Handle(zone, it.bits_container_.ptr())),
@@ -525,7 +526,7 @@ class StackMapEntry : public ZoneAllocated {
   }
   const uint8_t* PayloadData() const {
     ASSERT(!Thread::Current()->IsAtSafepoint());
-    return bits_container_.ptr()->untag()->data() + bits_offset_;
+    return bits_container_.ptr()->untag()->payload()->data() + bits_offset_;
   }
 
   const CompressedStackMaps& maps_;
@@ -582,8 +583,8 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Thread* thread) {
 
     void VisitCode(const Code& code) {
       compressed_stackmaps_ = code.compressed_stackmaps();
-      CompressedStackMaps::Iterator it(compressed_stackmaps_,
-                                       old_global_table_);
+      CompressedStackMaps::Iterator<CompressedStackMaps> it(
+          compressed_stackmaps_, old_global_table_);
       while (it.MoveNext()) {
         auto const entry = new (zone_) StackMapEntry(zone_, it);
         auto const index = entry_indices_.LookupValue(entry);
@@ -705,7 +706,8 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Thread* thread) {
         return Object::empty_compressed_stackmaps().ptr();
       }
       MallocWriteStream new_payload(maps.payload_size());
-      CompressedStackMaps::Iterator it(maps, old_global_table_);
+      CompressedStackMaps::Iterator<CompressedStackMaps> it(maps,
+                                                            old_global_table_);
       intptr_t last_offset = 0;
       while (it.MoveNext()) {
         StackMapEntry entry(zone_, it);
@@ -897,7 +899,7 @@ void ProgramVisitor::DedupUnlinkedCalls(Thread* thread) {
           pool_(ObjectPool::Handle(zone)) {
       auto& gop = ObjectPool::Handle(
           zone, isolate_group->object_store()->global_object_pool());
-      ASSERT_EQUAL(!gop.IsNull(), FLAG_use_bare_instructions);
+      ASSERT(!gop.IsNull());
       DedupPool(gop);
     }
 
@@ -935,8 +937,7 @@ void ProgramVisitor::DedupUnlinkedCalls(Thread* thread) {
   // objects and other objects in the snapshots (these references are otherwise
   // implicit and go through global object pool). This information is needed
   // to produce more informative snapshot profile.
-  if (!FLAG_use_bare_instructions ||
-      FLAG_write_v8_snapshot_profile_to != nullptr ||
+  if (FLAG_write_v8_snapshot_profile_to != nullptr ||
       FLAG_trace_precompiler_to != nullptr) {
     WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
   }
@@ -1160,14 +1161,11 @@ class InstructionsKeyValueTrait {
 // The instruction deduplication naturally causes us to have a one-to-many
 // relationship between Instructions and Code objects.
 //
-// In AOT bare instructions mode frames only have PCs. However, the runtime
-// needs e.g. stack maps from the [Code] to scan such a frame. So we ensure that
-// instructions of code objects are only deduplicated if the metadata in the
-// code is the same. The runtime can then pick any code object corresponding to
-// the PC in the frame and use the metadata.
-//
-// In AOT non-bare instructions mode frames are expanded, like in JIT, and
-// contain the unique code object.
+// In AOT frames only have PCs. However, the runtime needs e.g. stack maps from
+// the [Code] to scan such a frame. So we ensure that instructions of code
+// objects are only deduplicated if the metadata in the code is the same.
+// The runtime can then pick any code object corresponding to the PC in the
+// frame and use the metadata.
 #if defined(DART_PRECOMPILER)
 class CodeKeyValueTrait {
  public:
@@ -1273,6 +1271,82 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
           code_(Code::Handle(zone)),
           instructions_(Instructions::Handle(zone)) {}
 
+    // Relink the program graph to eliminate references to the non-canonical
+    // Code objects. We want to arrive to the graph where Code objects
+    // and Instruction objects are in one-to-one relationship.
+    void PostProcess(IsolateGroup* isolate_group) {
+      const intptr_t canonical_count = canonical_objects_.Length();
+
+      auto& static_calls_array = Array::Handle(zone_);
+      auto& static_calls_table_entry = Object::Handle(zone_);
+
+      auto should_canonicalize = [&](const Object& obj) {
+        return CanCanonicalize(Code::Cast(obj)) && !obj.InVMIsolateHeap();
+      };
+
+      auto process_pool = [&](const ObjectPool& pool) {
+        if (pool.IsNull()) {
+          return;
+        }
+
+        auto& object = Object::Handle(zone_);
+        for (intptr_t i = 0; i < pool.Length(); i++) {
+          auto const type = pool.TypeAt(i);
+          if (type != ObjectPool::EntryType::kTaggedObject) continue;
+          object = pool.ObjectAt(i);
+          if (object.IsCode() && should_canonicalize(object)) {
+            object = Canonicalize(Code::Cast(object));
+            pool.SetObjectAt(i, object);
+          }
+        }
+      };
+
+      auto& pool = ObjectPool::Handle(zone_);
+
+      auto it = canonical_objects_.GetIterator();
+      while (auto canonical_code = it.Next()) {
+        static_calls_array = (*canonical_code)->static_calls_target_table();
+        if (!static_calls_array.IsNull()) {
+          StaticCallsTable static_calls(static_calls_array);
+          for (auto& view : static_calls) {
+            static_calls_table_entry =
+                view.Get<Code::kSCallTableCodeOrTypeTarget>();
+            if (static_calls_table_entry.IsCode() &&
+                should_canonicalize(static_calls_table_entry)) {
+              static_calls_table_entry =
+                  Canonicalize(Code::Cast(static_calls_table_entry));
+              view.Set<Code::kSCallTableCodeOrTypeTarget>(
+                  static_calls_table_entry);
+            }
+          }
+        }
+
+        pool = (*canonical_code)->object_pool();
+        process_pool(pool);
+      }
+
+      auto object_store = isolate_group->object_store();
+
+      const auto& dispatch_table_entries =
+          Array::Handle(zone_, object_store->dispatch_table_code_entries());
+      if (!dispatch_table_entries.IsNull()) {
+        auto& code = Code::Handle(zone_);
+        for (intptr_t i = 0; i < dispatch_table_entries.Length(); i++) {
+          code ^= dispatch_table_entries.At(i);
+          if (should_canonicalize(code)) {
+            code ^= Canonicalize(code);
+            dispatch_table_entries.SetAt(i, code);
+          }
+        }
+      }
+
+      // If there's a global object pool, add any visitable objects.
+      pool = object_store->global_object_pool();
+      process_pool(pool);
+
+      RELEASE_ASSERT(canonical_count == canonical_objects_.Length());
+    }
+
     void VisitFunction(const Function& function) {
       if (!function.HasCode()) return;
       code_ = function.CurrentCode();
@@ -1280,12 +1354,13 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
       // ProgramWalker, but as long as the deduplication process is idempotent,
       // the cached entry points won't change during the second visit.
       VisitCode(code_);
-      function.SetInstructionsSafe(code_);  // Update cached entry point.
+      function.SetInstructionsSafe(canonical_);  // Update cached entry point.
     }
 
     void VisitCode(const Code& code) {
+      canonical_ = code.ptr();
       if (code.IsDisabled()) return;
-      canonical_ = Dedup(code);
+      canonical_ = Canonicalize(code);
       instructions_ = canonical_.instructions();
       code.SetActiveInstructionsSafe(instructions_,
                                      code.UncheckedEntryPointOffset());
@@ -1295,15 +1370,24 @@ void ProgramVisitor::DedupInstructions(Thread* thread) {
    private:
     bool CanCanonicalize(const Code& code) const { return !code.IsDisabled(); }
 
+    CodePtr Canonicalize(const Code& code) {
+      canonical_ = Dedup(code);
+      if (!code.is_discarded() && canonical_.is_discarded()) {
+        canonical_.set_is_discarded(false);
+      }
+      return canonical_.ptr();
+    }
+
     Code& canonical_;
     Code& code_;
     Instructions& instructions_;
   };
 
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     StackZone stack_zone(thread);
     DedupInstructionsWithSameMetadataVisitor visitor(thread->zone());
     WalkProgram(thread->zone(), thread->isolate_group(), &visitor);
+    visitor.PostProcess(thread->isolate_group());
     return;
   }
 #endif  // defined(DART_PRECOMPILER)
@@ -1329,25 +1413,6 @@ void ProgramVisitor::Dedup(Thread* thread) {
 
   // Reduces binary size but obfuscates profiler results.
   if (FLAG_dedup_instructions) {
-    // In non-bare mode (unused atm) dedupping instructions would cause us to
-    // loose the ability to uniquely map a PC to a given UnlinkedCall object,
-    // since two code objects might point to the same deduped instructions
-    // object but might have two different UnlinkedCall objects in their pool.
-    //
-    // In bare mode this cannot happen because different UnlinkedCall objects
-    // would get different indices into the (global) object pool, therefore
-    // making the instructions different.
-    //
-    // (When transitioning the switchable call site we loose track of the args
-    // descriptor. Since we need it for further transitions we currently save it
-    // via a PC -> UnlinkedCall mapping).
-    //
-    // We therfore disable the instruction deduplication in product-non-bare
-    // mode (which is unused atm).
-#if defined(PRODUCT)
-    if (FLAG_precompiled_mode && !FLAG_use_bare_instructions) return;
-#endif
-
     DedupInstructions(thread);
   }
 }
@@ -1389,10 +1454,6 @@ class AssignLoadingUnitsCodeVisitor : public CodeVisitor {
     MergeAssignment(obj_, id);
     obj_ = code.compressed_stackmaps();
     MergeAssignment(obj_, id);
-    if (!FLAG_use_bare_instructions) {
-      obj_ = code.object_pool();
-      MergeAssignment(obj_, id);
-    }
   }
 
   void MergeAssignment(const Object& obj, intptr_t id) {

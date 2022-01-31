@@ -24,10 +24,9 @@ class ClassHeaderRecoveryListener extends ForwardingListener {
   }
 
   @override
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
     this.implementsKeyword = implementsKeyword;
-    super.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
+    super.handleImplements(implementsKeyword, interfacesCount);
   }
 
   @override
@@ -82,10 +81,9 @@ class MixinHeaderRecoveryListener extends ForwardingListener {
   }
 
   @override
-  void handleClassOrMixinImplements(
-      Token? implementsKeyword, int interfacesCount) {
+  void handleImplements(Token? implementsKeyword, int interfacesCount) {
     this.implementsKeyword = implementsKeyword;
-    super.handleClassOrMixinImplements(implementsKeyword, interfacesCount);
+    super.handleImplements(implementsKeyword, interfacesCount);
   }
 
   @override

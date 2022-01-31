@@ -6,6 +6,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'conflicting_key_test.dart' as conflicting_key;
 import 'expected_primary_test.dart' as expected_primary;
+import 'incompatible_element_kind_test.dart' as incompatible_element_kind;
+import 'invalid_change_for_kind_test.dart' as invalid_change_for_kind;
 import 'invalid_character_test.dart' as invalid_character;
 import 'invalid_key_test.dart' as invalid_key;
 import 'invalid_parameter_style_test.dart' as invalid_parameter_style;
@@ -21,6 +23,8 @@ import 'undefined_variable_test.dart' as undefined_variable;
 import 'unexpected_token_test.dart' as unexpected_token;
 import 'unknown_accessor_test.dart' as unknown_accessor;
 import 'unsupported_key_test.dart' as unsupported_key;
+import 'unsupported_static_test.dart' as unsupported_static;
+import 'unsupported_uri_change_test.dart' as unsupported_uri_change;
 import 'unsupported_version_test.dart' as unsupported_version;
 import 'wrong_token_test.dart' as wrong_token;
 import 'yaml_syntax_error_test.dart' as yaml_syntax_error;
@@ -29,6 +33,8 @@ void main() {
   defineReflectiveSuite(() {
     conflicting_key.main();
     expected_primary.main();
+    incompatible_element_kind.main();
+    invalid_change_for_kind.main();
     invalid_character.main();
     invalid_key.main();
     invalid_parameter_style.main();
@@ -44,6 +50,8 @@ void main() {
     unexpected_token.main();
     unknown_accessor.main();
     unsupported_key.main();
+    unsupported_static.main();
+    unsupported_uri_change.main();
     unsupported_version.main();
     wrong_token.main();
     yaml_syntax_error.main();

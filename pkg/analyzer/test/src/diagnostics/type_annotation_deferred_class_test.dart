@@ -25,7 +25,8 @@ import 'lib1.dart' deferred as a;
 class C<T> { const C(); }
 @C<a.D>() main () {}
 ''', [
-      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 77, 3),
+      error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 77, 3,
+          messageContains: ["'a.D'"]),
     ]);
   }
 

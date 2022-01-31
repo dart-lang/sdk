@@ -17,8 +17,6 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/interner.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
@@ -41,10 +39,10 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 /// Shared IO sink for standard error reporting.
-StringSink errorSink = io.stderr;
+late StringSink errorSink = io.stderr;
 
 /// Shared IO sink for standard out reporting.
-StringSink outSink = io.stdout;
+late StringSink outSink = io.stdout;
 
 /// Test this option map to see if it specifies lint rules.
 bool containsLintRuleEntry(YamlMap options) {
@@ -55,13 +53,14 @@ bool containsLintRuleEntry(YamlMap options) {
 class Driver implements CommandLineStarter {
   static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();
 
-  _AnalysisContextProvider _analysisContextProvider;
-  DriverBasedAnalysisContext analysisContext;
+  bool _isStarted = false;
 
-  /// The driver that was most recently created by a call to [_analyzeAll], or
-  /// `null` if [_analyzeAll] hasn't been called yet.
+  late _AnalysisContextProvider _analysisContextProvider;
+  DriverBasedAnalysisContext? analysisContext;
+
+  /// The driver that was most recently created by a call to [_analyzeAll].
   @visibleForTesting
-  AnalysisDriver analysisDriver;
+  AnalysisDriver? analysisDriver;
 
   /// The total number of source files loaded by an AnalysisContext.
   int _analyzedFileCount = 0;
@@ -73,7 +72,7 @@ class Driver implements CommandLineStarter {
   final AnalysisStats stats = AnalysisStats();
 
   /// The [PathFilter] for excluded files with wildcards, etc.
-  PathFilter pathFilter;
+  late PathFilter pathFilter;
 
   /// Create a new Driver instance.
   Driver({@Deprecated('This parameter has no effect') bool isTesting = false});
@@ -88,17 +87,16 @@ class Driver implements CommandLineStarter {
 
   @override
   Future<void> start(List<String> arguments) async {
-    if (analysisDriver != null) {
+    if (_isStarted) {
       throw StateError('start() can only be called once');
     }
+    _isStarted = true;
     var startTime = DateTime.now().millisecondsSinceEpoch;
-
-    StringUtilities.INTERNER = MappedInterner();
 
     linter.registerLintRules();
 
     // Parse commandline options.
-    var options = CommandLineOptions.parse(resourceProvider, arguments);
+    var options = CommandLineOptions.parse(resourceProvider, arguments)!;
 
     _analysisContextProvider = _AnalysisContextProvider(resourceProvider);
 
@@ -106,7 +104,7 @@ class Driver implements CommandLineStarter {
     if (options.batchMode) {
       var batchRunner = BatchRunner(outSink, errorSink);
       batchRunner.runAsBatch(arguments, (List<String> args) async {
-        var options = CommandLineOptions.parse(resourceProvider, args);
+        var options = CommandLineOptions.parse(resourceProvider, args)!;
         return await _analyzeAll(options);
       });
     } else {
@@ -129,7 +127,7 @@ class Driver implements CommandLineStarter {
       for (var i = 0; i < 3; i++) {
         buildSdkSummary(
           resourceProvider: PhysicalResourceProvider.INSTANCE,
-          sdkPath: options.dartSdkPath,
+          sdkPath: options.dartSdkPath!,
         );
       }
 
@@ -137,13 +135,13 @@ class Driver implements CommandLineStarter {
     }
 
     if (analysisDriver != null) {
-      _analyzedFileCount += analysisDriver.knownFiles.length;
+      _analyzedFileCount += analysisDriver!.knownFiles.length;
     }
 
     if (options.perfReport != null) {
       var json = makePerfReport(
           startTime, currentTimeMillis, options, _analyzedFileCount, stats);
-      io.File(options.perfReport).writeAsStringSync(json);
+      io.File(options.perfReport!).writeAsStringSync(json);
     }
   }
 
@@ -175,7 +173,7 @@ class Driver implements CommandLineStarter {
     SeverityProcessor defaultSeverityProcessor;
     defaultSeverityProcessor = (AnalysisError error) {
       return determineProcessedSeverity(
-          error, options, analysisDriver.analysisOptions);
+          error, options, analysisDriver!.analysisOptions);
     };
 
     // We currently print out to stderr to ensure that when in batch mode we
@@ -213,7 +211,8 @@ class Driver implements CommandLineStarter {
     for (var sourcePath in pathList) {
       _analysisContextProvider.configureForPath(sourcePath);
       analysisContext = _analysisContextProvider.analysisContext;
-      analysisDriver = _analysisContextProvider.analysisDriver;
+      final analysisDriver =
+          this.analysisDriver = _analysisContextProvider.analysisDriver;
       pathFilter = _analysisContextProvider.pathFilter;
 
       // Add all the files to be analyzed en masse to the context. Skip any
@@ -250,8 +249,8 @@ class Driver implements CommandLineStarter {
             analysisDriver.currentSession.analysisContext.contextRoot.root.path,
           );
           formatter.formatErrors([
-            ErrorsResultImpl(analysisDriver.currentSession, path, null,
-                lineInfo, false, errors)
+            ErrorsResultImpl(analysisDriver.currentSession, path,
+                pathContext.toUri(path), lineInfo, false, errors)
           ]);
           for (var error in errors) {
             var severity = determineProcessedSeverity(
@@ -272,7 +271,7 @@ class Driver implements CommandLineStarter {
               errors.addAll(validator.validate(node.nodes));
             }
 
-            if (analysisDriver != null && analysisDriver.analysisOptions.lint) {
+            if (analysisDriver.analysisOptions.lint) {
               var visitors = <LintRule, PubspecVisitor>{};
               for (var linter in analysisDriver.analysisOptions.lintRules) {
                 if (linter is LintRule) {
@@ -301,13 +300,13 @@ class Driver implements CommandLineStarter {
             if (errors.isNotEmpty) {
               for (var error in errors) {
                 var severity = determineProcessedSeverity(
-                    error, options, analysisDriver.analysisOptions);
+                    error, options, analysisDriver.analysisOptions)!;
                 allResult = allResult.max(severity);
               }
               var lineInfo = LineInfo.fromContent(content);
               formatter.formatErrors([
-                ErrorsResultImpl(analysisDriver.currentSession, path, null,
-                    lineInfo, false, errors)
+                ErrorsResultImpl(analysisDriver.currentSession, path,
+                    pathContext.toUri(path), lineInfo, false, errors)
               ]);
             }
           } catch (exception) {
@@ -322,12 +321,12 @@ class Driver implements CommandLineStarter {
             var errors = validator.validate(
                 content, analysisDriver.analysisOptions.chromeOsManifestChecks);
             formatter.formatErrors([
-              ErrorsResultImpl(analysisDriver.currentSession, path, null,
-                  lineInfo, false, errors)
+              ErrorsResultImpl(analysisDriver.currentSession, path,
+                  pathContext.toUri(path), lineInfo, false, errors)
             ]);
             for (var error in errors) {
               var severity = determineProcessedSeverity(
-                  error, options, analysisDriver.analysisOptions);
+                  error, options, analysisDriver.analysisOptions)!;
               allResult = allResult.max(severity);
             }
           } catch (exception) {
@@ -360,7 +359,7 @@ class Driver implements CommandLineStarter {
     // The next batch should not be affected by a previous batch.
     // E.g. the same parts in both batches, but with different libraries.
     for (var path in dartFiles) {
-      analysisDriver.removeFile(path);
+      analysisDriver!.removeFile(path);
     }
 
     // Any dangling parts still in this list were definitely dangling.
@@ -412,6 +411,7 @@ class Driver implements CommandLineStarter {
   Future<ErrorSeverity> _runAnalyzer(
       FileState file, CommandLineOptions options, ErrorFormatter formatter) {
     var startTime = currentTimeMillis;
+    final analysisDriver = this.analysisDriver!;
     var analyzer = AnalyzerImpl(analysisDriver.analysisOptions, analysisDriver,
         file, options, stats, startTime);
     return analyzer.analyze(formatter);
@@ -446,9 +446,8 @@ class Driver implements CommandLineStarter {
 
   /// Return whether the [newOptions] are equal to the [previous].
   static bool _equalCommandLineOptions(
-      CommandLineOptions previous, CommandLineOptions newOptions) {
+      CommandLineOptions? previous, CommandLineOptions newOptions) {
     return previous != null &&
-        newOptions != null &&
         newOptions.defaultPackagesPath == previous.defaultPackagesPath &&
         _equalMaps(newOptions.declaredVariables, previous.declaredVariables) &&
         newOptions.log == previous.log &&
@@ -460,7 +459,8 @@ class Driver implements CommandLineStarter {
         newOptions.lints == previous.lints &&
         newOptions.defaultLanguageVersion == previous.defaultLanguageVersion &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
-        _equalLists(newOptions.enabledExperiments, previous.enabledExperiments);
+        _equalLists(
+            newOptions.enabledExperiments!, previous.enabledExperiments!);
   }
 
   /// Perform a deep comparison of two string lists.
@@ -494,27 +494,27 @@ class _AnalysisContextProvider {
   final ResourceProvider _resourceProvider;
   final FileContentCache _fileContentCache;
 
-  CommandLineOptions _commandLineOptions;
-  List<String> _pathList;
+  CommandLineOptions? _commandLineOptions;
+  late List<String> _pathList;
 
-  final Map<Folder, DriverBasedAnalysisContext> _folderContexts = {};
-  AnalysisContextCollectionImpl _collection;
-  DriverBasedAnalysisContext _analysisContext;
+  final Map<Folder, DriverBasedAnalysisContext?> _folderContexts = {};
+  AnalysisContextCollectionImpl? _collection;
+  DriverBasedAnalysisContext? _analysisContext;
 
   _AnalysisContextProvider(this._resourceProvider)
       : _fileContentCache = FileContentCache(_resourceProvider);
 
-  DriverBasedAnalysisContext get analysisContext {
+  DriverBasedAnalysisContext? get analysisContext {
     return _analysisContext;
   }
 
   AnalysisDriver get analysisDriver {
-    return _analysisContext.driver;
+    return _analysisContext!.driver;
   }
 
   /// TODO(scheglov) Use analyzedFiles()
   PathFilter get pathFilter {
-    var contextRoot = analysisContext.contextRoot;
+    var contextRoot = analysisContext!.contextRoot;
     var optionsFile = contextRoot.optionsFile;
 
     // If there is no options file, there can be no excludes.
@@ -524,7 +524,7 @@ class _AnalysisContextProvider {
 
     // Exclude patterns are relative to the directory with the options file.
     return PathFilter(contextRoot.root.path, optionsFile.parent2.path,
-        analysisContext.analysisOptions.excludePatterns);
+        analysisContext!.analysisOptions.excludePatterns);
   }
 
   void configureForPath(String path) {
@@ -554,10 +554,10 @@ class _AnalysisContextProvider {
     _collection = AnalysisContextCollectionImpl(
       byteStore: Driver.analysisDriverMemoryByteStore,
       includedPaths: _pathList,
-      optionsFile: _commandLineOptions.defaultAnalysisOptionsPath,
-      packagesFile: _commandLineOptions.defaultPackagesPath,
+      optionsFile: _commandLineOptions!.defaultAnalysisOptionsPath,
+      packagesFile: _commandLineOptions!.defaultPackagesPath,
       resourceProvider: _resourceProvider,
-      sdkPath: _commandLineOptions.dartSdkPath,
+      sdkPath: _commandLineOptions!.dartSdkPath,
       updateAnalysisOptions: _updateAnalysisOptions,
       fileContentCache: _fileContentCache,
     );
@@ -580,10 +580,10 @@ class _AnalysisContextProvider {
   }
 
   void _setContextForPath(String path) {
-    _analysisContext = _collection.contextFor(path);
+    _analysisContext = _collection!.contextFor(path);
   }
 
   void _updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
-    _commandLineOptions.updateAnalysisOptions(analysisOptions);
+    _commandLineOptions!.updateAnalysisOptions(analysisOptions);
   }
 }

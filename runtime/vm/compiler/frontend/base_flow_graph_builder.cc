@@ -19,12 +19,25 @@ namespace kernel {
 #define Z (zone_)
 #define IG (thread_->isolate_group())
 
+static bool SupportsCoverage() {
+#if defined(PRODUCT)
+  return false;
+#else
+  return !CompilerState::Current().is_aot();
+#endif
+}
+
 Fragment& Fragment::operator+=(const Fragment& other) {
-  if (entry == NULL) {
+  if (entry == nullptr) {
     entry = other.entry;
     current = other.current;
-  } else if (current != NULL && other.entry != NULL) {
-    current->LinkTo(other.entry);
+  } else if (other.entry != nullptr) {
+    if (current != nullptr) {
+      current->LinkTo(other.entry);
+    }
+    // Although [other.entry] could be unreachable (if this fragment is
+    // closed), there could be a yield continuation point in the middle of
+    // [other] fragment so [other.current] is still reachable.
     current = other.current;
   }
   return *this;
@@ -868,6 +881,19 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildThrowNoSuchMethod() {
   return nsm;
 }
 
+Fragment BaseFlowGraphBuilder::ThrowException(TokenPosition position) {
+  Fragment instructions;
+  Value* exception = Pop();
+  instructions += Fragment(new (Z) ThrowInstr(InstructionSource(position),
+                                              GetNextDeoptId(), exception))
+                      .closed();
+  // Use its side effect of leaving a constant on the stack (does not change
+  // the graph).
+  NullConstant();
+
+  return instructions;
+}
+
 Fragment BaseFlowGraphBuilder::AssertBool(TokenPosition position) {
   Value* value = Pop();
   AssertBooleanInstr* instr = new (Z)
@@ -987,14 +1013,23 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   ASSERT(signatures.IsInstantiated());
   ASSERT(signatures.Length() == 2);
 
-  const AbstractType& dart_type = AbstractType::Handle(signatures.TypeAt(0));
-  const AbstractType& native_type = AbstractType::Handle(signatures.TypeAt(1));
+  const auto& dart_type =
+      FunctionType::Cast(AbstractType::Handle(signatures.TypeAt(0)));
+  const auto& native_type =
+      FunctionType::Cast(AbstractType::Handle(signatures.TypeAt(1)));
 
-  ASSERT(dart_type.IsFunctionType() && native_type.IsFunctionType());
-  const Function& target =
-      Function::ZoneHandle(compiler::ffi::TrampolineFunction(
-          FunctionType::Cast(dart_type), FunctionType::Cast(native_type),
-          is_leaf));
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_type, &error);
+  if (error != nullptr) {
+    const auto& language_error = Error::Handle(
+        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
+                           Report::kError, Heap::kOld));
+    Report::LongJump(language_error);
+  }
+
+  const Function& target = Function::ZoneHandle(
+      compiler::ffi::TrampolineFunction(dart_type, native_type, is_leaf));
 
   Fragment code;
   // Store the pointer in the context, we cannot load the untagged address
@@ -1125,7 +1160,7 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   call_hook += Constant(closure);
   call_hook += Constant(function_name);
   call_hook += LoadLocal(entry_point_num);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     call_hook += Constant(closure);
   } else {
     call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
@@ -1138,25 +1173,11 @@ Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
   return call_hook;
 }
 
-static bool SupportsCoverage() {
-#if defined(PRODUCT)
-  return false;
-#else
-  return !CompilerState::Current().is_aot();
-#endif
-}
-
 Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
                                            intptr_t type_args_len,
                                            intptr_t argument_count,
                                            const Array& argument_names) {
-  Fragment result;
-
-  if (SupportsCoverage()) {
-    const intptr_t coverage_index = GetCoverageIndexFor(position);
-    result <<= new (Z) RecordCoverageInstr(coverage_array(), coverage_index,
-                                           InstructionSource(position));
-  }
+  Fragment result = RecordCoverage(position);
   const intptr_t total_count =
       (type_args_len > 0 ? 1 : 0) + argument_count +
       /*closure (bare instructions) or function (otherwise)*/ 1;
@@ -1249,24 +1270,45 @@ Fragment BaseFlowGraphBuilder::MathUnary(MathUnaryInstr::MathUnaryKind kind) {
   return Fragment(instr);
 }
 
-intptr_t BaseFlowGraphBuilder::GetCoverageIndexFor(TokenPosition token_pos) {
+Fragment BaseFlowGraphBuilder::RecordCoverage(TokenPosition position) {
+  return RecordCoverageImpl(position, false /** is_branch_coverage **/);
+}
+
+Fragment BaseFlowGraphBuilder::RecordBranchCoverage(TokenPosition position) {
+  return RecordCoverageImpl(position, true /** is_branch_coverage **/);
+}
+
+Fragment BaseFlowGraphBuilder::RecordCoverageImpl(TokenPosition position,
+                                                  bool is_branch_coverage) {
+  Fragment instructions;
+  if (!SupportsCoverage()) return instructions;
+  if (!position.IsReal()) return instructions;
+  if (is_branch_coverage && !IG->branch_coverage()) return instructions;
+
+  const intptr_t coverage_index =
+      GetCoverageIndexFor(position.EncodeCoveragePosition(is_branch_coverage));
+  instructions <<= new (Z) RecordCoverageInstr(coverage_array(), coverage_index,
+                                               InstructionSource(position));
+  return instructions;
+}
+
+intptr_t BaseFlowGraphBuilder::GetCoverageIndexFor(intptr_t encoded_position) {
   if (coverage_array_.IsNull()) {
-    // We have not yet created coverage_array, this is the first time
-    // we are building the graph for this function. Collect coverage
-    // positions.
+    // We have not yet created coverage_array, this is the first time we are
+    // building the graph for this function. Collect coverage positions.
     for (intptr_t i = 0; i < coverage_array_positions_.length(); i++) {
-      if (coverage_array_positions_.At(i) == token_pos) {
+      if (coverage_array_positions_.At(i) == encoded_position) {
         return 2 * i + 1;
       }
     }
     const auto index = 2 * coverage_array_positions_.length() + 1;
-    coverage_array_positions_.Add(token_pos);
+    coverage_array_positions_.Add(encoded_position);
     return index;
   }
 
   for (intptr_t i = 0; i < coverage_array_.Length(); i += 2) {
-    if (TokenPosition::Deserialize(Smi::Value(
-            static_cast<SmiPtr>(coverage_array_.At(i)))) == token_pos) {
+    if (Smi::Value(static_cast<SmiPtr>(coverage_array_.At(i))) ==
+        encoded_position) {
       return i + 1;
     }
   }
@@ -1290,7 +1332,7 @@ void BaseFlowGraphBuilder::FinalizeCoverageArray() {
 
   Smi& value = Smi::Handle();
   for (intptr_t i = 0; i < coverage_array_positions_.length(); i++) {
-    value = Smi::New(coverage_array_positions_[i].Serialize());
+    value = Smi::New(coverage_array_positions_[i]);
     coverage_array_.SetAt(2 * i, value);
     value = Smi::New(0);  // no coverage recorded.
     coverage_array_.SetAt(2 * i + 1, value);

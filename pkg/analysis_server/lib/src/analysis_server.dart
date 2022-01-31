@@ -33,6 +33,7 @@ import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
+import 'package:analysis_server/src/server/debounce_requests.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
@@ -40,6 +41,7 @@ import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/utilities/process.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -55,6 +57,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
@@ -78,6 +81,13 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   /// A set of the [ServerService]s to send notifications for.
   Set<ServerService> serverServices = HashSet<ServerService>();
+
+  /// A table mapping request ids to cancellation tokens that allow cancelling
+  /// the request.
+  ///
+  /// Tokens are removed once a request completes and should not be assumed to
+  /// exist in this table just because cancellation was requested.
+  Map<String, CancelableToken> cancellationTokens = {};
 
   /// A set of the [GeneralAnalysisService]s to send notifications for.
   Set<GeneralAnalysisService> generalAnalysisServices =
@@ -114,6 +124,12 @@ class AnalysisServer extends AbstractAnalysisServer {
       StreamController.broadcast(sync: true);
 
   final DetachableFileSystemManager? detachableFileSystemManager;
+
+  /// The broadcast stream of requests that were discarded because there
+  /// was another request that made this one irrelevant.
+  @visibleForTesting
+  final StreamController<Request> discardedRequests =
+      StreamController.broadcast(sync: true);
 
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
@@ -161,10 +177,14 @@ class AnalysisServer extends AbstractAnalysisServer {
         performance = performanceAfterStartup = ServerPerformance();
       });
     });
-    var notification =
-        ServerConnectedParams(PROTOCOL_VERSION, io.pid).toNotification();
-    channel.sendNotification(notification);
-    channel.listen(handleRequest, onDone: done, onError: error);
+    channel.sendNotification(
+      ServerConnectedParams(
+        options.reportProtocolVersion ?? PROTOCOL_VERSION,
+        io.pid,
+      ).toNotification(),
+    );
+    debounceRequests(channel, discardedRequests)
+        .listen(handleRequest, onDone: done, onError: error);
     handlers = <server.RequestHandler>[
       ServerDomainHandler(this),
       AnalysisDomainHandler(this),
@@ -207,6 +227,10 @@ class AnalysisServer extends AbstractAnalysisServer {
     return sdkManager.defaultSdkDirectory;
   }
 
+  void cancelRequest(String id) {
+    cancellationTokens[id]?.cancel();
+  }
+
   /// The socket from which requests are being read has been closed.
   void done() {}
 
@@ -229,30 +253,32 @@ class AnalysisServer extends AbstractAnalysisServer {
   void handleRequest(Request request) {
     performance.logRequestTiming(request.clientRequestTime);
     runZonedGuarded(() {
+      var cancellationToken = CancelableToken();
+      cancellationTokens[request.id] = cancellationToken;
       var count = handlers.length;
       for (var i = 0; i < count; i++) {
         try {
-          var response = handlers[i].handleRequest(request);
+          var response = handlers[i].handleRequest(request, cancellationToken);
           if (response == Response.DELAYED_RESPONSE) {
             return;
           }
           if (response != null) {
-            channel.sendResponse(response);
+            sendResponse(response);
             return;
           }
         } on RequestFailure catch (exception) {
-          channel.sendResponse(exception.response);
+          sendResponse(exception.response);
           return;
         } catch (exception, stackTrace) {
           var error =
               RequestError(RequestErrorCode.SERVER_ERROR, exception.toString());
           error.stackTrace = stackTrace.toString();
           var response = Response(request.id, error: error);
-          channel.sendResponse(response);
+          sendResponse(response);
           return;
         }
       }
-      channel.sendResponse(Response.unknownRequest(request));
+      sendResponse(Response.unknownRequest(request));
     }, (exception, stackTrace) {
       instrumentationService.logException(
         FatalException(
@@ -298,6 +324,7 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Send the given [response] to the client.
   void sendResponse(Response response) {
     channel.sendResponse(response);
+    cancellationTokens.remove(response.id);
   }
 
   /// If the [path] is not a valid file path, that is absolute and normalized,
@@ -635,6 +662,9 @@ class AnalysisServerOptions {
 
   /// The set of enabled features.
   FeatureSet featureSet = FeatureSet();
+
+  /// If set, this string will be reported as the protocol version.
+  String? reportProtocolVersion;
 }
 
 class ServerContextManagerCallbacks extends ContextManagerCallbacks {
@@ -753,7 +783,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     var path = result.path;
 
     analysisServer.getDocumentationCacheFor(result)?.cacheFromResult(result);
-    analysisServer.getExtensionCacheFor(result)?.cacheFromResult(result);
 
     var unit = result.unit;
     if (analysisServer._hasAnalysisServiceSubscription(

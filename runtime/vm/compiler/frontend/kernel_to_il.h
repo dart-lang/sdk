@@ -191,11 +191,11 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       const InferredTypeMetadata* result_type = nullptr,
       bool use_unchecked_entry = false,
       const CallSiteAttributesMetadata* call_site_attrs = nullptr,
-      bool receiver_is_not_smi = false);
+      bool receiver_is_not_smi = false,
+      bool is_call_on_this = false);
 
   Fragment FfiCall(const compiler::ffi::CallMarshaller& marshaller);
 
-  Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadLocal(LocalVariable* variable);
   Fragment IndirectGoto(intptr_t target_count);

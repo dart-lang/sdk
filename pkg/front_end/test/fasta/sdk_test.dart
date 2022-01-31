@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE.md file.
 
-// @dart = 2.9
-
 library fasta.test.sdk_test;
 
 import 'testing/suite.dart';
 
 Future<FastaContext> createContext(
     Chain suite, Map<String, String> environment) {
-  environment[ENABLE_FULL_COMPILE] = "";
+  environment[COMPILATION_MODE] = CompileMode.full.name;
   environment["skipVm"] ??= "true";
   environment["onlyCrashes"] ??= "true";
   environment["ignoreExpectations"] ??= "true";

@@ -1,0 +1,47 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+class A extends core::Object /*hasConstConstructor*/  {
+  static final field dynamic _redirecting# = <dynamic>[#C1];
+  const constructor empty() → self::A*
+    : super core::Object::•()
+    ;
+  static factory •() → self::A*
+    return new self::B::•<core::String*>();
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B<T extends core::Object* = dynamic> extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B<self::B::T*>*
+    : super self::A::empty()
+    ;
+  method toString() → core::String*
+    return "${self::B::T*}";
+}
+static method main() → void {
+  exp::Expect::equals("${#C2}", "String");
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::•
+  #C2 = self::B<core::String*> {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///redirection_type_arguments.dart:
+- B. (from org-dartlang-testcase:///redirection_type_arguments.dart:16:9)
+- A.empty (from org-dartlang-testcase:///redirection_type_arguments.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart:25:9)

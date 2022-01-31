@@ -16,11 +16,11 @@ void main() {
 void format() {
   TestProject p;
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
-  test('--help', () {
+  test('--help', () async {
     p = project();
-    var result = p.runSync(['format', '--help']);
+    var result = await p.run(['format', '--help']);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Idiomatically format Dart source code.'));
@@ -31,9 +31,9 @@ void format() {
     expect(result.stdout.contains('--stdin-name'), isFalse);
   });
 
-  test('--help --verbose', () {
+  test('--help --verbose', () async {
     p = project();
-    var result = p.runSync(['format', '--help', '--verbose']);
+    var result = await p.run(['format', '--help', '--verbose']);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Idiomatically format Dart source code.'));
@@ -44,17 +44,17 @@ void format() {
     expect(result.stdout, contains('--stdin-name'));
   });
 
-  test('unchanged', () {
+  test('unchanged', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
-    ProcessResult result = p.runSync(['format', p.relativeFilePath]);
+    ProcessResult result = await p.run(['format', p.relativeFilePath]);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, startsWith('Formatted 1 file (0 changed) in '));
   });
 
-  test('formatted', () {
+  test('formatted', () async {
     p = project(mainSrc: 'int get foo =>       1;\n');
-    ProcessResult result = p.runSync(['format', p.relativeFilePath]);
+    ProcessResult result = await p.run(['format', p.relativeFilePath]);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(
@@ -63,9 +63,9 @@ void format() {
             'Formatted lib/main.dart\nFormatted 1 file (1 changed) in '));
   });
 
-  test('formatted with exit code set', () {
+  test('formatted with exit code set', () async {
     p = project(mainSrc: 'int get foo =>       1;\n');
-    ProcessResult result = p.runSync([
+    ProcessResult result = await p.run([
       'format',
       '--set-exit-if-changed',
       p.relativeFilePath,
@@ -78,9 +78,9 @@ void format() {
             'Formatted lib/main.dart\nFormatted 1 file (1 changed) in '));
   });
 
-  test('not formatted with exit code set', () {
+  test('not formatted with exit code set', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
-    ProcessResult result = p.runSync([
+    ProcessResult result = await p.run([
       'format',
       '--set-exit-if-changed',
       p.relativeFilePath,
@@ -90,10 +90,10 @@ void format() {
     expect(result.stdout, startsWith('Formatted 1 file (0 changed) in '));
   });
 
-  test('unknown file', () {
+  test('unknown file', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
     var unknownFilePath = '${p.relativeFilePath}-unknown-file.dart';
-    ProcessResult result = p.runSync(['format', unknownFilePath]);
+    ProcessResult result = await p.run(['format', unknownFilePath]);
     expect(result.exitCode, 0);
     expect(result.stderr,
         startsWith('No file or directory found at "$unknownFilePath".'));

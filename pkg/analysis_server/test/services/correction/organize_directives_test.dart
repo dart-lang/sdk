@@ -22,6 +22,12 @@ void main() {
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
   late List<AnalysisError> testErrors;
 
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfig(meta: true);
+  }
+
   Future<void> test_docComment_beforeDirective_hasUnresolvedIdentifier() async {
     await _computeUnitAndErrors(r'''
 /// Library documentation comment A
@@ -680,6 +686,219 @@ import 'package:a/b.dart';
 // We are keeping this because ... l2
 // We are keeping this because ... l3
 import 'package:b/a.dart';''');
+  }
+
+  Future<void> test_sort_libraryAnnotation_movedDirective() async {
+    await _addAnnotationsFile();
+    await _computeUnitAndErrors(r'''
+@libraryAnnotation
+@LibraryAnnotation()
+
+// annotations
+import 'annotations.dart';
+
+// io
+import 'dart:io';
+''');
+    // Validate annotation is not moved with import.
+    _assertOrganize(r'''
+@libraryAnnotation
+@LibraryAnnotation()
+
+// io
+import 'dart:io';
+
+// annotations
+import 'annotations.dart';
+''');
+  }
+
+  Future<void> test_sort_libraryAnnotation_removedDirective() async {
+    await _addAnnotationsFile();
+    await _computeUnitAndErrors(r'''
+@libraryAnnotation
+@LibraryAnnotation()
+
+// io
+import 'dart:io'; // unused
+// annotations
+import 'annotations.dart'; // used
+''');
+    // Validate annotation is not removed with import.
+    _assertOrganize(r'''
+@libraryAnnotation
+@LibraryAnnotation()
+
+// annotations
+import 'annotations.dart'; // used
+''', removeUnused: true);
+  }
+
+  Future<void> test_sort_multipleAnnotation_movedDirective() async {
+    await _addAnnotationsFile();
+    await _computeUnitAndErrors(r'''
+@libraryAnnotation
+@LibraryAnnotation()
+
+@nonLibraryAnnotation
+import 'annotations.dart';
+@nonLibraryAnnotation
+import 'dart:io';
+''');
+    // Validate only the non-library annotation is moved with import.
+    _assertOrganize(r'''
+@libraryAnnotation
+@LibraryAnnotation()
+
+@nonLibraryAnnotation
+import 'dart:io';
+
+@nonLibraryAnnotation
+import 'annotations.dart';
+''');
+  }
+
+  Future<void> test_sort_multipleAnnotation_removedDirective() async {
+    await _addAnnotationsFile();
+    await _computeUnitAndErrors(r'''
+@libraryAnnotation
+@LibraryAnnotation()
+
+@nonLibraryAnnotation
+import 'dart:io';
+@nonLibraryAnnotation
+import 'annotations.dart';
+''');
+    // Validate only the non-library annotation is removed with import.
+    _assertOrganize(r'''
+@libraryAnnotation
+@LibraryAnnotation()
+
+@nonLibraryAnnotation
+import 'annotations.dart';
+''', removeUnused: true);
+  }
+
+  Future<void> test_sort_multipleAnnotationWithComments_movedDirective() async {
+    await _addAnnotationsFile();
+    await _computeUnitAndErrors(r'''
+// lib1
+@libraryAnnotation // lib1
+// lib2
+@LibraryAnnotation() // lib2
+
+// nonLib on annotations import
+@nonLibraryAnnotation // nonLib on annotations import
+// annotations import
+import 'annotations.dart'; // annotations import
+// nonLib on io import
+@nonLibraryAnnotation // nonLib on io import
+// io import
+import 'dart:io'; // io import
+''');
+    // Validate only the non-library annotation is moved with import.
+    _assertOrganize(r'''
+// lib1
+@libraryAnnotation // lib1
+// lib2
+@LibraryAnnotation() // lib2
+
+// nonLib on io import
+@nonLibraryAnnotation // nonLib on io import
+// io import
+import 'dart:io'; // io import
+
+// nonLib on annotations import
+@nonLibraryAnnotation // nonLib on annotations import
+// annotations import
+import 'annotations.dart'; // annotations import
+''');
+  }
+
+  Future<void>
+      test_sort_multipleAnnotationWithComments_removedDirective() async {
+    await _addAnnotationsFile();
+    await _computeUnitAndErrors(r'''
+// lib1
+@libraryAnnotation // lib1
+// lib2
+@LibraryAnnotation() // lib2
+
+// nonLib on io import
+@nonLibraryAnnotation // nonLib on io import
+// io import
+import 'dart:io'; // io import
+// nonLib on annotations import
+@nonLibraryAnnotation // nonLib on annotations import
+// annotations import
+import 'annotations.dart'; // annotations import
+''');
+    // Validate only the non-library annotation is removed with import.
+    _assertOrganize(r'''
+// lib1
+@libraryAnnotation // lib1
+// lib2
+@LibraryAnnotation() // lib2
+
+// nonLib on annotations import
+@nonLibraryAnnotation // nonLib on annotations import
+// annotations import
+import 'annotations.dart'; // annotations import
+''', removeUnused: true);
+  }
+
+  Future<void> test_sort_nonLibraryAnnotation_movedDirective() async {
+    await _addAnnotationsFile();
+    await _computeUnitAndErrors(r'''
+@nonLibraryAnnotation
+import 'annotations.dart';
+
+import 'dart:io';
+''');
+    // Validate annotation is moved with import.
+    _assertOrganize(r'''
+import 'dart:io';
+
+@nonLibraryAnnotation
+import 'annotations.dart';
+''');
+  }
+
+  Future<void> test_sort_nonLibraryAnnotation_removedDirective() async {
+    await _addAnnotationsFile();
+    await _computeUnitAndErrors(r'''
+@nonLibraryAnnotation
+// io
+import 'dart:io'; // unused
+// annotations
+import 'annotations.dart'; // used
+''');
+    // Validate annotation is removed with import.
+    _assertOrganize(r'''
+// annotations
+import 'annotations.dart'; // used
+''', removeUnused: true);
+  }
+
+  Future<void> _addAnnotationsFile() async {
+    final annotationsFile = convertPath('$testPackageLibPath/annotations.dart');
+    const annotationsContent = '''
+import 'package:meta/meta_meta.dart';
+
+const libraryAnnotation = LibraryAnnotation();
+const nonLibraryAnnotation = NonLibraryAnnotation();
+
+@Target({TargetKind.library})
+class LibraryAnnotation {
+  const LibraryAnnotation();
+}
+
+@Target({TargetKind.classType})
+class NonLibraryAnnotation {
+  const NonLibraryAnnotation();
+}
+    ''';
+    addSource(annotationsFile, annotationsContent);
   }
 
   void _assertOrganize(String expectedCode, {bool removeUnused = false}) {

@@ -17,15 +17,44 @@ namespace compiler {
 
 namespace ffi {
 
-// These ABIs should be kept in sync with pkg/vm/lib/transformations/ffi.dart.
+// These ABIs should be kept in sync with
+// pkg/vm/lib/transformations/ffi/abi.dart.
 enum class Abi {
-  kWordSize64 = 0,
-  kWordSize32Align32 = 1,
-  kWordSize32Align64 = 2
+  kAndroidArm,
+  kAndroidArm64,
+  kAndroidIA32,
+  kAndroidX64,
+  kFuchsiaArm64,
+  kFuchsiaX64,
+  kIOSArm,
+  kIOSArm64,
+  kIOSX64,
+  kLinuxArm,
+  kLinuxArm64,
+  kLinuxIA32,
+  kLinuxX64,
+  kMacOSArm64,
+  kMacOSX64,
+  kWindowsArm64,
+  kWindowsIA32,
+  kWindowsX64,
 };
+
+const int64_t num_abis = static_cast<int64_t>(Abi::kWindowsX64) + 1;
+
+// We use the integer values of this enum in
+// - runtime/vm/compiler/ffi/native_type.cc
+// - runtime/vm/compiler/frontend/kernel_to_il.cc
+static_assert(static_cast<int64_t>(Abi::kAndroidArm) == 0,
+              "Enum value unexpected.");
+static_assert(static_cast<int64_t>(Abi::kWindowsX64) == 17,
+              "Enum value unexpected.");
+static_assert(num_abis == 18, "Enum value unexpected.");
 
 // The target ABI. Defines sizes and alignment of native types.
 Abi TargetAbi();
+
+extern const char* target_abi_name;
 
 }  // namespace ffi
 

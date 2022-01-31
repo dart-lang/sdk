@@ -33,6 +33,7 @@ general/bug30695: TypeCheckError
 general/bug31124: RuntimeError
 general/call: RuntimeError
 general/cascade: RuntimeError
+general/conditional_import: RuntimeError # Issue 47814
 general/constructor_initializer_invalid: RuntimeError
 general/covariant_field: TypeCheckError
 general/covariant_generic: RuntimeError
@@ -135,7 +136,7 @@ inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
-named_arguments_anywhere/redirecting_constructor_initializers: Crash # Issue 47524.
+named_arguments_anywhere/redirecting_constructor_initializers: TextSerializationFailure # Issue 47524.
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError
 nnbd/issue42603: TypeCheckError

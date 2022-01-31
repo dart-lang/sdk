@@ -11,8 +11,8 @@ import '../builder/builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/library_builder.dart';
 
-import '../kernel/class_hierarchy_builder.dart'
-    show ClassHierarchyBuilder, ClassMember;
+import '../kernel/hierarchy/class_member.dart' show ClassMember;
+import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/member_covariance.dart';
 import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
@@ -282,16 +282,16 @@ class DillClassMember extends BuilderClassMember {
   }
 
   @override
-  Member getMember(ClassHierarchyBuilder hierarchy) => memberBuilder.member;
+  Member getMember(ClassMembersBuilder membersBuilder) => memberBuilder.member;
 
   @override
-  Covariance getCovariance(ClassHierarchyBuilder hierarchy) {
+  Covariance getCovariance(ClassMembersBuilder membersBuilder) {
     return _covariance ??=
         new Covariance.fromMember(memberBuilder.member, forSetter: forSetter);
   }
 
   @override
-  void inferType(ClassHierarchyBuilder hierarchy) {
+  void inferType(ClassMembersBuilder hierarchy) {
     // Do nothing; this is only for source members.
   }
 

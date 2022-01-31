@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.9
-
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
@@ -120,15 +118,16 @@ class ParserTestListener implements Listener {
 class ParserCreatorListener extends Listener {
   final StringSink out;
   bool insideListenerClass = false;
-  String currentMethodName;
-  String latestSeenParameterTypeToken;
-  List<String> parameters = <String>[];
-  List<String> parameterTypes = <String>[];
+  String? currentMethodName;
+  String? latestSeenParameterTypeToken;
+  List<String> parameters = [];
+  List<String?> parameterTypes = [];
 
   ParserCreatorListener(this.out);
 
   @override
-  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
+  void beginClassDeclaration(
+      Token begin, Token? abstractToken, Token? macroToken, Token name) {
     if (name.lexeme == "Listener") insideListenerClass = true;
   }
 
@@ -140,23 +139,23 @@ class ParserCreatorListener extends Listener {
   @override
   void beginMethod(
       DeclarationKind declarationKind,
-      Token externalToken,
-      Token staticToken,
-      Token covariantToken,
-      Token varFinalOrConst,
-      Token getOrSet,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? varFinalOrConst,
+      Token? getOrSet,
       Token name) {
     currentMethodName = name.lexeme;
   }
 
   @override
-  void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
-      Token beginInitializers, Token endToken) {
+  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
+      Token? beginInitializers, Token endToken) {
     if (insideListenerClass) {
       out.writeln("  @override");
       out.write("  ");
       Token token = beginToken;
-      Token latestToken;
+      Token? latestToken;
       while (true) {
         if (latestToken != null && latestToken.charEnd < token.charOffset) {
           out.write(" ");
@@ -171,14 +170,14 @@ class ParserCreatorListener extends Listener {
           throw token.runtimeType;
         }
         latestToken = token;
-        token = token.next;
+        token = token.next!;
       }
 
       if (token is SimpleToken && token.type == TokenType.FUNCTION) {
         out.write(" null;");
       } else {
         out.write("\n    ");
-        if (currentMethodName.startsWith("end")) {
+        if (currentMethodName!.startsWith("end")) {
           out.write("indent--;\n    ");
         }
         for (int i = 0; i < parameterTypes.length; i++) {
@@ -196,7 +195,7 @@ class ParserCreatorListener extends Listener {
         }
         out.write(")');\n  ");
 
-        if (currentMethodName.startsWith("begin")) {
+        if (currentMethodName!.startsWith("begin")) {
           out.write("  indent++;\n  ");
         }
 
@@ -224,17 +223,18 @@ class ParserCreatorListener extends Listener {
   }
 
   @override
-  void handleType(Token beginToken, Token questionMark) {
+  void handleType(Token beginToken, Token? questionMark) {
     latestSeenParameterTypeToken = beginToken.lexeme;
   }
 
   @override
   void endFormalParameter(
-      Token thisKeyword,
-      Token periodAfterThis,
+      Token? thisKeyword,
+      Token? superKeyword,
+      Token? periodAfterThisOrSuper,
       Token nameToken,
-      Token initializerStart,
-      Token initializerEnd,
+      Token? initializerStart,
+      Token? initializerEnd,
       FormalParameterKind kind,
       MemberKind memberKind) {
     parameters.add(nameToken.lexeme);

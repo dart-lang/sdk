@@ -96,7 +96,7 @@ class CreateField extends CorrectionProducer {
     if (targetClassElement == null) {
       return;
     }
-    if (targetClassElement.librarySource.isInSystemLibrary) {
+    if (targetClassElement.librarySource.uri.isScheme('dart')) {
       return;
     }
     utils.targetClassElement = targetClassElement;

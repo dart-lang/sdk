@@ -599,7 +599,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(R4, arguments_descriptor);
 
   ASSERT(locs()->in(0).reg() == R0);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     // R0: Closure with a cached entry point.
     __ ldr(R2, compiler::FieldAddress(
                    R0, compiler::target::Closure::entry_point_offset()));
@@ -1448,7 +1448,23 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (is_leaf_) {
+#if !defined(PRODUCT)
+    // Set the thread object's top_exit_frame_info and VMTag to enable the
+    // profiler to determine that thread is no longer executing Dart code.
+    __ StoreToOffset(FPREG, THR,
+                     compiler::target::Thread::top_exit_frame_info_offset());
+    __ StoreToOffset(branch, THR, compiler::target::Thread::vm_tag_offset());
+#endif
+
     __ blx(branch);
+
+#if !defined(PRODUCT)
+    __ LoadImmediate(temp1, compiler::target::Thread::vm_tag_dart_id());
+    __ StoreToOffset(temp1, THR, compiler::target::Thread::vm_tag_offset());
+    __ LoadImmediate(temp1, 0);
+    __ StoreToOffset(temp1, THR,
+                     compiler::target::Thread::top_exit_frame_info_offset());
+#endif
   } else {
     // We need to copy the return address up into the dummy stack frame so the
     // stack walker will know which safepoint to use.
@@ -1493,7 +1509,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // Restore the global object pool after returning from runtime (old space is
     // moving, so the GOP could have been relocated).
-    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (FLAG_precompiled_mode) {
       __ SetupGlobalPoolAndDispatchTable();
     }
   }
@@ -1660,7 +1676,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Put the code object in the reserved slot.
   __ StoreToOffset(CODE_REG, FPREG,
                    kPcMarkerSlotFromFp * compiler::target::kWordSize);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ SetupGlobalPoolAndDispatchTable();
   } else {
     __ LoadImmediate(PP, 0);  // GC safe value into PP.
@@ -4123,7 +4139,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
-      ASSERT(TargetCPUFeatures::can_divide());
       if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ cmp(right, compiler::Operand(0));
@@ -4145,7 +4160,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMOD: {
-      ASSERT(TargetCPUFeatures::can_divide());
       if (RangeUtils::CanBeZero(right_range())) {
         // Handle divide by zero in runtime.
         __ cmp(right, compiler::Operand(0));
@@ -4768,7 +4782,7 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
-  // FLAG_use_bare_instructions mode and only after VM isolate stubs where
+  // precompiled mode and only after VM isolate stubs where
   // replaced with isolate-specific stubs.
   auto object_store = IsolateGroup::Current()->object_store();
   const bool stubs_in_vm_isolate =
@@ -4779,7 +4793,6 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
           ->untag()
           ->InVMIsolateHeap();
   const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
-                                     FLAG_use_bare_instructions &&
                                      !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
@@ -6214,7 +6227,6 @@ void TruncDivModInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label* deopt =
       compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
 
-  ASSERT(TargetCPUFeatures::can_divide());
   const Register left = locs()->in(0).reg();
   const Register right = locs()->in(1).reg();
   ASSERT(locs()->out(0).IsPairLocation());
@@ -6388,8 +6400,7 @@ void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  ThrowErrorSlowPathCode* slow_path =
-      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  ThrowErrorSlowPathCode* slow_path = new NullErrorSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
   __ BranchIf(EQUAL, slow_path->entry_label());
@@ -6724,10 +6735,9 @@ static void EmitShiftUint32ByRegister(FlowGraphCompiler* compiler,
 
 class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction, intptr_t try_index)
+  explicit ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "int64 shift"; }
 
@@ -6818,8 +6828,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Jump to a slow path if shift is larger than 63 or less than 0.
     ShiftInt64OpSlowPath* slow_path = NULL;
     if (!IsShiftCountInRange()) {
-      slow_path =
-          new (Z) ShiftInt64OpSlowPath(this, compiler->CurrentTryIndex());
+      slow_path = new (Z) ShiftInt64OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
       __ CompareImmediate(right_hi, 0);
       __ b(slow_path->entry_label(), NE);
@@ -6885,10 +6894,9 @@ void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 class ShiftUint32OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction, intptr_t try_index)
+  explicit ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "uint32 shift"; }
 
@@ -6954,8 +6962,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Jump to a slow path if shift count is > 31 or negative.
     ShiftUint32OpSlowPath* slow_path = NULL;
     if (!IsShiftCountInRange(kUint32ShiftCountLimit)) {
-      slow_path =
-          new (Z) ShiftUint32OpSlowPath(this, compiler->CurrentTryIndex());
+      slow_path = new (Z) ShiftUint32OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
 
       __ CompareImmediate(right_hi, 0);

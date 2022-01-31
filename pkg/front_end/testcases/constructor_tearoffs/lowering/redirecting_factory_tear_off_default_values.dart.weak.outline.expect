@@ -5,7 +5,7 @@ import "dart:core" as core;
 class Class1 extends core::Object {
   final field core::int field;
   static final field dynamic _redirecting# = <dynamic>[self::Class1::•]/*isLegacy*/;
-  constructor _([core::int field]) → self::Class1
+  constructor _([core::int field = 42]) → self::Class1
     ;
   static method _#_#tearOff([core::int field]) → self::Class1
     return new self::Class1::_(field);
@@ -17,7 +17,7 @@ class Class1 extends core::Object {
 class Class2 extends core::Object {
   final field core::int field;
   static final field dynamic _redirecting# = <dynamic>[self::Class2::•]/*isLegacy*/;
-  constructor _({core::int field}) → self::Class2
+  constructor _({core::int field = 42}) → self::Class2
     ;
   static method _#_#tearOff({core::int field}) → self::Class2
     return new self::Class2::_(field: field);

@@ -1,0 +1,70 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Base extends core::Object {
+  synthetic constructor •() → self::Base*
+    : super core::Object::•()
+    ;
+  no-such-method-forwarder set push(core::int* x) → void
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation*) →* dynamic};
+  no-such-method-forwarder set float(covariant-by-declaration core::int* x) → void
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation*) →* dynamic};
+  method noSuchMethod(core::Invocation* i) → dynamic
+    return core::print("${this.{self::Base::runtimeType}{core::Type*}}: ${i.{core::Invocation::positionalArguments}{core::List<dynamic>*}.{core::List::[]}(0){(core::int*) →* dynamic}}");
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Me extends self::Base {
+  synthetic constructor •() → self::Me*
+    : super self::Base::•()
+    ;
+}
+class You extends self::Base {
+  synthetic constructor •() → self::You*
+    : super self::Base::•()
+    ;
+  no-such-method-forwarder set push(core::num* x) → void
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation*) →* dynamic};
+  no-such-method-forwarder set float(covariant-by-declaration core::num* x) → void
+    return this.{self::Base::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation*) →* dynamic};
+}
+static method main() → dynamic {
+  core::List<self::Base*>* list = <self::Base*>[new self::Me::•(), new self::You::•()];
+  for (self::Base* baba in list) {
+    baba.{self::Base::push} = 0;
+    baba.{self::Base::float} = 1;
+    if(baba is self::You*) {
+      baba{self::You*}.{self::You::push} = 2.3;
+      baba{self::You*}.{self::You::float} = 4.5;
+    }
+    try {
+      (baba as dynamic){dynamic}.push = 6.7;
+      baba is self::You* || (throw "Fail!");
+    }
+    on core::TypeError* catch(no-exception-var) {
+      baba is self::Me* || (throw "Fail!");
+    }
+    try {
+      (baba as dynamic){dynamic}.float = 8.9;
+      baba is self::You* || (throw "Fail!");
+    }
+    on core::TypeError* catch(no-exception-var) {
+      baba is self::Me* || (throw "Fail!");
+    }
+  }
+}
+
+constants  {
+  #C1 = #push=
+  #C2 = <core::Type*>[]
+  #C3 = <core::Symbol*, dynamic>{)
+  #C4 = #float=
+}

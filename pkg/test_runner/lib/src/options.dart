@@ -896,7 +896,7 @@ has been specified on the command line.''',
       }
 
       var excludeSuites = configuration['exclude_suite'] != null
-          ? configuration['exclude_suite'].split(',')
+          ? (configuration['exclude_suite'] as String).split(',')
           : [];
       for (var exclude in excludeSuites) {
         if ((selectors as List).contains(exclude)) {

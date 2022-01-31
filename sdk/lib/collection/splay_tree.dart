@@ -54,7 +54,7 @@ abstract class _SplayTree<K, Node extends _SplayTreeNode<K, Node>> {
   // Number of elements in the splay tree.
   int _count = 0;
 
-  /// Counter incremented whenever the keys in the map changes.
+  /// Counter incremented whenever the keys in the map change.
   ///
   /// Used to detect concurrent modifications.
   int _modificationCount = 0;
@@ -310,6 +310,86 @@ Comparator<K> _defaultCompare<K>() {
 /// using the `compare` function on an argument value that may not be a [K]
 /// value. If omitted, the `isValidKey` function defaults to testing if the
 /// value is a [K].
+///
+/// **Notice:**
+/// Do not modify a map (add or remove keys) while an operation
+/// is being performed on that map, for example in functions
+/// called during a [forEach] or [putIfAbsent] call,
+/// or while iterating the map ([keys], [values] or [entries]).
+///
+/// Example:
+/// ```dart
+/// final planetsByMass = SplayTreeMap<double, String>((a, b) => a.compareTo(b));
+/// ```
+/// To add data to a map, use [operator[]=], [addAll] or [addEntries].
+/// ```
+/// planetsByMass[0.06] = 'Mercury';
+/// planetsByMass
+///     .addAll({0.81: 'Venus', 1.0: 'Earth', 0.11: 'Mars', 317.83: 'Jupiter'});
+/// ```
+/// To check if the map is empty, use [isEmpty] or [isNotEmpty].
+/// To find the number of map entries, use [length].
+/// ```
+/// print(planetsByMass.isEmpty); // false
+/// print(planetsByMass.length); // 5
+/// ```
+/// The [forEach] method calls a function for each key/value entry of the map.
+/// ```
+/// planetsByMass.forEach((key, value) {
+///   print('$key \t $value');
+///   // 0.06    Mercury
+///   // 0.11    Mars
+///   // 0.81    Venus
+///   // 1.0     Earth
+///   // 317.83  Jupiter
+/// });
+/// ```
+/// To check whether the map has an entry with a specific key, use [containsKey].
+/// ```
+/// final keyOneExists = planetsByMass.containsKey(1.0); // true
+/// final keyFiveExists = planetsByMass.containsKey(5); // false
+/// ```
+/// To check whether the map has an entry with a specific value,
+/// use [containsValue].
+/// ```
+/// final earthExists = planetsByMass.containsValue('Earth'); // true
+/// final plutoExists = planetsByMass.containsValue('Pluto'); // false
+/// ```
+/// To remove an entry with a specific key, use [remove].
+/// ```
+/// final removedValue = planetsByMass.remove(1.0);
+/// print(removedValue); // Earth
+/// ```
+/// To remove multiple entries at the same time, based on their keys and values,
+/// use [removeWhere].
+/// ```
+/// planetsByMass.removeWhere((key, value) => key <= 1);
+/// print(planetsByMass); // {317.83: Jupiter}
+/// ```
+/// To conditionally add or modify a value for a specific key, depending on
+/// whether there already is an entry with that key,
+/// use [putIfAbsent] or [update].
+/// ```
+/// planetsByMass.update(1, (v) => '', ifAbsent: () => 'Earth');
+/// planetsByMass.putIfAbsent(317.83, () => 'Another Jupiter');
+/// print(planetsByMass); // {1.0: Earth, 317.83: Jupiter}
+/// ```
+/// To update the values of all keys, based on the existing key and value,
+/// use [updateAll].
+/// ```
+/// planetsByMass.updateAll((key, value) => 'X');
+/// print(planetsByMass); // {1.0: X, 317.83: X}
+/// ```
+/// To remove all entries and empty the map, use [clear].
+/// ```
+/// planetsByMass.clear();
+/// print(planetsByMass.isEmpty); // false
+/// print(planetsByMass); // {}
+/// ```
+/// **See also:**
+/// * [Map], the general interface of key/value pair collections.
+/// * [HashMap] is unordered (the order of iteration is not guaranteed).
+/// * [LinkedHashMap] iterates in key insertion order.
 class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
     with MapMixin<K, V> {
   _SplayTreeMapNode<K, V>? _root;
@@ -327,6 +407,12 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   ///
   /// The keys must all be instances of [K] and the values of [V].
   /// The [other] map itself can have any type.
+  /// Example:
+  /// ```dart
+  /// final baseMap = <int, Object>{3: 'C', 1: 'A', 2: 'B'};
+  /// final fromBaseMap = SplayTreeMap<int, String>.from(baseMap);
+  /// print(fromBaseMap); // {1: A, 2: B, 3: C}
+  /// ```
   factory SplayTreeMap.from(Map<dynamic, dynamic> other,
       [int Function(K key1, K key2)? compare,
       bool Function(dynamic potentialKey)? isValidKey]) {
@@ -341,6 +427,12 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   }
 
   /// Creates a [SplayTreeMap] that contains all key/value pairs of [other].
+  /// Example:
+  /// ```dart
+  /// final baseMap = <int, String>{3: 'A', 2: 'B', 1: 'C', 4: 'D'};
+  /// final mapOf = SplayTreeMap<num, Object>.of(baseMap);
+  /// print(mapOf); // {1: C, 2: B, 3: A, 4: D}
+  /// ```
   factory SplayTreeMap.of(Map<K, V> other,
           [int Function(K key1, K key2)? compare,
           bool Function(dynamic potentialKey)? isValidKey]) =>
@@ -355,8 +447,16 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// The keys of the key/value pairs do not need to be unique. The last
   /// occurrence of a key will simply overwrite any previous value.
   ///
-  /// If no functions are specified for [key] and [value] the default is to
+  /// If no functions are specified for [key] and [value], the default is to
   /// use the iterable value itself.
+  /// Example:
+  /// ```dart
+  /// final numbers = [12, 11, 14, 13];
+  /// final mapFromIterable =
+  ///     SplayTreeMap<int, int>.fromIterable(numbers,
+  ///         key: (i) => i, value: (i) => i * i);
+  /// print(mapFromIterable); // {11: 121, 12: 144, 13: 169, 14: 196}
+  /// ```
   factory SplayTreeMap.fromIterable(Iterable iterable,
       {K Function(dynamic element)? key,
       V Function(dynamic element)? value,
@@ -376,6 +476,13 @@ class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
   /// overwrites the previous value.
   ///
   /// It is an error if the two [Iterable]s don't have the same length.
+  /// Example:
+  /// ```dart
+  /// final keys = ['1', '2', '3', '4'];
+  /// final values = ['A', 'B', 'C', 'D'];
+  /// final mapFromIterables = SplayTreeMap.fromIterables(keys, values);
+  /// print(mapFromIterables); // {1: A, 2: B, 3: C, 4: D}
+  /// ```
   factory SplayTreeMap.fromIterables(Iterable<K> keys, Iterable<V> values,
       [int Function(K key1, K key2)? compare,
       bool Function(dynamic potentialKey)? isValidKey]) {
@@ -772,6 +879,74 @@ class _SplayTreeMapEntryIterator<K, V>
 /// [Comparable], and are compared using their [Comparable.compareTo] method.
 /// Non-comparable objects (including `null`) will not work as an element
 /// in that case.
+///
+/// **Note:**
+/// Do not modify a set (add or remove elements) while an operation
+/// is being performed on that set, for example in functions
+/// called during a [forEach] or [containsAll] call,
+/// or while iterating the set.
+///
+/// Do not modify elements in a way which changes their equality (and thus their
+/// hash code) while they are in the set. Some specialized kinds of sets may be
+/// more permissive with regards to equality, in which case they should document
+/// their different behavior and restrictions.
+///
+/// Example:
+/// ```dart
+/// final planets = SplayTreeSet<String>((a, b) => a.compareTo(b));
+/// ```
+/// To add data to a set, use [add] or [addAll].
+/// ```
+/// planets.add('Neptune');
+/// planets.addAll({'Venus', 'Mars', 'Earth', 'Jupiter'});
+/// print(planets); // {Earth, Jupiter, Mars, Neptune, Venus}
+/// ```
+/// To check if the set is empty, use [isEmpty] or [isNotEmpty].
+/// To find the number of elements in the set, use [length].
+/// ```
+/// final isEmpty = planets.isEmpty; // false
+/// final length = planets.length; // 5
+/// ```
+/// To check whether the set contains a specific element, use [contains].
+/// ```
+/// final marsExists = planets.contains('Mars'); // true
+/// ```
+/// To get element value using index, use [elementAt].
+/// ```
+/// final elementAt = planets.elementAt(1);
+/// print(elementAt); // Jupiter
+/// ```
+/// To make a copy of set, use [toSet].
+/// ```
+/// final copySet = planets.toSet(); // a `SplayTreeSet` with the same ordering.
+/// print(copySet); // {Earth, Jupiter, Mars, Neptune, Venus}
+/// ```
+/// To remove an element, use [remove].
+/// ```
+/// final removedValue = planets.remove('Mars'); // true
+/// print(planets); // {Earth, Jupiter, Neptune, Venus}
+/// ```
+/// To remove multiple elements at the same time, use [removeWhere].
+/// ```
+/// planets.removeWhere((element) => element.startsWith('J'));
+/// print(planets); // {Earth, Neptune, Venus}
+/// ```
+/// To removes all elements in this set that do not meet a condition,
+/// use [retainWhere].
+/// ```
+/// planets.retainWhere((element) => element.contains('Earth'));
+/// print(planets); // {Earth}
+/// ```
+/// To remove all elements and empty the set, use [clear].
+/// ```
+/// planets.clear();
+/// print(planets.isEmpty); // true
+/// print(planets); // {}
+/// ```
+/// **See also:**
+/// * [Set] is a base-class for collection of objects.
+/// * [HashSet] the order of the objects in the iterations is not guaranteed.
+/// * [LinkedHashSet] objects stored based on insertion order.
 class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
     with IterableMixin<E>, SetMixin<E> {
   _SplayTreeSetNode<E>? _root;
@@ -788,7 +963,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   /// work on all `E` instances.
   ///
   /// For operations that add elements to the set, the user is supposed to not
-  /// pass in objects that doesn't work with the compare function.
+  /// pass in objects that don't work with the compare function.
   ///
   /// The methods [contains], [remove], [lookup], [removeAll] or [retainAll]
   /// are typed to accept any object(s), and the [isValidKey] test can used to
@@ -809,7 +984,7 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
 
   /// Creates a [SplayTreeSet] that contains all [elements].
   ///
-  /// The set works as if created by `new SplayTreeSet<E>(compare, isValidKey)`.
+  /// The set works as if created by `SplayTreeSet<E>(compare, isValidKey)`.
   ///
   /// All the [elements] should be instances of [E] and valid arguments to
   /// [compare].
@@ -819,6 +994,12 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   /// Set<SuperType> superSet = ...;
   /// Set<SubType> subSet =
   ///     SplayTreeSet<SubType>.from(superSet.whereType<SubType>());
+  /// ```
+  /// Example:
+  /// ```dart
+  /// final numbers = <num>[20, 30, 10];
+  /// final setFrom = SplayTreeSet<int>.from(numbers);
+  /// print(setFrom); // {10, 20, 30}
   /// ```
   factory SplayTreeSet.from(Iterable elements,
       [int Function(E key1, E key2)? compare,
@@ -838,6 +1019,12 @@ class SplayTreeSet<E> extends _SplayTree<E, _SplayTreeSetNode<E>>
   /// The set works as if created by `new SplayTreeSet<E>(compare, isValidKey)`.
   ///
   /// All the [elements] should be valid as arguments to the [compare] function.
+  /// Example:
+  /// ```dart
+  /// final baseSet = <int>{1, 2, 3};
+  /// final setOf = SplayTreeSet<num>.of(baseSet);
+  /// print(setOf); // {1, 2, 3}
+  /// ```
   factory SplayTreeSet.of(Iterable<E> elements,
           [int Function(E key1, E key2)? compare,
           bool Function(dynamic potentialKey)? isValidKey]) =>

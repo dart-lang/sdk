@@ -24,7 +24,23 @@ f() {
   return const A.noSuchConstructor();
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 48, 17),
+      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 48, 17,
+          messageContains: ["class 'A'", "constructor 'noSuchConstructor'"]),
+    ]);
+  }
+
+  test_named_prefixed() async {
+    await assertErrorsInCode(r'''
+import 'dart:async' as a;
+f() {
+  return const a.Future.noSuchConstructor();
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR, 56, 17,
+          messageContains: [
+            "class 'a.Future'",
+            "constructor 'noSuchConstructor'"
+          ]),
     ]);
   }
 
@@ -53,7 +69,26 @@ f() {
 }
 ''', [
       error(
-          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 51, 1),
+          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 51, 1,
+          messageContains: ["'A'"]),
+    ]);
+  }
+
+  test_unnamed_prefixed() async {
+    newFile('$testPackageLibPath/lib1.dart', content: '''
+class A {
+  const A.name();
+}
+''');
+    await assertErrorsInCode(r'''
+import 'lib1.dart' as lib1;
+f() {
+  return const lib1.A();
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, 49, 6,
+          messageContains: ["'lib1.A'"]),
     ]);
   }
 }

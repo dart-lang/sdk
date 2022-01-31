@@ -207,16 +207,17 @@ InvalidExpression wrapInvalidExpression(Tuple2<String?, Expression?> tuple) {
 }
 
 TextSerializer<Not> notSerializer =
-    new Wrapped(unwrapNot, wrapNot, expressionSerializer);
+    new Wrapped<Expression, Not>(unwrapNot, wrapNot, expressionSerializer);
 
 Expression unwrapNot(Not expression) => expression.operand;
 
 Not wrapNot(Expression operand) => new Not(operand);
 
-TextSerializer<LogicalExpression> logicalAndSerializer = new Wrapped(
-    unwrapLogicalExpression,
-    wrapLogicalAnd,
-    new Tuple2Serializer(expressionSerializer, expressionSerializer));
+TextSerializer<LogicalExpression> logicalAndSerializer =
+    new Wrapped<Tuple2<Expression, Expression>, LogicalExpression>(
+        unwrapLogicalExpression,
+        wrapLogicalAnd,
+        new Tuple2Serializer(expressionSerializer, expressionSerializer));
 
 Tuple2<Expression, Expression> unwrapLogicalExpression(
     LogicalExpression expression) {
@@ -228,20 +229,22 @@ LogicalExpression wrapLogicalAnd(Tuple2<Expression, Expression> tuple) {
       tuple.first, LogicalExpressionOperator.AND, tuple.second);
 }
 
-TextSerializer<LogicalExpression> logicalOrSerializer = new Wrapped(
-    unwrapLogicalExpression,
-    wrapLogicalOr,
-    new Tuple2Serializer(expressionSerializer, expressionSerializer));
+TextSerializer<LogicalExpression> logicalOrSerializer =
+    new Wrapped<Tuple2<Expression, Expression>, LogicalExpression>(
+        unwrapLogicalExpression,
+        wrapLogicalOr,
+        new Tuple2Serializer(expressionSerializer, expressionSerializer));
 
 LogicalExpression wrapLogicalOr(Tuple2<Expression, Expression> tuple) {
   return new LogicalExpression(
       tuple.first, LogicalExpressionOperator.OR, tuple.second);
 }
 
-TextSerializer<StringConcatenation> stringConcatenationSerializer = new Wrapped(
-    unwrapStringConcatenation,
-    wrapStringConcatenation,
-    new ListSerializer(expressionSerializer));
+TextSerializer<StringConcatenation> stringConcatenationSerializer =
+    new Wrapped<List<Expression>, StringConcatenation>(
+        unwrapStringConcatenation,
+        wrapStringConcatenation,
+        new ListSerializer(expressionSerializer));
 
 List<Expression> unwrapStringConcatenation(StringConcatenation expression) {
   return expression.expressions;
@@ -252,70 +255,78 @@ StringConcatenation wrapStringConcatenation(List<Expression> expressions) {
 }
 
 const TextSerializer<StringLiteral> stringLiteralSerializer =
-    const Wrapped(unwrapStringLiteral, wrapStringLiteral, const DartString());
+    const Wrapped<String, StringLiteral>(
+        unwrapStringLiteral, wrapStringLiteral, const DartString());
 
 String unwrapStringLiteral(StringLiteral literal) => literal.value;
 
 StringLiteral wrapStringLiteral(String value) => new StringLiteral(value);
 
 const TextSerializer<IntLiteral> intLiteralSerializer =
-    const Wrapped(unwrapIntLiteral, wrapIntLiteral, const DartInt());
+    const Wrapped<int, IntLiteral>(
+        unwrapIntLiteral, wrapIntLiteral, const DartInt());
 
 int unwrapIntLiteral(IntLiteral literal) => literal.value;
 
 IntLiteral wrapIntLiteral(int value) => new IntLiteral(value);
 
 const TextSerializer<DoubleLiteral> doubleLiteralSerializer =
-    const Wrapped(unwrapDoubleLiteral, wrapDoubleLiteral, const DartDouble());
+    const Wrapped<double, DoubleLiteral>(
+        unwrapDoubleLiteral, wrapDoubleLiteral, const DartDouble());
 
 double unwrapDoubleLiteral(DoubleLiteral literal) => literal.value;
 
 DoubleLiteral wrapDoubleLiteral(double value) => new DoubleLiteral(value);
 
 const TextSerializer<BoolLiteral> boolLiteralSerializer =
-    const Wrapped(unwrapBoolLiteral, wrapBoolLiteral, const DartBool());
+    const Wrapped<bool, BoolLiteral>(
+        unwrapBoolLiteral, wrapBoolLiteral, const DartBool());
 
 bool unwrapBoolLiteral(BoolLiteral literal) => literal.value;
 
 BoolLiteral wrapBoolLiteral(bool value) => new BoolLiteral(value);
 
 const TextSerializer<NullLiteral> nullLiteralSerializer =
-    const Wrapped(unwrapNullLiteral, wrapNullLiteral, const Nothing());
+    const Wrapped<void, NullLiteral>(
+        unwrapNullLiteral, wrapNullLiteral, const Nothing());
 
 void unwrapNullLiteral(NullLiteral literal) {}
 
 NullLiteral wrapNullLiteral(void ignored) => new NullLiteral();
 
 const TextSerializer<SymbolLiteral> symbolLiteralSerializer =
-    const Wrapped(unwrapSymbolLiteral, wrapSymbolLiteral, const DartString());
+    const Wrapped<String, SymbolLiteral>(
+        unwrapSymbolLiteral, wrapSymbolLiteral, const DartString());
 
 String unwrapSymbolLiteral(SymbolLiteral expression) => expression.value;
 
 SymbolLiteral wrapSymbolLiteral(String value) => new SymbolLiteral(value);
 
 const TextSerializer<ThisExpression> thisExpressionSerializer =
-    const Wrapped(unwrapThisExpression, wrapThisExpression, const Nothing());
+    const Wrapped<void, ThisExpression>(
+        unwrapThisExpression, wrapThisExpression, const Nothing());
 
 void unwrapThisExpression(ThisExpression expression) {}
 
 ThisExpression wrapThisExpression(void ignored) => new ThisExpression();
 
 const TextSerializer<Rethrow> rethrowSerializer =
-    const Wrapped(unwrapRethrow, wrapRethrow, const Nothing());
+    const Wrapped<void, Rethrow>(unwrapRethrow, wrapRethrow, const Nothing());
 
 void unwrapRethrow(Rethrow expression) {}
 
 Rethrow wrapRethrow(void ignored) => new Rethrow();
 
-TextSerializer<Throw> throwSerializer =
-    new Wrapped(unwrapThrow, wrapThrow, expressionSerializer);
+TextSerializer<Throw> throwSerializer = new Wrapped<Expression, Throw>(
+    unwrapThrow, wrapThrow, expressionSerializer);
 
 Expression unwrapThrow(Throw expression) => expression.expression;
 
 Throw wrapThrow(Expression expression) => new Throw(expression);
 
-TextSerializer<AwaitExpression> awaitExpressionSerializer = new Wrapped(
-    unwrapAwaitExpression, wrapAwaitExpression, expressionSerializer);
+TextSerializer<AwaitExpression> awaitExpressionSerializer =
+    new Wrapped<Expression, AwaitExpression>(
+        unwrapAwaitExpression, wrapAwaitExpression, expressionSerializer);
 
 Expression unwrapAwaitExpression(AwaitExpression expression) =>
     expression.operand;
@@ -324,7 +335,8 @@ AwaitExpression wrapAwaitExpression(Expression operand) =>
     new AwaitExpression(operand);
 
 TextSerializer<ConditionalExpression> conditionalExpressionSerializer =
-    new Wrapped(
+    new Wrapped<Tuple4<Expression, DartType, Expression, Expression>,
+            ConditionalExpression>(
         unwrapConditionalExpression,
         wrapConditionalExpression,
         new Tuple4Serializer(expressionSerializer, dartTypeSerializer,
@@ -342,10 +354,11 @@ ConditionalExpression wrapConditionalExpression(
       tuple.first, tuple.third, tuple.fourth, tuple.second);
 }
 
-TextSerializer<IsExpression> isExpressionSerializer = new Wrapped(
-    unwrapIsExpression,
-    wrapIsExpression,
-    new Tuple2Serializer(expressionSerializer, dartTypeSerializer));
+TextSerializer<IsExpression> isExpressionSerializer =
+    new Wrapped<Tuple2<Expression, DartType>, IsExpression>(
+        unwrapIsExpression,
+        wrapIsExpression,
+        new Tuple2Serializer(expressionSerializer, dartTypeSerializer));
 
 Tuple2<Expression, DartType> unwrapIsExpression(IsExpression expression) {
   return new Tuple2(expression.operand, expression.type);
@@ -355,10 +368,11 @@ IsExpression wrapIsExpression(Tuple2<Expression, DartType> tuple) {
   return new IsExpression(tuple.first, tuple.second);
 }
 
-TextSerializer<AsExpression> asExpressionSerializer = new Wrapped(
-    unwrapAsExpression,
-    wrapAsExpression,
-    new Tuple2Serializer(expressionSerializer, dartTypeSerializer));
+TextSerializer<AsExpression> asExpressionSerializer =
+    new Wrapped<Tuple2<Expression, DartType>, AsExpression>(
+        unwrapAsExpression,
+        wrapAsExpression,
+        new Tuple2Serializer(expressionSerializer, dartTypeSerializer));
 
 Tuple2<Expression, DartType> unwrapAsExpression(AsExpression expression) {
   return new Tuple2(expression.operand, expression.type);
@@ -369,17 +383,19 @@ AsExpression wrapAsExpression(Tuple2<Expression, DartType> tuple) {
 }
 
 TextSerializer<TypeLiteral> typeLiteralSerializer =
-    new Wrapped(unwrapTypeLiteral, wrapTypeLiteral, dartTypeSerializer);
+    new Wrapped<DartType, TypeLiteral>(
+        unwrapTypeLiteral, wrapTypeLiteral, dartTypeSerializer);
 
 DartType unwrapTypeLiteral(TypeLiteral expression) => expression.type;
 
 TypeLiteral wrapTypeLiteral(DartType type) => new TypeLiteral(type);
 
-TextSerializer<ListLiteral> listLiteralSerializer = new Wrapped(
-    unwrapListLiteral,
-    wrapListLiteral,
-    new Tuple2Serializer(
-        dartTypeSerializer, new ListSerializer(expressionSerializer)));
+TextSerializer<ListLiteral> listLiteralSerializer =
+    new Wrapped<Tuple2<DartType, List<Expression>>, ListLiteral>(
+        unwrapListLiteral,
+        wrapListLiteral,
+        new Tuple2Serializer(
+            dartTypeSerializer, new ListSerializer(expressionSerializer)));
 
 Tuple2<DartType, List<Expression>> unwrapListLiteral(ListLiteral expression) {
   return new Tuple2(expression.typeArgument, expression.expressions);
@@ -390,22 +406,24 @@ ListLiteral wrapListLiteral(Tuple2<DartType, List<Expression>> tuple) {
       typeArgument: tuple.first, isConst: false);
 }
 
-TextSerializer<ListLiteral> constListLiteralSerializer = new Wrapped(
-    unwrapListLiteral,
-    wrapConstListLiteral,
-    new Tuple2Serializer(
-        dartTypeSerializer, new ListSerializer(expressionSerializer)));
+TextSerializer<ListLiteral> constListLiteralSerializer =
+    new Wrapped<Tuple2<DartType, List<Expression>>, ListLiteral>(
+        unwrapListLiteral,
+        wrapConstListLiteral,
+        new Tuple2Serializer(
+            dartTypeSerializer, new ListSerializer(expressionSerializer)));
 
 ListLiteral wrapConstListLiteral(Tuple2<DartType, List<Expression>> tuple) {
   return new ListLiteral(tuple.second,
       typeArgument: tuple.first, isConst: true);
 }
 
-TextSerializer<SetLiteral> setLiteralSerializer = new Wrapped(
-    unwrapSetLiteral,
-    wrapSetLiteral,
-    new Tuple2Serializer(
-        dartTypeSerializer, new ListSerializer(expressionSerializer)));
+TextSerializer<SetLiteral> setLiteralSerializer =
+    new Wrapped<Tuple2<DartType, List<Expression>>, SetLiteral>(
+        unwrapSetLiteral,
+        wrapSetLiteral,
+        new Tuple2Serializer(
+            dartTypeSerializer, new ListSerializer(expressionSerializer)));
 
 Tuple2<DartType, List<Expression>> unwrapSetLiteral(SetLiteral expression) {
   return new Tuple2(expression.typeArgument, expression.expressions);
@@ -416,21 +434,23 @@ SetLiteral wrapSetLiteral(Tuple2<DartType, List<Expression>> tuple) {
       typeArgument: tuple.first, isConst: false);
 }
 
-TextSerializer<SetLiteral> constSetLiteralSerializer = new Wrapped(
-    unwrapSetLiteral,
-    wrapConstSetLiteral,
-    new Tuple2Serializer(
-        dartTypeSerializer, new ListSerializer(expressionSerializer)));
+TextSerializer<SetLiteral> constSetLiteralSerializer =
+    new Wrapped<Tuple2<DartType, List<Expression>>, SetLiteral>(
+        unwrapSetLiteral,
+        wrapConstSetLiteral,
+        new Tuple2Serializer(
+            dartTypeSerializer, new ListSerializer(expressionSerializer)));
 
 SetLiteral wrapConstSetLiteral(Tuple2<DartType, List<Expression>> tuple) {
   return new SetLiteral(tuple.second, typeArgument: tuple.first, isConst: true);
 }
 
-TextSerializer<MapLiteral> mapLiteralSerializer = new Wrapped(
-    unwrapMapLiteral,
-    wrapMapLiteral,
-    new Tuple3Serializer(dartTypeSerializer, dartTypeSerializer,
-        new ListSerializer(expressionSerializer)));
+TextSerializer<MapLiteral> mapLiteralSerializer =
+    new Wrapped<Tuple3<DartType, DartType, List<Expression>>, MapLiteral>(
+        unwrapMapLiteral,
+        wrapMapLiteral,
+        new Tuple3Serializer(dartTypeSerializer, dartTypeSerializer,
+            new ListSerializer(expressionSerializer)));
 
 Tuple3<DartType, DartType, List<Expression>> unwrapMapLiteral(
     MapLiteral expression) {
@@ -454,11 +474,12 @@ MapLiteral wrapMapLiteral(Tuple3<DartType, DartType, List<Expression>> tuple) {
       keyType: tuple.first, valueType: tuple.second, isConst: false);
 }
 
-TextSerializer<MapLiteral> constMapLiteralSerializer = new Wrapped(
-    unwrapMapLiteral,
-    wrapConstMapLiteral,
-    new Tuple3Serializer(dartTypeSerializer, dartTypeSerializer,
-        new ListSerializer(expressionSerializer)));
+TextSerializer<MapLiteral> constMapLiteralSerializer =
+    new Wrapped<Tuple3<DartType, DartType, List<Expression>>, MapLiteral>(
+        unwrapMapLiteral,
+        wrapConstMapLiteral,
+        new Tuple3Serializer(dartTypeSerializer, dartTypeSerializer,
+            new ListSerializer(expressionSerializer)));
 
 MapLiteral wrapConstMapLiteral(
     Tuple3<DartType, DartType, List<Expression>> tuple) {
@@ -471,8 +492,9 @@ MapLiteral wrapConstMapLiteral(
       keyType: tuple.first, valueType: tuple.second, isConst: true);
 }
 
-TextSerializer<Let> letSerializer = new Wrapped(unwrapLet, wrapLet,
-    new Bind(variableDeclarationSerializer, expressionSerializer));
+TextSerializer<Let> letSerializer =
+    new Wrapped<Tuple2<VariableDeclaration, Expression>, Let>(unwrapLet,
+        wrapLet, new Bind(variableDeclarationSerializer, expressionSerializer));
 
 Tuple2<VariableDeclaration, Expression> unwrapLet(Let expression) {
   return new Tuple2(expression.variable, expression.body);
@@ -603,7 +625,8 @@ FunctionTearOff wrapFunctionTearOff(Expression expression) {
 }
 
 TextSerializer<SuperPropertyGet> superPropertyGetSerializer =
-    new Wrapped(unwrapSuperPropertyGet, wrapSuperPropertyGet, nameSerializer);
+    new Wrapped<Name, SuperPropertyGet>(
+        unwrapSuperPropertyGet, wrapSuperPropertyGet, nameSerializer);
 
 Name unwrapSuperPropertyGet(SuperPropertyGet expression) {
   return expression.name;
@@ -613,10 +636,11 @@ SuperPropertyGet wrapSuperPropertyGet(Name name) {
   return new SuperPropertyGet(name);
 }
 
-TextSerializer<SuperPropertySet> superPropertySetSerializer = new Wrapped(
-    unwrapSuperPropertySet,
-    wrapSuperPropertySet,
-    new Tuple2Serializer(nameSerializer, expressionSerializer));
+TextSerializer<SuperPropertySet> superPropertySetSerializer =
+    new Wrapped<Tuple2<Name, Expression>, SuperPropertySet>(
+        unwrapSuperPropertySet,
+        wrapSuperPropertySet,
+        new Tuple2Serializer(nameSerializer, expressionSerializer));
 
 Tuple2<Name, Expression> unwrapSuperPropertySet(SuperPropertySet expression) {
   return new Tuple2(expression.name, expression.value);
@@ -854,7 +878,9 @@ EqualsCall wrapEqualsCall(
 }
 
 TextSerializer<SuperMethodInvocation> superMethodInvocationSerializer =
-    new Wrapped(unwrapSuperMethodInvocation, wrapSuperMethodInvocation,
+    new Wrapped<Tuple2<Name, Arguments>, SuperMethodInvocation>(
+        unwrapSuperMethodInvocation,
+        wrapSuperMethodInvocation,
         new Tuple2Serializer(nameSerializer, argumentsSerializer));
 
 Tuple2<Name, Arguments> unwrapSuperMethodInvocation(
@@ -882,11 +908,12 @@ VariableGet wrapVariableGet(Tuple2<VariableDeclaration, DartType?> tuple) {
   return new VariableGet(tuple.first, tuple.second);
 }
 
-TextSerializer<VariableSet> variableSetSerializer = new Wrapped(
-    unwrapVariableSet,
-    wrapVariableSet,
-    new Tuple2Serializer(
-        const ScopedUse<VariableDeclaration>(), expressionSerializer));
+TextSerializer<VariableSet> variableSetSerializer =
+    new Wrapped<Tuple2<VariableDeclaration, Expression>, VariableSet>(
+        unwrapVariableSet,
+        wrapVariableSet,
+        new Tuple2Serializer(
+            const ScopedUse<VariableDeclaration>(), expressionSerializer));
 
 Tuple2<VariableDeclaration, Expression> unwrapVariableSet(VariableSet node) {
   return new Tuple2<VariableDeclaration, Expression>(node.variable, node.value);
@@ -949,8 +976,9 @@ StaticGet wrapStaticGet(CanonicalName name) {
   return new StaticGet.byReference(name.reference);
 }
 
-const TextSerializer<StaticTearOff> staticTearOffSerializer = const Wrapped(
-    unwrapStaticTearOff, wrapStaticTearOff, canonicalNameSerializer);
+const TextSerializer<StaticTearOff> staticTearOffSerializer =
+    const Wrapped<CanonicalName, StaticTearOff>(
+        unwrapStaticTearOff, wrapStaticTearOff, canonicalNameSerializer);
 
 CanonicalName unwrapStaticTearOff(StaticTearOff expression) {
   return expression.targetReference.canonicalName!;
@@ -961,8 +989,8 @@ StaticTearOff wrapStaticTearOff(CanonicalName name) {
 }
 
 const TextSerializer<ConstructorTearOff> constructorTearOffSerializer =
-    const Wrapped(unwrapConstructorTearOff, wrapConstructorTearOff,
-        canonicalNameSerializer);
+    const Wrapped<CanonicalName, ConstructorTearOff>(unwrapConstructorTearOff,
+        wrapConstructorTearOff, canonicalNameSerializer);
 
 CanonicalName unwrapConstructorTearOff(ConstructorTearOff expression) {
   return expression.targetReference.canonicalName!;
@@ -973,7 +1001,8 @@ ConstructorTearOff wrapConstructorTearOff(CanonicalName name) {
 }
 
 const TextSerializer<RedirectingFactoryTearOff>
-    redirectingFactoryTearOffSerializer = const Wrapped(
+    redirectingFactoryTearOffSerializer =
+    const Wrapped<CanonicalName, RedirectingFactoryTearOff>(
         unwrapRedirectingFactoryTearOff,
         wrapRedirectingFactoryTearOff,
         canonicalNameSerializer);
@@ -1009,10 +1038,11 @@ TypedefTearOff wrapTypedefTearOff(
       tuple.first, tuple.second.first, tuple.second.second);
 }
 
-TextSerializer<StaticSet> staticSetSerializer = new Wrapped(
-    unwrapStaticSet,
-    wrapStaticSet,
-    new Tuple2Serializer(canonicalNameSerializer, expressionSerializer));
+TextSerializer<StaticSet> staticSetSerializer =
+    new Wrapped<Tuple2<CanonicalName, Expression>, StaticSet>(
+        unwrapStaticSet,
+        wrapStaticSet,
+        new Tuple2Serializer(canonicalNameSerializer, expressionSerializer));
 
 Tuple2<CanonicalName, Expression> unwrapStaticSet(StaticSet expression) {
   return new Tuple2(
@@ -1023,10 +1053,11 @@ StaticSet wrapStaticSet(Tuple2<CanonicalName, Expression> tuple) {
   return new StaticSet.byReference(tuple.first.reference, tuple.second);
 }
 
-TextSerializer<StaticInvocation> staticInvocationSerializer = new Wrapped(
-    unwrapStaticInvocation,
-    wrapStaticInvocation,
-    new Tuple2Serializer(canonicalNameSerializer, argumentsSerializer));
+TextSerializer<StaticInvocation> staticInvocationSerializer =
+    new Wrapped<Tuple2<CanonicalName, Arguments>, StaticInvocation>(
+        unwrapStaticInvocation,
+        wrapStaticInvocation,
+        new Tuple2Serializer(canonicalNameSerializer, argumentsSerializer));
 
 Tuple2<CanonicalName, Arguments> unwrapStaticInvocation(
     StaticInvocation expression) {
@@ -1039,10 +1070,11 @@ StaticInvocation wrapStaticInvocation(Tuple2<CanonicalName, Arguments> tuple) {
       isConst: false);
 }
 
-TextSerializer<StaticInvocation> constStaticInvocationSerializer = new Wrapped(
-    unwrapStaticInvocation,
-    wrapConstStaticInvocation,
-    new Tuple2Serializer(canonicalNameSerializer, argumentsSerializer));
+TextSerializer<StaticInvocation> constStaticInvocationSerializer =
+    new Wrapped<Tuple2<CanonicalName, Arguments>, StaticInvocation>(
+        unwrapStaticInvocation,
+        wrapConstStaticInvocation,
+        new Tuple2Serializer(canonicalNameSerializer, argumentsSerializer));
 
 StaticInvocation wrapConstStaticInvocation(
     Tuple2<CanonicalName, Arguments> tuple) {
@@ -1051,7 +1083,9 @@ StaticInvocation wrapConstStaticInvocation(
 }
 
 TextSerializer<ConstructorInvocation> constructorInvocationSerializer =
-    new Wrapped(unwrapConstructorInvocation, wrapConstructorInvocation,
+    new Wrapped<Tuple2<CanonicalName, Arguments>, ConstructorInvocation>(
+        unwrapConstructorInvocation,
+        wrapConstructorInvocation,
         new Tuple2Serializer(canonicalNameSerializer, argumentsSerializer));
 
 Tuple2<CanonicalName, Arguments> unwrapConstructorInvocation(
@@ -1068,7 +1102,9 @@ ConstructorInvocation wrapConstructorInvocation(
 }
 
 TextSerializer<ConstructorInvocation> constConstructorInvocationSerializer =
-    new Wrapped(unwrapConstructorInvocation, wrapConstConstructorInvocation,
+    new Wrapped<Tuple2<CanonicalName, Arguments>, ConstructorInvocation>(
+        unwrapConstructorInvocation,
+        wrapConstConstructorInvocation,
         Tuple2Serializer(canonicalNameSerializer, argumentsSerializer));
 
 ConstructorInvocation wrapConstConstructorInvocation(
@@ -1078,8 +1114,9 @@ ConstructorInvocation wrapConstConstructorInvocation(
       isConst: true);
 }
 
-TextSerializer<FunctionExpression> functionExpressionSerializer = new Wrapped(
-    unwrapFunctionExpression, wrapFunctionExpression, functionNodeSerializer);
+TextSerializer<FunctionExpression> functionExpressionSerializer =
+    new Wrapped<FunctionNode, FunctionExpression>(unwrapFunctionExpression,
+        wrapFunctionExpression, functionNodeSerializer);
 
 FunctionNode unwrapFunctionExpression(FunctionExpression expression) {
   return expression.function;
@@ -1177,10 +1214,11 @@ Case<Expression> expressionSerializer =
 TextSerializer<Expression?> nullableExpressionSerializer =
     new Optional(expressionSerializer);
 
-TextSerializer<NamedExpression> namedExpressionSerializer = new Wrapped(
-    unwrapNamedExpression,
-    wrapNamedExpression,
-    new Tuple2Serializer(const DartString(), expressionSerializer));
+TextSerializer<NamedExpression> namedExpressionSerializer =
+    new Wrapped<Tuple2<String, Expression>, NamedExpression>(
+        unwrapNamedExpression,
+        wrapNamedExpression,
+        new Tuple2Serializer(const DartString(), expressionSerializer));
 
 Tuple2<String, Expression> unwrapNamedExpression(NamedExpression expression) {
   return new Tuple2(expression.name, expression.value);
@@ -1190,7 +1228,9 @@ NamedExpression wrapNamedExpression(Tuple2<String, Expression> tuple) {
   return new NamedExpression(tuple.first, tuple.second);
 }
 
-TextSerializer<Arguments> argumentsSerializer = new Wrapped(
+TextSerializer<Arguments> argumentsSerializer = new Wrapped<
+        Tuple3<List<DartType>, List<Expression>, List<NamedExpression>>,
+        Arguments>(
     unwrapArguments,
     wrapArguments,
     Tuple3Serializer(
@@ -1259,7 +1299,8 @@ TextSerializer<TypeParameter> typeParameterSerializer =
     Wrapped<Tuple2<String?, TypeParameter>, TypeParameter>(
         (p) => Tuple2(p.name, p),
         (t) => t.second..name = t.first,
-        Binder(Wrapped((_) => null, (_) => TypeParameter(), const Nothing())));
+        Binder<TypeParameter>(Wrapped<void, TypeParameter>(
+            (_) => null, (_) => TypeParameter(), const Nothing())));
 
 TextSerializer<List<TypeParameter>> typeParametersSerializer = new Zip(
     new Rebind(
@@ -1325,35 +1366,42 @@ class DartTypeTagger extends DartTypeVisitor<String>
 }
 
 const TextSerializer<InvalidType> invalidTypeSerializer =
-    const Wrapped(unwrapInvalidType, wrapInvalidType, const Nothing());
+    const Wrapped<void, InvalidType>(
+        unwrapInvalidType, wrapInvalidType, const Nothing());
 
 void unwrapInvalidType(InvalidType type) {}
 
 InvalidType wrapInvalidType(void ignored) => const InvalidType();
 
 const TextSerializer<DynamicType> dynamicTypeSerializer =
-    const Wrapped(unwrapDynamicType, wrapDynamicType, const Nothing());
+    const Wrapped<void, DynamicType>(
+        unwrapDynamicType, wrapDynamicType, const Nothing());
 
 void unwrapDynamicType(DynamicType type) {}
 
 DynamicType wrapDynamicType(void ignored) => const DynamicType();
 
 const TextSerializer<VoidType> voidTypeSerializer =
-    const Wrapped(unwrapVoidType, wrapVoidType, const Nothing());
+    const Wrapped<void, VoidType>(
+        unwrapVoidType, wrapVoidType, const Nothing());
 
 void unwrapVoidType(VoidType type) {}
 
 VoidType wrapVoidType(void ignored) => const VoidType();
 
 const TextSerializer<NeverType> neverTypeSerializer =
-    const Wrapped(unwrapNeverType, wrapNeverType, const Nothing());
+    const Wrapped<void, NeverType>(
+        unwrapNeverType, wrapNeverType, const Nothing());
 
 void unwrapNeverType(NeverType type) {}
 
 NeverType wrapNeverType(void ignored) => const NeverType.legacy();
 
 // TODO(dmitryas):  Also handle nameParameters, and typedefType.
-TextSerializer<FunctionType> functionTypeSerializer = new Wrapped(
+TextSerializer<FunctionType> functionTypeSerializer = new Wrapped<
+        Tuple2<List<TypeParameter>,
+            Tuple4<List<DartType>, List<DartType>, List<NamedType>, DartType>>,
+        FunctionType>(
     unwrapFunctionType,
     wrapFunctionType,
     new Bind(
@@ -1387,8 +1435,11 @@ FunctionType wrapFunctionType(
       namedParameters: tuple.second.third);
 }
 
-TextSerializer<NamedType> namedTypeSerializer = new Wrapped(unwrapNamedType,
-    wrapNamedType, Tuple2Serializer(const DartString(), dartTypeSerializer));
+TextSerializer<NamedType> namedTypeSerializer =
+    new Wrapped<Tuple2<String, DartType>, NamedType>(
+        unwrapNamedType,
+        wrapNamedType,
+        Tuple2Serializer(const DartString(), dartTypeSerializer));
 
 Tuple2<String, DartType> unwrapNamedType(NamedType namedType) {
   return new Tuple2(namedType.name, namedType.type);
@@ -1398,11 +1449,12 @@ NamedType wrapNamedType(Tuple2<String, DartType> tuple) {
   return new NamedType(tuple.first, tuple.second);
 }
 
-TextSerializer<TypeParameterType> typeParameterTypeSerializer = new Wrapped(
-    unwrapTypeParameterType,
-    wrapTypeParameterType,
-    Tuple2Serializer(
-        new ScopedUse<TypeParameter>(), new Optional(dartTypeSerializer)));
+TextSerializer<TypeParameterType> typeParameterTypeSerializer =
+    new Wrapped<Tuple2<TypeParameter, DartType?>, TypeParameterType>(
+        unwrapTypeParameterType,
+        wrapTypeParameterType,
+        Tuple2Serializer(
+            new ScopedUse<TypeParameter>(), new Optional(dartTypeSerializer)));
 
 Tuple2<TypeParameter, DartType?> unwrapTypeParameterType(
     TypeParameterType node) {
@@ -1414,11 +1466,12 @@ TypeParameterType wrapTypeParameterType(
   return new TypeParameterType(tuple.first, Nullability.legacy, tuple.second);
 }
 
-TextSerializer<InterfaceType> interfaceTypeSerializer = new Wrapped(
-    unwrapInterfaceType,
-    wrapInterfaceType,
-    Tuple2Serializer(
-        canonicalNameSerializer, new ListSerializer(dartTypeSerializer)));
+TextSerializer<InterfaceType> interfaceTypeSerializer =
+    new Wrapped<Tuple2<CanonicalName, List<DartType>>, InterfaceType>(
+        unwrapInterfaceType,
+        wrapInterfaceType,
+        Tuple2Serializer(
+            canonicalNameSerializer, new ListSerializer(dartTypeSerializer)));
 
 Tuple2<CanonicalName, List<DartType>> unwrapInterfaceType(InterfaceType node) {
   return new Tuple2(node.className.canonicalName!, node.typeArguments);
@@ -1429,11 +1482,12 @@ InterfaceType wrapInterfaceType(Tuple2<CanonicalName, List<DartType>> tuple) {
       tuple.first.reference, Nullability.legacy, tuple.second);
 }
 
-TextSerializer<TypedefType> typedefTypeSerializer = new Wrapped(
-    unwrapTypedefType,
-    wrapTypedefType,
-    Tuple2Serializer(
-        canonicalNameSerializer, new ListSerializer(dartTypeSerializer)));
+TextSerializer<TypedefType> typedefTypeSerializer =
+    new Wrapped<Tuple2<CanonicalName, List<DartType>>, TypedefType>(
+        unwrapTypedefType,
+        wrapTypedefType,
+        Tuple2Serializer(
+            canonicalNameSerializer, new ListSerializer(dartTypeSerializer)));
 
 Tuple2<CanonicalName, List<DartType>> unwrapTypedefType(TypedefType node) {
   return new Tuple2(node.typedefReference.canonicalName!, node.typeArguments);
@@ -1445,7 +1499,8 @@ TypedefType wrapTypedefType(Tuple2<CanonicalName, List<DartType>> tuple) {
 }
 
 TextSerializer<FutureOrType> futureOrTypeSerializer =
-    new Wrapped(unwrapFutureOrType, wrapFutureOrType, dartTypeSerializer);
+    new Wrapped<DartType, FutureOrType>(
+        unwrapFutureOrType, wrapFutureOrType, dartTypeSerializer);
 
 DartType unwrapFutureOrType(FutureOrType node) {
   return node.typeArgument;
@@ -1456,7 +1511,7 @@ FutureOrType wrapFutureOrType(DartType typeArgument) {
 }
 
 TextSerializer<NullType> nullTypeSerializer =
-    new Wrapped(unwrapNullType, wrapNullType, const Nothing());
+    new Wrapped<void, NullType>(unwrapNullType, wrapNullType, const Nothing());
 
 void unwrapNullType(NullType type) {}
 
@@ -1530,8 +1585,9 @@ class StatementTagger extends StatementVisitor<String>
   }
 }
 
-TextSerializer<ExpressionStatement> expressionStatementSerializer = new Wrapped(
-    unwrapExpressionStatement, wrapExpressionStatement, expressionSerializer);
+TextSerializer<ExpressionStatement> expressionStatementSerializer =
+    new Wrapped<Expression, ExpressionStatement>(unwrapExpressionStatement,
+        wrapExpressionStatement, expressionSerializer);
 
 Expression unwrapExpressionStatement(ExpressionStatement statement) {
   return statement.expression;
@@ -1553,15 +1609,17 @@ ReturnStatement wrapReturnStatement(Expression? expression) {
   return new ReturnStatement(expression);
 }
 
-TextSerializer<ReturnStatement> returnVoidStatementSerializer = new Wrapped(
-    unwrapReturnVoidStatement, wrapReturnVoidStatement, const Nothing());
+TextSerializer<ReturnStatement> returnVoidStatementSerializer =
+    new Wrapped<void, ReturnStatement>(
+        unwrapReturnVoidStatement, wrapReturnVoidStatement, const Nothing());
 
 void unwrapReturnVoidStatement(void ignored) {}
 
 ReturnStatement wrapReturnVoidStatement(void ignored) => new ReturnStatement();
 
 TextSerializer<YieldStatement> yieldStatementSerializer =
-    new Wrapped(unwrapYieldStatement, wrapYieldStatement, expressionSerializer);
+    new Wrapped<Expression, YieldStatement>(
+        unwrapYieldStatement, wrapYieldStatement, expressionSerializer);
 
 Expression unwrapYieldStatement(YieldStatement node) => node.expression;
 
@@ -1657,10 +1715,11 @@ class BlockSerializer
   }
 }
 
-TextSerializer<IfStatement> ifStatementSerializer = new Wrapped(
-    unwrapIfStatement,
-    wrapIfStatement,
-    Tuple2Serializer(expressionSerializer, statementSerializer));
+TextSerializer<IfStatement> ifStatementSerializer =
+    new Wrapped<Tuple2<Expression, Statement>, IfStatement>(
+        unwrapIfStatement,
+        wrapIfStatement,
+        Tuple2Serializer(expressionSerializer, statementSerializer));
 
 Tuple2<Expression, Statement> unwrapIfStatement(IfStatement node) {
   return new Tuple2(node.condition, node.then);
@@ -1670,11 +1729,12 @@ IfStatement wrapIfStatement(Tuple2<Expression, Statement> tuple) {
   return new IfStatement(tuple.first, tuple.second, null);
 }
 
-TextSerializer<IfStatement> ifElseStatementSerializer = new Wrapped(
-    unwrapIfElseStatement,
-    wrapIfElseStatement,
-    Tuple3Serializer(
-        expressionSerializer, statementSerializer, statementSerializer));
+TextSerializer<IfStatement> ifElseStatementSerializer =
+    new Wrapped<Tuple3<Expression, Statement, Statement?>, IfStatement>(
+        unwrapIfElseStatement,
+        wrapIfElseStatement,
+        Tuple3Serializer<Expression, Statement, Statement?>(
+            expressionSerializer, statementSerializer, statementSerializer));
 
 Tuple3<Expression, Statement, Statement?> unwrapIfElseStatement(
     IfStatement node) {
@@ -1687,16 +1747,18 @@ IfStatement wrapIfElseStatement(
 }
 
 TextSerializer<EmptyStatement> emptyStatementSerializer =
-    new Wrapped(unwrapEmptyStatement, wrapEmptyStatement, const Nothing());
+    new Wrapped<void, EmptyStatement>(
+        unwrapEmptyStatement, wrapEmptyStatement, const Nothing());
 
 void unwrapEmptyStatement(EmptyStatement node) {}
 
 EmptyStatement wrapEmptyStatement(void ignored) => new EmptyStatement();
 
-TextSerializer<WhileStatement> whileStatementSerializer = new Wrapped(
-    unwrapWhileStatement,
-    wrapWhileStatement,
-    new Tuple2Serializer(expressionSerializer, statementSerializer));
+TextSerializer<WhileStatement> whileStatementSerializer =
+    new Wrapped<Tuple2<Expression, Statement>, WhileStatement>(
+        unwrapWhileStatement,
+        wrapWhileStatement,
+        new Tuple2Serializer(expressionSerializer, statementSerializer));
 
 Tuple2<Expression, Statement> unwrapWhileStatement(WhileStatement node) {
   return new Tuple2(node.condition, node.body);
@@ -1706,10 +1768,11 @@ WhileStatement wrapWhileStatement(Tuple2<Expression, Statement> tuple) {
   return new WhileStatement(tuple.first, tuple.second);
 }
 
-TextSerializer<DoStatement> doStatementSerializer = new Wrapped(
-    unwrapDoStatement,
-    wrapDoStatement,
-    new Tuple2Serializer(statementSerializer, expressionSerializer));
+TextSerializer<DoStatement> doStatementSerializer =
+    new Wrapped<Tuple2<Statement, Expression>, DoStatement>(
+        unwrapDoStatement,
+        wrapDoStatement,
+        new Tuple2Serializer(statementSerializer, expressionSerializer));
 
 Tuple2<Statement, Expression> unwrapDoStatement(DoStatement node) {
   return new Tuple2(node.body, node.condition);
@@ -1731,7 +1794,9 @@ TextSerializer<ForStatement> forStatementSerializer = Wrapped<
         new Tuple3Serializer(Optional(expressionSerializer),
             new ListSerializer(expressionSerializer), statementSerializer)));
 
-TextSerializer<ForInStatement> forInStatementSerializer = new Wrapped(
+TextSerializer<ForInStatement> forInStatementSerializer = new Wrapped<
+        Tuple2<Expression, Tuple2<VariableDeclaration, Statement>>,
+        ForInStatement>(
     unwrapForInStatement,
     wrapForInStatement,
     new Tuple2Serializer(expressionSerializer,
@@ -1748,7 +1813,9 @@ ForInStatement wrapForInStatement(
       tuple.second.first, tuple.first, tuple.second.second);
 }
 
-TextSerializer<ForInStatement> awaitForInStatementSerializer = new Wrapped(
+TextSerializer<ForInStatement> awaitForInStatementSerializer = new Wrapped<
+        Tuple2<Expression, Tuple2<VariableDeclaration, Statement>>,
+        ForInStatement>(
     unwrapForInStatement,
     wrapAwaitForInStatement,
     new Tuple2Serializer(expressionSerializer,
@@ -1769,14 +1836,13 @@ TextSerializer<LabeledStatement> labeledStatementSerializer =
             Wrapped<Tuple2<String?, LabeledStatement>, LabeledStatement>(
                 (ls) => Tuple2("L", ls),
                 (t) => t.second,
-                Binder(Wrapped(
+                Binder(Wrapped<void, LabeledStatement>(
                     (_) => null, (_) => LabeledStatement(null), Nothing()))),
             statementSerializer));
 
-TextSerializer<BreakStatement> breakSerializer = new Wrapped(
-    unwrapBreakStatement,
-    wrapBreakStatement,
-    const ScopedUse<LabeledStatement>());
+TextSerializer<BreakStatement> breakSerializer =
+    new Wrapped<LabeledStatement, BreakStatement>(unwrapBreakStatement,
+        wrapBreakStatement, const ScopedUse<LabeledStatement>());
 
 LabeledStatement unwrapBreakStatement(BreakStatement node) {
   return node.target;
@@ -1844,12 +1910,12 @@ TextSerializer<SwitchCase> switchCaseCaseSerializer =
             (u) => SwitchCase(u, List.filled(u.length, 0), null),
             ListSerializer(expressionSerializer))));
 
-TextSerializer<SwitchCase> switchCaseDefaultSerializer = Wrapped<
-        Tuple2<String?, SwitchCase>, SwitchCase>(
-    (w) => Tuple2("L", w),
-    (u) => u.second,
-    Binder(
-        Wrapped((w) => null, (u) => SwitchCase.defaultCase(null), Nothing())));
+TextSerializer<SwitchCase> switchCaseDefaultSerializer =
+    Wrapped<Tuple2<String?, SwitchCase>, SwitchCase>(
+        (w) => Tuple2("L", w),
+        (u) => u.second,
+        Binder(Wrapped<void, SwitchCase>(
+            (w) => null, (u) => SwitchCase.defaultCase(null), Nothing())));
 
 TextSerializer<SwitchCase> switchCaseSerializer = Case(SwitchCaseTagger(), {
   "case": switchCaseCaseSerializer,
@@ -2535,6 +2601,7 @@ const Map<int, String> classFlagToName = const {
   Class.FlagEliminatedMixin: "eliminated-mixin",
   Class.FlagMixinDeclaration: "mixin-declaration",
   Class.FlagHasConstConstructor: "has-const-constructor",
+  Class.FlagMacro: "macro",
 };
 
 class ClassFlagTagger implements Tagger<int> {
@@ -2837,7 +2904,7 @@ void initializeSerializers() {
 Map<String, Wrapped<void, T>> convertFlagsMap<T>(Map<T, String> map) {
   return map.entries.toMap(
       key: (e) => e.value,
-      value: (e) => Wrapped((_) => null, (_) => e.key, Nothing()));
+      value: (e) => Wrapped<void, T>((_) => null, (_) => e.key, Nothing()));
 }
 
 extension MapFromIterable<E> on Iterable<E> {

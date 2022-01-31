@@ -468,23 +468,10 @@ class TestChannel implements ServerCommunicationChannel {
   server.Notification? sentNotification;
 
   @override
-  void close() {
-    fail('Unexpected invocation of close');
-  }
-
-  @override
-  void listen(void Function(server.Request) onRequest,
-      {Function? onError, void Function()? onDone}) {
-    fail('Unexpected invocation of listen');
-  }
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   void sendNotification(server.Notification notification) {
     sentNotification = notification;
-  }
-
-  @override
-  void sendResponse(server.Response response) {
-    fail('Unexpected invocation of sendResponse');
   }
 }

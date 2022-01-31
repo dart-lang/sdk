@@ -523,7 +523,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(R4, arguments_descriptor);
 
   ASSERT(locs()->in(0).reg() == R0);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     // R0: Closure with a cached entry point.
     __ LoadFieldFromOffset(R2, R0,
                            compiler::target::Closure::entry_point_offset());
@@ -1071,7 +1071,7 @@ Condition TestSmiInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Location right = locs()->in(1);
   if (right.IsConstant()) {
     ASSERT(right.constant().IsSmi());
-    const int64_t imm = static_cast<int64_t>(right.constant().ptr());
+    const int64_t imm = Smi::RawValue(Smi::Cast(right.constant()).Value());
     __ TestImmediate(left, imm, compiler::kObjectBytes);
   } else {
     __ tst(left, compiler::Operand(right.reg()), compiler::kObjectBytes);
@@ -1270,6 +1270,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if (is_leaf_) {
+#if !defined(PRODUCT)
+    // Set the thread object's top_exit_frame_info and VMTag to enable the
+    // profiler to determine that thread is no longer executing Dart code.
+    __ StoreToOffset(FPREG, THR,
+                     compiler::target::Thread::top_exit_frame_info_offset());
+    __ StoreToOffset(branch, THR, compiler::target::Thread::vm_tag_offset());
+#endif
+
     // We are entering runtime code, so the C stack pointer must be restored
     // from the stack limit to the top of the stack.
     __ mov(R25, CSP);
@@ -1280,6 +1288,13 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Restore the Dart stack pointer.
     __ mov(SP, CSP);
     __ mov(CSP, R25);
+
+#if !defined(PRODUCT)
+    __ LoadImmediate(temp1, compiler::target::Thread::vm_tag_dart_id());
+    __ StoreToOffset(temp1, THR, compiler::target::Thread::vm_tag_offset());
+    __ StoreToOffset(ZR, THR,
+                     compiler::target::Thread::top_exit_frame_info_offset());
+#endif
   } else {
     // We need to copy a dummy return address up into the dummy stack frame so
     // the stack walker will know which safepoint to use.
@@ -1343,7 +1358,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // Restore the global object pool after returning from runtime (old space is
     // moving, so the GOP could have been relocated).
-    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    if (FLAG_precompiled_mode) {
       __ SetupGlobalPoolAndDispatchTable();
     }
 
@@ -1506,7 +1521,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Put the code object in the reserved slot.
   __ StoreToOffset(CODE_REG, FPREG,
                    kPcMarkerSlotFromFp * compiler::target::kWordSize);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+  if (FLAG_precompiled_mode) {
     __ SetupGlobalPoolAndDispatchTable();
   } else {
     // We now load the pool pointer (PP) with a GC safe value as we are about to
@@ -2300,7 +2315,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
            compiler::FieldAddress(
                field_reg, Field::guarded_list_length_in_object_offset_offset()),
            compiler::kByte);
-    __ LoadCompressed(
+    __ LoadCompressedSmi(
         length_reg,
         compiler::FieldAddress(field_reg, Field::guarded_list_length_offset()));
 
@@ -2311,7 +2326,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // value's class matches guarded class id of the field.
     // offset_reg contains offset already corrected by -kHeapObjectTag that is
     // why we use Address instead of FieldAddress.
-    __ ldr(TMP, compiler::Address(value_reg, offset_reg));
+    __ LoadCompressedSmi(TMP, compiler::Address(value_reg, offset_reg));
     __ CompareObjectRegisters(length_reg, TMP);
 
     if (deopt == NULL) {
@@ -2705,10 +2720,8 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // R3: new object end address.
   // R8: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // R6: null
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(UntaggedArray);
-    __ LoadObject(R6, Object::null_object());
     __ AddImmediate(R8, AllocateArrayABI::kResultReg,
                     sizeof(UntaggedArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kCompressedWordSize)) {
@@ -2718,7 +2731,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
             AllocateArrayABI::kResultReg,
             compiler::Address(R8, current_offset, compiler::Address::Offset,
                               compiler::kObjectBytes),
-            R6);
+            NULL_REG);
         current_offset += kCompressedWordSize;
       }
     } else {
@@ -2730,7 +2743,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
           AllocateArrayABI::kResultReg,
           compiler::Address(R8, 0, compiler::Address::Offset,
                             compiler::kObjectBytes),
-          R6);
+          NULL_REG);
       __ AddImmediate(R8, kCompressedWordSize);
       __ b(&init_loop);
       __ Bind(&end_loop);
@@ -3440,7 +3453,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (locs()->in(1).IsConstant()) {
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    const int64_t imm = static_cast<int64_t>(constant.ptr());
+    const int64_t imm = Smi::RawValue(Smi::Cast(constant).Value());
     switch (op_kind()) {
       case Token::kADD: {
         if (deopt == NULL) {
@@ -3996,7 +4009,7 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
   // Shared slow path is used in BoxInt64Instr::EmitNativeCode in
-  // FLAG_use_bare_instructions mode and only after VM isolate stubs where
+  // precompiled mode and only after VM isolate stubs where
   // replaced with isolate-specific stubs.
   auto object_store = IsolateGroup::Current()->object_store();
   const bool stubs_in_vm_isolate =
@@ -4007,7 +4020,6 @@ LocationSummary* BoxInt64Instr::MakeLocationSummary(Zone* zone,
           ->untag()
           ->InVMIsolateHeap();
   const bool shared_slow_path_call = SlowPathSharingSupported(opt) &&
-                                     FLAG_use_bare_instructions &&
                                      !stubs_in_vm_isolate;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
@@ -5408,8 +5420,7 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void CheckNullInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ThrowErrorSlowPathCode* slow_path =
-      new NullErrorSlowPath(this, compiler->CurrentTryIndex());
+  ThrowErrorSlowPathCode* slow_path = new NullErrorSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
   Register value_reg = locs()->in(0).reg();
@@ -5492,11 +5503,9 @@ class Int64DivideSlowPath : public ThrowErrorSlowPathCode {
                       Register divisor,
                       Range* divisor_range,
                       Register tmp,
-                      Register out,
-                      intptr_t try_index)
+                      Register out)
       : ThrowErrorSlowPathCode(instruction,
-                               kIntegerDivisionByZeroExceptionRuntimeEntry,
-                               try_index),
+                               kIntegerDivisionByZeroExceptionRuntimeEntry),
         is_mod_(instruction->op_kind() == Token::kMOD),
         divisor_(divisor),
         divisor_range_(divisor_range),
@@ -5620,8 +5629,8 @@ static void EmitInt64ModTruncDiv(FlowGraphCompiler* compiler,
 
   // Prepare a slow path.
   Range* right_range = instruction->right()->definition()->range();
-  Int64DivideSlowPath* slow_path = new (Z) Int64DivideSlowPath(
-      instruction, right, right_range, tmp, out, compiler->CurrentTryIndex());
+  Int64DivideSlowPath* slow_path =
+      new (Z) Int64DivideSlowPath(instruction, right, right_range, tmp, out);
 
   // Handle modulo/division by zero exception on slow path.
   if (slow_path->has_divide_by_zero()) {
@@ -5850,10 +5859,9 @@ static void EmitShiftUint32ByRegister(FlowGraphCompiler* compiler,
 
 class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction, intptr_t try_index)
+  explicit ShiftInt64OpSlowPath(ShiftInt64OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "int64 shift"; }
 
@@ -5920,8 +5928,7 @@ void ShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Jump to a slow path if shift is larger than 63 or less than 0.
     ShiftInt64OpSlowPath* slow_path = NULL;
     if (!IsShiftCountInRange()) {
-      slow_path =
-          new (Z) ShiftInt64OpSlowPath(this, compiler->CurrentTryIndex());
+      slow_path = new (Z) ShiftInt64OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
       __ CompareImmediate(shift, kShiftCountLimit);
       __ b(slow_path->entry_label(), HI);
@@ -5980,10 +5987,9 @@ void SpeculativeShiftInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 class ShiftUint32OpSlowPath : public ThrowErrorSlowPathCode {
  public:
-  ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction, intptr_t try_index)
+  explicit ShiftUint32OpSlowPath(ShiftUint32OpInstr* instruction)
       : ThrowErrorSlowPathCode(instruction,
-                               kArgumentErrorUnboxedInt64RuntimeEntry,
-                               try_index) {}
+                               kArgumentErrorUnboxedInt64RuntimeEntry) {}
 
   const char* name() override { return "uint32 shift"; }
 
@@ -6029,8 +6035,7 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     // Jump to a slow path if shift count is negative.
     if (!shift_count_in_range) {
-      ShiftUint32OpSlowPath* slow_path =
-          new (Z) ShiftUint32OpSlowPath(this, compiler->CurrentTryIndex());
+      ShiftUint32OpSlowPath* slow_path = new (Z) ShiftUint32OpSlowPath(this);
       compiler->AddSlowPathCode(slow_path);
 
       __ tbnz(slow_path->entry_label(), right, kBitsPerWord - 1);

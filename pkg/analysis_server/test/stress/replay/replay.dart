@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart' as error;
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -260,19 +259,19 @@ class Driver {
       return false;
     }
 
-    if (results[HELP_FLAG_NAME]) {
+    if (results[HELP_FLAG_NAME] as bool) {
       _showUsage(parser);
       return false;
     }
 
-    String overlayStyleValue = results[OVERLAY_STYLE_OPTION_NAME];
+    var overlayStyleValue = results[OVERLAY_STYLE_OPTION_NAME] as String;
     if (overlayStyleValue == CHANGE_OVERLAY_STYLE) {
       overlayStyle = OverlayStyle.change;
     } else if (overlayStyleValue == MULTIPLE_ADD_OVERLAY_STYLE) {
       overlayStyle = OverlayStyle.multipleAdd;
     }
 
-    if (results[VERBOSE_FLAG_NAME]) {
+    if (results[VERBOSE_FLAG_NAME] as bool) {
       verbose = true;
       logger = Logger(stdout);
     }
@@ -497,7 +496,7 @@ class FileEdit {
       throw ArgumentError('Unhandled change of type ${record.status}');
     } else {
       content = File(filePath).readAsStringSync();
-      lineInfo = LineInfo(StringUtilities.computeLineStarts(content));
+      lineInfo = LineInfo.fromContent(content);
     }
     currentContent = content;
   }

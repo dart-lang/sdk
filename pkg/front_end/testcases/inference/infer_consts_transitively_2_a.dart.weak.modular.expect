@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_consts_transitively_2.dart";
+import "org-dartlang-testcase:///infer_consts_transitively_2_b.dart";
+
+static const field core::int* a1 = #C1;
+static const field core::int* a2 = #C1;
+static method main() → dynamic {}
+
+library test;
+import self as self2;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///infer_consts_transitively_2_a.dart";
+
+static const field core::int* m1 = #C1;
+static const field core::int* m2 = #C1;
+static method foo() → dynamic {
+  core::int* i;
+  i = #C1;
+}
+static method main() → dynamic {}
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+static const field core::int* b1 = #C1;
+static method main() → dynamic {
+  #C1;
+}
+
+constants  {
+  #C1 = 2
+}

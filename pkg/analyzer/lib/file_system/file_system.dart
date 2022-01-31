@@ -127,11 +127,6 @@ abstract class Resource {
   /// Return `true` if this resource exists.
   bool get exists;
 
-  /// Return the [Folder] that contains this resource, or `null` if this
-  /// resource is a root folder.
-  @Deprecated('Use parent2 instead')
-  Folder? get parent;
-
   /// Return the [Folder] that contains this resource, possibly itself if this
   /// resource is a root folder.
   Folder get parent2;
@@ -195,13 +190,6 @@ abstract class ResourceProvider {
   ///
   /// A folder may or may not exist at this location.
   Folder getFolder(String path);
-
-  /// Complete with a list of modification times for the given [sources].
-  ///
-  /// If the file of a source is not managed by this provider, return `null`.
-  /// If the file a source does not exist, return `-1`.
-  @Deprecated('Not used by clients')
-  Future<List<int?>> getModificationTimes(List<Source> sources);
 
   /// Return the [Resource] that corresponds to the given [path].
   ///

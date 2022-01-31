@@ -1,0 +1,41 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/future_then_explicit_future.dart:15:99: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'FutureOr<Future<List<int>>>'.
+//  - 'List' is from 'dart:core'.
+//  - 'Future' is from 'dart:async'.
+//       /*@returnType=FutureOr<Future<List<int*>*>*>**/ (/*@type=int**/ x) => /*@typeArgs=dynamic*/ []);
+//                                                                                                   ^
+//
+// pkg/front_end/testcases/inference/future_then_explicit_future.dart:16:25: Error: A value of type 'Future<Future<List<int>>>' can't be assigned to a variable of type 'Future<List<int>>'.
+//  - 'Future' is from 'dart:async'.
+//  - 'List' is from 'dart:core'.
+//   Future<List<int>> y = x;
+//                         ^
+//
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method m1() → dynamic {
+  asy::Future<core::int*>* f;
+  asy::Future<asy::Future<core::List<core::int*>*>*>* x = f.{asy::Future::then}<asy::Future<core::List<core::int*>*>*>((core::int* x) → FutureOr<asy::Future<core::List<core::int*>*>*>* => invalid-expression "pkg/front_end/testcases/inference/future_then_explicit_future.dart:15:99: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'FutureOr<Future<List<int>>>'.
+ - 'List' is from 'dart:core'.
+ - 'Future' is from 'dart:async'.
+      /*@returnType=FutureOr<Future<List<int*>*>*>**/ (/*@type=int**/ x) => /*@typeArgs=dynamic*/ []);
+                                                                                                  ^" in <dynamic>[] as{TypeError} FutureOr<asy::Future<core::List<core::int*>*>*>*){((core::int*) →* FutureOr<asy::Future<core::List<core::int*>*>*>*, {onError: core::Function*}) →* asy::Future<asy::Future<core::List<core::int*>*>*>*};
+  asy::Future<core::List<core::int*>*>* y = invalid-expression "pkg/front_end/testcases/inference/future_then_explicit_future.dart:16:25: Error: A value of type 'Future<Future<List<int>>>' can't be assigned to a variable of type 'Future<List<int>>'.
+ - 'Future' is from 'dart:async'.
+ - 'List' is from 'dart:core'.
+  Future<List<int>> y = x;
+                        ^" in x as{TypeError} asy::Future<core::List<core::int*>*>*;
+}
+static method m2() → dynamic {
+  asy::Future<core::int*>* f;
+  asy::Future<core::List<core::int*>*>* x = f.{asy::Future::then}<core::List<core::int*>*>((core::int* x) → core::List<core::int*>* => <core::int*>[]){((core::int*) →* FutureOr<core::List<core::int*>*>*, {onError: core::Function*}) →* asy::Future<core::List<core::int*>*>*};
+  asy::Future<core::List<core::int*>*>* y = x;
+}
+static method main() → dynamic {}

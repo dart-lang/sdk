@@ -4,9 +4,8 @@
 
 // @dart = 2.9
 
-// VMOptions=--enable-isolate-groups --no-enable-fast-object-copy
-// VMOptions=--enable-isolate-groups --enable-fast-object-copy
-// VMOptions=--no-enable-isolate-groups
+// VMOptions=--no-enable-fast-object-copy
+// VMOptions=--enable-fast-object-copy
 
 // Verifies that large BigInt can be passed through a message port and
 // simple arithmetic operations still work after that.

@@ -4,7 +4,6 @@
 
 import 'dart:collection';
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Message;
 import 'package:analyzer/dart/ast/ast.dart'
     show AstNode, ConstructorDeclaration;
 import 'package:analyzer/dart/ast/token.dart';
@@ -125,19 +124,6 @@ class ErrorReporter {
         errorCode, token.offset, token.length, arguments, messages);
   }
 
-  /// Report an error with the given [errorCode] and [message]. The location of
-  /// the error is specified by the given [offset] and [length].
-  ///
-  /// Deprecated - the [Message] type assumes named arguments, and no analyzer
-  /// errors use named arguments anymore.  Please use other methods of
-  /// [ErrorReporter].
-  @deprecated
-  void reportErrorMessage(
-      ErrorCode errorCode, int offset, int length, Message message) {
-    _errorListener.onError(AnalysisError.withNamedArguments(
-        _source, offset, length, errorCode, message.arguments));
-  }
-
   /// Report an error with the given [errorCode] and [arguments]. The [node] is
   /// used to compute the location of the error. The arguments are expected to
   /// contain two or more types. Convert the types into strings by using the
@@ -165,6 +151,12 @@ class ErrorReporter {
         arguments[i] = argument.getDisplayString(
           withNullability: isNonNullableByDefault,
         );
+      } else if (!(argument is String ||
+          argument is DartType ||
+          argument is int ||
+          argument is Uri)) {
+        throw ArgumentError(
+            'Tried to format an error using ${argument.runtimeType}');
       }
     }
   }

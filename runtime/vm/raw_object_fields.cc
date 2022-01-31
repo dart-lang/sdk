@@ -97,14 +97,14 @@ namespace dart {
   F(UnlinkedCall, target_name_)                                                \
   F(UnlinkedCall, args_descriptor_)                                            \
   F(MonomorphicSmiableCall, expected_cid_)                                     \
-  F(MonomorphicSmiableCall, target_)                                           \
+  F(MonomorphicSmiableCall, entrypoint_)                                       \
   F(CallSiteData, target_name_)                                                \
   F(CallSiteData, args_descriptor_)                                            \
   F(ICData, target_name_)                                                      \
   F(ICData, args_descriptor_)                                                  \
   F(ICData, entries_)                                                          \
   F(ICData, owner_)                                                            \
-  F(InstructionsTable, descriptors_)                                           \
+  F(InstructionsTable, code_objects_)                                          \
   F(MegamorphicCache, target_name_)                                            \
   F(MegamorphicCache, args_descriptor_)                                        \
   F(MegamorphicCache, buckets_)                                                \

@@ -355,6 +355,19 @@ class _ElementWriter {
   void _writeConstructorElement(ConstructorElement e) {
     e as ConstructorElementImpl;
 
+    // Check that the reference exists, and filled with the element.
+    var reference = e.reference;
+    if (reference == null) {
+      fail('Every constructor must have a reference.');
+    } else {
+      var classReference = reference.parent!.parent!;
+      // We need this `if` for duplicate declarations.
+      // The reference might be filled by another declaration.
+      if (identical(classReference.element, e.enclosingElement)) {
+        expect(reference.element, same(e));
+      }
+    }
+
     _writeIndentedLine(() {
       _writeIf(e.isSynthetic, 'synthetic ');
       _writeIf(e.isExternal, 'external ');
@@ -384,6 +397,13 @@ class _ElementWriter {
         e.constantInitializers,
         _writeNode,
       );
+
+      var superConstructor = e.superConstructor;
+      if (superConstructor != null) {
+        if (!superConstructor.enclosingElement.isDartCoreObject) {
+          _writeElementReference('superConstructor', superConstructor);
+        }
+      }
 
       var redirectedConstructor = e.redirectedConstructor;
       if (redirectedConstructor != null) {
@@ -625,7 +645,7 @@ class _ElementWriter {
       } else if (e.isOptionalPositional) {
         buffer.write('optionalPositional ');
       } else if (e.isRequiredNamed) {
-        buffer.write('requiredName ');
+        buffer.write('requiredNamed ');
       } else if (e.isOptionalNamed) {
         buffer.write('optionalNamed ');
       }
@@ -636,6 +656,8 @@ class _ElementWriter {
 
       if (e is FieldFormalParameterElement) {
         buffer.write('this.');
+      } else if (e is SuperFormalParameterElement) {
+        buffer.write('super.');
       }
 
       _writeName(e);
@@ -649,6 +671,7 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
+      _writeSuperConstructorParameter(e);
     });
   }
 
@@ -754,6 +777,17 @@ class _ElementWriter {
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
     });
+  }
+
+  void _writeSuperConstructorParameter(ParameterElement e) {
+    if (e is SuperFormalParameterElement) {
+      var superParameter = e.superConstructorParameter;
+      if (superParameter != null) {
+        _writeElementReference('superConstructorParameter', superParameter);
+      } else {
+        _writelnWithIndent('superConstructorParameter: <null>');
+      }
+    }
   }
 
   void _writeType(DartType type, {String? name}) {

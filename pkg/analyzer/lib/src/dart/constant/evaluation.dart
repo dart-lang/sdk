@@ -220,7 +220,7 @@ class ConstantEvaluationEngine {
           if (superclass != null && !superclass.isDartCoreObject) {
             var unnamedConstructor =
                 superclass.element.unnamedConstructor?.declaration;
-            if (unnamedConstructor != null) {
+            if (unnamedConstructor != null && unnamedConstructor.isConst) {
               callback(unnamedConstructor);
             }
           }
@@ -612,22 +612,20 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
 
     var conditionResultBool = conditionResult.toBoolValue();
-    if (conditionResultBool == null) {
-      node.thenExpression.accept(this);
-      node.elseExpression.accept(this);
-    } else if (conditionResultBool == true) {
+    if (conditionResultBool == true) {
       _reportNotPotentialConstants(node.elseExpression);
       return node.thenExpression.accept(this);
     } else if (conditionResultBool == false) {
       _reportNotPotentialConstants(node.thenExpression);
       return node.elseExpression.accept(this);
+    } else {
+      node.thenExpression.accept(this);
+      node.elseExpression.accept(this);
+      return DartObjectImpl.validWithUnknownValue(
+        typeSystem,
+        node.typeOrThrow,
+      );
     }
-
-    // We used to return an object with a known type and an unknown value, but
-    // we can't do that without evaluating both the 'then' and 'else'
-    // expressions, and we're not suppose to do that under lazy semantics. I'm
-    // not sure which failure mode is worse.
-    return null;
   }
 
   @override
@@ -643,7 +641,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     TypeAliasElement? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl) {
       if (constructorFunctionType.typeFormals.isNotEmpty &&
-          !typeElement.isProperRename()) {
+          !typeElement.isProperRename) {
         // The type alias is not a proper rename of the aliased class, so
         // the constructor tear-off is distinct from the associated
         // constructor function of the aliased class.

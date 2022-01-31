@@ -91,6 +91,7 @@ class TransformOverrideSetParser {
   /// Report any keys in the [map] whose values are not in [validKeys].
   void _reportUnsupportedKeys(YamlMap map, Set<String> validKeys) {
     for (var keyNode in map.nodes.keys) {
+      keyNode as YamlNode;
       var key = _translateKey(keyNode);
       if (key != null && !validKeys.contains(key)) {
         _reportError(TransformSetErrorCode.unsupportedKey, keyNode, [key]);

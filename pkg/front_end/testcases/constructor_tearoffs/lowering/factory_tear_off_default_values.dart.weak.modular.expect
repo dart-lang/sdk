@@ -1,0 +1,106 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off_default_values.dart:33:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// Try removing the extra positional arguments.
+//     f1a(42, 87); // error
+//        ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off_default_values.dart:49:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//     f2a(87); // error
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class1 extends core::Object {
+  final field core::int field;
+  constructor _(core::int field) → self::Class1
+    : self::Class1::field = field, super core::Object::•()
+    ;
+  static method _#_#tearOff(core::int field) → self::Class1
+    return new self::Class1::_(field);
+  static factory •([core::int field = #C1]) → self::Class1
+    return new self::Class1::_(field);
+  static method _#new#tearOff([core::int field = #C1]) → self::Class1
+    return self::Class1::•(field);
+}
+class Class2 extends core::Object {
+  final field core::int field;
+  constructor _(core::int field) → self::Class2
+    : self::Class2::field = field, super core::Object::•()
+    ;
+  static method _#_#tearOff(core::int field) → self::Class2
+    return new self::Class2::_(field);
+  static factory •({core::int field = #C1}) → self::Class2
+    return new self::Class2::_(field);
+  static method _#new#tearOff({core::int field = #C1}) → self::Class2
+    return self::Class2::•(field: field);
+}
+static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static method main() → dynamic {
+  core::print("inSoundMode: ${self::inSoundMode}");
+  self::testDefaultValues();
+}
+static method testDefaultValues() → void {
+  ([core::int]) → self::Class1 f1a = #C2;
+  self::Class1 c1a = f1a(){([core::int]) → self::Class1};
+  self::expect(42, c1a.{self::Class1::field}{core::int});
+  self::Class1 c1b = f1a(87){([core::int]) → self::Class1};
+  self::expect(87, c1b.{self::Class1::field}{core::int});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off_default_values.dart:33:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+Try removing the extra positional arguments.
+    f1a(42, 87); // error
+       ^" in f1a{<inapplicable>}.(42, 87);
+  };
+  dynamic f1b = #C2;
+  dynamic c1c = f1b{dynamic}.call();
+  self::expect(42, c1c{dynamic}.field);
+  dynamic c1d = f1b{dynamic}.call(87);
+  self::expect(87, c1d{dynamic}.field);
+  self::throws(() → dynamic => f1b{dynamic}.call(42, 87));
+  ({field: core::int}) → self::Class2 f2a = #C3;
+  self::Class2 c2a = f2a(){({field: core::int}) → self::Class2};
+  self::expect(42, c2a.{self::Class2::field}{core::int});
+  self::Class2 c2b = f2a(field: 87){({field: core::int}) → self::Class2};
+  self::expect(87, c2b.{self::Class2::field}{core::int});
+  () → Null {
+    invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/factory_tear_off_default_values.dart:49:8: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+    f2a(87); // error
+       ^" in f2a{<inapplicable>}.(87);
+  };
+  dynamic f2b = #C3;
+  dynamic c2c = f2b{dynamic}.call();
+  self::expect(42, c2c{dynamic}.field);
+  dynamic c2d = f2b{dynamic}.call(field: 87);
+  self::expect(87, c2d{dynamic}.field);
+  self::throws(() → dynamic => f2b{dynamic}.call(87));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C4}) → dynamic {
+  try {
+    f(){() → dynamic};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print("Thrown: ${e}");
+    return;
+  }
+  if(!self::inSoundMode && inSoundModeOnly) {
+    return;
+  }
+  throw "Expected exception";
+}
+
+constants  {
+  #C1 = 42
+  #C2 = static-tearoff self::Class1::_#new#tearOff
+  #C3 = static-tearoff self::Class2::_#new#tearOff
+  #C4 = false
+}

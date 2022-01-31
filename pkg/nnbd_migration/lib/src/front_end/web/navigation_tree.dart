@@ -190,13 +190,13 @@ abstract class NavigationTreeNode {
   Map<String, Object?> toJson();
 
   /// Deserializes a list of navigation tree nodes from a JSON list.
-  static List<NavigationTreeNode> listFromJson(dynamic json) =>
+  static List<NavigationTreeNode> listFromJson(List<Object?> json) =>
       [for (var node in json) NavigationTreeNode.fromJson(node)];
 
   /// Deserializes a list of navigation tree nodes from a possibly null JSON
   /// list.  If the argument is `null`, `null` is returned.
   static List<NavigationTreeNode>? listFromJsonOrNull(dynamic json) =>
-      json == null ? null : listFromJson(json);
+      json == null ? null : listFromJson(json as List<Object?>);
 
   /// Serializes a list of navigation tree nodes into JSON.
   static List<Map<String, Object?>> listToJson(

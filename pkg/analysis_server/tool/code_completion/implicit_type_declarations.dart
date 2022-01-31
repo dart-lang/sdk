@@ -31,7 +31,7 @@ Future<void> main(List<String> args) async {
     var computer = ImpliedTypeComputer();
     var stopwatch = Stopwatch();
     stopwatch.start();
-    await computer.compute(rootPath, verbose: result['verbose']);
+    await computer.compute(rootPath, verbose: result['verbose'] as bool);
     stopwatch.stop();
 
     var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);

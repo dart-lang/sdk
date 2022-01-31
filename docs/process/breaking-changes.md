@@ -53,7 +53,8 @@ to a change being released in a dev channel release.
 
 ### Step 1: Announcement
 
-* Create an issue in the Dart SDK issue tracker labelled
+* Create an issue in the
+  [Dart SDK issue tracker](https://github.com/dart-lang/sdk/issues) labelled
   `breaking-change-request` containing the following:
 
   * The intended change in behavior.
@@ -63,8 +64,6 @@ to a change being released in a dev channel release.
   * The expected impact of this change.
 
   * Clear steps for mitigating the change.
-
-[TODO: Link to an issue template for this]
 
 * Email Dart Announce (`announce@dartlang.org`):
 
@@ -77,7 +76,7 @@ to a change being released in a dev channel release.
   * A request that developers may leave comments in the linked issue, if this
     breaking change poses a severe problem.
 
-Once you have sent the announce email, please let @devoncarew know in order
+Once you have sent the announce email, please let devoncarew@ know in order
 to start the review and approval process.
 
 ### Step 2: Approval
@@ -119,7 +118,7 @@ scope of compatibility, and for which either:
   * The impact of the change was significantly larger than described in the
     breaking change announcement
 
-, then they may file a 'request for roll-back' using the following steps:
+Then they may file a 'request for roll-back' using the following steps:
 
 * Create an issue in the Dart SDK issue tracker labelled
   `roll-back-request` containing the following:
@@ -131,8 +130,6 @@ scope of compatibility, and for which either:
 
   * A link to the program that was affected, or another program that illustrated
     the same effect.
-
-[TODO: Link to an issue template for this]
 
 Upon receiving such an issue the Dart SDK team will either:
 

@@ -2768,6 +2768,16 @@ const MessageCode messageEnumDeclarationEmpty = const MessageCode(
     problemMessage: r"""An enum declaration can't be empty.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumDeclaresFactory = messageEnumDeclaresFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumDeclaresFactory = const MessageCode(
+    "EnumDeclaresFactory",
+    problemMessage: r"""Enums can't declare factory constructors.""",
+    correctionMessage:
+        r"""Try removing the factory constructor declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumInClass = messageEnumInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3824,6 +3834,26 @@ const MessageCode messageFastaUsageShort = const MessageCode("FastaUsageShort",
 
   -o <file> Generate the output into <file>.
   -h        Display this message (add -v for information about all options).""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiAbiSpecificIntegerInvalid =
+    messageFfiAbiSpecificIntegerInvalid;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiAbiSpecificIntegerInvalid = const MessageCode(
+    "FfiAbiSpecificIntegerInvalid",
+    problemMessage:
+        r"""Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiAbiSpecificIntegerMappingInvalid =
+    messageFfiAbiSpecificIntegerMappingInvalid;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiAbiSpecificIntegerMappingInvalid = const MessageCode(
+    "FfiAbiSpecificIntegerMappingInvalid",
+    problemMessage:
+        r"""Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5659,6 +5689,17 @@ Message _withArgumentsInternalProblemNotFoundIn(String name, String name2) {
       problemMessage: """Couldn't find '${name}' in '${name2}'.""",
       arguments: {'name': name, 'name2': name2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInternalProblemOmittedTypeNameInConstructorReference =
+    messageInternalProblemOmittedTypeNameInConstructorReference;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInternalProblemOmittedTypeNameInConstructorReference =
+    const MessageCode("InternalProblemOmittedTypeNameInConstructorReference",
+        severity: Severity.internalProblem,
+        problemMessage:
+            r"""Unsupported omission of the type name in a constructor reference outside of an enum element declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInternalProblemPreviousTokenNotFound =
@@ -8789,6 +8830,16 @@ const MessageCode messagePositionalParameterWithEquals = const MessageCode(
     correctionMessage: r"""Try replacing ':' with '='.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePositionalSuperParametersAndArguments =
+    messagePositionalSuperParametersAndArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePositionalSuperParametersAndArguments = const MessageCode(
+    "PositionalSuperParametersAndArguments",
+    problemMessage:
+        r"""Positional super-initializer parameters cannot be used when the super initializer has positional arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePrefixAfterCombinator = messagePrefixAfterCombinator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9387,8 +9438,18 @@ const Code<Null> codeSuperInitializerNotLast = messageSuperInitializerNotLast;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperInitializerNotLast = const MessageCode(
     "SuperInitializerNotLast",
-    analyzerCodes: <String>["INVALID_SUPER_INVOCATION"],
+    analyzerCodes: <String>["SUPER_INVOCATION_NOT_LAST"],
     problemMessage: r"""Can't have initializers after 'super'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSuperInitializerParameter =
+    messageSuperInitializerParameter;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSuperInitializerParameter = const MessageCode(
+    "SuperInitializerParameter",
+    severity: Severity.context,
+    problemMessage: r"""This is the super-initializer parameter.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperNullAware = messageSuperNullAware;

@@ -966,20 +966,10 @@ bool GraphIntrinsifier::Build_Integer_mul(FlowGraph* flow_graph) {
 }
 
 bool GraphIntrinsifier::Build_Integer_mod(FlowGraph* flow_graph) {
-#if defined(TARGET_ARCH_ARM)
-  if (!TargetCPUFeatures::can_divide()) {
-    return false;
-  }
-#endif
   return BuildBinarySmiOp(flow_graph, Token::kMOD);
 }
 
 bool GraphIntrinsifier::Build_Integer_truncDivide(FlowGraph* flow_graph) {
-#if defined(TARGET_ARCH_ARM)
-  if (!TargetCPUFeatures::can_divide()) {
-    return false;
-  }
-#endif
   return BuildBinarySmiOp(flow_graph, Token::kTRUNCDIV);
 }
 
@@ -1050,7 +1040,8 @@ bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
   // [Intrinsifier::CanIntrinsifyFieldAccessor])
   auto zone = flow_graph->zone();
   const auto& function = flow_graph->function();
-  ASSERT(Intrinsifier::CanIntrinsifyFieldAccessor(function));
+  ASSERT(
+      Intrinsifier::CanIntrinsifyFieldAccessor(flow_graph->parsed_function()));
 
   auto& field = Field::Handle(zone, function.accessor_field());
   if (CompilerState::Current().should_clone_fields()) {
@@ -1072,12 +1063,10 @@ bool GraphIntrinsifier::Build_ImplicitGetter(FlowGraph* flow_graph) {
 
   // We only support cases where we do not have to create a box (whose
   // allocation could fail).
-  ASSERT(function.HasUnboxedReturnValue() ||
-         !FlowGraphCompiler::IsUnboxedField(field));
+  ASSERT(function.HasUnboxedReturnValue() || !slot.IsUnboxed());
 
   // We might need to unbox the field value before returning.
-  if (function.HasUnboxedReturnValue() &&
-      !FlowGraphCompiler::IsUnboxedField(field)) {
+  if (function.HasUnboxedReturnValue() && !slot.IsUnboxed()) {
     ASSERT(FLAG_precompiled_mode);
     field_value = builder.AddUnboxInstr(
         FlowGraph::ReturnRepresentationOf(flow_graph->function()),
@@ -1093,21 +1082,19 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
   // [Intrinsifier::CanIntrinsifyFieldAccessor])
   auto zone = flow_graph->zone();
   const auto& function = flow_graph->function();
-  ASSERT(Intrinsifier::CanIntrinsifyFieldAccessor(function));
+  ASSERT(
+      Intrinsifier::CanIntrinsifyFieldAccessor(flow_graph->parsed_function()));
 
   auto& field = Field::Handle(zone, function.accessor_field());
   if (CompilerState::Current().should_clone_fields()) {
     field = field.CloneFromOriginal();
   }
   ASSERT(field.is_instance() && !field.is_final());
-  ASSERT(!function.HasUnboxedParameters() ||
-         FlowGraphCompiler::IsUnboxedField(field));
-
   const auto& slot = Slot::Get(field, &flow_graph->parsed_function());
+  ASSERT(!function.HasUnboxedParameters() || slot.IsUnboxed());
 
-  const auto barrier_mode = FlowGraphCompiler::IsUnboxedField(field)
-                                ? kNoStoreBarrier
-                                : kEmitStoreBarrier;
+  const auto barrier_mode =
+      slot.IsUnboxed() ? kNoStoreBarrier : kEmitStoreBarrier;
 
   flow_graph->CreateCommonConstants();
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
@@ -1118,14 +1105,13 @@ bool GraphIntrinsifier::Build_ImplicitSetter(FlowGraph* flow_graph) {
   auto value = builder.AddParameter(1, /*with_frame=*/false);
   VerifyParameterIsBoxed(&builder, 0);
 
-  if (!function.HasUnboxedParameters() &&
-      FlowGraphCompiler::IsUnboxedField(field)) {
+  if (!function.HasUnboxedParameters() && slot.IsUnboxed()) {
     // We do not support storing to possibly guarded fields in JIT in graph
     // intrinsics.
     ASSERT(FLAG_precompiled_mode);
-    value = builder.AddUnboxInstr(
-        FlowGraph::UnboxedFieldRepresentationOf(field), new Value(value),
-        /*is_checked=*/true);
+    value =
+        builder.AddUnboxInstr(slot.UnboxedRepresentation(), new Value(value),
+                              /*is_checked=*/true);
   }
 
   builder.AddInstruction(new (zone) StoreInstanceFieldInstr(

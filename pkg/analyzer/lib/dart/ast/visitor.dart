@@ -453,8 +453,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitNamedExpression(NamedExpression node) => visitExpression(node);
 
   @override
-  // ignore: deprecated_member_use_from_same_package
-  R? visitNamedType(NamedType node) => visitTypeName(node as TypeName);
+  R? visitNamedType(NamedType node) => visitNode(node);
 
   R? visitNamespaceDirective(NamespaceDirective node) =>
       visitUriBasedDirective(node);
@@ -561,6 +560,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitSuperExpression(SuperExpression node) => visitExpression(node);
 
   @override
+  R? visitSuperFormalParameter(SuperFormalParameter node) =>
+      visitNormalFormalParameter(node);
+
+  @override
   R? visitSwitchCase(SwitchCase node) => visitSwitchMember(node);
 
   @override
@@ -598,10 +601,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitTypeLiteral(TypeLiteral node) => visitExpression(node);
-
-  @Deprecated('Override visitNamedType instead')
-  @override
-  R? visitTypeName(TypeName node) => visitNode(node);
 
   @override
   R? visitTypeParameter(TypeParameter node) => visitNode(node);
@@ -1147,8 +1146,8 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNamedType(NamedType node) {
-    // ignore: deprecated_member_use_from_same_package
-    return visitTypeName(node as TypeName);
+    node.visitChildren(this);
+    return null;
   }
 
   @override
@@ -1309,6 +1308,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitSuperFormalParameter(SuperFormalParameter node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitSwitchCase(SwitchCase node) {
     node.visitChildren(this);
     return null;
@@ -1364,13 +1369,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitTypeLiteral(TypeLiteral node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Deprecated('Override visitNamedType instead')
-  @override
-  R? visitTypeName(TypeName node) {
     node.visitChildren(this);
     return null;
   }
@@ -1687,8 +1685,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitNamedExpression(NamedExpression node) => null;
 
   @override
-  // ignore: deprecated_member_use_from_same_package
-  R? visitNamedType(NamedType node) => visitTypeName(node as TypeName);
+  R? visitNamedType(NamedType node) => null;
 
   @override
   R? visitNativeClause(NativeClause node) => null;
@@ -1771,6 +1768,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitSuperExpression(SuperExpression node) => null;
 
   @override
+  R? visitSuperFormalParameter(SuperFormalParameter node) => null;
+
+  @override
   R? visitSwitchCase(SwitchCase node) => null;
 
   @override
@@ -1799,10 +1799,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitTypeLiteral(TypeLiteral node) => null;
-
-  @Deprecated('Override visitNamedType instead')
-  @override
-  R? visitTypeName(TypeName node) => null;
 
   @override
   R? visitTypeParameter(TypeParameter node) => null;
@@ -2099,8 +2095,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitNamedExpression(NamedExpression node) => _throw(node);
 
   @override
-  // ignore: deprecated_member_use_from_same_package
-  R? visitNamedType(NamedType node) => visitTypeName(node as TypeName);
+  R? visitNamedType(NamedType node) => _throw(node);
 
   @override
   R? visitNativeClause(NativeClause node) => _throw(node);
@@ -2184,6 +2179,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitSuperExpression(SuperExpression node) => _throw(node);
 
   @override
+  R? visitSuperFormalParameter(SuperFormalParameter node) => _throw(node);
+
+  @override
   R? visitSwitchCase(SwitchCase node) => _throw(node);
 
   @override
@@ -2213,10 +2211,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitTypeLiteral(TypeLiteral node) => _throw(node);
-
-  @Deprecated('Override visitNamedType instead')
-  @override
-  R? visitTypeName(TypeName node) => _throw(node);
 
   @override
   R? visitTypeParameter(TypeParameter node) => _throw(node);
@@ -3145,6 +3139,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitSuperFormalParameter(SuperFormalParameter node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitSuperFormalParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitSwitchCase(SwitchCase node) {
     stopwatch.start();
     T? result = _baseVisitor.visitSwitchCase(node);
@@ -3220,15 +3222,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitTypeLiteral(TypeLiteral node) {
     stopwatch.start();
     T? result = _baseVisitor.visitTypeLiteral(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @Deprecated('Override visitNamedType instead')
-  @override
-  T? visitTypeName(TypeName node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitTypeName(node);
     stopwatch.stop();
     return result;
   }
@@ -3577,8 +3570,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitNamedExpression(NamedExpression node) => visitNode(node);
 
   @override
-  // ignore: deprecated_member_use_from_same_package
-  R? visitNamedType(NamedType node) => visitTypeName(node as TypeName);
+  R? visitNamedType(NamedType node) => visitNode(node);
 
   @override
   R? visitNativeClause(NativeClause node) => visitNode(node);
@@ -3668,6 +3660,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitSuperExpression(SuperExpression node) => visitNode(node);
 
   @override
+  R? visitSuperFormalParameter(SuperFormalParameter node) => visitNode(node);
+
+  @override
   R? visitSwitchCase(SwitchCase node) => visitNode(node);
 
   @override
@@ -3697,10 +3692,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitTypeLiteral(TypeLiteral node) => visitNode(node);
-
-  @Deprecated('Override visitNamedType instead')
-  @override
-  R? visitTypeName(TypeName node) => visitNode(node);
 
   @override
   R? visitTypeParameter(TypeParameter node) => visitNode(node);

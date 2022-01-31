@@ -17,11 +17,11 @@ void defineMigrateTests() {
 
   TestProject p;
 
-  tearDown(() => p?.dispose());
+  tearDown(() async => await p?.dispose());
 
-  test('--help', () {
+  test('--help', () async {
     p = project();
-    var result = p.runSync(['migrate', '--help']);
+    var result = await p.run(['migrate', '--help']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -35,9 +35,9 @@ void defineMigrateTests() {
     );
   });
 
-  test('--help --verbose', () {
+  test('--help --verbose', () async {
     p = project();
-    var result = p.runSync(['migrate', '--help', '--verbose']);
+    var result = await p.run(['migrate', '--help', '--verbose']);
 
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
@@ -53,43 +53,43 @@ void defineMigrateTests() {
     );
   });
 
-  test('directory implicit', () {
+  test('directory implicit', () async {
     p = project(mainSrc: dartVersionFilePrefix2_9 + 'int get foo => 1;\n');
     var result =
-        p.runSync(['migrate', '--no-web-preview'], workingDir: p.dirPath);
+        await p.run(['migrate', '--no-web-preview'], workingDir: p.dirPath);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Generating migration suggestions'));
   });
 
-  test('directory explicit', () {
+  test('directory explicit', () async {
     p = project(mainSrc: dartVersionFilePrefix2_9 + 'int get foo => 1;\n');
-    var result = p.runSync(['migrate', '--no-web-preview', p.dirPath]);
+    var result = await p.run(['migrate', '--no-web-preview', p.dirPath]);
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Generating migration suggestions'));
   });
 
-  test('bad directory', () {
+  test('bad directory', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
-    var result = p.runSync(['migrate', 'foo_bar_dir']);
+    var result = await p.run(['migrate', 'foo_bar_dir']);
     expect(result.exitCode, 1);
     expect(result.stderr, contains('foo_bar_dir does not exist'));
     expect(result.stdout, isEmpty);
   });
 
-  test('pub get needs running', () {
+  test('pub get needs running', () async {
     p = project(mainSrc: 'import "package:foo/foo.dart";\n');
-    var result = p.runSync(['migrate', p.dirPath]);
+    var result = await p.run(['migrate', p.dirPath]);
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
     expect(result.stdout, runPubGet);
     expect(result.stdout, isNot(setLowerSdkConstraint));
   });
 
-  test('non-pub-related error', () {
+  test('non-pub-related error', () async {
     p = project(mainSrc: 'var missing = "semicolon"\n');
-    var result = p.runSync(['migrate', p.dirPath]);
+    var result = await p.run(['migrate', p.dirPath]);
     expect(result.exitCode, 1);
     expect(result.stderr, isEmpty);
     expect(result.stdout, runPubGet);

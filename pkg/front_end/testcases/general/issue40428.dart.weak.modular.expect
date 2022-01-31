@@ -1,0 +1,84 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue40428.dart:28:19: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+//   new NamedMixin1(0);
+//                   ^
+//
+// pkg/front_end/testcases/general/issue40428.dart:29:19: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+//   new NamedMixin2(0);
+//                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class SuperClass1 extends core::Object {
+  final field core::String* value;
+  constructor •(core::String* value) → self::SuperClass1*
+    : self::SuperClass1::value = value, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+abstract class SuperClass2 extends core::Object {
+  final field core::String* value;
+  constructor •(core::String* i) → self::SuperClass2*
+    : self::SuperClass2::value = i, super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class Mixin extends core::Object {
+  synthetic constructor •() → self::Mixin*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class NamedMixin1 = self::SuperClass1 with self::Mixin {
+  synthetic constructor •(core::String* value) → self::NamedMixin1*
+    : super self::SuperClass1::•(value)
+    ;
+}
+class NamedMixin2 = self::SuperClass2 with self::Mixin {
+  synthetic constructor •(core::String* i) → self::NamedMixin2*
+    : super self::SuperClass2::•(i)
+    ;
+}
+static method main() → void {
+  new self::NamedMixin1::•("");
+  new self::NamedMixin2::•("");
+}
+static method errors() → dynamic {
+  new self::NamedMixin1::•(invalid-expression "pkg/front_end/testcases/general/issue40428.dart:28:19: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+  new NamedMixin1(0);
+                  ^" in 0 as{TypeError} core::String*);
+  new self::NamedMixin2::•(invalid-expression "pkg/front_end/testcases/general/issue40428.dart:29:19: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+  new NamedMixin2(0);
+                  ^" in 0 as{TypeError} core::String*);
+}

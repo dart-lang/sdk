@@ -10,8 +10,10 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReturnOfInvalidTypeTest);
-    defineReflectiveTests(ReturnOfInvalidTypeWithNoImplicitCastsTest);
+    defineReflectiveTests(
+        ReturnOfInvalidTypeWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(ReturnOfInvalidTypeWithoutNullSafetyTest);
+    defineReflectiveTests(ReturnOfInvalidTypeWithStrictCastsTest);
   });
 }
 
@@ -234,6 +236,15 @@ void f(void a) async {
 ''');
   }
 
+  test_function_asyncStar() async {
+    await assertErrorsInCode('''
+Stream<int> f() async* => 3;
+''', [
+      // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
+      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 23, 2),
+    ]);
+  }
+
   test_function_sync_block__to_dynamic() async {
     await assertNoErrorsInCode(r'''
 f() {
@@ -430,6 +441,15 @@ int f() => '0';
     ]);
   }
 
+  test_function_syncStar() async {
+    await assertErrorsInCode('''
+Iterable<int> f() sync* => 3;
+''', [
+      // RETURN_OF_INVALID_TYPE shouldn't be reported in addition to this error.
+      error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2),
+    ]);
+  }
+
   test_getter_sync_block_String__to_int() async {
     await assertErrorsInCode('''
 int get g {
@@ -529,7 +549,7 @@ class A {
 }
 
 @reflectiveTest
-class ReturnOfInvalidTypeWithNoImplicitCastsTest
+class ReturnOfInvalidTypeWithoutNullSafetyAndNoImplicitCastsTest
     extends PubPackageResolutionTest
     with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
   test_return() async {
@@ -553,3 +573,25 @@ Future<List<String>> f() async {
 @reflectiveTest
 class ReturnOfInvalidTypeWithoutNullSafetyTest extends PubPackageResolutionTest
     with ReturnOfInvalidTypeTestCases, WithoutNullSafetyMixin {}
+
+@reflectiveTest
+class ReturnOfInvalidTypeWithStrictCastsTest extends PubPackageResolutionTest
+    with WithStrictCastsMixin {
+  test_return() async {
+    await assertErrorsWithStrictCasts('''
+int f(dynamic a) => a;
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 20, 1),
+    ]);
+  }
+
+  test_return_async() async {
+    await assertErrorsWithStrictCasts('''
+Future<int> f(dynamic a) async {
+  return a;
+}
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 42, 1),
+    ]);
+  }
+}

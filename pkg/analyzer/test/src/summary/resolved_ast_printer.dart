@@ -1036,8 +1036,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     _writeNextCodeLine(node);
-    // TODO(scheglov) Change to NamedType.
-    _writeln('TypeName');
+    _writeln('NamedType');
     _withIndent(() {
       _writeNode('name', node.name);
       _writeType('type', node.type);
@@ -1439,8 +1438,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('TypeLiteral');
     _withIndent(() {
       var properties = _Properties();
-      // TODO(scheglov) Change to 'type'.
-      properties.addNode('typeName', node.type);
+      properties.addNode('type', node.type);
       _addExpression(properties, node);
       _writeProperties(properties);
     });

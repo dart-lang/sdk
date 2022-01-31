@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dds/src/dap/protocol_generated.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'test_client.dart';
@@ -158,6 +160,87 @@ main() {
       // Source code should contain the implementation/signature of print().
       final source = await client.getValidSource(topFrame.source!);
       expect(source.content, contains('void print(Object? object) {'));
+      // Skipped because this test is not currently valid as source for print
+      // is mapped to local sources.
+    }, skip: true);
+
+    test('can map SDK source code to a local path', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Hit the initial breakpoint.
+      final stop = await dap.client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          debugSdkLibraries: true,
+        ),
+      );
+
+      // Step in to go into print.
+      final responses = await Future.wait([
+        client.expectStop('step', sourceName: 'dart:core/print.dart'),
+        client.stepIn(stop.threadId!),
+      ], eagerError: true);
+      final stopResponse = responses.first as StoppedEventBody;
+
+      // Fetch the top stack frame (which should be inside print).
+      final stack = await client.getValidStack(
+        stopResponse.threadId!,
+        startFrame: 0,
+        numFrames: 1,
+      );
+      final topFrame = stack.stackFrames.first;
+
+      // SDK sources that have been mapped have no sourceReference but a path.
+      expect(
+        topFrame.source!.path,
+        equals(path.join(sdkRoot, 'lib', 'core', 'print.dart')),
+      );
+      expect(topFrame.source!.sourceReference, isNull);
+    });
+
+    test('can shutdown during startup', () async {
+      final testFile = dap.createTestFile(simpleArgPrintingProgram);
+
+      // Terminate the app immediately upon recieving the first Thread event.
+      // The DAP is also responding to this event to configure the isolate (eg.
+      // set breakpoints and exception pause behaviour) and will cause it to
+      // receive "Service has disappeared" responses if these are in-flight as
+      // the process terminates. These should not go unhandled since they are
+      // normal during shutdown.
+      unawaited(dap.client.event('thread').then((_) => dap.client.terminate()));
+      await dap.client.start(file: testFile);
+    });
+
+    test('can hot reload', () async {
+      const originalText = 'ORIGINAL TEXT';
+      const newText = 'NEW TEXT';
+
+      // Create a script that prints 'ORIGINAL TEXT'.
+      final testFile = dap.createTestFile(stringPrintingProgram(originalText));
+
+      // Start the program and wait for 'ORIGINAL TEXT' to be printed.
+      await Future.wait([
+        dap.client.initialize(),
+        dap.client.launch(testFile.path),
+      ], eagerError: true);
+
+      // Expect the original text.
+      await dap.client.outputEvents
+          .firstWhere((event) => event.output.trim() == originalText);
+
+      // Update the file and hot reload.
+      testFile.writeAsStringSync(stringPrintingProgram(newText));
+      await dap.client.hotReload();
+
+      // Expect the new text.
+      await dap.client.outputEvents
+          .firstWhere((event) => event.output.trim() == newText);
+
+      await dap.client.terminate();
     });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);

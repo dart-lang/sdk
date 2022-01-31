@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 
 class TestAnalysisContext implements AnalysisContext {
@@ -43,6 +43,7 @@ class TestAnalysisContext implements AnalysisContext {
     _typeSystemLegacy = TypeSystemImpl(
       implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
+      strictCasts: _analysisOptions.strictCasts,
       strictInference: _analysisOptions.strictInference,
       typeProvider: _typeProviderLegacy,
     );
@@ -50,6 +51,7 @@ class TestAnalysisContext implements AnalysisContext {
     _typeSystemNonNullableByDefault = TypeSystemImpl(
       implicitCasts: _analysisOptions.implicitCasts,
       isNonNullableByDefault: true,
+      strictCasts: _analysisOptions.strictCasts,
       strictInference: _analysisOptions.strictInference,
       typeProvider: _typeProviderNonNullableByDefault,
     );
@@ -105,6 +107,7 @@ class _MockSource implements Source {
 
   _MockSource(this.uri);
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => '$uri';
 

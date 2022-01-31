@@ -1,0 +1,82 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue43354.dart:8:18: Error: Can't have a late final field in a class with a const constructor.
+//   late final int foo = 42;
+//                  ^
+// pkg/front_end/testcases/nnbd/issue43354.dart:9:9: Context: This constructor is const.
+//   const A();
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43354.dart:13:18: Error: Can't have a late final field in a class with a const constructor.
+//   late final int foo = 42;
+//                  ^
+// pkg/front_end/testcases/nnbd/issue43354.dart:15:9: Context: This constructor is const.
+//   const B();
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43354.dart:14:21: Error: Can't have a late final field in a class with a const constructor.
+//   late final String bar = "foobar";
+//                     ^
+// pkg/front_end/testcases/nnbd/issue43354.dart:15:9: Context: This constructor is const.
+//   const B();
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43354.dart:19:18: Error: Can't have a late final field in a class with a const constructor.
+//   late final int foo = 42;
+//                  ^
+// pkg/front_end/testcases/nnbd/issue43354.dart:20:9: Context: This constructor is const.
+//   const C();
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43354.dart:25:18: Error: Can't have a late final field in a class with a const constructor.
+//   late final int foo = 42;
+//                  ^
+// pkg/front_end/testcases/nnbd/issue43354.dart:27:9: Context: This constructor is const.
+//   const D();
+//         ^
+//
+// pkg/front_end/testcases/nnbd/issue43354.dart:26:21: Error: Can't have a late final field in a class with a const constructor.
+//   late final String bar = "foobar";
+//                     ^
+// pkg/front_end/testcases/nnbd/issue43354.dart:27:9: Context: This constructor is const.
+//   const D();
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  late final field core::int foo = 42;
+  const constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object /*hasConstConstructor*/  {
+  late final field core::int foo = 42;
+  late final field core::String bar = "foobar";
+  const constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object /*hasConstConstructor*/  {
+  late final field core::int foo = 42;
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+  const constructor another() → self::C
+    : super core::Object::•()
+    ;
+}
+class D extends core::Object /*hasConstConstructor*/  {
+  late final field core::int foo = 42;
+  late final field core::String bar = "foobar";
+  const constructor •() → self::D
+    : super core::Object::•()
+    ;
+  const constructor another() → self::D
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

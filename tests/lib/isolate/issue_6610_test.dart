@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable-isolate-groups
-// VMOptions=--no-enable-isolate-groups
-
 // Testing that Isolate.spawn copies the source code of the parent isolate,
 // rather than rereading the parent's source URI.
 // https://github.com/dart-lang/sdk/issues/6610

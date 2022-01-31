@@ -28,19 +28,20 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
   late PostfixCompletionProcessor processor;
   late SourceChange change;
 
-  void _assertHasChange(String message, String expectedCode, [Function? cmp]) {
+  void _assertHasChange(String message, String expectedCode,
+      [int Function(String)? cmp]) {
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
         var resultCode =
             SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));
         if (cmp != null) {
-          int offset = cmp(resultCode);
+          var offset = cmp(resultCode);
           expect(change.selection!.offset, offset);
         }
       } else {
         if (cmp != null) {
-          int offset = cmp(testCode);
+          var offset = cmp(testCode);
           expect(change.selection!.offset, offset);
         }
       }
@@ -738,7 +739,7 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_into_legacy() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 String? x;
 ''');
     await _prepareCompletion('.tryon', '''
@@ -762,7 +763,7 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_into_legacy_nested() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 List<String?> x;
 ''');
     await _prepareCompletion('.tryon', '''
@@ -786,7 +787,7 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_legacy() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.8
 String x;
 ''');
@@ -809,7 +810,7 @@ f() {
   }
 
   Future<void> test_tryonThrowStatement_nnbd_legacy_nested() async {
-    newFile('/home/test/lib/a.dart', content: r'''
+    newFile('$testPackageLibPath/a.dart', content: r'''
 // @dart = 2.8
 List<String> x;
 ''');

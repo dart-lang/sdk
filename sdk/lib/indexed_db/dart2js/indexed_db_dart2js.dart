@@ -75,7 +75,7 @@ import 'dart:_native_typed_data';
 import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, Returns, JSName, Native;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor, JSExtendableArray;
+import 'dart:_interceptors' show JavaScriptObject, JSExtendableArray;
 import 'dart:_js_helper' show convertDartClosureToJS;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -205,7 +205,7 @@ const _annotation_Returns_IDBKey = const Returns(_idbKey);
 
 @Unstable()
 @Native("IDBCursor")
-class Cursor extends Interceptor {
+class Cursor extends JavaScriptObject {
   Future delete() {
     try {
       return _completeRequest(_delete());
@@ -448,7 +448,7 @@ typedef void ObserverCallback(ObserverChanges changes);
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Unstable()
 @Native("IDBFactory")
-class IdbFactory extends Interceptor {
+class IdbFactory extends JavaScriptObject {
   /**
    * Checks to see if Indexed DB is supported on the current platform.
    */
@@ -554,7 +554,7 @@ Future<T> _completeRequest<T>(Request request) {
 
 @Unstable()
 @Native("IDBIndex")
-class Index extends Interceptor {
+class Index extends JavaScriptObject {
   Future<int> count([key_OR_range]) {
     try {
       var request = _count(key_OR_range);
@@ -696,7 +696,7 @@ class Index extends Interceptor {
 
 @Unstable()
 @Native("IDBKeyRange")
-class KeyRange extends Interceptor {
+class KeyRange extends JavaScriptObject {
   factory KeyRange.only(/*Key*/ value) =>
       _KeyRangeFactoryProvider.createKeyRange_only(value);
 
@@ -747,7 +747,7 @@ class KeyRange extends Interceptor {
 
 @Unstable()
 @Native("IDBObjectStore")
-class ObjectStore extends Interceptor {
+class ObjectStore extends JavaScriptObject {
   Future add(value, [key]) {
     try {
       var request;
@@ -1012,7 +1012,7 @@ class ObjectStore extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("IDBObservation")
-class Observation extends Interceptor {
+class Observation extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Observation._() {
     throw new UnsupportedError("Not supported");
@@ -1029,7 +1029,7 @@ class Observation extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("IDBObserver")
-class Observer extends Interceptor {
+class Observer extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory Observer._() {
     throw new UnsupportedError("Not supported");
@@ -1058,7 +1058,7 @@ class Observer extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 @Native("IDBObserverChanges")
-class ObserverChanges extends Interceptor {
+class ObserverChanges extends JavaScriptObject {
   // To suppress missing implicit constructor warnings.
   factory ObserverChanges._() {
     throw new UnsupportedError("Not supported");

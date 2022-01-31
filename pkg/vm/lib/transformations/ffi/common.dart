@@ -17,6 +17,9 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart'
     show TypeEnvironment, SubtypeCheckMode;
 
+import 'abi.dart';
+import 'native_type_cfe.dart';
+
 /// Represents the (instantiated) ffi.NativeType.
 enum NativeType {
   kNativeType,
@@ -42,7 +45,7 @@ enum NativeType {
   kBool,
 }
 
-const Set<NativeType> nativeIntTypes = <NativeType>{
+const Set<NativeType> nativeIntTypesFixedSize = <NativeType>{
   NativeType.kInt8,
   NativeType.kInt16,
   NativeType.kInt32,
@@ -51,6 +54,10 @@ const Set<NativeType> nativeIntTypes = <NativeType>{
   NativeType.kUint16,
   NativeType.kUint32,
   NativeType.kUint64,
+};
+
+const Set<NativeType> nativeIntTypes = <NativeType>{
+  ...nativeIntTypesFixedSize,
   NativeType.kIntptr,
 };
 
@@ -105,78 +112,6 @@ const Map<NativeType, int> nativeTypeSizes = <NativeType, int>{
   NativeType.kStruct: UNKNOWN,
   NativeType.kHandle: WORD_SIZE,
   NativeType.kBool: 1,
-};
-
-/// The struct layout in various ABIs.
-///
-/// ABIs differ per architectures and with different compilers.
-/// We pick the default struct layout based on the architecture and OS.
-///
-/// Compilers _can_ deviate from the default layout, but this prevents
-/// executables from making system calls. So this seems rather uncommon.
-///
-/// In the future, we might support custom struct layouts. For more info see
-/// https://github.com/dart-lang/sdk/issues/35768.
-enum Abi {
-  /// Layout in all 64bit ABIs (x64 and arm64).
-  wordSize64,
-
-  /// Layout in System V ABI for x386 (ia32 on Linux) and in iOS Arm 32 bit.
-  wordSize32Align32,
-
-  /// Layout in both the Arm 32 bit ABI and the Windows ia32 ABI.
-  wordSize32Align64,
-}
-
-/// WORD_SIZE in bytes.
-const wordSize = <Abi, int>{
-  Abi.wordSize64: 8,
-  Abi.wordSize32Align32: 4,
-  Abi.wordSize32Align64: 4,
-};
-
-/// Elements that are not aligned to their size.
-///
-/// Has an entry for all Abis. Empty entries document that every native
-/// type is aligned to it's own size in this ABI.
-///
-/// See runtime/vm/ffi/abi.cc for asserts in the VM that verify these
-/// alignments.
-///
-/// TODO(37470): Add uncommon primitive data types when we want to support them.
-const nonSizeAlignment = <Abi, Map<NativeType, int>>{
-  Abi.wordSize64: {},
-
-  // x86 System V ABI:
-  // > uint64_t | size 8 | alignment 4
-  // > double   | size 8 | alignment 4
-  // https://github.com/hjl-tools/x86-psABI/wiki/intel386-psABI-1.1.pdf page 8.
-  //
-  // iOS 32 bit alignment:
-  // https://developer.apple.com/documentation/uikit/app_and_environment/updating_your_app_from_32-bit_to_64-bit_architecture/updating_data_structures
-  Abi.wordSize32Align32: {
-    NativeType.kDouble: 4,
-    NativeType.kInt64: 4,
-    NativeType.kUint64: 4
-  },
-
-  // The default for MSVC x86:
-  // > The alignment-requirement for all data except structures, unions, and
-  // > arrays is either the size of the object or the current packing size
-  // > (specified with either /Zp or the pack pragma, whichever is less).
-  // https://docs.microsoft.com/en-us/cpp/c-language/padding-and-alignment-of-structure-members?view=vs-2019
-  //
-  // GCC _can_ compile on Linux to this alignment with -malign-double, but does
-  // not do so by default:
-  // > Warning: if you use the -malign-double switch, structures containing the
-  // > above types are aligned differently than the published application
-  // > binary interface specifications for the x86-32 and are not binary
-  // > compatible with structures in code compiled without that switch.
-  // https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
-  //
-  // Arm always requires 8 byte alignment for 8 byte values:
-  // http://infocenter.arm.com/help/topic/com.arm.doc.ihi0042d/IHI0042D_aapcs.pdf 4.1 Fundamental Data Types
-  Abi.wordSize32Align64: {},
 };
 
 /// Load, store, and elementAt are rewired to their static type for these types.
@@ -248,11 +183,15 @@ class FfiTransformer extends Transformer {
   final Class compoundClass;
   final Class structClass;
   final Class unionClass;
+  final Class abiSpecificIntegerClass;
+  final Class abiSpecificIntegerMappingClass;
   final Class ffiNativeClass;
   final Class nativeFieldWrapperClass1Class;
   final Class ffiStructLayoutClass;
   final Field ffiStructLayoutTypesField;
   final Field ffiStructLayoutPackingField;
+  final Class ffiAbiSpecificMappingClass;
+  final Field ffiAbiSpecificMappingNativeTypesField;
   final Class ffiInlineArrayClass;
   final Field ffiInlineArrayElementTypeField;
   final Field ffiInlineArrayLengthField;
@@ -272,6 +211,12 @@ class FfiTransformer extends Transformer {
   final Procedure unionArrayElemAt;
   final Procedure arrayArrayElemAt;
   final Procedure arrayArrayAssignAt;
+  final Procedure abiSpecificIntegerPointerGetValue;
+  final Procedure abiSpecificIntegerPointerSetValue;
+  final Procedure abiSpecificIntegerPointerElemAt;
+  final Procedure abiSpecificIntegerPointerSetElemAt;
+  final Procedure abiSpecificIntegerArrayElemAt;
+  final Procedure abiSpecificIntegerArraySetElemAt;
   final Procedure asFunctionMethod;
   final Procedure asFunctionInternal;
   final Procedure sizeOfMethod;
@@ -298,12 +243,19 @@ class FfiTransformer extends Transformer {
   final Map<NativeType, Procedure> storeMethods;
   final Map<NativeType, Procedure> storeUnalignedMethods;
   final Map<NativeType, Procedure> elementAtMethods;
+  final Procedure loadAbiSpecificIntMethod;
+  final Procedure loadAbiSpecificIntAtIndexMethod;
+  final Procedure storeAbiSpecificIntMethod;
+  final Procedure storeAbiSpecificIntAtIndexMethod;
+  final Procedure abiCurrentMethod;
+  final Map<Constant, Abi> constantAbis;
   final Procedure memCopy;
   final Procedure allocationTearoff;
   final Procedure asFunctionTearoff;
   final Procedure lookupFunctionTearoff;
   final Procedure getNativeFieldFunction;
   final Procedure reachabilityFenceFunction;
+  final Procedure checkAbiSpecificIntegerMappingFunction;
 
   late final InterfaceType nativeFieldWrapperClass1Type;
   late final InterfaceType voidType;
@@ -370,6 +322,10 @@ class FfiTransformer extends Transformer {
         compoundClass = index.getClass('dart:ffi', '_Compound'),
         structClass = index.getClass('dart:ffi', 'Struct'),
         unionClass = index.getClass('dart:ffi', 'Union'),
+        abiSpecificIntegerClass =
+            index.getClass('dart:ffi', 'AbiSpecificInteger'),
+        abiSpecificIntegerMappingClass =
+            index.getClass('dart:ffi', 'AbiSpecificIntegerMapping'),
         ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
         nativeFieldWrapperClass1Class =
             index.getClass('dart:nativewrappers', 'NativeFieldWrapperClass1'),
@@ -378,6 +334,10 @@ class FfiTransformer extends Transformer {
             index.getField('dart:ffi', '_FfiStructLayout', 'fieldTypes'),
         ffiStructLayoutPackingField =
             index.getField('dart:ffi', '_FfiStructLayout', 'packing'),
+        ffiAbiSpecificMappingClass =
+            index.getClass('dart:ffi', '_FfiAbiSpecificMapping'),
+        ffiAbiSpecificMappingNativeTypesField =
+            index.getField('dart:ffi', '_FfiAbiSpecificMapping', 'nativeTypes'),
         ffiInlineArrayClass = index.getClass('dart:ffi', '_FfiInlineArray'),
         ffiInlineArrayElementTypeField =
             index.getField('dart:ffi', '_FfiInlineArray', 'elementType'),
@@ -431,6 +391,18 @@ class FfiTransformer extends Transformer {
         arrayArrayElemAt = index.getProcedure('dart:ffi', 'ArrayArray', '[]'),
         arrayArrayAssignAt =
             index.getProcedure('dart:ffi', 'ArrayArray', '[]='),
+        abiSpecificIntegerPointerGetValue = index.getProcedure(
+            'dart:ffi', 'AbiSpecificIntegerPointer', 'get:value'),
+        abiSpecificIntegerPointerSetValue = index.getProcedure(
+            'dart:ffi', 'AbiSpecificIntegerPointer', 'set:value'),
+        abiSpecificIntegerPointerElemAt =
+            index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '[]'),
+        abiSpecificIntegerPointerSetElemAt =
+            index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '[]='),
+        abiSpecificIntegerArrayElemAt =
+            index.getProcedure('dart:ffi', 'AbiSpecificIntegerArray', '[]'),
+        abiSpecificIntegerArraySetElemAt =
+            index.getProcedure('dart:ffi', 'AbiSpecificIntegerArray', '[]='),
         asFunctionMethod = index.getProcedure(
             'dart:ffi', 'NativeFunctionPointer', 'asFunction'),
         asFunctionInternal =
@@ -475,6 +447,20 @@ class FfiTransformer extends Transformer {
           final name = nativeTypeClassNames[t];
           return index.getTopLevelProcedure('dart:ffi', "_elementAt$name");
         }),
+        loadAbiSpecificIntMethod =
+            index.getTopLevelProcedure('dart:ffi', "_loadAbiSpecificInt"),
+        loadAbiSpecificIntAtIndexMethod = index.getTopLevelProcedure(
+            'dart:ffi', "_loadAbiSpecificIntAtIndex"),
+        storeAbiSpecificIntMethod =
+            index.getTopLevelProcedure('dart:ffi', "_storeAbiSpecificInt"),
+        storeAbiSpecificIntAtIndexMethod = index.getTopLevelProcedure(
+            'dart:ffi', "_storeAbiSpecificIntAtIndex"),
+        abiCurrentMethod = index.getProcedure('dart:ffi', 'Abi', 'current'),
+        constantAbis = abiNames.map((abi, name) => MapEntry(
+            (index.getField('dart:ffi', 'Abi', name).initializer
+                    as ConstantExpression)
+                .constant,
+            abi)),
         memCopy = index.getTopLevelProcedure('dart:ffi', '_memCopy'),
         allocationTearoff = index.getProcedure(
             'dart:ffi', 'AllocatorAlloc', LibraryIndex.tearoffPrefix + 'call'),
@@ -487,7 +473,9 @@ class FfiTransformer extends Transformer {
         getNativeFieldFunction = index.getTopLevelProcedure(
             'dart:nativewrappers', '_getNativeField'),
         reachabilityFenceFunction =
-            index.getTopLevelProcedure('dart:_internal', 'reachabilityFence') {
+            index.getTopLevelProcedure('dart:_internal', 'reachabilityFence'),
+        checkAbiSpecificIntegerMappingFunction = index.getTopLevelProcedure(
+            'dart:ffi', "_checkAbiSpecificIntegerMapping") {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid]!
@@ -518,12 +506,13 @@ class FfiTransformer extends Transformer {
   /// [Uint32]                             -> [int]
   /// [Uint64]                             -> [int]
   /// [IntPtr]                             -> [int]
+  /// T extends [AbiSpecificInteger]       -> [int]
   /// [Double]                             -> [double]
   /// [Float]                              -> [double]
   /// [Bool]                               -> [bool]
   /// [Void]                               -> [void]
   /// [Pointer]<T>                         -> [Pointer]<T>
-  /// T extends [Pointer]                  -> T
+  /// T extends [Compound]                 -> T
   /// [Handle]                             -> [Object]
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
@@ -543,6 +532,9 @@ class FfiTransformer extends Transformer {
         return null;
       }
       return nativeType;
+    }
+    if (hierarchy.isSubclassOf(nativeClass, abiSpecificIntegerClass)) {
+      return InterfaceType(intClass, Nullability.legacy);
     }
     if (hierarchy.isSubclassOf(nativeClass, compoundClass)) {
       if (nativeClass == structClass || nativeClass == unionClass) {
@@ -605,28 +597,41 @@ class FfiTransformer extends Transformer {
   InterfaceType _listOfIntType() => InterfaceType(
       listClass, Nullability.legacy, [coreTypes.intLegacyRawType]);
 
-  ConstantExpression intListConstantExpression(List<int> values) =>
+  ConstantExpression intListConstantExpression(List<int?> values) =>
       ConstantExpression(
-          ListConstant(coreTypes.intLegacyRawType,
-              [for (var v in values) IntConstant(v)]),
+          ListConstant(coreTypes.intLegacyRawType, [
+            for (var v in values)
+              if (v != null) IntConstant(v) else NullConstant()
+          ]),
           _listOfIntType());
 
   /// Expression that queries VM internals at runtime to figure out on which ABI
   /// we are.
-  Expression runtimeBranchOnLayout(Map<Abi, int> values) {
-    return InstanceInvocation(
+  Expression runtimeBranchOnLayout(Map<Abi, int?> values) {
+    final result = InstanceInvocation(
         InstanceAccessKind.Instance,
         intListConstantExpression([
-          values[Abi.wordSize64]!,
-          values[Abi.wordSize32Align32]!,
-          values[Abi.wordSize32Align64]!
+          for (final abi in Abi.values) values[abi],
         ]),
         listElementAt.name,
         Arguments([StaticInvocation(abiMethod, Arguments([]))]),
         interfaceTarget: listElementAt,
         functionType: Substitution.fromInterfaceType(_listOfIntType())
             .substituteType(listElementAt.getterType) as FunctionType);
+    if (values.isPartial) {
+      return checkAbiSpecificIntegerMapping(result);
+    }
+    return result;
   }
+
+  Expression checkAbiSpecificIntegerMapping(Expression nullableExpression) =>
+      StaticInvocation(
+        checkAbiSpecificIntegerMappingFunction,
+        Arguments(
+          [nullableExpression],
+          types: [InterfaceType(intClass, Nullability.nonNullable)],
+        ),
+      );
 
   /// Generates an expression that returns a new `Pointer<dartType>` offset
   /// by [offset] from [pointer].
@@ -797,10 +802,16 @@ class FfiTransformer extends Transformer {
   /// Returns the single element type nested type argument of `Array`.
   ///
   /// `Array<Array<Array<Int8>>>` -> `Int8`.
+  ///
+  /// `Array<Array<Array<Unknown>>>` -> [InvalidType].
   DartType arraySingleElementType(DartType dartType) {
     InterfaceType elementType = dartType as InterfaceType;
     while (elementType.classNode == arrayClass) {
-      elementType = elementType.typeArguments[0] as InterfaceType;
+      final elementTypeAny = elementType.typeArguments[0];
+      if (elementTypeAny is InvalidType) {
+        return elementTypeAny;
+      }
+      elementType = elementTypeAny as InterfaceType;
     }
     return elementType;
   }
@@ -808,14 +819,35 @@ class FfiTransformer extends Transformer {
   /// Returns the number of dimensions of `Array`.
   ///
   /// `Array<Array<Array<Int8>>>` -> 3.
+  ///
+  /// `Array<Array<Array<Unknown>>>` -> 3.
   int arrayDimensions(DartType dartType) {
-    InterfaceType elementType = dartType as InterfaceType;
+    DartType elementType = dartType;
     int dimensions = 0;
-    while (elementType.classNode == arrayClass) {
-      elementType = elementType.typeArguments[0] as InterfaceType;
+    while (
+        elementType is InterfaceType && elementType.classNode == arrayClass) {
+      elementType = elementType.typeArguments[0];
       dimensions++;
     }
     return dimensions;
+  }
+
+  bool isAbiSpecificIntegerSubtype(DartType type) {
+    if (type is InvalidType) {
+      return false;
+    }
+    if (type is NullType) {
+      return false;
+    }
+    if (type is InterfaceType) {
+      if (type.classNode == abiSpecificIntegerClass) {
+        return false;
+      }
+    }
+    return env.isSubtypeOf(
+        type,
+        InterfaceType(abiSpecificIntegerClass, Nullability.legacy),
+        SubtypeCheckMode.ignoringNullabilities);
   }
 
   bool isCompoundSubtype(DartType type) {
@@ -867,6 +899,76 @@ class FfiTransformer extends Transformer {
         interfaceTarget: numMultiplication,
         functionType: numMultiplication.getterType as FunctionType);
   }
+
+  Iterable<MapConstant> getAbiSpecificIntegerMappingAnnotations(Class node) {
+    return node.annotations
+        .whereType<ConstantExpression>()
+        .map((e) => e.constant)
+        .whereType<InstanceConstant>()
+        .where((e) => e.classNode == abiSpecificIntegerMappingClass)
+        .map((instanceConstant) =>
+            instanceConstant.fieldValues.values.single as MapConstant);
+  }
+
+  /// Generates an expression performing an Abi specific integer load or store.
+  ///
+  /// If [value] is provided, it is a store, otherwise a load.
+  ///
+  /// Provide either [index], or [offsetInBytes], or none for an offset of 0.
+  ///
+  /// Generates an expression:
+  ///
+  /// ```dart
+  /// _storeAbiSpecificInt(
+  ///   [8, 8, 4][_abi()],
+  ///   typedDataBase,
+  ///   index * [8, 8, 4][_abi()],
+  ///   value,
+  /// )
+  /// ```
+  Expression abiSpecificLoadOrStoreExpression(
+    AbiSpecificNativeTypeCfe nativeTypeCfe, {
+    required Expression typedDataBase,
+    Expression? offsetInBytes,
+    Expression? index,
+    Expression? value,
+    required fileOffset,
+  }) {
+    assert(index == null || offsetInBytes == null);
+    final method = () {
+      if (value != null) {
+        if (index != null) {
+          return storeAbiSpecificIntAtIndexMethod;
+        }
+        return storeAbiSpecificIntMethod;
+      }
+      if (index != null) {
+        return loadAbiSpecificIntAtIndexMethod;
+      }
+      return loadAbiSpecificIntMethod;
+    }();
+
+    final Expression offsetOrIndex = () {
+      if (offsetInBytes != null) {
+        return offsetInBytes;
+      }
+      if (index != null) {
+        return index;
+      }
+      return ConstantExpression(IntConstant(0));
+    }();
+
+    return StaticInvocation(
+      method,
+      Arguments([
+        typedDataBase,
+        offsetOrIndex,
+        if (value != null) value,
+      ], types: [
+        InterfaceType(nativeTypeCfe.clazz, Nullability.nonNullable)
+      ]),
+    )..fileOffset = fileOffset;
+  }
 }
 
 /// Checks if any library depends on dart:ffi.
@@ -881,4 +983,9 @@ bool importsFfi(Component component, List<Library> libraries) {
     }
   }
   return false;
+}
+
+extension on Map<Abi, Object?> {
+  bool get isPartial =>
+      [for (final abi in Abi.values) this[abi]].contains(null);
 }

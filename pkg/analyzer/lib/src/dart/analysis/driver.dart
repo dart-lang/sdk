@@ -9,6 +9,7 @@ import 'package:analyzer/dart/analysis/analysis_context.dart' as api;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -29,6 +30,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/exception/exception.dart';
@@ -42,6 +44,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:meta/meta.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
@@ -80,7 +83,7 @@ import 'package:meta/meta.dart';
 /// TODO(scheglov) Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 190;
+  static const int DATA_VERSION = 193;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -686,6 +689,22 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return completer.future;
   }
 
+  /// Return [LibraryElementResult] for the given [file], or `null` if the
+  /// file is a part.
+  LibraryElement? getLibraryByFile(FileState file) {
+    if (file.isPart) {
+      return null;
+    }
+
+    var element = libraryContext.getLibraryElementIfReady(file.uriStr);
+    if (element != null) {
+      return element;
+    }
+
+    libraryContext.load2(file);
+    return libraryContext.getLibraryElement(file.uri);
+  }
+
   /// Return a [Future] that completes with [LibraryElementResult] for the given
   /// [uri], which is either resynthesized from the provided external summary
   /// store, or built for a file to which the given [uri] is resolved.
@@ -760,7 +779,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       units.add(unitResult);
     }
 
-    return ParsedLibraryResultImpl(currentSession, path, file.uri, units);
+    return ParsedLibraryResultImpl(currentSession, units);
   }
 
   /// Return a [ParsedLibraryResult] for the library with the given [uri].
@@ -1274,11 +1293,69 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return;
     }
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
+      _lastProducedSignatures.remove(path);
       _priorityResults.clear();
       _removePotentiallyAffectedLibraries(path);
       _fileTracker.removeFile(path);
       _scheduler.notify(this);
     }
+  }
+
+  ResolvedForCompletionResultImpl? resolveForCompletion({
+    required String path,
+    required int offset,
+    required OperationPerformanceImpl performance,
+  }) {
+    if (!_isAbsolutePath(path)) {
+      return null;
+    }
+
+    if (!_fsState.hasUri(path)) {
+      return null;
+    }
+
+    // Process pending changes.
+    while (_fileTracker.verifyChangedFilesIfNeeded()) {}
+
+    var file = _fsState.getFileForPath(path);
+
+    var library = file.isPart ? file.library : file;
+    if (library == null) {
+      return null;
+    }
+
+    libraryContext.load2(library);
+    var unitElement = libraryContext.computeUnitElement(library, file)
+        as CompilationUnitElementImpl;
+
+    var analyzer = LibraryAnalyzer(
+        analysisOptions as AnalysisOptionsImpl,
+        declaredVariables,
+        sourceFactory,
+        libraryContext.analysisContext,
+        libraryContext.elementFactory.libraryOfUri2(library.uriStr),
+        libraryContext.analysisSession.inheritanceManager,
+        library,
+        testingData: testingData);
+
+    var analysisResult = analyzer.analyzeForCompletion(
+      file: file,
+      offset: offset,
+      unitElement: unitElement,
+      performance: performance,
+    );
+
+    return ResolvedForCompletionResultImpl(
+      analysisSession: currentSession,
+      path: path,
+      uri: file.uri,
+      exists: file.exists,
+      content: file.content,
+      lineInfo: file.lineInfo,
+      parsedUnit: analysisResult.parsedUnit,
+      unitElement: unitElement,
+      resolvedNodes: analysisResult.resolvedNodes,
+    );
   }
 
   void _addDeclaredVariablesToSignature(ApiSignature buffer) {
@@ -1470,8 +1547,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
       return ResolvedLibraryResultImpl(
         currentSession,
-        library.path,
-        library.uri,
         resolvedUnits.first.libraryElement,
         resolvedUnits,
       );
@@ -1502,7 +1577,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         file.uri,
         file.lineInfo,
         file.isPart,
-        library.transitiveSignature,
         element,
       );
     });
@@ -1705,15 +1779,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   void _removePotentiallyAffectedLibraries(String path) {
-    _logger.run('Invalidate affected by $path.', () {
-      _logger.writeln('Work in $name');
-      var affected = <FileState>{};
-      _fsState.collectAffected(path, affected);
-      _logger.writeln('Remove ${affected.length} libraries.');
-      _libraryContext?.elementFactory.removeLibraries(
-        affected.map((e) => e.uriStr).toSet(),
-      );
-    });
+    var affected = <FileState>{};
+    _fsState.collectAffected(path, affected);
+
+    for (var file in affected) {
+      file.invalidateLibraryCycle();
+    }
+
+    _libraryContext?.elementFactory.removeLibraries(
+      affected.map((e) => e.uriStr).toSet(),
+    );
   }
 
   void _reportException(String path, Object exception, StackTrace stackTrace) {

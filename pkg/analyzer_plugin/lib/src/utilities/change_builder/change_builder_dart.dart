@@ -17,6 +17,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/src/utilities/charcodes.dart';
+import 'package:analyzer_plugin/src/utilities/library.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -1337,11 +1338,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// the names used in generated code, to information about these imports.
   Map<Uri, _LibraryToImport> librariesToImport = {};
 
-  /// A mapping from libraries that need to be imported relatively in order to
-  /// make visible the names used in generated code, to information about these
-  /// imports.
-  Map<String, _LibraryToImport> librariesToRelativelyImport = {};
-
   /// Initialize a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder]. The file being edited has
   /// the given [resolvedUnit] and [timeStamp].
@@ -1350,10 +1346,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       : super(changeBuilder, resolvedUnit.path, timeStamp);
 
   @override
-  bool get hasEdits =>
-      super.hasEdits ||
-      librariesToImport.isNotEmpty ||
-      librariesToRelativelyImport.isNotEmpty;
+  bool get hasEdits => super.hasEdits || librariesToImport.isNotEmpty;
 
   @override
   void addInsertion(
@@ -1402,9 +1395,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     for (var entry in librariesToImport.entries) {
       copy.librariesToImport[entry.key] = entry.value;
     }
-    for (var entry in librariesToRelativelyImport.entries) {
-      copy.librariesToRelativelyImport[entry.key] = entry.value;
-    }
     return copy;
   }
 
@@ -1417,9 +1407,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   void finalize() {
     if (librariesToImport.isNotEmpty) {
       _addLibraryImports(librariesToImport.values);
-    }
-    if (librariesToRelativelyImport.isNotEmpty) {
-      _addLibraryImports(librariesToRelativelyImport.values);
     }
   }
 
@@ -1480,8 +1467,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return ImportLibraryElementResultImpl(null);
   }
 
-  String importLibraryWithRelativeUri(String uriText, [String? prefix]) {
-    return _importLibraryWithRelativeUri(uriText, prefix).uriText;
+  String importLibraryWithAbsoluteUri(Uri uri, [String? prefix]) {
+    return _importLibrary(uri, prefix: prefix, forceAbsolute: true).uriText;
+  }
+
+  String importLibraryWithRelativeUri(Uri uri, [String? prefix]) {
+    return _importLibrary(uri, prefix: prefix, forceRelative: true).uriText;
   }
 
   @override
@@ -1495,9 +1486,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return;
     }
 
-    addReplacement(range.node(typeAnnotation!), (EditBuilder builder) {
+    addReplacement(range.node(typeAnnotation!), (builder) {
       var futureType = typeProvider.futureType(type);
-      if (!(builder as DartEditBuilder).writeType(futureType)) {
+      if (!builder.writeType(futureType)) {
         builder.write('void');
       }
     });
@@ -1720,24 +1711,55 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   /// Computes the best URI to import [uri] into the target library.
-  String _getLibraryUriText(Uri uri) {
-    if (uri.scheme == 'file') {
-      var pathContext = resolvedUnit.session.resourceProvider.pathContext;
-      var whatPath = pathContext.fromUri(uri);
+  ///
+  /// [uri] may be converted from an absolute URI to a relative URI depending on
+  /// user preferences/lints unless [forceAbsolute] or [forceRelative] are `true`.
+  String _getLibraryUriText(
+    Uri uri, {
+    bool forceAbsolute = false,
+    bool forceRelative = false,
+  }) {
+    var pathContext = resolvedUnit.session.resourceProvider.pathContext;
+
+    /// Returns the relative path to import [whatPath] into [resolvedUnit].
+    String getRelativePath(String whatPath) {
       var libraryPath = resolvedUnit.libraryElement.source.fullName;
       var libraryFolder = pathContext.dirname(libraryPath);
       var relativeFile = pathContext.relative(whatPath, from: libraryFolder);
       return pathContext.split(relativeFile).join('/');
     }
+
+    if (uri.isScheme('file')) {
+      var whatPath = pathContext.fromUri(uri);
+      return getRelativePath(whatPath);
+    }
+    var preferRelative = _isLintEnabled('prefer_relative_imports');
+    if (forceRelative || (preferRelative && !forceAbsolute)) {
+      if (canBeRelativeImport(uri, resolvedUnit.uri)) {
+        var whatPath = resolvedUnit.session.uriConverter.uriToPath(uri);
+        if (whatPath != null) {
+          return getRelativePath(whatPath);
+        }
+      }
+    }
     return uri.toString();
   }
 
   /// Arrange to have an import added for the library with the given [uri].
-  _LibraryToImport _importLibrary(Uri uri) {
+  ///
+  /// [uri] may be converted from an absolute URI to a relative URI depending on
+  /// user preferences/lints unless [forceAbsolute] or [forceRelative] are `true`.
+  _LibraryToImport _importLibrary(
+    Uri uri, {
+    String? prefix,
+    bool forceAbsolute = false,
+    bool forceRelative = false,
+  }) {
     var import = (libraryChangeBuilder ?? this).librariesToImport[uri];
     if (import == null) {
-      var uriText = _getLibraryUriText(uri);
-      var prefix =
+      var uriText = _getLibraryUriText(uri,
+          forceAbsolute: forceAbsolute, forceRelative: forceRelative);
+      prefix ??=
           importPrefixGenerator != null ? importPrefixGenerator!(uri) : null;
       import = _LibraryToImport(uriText, prefix);
       (libraryChangeBuilder ?? this).librariesToImport[uri] = import;
@@ -1745,21 +1767,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return import;
   }
 
-  /// Arrange to have an import added for the library with the given relative
-  /// [uriText].
-  _LibraryToImport _importLibraryWithRelativeUri(String uriText,
-      [String? prefix]) {
-    var import = librariesToRelativelyImport[uriText];
-    if (import == null) {
-      import = _LibraryToImport(uriText, prefix);
-      librariesToRelativelyImport[uriText] = import;
-    }
-    return import;
-  }
-
   /// Return `true` if the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
     return element.library == resolvedUnit.libraryElement;
+  }
+
+  bool _isLintEnabled(String lintName) {
+    final analysisOptions =
+        resolvedUnit.session.analysisContext.analysisOptions;
+    return analysisOptions.isLintEnabled(lintName);
   }
 
   /// Create an edit to replace the return type of the innermost function

@@ -66,11 +66,11 @@ void main() async {
           });
           test('has start token', () async {
             expect(functionSymbol.location.tokenPos,
-                27 + options.dartLangComment.length);
+                source.indexOf('topLevelFunction'));
           });
           test('has end token', () async {
-            expect(functionSymbol.location.endTokenPos,
-                78 + options.dartLangComment.length);
+            expect(
+                functionSymbol.location.endTokenPos, source.lastIndexOf('}'));
           });
         });
         test('id in LibrarySymbol scopes', () async {

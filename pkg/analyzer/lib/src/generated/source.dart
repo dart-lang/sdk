@@ -6,15 +6,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:analyzer/src/task/api/model.dart';
 import 'package:path/path.dart' as pathos;
 
 export 'package:analyzer/source/line_info.dart' show LineInfo;
 export 'package:analyzer/source/source_range.dart';
-
-/// A function that is used to visit [ContentCache] entries.
-typedef ContentCacheVisitor = void Function(
-    String fullPath, int stamp, String contents);
 
 /// Base class providing implementations for the methods in [Source] that don't
 /// require filesystem access.
@@ -24,6 +19,7 @@ abstract class BasicSource extends Source {
 
   BasicSource(this.uri);
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => uri.toString();
 
@@ -33,6 +29,7 @@ abstract class BasicSource extends Source {
   @override
   int get hashCode => uri.hashCode;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => uri.scheme == 'dart';
 
@@ -61,17 +58,16 @@ class DartUriResolver extends UriResolver {
   DartSdk get dartSdk => _sdk;
 
   @override
+  Uri? pathToUri(String path) {
+    return _sdk.pathToUri(path);
+  }
+
+  @override
   Source? resolveAbsolute(Uri uri) {
     if (!isDartUri(uri)) {
       return null;
     }
     return _sdk.mapDartUri(uri.toString());
-  }
-
-  @override
-  Uri? restoreAbsolute(Source source) {
-    var dartSource = _sdk.fromFileUri(source.uri);
-    return dartSource?.uri;
   }
 
   /// Return `true` if the given URI is a `dart:` URI.
@@ -84,7 +80,9 @@ class DartUriResolver extends UriResolver {
 /// An implementation of an non-existing [Source].
 class NonExistingSource extends Source {
   static final unknown = NonExistingSource(
-      '/unknown.dart', pathos.toUri('/unknown.dart'), UriKind.FILE_URI);
+    '/unknown.dart',
+    pathos.toUri('/unknown.dart'),
+  );
 
   @override
   final String fullName;
@@ -92,35 +90,41 @@ class NonExistingSource extends Source {
   @override
   final Uri uri;
 
-  @override
-  final UriKind uriKind;
-
-  NonExistingSource(this.fullName, this.uri, this.uriKind);
+  NonExistingSource(this.fullName, this.uri);
 
   @override
   TimestampedData<String> get contents {
     throw UnsupportedError('$fullName does not exist.');
   }
 
+  @Deprecated('Not used anymore')
   @override
   String get encoding => uri.toString();
 
   @override
   int get hashCode => fullName.hashCode;
 
+  @Deprecated('Use uri.isScheme("dart") instead')
   @override
   bool get isInSystemLibrary => false;
 
+  @Deprecated('Not used anymore')
   @override
   int get modificationStamp => -1;
 
   @override
   String get shortName => pathos.basename(fullName);
 
+  @Deprecated('Use Source.uri instead')
+  @override
+  UriKind get uriKind {
+    return UriKind.FILE_URI;
+  }
+
   @override
   bool operator ==(Object other) {
     if (other is NonExistingSource) {
-      return other.uriKind == uriKind && other.fullName == fullName;
+      return other.uri == uri && other.fullName == fullName;
     }
     return false;
   }
@@ -154,7 +158,7 @@ class NonExistingSource extends Source {
 /// represent non-existent files must also be retained so that if those files
 /// are created at a later date the long-lived sources representing those files
 /// will know that they now exist.
-abstract class Source implements AnalysisTarget {
+abstract class Source {
   /// Get the contents and timestamp of this source.
   ///
   /// Clients should consider using the method [AnalysisContext.getContents]
@@ -170,7 +174,7 @@ abstract class Source implements AnalysisTarget {
   ///
   /// @return an encoded representation of this source
   /// See [SourceFactory.fromEncoding].
-  @deprecated
+  @Deprecated('Not used anymore')
   String get encoding;
 
   /// Return the full (long) version of the name that can be displayed to the
@@ -190,10 +194,8 @@ abstract class Source implements AnalysisTarget {
   /// Return `true` if this source is in one of the system libraries.
   ///
   /// @return `true` if this is in a system library
+  @Deprecated('Use uri.isScheme("dart") instead')
   bool get isInSystemLibrary;
-
-  @override
-  Source get librarySource => throw UnimplementedError();
 
   /// Return the modification stamp for this source, or a negative value if the
   /// source does not exist. A modification stamp is a non-negative integer with
@@ -206,6 +208,7 @@ abstract class Source implements AnalysisTarget {
   /// Clients should consider using the method
   /// [AnalysisContext.getModificationStamp] because contexts can have local
   /// overrides of the content of a source that the source is not aware of.
+  @Deprecated('Not used anymore')
   int get modificationStamp;
 
   /// Return a short version of the name that can be displayed to the user to
@@ -214,9 +217,6 @@ abstract class Source implements AnalysisTarget {
   ///
   /// @return a name that can be displayed to the user to denote this source
   String get shortName;
-
-  @override
-  Source get source => this;
 
   /// Return the URI from which this source was originally derived.
   ///
@@ -230,6 +230,7 @@ abstract class Source implements AnalysisTarget {
   /// against which the relative URI was resolved.
   ///
   /// @return the kind of URI from which this source was originally derived
+  @Deprecated('Use Source.uri instead')
   UriKind get uriKind;
 
   /// Return `true` if the given object is a source that represents the same
@@ -271,10 +272,6 @@ abstract class SourceFactory {
   /// the package (or [null] if there is no registered package URI resolver).
   Map<String, List<Folder>>? get packageMap;
 
-  /// Clear any cached URI resolution information in the [SourceFactory] itself,
-  /// and also ask each [UriResolver]s to clear its caches.
-  void clearCache();
-
   /// Return a source object representing the given absolute URI, or `null` if
   /// the URI is not a valid URI or if it is not an absolute URI.
   ///
@@ -289,6 +286,13 @@ abstract class SourceFactory {
   /// @return a source object representing the absolute URI
   Source? forUri2(Uri absoluteUri);
 
+  /// Return the URI that should be used to reference the file at the absolute
+  /// [path], or `null` if there is no valid way to reference the file.
+  /// The file at that path is not required to exist.
+  ///
+  /// Throws an [ArgumentError] if the [path] is not a valid path.
+  Uri? pathToUri(String path);
+
   /// Return a source representing the URI that results from resolving the given
   /// (possibly relative) [containedUri] against the URI associated with the
   /// [containingSource], whether or not the resulting source exists, or `null`
@@ -301,6 +305,7 @@ abstract class SourceFactory {
   ///
   /// @param source the source to get URI for
   /// @return the absolute URI representing the given source
+  @Deprecated('Use pathToUri() instead')
   Uri? restoreUri(Source source);
 }
 
@@ -348,6 +353,7 @@ class SourceKind implements Comparable<SourceKind> {
 /// The enumeration `UriKind` defines the different kinds of URI's that are
 /// known to the analysis engine. These are used to keep track of the kind of
 /// URI associated with a given source.
+@Deprecated('Use Source.uri instead')
 class UriKind implements Comparable<UriKind> {
   /// A 'dart:' URI.
   static const UriKind DART_URI = UriKind('DART_URI', 0, 0x64);
@@ -413,15 +419,14 @@ class UriKind implements Comparable<UriKind> {
 /// The abstract class `UriResolver` defines the behavior of objects that are
 /// used to resolve URI's for a source factory. Subclasses of this class are
 /// expected to resolve a single scheme of absolute URI.
-///
-/// NOTICE: in a future breaking change release of the analyzer, a method
-/// `void clearCache()` will be added.  Clients that implement, but do not
-/// extend, this class, can prepare for the breaking change by adding an
-/// implementation of this method that clears any cached URI resolution
-/// information.
 abstract class UriResolver {
-  /// Clear any cached URI resolution information.
-  void clearCache() {}
+  /// Return the absolute URI that should be used to reference the file at the
+  /// absolute [path], or `null` if this resolver cannot reference this file.
+  /// The file at that path is not required to exist.
+  ///
+  /// Throws an [ArgumentError] if the [path] is not a valid path.
+  /// ignore: deprecated_member_use_from_same_package
+  Uri? pathToUri(String path) => restoreAbsolute(_FakeSource(path));
 
   /// Resolve the given absolute [uri]. Return a [Source] representing the file
   /// to which it was resolved, whether or not the resulting source exists, or
@@ -432,5 +437,21 @@ abstract class UriResolver {
   /// valid URI cannot be computed.
   ///
   /// The computation should be based solely on [source.fullName].
-  Uri? restoreAbsolute(Source source) => null;
+  @Deprecated('Use pathToUri() instead')
+  Uri? restoreAbsolute(Source source) {
+    return pathToUri(source.fullName);
+  }
+}
+
+class _FakeSource implements Source {
+  @override
+  final String fullName;
+
+  _FakeSource(this.fullName);
+
+  @override
+  Uri get uri => pathos.toUri(fullName);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

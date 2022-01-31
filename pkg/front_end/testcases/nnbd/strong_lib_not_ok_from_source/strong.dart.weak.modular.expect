@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "strong_lib.dart" as str;
+
+import "org-dartlang-testcase:///strong_lib.dart";
+
+static method main() → dynamic {
+  str::foo();
+}
+
+library;
+import self as str;
+import "dart:core" as core;
+
+static field core::int* x;
+static method foo() → void {
+  core::print("hello");
+}

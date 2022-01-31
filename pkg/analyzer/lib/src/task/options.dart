@@ -10,7 +10,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/config.dart';
@@ -139,6 +138,7 @@ class AnalyzerOptions {
   static const String implicitDynamic = 'implicit-dynamic';
 
   // Language options (see AnalysisOptionsImpl for documentation).
+  static const String strictCasts = 'strict-casts';
   static const String strictInference = 'strict-inference';
   static const String strictRawTypes = 'strict-raw-types';
 
@@ -177,7 +177,11 @@ class AnalyzerOptions {
   ];
 
   /// Supported `analyzer` language options.
-  static const List<String> languageOptions = [strictInference, strictRawTypes];
+  static const List<String> languageOptions = [
+    strictCasts,
+    strictInference,
+    strictRawTypes,
+  ];
 
   /// Supported 'analyzer' optional checks options.
   static const List<String> optionalChecksOptions = [
@@ -360,7 +364,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
 
   /// Pretty String listing legal values.
   static final String legalValueString =
-      StringUtilities.printListOfQuotedNames(legalValues);
+      legalValues.quotedAndCommaSeparatedWithAnd;
 
   /// Lazily populated set of error codes.
   static final Set<String> _errorCodes =
@@ -750,6 +754,9 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, Object? feature, Object value) {
     var boolValue = toBool(value);
     if (boolValue != null) {
+      if (feature == AnalyzerOptions.strictCasts) {
+        options.strictCasts = boolValue;
+      }
       if (feature == AnalyzerOptions.strictInference) {
         options.strictInference = boolValue;
       }

@@ -13,11 +13,10 @@ class LintCode extends ErrorCode {
   const LintCode(
     String name,
     String problemMessage, {
-    @Deprecated('Use correctionMessage instead') String? correction,
     String? correctionMessage,
     String? uniqueName,
   }) : super(
-          correctionMessage: correctionMessage ?? correction,
+          correctionMessage: correctionMessage,
           problemMessage: problemMessage,
           name: name,
           uniqueName: uniqueName ?? 'LintCode.$name',
@@ -28,9 +27,6 @@ class LintCode extends ErrorCode {
 
   @override
   int get hashCode => uniqueName.hashCode;
-
-  @Deprecated('Use problemMessage instead')
-  String get message => problemMessage;
 
   @override
   ErrorType get type => ErrorType.LINT;

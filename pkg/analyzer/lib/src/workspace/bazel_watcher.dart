@@ -123,6 +123,8 @@ class BazelFilePoller {
         // folder, so we use a dummy value here. But this shouldn't really
         // matter, since the `symlinkTarget` should detect any modifications.
         return _ModifiedInfo(0, 0, symlinkTarget);
+      } else {
+        return null;
       }
     } on FileSystemException catch (_) {
       // File doesn't exist, so return null.

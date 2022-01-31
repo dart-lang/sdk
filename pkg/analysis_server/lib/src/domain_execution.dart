@@ -7,8 +7,8 @@ import 'dart:collection';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/utilities/progress.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /// Instances of the class [ExecutionDomainHandler] implement a [RequestHandler]
 /// that handles requests in the `execution` domain.
@@ -69,7 +69,8 @@ class ExecutionDomainHandler implements RequestHandler {
   }
 
   @override
-  Response? handleRequest(Request request) {
+  Response? handleRequest(
+      Request request, CancellationToken cancellationToken) {
     try {
       var requestName = request.method;
       if (requestName == EXECUTION_REQUEST_CREATE_CONTEXT) {
@@ -122,10 +123,10 @@ class ExecutionDomainHandler implements RequestHandler {
       }
 
       var source = driver.fsState.getFileForPath(file).source;
-      if (source.uriKind != UriKind.FILE_URI) {
+      if (!source.uri.isScheme('file')) {
         uri = source.uri.toString();
       } else {
-        uri = sourceFactory.restoreUri(source).toString();
+        uri = sourceFactory.pathToUri(file).toString();
       }
       return ExecutionMapUriResult(uri: uri).toResponse(request.id);
     } else if (uri != null) {

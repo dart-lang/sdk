@@ -49,7 +49,13 @@ class ClosureFunctionsCache : public AllStatic {
   static FunctionPtr LookupClosureFunctionLocked(const Function& parent,
                                                  TokenPosition token_pos);
 
-  static void AddClosureFunctionLocked(const Function& function);
+  // Normally implicit closure functions are not added to this cache, however
+  // during AOT compilation we might add those implicit closure functions
+  // that have their original functions shaken to allow ProgramWalker to
+  // discover them.
+  static void AddClosureFunctionLocked(
+      const Function& function,
+      bool allow_implicit_closure_functions = false);
 
   static intptr_t FindClosureIndex(const Function& needle);
   static FunctionPtr ClosureFunctionFromIndex(intptr_t idx);

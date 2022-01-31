@@ -9,6 +9,8 @@
 #error "Should not include runtime"
 #endif
 
+#include <setjmp.h>
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
@@ -198,6 +200,8 @@ class Thread;
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
   V(uword, call_native_through_safepoint_entry_point_,                         \
     StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)                    \
+  V(uword, jump_to_frame_entry_point_, StubCode::JumpToFrame().EntryPoint(),   \
+    0)                                                                         \
   V(uword, slow_type_test_entry_point_, StubCode::SlowTypeTest().EntryPoint(), \
     0)
 
@@ -255,6 +259,35 @@ enum SafepointLevel {
   kGCAndDeopt,
   // Number of levels.
   kNumLevels,
+};
+
+// Accessed from generated code.
+struct TsanUtils {
+  // Used to allow unwinding runtime C frames using longjmp() when throwing
+  // exceptions. This allows triggering the normal TSAN shadow stack unwinding
+  // implementation.
+  // -> See https://dartbug.com/47472#issuecomment-948235479 for details.
+  void* setjmp_function = reinterpret_cast<void*>(&setjmp);
+  jmp_buf* setjmp_buffer = nullptr;
+  uword exception_pc = 0;
+  uword exception_sp = 0;
+  uword exception_fp = 0;
+
+  static intptr_t setjmp_function_offset() {
+    return OFFSET_OF(TsanUtils, setjmp_function);
+  }
+  static intptr_t setjmp_buffer_offset() {
+    return OFFSET_OF(TsanUtils, setjmp_buffer);
+  }
+  static intptr_t exception_pc_offset() {
+    return OFFSET_OF(TsanUtils, exception_pc);
+  }
+  static intptr_t exception_sp_offset() {
+    return OFFSET_OF(TsanUtils, exception_sp);
+  }
+  static intptr_t exception_fp_offset() {
+    return OFFSET_OF(TsanUtils, exception_fp);
+  }
 };
 
 // A VM thread; may be executing Dart code or performing helper tasks like
@@ -441,6 +474,13 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, double_truncate_round_supported_);
   }
 
+  static intptr_t tsan_utils_offset() { return OFFSET_OF(Thread, tsan_utils_); }
+
+#if defined(USING_THREAD_SANITIZER)
+  uword exit_through_ffi() const { return exit_through_ffi_; }
+  TsanUtils* tsan_utils() const { return tsan_utils_; }
+#endif  // defined(USING_THREAD_SANITIZER)
+
   // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
@@ -474,8 +514,10 @@ class Thread : public ThreadState {
   // Has |this| exited Dart code?
   bool HasExitedDartCode() const;
 
+  bool HasCompilerState() const { return compiler_state_ != nullptr; }
+
   CompilerState& compiler_state() {
-    ASSERT(compiler_state_ != nullptr);
+    ASSERT(HasCompilerState());
     return *compiler_state_;
   }
 
@@ -988,6 +1030,7 @@ class Thread : public ThreadState {
   void InitVMConstants();
 
   Random* random() { return &thread_random_; }
+  static intptr_t random_offset() { return OFFSET_OF(Thread, thread_random_); }
 
   uint64_t* GetFfiMarshalledArguments(intptr_t size) {
     if (ffi_marshalled_arguments_size_ < size) {
@@ -1096,6 +1139,9 @@ class Thread : public ThreadState {
   uword exit_through_ffi_ = 0;
   ApiLocalScope* api_top_scope_;
   uint8_t double_truncate_round_supported_;
+  ALIGN8 Random thread_random_;
+
+  TsanUtils* tsan_utils_ = nullptr;
 
   // ---- End accessed from generated code. ----
 
@@ -1132,8 +1178,6 @@ class Thread : public ThreadState {
   CompilerTimings* compiler_timings_ = nullptr;
 
   ErrorPtr sticky_error_;
-
-  Random thread_random_;
 
   intptr_t ffi_marshalled_arguments_size_ = 0;
   uint64_t* ffi_marshalled_arguments_;

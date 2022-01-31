@@ -1,0 +1,62 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/explicit_invalid_access.dart:10:3: Error: Explicit extension application cannot be used as an expression.
+//   Extension(c);
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/explicit_invalid_access.dart:11:3: Error: Explicit extension application cannot be a target for assignment.
+//   Extension(c) = 42;
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/explicit_invalid_access.dart:12:3: Error: Explicit extension application cannot be used as an expression.
+//   Extension(c) += 42;
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/explicit_invalid_access.dart:13:3: Error: Explicit extension application cannot be used as an expression.
+//   Extension(c)++;
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/explicit_invalid_access.dart:14:5: Error: Explicit extension application cannot be used as an expression.
+//   ++Extension(c);
+//     ^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+extension Extension on self::Class* {
+}
+static method errors(self::Class* c) → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/explicit_invalid_access.dart:10:3: Error: Explicit extension application cannot be used as an expression.
+  Extension(c);
+  ^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/explicit_invalid_access.dart:11:3: Error: Explicit extension application cannot be a target for assignment.
+  Extension(c) = 42;
+  ^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/explicit_invalid_access.dart:12:3: Error: Explicit extension application cannot be used as an expression.
+  Extension(c) += 42;
+  ^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/explicit_invalid_access.dart:13:3: Error: Explicit extension application cannot be used as an expression.
+  Extension(c)++;
+  ^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/explicit_invalid_access.dart:14:5: Error: Explicit extension application cannot be used as an expression.
+  ++Extension(c);
+    ^^^^^^^^^";
+}
+static method main() → dynamic {}
