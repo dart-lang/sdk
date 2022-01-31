@@ -12,9 +12,10 @@ dart2js/late_statics: SemiFuzzFailure
 dart2js/mixin_from_opt_in/main: SemiFuzzFailure
 dart2js/mixin_from_opt_in/main.no_link: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
-general/error_recovery/issue_39202.crash: SemiFuzzCrash
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
+general/error_recovery/issue_39202.crash: SemiFuzzCrash
 general/platform_invalid_uris/main: SemiFuzzFailure
+general/supported_libraries/main: SemiFuzzFailure
 nnbd_mixed/mixin_from_opt_in/main: SemiFuzzFailure
 nnbd_mixed/mixin_from_opt_in/main.no_link: SemiFuzzFailure
 regress/utf_16_le_content.crash: SemiFuzzCrash
