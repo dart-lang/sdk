@@ -4,11 +4,13 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'field_formal_parameter_test.dart' as field_formal_parameter;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 
 /// Tests suggestions produced at specific locations.
 void main() {
   defineReflectiveSuite(() {
+    field_formal_parameter.main();
     super_formal_parameter.main();
   });
 }

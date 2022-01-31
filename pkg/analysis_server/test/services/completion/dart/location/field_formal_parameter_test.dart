@@ -1,55 +1,58 @@
-// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'completion_check.dart';
-import 'completion_contributor_util.dart';
+import '../../../../client/completion_driver_test.dart';
+import '../completion_check.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FieldFormalContributorTest);
+    defineReflectiveTests(FieldFormalParameterTest1);
+    defineReflectiveTests(FieldFormalParameterTest2);
   });
 }
 
 @reflectiveTest
-class FieldFormalContributorTest extends DartCompletionContributorTest {
+class FieldFormalParameterTest1 extends AbstractCompletionDriverTest
+    with SuperFormalParameterTestCases {
   @override
-  DartCompletionContributor createContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) {
-    return FieldFormalContributor(request, builder);
-  }
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class FieldFormalParameterTest2 extends AbstractCompletionDriverTest
+    with SuperFormalParameterTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
+mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
+  @override
+  bool get supportsAvailableSuggestions => true;
 
   /// https://github.com/dart-lang/sdk/issues/39028
   Future<void> test_mixin_constructor() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 mixin M {
   var field = 0;
   M(this.^);
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response).suggestions.isEmpty;
   }
 
   Future<void> test_replacement_left() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   var field = 0;
   A(this.f^);
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasReplacement(left: 1)
       ..suggestions.matchesInAnyOrder([
@@ -61,14 +64,13 @@ class A {
   }
 
   Future<void> test_replacement_right() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   var field = 0;
   A(this.^f);
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasReplacement(right: 1)
       ..suggestions.matchesInAnyOrder([
@@ -80,7 +82,7 @@ class A {
   }
 
   Future<void> test_suggestions_onlyLocal() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   var inherited = 0;
 }
@@ -94,7 +96,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -110,7 +111,7 @@ class B extends A {
   }
 
   Future<void> test_suggestions_onlyNotSpecified_optionalNamed() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class Point {
   final int x;
   final int y;
@@ -118,7 +119,6 @@ class Point {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -130,7 +130,7 @@ class Point {
   }
 
   Future<void> test_suggestions_onlyNotSpecified_requiredPositional() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class Point {
   final int x;
   final int y;
@@ -138,7 +138,6 @@ class Point {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
