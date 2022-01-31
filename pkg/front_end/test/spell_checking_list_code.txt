@@ -90,6 +90,7 @@ backlog
 backping
 backstop
 badly
+bail
 bang
 bar
 basically

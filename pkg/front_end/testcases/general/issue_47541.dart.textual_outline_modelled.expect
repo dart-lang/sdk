@@ -1,0 +1,8 @@
+class Foo {}
+
+void a() {}
+void b() {}
+void c(int on) {}
+void d(int on) {}
+void main() {}
+void on() {}

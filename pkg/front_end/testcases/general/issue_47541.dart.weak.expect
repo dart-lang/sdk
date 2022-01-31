@@ -1,0 +1,67 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+static method main() → void {
+  self::a();
+  self::b();
+  self::c(42);
+  self::d(42);
+}
+static method a() → void {
+  try {
+    ;
+  }
+  on core::Object catch(final core::Object e) {
+    ;
+  }
+  on self::Foo catch(no-exception-var) {
+    ;
+  }
+  self::on();
+}
+static method b() → void {
+  try {
+    ;
+  }
+  on core::Object catch(final core::Object e) {
+    ;
+  }
+  on self::Foo catch(no-exception-var) {
+    ;
+  }
+  function onX(dynamic e) → Null {
+    ;
+  }
+  onX(""){(dynamic) → Null};
+}
+static method c(core::int on) → void {
+  try {
+    ;
+  }
+  on core::Object catch(final core::Object e) {
+    ;
+  }
+  on self::Foo catch(no-exception-var) {
+    ;
+  }
+  on = 42;
+}
+static method d(core::int on) → void {
+  try {
+    ;
+  }
+  on core::Object catch(final core::Object e) {
+    ;
+  }
+  on self::Foo catch(no-exception-var) {
+    ;
+  }
+  on.{core::int::toString}(){() → core::String};
+}
+static method on() → void {}

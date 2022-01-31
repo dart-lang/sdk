@@ -7488,19 +7488,33 @@ class Parser {
 
     String? value = token.stringValue;
     while (identical(value, 'catch') || identical(value, 'on')) {
-      listener.beginCatchClause(token);
+      bool didBeginCatchClause = false;
       Token? onKeyword = null;
       if (identical(value, 'on')) {
         // 'on' type catchPart?
         onKeyword = token;
-        lastConsumed = computeType(token, /* required = */ true)
-            .ensureTypeNotVoid(token, this);
+        TypeInfo typeInfo = computeType(token, /* required = */ true);
+        if (catchCount > 0 && (typeInfo == noType || typeInfo.recovered)) {
+          // Not a valid on-clause and we have enough catch counts to be a valid
+          // try block already.
+          // This could for instance be code like `on([...])` or `on = 42` after
+          // some actual catch/on as that could be a valid method call, local
+          // function, assignment etc.
+          break;
+        }
+        listener.beginCatchClause(token);
+        didBeginCatchClause = true;
+        lastConsumed = typeInfo.ensureTypeNotVoid(token, this);
         token = lastConsumed.next!;
         value = token.stringValue;
       }
       Token? catchKeyword = null;
       Token? comma = null;
       if (identical(value, 'catch')) {
+        if (!didBeginCatchClause) {
+          listener.beginCatchClause(token);
+          didBeginCatchClause = true;
+        }
         catchKeyword = token;
 
         Token openParens = catchKeyword.next!;
