@@ -339,6 +339,43 @@ enum E {
     );
   }
 
+  test_mixins() async {
+    await assertNoErrorsInCode(r'''
+mixin M {}
+enum E with M { // ref
+  v;
+}
+''');
+
+    assertNamedType(
+      findNode.namedType('M { // ref'),
+      findElement.mixin('M'),
+      'M',
+    );
+  }
+
+  test_mixins_inference() async {
+    await assertNoErrorsInCode(r'''
+mixin M1<T> {}
+mixin M2<T> on M1<T> {}
+enum E with M1<int>, M2 {
+  v;
+}
+''');
+
+    assertNamedType(
+      findNode.namedType('M1<int>'),
+      findElement.mixin('M1'),
+      'M1<int>',
+    );
+
+    assertNamedType(
+      findNode.namedType('M2 {'),
+      findElement.mixin('M2'),
+      'M2<int>',
+    );
+  }
+
   test_setter() async {
     await assertNoErrorsInCode(r'''
 enum E<T> {

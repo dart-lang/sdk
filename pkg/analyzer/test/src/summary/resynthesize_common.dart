@@ -18420,6 +18420,163 @@ library
 ''');
   }
 
+  test_enum_mixins() async {
+    var library = await checkLibrary(r'''
+mixin M {}
+enum E with M {
+  v;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @16
+        supertype: Enum
+        mixins
+          M
+        fields
+          static const enumConstant v @29
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+''');
+  }
+
+  test_enum_mixins_inference() async {
+    var library = await checkLibrary(r'''
+mixin M1<T> {}
+mixin M2<T> on M1<T> {}
+enum E with M1<int>, M2 {
+  v;
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @44
+        supertype: Enum
+        mixins
+          M1<int>
+          M2<int>
+        fields
+          static const enumConstant v @67
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          synthetic const @-1
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+    mixins
+      mixin M1 @6
+        typeParameters
+          covariant T @9
+            defaultType: dynamic
+        superclassConstraints
+          Object
+        constructors
+          synthetic @-1
+      mixin M2 @21
+        typeParameters
+          covariant T @24
+            defaultType: dynamic
+        superclassConstraints
+          M1<T>
+        constructors
+          synthetic @-1
+''');
+  }
+
   test_enum_setter() async {
     var library = await checkLibrary(r'''
 enum E{

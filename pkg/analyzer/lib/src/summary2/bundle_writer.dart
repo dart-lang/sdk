@@ -177,8 +177,7 @@ class BundleWriter {
 
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink.writeType(element.supertype);
-      // TODO(scheglov) implement
-      // _resolutionSink._writeTypeList(element.mixins);
+      _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
 
       _writeList(

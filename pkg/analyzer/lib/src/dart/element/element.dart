@@ -51,6 +51,10 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// The superclass of the class, or `null` for [Object].
   InterfaceType? _supertype;
 
+  /// A list containing all of the mixins that are applied to the class being
+  /// extended in order to derive the superclass of this class.
+  List<InterfaceType> _mixins = const [];
+
   /// A list containing all of the interfaces that are implemented by this
   /// class.
   List<InterfaceType> _interfaces = const [];
@@ -67,6 +71,10 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   /// A list containing all of the methods contained in this class.
   List<MethodElement> _methods = _Sentinel.methodElement;
+
+  /// This callback is set during mixins inference to handle reentrant calls.
+  List<InterfaceType>? Function(AbstractClassElementImpl)?
+      mixinInferenceCallback;
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -124,6 +132,22 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
   @override
   bool get isMixin => false;
+
+  @override
+  List<InterfaceType> get mixins {
+    if (mixinInferenceCallback != null) {
+      var mixins = mixinInferenceCallback!(this);
+      if (mixins != null) {
+        return _mixins = mixins;
+      }
+    }
+
+    return _mixins;
+  }
+
+  set mixins(List<InterfaceType> mixins) {
+    _mixins = mixins;
+  }
 
   @override
   List<InterfaceType> get superclassConstraints => const <InterfaceType>[];
@@ -484,10 +508,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
 /// An [AbstractClassElementImpl] which is a class.
 class ClassElementImpl extends AbstractClassElementImpl {
-  /// A list containing all of the mixins that are applied to the class being
-  /// extended in order to derive the superclass of this class.
-  List<InterfaceType> _mixins = const [];
-
   /// For classes which are not mixin applications, a list containing all of the
   /// constructors contained in this class, or `null` if the list of
   /// constructors has not yet been built.
@@ -500,9 +520,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
   /// A flag indicating whether the types associated with the instance members
   /// of this class have been inferred.
   bool hasBeenInferred = false;
-
-  /// This callback is set during mixins inference to handle reentrant calls.
-  List<InterfaceType>? Function(ClassElementImpl)? mixinInferenceCallback;
 
   ElementLinkedData? linkedData;
 
@@ -760,19 +777,8 @@ class ClassElementImpl extends AbstractClassElementImpl {
 
   @override
   List<InterfaceType> get mixins {
-    if (mixinInferenceCallback != null) {
-      var mixins = mixinInferenceCallback!(this);
-      if (mixins != null) {
-        return _mixins = mixins;
-      }
-    }
-
     linkedData?.read(this);
-    return _mixins;
-  }
-
-  set mixins(List<InterfaceType> mixins) {
-    _mixins = mixins;
+    return super.mixins;
   }
 
   @override
@@ -2754,9 +2760,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
     }
     _methods = methods;
   }
-
-  @override
-  List<InterfaceType> get mixins => const <InterfaceType>[];
 
   @override
   String get name {
