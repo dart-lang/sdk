@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class MemberWithClassNameTest extends PubPackageResolutionTest {
-  test_field() async {
+  test_class_field() async {
     await assertErrorsInCode(r'''
 class A {
   int A = 0;
@@ -25,7 +25,7 @@ class A {
     ]);
   }
 
-  test_field_multiple() async {
+  test_class_field_multiple() async {
     await assertErrorsInCode(r'''
 class A {
   int z = 0, A = 0, b = 0;
@@ -35,7 +35,7 @@ class A {
     ]);
   }
 
-  test_getter() async {
+  test_class_getter() async {
     await assertErrorsInCode(r'''
 class A {
   get A => 0;
@@ -45,8 +45,48 @@ class A {
     ]);
   }
 
-  test_method() async {
+  test_class_method() async {
     // No test because a method named the same as the enclosing class is
     // indistinguishable from a constructor.
+  }
+
+  test_mixin_getter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  int get M => 0;
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
+    ]);
+  }
+
+  test_mixin_getter_static() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  static int get M => 0;
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
+    ]);
+  }
+
+  test_mixin_setter() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  void set M(_) {}
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 21, 1),
+    ]);
+  }
+
+  test_mixin_setter_static() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  static void set M(_) {}
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 28, 1),
+    ]);
   }
 }

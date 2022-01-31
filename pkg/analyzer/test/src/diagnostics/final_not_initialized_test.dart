@@ -80,6 +80,14 @@ mixin M {
       error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 22, 1),
     ]);
   }
+
+  test_mixin_OK() async {
+    await assertNoErrorsInCode(r'''
+mixin M {
+  final int f = 0;
+}
+''');
+  }
 }
 
 @reflectiveTest

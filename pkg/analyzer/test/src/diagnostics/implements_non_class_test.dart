@@ -74,6 +74,14 @@ class C = A with M implements B;
       error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 63, 1),
     ]);
   }
+
+  test_inMixin_dynamic() async {
+    await assertErrorsInCode(r'''
+mixin M implements dynamic {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 7),
+    ]);
+  }
 }
 
 @reflectiveTest

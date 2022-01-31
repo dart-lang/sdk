@@ -16,6 +16,19 @@ main() {
 @reflectiveTest
 class MixinApplicationNotImplementedInterfaceTest
     extends PubPackageResolutionTest {
+  test_generic() async {
+    await assertErrorsInCode(r'''
+class A<T> {}
+
+mixin M on A<int> {}
+
+class X = A<double> with M;
+''', [
+      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          62, 1),
+    ]);
+  }
+
   test_matchingClass_inPreviousMixin_new_syntax() async {
     await assertNoErrorsInCode('''
 abstract class A<T> {}
@@ -77,6 +90,99 @@ class C extends Object with M<int> {}
 ''', [
       error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
           84, 1),
+    ]);
+  }
+
+  test_noMemberErrors() async {
+    await assertErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+mixin M on A {
+  void bar() {
+    super.foo();
+  }
+}
+
+class C {
+  noSuchMethod(_) {}
+}
+
+class X = C with M;
+''', [
+      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          134, 1),
+    ]);
+  }
+
+  test_notGeneric() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+mixin M on A {}
+
+class X = Object with M;
+''', [
+      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          51, 1),
+    ]);
+  }
+
+  test_OK_0() async {
+    await assertNoErrorsInCode(r'''
+mixin M {}
+
+class X = Object with M;
+''');
+  }
+
+  test_OK_1() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+mixin M on A {}
+
+class X = A with M;
+''');
+  }
+
+  test_OK_generic() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {}
+
+mixin M<T> on A<T> {}
+
+class B<T> implements A<T> {}
+
+class C<T> = B<T> with M<T>;
+''');
+  }
+
+  test_OK_previousMixin() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+
+mixin M1 implements A {}
+
+mixin M2 on A {}
+
+class X = Object with M1, M2;
+''');
+  }
+
+  test_oneOfTwo() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+class C {}
+
+mixin M on A, B {}
+
+class X = C with M;
+''', [
+      error(CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          71, 1),
     ]);
   }
 
