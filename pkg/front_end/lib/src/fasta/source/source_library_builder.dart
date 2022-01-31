@@ -2820,6 +2820,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         interfaceBuilders,
         enumConstantInfos,
         this,
+        new List<ConstructorReferenceBuilder>.of(constructorReferences),
         startCharOffset,
         charOffset,
         charEndOffset,
@@ -2831,6 +2832,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             debugName: "enum $name",
             isModifiable: false),
         new ConstructorScope(name, constructors));
+    constructorReferences.clear();
 
     Map<String, TypeVariableBuilder>? typeVariablesByName =
         checkTypeVariables(typeVariables, enumBuilder);

@@ -5467,3 +5467,9 @@ EnumNonConstConstructor:
 
 EnumConstructorSuperInitializer:
   problemMessage: "Enum constructors can't contain super-initializers."
+
+EnumConstructorTearoff:
+  problemMessage: "Enum constructors can't be torn off."
+
+EnumFactoryRedirectsToConstructor:
+  problemMessage: "Enum factory constructors can't redirect to generative constructors."

@@ -3219,6 +3219,9 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     messageAbstractClassConstructorTearOff,
                     nameOffset,
                     name.text.length);
+              } else if (declarationBuilder.cls.isEnum) {
+                return _helper.buildProblem(messageEnumConstructorTearoff,
+                    nameOffset, name.text.length);
               }
               tearOffExpression = _helper.forest
                   .createConstructorTearOff(token.charOffset, tearOff);

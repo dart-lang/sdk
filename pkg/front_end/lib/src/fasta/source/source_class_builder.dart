@@ -952,24 +952,29 @@ class SourceClassBuilder extends ClassBuilderImpl
       return;
     }
 
-    // Check whether [redirecteeType] <: [factoryType].
-    if (!typeEnvironment.isSubtypeOf(
-        redirecteeType, factoryType, SubtypeCheckMode.ignoringNullabilities)) {
-      _addProblemForRedirectingFactory(
-          factory,
-          templateIncompatibleRedirecteeFunctionType.withArguments(
-              redirecteeType, factoryType, library.isNonNullableByDefault),
-          factory.redirectionTarget.charOffset,
-          noLength);
-    } else if (library.isNonNullableByDefault) {
-      if (!typeEnvironment.isSubtypeOf(
-          redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
+    // Redirection to generative enum constructors is forbidden and is reported
+    // as an error elsewhere.
+    if (!(cls.isEnum &&
+        (factory.redirectionTarget.target?.isConstructor ?? false))) {
+      // Check whether [redirecteeType] <: [factoryType].
+      if (!typeEnvironment.isSubtypeOf(redirecteeType, factoryType,
+          SubtypeCheckMode.ignoringNullabilities)) {
         _addProblemForRedirectingFactory(
             factory,
             templateIncompatibleRedirecteeFunctionType.withArguments(
                 redirecteeType, factoryType, library.isNonNullableByDefault),
             factory.redirectionTarget.charOffset,
             noLength);
+      } else if (library.isNonNullableByDefault) {
+        if (!typeEnvironment.isSubtypeOf(
+            redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
+          _addProblemForRedirectingFactory(
+              factory,
+              templateIncompatibleRedirecteeFunctionType.withArguments(
+                  redirecteeType, factoryType, library.isNonNullableByDefault),
+              factory.redirectionTarget.charOffset,
+              noLength);
+        }
       }
     }
   }
@@ -1686,6 +1691,16 @@ class SourceClassBuilder extends ClassBuilderImpl
                     declaration,
                     templateAbstractRedirectedClassInstantiation
                         .withArguments(redirectionTarget.fullNameForErrors),
+                    redirectionTarget.charOffset,
+                    noLength);
+                targetNode = null;
+              }
+              if (targetNode != null &&
+                  targetNode is Constructor &&
+                  targetNode.enclosingClass.isEnum) {
+                _addProblemForRedirectingFactory(
+                    declaration,
+                    messageEnumFactoryRedirectsToConstructor,
                     redirectionTarget.charOffset,
                     noLength);
                 targetNode = null;

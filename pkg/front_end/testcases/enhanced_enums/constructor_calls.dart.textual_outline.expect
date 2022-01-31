@@ -1,0 +1,3 @@
+enum E { one, two.named(), three.f(), four.f2(); const E(); const E.named() : this(); factory E.f() => values.first; factory E.f2() { return const E(); } const factory E.f3() = E; factory E.f4() = E; factory E.f5() = E.f; factory E.f6(int value) = E.f; }
+test() {}
+main() {}
