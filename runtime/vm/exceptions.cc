@@ -631,9 +631,7 @@ void Exceptions::JumpToFrame(Thread* thread,
   // The shadow call stack register will be restored by the JumpToFrame stub.
 #endif
 
-  // TODO(b/209838275): Re-enable this once g3 build rules for gen_snapshot are
-  // working with TSAN.
-#if 0  // defined(USING_THREAD_SANITIZER)
+#if defined(USING_THREAD_SANITIZER)
   if (thread->exit_through_ffi() == Thread::kExitThroughRuntimeCall) {
     auto tsan_utils = thread->tsan_utils();
     tsan_utils->exception_pc = program_counter;
