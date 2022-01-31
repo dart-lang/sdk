@@ -20,9 +20,13 @@ Before we can use your code, you must sign the [Google Individual Contributor Li
 
 Before you start working on a larger contribution, you should get in touch with us first through the  [Dart Issue Tracker](https://dartbug.com) with your idea so that we can help out and possibly guide you. Coordinating up front makes it much easier to avoid frustration later on.
 
-All submissions, including submissions by project members, require review.  We use the same code-review tools and process as the chromium project.  In order to submit a patch, you need to get the [depot\_tools](http://dev.chromium.org/developers/how-tos/depottools).
+All submissions, including submissions by project members, require review.  We use the same code-review tools and process as the chromium project.  
 
 We occasionally take pull requests, e.g., for comment changes, but the main flow is to use the Rietveld review system as explained below.
+
+## Setting up Environment
+
+In order to submit a patch, you need to get the [depot\_tools](http://dev.chromium.org/developers/how-tos/depottools).
 
 ## Getting the code
 
