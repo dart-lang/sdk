@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -232,6 +233,26 @@ enum E {
     );
   }
 
+  test_getter() async {
+    await assertNoErrorsInCode(r'''
+enum E<T> {
+  v;
+  T get foo => throw 0;
+}
+''');
+
+    assertElement(
+      findNode.methodDeclaration('get foo'),
+      findElement.getter('foo', of: 'E'),
+    );
+
+    assertNamedType(
+      findNode.namedType('T get'),
+      findElement.typeParameter('T'),
+      'T',
+    );
+  }
+
   test_inference_listLiteral() async {
     await assertNoErrorsInCode(r'''
 enum E1 {a, b}
@@ -315,6 +336,31 @@ enum E {
     assertElement(
       findNode.methodDeclaration('toString'),
       findElement.method('toString', of: 'E'),
+    );
+  }
+
+  test_setter() async {
+    await assertNoErrorsInCode(r'''
+enum E<T> {
+  v;
+  set foo(T a) {}
+}
+''');
+
+    assertElement(
+      findNode.methodDeclaration('set foo'),
+      findElement.setter('foo'),
+    );
+
+    assertElement(
+      findNode.simpleFormalParameter('a) {}'),
+      findElement.setter('foo').parameter('a'),
+    );
+
+    assertNamedType(
+      findNode.namedType('T a'),
+      findElement.typeParameter('T'),
+      'T',
     );
   }
 
