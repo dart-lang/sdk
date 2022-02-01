@@ -447,6 +447,7 @@ class UntaggedObject : public AllStatic {
   static const word kSizeTagMaxSizeTag;
   static const word kTagBitsSizeTagPos;
   static const word kBarrierOverlapShift;
+  static const word kGenerationalBarrierMask;
 
   static bool IsTypedDataClassId(intptr_t cid);
 };

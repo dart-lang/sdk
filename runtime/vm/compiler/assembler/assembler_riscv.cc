@@ -3142,6 +3142,11 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   ASSERT(memory_order == kRelaxedNonAtomic);
   sx(value, dest);
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   beq(object, value, &done, kNearJump);
   BranchIfSmi(value, &done, kNearJump);
@@ -3149,7 +3154,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
   srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
   and_(TMP, TMP, TMP2);
-  and_(TMP, TMP, WRITE_BARRIER_MASK);
+  andi(TMP, TMP, target::UntaggedObject::kGenerationalBarrierMask);
   beqz(TMP, &done, kNearJump);
   Stop("Store buffer update is required");
   Bind(&done);
@@ -3171,6 +3176,11 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
     StoreToOffset(value, object, offset - kHeapObjectTag);
   }
 #if defined(DEBUG)
+  // We can't assert the incremental barrier is not needed here, only the
+  // generational barrier. We sometimes omit the write barrier when 'value' is
+  // a constant, but we don't eagerly mark 'value' and instead assume it is also
+  // reachable via a constant pool, so it doesn't matter if it is not traced via
+  // 'object'.
   Label done;
   beq(object, value, &done, kNearJump);
   BranchIfSmi(value, &done, kNearJump);
@@ -3178,7 +3188,7 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
   lbu(TMP2, FieldAddress(value, target::Object::tags_offset()));
   srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
   and_(TMP, TMP, TMP2);
-  and_(TMP, TMP, WRITE_BARRIER_MASK);
+  andi(TMP, TMP, target::UntaggedObject::kGenerationalBarrierMask);
   beqz(TMP, &done, kNearJump);
   Stop("Store buffer update is required");
   Bind(&done);
