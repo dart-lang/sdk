@@ -441,6 +441,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
 
+  void analyzeExpression(Expression expression, DartType? contextType) {
+    InferenceContext.setType(expression, contextType);
+    expression.accept(this);
+  }
+
   /// Verify that the arguments in the given [argumentList] can be assigned to
   /// their corresponding parameters.
   ///
@@ -1686,8 +1691,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitForElement(ForElement node) {
-    _forResolver.resolveElement(node as ForElementImpl);
+  void visitForElement(ForElement node, {CollectionLiteralContext? context}) {
+    _forResolver.resolveElement(node as ForElementImpl, context);
   }
 
   @override
@@ -1814,7 +1819,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitHideCombinator(HideCombinator node) {}
 
   @override
-  void visitIfElement(IfElement node) {
+  void visitIfElement(IfElement node, {CollectionLiteralContext? context}) {
     flowAnalysis.flow?.ifStatement_conditionBegin();
     Expression condition = node.condition;
     InferenceContext.setType(condition, typeProvider.boolType);
@@ -1826,13 +1831,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         whyNotPromoted: whyNotPromoted);
 
     flowAnalysis.flow?.ifStatement_thenBegin(condition, node);
-    node.thenElement.accept(this);
+    (node.thenElement as CollectionElementImpl).resolveElement(this, context);
     nullSafetyDeadCodeVerifier.flowEnd(node.thenElement);
 
     var elseElement = node.elseElement;
     if (elseElement != null) {
       flowAnalysis.flow?.ifStatement_elseBegin();
-      elseElement.accept(this);
+      (elseElement as CollectionElementImpl).resolveElement(this, context);
       nullSafetyDeadCodeVerifier.flowEnd(elseElement);
     }
 
@@ -1986,9 +1991,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitMapLiteralEntry(MapLiteralEntry node) {
+  void visitMapLiteralEntry(MapLiteralEntry node,
+      {CollectionLiteralContext? context}) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    analyzeExpression(node.key, context?.keyType);
+    analyzeExpression(node.value, context?.valueType);
   }
 
   @override
@@ -2285,9 +2292,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitSpreadElement(SpreadElement node) {
+  void visitSpreadElement(SpreadElement node,
+      {CollectionLiteralContext? context}) {
+    var iterableType = context?.iterableType;
+    if (iterableType != null && _isNonNullableByDefault && node.isNullAware) {
+      iterableType = typeSystem.makeNullable(iterableType);
+    }
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    analyzeExpression(node.expression, iterableType);
 
     if (!node.isNullAware) {
       nullableDereferenceVerifier.expression(
@@ -2781,15 +2793,17 @@ class ResolverVisitorForMigration extends ResolverVisitor {
   }
 
   @override
-  void visitIfElement(IfElement node) {
+  void visitIfElement(IfElement node, {CollectionLiteralContext? context}) {
     var conditionalKnownValue =
         _migrationResolutionHooks.getConditionalKnownValue(node);
     if (conditionalKnownValue == null) {
-      super.visitIfElement(node);
+      super.visitIfElement(node, context: context);
       return;
     } else {
-      (conditionalKnownValue ? node.thenElement : node.elseElement)
-          ?.accept(this);
+      var element = conditionalKnownValue ? node.thenElement : node.elseElement;
+      if (element != null) {
+        (element as CollectionElementImpl).resolveElement(this, context);
+      }
     }
   }
 
