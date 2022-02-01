@@ -2445,10 +2445,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       flow.tryCatchStatement_bodyBegin();
     }
     body.accept(this);
+    nullSafetyDeadCodeVerifier.flowEnd(node.body);
+    nullSafetyDeadCodeVerifier.tryStatementEnter(node);
     if (catchClauses.isNotEmpty) {
       flow.tryCatchStatement_bodyEnd(body);
-      nullSafetyDeadCodeVerifier.flowEnd(node.body);
-      nullSafetyDeadCodeVerifier.tryStatementEnter(node);
 
       var catchLength = catchClauses.length;
       for (var i = 0; i < catchLength; ++i) {
@@ -2464,8 +2464,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
 
       flow.tryCatchStatement_end();
-      nullSafetyDeadCodeVerifier.tryStatementExit(node);
     }
+    nullSafetyDeadCodeVerifier.tryStatementExit(node);
 
     if (finallyBlock != null) {
       flow.tryFinallyStatement_finallyBegin(
