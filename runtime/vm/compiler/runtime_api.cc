@@ -389,6 +389,9 @@ const word UntaggedType::kTypeClassIdBitSize =
 const word UntaggedObject::kBarrierOverlapShift =
     dart::UntaggedObject::kBarrierOverlapShift;
 
+const word UntaggedObject::kGenerationalBarrierMask =
+    dart::UntaggedObject::kGenerationalBarrierMask;
+
 bool IsTypedDataClassId(intptr_t cid) {
   return dart::IsTypedDataClassId(cid);
 }
