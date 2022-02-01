@@ -39,6 +39,7 @@ declare_args() {
 # ......dartanalyzer
 # ......dartdevc
 # ......utils/gen_snapshot or utils/gen_snapshot.exe (if not on ia32)
+# ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
 # ........dart2js.dart.snapshot
@@ -87,12 +88,16 @@ declare_args() {
 # ......api_readme.md
 
 # Scripts that go under bin/
-_platform_sdk_scripts = [ "dartanalyzer" ]
+_platform_sdk_scripts = [
+  "dartanalyzer",
+  "pub",
+]
 
 _full_sdk_scripts = [
   "dart2js",
   "dartanalyzer",
   "dartdevc",
+  "pub",
 ]
 
 # Snapshots that go under bin/snapshots

@@ -140,6 +140,24 @@ int f(Foo foo) {
       error(HintCode.DEAD_CODE, 111, 10),
     ]);
   }
+
+  test_try_finally() async {
+    await assertErrorsInCode('''
+main() {
+  try {
+    foo();
+    print('dead');
+  } finally {
+    print('alive');
+  }
+  print('dead');
+}
+Never foo() => throw 'exception';
+''', [
+      error(HintCode.DEAD_CODE, 32, 14),
+      error(HintCode.DEAD_CODE, 87, 14),
+    ]);
+  }
 }
 
 mixin DeadCodeTestCases on PubPackageResolutionTest {

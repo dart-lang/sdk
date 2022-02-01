@@ -123,6 +123,9 @@ def SrcSteps():
         Run(['/usr/lib/dart/bin/dart', 'analyze', test_file])
         Run(['/usr/lib/dart/bin/dart', test_file])
 
+    # Sanity check that pub can start up and print the version
+    Run(['/usr/lib/dart/bin/pub', '--version'])
+
     UninstallDart()
     TestInstallation(assume_installed=False)
 

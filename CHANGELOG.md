@@ -97,14 +97,6 @@ in 2018, as it doesn't work with any Dart 2.x release.
 
 [an issue]: https://github.com/dart-lang/sdk/issues/new
 
-- **Breaking Change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
-  The deprecated standalone `pub` tool has been removed.
-  Its replacement is the `dart pub` command.
-  Should you find any issues, or missing features, in the replacement
-  command, kindly file [an issue][].
-
-[an issue]: https://github.com/dart-lang/pub/issues/new
-
 #### Pub
 
 - Fixed race conditions in `dart pub get`, `dart run` and `dart pub global run`.
