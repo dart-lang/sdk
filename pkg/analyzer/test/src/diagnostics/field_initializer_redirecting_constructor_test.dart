@@ -83,9 +83,6 @@ enum E {
     ]);
   }
 
-  @FailingTest(
-    reason: 'Reports also INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
-  )
   test_enum_redirectionOnly() async {
     await assertErrorsInCode(r'''
 enum E {

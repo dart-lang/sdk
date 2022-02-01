@@ -19,11 +19,11 @@ class SuperInEnumConstructorTest extends PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 enum E {
   v;
-  E.named();
-  E() : this.named(), super();
+  const E.named();
+  const E() : this.named(), super();
 }
 ''', [
-      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 49, 5),
+      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 61, 5),
     ]);
   }
 
@@ -31,10 +31,10 @@ enum E {
     await assertErrorsInCode(r'''
 enum E {
   v;
-  E() : super();
+  const E() : super();
 }
 ''', [
-      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 22, 5),
+      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 28, 5),
     ]);
   }
 
@@ -42,11 +42,11 @@ enum E {
     await assertErrorsInCode(r'''
 enum E {
   v;
-  E() : super(), super();
+  const E() : super(), super();
 }
 ''', [
-      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 22, 5),
-      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 31, 5),
+      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 28, 5),
+      error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 37, 5),
     ]);
   }
 }

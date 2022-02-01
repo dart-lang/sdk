@@ -384,7 +384,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.methods = holder.methods;
     element.typeParameters = holder.typeParameters;
 
-    // TODO(scheglov) resolve field formals
+    _resolveConstructorFieldFormals(element);
   }
 
   @override
@@ -1115,9 +1115,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _withEnclosing(holder, () {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
-    element.accessors = holder.propertyAccessors;
-    element.fields = holder.properties.whereType<FieldElement>().toList();
-    element.methods = holder.methods;
 
     if (holder.constructors.isEmpty) {
       holder.addConstructor(
@@ -1125,18 +1122,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       );
     }
 
-    var constructors = holder.constructors;
-    element.constructors = constructors;
+    element.accessors = holder.propertyAccessors;
+    element.constructors = holder.constructors;
+    element.fields = holder.properties.whereType<FieldElement>().toList();
+    element.methods = holder.methods;
 
-    // We have all fields and constructors.
-    // Now we can resolve field formal parameters.
-    for (var constructor in constructors) {
-      for (var parameter in constructor.parameters) {
-        if (parameter is FieldFormalParameterElementImpl) {
-          parameter.field = element.getField(parameter.name);
-        }
-      }
-    }
+    _resolveConstructorFieldFormals(element);
   }
 
   void _buildExecutableElementChildren({
@@ -1200,6 +1191,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   /// TODO(scheglov) Maybe inline?
   void _buildType(TypeAnnotation? node) {
     node?.accept(this);
+  }
+
+  void _resolveConstructorFieldFormals(AbstractClassElementImpl element) {
+    for (var constructor in element.constructors) {
+      for (var parameter in constructor.parameters) {
+        if (parameter is FieldFormalParameterElementImpl) {
+          parameter.field = element.getField(parameter.name);
+        }
+      }
+    }
   }
 
   Uri? _selectAbsoluteUri(NamespaceDirective directive) {

@@ -370,6 +370,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertElementTypes(node.typeArgumentTypes, typeArgumentTypes);
   }
 
+  void assertFieldFormalParameter(
+    FieldFormalParameter node, {
+    required FieldFormalParameterElement element,
+  }) {
+    assertElement(node.declaredElement, element);
+  }
+
   void assertFunctionExpressionInvocation(
     FunctionExpressionInvocation node, {
     required ExecutableElement? element,
