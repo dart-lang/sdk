@@ -508,4 +508,7 @@ class VmTarget extends Target {
   DartLibrarySupport get dartLibrarySupport => flags.supportMirrors
       ? const DefaultDartLibrarySupport()
       : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
+
+  @override
+  bool isSupportedPragma(String pragmaName) => pragmaName.startsWith("vm:");
 }

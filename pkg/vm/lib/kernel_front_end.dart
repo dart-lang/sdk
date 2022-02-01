@@ -495,7 +495,7 @@ Future runGlobalTransformations(
 
   // We don't know yet whether gen_snapshot will want to do obfuscation, but if
   // it does it will need the obfuscation prohibitions.
-  obfuscationProhibitions.transformComponent(component, coreTypes);
+  obfuscationProhibitions.transformComponent(component, coreTypes, target);
 
   deferred_loading.transformComponent(component);
 }

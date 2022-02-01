@@ -4,14 +4,20 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/target/targets.dart' show Target;
 
-const kEntryPointPragmaName = "vm:entry-point";
-const kExactResultTypePragmaName = "vm:exact-result-type";
-const kNonNullableResultType = "vm:non-nullable-result-type";
+// Pragmas recognized by the VM
+const kVmEntryPointPragmaName = "vm:entry-point";
+const kVmExactResultTypePragmaName = "vm:exact-result-type";
+const kVmNonNullableResultType = "vm:non-nullable-result-type";
 const kResultTypeUsesPassedTypeArguments =
     "result-type-uses-passed-type-arguments";
-const kRecognizedPragmaName = "vm:recognized";
-const kDisableUnboxedParametetersPragmaName = "vm:disable-unboxed-parameters";
+const kVmRecognizedPragmaName = "vm:recognized";
+const kVmDisableUnboxedParametetersPragmaName = "vm:disable-unboxed-parameters";
+
+// Pragmas recognized by dart2wasm
+const kWasmEntryPointPragmaName = "wasm:entry-point";
+const kWasmExportPragmaName = "wasm:export";
 
 abstract class ParsedPragma {}
 
@@ -57,8 +63,9 @@ abstract class PragmaAnnotationParser {
 
 class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
   final CoreTypes coreTypes;
+  final Target target;
 
-  ConstantPragmaAnnotationParser(this.coreTypes);
+  ConstantPragmaAnnotationParser(this.coreTypes, this.target);
 
   ParsedPragma? parsePragma(Expression annotation) {
     InstanceConstant? pragmaConstant;
@@ -85,11 +92,13 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
       return null;
     }
 
+    if (!target.isSupportedPragma(pragmaName)) return null;
+
     Constant options =
         pragmaConstant.fieldValues[coreTypes.pragmaOptions.fieldReference]!;
 
     switch (pragmaName) {
-      case kEntryPointPragmaName:
+      case kVmEntryPointPragmaName:
         PragmaEntryPointType? type;
         if (options is NullConstant) {
           type = PragmaEntryPointType.Default;
@@ -103,13 +112,14 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
           } else if (options.value == "call") {
             type = PragmaEntryPointType.CallOnly;
           } else {
-            throw "Error: string directive to @pragma('$kEntryPointPragmaName', ...) "
+            throw "Error: string directive to "
+                "@pragma('$kVmEntryPointPragmaName', ...) "
                 "must be either 'get' or 'set' for fields "
                 "or 'get' or 'call' for procedures.";
           }
         }
         return type != null ? new ParsedEntryPointPragma(type) : null;
-      case kExactResultTypePragmaName:
+      case kVmExactResultTypePragmaName:
         if (options is TypeLiteralConstant) {
           return new ParsedResultTypeByTypePragma(options.type, false);
         } else if (options is StringConstant) {
@@ -123,11 +133,11 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
           return new ParsedResultTypeByTypePragma(
               (options.entries[0] as TypeLiteralConstant).type, true);
         }
-        throw "ERROR: Unsupported option to '$kExactResultTypePragmaName' "
+        throw "ERROR: Unsupported option to '$kVmExactResultTypePragmaName' "
             "pragma: $options";
-      case kNonNullableResultType:
+      case kVmNonNullableResultType:
         return new ParsedNonNullableResultType();
-      case kRecognizedPragmaName:
+      case kVmRecognizedPragmaName:
         PragmaRecognizedType? type;
         if (options is StringConstant) {
           if (options.value == "asm-intrinsic") {
@@ -139,12 +149,17 @@ class ConstantPragmaAnnotationParser extends PragmaAnnotationParser {
           }
         }
         if (type == null) {
-          throw "ERROR: Unsupported option to '$kRecognizedPragmaName' "
+          throw "ERROR: Unsupported option to '$kVmRecognizedPragmaName' "
               "pragma: $options";
         }
         return new ParsedRecognized(type);
-      case kDisableUnboxedParametetersPragmaName:
+      case kVmDisableUnboxedParametetersPragmaName:
         return new ParsedDisableUnboxedParameters();
+      case kWasmEntryPointPragmaName:
+        return ParsedEntryPointPragma(PragmaEntryPointType.Default);
+      case kWasmExportPragmaName:
+        // Exports are treated as called entry points.
+        return ParsedEntryPointPragma(PragmaEntryPointType.CallOnly);
       default:
         return null;
     }

@@ -237,7 +237,7 @@ class NativeCodeOracle {
         // libraries for safety reasons. See 'result_type_pragma.md', detail 1.2
         // for explanation.
         if (member.enclosingLibrary.importUri.scheme != "dart") {
-          throw "ERROR: Cannot use $kExactResultTypePragmaName "
+          throw "ERROR: Cannot use $kVmExactResultTypePragmaName "
               "outside core libraries.";
         }
       }
@@ -275,8 +275,9 @@ class NativeCodeOracle {
     }
 
     if (returnType != null && nullable != null) {
-      throw 'ERROR: Cannot have both, @pragma("$kExactResultTypePragmaName") '
-          'and @pragma("$kNonNullableResultType"), annotating the same member.';
+      throw 'ERROR: Cannot have both, @pragma("$kVmExactResultTypePragmaName") '
+          'and @pragma("$kVmNonNullableResultType"), '
+          'annotating the same member.';
     }
 
     if (returnType != null) {

@@ -74,8 +74,8 @@ Component transformComponent(
     final protobufHandlerRta = treeShakeProtobufs
         ? ProtobufHandler.forComponent(component, coreTypes)
         : null;
-    rta = RapidTypeAnalysis(
-        component, coreTypes, hierarchy, libraryIndex, protobufHandlerRta);
+    rta = RapidTypeAnalysis(component, coreTypes, target, hierarchy,
+        libraryIndex, protobufHandlerRta);
     rtaStopWatch.stop();
   }
 
