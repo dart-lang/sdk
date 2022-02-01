@@ -179,6 +179,16 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isConstructor;
   }
 
+  void get isEnum {
+    kind.isIdentifier;
+    element.isNotNull.kind.isEnum;
+  }
+
+  void get isEnumConstant {
+    kind.isIdentifier;
+    element.isNotNull.kind.isEnumConstant;
+  }
+
   void get isField {
     kind.isIdentifier;
     element.isNotNull.kind.isField;
@@ -192,6 +202,11 @@ extension CompletionSuggestionExtension
   void get isGetter {
     kind.isIdentifier;
     element.isNotNull.kind.isGetter;
+  }
+
+  void get isImportPrefix {
+    kind.isIdentifier;
+    element.isNotNull.kind.isPrefix;
   }
 
   void get isMethodInvocation {
@@ -381,6 +396,14 @@ extension ElementKindExtension on CheckTarget<ElementKind> {
     isEqualTo(ElementKind.CONSTRUCTOR);
   }
 
+  void get isEnum {
+    isEqualTo(ElementKind.ENUM);
+  }
+
+  void get isEnumConstant {
+    isEqualTo(ElementKind.ENUM_CONSTANT);
+  }
+
   void get isField {
     isEqualTo(ElementKind.FIELD);
   }
@@ -399,6 +422,10 @@ extension ElementKindExtension on CheckTarget<ElementKind> {
 
   void get isParameter {
     isEqualTo(ElementKind.PARAMETER);
+  }
+
+  void get isPrefix {
+    isEqualTo(ElementKind.PREFIX);
   }
 
   void get isSetter {

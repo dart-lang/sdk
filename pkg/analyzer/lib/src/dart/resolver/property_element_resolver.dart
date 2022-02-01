@@ -253,17 +253,20 @@ class PropertyElementResolver {
   }
 
   /// If the [element] is not static, report the error on the [identifier].
-  void _checkForStaticAccessToInstanceMember(
+  ///
+  /// Returns `true` if an error was reported.
+  bool _checkForStaticAccessToInstanceMember(
     SimpleIdentifier identifier,
     ExecutableElement element,
   ) {
-    if (element.isStatic) return;
+    if (element.isStatic) return false;
 
     _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
       identifier,
       [identifier.name],
     );
+    return true;
   }
 
   void _checkForStaticMember(
@@ -494,6 +497,7 @@ class PropertyElementResolver {
     }
 
     ExecutableElement? readElement;
+    ExecutableElement? readElementRecovery;
     if (hasRead) {
       readElement = typeReference.getGetter(propertyName.name);
       if (readElement != null && !_isAccessible(readElement)) {
@@ -509,7 +513,10 @@ class PropertyElementResolver {
 
       if (readElement != null) {
         readElement = _resolver.toLegacyElement(readElement);
-        _checkForStaticAccessToInstanceMember(propertyName, readElement);
+        if (_checkForStaticAccessToInstanceMember(propertyName, readElement)) {
+          readElementRecovery = readElement;
+          readElement = null;
+        }
       } else {
         var code = typeReference.isEnum
             ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
@@ -535,7 +542,10 @@ class PropertyElementResolver {
             [propertyName.name],
           );
         }
-        _checkForStaticAccessToInstanceMember(propertyName, writeElement);
+        if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
+          writeElementRecovery = writeElement;
+          writeElement = null;
+        }
       } else {
         // Recovery, try to use getter.
         writeElementRecovery = typeReference.getGetter(propertyName.name);
@@ -550,6 +560,7 @@ class PropertyElementResolver {
 
     return PropertyElementResolverResult(
       readElementRequested: readElement,
+      readElementRecovery: readElementRecovery,
       writeElementRequested: writeElement,
       writeElementRecovery: writeElementRecovery,
     );
@@ -564,6 +575,7 @@ class PropertyElementResolver {
     var memberName = propertyName.name;
 
     ExecutableElement? readElement;
+    ExecutableElement? readElementRecovery;
     if (hasRead) {
       readElement ??= extension.getGetter(memberName);
       readElement ??= extension.getMethod(memberName);
@@ -579,11 +591,15 @@ class PropertyElementResolver {
         );
       } else {
         readElement = _resolver.toLegacyElement(readElement);
-        _checkForStaticAccessToInstanceMember(propertyName, readElement);
+        if (_checkForStaticAccessToInstanceMember(propertyName, readElement)) {
+          readElementRecovery = readElement;
+          readElement = null;
+        }
       }
     }
 
     ExecutableElement? writeElement;
+    ExecutableElement? writeElementRecovery;
     if (hasWrite) {
       writeElement = extension.getSetter(memberName);
 
@@ -598,13 +614,18 @@ class PropertyElementResolver {
         );
       } else {
         writeElement = _resolver.toLegacyElement(writeElement);
-        _checkForStaticAccessToInstanceMember(propertyName, writeElement);
+        if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
+          writeElementRecovery = writeElement;
+          writeElement = null;
+        }
       }
     }
 
     return PropertyElementResolverResult(
       readElementRequested: readElement,
+      readElementRecovery: readElementRecovery,
       writeElementRequested: writeElement,
+      writeElementRecovery: writeElementRecovery,
     );
   }
 

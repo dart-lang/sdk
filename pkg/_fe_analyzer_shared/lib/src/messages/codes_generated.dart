@@ -2770,6 +2770,23 @@ Message _withArgumentsEnumConstantSameNameAsEnclosing(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumConstructorSuperInitializer =
+    messageEnumConstructorSuperInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumConstructorSuperInitializer = const MessageCode(
+    "EnumConstructorSuperInitializer",
+    problemMessage: r"""Enum constructors can't contain super-initializers.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumConstructorTearoff = messageEnumConstructorTearoff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumConstructorTearoff = const MessageCode(
+    "EnumConstructorTearoff",
+    problemMessage: r"""Enum constructors can't be torn off.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumDeclarationEmpty = messageEnumDeclarationEmpty;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2799,6 +2816,16 @@ const MessageCode messageEnumEntryWithTypeArgumentsWithoutArguments =
             r"""Missing arguments in enum constructor invocation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumFactoryRedirectsToConstructor =
+    messageEnumFactoryRedirectsToConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumFactoryRedirectsToConstructor = const MessageCode(
+    "EnumFactoryRedirectsToConstructor",
+    problemMessage:
+        r"""Enum factory constructors can't redirect to generative constructors.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeEnumInClass = messageEnumInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2815,6 +2842,15 @@ const MessageCode messageEnumInstantiation = const MessageCode(
     "EnumInstantiation",
     analyzerCodes: <String>["INSTANTIATE_ENUM"],
     problemMessage: r"""Enums can't be instantiated.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEnumNonConstConstructor = messageEnumNonConstConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEnumNonConstConstructor = const MessageCode(
+    "EnumNonConstConstructor",
+    problemMessage:
+        r"""Generative enum constructors must be marked as 'const'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>

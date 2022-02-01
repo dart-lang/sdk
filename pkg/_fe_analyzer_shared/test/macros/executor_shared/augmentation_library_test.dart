@@ -28,6 +28,10 @@ void main() {
                 ]),
                 '}',
               ]),
+          ], newTypeNames: [
+            'Foo${i}0',
+            'Foo${i}1',
+            'Foo${i}2',
           ]),
       ];
       var library = _TestExecutor().buildAugmentationLibrary(
@@ -88,6 +92,8 @@ void main() {
             barIdentifier,
             '();\n}',
           ]),
+        ], newTypeNames: [
+          'FooBuilder',
         ])
       ];
       var library = _TestExecutor().buildAugmentationLibrary(

@@ -1712,11 +1712,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
 
     List<Initializer>? initializers = _initializers;
-    if (initializers != null) {
-      if (libraryBuilder.enableSuperParametersInLibrary) {
-        if (initializers.isNotEmpty && initializers.last is SuperInitializer) {
-          SuperInitializer superInitializer =
-              initializers.last as SuperInitializer;
+    if (initializers != null && initializers.isNotEmpty) {
+      if (initializers.last is SuperInitializer) {
+        SuperInitializer superInitializer =
+            initializers.last as SuperInitializer;
+        if (libraryBuilder.enableSuperParametersInLibrary) {
           Arguments arguments = superInitializer.arguments;
 
           if (positionalSuperParametersAsArguments != null) {
@@ -1742,23 +1742,24 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             arguments.named.addAll(namedSuperParametersAsArguments);
             setParents(namedSuperParametersAsArguments, arguments);
           }
-
-          LocatedMessage? message = checkArgumentsForFunction(
-              superInitializer.target.function,
-              arguments,
-              arguments.fileOffset, <TypeParameter>[]);
-          if (message != null) {
-            initializers[initializers.length - 1] = buildInvalidInitializer(
-                buildUnresolvedError(
-                    forest.createNullLiteral(superInitializer.fileOffset),
-                    constructorNameForDiagnostics(
-                        superInitializer.target.name.text),
-                    arguments,
-                    superInitializer.fileOffset,
-                    isSuper: true,
-                    message: message,
-                    kind: UnresolvedKind.Constructor));
-          }
+        } else if (libraryBuilder.enableEnhancedEnumsInLibrary) {
+          initializers[initializers.length - 1] = buildInvalidInitializer(
+              buildProblem(fasta.messageEnumConstructorSuperInitializer,
+                  superInitializer.fileOffset, noLength))
+            ..parent = constructor;
+        }
+      } else if (initializers.last is RedirectingInitializer) {
+        RedirectingInitializer redirectingInitializer =
+            initializers.last as RedirectingInitializer;
+        if (libraryBuilder.enableEnhancedEnumsInLibrary) {
+          redirectingInitializer.arguments.positional.insertAll(0, [
+            new VariableGetImpl(constructor.function.positionalParameters[0],
+                forNullGuardedAccess: false)
+              ..parent = redirectingInitializer.arguments,
+            new VariableGetImpl(constructor.function.positionalParameters[1],
+                forNullGuardedAccess: false)
+              ..parent = redirectingInitializer.arguments
+          ]);
         }
       }
 
@@ -1775,40 +1776,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
+
     if (asyncModifier != AsyncMarker.Sync) {
       constructor.initializers.add(buildInvalidInitializer(buildProblem(
           fasta.messageConstructorNotSync, body!.fileOffset, noLength)));
-    }
-    if (libraryBuilder.enableEnhancedEnumsInLibrary &&
-        sourceClassBuilder is SourceEnumBuilder &&
-        constructor.initializers.isNotEmpty &&
-        constructor.initializers.last is RedirectingInitializer) {
-      RedirectingInitializer redirectingInitializer =
-          constructor.initializers.last as RedirectingInitializer;
-      redirectingInitializer.arguments.positional.insertAll(0, [
-        new VariableGet(constructor.function.positionalParameters[0])
-          ..parent = redirectingInitializer.arguments,
-        new VariableGet(constructor.function.positionalParameters[1])
-          ..parent = redirectingInitializer.arguments
-      ]);
-
-      LocatedMessage? message = checkArgumentsForFunction(
-          redirectingInitializer.target.function,
-          redirectingInitializer.arguments,
-          builder.charOffset, const <TypeParameter>[]);
-      if (message != null) {
-        Initializer invalidInitializer = buildInvalidInitializer(
-            buildUnresolvedError(
-                forest.createNullLiteral(redirectingInitializer.fileOffset),
-                constructorNameForDiagnostics(builder.name, isSuper: false),
-                redirectingInitializer.arguments,
-                redirectingInitializer.fileOffset,
-                isSuper: false,
-                message: message,
-                kind: UnresolvedKind.Constructor));
-        constructor.initializers.removeLast();
-        constructor.initializers.add(invalidInitializer..parent = constructor);
-      }
     }
     if (needsImplicitSuperInitializer) {
       /// >If no superinitializer is provided, an implicit superinitializer

@@ -28,6 +28,7 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         messageEnumEntryWithTypeArgumentsWithoutArguments,
+        messageEnumNonConstConstructor,
         messageNoUnnamedConstructorInObject,
         noLength,
         templateDuplicatedDeclaration,
@@ -36,6 +37,7 @@ import '../fasta_codes.dart'
         templateEnumConstantSameNameAsEnclosing;
 
 import '../kernel/body_builder.dart';
+import '../kernel/constness.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
@@ -83,6 +85,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       this.objectType,
       this.stringType,
       SourceLibraryBuilder parent,
+      List<ConstructorReferenceBuilder> constructorReferences,
       int startCharOffset,
       int charOffset,
       int charEndOffset,
@@ -98,7 +101,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             scope,
             constructors,
             parent,
-            /* constructorReferences = */ null,
+            constructorReferences,
             startCharOffset,
             charOffset,
             charEndOffset,
@@ -113,6 +116,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       List<TypeBuilder>? interfaceBuilders,
       List<EnumConstantInfo?>? enumConstantInfos,
       SourceLibraryBuilder parent,
+      List<ConstructorReferenceBuilder> constructorReferences,
       int startCharOffset,
       int charOffset,
       int charEndOffset,
@@ -420,6 +424,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         objectType,
         stringType,
         parent,
+        constructorReferences,
         startCharOffsetComputed,
         charOffset,
         charEndOffset,
@@ -435,8 +440,18 @@ class SourceEnumBuilder extends SourceClassBuilder {
     }
 
     members.forEach(setParent);
-    constructors.forEach(setParent);
+    constructorScope.local.forEach(setParent);
     selfType.bind(enumBuilder);
+
+    if (constructorScope.local.isNotEmpty) {
+      for (MemberBuilder constructorBuilder in constructorScope.local.values) {
+        if (!constructorBuilder.isFactory && !constructorBuilder.isConst) {
+          parent.addProblem(messageEnumNonConstConstructor,
+              constructorBuilder.charOffset, noLength, fileUri);
+        }
+      }
+    }
+
     return enumBuilder;
   }
 
@@ -590,12 +605,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
             }
           }
           BodyBuilder? bodyBuilder;
-          if (enumConstantInfo.argumentsBeginToken != null ||
-              typeArgumentBuilders == null && cls.typeParameters.isNotEmpty) {
-            // We need to create a BodyBuilder in two cases: 1) if the
-            // arguments token is provided, we'll use the BodyBuilder to
+          if (libraryBuilder.enableEnhancedEnumsInLibrary) {
+            // We need to create a BodyBuilder to solve the following: 1) if
+            // the arguments token is provided, we'll use the BodyBuilder to
             // parse them and perform inference, 2) if the type arguments
-            // aren't provided, but required, we'll use it to infer them.
+            // aren't provided, but required, we'll use it to infer them, and
+            // 3) in case of erroneous code the constructor invocation should
+            // be built via a body builder to detect potential errors.
             bodyBuilder = library.loader.createBodyBuilderForOutlineExpression(
                 library, this, this, scope, fileUri);
             bodyBuilder.constantContext = ConstantContext.required;
@@ -622,13 +638,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
           if (constructorBuilder == null ||
               constructorBuilder is! SourceConstructorBuilder) {
-            bodyBuilder ??= library.loader
-                .createBodyBuilderForOutlineExpression(
-                    library, this, this, scope, fileUri)
-              ..constantContext = ConstantContext.required;
             field.buildBody(
                 classHierarchy.coreTypes,
-                bodyBuilder.buildUnresolvedError(
+                bodyBuilder!.buildUnresolvedError(
                     new NullLiteral(),
                     enumConstantInfo
                             .constructorReferenceBuilder?.fullNameForErrors ??
@@ -638,16 +650,23 @@ class SourceEnumBuilder extends SourceClassBuilder {
                         enumConstantInfo.charOffset,
                     kind: UnresolvedKind.Constructor));
           } else {
-            Expression initializer = new ConstructorInvocation(
-                constructorBuilder.constructor, arguments,
-                isConst: true)
-              ..fileOffset = field.charOffset;
+            Expression initializer;
             if (bodyBuilder != null) {
+              initializer = bodyBuilder.buildStaticInvocation(
+                  constructorBuilder.constructor, arguments,
+                  constness: Constness.explicitConst,
+                  charOffset: field.charOffset);
               ExpressionInferenceResult inferenceResult =
                   bodyBuilder.typeInferrer.inferFieldInitializer(
                       bodyBuilder, const UnknownType(), initializer);
               initializer = inferenceResult.expression;
+              if (initializer is ConstructorInvocation) {}
               field.fieldType = inferenceResult.inferredType;
+            } else {
+              initializer = new ConstructorInvocation(
+                  constructorBuilder.constructor, arguments,
+                  isConst: true)
+                ..fileOffset = field.charOffset;
             }
             field.buildBody(classHierarchy.coreTypes, initializer);
           }

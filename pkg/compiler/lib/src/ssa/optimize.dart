@@ -1918,6 +1918,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return null;
     }
 
+    // For primitives we know the stringifier is effect-free and never throws.
+    if (input.isNumberOrNull(_abstractValueDomain).isDefinitelyTrue ||
+        input.isStringOrNull(_abstractValueDomain).isDefinitelyTrue ||
+        input.isBooleanOrNull(_abstractValueDomain).isDefinitelyTrue) {
+      node.setPure();
+    }
+
     return tryConstant() ?? tryToString() ?? node;
   }
 

@@ -409,6 +409,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     EnumElementImpl element = _elementWalker!.getEnum();
     node.name.staticElement = element;
+    _namedTypeResolver.enclosingClass = element;
 
     node.metadata.accept(this);
     _setElementAnnotations(node.metadata, element.metadata);
@@ -418,12 +419,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _buildTypeParameterElements(node.typeParameters);
         node.typeParameters?.accept(this);
 
+        _resolveWithClause(node.withClause);
+        _resolveImplementsClause(node.implementsClause);
+
         _defineElements(element.accessors);
         _defineElements(element.methods);
         node.constants.accept(this);
         node.members.accept(this);
       });
     });
+
+    _namedTypeResolver.enclosingClass = null;
   }
 
   @override

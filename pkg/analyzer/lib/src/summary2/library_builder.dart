@@ -134,6 +134,8 @@ class LibraryBuilder {
   void buildEnumChildren() {
     var typeProvider = element.typeProvider;
     for (var enum_ in implicitEnumNodes) {
+      enum_.element.supertype =
+          typeProvider.enumType ?? typeProvider.objectType;
       enum_.indexField.type = typeProvider.intType;
       var valuesType = typeProvider.listType(
         element.typeSystem.instantiateToBounds2(

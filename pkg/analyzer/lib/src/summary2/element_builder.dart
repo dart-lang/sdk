@@ -339,10 +339,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       holder.addNonSyntheticField(valuesField);
     }
 
-    // TODO(scheglov) implement
-    // node.extendsClause?.accept(this);
-    // node.withClause?.accept(this);
-    // node.implementsClause?.accept(this);
+    node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
 
     // Build the 'index' field.
     var indexField = ConstFieldElementImpl('index', -1)

@@ -289,40 +289,43 @@ class SimpleMacro
       ];
     }
 
-    builder.declareType(DeclarationCode.fromParts([
-      'class ${clazz.identifier.name}Builder',
-      if (clazz.typeParameters.isNotEmpty) ...[
-        '<',
-        ..._buildTypeParam(clazz.typeParameters.first, true),
-        for (var typeParam in clazz.typeParameters.skip(1))
-          ..._buildTypeParam(typeParam, false),
-        '>',
-      ],
-      ' implements Builder<',
-      clazz.identifier,
-      if (clazz.typeParameters.isNotEmpty) ...[
-        '<',
-        clazz.typeParameters.first.identifier.name,
-        for (var typeParam in clazz.typeParameters)
-          ', ${typeParam.identifier.name}',
-        '>',
-      ],
-      '> {}'
-    ]));
+    var name = '${clazz.identifier.name}Builder';
+    builder.declareType(
+        name,
+        DeclarationCode.fromParts([
+          'class $name',
+          if (clazz.typeParameters.isNotEmpty) ...[
+            '<',
+            ..._buildTypeParam(clazz.typeParameters.first, true),
+            for (var typeParam in clazz.typeParameters.skip(1))
+              ..._buildTypeParam(typeParam, false),
+            '>',
+          ],
+          ' implements Builder<',
+          clazz.identifier,
+          if (clazz.typeParameters.isNotEmpty) ...[
+            '<',
+            clazz.typeParameters.first.identifier.name,
+            for (var typeParam in clazz.typeParameters)
+              ', ${typeParam.identifier.name}',
+            '>',
+          ],
+          '> {}'
+        ]));
   }
 
   @override
   FutureOr<void> buildTypesForConstructor(
       ConstructorDeclaration constructor, TypeBuilder builder) {
-    builder.declareType(DeclarationCode.fromString(
-        'class GeneratedBy${constructor.identifier.name.capitalize()} {}'));
+    var name = 'GeneratedBy${constructor.identifier.name.capitalize()}';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
   }
 
   @override
   FutureOr<void> buildTypesForField(
       FieldDeclaration field, TypeBuilder builder) {
-    builder.declareType(DeclarationCode.fromString(
-        'class GeneratedBy${field.identifier.name.capitalize()} {}'));
+    var name = 'GeneratedBy${field.identifier.name.capitalize()}';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
   }
 
   @override
@@ -333,23 +336,22 @@ class SimpleMacro
         : function.isSetter
             ? 'Setter'
             : '';
-    builder.declareType(DeclarationCode.fromString(
-        'class GeneratedBy${function.identifier.name.capitalize()}'
-        '$suffix {}'));
+    var name = 'GeneratedBy${function.identifier.name.capitalize()}$suffix';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
   }
 
   @override
   FutureOr<void> buildTypesForMethod(
       MethodDeclaration method, TypeBuilder builder) {
-    builder.declareType(DeclarationCode.fromString(
-        'class GeneratedBy${method.identifier.name.capitalize()} {}'));
+    var name = 'GeneratedBy${method.identifier.name.capitalize()}';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
   }
 
   @override
   FutureOr<void> buildTypesForVariable(
       VariableDeclaration variable, TypeBuilder builder) {
-    builder.declareType(DeclarationCode.fromString(
-        'class GeneratedBy${variable.identifier.name.capitalize()} {}'));
+    var name = 'GeneratedBy${variable.identifier.name.capitalize()}';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
   }
 }
 

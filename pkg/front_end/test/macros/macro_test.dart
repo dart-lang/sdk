@@ -387,5 +387,10 @@ class _MacroExecutionResult implements MacroExecutionResult {
   Iterable<DeclarationCode> augmentations = const [];
 
   @override
-  void serialize(Serializer serializer) {}
+  Iterable<String> newTypeNames = const [];
+
+  @override
+  void serialize(Serializer serializer) {
+    throw UnimplementedError();
+  }
 }

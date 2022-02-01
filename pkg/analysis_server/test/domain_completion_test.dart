@@ -149,7 +149,7 @@ void f() {
             testFilePathPlatform, 0, 'Random', '[foo]:bar')
         .toRequest('0');
 
-    var response = await _handleRequest(request);
+    var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_PARAMETER);
     // TODO(scheglov) Check that says "libraryUri".
   }
@@ -161,7 +161,7 @@ void f() {
         CompletionGetSuggestionDetails2Params('foo', 0, 'Random', 'dart:math')
             .toRequest('0');
 
-    var response = await _handleRequest(request);
+    var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_FILE_PATH_FORMAT);
   }
 
@@ -1918,7 +1918,7 @@ void f() {
       0,
       1 << 10,
     ).toRequest(id);
-    var futureResponse = _handleRequest(request);
+    var futureResponse = handleRequest(request);
     return RequestWithFutureResponse(offset, request, futureResponse);
   }
 }
@@ -2862,6 +2862,10 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
 
   String get workspaceRootPath => '/home';
 
+  Future<Response> handleRequest(Request request) async {
+    return await serverChannel.sendRequest(request);
+  }
+
   Future<void> setRoots({
     required List<String> included,
     required List<String> excluded,
@@ -2877,6 +2881,7 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     );
   }
 
+  @mustCallSuper
   void setUp() {
     serverChannel = MockServerChannel();
 
@@ -2935,13 +2940,9 @@ class PubPackageAnalysisServerTest with ResourceProviderMixin {
     await server.onAnalysisComplete;
   }
 
-  Future<Response> _handleRequest(Request request) async {
-    return await serverChannel.sendRequest(request);
-  }
-
   /// Validates that the given [request] is handled successfully.
   Future<Response> _handleSuccessfulRequest(Request request) async {
-    var response = await _handleRequest(request);
+    var response = await handleRequest(request);
     expect(response, isResponseSuccess(request.id));
     return response;
   }

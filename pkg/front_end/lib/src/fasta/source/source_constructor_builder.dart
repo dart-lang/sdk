@@ -21,16 +21,17 @@ import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_member_builder.dart';
+import '../identifiers.dart';
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/constructor_tearoff_lowering.dart';
-import '../kernel/expression_generator_helper.dart'
-    show ExpressionGeneratorHelper;
+import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart' show SynthesizedFunctionNode;
 import '../kernel/utils.dart'
     show isRedirectingGenerativeConstructorImplementation;
 import '../messages.dart'
     show
+        LocatedMessage,
         Message,
         messageMoreThanOneSuperInitializer,
         messageRedirectingConstructorWithAnotherInitializer,
@@ -82,6 +83,12 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   @override
   List<FormalParameterBuilder>? formals;
+
+  @override
+  String get fullNameForErrors {
+    return "${flattenName(classBuilder.name, charOffset, fileUri)}"
+        "${name.isEmpty ? '' : '.$name'}";
+  }
 
   DeclaredSourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
@@ -523,8 +530,27 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             helper);
       } else {
         inferenceResult?.applyResult(initializers, _constructor);
-        initializers.add(initializer..parent = _constructor);
         superInitializer = initializer;
+
+        LocatedMessage? message = helper.checkArgumentsForFunction(
+            initializer.target.function,
+            initializer.arguments,
+            initializer.arguments.fileOffset, <TypeParameter>[]);
+        if (message != null) {
+          initializers.add(helper.buildInvalidInitializer(
+              helper.buildUnresolvedError(
+                  helper.forest.createNullLiteral(initializer.fileOffset),
+                  helper.constructorNameForDiagnostics(
+                      initializer.target.name.text),
+                  initializer.arguments,
+                  initializer.fileOffset,
+                  isSuper: true,
+                  message: message,
+                  kind: UnresolvedKind.Constructor))
+            ..parent = _constructor);
+        } else {
+          initializers.add(initializer..parent = _constructor);
+        }
       }
     } else if (initializer is RedirectingInitializer) {
       if (superInitializer != null) {
@@ -559,8 +585,28 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         redirectingInitializer = initializer;
       } else {
         inferenceResult?.applyResult(initializers, _constructor);
-        initializers.add(initializer..parent = _constructor);
         redirectingInitializer = initializer;
+
+        LocatedMessage? message = helper.checkArgumentsForFunction(
+            initializer.target.function,
+            initializer.arguments,
+            initializer.arguments.fileOffset, const <TypeParameter>[]);
+        if (message != null) {
+          initializers.add(helper.buildInvalidInitializer(
+              helper.buildUnresolvedError(
+                  helper.forest.createNullLiteral(initializer.fileOffset),
+                  helper.constructorNameForDiagnostics(
+                      initializer.target.name.text,
+                      isSuper: false),
+                  initializer.arguments,
+                  initializer.fileOffset,
+                  isSuper: false,
+                  message: message,
+                  kind: UnresolvedKind.Constructor))
+            ..parent = _constructor);
+        } else {
+          initializers.add(initializer..parent = _constructor);
+        }
       }
     } else if (redirectingInitializer != null) {
       int length = noLength;

@@ -34,11 +34,6 @@ import 'use.dart'
 import 'world_builder.dart';
 
 abstract class ResolutionWorldBuilder implements WorldBuilder, OpenWorld {
-  /// Returns `true` if [member] has been marked as used (called, read, etc.) in
-  /// this world builder.
-  // TODO(johnniwinther): Maybe this should be part of [ClosedWorld] (instead).
-  bool isMemberUsed(MemberEntity member);
-
   /// The closed world computed by this world builder.
   ///
   /// This is only available after the world builder has been closed.
@@ -901,11 +896,6 @@ class ResolutionWorldBuilderImpl extends WorldBuilderBase
     if (element.isInstanceMember && !element.isAbstract) {
       _liveInstanceMembers.add(element);
     }
-  }
-
-  @override
-  bool isMemberUsed(MemberEntity member) {
-    return _memberUsage[member]?.hasUse ?? false;
   }
 
   Map<ClassEntity, Set<ClassEntity>> populateHierarchyNodes() {

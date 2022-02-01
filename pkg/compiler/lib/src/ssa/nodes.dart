@@ -3760,11 +3760,21 @@ class HStringConcat extends HInstruction {
 /// The part of string interpolation which converts and interpolated expression
 /// into a String value.
 class HStringify extends HInstruction {
+  bool _isPure = false; // Some special cases are pure, e.g. int argument.
   HStringify(HInstruction input, AbstractValue resultType)
       : super([input], resultType) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
   }
+
+  void setPure() {
+    sideEffects.clearAllDependencies();
+    sideEffects.clearAllSideEffects();
+    _isPure = true;
+  }
+
+  @override
+  bool canThrow(AbstractValueDomain domain) => !_isPure;
 
   @override
   accept(HVisitor visitor) => visitor.visitStringify(this);

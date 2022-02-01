@@ -14,7 +14,7 @@ class E<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> ex
   static const field self::E<core::int, core::String> one = #C3;
   static const field self::E<core::double, core::num> two = #C6;
   static const field self::E<core::int, core::int> three = #C9;
-  static const field self::E<dynamic, dynamic> four = #C12;
+  static const field self::E<core::num, core::bool> four = #C12;
   const constructor •(core::int index, core::String name) → self::E<self::E::X%, self::E::Y%>
     : super core::_Enum::•(index, name)
     ;

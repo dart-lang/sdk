@@ -1,0 +1,3 @@
+enum E1 { element; E1(); E1.named(); }
+enum E2 { one.named1(), two.named2(); const E2.named1() : super(); const E2.named2() : super(42, "42"); }
+main() {}

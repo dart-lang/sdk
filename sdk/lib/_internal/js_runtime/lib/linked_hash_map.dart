@@ -218,7 +218,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     // always unboxed (Smi) values. Modification detection will be missed if you
     // make exactly some multiple of 2^30 modifications between advances of an
     // iterator.
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = (_modifications + 1) & 0x3fffffff;
   }
 
   // Create a new cell and link it in as the last one in the list.
@@ -264,14 +264,14 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     // Only treat unsigned 30-bit integers as numeric keys. This way,
     // we avoid converting them to strings when we use them as keys in
     // the JavaScript hash table object.
-    return key is num && JS('bool', '(# & 0x3ffffff) === #', key, key);
+    return key is num && JS('bool', '(# & 0x3fffffff) === #', key, key);
   }
 
   int internalComputeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
     // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3ffffff', key.hashCode);
+    return JS('int', '# & 0x3fffffff', key.hashCode);
   }
 
   List<LinkedHashMapCell>? _getBucket(var table, var key) {

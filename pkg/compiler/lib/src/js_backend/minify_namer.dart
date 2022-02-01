@@ -44,33 +44,61 @@ class MinifyNamer extends Namer
     return freshName;
   }
 
-  // From issue 7554.  These should not be used on objects (as instance
-  // variables) because they clash with names from the DOM. However, it is
-  // OK to use them as fields, as we only access fields directly if we know
-  // the receiver type.
+  /// Property names that are used on 'native' JavaScript classes.
+  ///
+  /// It is best not to use these names for dynamic call selectors.
+  ///
+  /// Dynamic calls to selectors that are used on an intercepted (e.g. String)
+  /// class (e.g. String) or native class (e.g. HtmlElement) are not a problem
+  /// since they are handled via the interceptor calling mechanism. Other
+  /// selectors are called directly, so the minified selector should not be a
+  /// name that accidentally collides with a JavaScript method.  For example,
+  /// the minified call site for the dynamic call `item.yowza()` should not be
+  /// `x.at()`, since, if `x` was a String, that would call
+  /// `String.prototype.at` instead of generating an error.
+  ///
+  /// These names are reserved for the property names of fields, since fields
+  /// are always accessed from a know receiver. (A 'field' of an unknown
+  /// receiver would actually be the getter method.)
+  ///
+  /// These names could be used for selectors that use the interceptor calling
+  /// convention, or for selectors are not called from a `dynamic` call site, or
+  /// any other use where the JavaScript receiver is constrained to be something
+  /// from within the dart program.
+  ///
+  /// TODO(7554): Refresh periodically.
   static const List<String> _reservedNativeProperties = [
-    'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z', 'Q',
-    // 2-letter:
-    'ch', 'cx', 'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1',
-    'k2', 'k3', 'k4', 'r1', 'r2', 'rx', 'ry', 'x1', 'x2', 'y1', 'y2',
-    // 3-letter:
-    'add', 'all', 'alt', 'arc', 'CCW', 'cmp', 'dir', 'end', 'get', 'in1',
-    'in2', 'INT', 'key', 'log', 'low', 'm11', 'm12', 'm13', 'm14', 'm21',
-    'm22', 'm23', 'm24', 'm31', 'm32', 'm33', 'm34', 'm41', 'm42', 'm43',
-    'm44', 'max', 'min', 'now', 'ONE', 'put', 'red', 'rel', 'rev', 'RGB',
-    'sdp', 'set', 'src', 'tag', 'top', 'uid', 'uri', 'url', 'URL',
-    // 4-letter:
-    'abbr', 'atob', 'Attr', 'axes', 'axis', 'back', 'BACK', 'beta', 'bias',
-    'Blob', 'blue', 'blur', 'BLUR', 'body', 'BOOL', 'BOTH', 'btoa', 'BYTE',
-    'cite', 'clip', 'code', 'cols', 'cues', 'data', 'DECR', 'DONE', 'face',
-    'file', 'File', 'fill', 'find', 'font', 'form', 'gain', 'hash', 'head',
-    'high', 'hint', 'host', 'href', 'HRTF', 'IDLE', 'INCR', 'info', 'INIT',
-    'isId', 'item', 'KEEP', 'kind', 'knee', 'lang', 'left', 'LESS', 'line',
-    'link', 'list', 'load', 'loop', 'mode', 'name', 'Node', 'None', 'NONE',
-    'only', 'open', 'OPEN', 'ping', 'play', 'port', 'rect', 'Rect', 'refX',
-    'refY', 'RGBA', 'root', 'rows', 'save', 'seed', 'seek', 'self', 'send',
-    'show', 'SINE', 'size', 'span', 'stat', 'step', 'stop', 'tags', 'text',
-    'Text', 'time', 'type', 'view', 'warn', 'wrap', 'ZERO'
+    // 1 character
+    'a', 'b', 'c', 'd', 'e', 'f', 'r', 'w', 'x', 'y', 'z', 'Q',
+
+    // 2 characters
+    'as', 'at', 'ax', 'ay', 'ch', 'CW', 'cx', 'cy', 'db', 'dx', 'dy', 'fr',
+    'fx', 'fy', 'go', 'id', 'k1', 'k2', 'k3', 'k4', 'ok', 'p1', 'p2', 'p3',
+    'p4', 'R8', 'RG', 'rx', 'ry', 'to', 'x1', 'x2', 'xr', 'y1', 'y2',
+
+    // 3 characters
+    'add', 'all', 'alt', 'arc', 'big', 'CCW', 'cmp', 'csp', 'dir', 'div', 'end',
+    'eye', 'get', 'has', 'hid', 'in1', 'in2', 'ink', 'INT', 'key', 'low', 'm11',
+    'm12', 'm13', 'm14', 'm21', 'm22', 'm23', 'm24', 'm31', 'm32', 'm33', 'm34',
+    'm41', 'm42', 'm43', 'm44', 'map', 'max', 'MAX', 'mid', 'min', 'MIN', 'mul',
+    'now', 'ONE', 'pad', 'pan', 'pop', 'put', 'R8I', 'RED', 'rel', 'rev', 'RG8',
+    'RGB', 'rtt', 'sdp', 'set', 'src', 'sub', 'sup', 'tag', 'tee', 'top', 'upX',
+    'upY', 'upZ', 'url', 'URL', 'usb',
+
+    // 4 characters
+    'abbr', 'axes', 'axis', 'back', 'BACK', 'beta', 'bias', 'bind', 'blob',
+    'blur', 'body', 'bold', 'BOOL', 'BYTE', 'call', 'cite', 'city', 'clip',
+    'code', 'cols', 'cues', 'data', 'DECR', 'DONE', 'dtmf', 'exec', 'face',
+    'fill', 'find', 'flat', 'font', 'form', 'gain', 'hash', 'head', 'hide',
+    'high', 'hint', 'host', 'href', 'icon', 'INCR', 'is2D', 'item', 'join',
+    'json', 'KEEP', 'keys', 'kind', 'knee', 'lang', 'left', 'LESS', 'line',
+    'link', 'list', 'load', 'lock', 'loop', 'mark', 'mode', 'name', 'node',
+    'NONE', 'open', 'OPEN', 'part', 'path', 'ping', 'play', 'port', 'push',
+    'R16F', 'R16I', 'R32F', 'R32I', 'R8UI', 'rate', 'read', 'rect', 'refX',
+    'refY', 'RG8I', 'RGB8', 'RGBA', 'role', 'root', 'rows', 'save', 'sctp',
+    'seed', 'seek', 'send', 'show', 'sign', 'size', 'slot', 'some', 'sort',
+    'span', 'SRGB', 'step', 'stop', 'sync', 'test', 'text', 'then', 'time',
+    'tone', 'trim', 'type', 'unit', 'view', 'wrap', 'ZERO',
   ];
 
   void reserveBackendNames() {

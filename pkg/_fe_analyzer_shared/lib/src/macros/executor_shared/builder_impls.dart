@@ -14,18 +14,25 @@ class TypeBuilderBase {
   /// The final result, will be built up over `augment` calls.
   final List<DeclarationCode> _augmentations;
 
+  /// The names of any new types added in [_augmentations].
+  final List<String> _newTypeNames;
+
   /// Creates and returns a [MacroExecutionResult] out of the [_augmentations]
   /// created by this builder.
-  MacroExecutionResult get result =>
-      new MacroExecutionResultImpl(augmentations: _augmentations);
+  MacroExecutionResult get result => new MacroExecutionResultImpl(
+        augmentations: _augmentations,
+        newTypeNames: _newTypeNames,
+      );
 
   TypeBuilderBase({List<DeclarationCode>? parentAugmentations})
-      : _augmentations = parentAugmentations ?? [];
+      : _augmentations = parentAugmentations ?? [],
+        _newTypeNames = [];
 }
 
 class TypeBuilderImpl extends TypeBuilderBase implements TypeBuilder {
   @override
-  void declareType(DeclarationCode typeDeclaration) {
+  void declareType(String name, DeclarationCode typeDeclaration) {
+    _newTypeNames.add(name);
     _augmentations.add(typeDeclaration);
   }
 }
@@ -250,7 +257,7 @@ DeclarationCode _buildClassAugmentation(
         Identifier clazz, List<DeclarationCode> augmentations) =>
     new DeclarationCode.fromParts([
       'augment class ',
-      clazz,
+      clazz.name,
       ' {\n',
       ...augmentations.joinAsCode('\n'),
       '\n}',
@@ -304,13 +311,14 @@ DeclarationCode _buildFunctionAugmentation(
   return new DeclarationCode.fromParts([
     'augment ',
     if (declaration is ConstructorDeclaration) ...[
-      declaration.definingClass,
+      declaration.definingClass.name,
       if (declaration.identifier.name.isNotEmpty) '.',
     ] else ...[
       declaration.returnType.code,
       ' ',
+      if (declaration.isOperator) 'operator ',
     ],
-    declaration.identifier,
+    declaration.identifier.name,
     if (declaration.typeParameters.isNotEmpty) ...[
       '<',
       for (TypeParameterDeclaration typeParam
@@ -327,7 +335,7 @@ DeclarationCode _buildFunctionAugmentation(
       new ParameterCode.fromParts([
         positionalRequired.type.code,
         ' ',
-        positionalRequired.identifier,
+        positionalRequired.identifier.name,
       ]),
       ', '
     ],
@@ -338,7 +346,7 @@ DeclarationCode _buildFunctionAugmentation(
         new ParameterCode.fromParts([
           positionalOptional.type.code,
           ' ',
-          positionalOptional.identifier,
+          positionalOptional.identifier.name,
         ]),
         ', ',
       ],

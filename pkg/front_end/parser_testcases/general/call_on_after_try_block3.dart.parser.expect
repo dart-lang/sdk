@@ -1,0 +1,25 @@
+void main(int on) {
+try {
+;
+} catch (e) {
+;
+} on Foo {
+;
+}
+on.toString();
+}
+
+
+
+void[KeywordToken] main[StringToken]([BeginToken]int[StringToken] on[KeywordToken])[SimpleToken] {[BeginToken]
+try[KeywordToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken] catch[KeywordToken] ([BeginToken]e[StringToken])[SimpleToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken] on[KeywordToken] Foo[StringToken] {[BeginToken]
+;[SimpleToken]
+}[SimpleToken]
+on[KeywordToken].[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+[SimpleToken]

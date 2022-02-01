@@ -1,0 +1,83 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:22:26: Error: Enum factory constructors can't redirect to generative constructors.
+//   const factory E.f3() = E; // Error.
+//                          ^
+//
+// pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:24:20: Error: Enum factory constructors can't redirect to generative constructors.
+//   factory E.f4() = E; // Error.
+//                    ^
+//
+// pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:8: Error: Couldn't find constructor 'E.f'.
+//   three.f(), // Error.
+//        ^
+//
+// pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:7: Error: Couldn't find constructor 'E.f2'.
+//   four.f2(); // Error.
+//       ^^
+//
+// pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:28:29: Error: The constructor function type 'E Function()' isn't a subtype of 'E Function(int)'.
+//  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/constructor_calls.dart'.
+//   factory E.f6(int value) = E.f; // Error.
+//                             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E> values = const <self::E>[self::E::one, self::E::two, self::E::three, self::E::four];
+  static const field self::E one = const self::E::•(0, "one");
+  static const field self::E two = const self::E::named(1, "two");
+  static const field self::E three = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:8: Error: Couldn't find constructor 'E.f'.
+  three.f(), // Error.
+       ^";
+  static const field self::E four = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:7: Error: Couldn't find constructor 'E.f2'.
+  four.f2(); // Error.
+      ^^";
+  static final field dynamic _redirecting# = <dynamic>[self::E::f3, self::E::f4, self::E::f5, self::E::f6]/*isLegacy*/;
+  const constructor •(core::int index, core::String name) → self::E
+    : super core::_Enum::•(index, name)
+    ;
+  const constructor named(core::int index, core::String name) → self::E
+    : this self::E::•(index, name)
+    ;
+  method toString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+  static factory f() → self::E
+    ;
+  static factory f2() → self::E
+    ;
+  static factory f3() → self::E
+    return invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:22:26: Error: Enum factory constructors can't redirect to generative constructors.
+  const factory E.f3() = E; // Error.
+                         ^";
+  static factory f4() → self::E
+    return invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:24:20: Error: Enum factory constructors can't redirect to generative constructors.
+  factory E.f4() = E; // Error.
+                   ^";
+  static factory f5() → self::E
+    return self::E::f();
+  static factory f6(core::int value) → self::E
+    return invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:28:29: Error: The constructor function type 'E Function()' isn't a subtype of 'E Function(int)'.
+ - 'E' is from 'pkg/front_end/testcases/enhanced_enums/constructor_calls.dart'.
+  factory E.f6(int value) = E.f; // Error.
+                            ^";
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: StaticGet @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constructor_calls.dart:6:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "one"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constructor_calls.dart:7:3 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> ConstructorTearOffConstant(E.f3)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> ConstructorTearOffConstant(E.f4)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> ConstructorTearOffConstant(E.f5)
+Evaluated: ConstructorTearOff @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> ConstructorTearOffConstant(E.f6)
+Extra constant evaluation: evaluated: 20, effectively constant: 8

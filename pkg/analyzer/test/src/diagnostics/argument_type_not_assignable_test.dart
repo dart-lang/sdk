@@ -219,6 +219,17 @@ main() {}
     ]);
   }
 
+  test_annotation_type_arguments_inferred() async {
+    await assertNoErrorsInCode('''
+@C([])
+int i = 0;
+
+class C<T> {
+  const C(List<List<T>> arg);
+}
+''');
+  }
+
   test_annotation_unnamedConstructor() async {
     await assertErrorsInCode('''
 class A {

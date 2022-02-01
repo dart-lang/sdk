@@ -1731,6 +1731,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
 
+      // Setup scope first in two-step process:
+      // 1) Create a new SourceLibraryBuilder, add imports and setup (import)
+      //    scope.
+      // 2) Create a new SourceLibraryBuilder, using a nested scope of the scope
+      //    we just created as the scope. The import scopes have been setup via
+      //    the parent chain.
+      // This is done to create the correct "layering" (i.e. definitions from
+      // the "self" library first, then imports while not having dill builders
+      // directly in the scope of a source builder (which can crash things in
+      // some circumstances).
       SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
         importUri: libraryUri,
         fileUri: debugExprUri,
@@ -1784,6 +1794,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         debugLibrary.addImportsToScope();
         _ticker.logMs("Added imports");
       }
+      debugLibrary = new SourceLibraryBuilder(
+        importUri: libraryUri,
+        fileUri: debugExprUri,
+        packageLanguageVersion:
+            new ImplicitLanguageVersion(libraryBuilder.library.languageVersion),
+        loader: lastGoodKernelTarget.loader,
+        scope: debugLibrary.scope.createNestedScope("expression"),
+        nameOrigin: libraryBuilder,
+        isUnsupported: libraryBuilder.isUnsupported,
+      );
 
       HybridFileSystem hfs =
           lastGoodKernelTarget.fileSystem as HybridFileSystem;

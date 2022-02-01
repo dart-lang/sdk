@@ -413,6 +413,10 @@ import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
 import 'missing_size_annotation_carray_test.dart'
     as missing_size_annotation_carray;
+import 'mixin_application_concrete_super_invoked_member_type_test.dart'
+    as mixin_application_concrete_super_invoked_member_type;
+import 'mixin_application_no_concrete_super_invoked_member_test.dart'
+    as mixin_application_no_concrete_super_invoked_member;
 import 'mixin_application_not_implemented_interface_test.dart'
     as mixin_application_not_implemented_interface;
 import 'mixin_class_declares_constructor_test.dart'
@@ -423,6 +427,7 @@ import 'mixin_inference_no_possible_substitution_test.dart'
     as mixin_inference_no_possible_substitution;
 import 'mixin_inherits_from_not_object_test.dart'
     as mixin_inherits_from_not_object;
+import 'mixin_instantiate_test.dart' as mixin_instantiate_test;
 import 'mixin_of_disallowed_class_test.dart' as mixin_of_disallowed_class;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_of_type_alias_expands_to_type_parameter_test.dart'
@@ -430,6 +435,10 @@ import 'mixin_of_type_alias_expands_to_type_parameter_test.dart'
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'mixin_on_type_alias_expands_to_type_parameter_test.dart'
     as mixin_on_type_alias_expands_to_type_parameter;
+import 'mixin_super_class_constraint_deferred_class_test.dart'
+    as mixin_super_class_constraint_deferred_class;
+import 'mixin_super_class_constraint_disallowed_class_test.dart'
+    as mixin_super_class_constraint_disallowed_class;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
 import 'mixin_with_non_class_superclass_test.dart'
@@ -690,6 +699,7 @@ import 'undefined_referenced_parameter_test.dart'
     as undefined_referenced_parameter;
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
+import 'undefined_super_method_test.dart' as undefined_super_method;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
@@ -1005,17 +1015,22 @@ main() {
     missing_required_param.main();
     missing_return.main();
     missing_size_annotation_carray.main();
+    mixin_application_concrete_super_invoked_member_type.main();
+    mixin_application_no_concrete_super_invoked_member.main();
     mixin_application_not_implemented_interface.main();
     mixin_class_declares_constructor.main();
     mixin_declares_constructor.main();
     mixin_deferred_class.main();
     mixin_inference_no_possible_substitution.main();
     mixin_inherits_from_not_object.main();
+    mixin_instantiate_test.main();
     mixin_of_disallowed_class.main();
     mixin_of_non_class.main();
     mixin_of_type_alias_expands_to_type_parameter.main();
     mixin_on_sealed_class.main();
     mixin_on_type_alias_expands_to_type_parameter.main();
+    mixin_super_class_constraint_deferred_class.main();
+    mixin_super_class_constraint_disallowed_class.main();
     mixin_super_class_constraint_non_interface.main();
     mixin_with_non_class_superclass.main();
     mixins_super_class.main();
@@ -1194,6 +1209,7 @@ main() {
     undefined_referenced_parameter.main();
     undefined_setter.main();
     undefined_shown_name.main();
+    undefined_super_method.main();
     unignorable_ignore.main();
     unnecessary_import.main();
     unnecessary_cast.main();

@@ -14,7 +14,7 @@ class E<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> ex
   static const field self::E<core::int, core::String> one = const self::E::•<core::int, core::String>(0, "one");
   static const field self::E<core::double, core::num> two = const self::E::•<core::double, core::num>(1, "two");
   static const field self::E<core::int, core::int> three = const self::E::named<core::int, core::int>(2, "three", 42);
-  static const field self::E<dynamic, dynamic> four = const self::E::•<core::num, core::bool>(3, "four");
+  static const field self::E<core::num, core::bool> four = const self::E::•<core::num, core::bool>(3, "four");
   const constructor •(core::int index, core::String name) → self::E<self::E::X%, self::E::Y%>
     : super core::_Enum::•(index, name)
     ;

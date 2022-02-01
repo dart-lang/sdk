@@ -74,6 +74,19 @@ int Function(int) f = C();
     ]);
   }
 
+  test_invalid_interfaceType_enum_interfaces() async {
+    await assertErrorsInCode('''
+class I {}
+class J {}
+enum E implements J {
+  v
+}
+I x = E.v;
+''', [
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 56, 3),
+    ]);
+  }
+
   test_invalid_noCall_functionContext() async {
     await assertErrorsInCode('''
 class C {}
@@ -258,6 +271,16 @@ class C {
 typedef Fn = T Function<T>(T);
 
 Fn f = C();
+''');
+  }
+
+  test_valid_interfaceType_enum_interfaces() async {
+    await assertNoErrorsInCode('''
+class I {}
+enum E implements I {
+  v
+}
+I x = E.v;
 ''');
   }
 

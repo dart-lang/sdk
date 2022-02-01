@@ -12,7 +12,10 @@ abstract class Builder {}
 /// current library, and get [TypeAnnotation]s from runtime [Type] objects.
 abstract class TypeBuilder implements Builder {
   /// Adds a new type declaration to the surrounding library.
-  void declareType(DeclarationCode typeDeclaration);
+  ///
+  /// The [name] must match the name of the new [typeDeclaration] (this does
+  /// not include any type parameters, just the name).
+  void declareType(String name, DeclarationCode typeDeclaration);
 }
 
 /// The interface used to create [StaticType] instances, which are used to
@@ -117,19 +120,19 @@ abstract class DefinitionBuilder
 /// The apis used by [Macro]s that run on classes, to fill in the definitions
 /// of any external declarations within that class.
 abstract class ClassDefinitionBuilder implements DefinitionBuilder {
-  /// Retrieve a [VariableDefinitionBuilder] for a field by [identifier].
+  /// Retrieve a [VariableDefinitionBuilder] for a field with [identifier].
   ///
   /// Throws an [ArgumentError] if [identifier] does not refer to a field in
   /// this class.
   Future<VariableDefinitionBuilder> buildField(Identifier identifier);
 
-  /// Retrieve a [FunctionDefinitionBuilder] for a method by [identifier].
+  /// Retrieve a [FunctionDefinitionBuilder] for a method with [identifier].
   ///
   /// Throws an [ArgumentError] if [identifier] does not refer to a method in
   /// this class.
   Future<FunctionDefinitionBuilder> buildMethod(Identifier identifier);
 
-  /// Retrieve a [ConstructorDefinitionBuilder] for a constructor by
+  /// Retrieve a [ConstructorDefinitionBuilder] for a constructor with
   /// [identifier].
   ///
   /// Throws an [ArgumentError] if [identifier] does not refer to a constructor

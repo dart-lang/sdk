@@ -18,10 +18,12 @@ File file(String path) => File.fromUri(tmp.uri.resolve(path));
 void main() {
   var baseArgs = <String>[];
   final executableArgs = <String>[
-    Platform.script.resolve('../../bin/dartdevc.dart').path,
+    Platform.script
+        .resolve('../../bin/dartdevc.dart')
+        .toFilePath(windows: Platform.isWindows),
     '--sound-null-safety',
     '--dart-sdk-summary',
-    Uri.parse(Platform.resolvedExecutable)
+    Uri.file(Platform.resolvedExecutable, windows: Platform.isWindows)
         .resolve('ddc_outline_sound.dill')
         .path
   ];

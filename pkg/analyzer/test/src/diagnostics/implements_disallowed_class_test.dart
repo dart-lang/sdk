@@ -180,4 +180,18 @@ class C = A with M implements String, num;
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 60, 3),
     ]);
   }
+
+  test_mixin_int() async {
+    await assertErrorsInCode(r'''
+mixin M implements int {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 3),
+    ]);
+
+    var element = findElement.mixin('M');
+    assertElementTypes(element.interfaces, ['int']);
+
+    var typeRef = findNode.namedType('int {}');
+    assertNamedType(typeRef, intElement, 'int');
+  }
 }

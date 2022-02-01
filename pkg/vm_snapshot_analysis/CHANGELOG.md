@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1
+
+- Make `CallGraphNode.dominator` nullable.
+
 ## 0.7.0
 
 - Migrate to null-safety.

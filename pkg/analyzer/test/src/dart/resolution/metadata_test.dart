@@ -559,6 +559,104 @@ A
     );
   }
 
+  test_value_genericClass_downwards_inference_namedConstructor() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  final List<List<T>> f;
+  const A.named(this.f);
+}
+
+@A.named([])
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@A');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      ListLiteral
+        leftBracket: [
+        rightBracket: ]
+        staticType: List<List<Object?>>
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::A::@constructor::named
+    substitution: {T: Object?}
+  name: PrefixedIdentifier
+    identifier: SimpleIdentifier
+      staticElement: ConstructorMember
+        base: self::@class::A::@constructor::named
+        substitution: {T: Object?}
+      staticType: null
+      token: named
+    period: .
+    prefix: SimpleIdentifier
+      staticElement: self::@class::A
+      staticType: null
+      token: A
+    staticElement: ConstructorMember
+      base: self::@class::A::@constructor::named
+      substitution: {T: Object?}
+    staticType: null
+''');
+    _assertAnnotationValueText(annotation, '''
+A<Object?>
+  f: List
+    elementType: List<Object?>
+''');
+    assertElement2(
+      findNode.listLiteral('[]').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('f'),
+      substitution: {'T': 'Object?'},
+    );
+  }
+
+  test_value_genericClass_downwards_inference_unnamedConstructor() async {
+    await assertNoErrorsInCode(r'''
+ class A<T> {
+  final List<List<T>> f;
+  const A(this.f);
+}
+
+@A([])
+void f() {}
+''');
+
+    var annotation = findNode.annotation('@A');
+    _assertResolvedNodeText(annotation, r'''
+Annotation
+  arguments: ArgumentList
+    arguments
+      ListLiteral
+        leftBracket: [
+        rightBracket: ]
+        staticType: List<List<Object?>>
+    leftParenthesis: (
+    rightParenthesis: )
+  atSign: @
+  element: ConstructorMember
+    base: self::@class::A::@constructor::•
+    substitution: {T: Object?}
+  name: SimpleIdentifier
+    staticElement: self::@class::A
+    staticType: null
+    token: A
+''');
+    _assertAnnotationValueText(annotation, r'''
+A<Object?>
+  f: List
+    elementType: List<Object?>
+''');
+    assertElement2(
+      findNode.listLiteral('[]').staticParameterElement,
+      declaration: findElement.fieldFormalParameter('f'),
+      substitution: {'T': 'Object?'},
+    );
+  }
+
   test_value_genericClass_inference_namedConstructor() async {
     await assertNoErrorsInCode(r'''
 class A<T> {

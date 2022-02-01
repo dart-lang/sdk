@@ -45,6 +45,7 @@ js/external_extension_members_test: SkipByDesign # Issue 42085. CSP policy disal
 js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/is_check_and_as_cast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/async_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/js_util/implicit_downcast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/javascriptobject_extensions_test.dart: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/jsify_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/promise_reject_null_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code

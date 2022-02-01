@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/resolver/instance_creation_resolver_helper.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [InstanceCreationExpression] nodes.
@@ -14,11 +13,14 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// [InstanceCreationExpression] as a [MethodInvocation] if the parsed
 /// [ConstructorName]'s `type` resolves to a [FunctionReference] or
 /// [ConstructorReference], instead of a [NamedType].
-class InstanceCreationExpressionResolver {
+class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
   /// The resolver driving this participant.
   final ResolverVisitor _resolver;
 
   InstanceCreationExpressionResolver(this._resolver);
+
+  @override
+  ResolverVisitor get resolver => _resolver;
 
   void resolve(InstanceCreationExpressionImpl node) {
     // The parser can parse certain code as [InstanceCreationExpression] when it
@@ -48,76 +50,29 @@ class InstanceCreationExpressionResolver {
     _resolveInstanceCreationExpression(node);
   }
 
-  void _inferArgumentTypes(covariant InstanceCreationExpressionImpl node) {
+  void _resolveInstanceCreationExpression(InstanceCreationExpressionImpl node) {
+    var whyNotPromotedList = <WhyNotPromotedGetter>[];
     var constructorName = node.constructorName;
-    var typeName = constructorName.type2;
-    var typeArguments = typeName.typeArguments;
+    constructorName.accept(_resolver);
+    // Re-assign constructorName in case the node got replaced.
+    constructorName = node.constructorName;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       constructorName: constructorName,
       definingLibrary: _resolver.definingLibrary,
     );
-    FunctionType? inferred;
-
-    // If the constructor is generic, we'll have a ConstructorMember that
-    // substitutes in type arguments (possibly `dynamic`) from earlier in
-    // resolution.
-    //
-    // Otherwise we'll have a ConstructorElement, and we can skip inference
-    // because there's nothing to infer in a non-generic type.
-    if (elementToInfer != null) {
-      // TODO(leafp): Currently, we may re-infer types here, since we
-      // sometimes resolve multiple times.  We should really check that we
-      // have not already inferred something.  However, the obvious ways to
-      // check this don't work, since we may have been instantiated
-      // to bounds in an earlier phase, and we *do* want to do inference
-      // in that case.
-
-      // Get back to the uninstantiated generic constructor.
-      // TODO(jmesserly): should we store this earlier in resolution?
-      // Or look it up, instead of jumping backwards through the Member?
-      var rawElement = elementToInfer.element;
-      var constructorType = elementToInfer.asType;
-
-      inferred = _resolver.inferenceHelper.inferArgumentTypesForGeneric(
-          node, constructorType, typeArguments,
-          isConst: node.isConst, errorNode: node.constructorName);
-
-      if (inferred != null) {
-        var arguments = node.argumentList;
-        InferenceContext.setType(arguments, inferred);
-        // Fix up the parameter elements based on inferred method.
-        arguments.correspondingStaticParameters =
-            ResolverVisitor.resolveArgumentsToParameters(
-          argumentList: arguments,
-          parameters: inferred.parameters,
-        );
-
-        constructorName.type2.type = inferred.returnType;
-
-        // Update the static element as well. This is used in some cases, such
-        // as computing constant values. It is stored in two places.
-        var constructorElement = ConstructorMember.from(
-          rawElement,
-          inferred.returnType as InterfaceType,
-        );
-        constructorName.staticElement = constructorElement;
-      }
+    var typeName = constructorName.type2;
+    var inferenceResult = inferArgumentTypes(
+        inferenceNode: node,
+        constructorElement: constructorName.staticElement,
+        elementToInfer: elementToInfer,
+        typeArguments: typeName.typeArguments,
+        arguments: node.argumentList,
+        errorNode: constructorName,
+        isConst: node.isConst);
+    if (inferenceResult != null) {
+      typeName.type = inferenceResult.constructedType;
+      constructorName.staticElement = inferenceResult.constructorElement;
     }
-
-    if (inferred == null) {
-      var constructorElement = constructorName.staticElement;
-      if (constructorElement != null) {
-        var type = constructorElement.type;
-        type = _resolver.toLegacyTypeIfOptOut(type) as FunctionType;
-        InferenceContext.setType(node.argumentList, type);
-      }
-    }
-  }
-
-  void _resolveInstanceCreationExpression(InstanceCreationExpressionImpl node) {
-    var whyNotPromotedList = <WhyNotPromotedGetter>[];
-    node.constructorName.accept(_resolver);
-    _inferArgumentTypes(node);
     _resolver.visitArgumentList(node.argumentList,
         whyNotPromotedList: whyNotPromotedList);
     _resolver.elementResolver.visitInstanceCreationExpression(node);

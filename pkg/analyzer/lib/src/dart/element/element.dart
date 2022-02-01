@@ -48,6 +48,17 @@ import 'package:collection/collection.dart';
 abstract class AbstractClassElementImpl extends _ExistingElementImpl
     with TypeParameterizedElementMixin
     implements ClassElement {
+  /// The superclass of the class, or `null` for [Object].
+  InterfaceType? _supertype;
+
+  /// A list containing all of the mixins that are applied to the class being
+  /// extended in order to derive the superclass of this class.
+  List<InterfaceType> _mixins = const [];
+
+  /// A list containing all of the interfaces that are implemented by this
+  /// class.
+  List<InterfaceType> _interfaces = const [];
+
   /// The type defined by the class.
   InterfaceType? _thisType;
 
@@ -61,6 +72,10 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   /// A list containing all of the methods contained in this class.
   List<MethodElement> _methods = _Sentinel.methodElement;
 
+  /// This callback is set during mixins inference to handle reentrant calls.
+  List<InterfaceType>? Function(AbstractClassElementImpl)?
+      mixinInferenceCallback;
+
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   AbstractClassElementImpl(String name, int offset) : super(name, offset);
@@ -72,6 +87,12 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
       (accessor as PropertyAccessorElementImpl).enclosingElement = this;
     }
     _accessors = accessors;
+  }
+
+  @override
+  List<InterfaceType> get allSupertypes {
+    var sessionImpl = library.session as AnalysisSessionImpl;
+    return sessionImpl.classHierarchy.implementedInterfaces(this);
   }
 
   @override
@@ -92,6 +113,18 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   @override
+  List<InterfaceType> get interfaces =>
+      ElementTypeProvider.current.getClassInterfaces(this);
+
+  set interfaces(List<InterfaceType> interfaces) {
+    _interfaces = interfaces;
+  }
+
+  List<InterfaceType> get interfacesInternal {
+    return _interfaces;
+  }
+
+  @override
   bool get isDartCoreObject => false;
 
   @override
@@ -101,7 +134,38 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   bool get isMixin => false;
 
   @override
+  List<InterfaceType> get mixins {
+    if (mixinInferenceCallback != null) {
+      var mixins = mixinInferenceCallback!(this);
+      if (mixins != null) {
+        return _mixins = mixins;
+      }
+    }
+
+    return _mixins;
+  }
+
+  set mixins(List<InterfaceType> mixins) {
+    _mixins = mixins;
+  }
+
+  @override
   List<InterfaceType> get superclassConstraints => const <InterfaceType>[];
+
+  @override
+  InterfaceType? get supertype {
+    if (_supertype != null) return _supertype!;
+
+    if (hasModifier(Modifier.DART_CORE_OBJECT)) {
+      return null;
+    }
+
+    return _supertype;
+  }
+
+  set supertype(InterfaceType? supertype) {
+    _supertype = supertype;
+  }
 
   @override
   InterfaceType get thisType {
@@ -444,17 +508,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
 
 /// An [AbstractClassElementImpl] which is a class.
 class ClassElementImpl extends AbstractClassElementImpl {
-  /// The superclass of the class, or `null` for [Object].
-  InterfaceType? _supertype;
-
-  /// A list containing all of the mixins that are applied to the class being
-  /// extended in order to derive the superclass of this class.
-  List<InterfaceType> _mixins = const [];
-
-  /// A list containing all of the interfaces that are implemented by this
-  /// class.
-  List<InterfaceType> _interfaces = const [];
-
   /// For classes which are not mixin applications, a list containing all of the
   /// constructors contained in this class, or `null` if the list of
   /// constructors has not yet been built.
@@ -467,9 +520,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
   /// A flag indicating whether the types associated with the instance members
   /// of this class have been inferred.
   bool hasBeenInferred = false;
-
-  /// This callback is set during mixins inference to handle reentrant calls.
-  List<InterfaceType>? Function(ClassElementImpl)? mixinInferenceCallback;
 
   ElementLinkedData? linkedData;
 
@@ -490,12 +540,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
     }
 
     return _accessors;
-  }
-
-  @override
-  List<InterfaceType> get allSupertypes {
-    var sessionImpl = library.session as AnalysisSessionImpl;
-    return sessionImpl.classHierarchy.implementedInterfaces(this);
   }
 
   @override
@@ -611,13 +655,6 @@ class ClassElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  List<InterfaceType> get interfaces =>
-      ElementTypeProvider.current.getClassInterfaces(this);
-
-  set interfaces(List<InterfaceType> interfaces) {
-    _interfaces = interfaces;
-  }
-
   List<InterfaceType> get interfacesInternal {
     linkedData?.read(this);
     return _interfaces;
@@ -740,19 +777,8 @@ class ClassElementImpl extends AbstractClassElementImpl {
 
   @override
   List<InterfaceType> get mixins {
-    if (mixinInferenceCallback != null) {
-      var mixins = mixinInferenceCallback!(this);
-      if (mixins != null) {
-        return _mixins = mixins;
-      }
-    }
-
     linkedData?.read(this);
-    return _mixins;
-  }
-
-  set mixins(List<InterfaceType> mixins) {
-    _mixins = mixins;
+    return super.mixins;
   }
 
   @override
@@ -768,17 +794,7 @@ class ClassElementImpl extends AbstractClassElementImpl {
   @override
   InterfaceType? get supertype {
     linkedData?.read(this);
-    if (_supertype != null) return _supertype!;
-
-    if (hasModifier(Modifier.DART_CORE_OBJECT)) {
-      return null;
-    }
-
-    return _supertype;
-  }
-
-  set supertype(InterfaceType? supertype) {
-    _supertype = supertype;
+    return super.supertype;
   }
 
   @override
@@ -2675,10 +2691,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
     return _accessors;
   }
 
-  @override
-  List<InterfaceType> get allSupertypes =>
-      <InterfaceType>[...interfaces, supertype];
-
   List<FieldElement> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
   }
@@ -2705,9 +2717,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   bool get hasStaticMember => true;
-
-  @override
-  List<InterfaceType> get interfaces => const [];
 
   @override
   bool get isAbstract => false;
@@ -2753,17 +2762,14 @@ class EnumElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  List<InterfaceType> get mixins => const <InterfaceType>[];
-
-  @override
   String get name {
     return super.name!;
   }
 
   @override
-  InterfaceType get supertype {
-    var enumType = library.typeProvider.enumType;
-    return enumType ?? library.typeProvider.objectType;
+  InterfaceType? get supertype {
+    linkedData?.read(this);
+    return super.supertype;
   }
 
   @override
@@ -3125,6 +3131,16 @@ class ExtensionElementImpl extends _ExistingElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionElement(this);
+  }
+
+  @override
+  FieldElement? getField(String name) {
+    for (FieldElement fieldElement in fields) {
+      if (name == fieldElement.name) {
+        return fieldElement;
+      }
+    }
+    return null;
   }
 
   @override

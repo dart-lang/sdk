@@ -1145,6 +1145,11 @@ abstract class ExtensionElement implements TypeParameterizedElement {
   /// Return a list containing all of the methods declared in this extension.
   List<MethodElement> get methods;
 
+  /// Return the element representing the field with the given [name] that is
+  /// declared in this extension, or `null` if this extension does not declare a
+  /// field with the given name.
+  FieldElement? getField(String name);
+
   /// Return the element representing the getter with the given [name] that is
   /// declared in this extension, or `null` if this extension does not declare a
   /// getter with the given name.

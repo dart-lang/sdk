@@ -67,13 +67,13 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
       // At least one argument, the input directory, is required,
       // when we're not generating docs for the Dart SDK.
       if (args.rest.isEmpty) {
-        usageException("Error: Input directory not specified");
+        usageException('Error: Input directory not specified');
       }
 
       // Determine input directory.
       final dir = io.Directory(args.rest[0]);
       if (!dir.existsSync()) {
-        usageException("Error: Input directory doesn't exist: ${dir.path}");
+        usageException('Error: Input directory doesn\'t exist: ${dir.path}');
       }
       options.add('--input=${dir.path}');
     }

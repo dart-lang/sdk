@@ -32,14 +32,15 @@ class NamedArgumentTest2 extends CompletionRelevanceTest
 mixin NamedArgumentTestCases on CompletionRelevanceTest {
   @override
   Future<void> setUp() async {
-    await super.setUp();
-
     var metaLibFolder = MockPackages.instance.addMeta(resourceProvider);
 
-    newDotPackagesFile(projectPath, content: '''
+    // TODO(scheglov) Use `writeTestPackageConfig` instead
+    newDotPackagesFile(testPackageRootPath, content: '''
 meta:${metaLibFolder.toUri()}
-project:${toUri('$projectPath/lib')}
+project:${toUri(testPackageLibPath)}
 ''');
+
+    await super.setUp();
   }
 
   Future<void> test_required() async {

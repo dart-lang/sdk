@@ -4,12 +4,11 @@
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../domain_completion_test.dart';
 import '../services/completion/dart/completion_check.dart';
 import '../services/completion/dart/completion_contributor_util.dart';
 import 'impl/completion_driver.dart';
@@ -23,14 +22,14 @@ void main() {
   });
 }
 
-abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
+abstract class AbstractCompletionDriverTest
+    extends PubPackageAnalysisServerTest {
   late CompletionDriver driver;
-  Map<String, String> packageRoots = {};
   late List<CompletionSuggestion> suggestions;
 
-  String get projectName => 'project';
-
-  String get projectPath => '/$projectName';
+  bool get isProtocolVersion2 {
+    return protocol == TestingCompletionProtocol.version2;
+  }
 
   TestingCompletionProtocol get protocol;
 
@@ -38,14 +37,12 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
 
   bool get supportsAvailableSuggestions;
 
-  String get testFilePath => '$projectPath/bin/test.dart';
-
   Future<void> addProjectFile(String relativePath, String content) async {
-    newFile('$projectPath/$relativePath', content: content);
+    newFile('$testPackageRootPath/$relativePath', content: content);
     // todo (pq): handle more than lib
     expect(relativePath, startsWith('lib/'));
     var packageRelativePath = relativePath.substring(4);
-    var uriStr = 'package:$projectName/$packageRelativePath';
+    var uriStr = 'package:test/$packageRelativePath';
     await driver.waitForSetWithUri(uriStr);
   }
 
@@ -148,23 +145,20 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     }
   }
 
-  @mustCallSuper
+  @override
   Future<void> setUp() async {
+    super.setUp();
+
+    writeTestPackagePubspecYamlFile(r'''
+name: test
+''');
+
     driver = CompletionDriver(
       supportsAvailableSuggestions: supportsAvailableSuggestions,
-      projectPath: projectPath,
-      testFilePath: testFilePath,
-      resourceProvider: resourceProvider,
-      serverOptions: serverOptions,
+      server: this,
     );
-    await driver.createProject(packageRoots: packageRoots);
+    await driver.createProject();
 
-    newPubspecYamlFile(projectPath, '''
-name: project
-''');
-    newDotPackagesFile(projectPath, content: '''
-project:${toUri('$projectPath/lib')}
-''');
     // todo (pq): add logic (possibly to driver) that waits for SDK suggestions
   }
 
@@ -309,9 +303,6 @@ class CompletionWithSuggestionsTest2 extends AbstractCompletionDriverTest
 mixin CompletionWithSuggestionsTestCases on AbstractCompletionDriverTest {
   @override
   bool get supportsAvailableSuggestions => true;
-
-  @override
-  String get testFilePath => '$projectPath/lib/test.dart';
 
   Future<void> test_project_filterImports_defaultConstructor() async {
     await addProjectFile('lib/a.dart', r'''

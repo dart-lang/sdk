@@ -2,34 +2,39 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/services/completion/dart/super_formal_contributor.dart';
 import 'package:analyzer_utilities/check/check.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'completion_check.dart';
-import 'completion_contributor_util.dart';
+import '../../../../client/completion_driver_test.dart';
+import '../completion_check.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SuperFormalContributorTest);
+    defineReflectiveTests(SuperFormalParameterTest1);
+    defineReflectiveTests(SuperFormalParameterTest2);
   });
 }
 
 @reflectiveTest
-class SuperFormalContributorTest extends DartCompletionContributorTest {
+class SuperFormalParameterTest1 extends AbstractCompletionDriverTest
+    with SuperFormalParameterTestCases {
   @override
-  DartCompletionContributor createContributor(
-    DartCompletionRequest request,
-    SuggestionBuilder builder,
-  ) {
-    return SuperFormalContributor(request, builder);
-  }
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
+}
+
+@reflectiveTest
+class SuperFormalParameterTest2 extends AbstractCompletionDriverTest
+    with SuperFormalParameterTestCases {
+  @override
+  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+}
+
+mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
+  @override
+  bool get supportsAvailableSuggestions => true;
 
   Future<void> test_explicit_optionalNamed_hasArgument_named() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -39,7 +44,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -51,7 +55,7 @@ class B extends A {
   }
 
   Future<void> test_explicit_optionalNamed_hasArgument_positional() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -61,7 +65,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -78,7 +81,7 @@ class B extends A {
 
   /// It is an error, but the user already typed `super.`, so maybe do it.
   Future<void> test_explicit_requiredPositional_hasArgument_positional() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A(int first, double second);
 }
@@ -88,7 +91,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -100,7 +102,7 @@ class B extends A {
   }
 
   Future<void> test_explicitNamed_noOther() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A.named(int first, double second);
   A(int third)
@@ -111,7 +113,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -123,7 +124,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_notSuper() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -133,7 +134,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -149,7 +149,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_notSuper2() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -159,7 +159,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -171,7 +170,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_super() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -181,7 +180,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -193,7 +191,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_super2() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -203,7 +201,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -215,7 +212,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_optionalNamed_hasPositional_notSuper() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -225,7 +222,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -241,7 +237,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_optionalNamed_hasPositional_super() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -251,7 +247,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -263,7 +258,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_optionalNamed_noOther() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A(bool first, {int second, double third});
 }
@@ -273,7 +268,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -289,7 +283,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_optionalPositional_hasPositional_notSuper() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A([int first, double second]);
 }
@@ -299,7 +293,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -311,7 +304,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_optionalPositional_hasPositional_super() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A([int first, double second, bool third]);
 }
@@ -321,7 +314,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -333,7 +325,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_optionalPositional_hasPositional_super2() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A([int first, double second, bool third]);
 }
@@ -345,7 +337,6 @@ class B extends A {
 
     // It does not matter what is the name of the positional parameter.
     // Here `super.second` consumes `int first`.
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -357,7 +348,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_optionalPositional_noOther() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A([int first, double second]);
 }
@@ -367,7 +358,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -379,7 +369,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_requiredPositional_hasPositional_notSuper() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A(int first, double second);
 }
@@ -389,7 +379,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -401,7 +390,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_requiredPositional_hasPositional_super() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A(int first, double second, bool third);
 }
@@ -411,7 +400,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -423,7 +411,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_requiredPositional_hasPositional_super2() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A(int first, double second, bool third);
 }
@@ -435,7 +423,6 @@ class B extends A {
 
     // It does not matter what is the name of the positional parameter.
     // Here `super.second` consumes `int first`.
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([
@@ -447,7 +434,7 @@ class B extends A {
   }
 
   Future<void> test_implicit_requiredPositional_noOther() async {
-    addTestSource('''
+    var response = await getTestCodeSuggestions('''
 class A {
   A(int first, double second);
   A.named(int third);
@@ -458,7 +445,6 @@ class B extends A {
 }
 ''');
 
-    var response = await computeSuggestions2();
     check(response)
       ..hasEmptyReplacement()
       ..suggestions.matchesInAnyOrder([

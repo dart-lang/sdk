@@ -223,7 +223,15 @@ class TypesBuilder {
   }
 
   void _enumDeclaration(EnumDeclaration node) {
-    // TODO(scheglov) implement
+    var element = node.declaredElement as EnumElementImpl;
+
+    element.mixins = _toInterfaceTypeList(
+      node.withClause?.mixinTypes2,
+    );
+
+    element.interfaces = _toInterfaceTypeList(
+      node.implementsClause?.interfaces2,
+    );
   }
 
   void _extensionDeclaration(ExtensionDeclaration node) {
@@ -362,7 +370,7 @@ class TypesBuilder {
 
 /// Performs mixins inference in a [ClassDeclaration].
 class _MixinInference {
-  final ClassElementImpl element;
+  final AbstractClassElementImpl element;
   final TypeSystemImpl typeSystem;
   final FeatureSet featureSet;
   final InterfaceType classType;
@@ -512,14 +520,15 @@ class _MixinsInference {
   /// we are inferring the [element] now, i.e. there is a loop.
   ///
   /// This is an error. So, we return the empty list, and break the loop.
-  List<InterfaceType> _callbackWhenLoop(ClassElementImpl element) {
+  List<InterfaceType> _callbackWhenLoop(AbstractClassElementImpl element) {
     element.mixinInferenceCallback = null;
     return <InterfaceType>[];
   }
 
   /// This method is invoked when mixins are asked from the [element], and
   /// we are not inferring the [element] now, i.e. there is no loop.
-  List<InterfaceType>? _callbackWhenRecursion(ClassElementImpl element) {
+  List<InterfaceType>? _callbackWhenRecursion(
+      AbstractClassElementImpl element) {
     var node = _linker.getLinkingNode(element);
     if (node != null) {
       _inferDeclaration(node);
@@ -528,7 +537,7 @@ class _MixinsInference {
     return null;
   }
 
-  void _infer(ClassElementImpl element, WithClause? withClause) {
+  void _infer(AbstractClassElementImpl element, WithClause? withClause) {
     if (withClause != null) {
       element.mixinInferenceCallback = _callbackWhenLoop;
       try {
@@ -549,6 +558,9 @@ class _MixinsInference {
       _infer(element, node.withClause);
     } else if (node is ClassTypeAlias) {
       var element = node.declaredElement as ClassElementImpl;
+      _infer(element, node.withClause);
+    } else if (node is EnumDeclaration) {
+      var element = node.declaredElement as EnumElementImpl;
       _infer(element, node.withClause);
     }
   }
