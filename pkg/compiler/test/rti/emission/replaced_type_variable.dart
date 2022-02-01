@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 // This class is inlined away.
 /*class: Class:checks=[],instance*/
@@ -18,7 +18,7 @@ class Class<T> {
 class A {}
 
 @pragma('dart2js:noInline')
-test(o) => Expect.notEquals('dynamic', '$o');
+test(o) => makeLive('dynamic' != '$o');
 
 main() {
   test(const Class<A>().type);

@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import "package:expect/expect.dart";
+import "package:compiler/src/util/testing.dart";
 
 /*class: T:checks=[],indirectInstance*/
 class T<X> {
@@ -28,13 +28,13 @@ dyn(x) => x;
 main() {
   var ts = new TS<int, String>();
 
-  Expect.equals("String", ts.sType.toString());
-  Expect.equals("int", ts.tType.toString());
-  Expect.equals("String", ts.getSType.toString());
-  Expect.equals("int", ts.getTType.toString());
+  makeLive("String" == ts.sType.toString());
+  makeLive("int" == ts.tType.toString());
+  makeLive("String" == ts.getSType.toString());
+  makeLive("int" == ts.getTType.toString());
 
-  Expect.equals("String", dyn(ts).sType.toString());
-  Expect.equals("int", dyn(ts).tType.toString());
-  Expect.equals("String", dyn(ts).getSType.toString());
-  Expect.equals("int", dyn(ts).getTType.toString());
+  makeLive("String" == dyn(ts).sType.toString());
+  makeLive("int" == dyn(ts).tType.toString());
+  makeLive("String" == dyn(ts).getSType.toString());
+  makeLive("int" == dyn(ts).getTType.toString());
 }

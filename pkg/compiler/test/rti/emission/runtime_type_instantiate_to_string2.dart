@@ -4,9 +4,11 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 T id<T>(T t) => t;
 
 main() {
   int Function(int) x = id;
-  print("${x.runtimeType}");
+  makeLive("${x.runtimeType}");
 }

@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart' show Expect;
+import 'package:compiler/src/util/testing.dart';
 
 /*class: A:typeArgument*/
 class A {}
@@ -84,26 +84,22 @@ class CA extends Object
 trace(x) => "${x.m1()}, ${x.m2()}, ${x.m3()}, ${x.m4()}, ${x.m5()}";
 
 main() {
-  Expect.stringEquals(
-      "M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>", trace(new C1()));
-  Expect.stringEquals("M1<A>, M2<B>, M3<C>, M4<D>, M5<E>", trace(new C2()));
-  Expect.stringEquals(
-      "M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>", trace(new C3()));
-  Expect.stringEquals(
-      "M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>", trace(new C3<F>()));
-  Expect.stringEquals(
-      "M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>", trace(new C4()));
-  Expect.stringEquals("M1<A>, M2<B>, M3<C>, M4<D>, M5<E>", trace(new C5()));
-  Expect.stringEquals(
-      "M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>", trace(new C6()));
-  Expect.stringEquals(
-      "M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>", trace(new C6<F>()));
-  Expect.stringEquals("M1<A>, M2<A>, M3<A>, M4<A>, M5<A>", trace(new C7()));
-  Expect.stringEquals("M1<A>, M2<A>, M3<A>, M4<A>, M5<A>", trace(new C8()));
-  Expect.stringEquals(
-      "M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>",
+  makeLive("M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>" == trace(new C1()));
+  makeLive("M1<A>, M2<B>, M3<C>, M4<D>, M5<E>" == trace(new C2()));
+  makeLive(
+      "M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C3()));
+  makeLive(
+      "M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C3<F>()));
+  makeLive("M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>" == trace(new C4()));
+  makeLive("M1<A>, M2<B>, M3<C>, M4<D>, M5<E>" == trace(new C5()));
+  makeLive(
+      "M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C6()));
+  makeLive(
+      "M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>" == trace(new C6<F>()));
+  makeLive("M1<A>, M2<A>, M3<A>, M4<A>, M5<A>" == trace(new C7()));
+  makeLive("M1<A>, M2<A>, M3<A>, M4<A>, M5<A>" == trace(new C8()));
+  makeLive("M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>" ==
       trace(new C9()));
-  Expect.stringEquals(
-      "M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>",
+  makeLive("M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>" ==
       trace(new CA()));
 }

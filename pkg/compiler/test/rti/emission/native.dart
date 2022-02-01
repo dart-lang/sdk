@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import "package:expect/expect.dart";
+import "package:compiler/src/util/testing.dart";
 // ignore: import_internal_library
 import 'dart:_js_helper' show Native;
 // ignore: import_internal_library
@@ -27,9 +27,9 @@ makeQ() => JS('Q', 'null');
 @pragma('dart2js:noInline')
 testNative() {
   var x = makeP();
-  Expect.isTrue(x is Purple);
+  makeLive(x is Purple);
   x = makeQ();
-  Expect.isFalse(x is Purple);
+  makeLive(x is Purple);
 }
 
 main() {

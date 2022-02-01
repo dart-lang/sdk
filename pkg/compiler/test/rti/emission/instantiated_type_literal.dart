@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: A:checks=[],instance*/
 class A<T> {
@@ -20,6 +20,6 @@ main() {
   var b = new B<int, String>();
   String name2 = '${b.instanceMethod<bool>()}';
 
-  Expect.equals('A<int>', name1);
-  Expect.equals('B<String, bool>', name2);
+  makeLive('A<int>' == name1);
+  makeLive('B<String, bool>' == name2);
 }

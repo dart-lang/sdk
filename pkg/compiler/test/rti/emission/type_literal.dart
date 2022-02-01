@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: Class1:typeLiteral*/
 class Class1 {}
@@ -15,6 +15,6 @@ class Class2<X> {}
 void main() {
   String name1 = '${Class1}';
   String name2 = '${Class2}';
-  Expect.equals('Class1', name1);
-  Expect.equals('Class2<dynamic>', name2);
+  makeLive('Class1' == name1);
+  makeLive('Class2<dynamic>' == name2);
 }

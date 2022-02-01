@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: A:checkedInstance,checks=[],instance*/
 class A<T> {}
@@ -22,6 +22,6 @@ class C<T> extends B<T, T> {}
 test(o) => o is A<int>;
 
 main() {
-  Expect.isTrue(test(new C<int>().method()));
-  Expect.isFalse(test(new C<String>().method()));
+  makeLive(test(new C<int>().method()));
+  makeLive(test(new C<String>().method()));
 }

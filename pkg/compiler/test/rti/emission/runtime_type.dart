@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 /*class: A:checks=[],instance*/
 class A<T> {}
 
@@ -11,5 +13,5 @@ class A<T> {}
 class B<T> {}
 
 main() {
-  print("A<B<int>>" == new A<B<int>>().runtimeType.toString());
+  makeLive("A<B<int>>" == new A<B<int>>().runtimeType.toString());
 }
