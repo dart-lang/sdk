@@ -52,9 +52,7 @@ def Run(command):
 
 
 def TestInstallation(assume_installed=True):
-    paths = ['/usr/bin/dart']
-    for tool in ['dart2js', 'pub', 'dart', 'dartanalyzer']:
-        paths.append(os.path.join('/usr/lib/dart/bin', tool))
+    paths = ['/usr/bin/dart', '/usr/lib/dart/bin/dart']
     for path in paths:
         if os.path.exists(path):
             if not assume_installed:
@@ -100,7 +98,7 @@ def SrcSteps():
     ])
 
     if os.path.exists('/usr/bin/dart') or os.path.exists(
-            '/usr/lib/dart/bin/dart2js'):
+            '/usr/lib/dart/bin/dart'):
         print("Dart already installed, removing")
         UninstallDart()
     TestInstallation(assume_installed=False)
@@ -118,11 +116,11 @@ def SrcSteps():
     # run as root)
     Run(['cp', '/usr/bin/dart', 'out/ReleaseX64/dart'])
 
-    # Sanity check dart2js and the analyzer against a hello world program
+    # Check dart, dart compile js, and dart analyze against a hello world program
     with utils.TempDir() as temp_dir:
         test_file = CreateDartTestFile(temp_dir)
-        Run(['/usr/lib/dart/bin/dart2js', test_file])
-        Run(['/usr/lib/dart/bin/dartanalyzer', test_file])
+        Run(['/usr/lib/dart/bin/dart', 'compile', 'js', test_file])
+        Run(['/usr/lib/dart/bin/dart', 'analyze', test_file])
         Run(['/usr/lib/dart/bin/dart', test_file])
 
     UninstallDart()
