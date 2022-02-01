@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 class Class1 {
   /*member: Class1.method1:*/
@@ -47,13 +47,13 @@ test(o) => o is num Function(num);
 forceInstantiation(num Function(num) f) => f;
 
 main() {
-  Expect.isFalse(test(new Class1().method1));
-  Expect.isFalse(test(new Class1().method2));
-  Expect.isFalse(test(new Class1().method3));
-  Expect.isTrue(test(forceInstantiation(new Class2().method4)));
-  Expect.isTrue(test(forceInstantiation(new Class3().method5)));
-  Expect.isFalse(test(new Class4().method6));
-  Expect.isTrue(test(forceInstantiation(method7)));
-  Expect.isTrue(test(forceInstantiation(method8)));
-  Expect.isFalse(test(method9));
+  makeLive(test(new Class1().method1));
+  makeLive(test(new Class1().method2));
+  makeLive(test(new Class1().method3));
+  makeLive(test(forceInstantiation(new Class2().method4)));
+  makeLive(test(forceInstantiation(new Class3().method5)));
+  makeLive(test(new Class4().method6));
+  makeLive(test(forceInstantiation(method7)));
+  makeLive(test(forceInstantiation(method8)));
+  makeLive(test(method9));
 }

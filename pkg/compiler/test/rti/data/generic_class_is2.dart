@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: A:implicit=[List<A<C*>*>,List<A<C2*>*>]*/
 class A<T> {}
@@ -27,6 +27,6 @@ class C1 implements C {}
 class C2 implements C {}
 
 main() {
-  Expect.isTrue(new B<List<A<C>>>().method(new List<A1>()));
-  Expect.isFalse(new B<List<A<C2>>>().method(new List<A1>()));
+  makeLive(new B<List<A<C>>>().method(new List<A1>()));
+  makeLive(new B<List<A<C2>>>().method(new List<A1>()));
 }

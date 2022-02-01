@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 /*class: Class:*/
 class Class<T> {
   /*member: Class.:*/
@@ -18,7 +20,7 @@ method2<T>(t, s) => t;
 
 /*member: main:*/
 main() {
-  print('${method1.runtimeType}');
+  makeLive('${method1.runtimeType}');
   method2(0, '');
   new Class();
 }

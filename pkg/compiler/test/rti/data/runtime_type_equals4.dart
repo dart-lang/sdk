@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: Class1a:needsArgs*/
 class Class1a<T> {
@@ -45,8 +45,8 @@ main() {
   Class1a<int> cls1b2 = new Class1b<int>();
   Class1c<int> cls1c = new Class1c<int>();
   Class2<int> cls2 = new Class2<int>();
-  Expect.isFalse(cls1a == cls1b1);
-  Expect.isTrue(cls1b1 == cls1b2);
-  Expect.isFalse(cls1a == cls1c);
-  Expect.isFalse(cls1a == cls2);
+  makeLive(cls1a == cls1b1);
+  makeLive(cls1b1 == cls1b2);
+  makeLive(cls1a == cls1c);
+  makeLive(cls1a == cls2);
 }

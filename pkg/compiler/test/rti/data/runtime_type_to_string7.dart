@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 class Class1 {
   Class1();
 }
@@ -19,8 +21,8 @@ class Class3<T> implements Class1 {
 
 main() {
   Class1 cls1 = new Class1();
-  print(cls1.runtimeType.toString());
+  makeLive(cls1.runtimeType.toString());
   new Class2<int>();
   Class1 cls3 = new Class3<int>();
-  print(cls3.runtimeType.toString());
+  makeLive(cls3.runtimeType.toString());
 }

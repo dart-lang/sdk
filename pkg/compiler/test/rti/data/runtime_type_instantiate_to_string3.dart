@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 /*member: global#instantiate1:needsArgs*/
 
 class Class {
@@ -13,5 +15,5 @@ class Class {
 
 main() {
   int Function(int, String s) x = new Class().id;
-  print("${x.runtimeType}");
+  makeLive("${x.runtimeType}");
 }

@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 class A {
   call(int i) {}
@@ -14,6 +14,6 @@ class A {
 test(o) => o is Function(int);
 
 main() {
-  Expect.isFalse(test(new A()));
-  Expect.isFalse(test(null));
+  makeLive(test(new A()));
+  makeLive(test(null));
 }

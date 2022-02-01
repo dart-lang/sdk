@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import "package:expect/expect.dart";
+import 'package:compiler/src/util/testing.dart';
 
 /*class: A:deps=[method2],direct,explicit=[A.T*],needsArgs*/
 class A<T> {
@@ -30,6 +30,6 @@ class B<T> implements BB {
 }
 
 main() {
-  Expect.isTrue(new B<BB>().foo());
-  Expect.isFalse(new B<String>().foo());
+  makeLive(new B<BB>().foo());
+  makeLive(new B<String>().foo());
 }
