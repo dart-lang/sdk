@@ -69,6 +69,7 @@ import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/this_access_tracker.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:meta/meta.dart';
@@ -141,12 +142,19 @@ class InferenceContext {
   /// You can use [TypeSystemImpl.upperBoundForType] or
   /// [TypeSystemImpl.lowerBoundForType] if you would prefer a known type
   /// that represents the bound of the context type.
-  static DartType? getContext(AstNode? node) =>
-      node?.getProperty(_typeProperty);
+  static DartType? getContext(AstNode? node) {
+    if (node is ArgumentList) {
+      assert(false, 'Nodes of type ${node.runtimeType} should use context');
+    }
+    return node?.getProperty(_typeProperty);
+  }
 
   /// Attach contextual type information [type] to [node] for use during
   /// inference.
   static void setType(AstNode? node, DartType? type) {
+    if (node is ArgumentList) {
+      assert(false, 'Nodes of type ${node.runtimeType} should use context');
+    }
     if (type == null || type.isDynamic) {
       clearType(node);
     } else {
@@ -440,6 +448,74 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Return `true` if NNBD is enabled for this compilation unit.
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
+
+  void analyzeArgumentList(
+      ArgumentList node, List<ParameterElement>? parameters,
+      {bool isIdentical = false,
+      List<WhyNotPromotedGetter>? whyNotPromotedList}) {
+    whyNotPromotedList ??= [];
+    NodeList<Expression> arguments = node.arguments;
+    var namedParameters = <String, ParameterElement>{};
+    DartType? targetType;
+    Element? methodElement;
+    DartType? invocationContext;
+    if (parameters != null) {
+      for (var i = 0; i < parameters.length; i++) {
+        var parameter = parameters[i];
+        if (parameter.isNamed) {
+          namedParameters[parameter.name] = parameter;
+        }
+      }
+
+      var parent = node.parent;
+      if (parent is MethodInvocation) {
+        targetType = parent.realTarget?.staticType;
+        methodElement = parent.methodName.staticElement;
+        invocationContext = InferenceContext.getContext(parent);
+      }
+    }
+    checkUnreachableNode(node);
+    int length = arguments.length;
+    var flow = flowAnalysis.flow;
+    var positionalParameterIndex = 0;
+    for (var i = 0; i < length; i++) {
+      if (isIdentical && length > 1 && i == 1) {
+        var firstArg = arguments[0];
+        flow?.equalityOp_rightBegin(firstArg, firstArg.typeOrThrow);
+      }
+      var argument = arguments[i];
+      ParameterElement? parameter;
+      if (argument is NamedExpression) {
+        parameter = namedParameters[argument.name.label.name];
+      } else if (parameters != null) {
+        while (positionalParameterIndex < parameters.length) {
+          parameter = parameters[positionalParameterIndex++];
+          if (!parameter.isNamed) {
+            break;
+          }
+        }
+      }
+      DartType? contextType;
+      if (parameter != null) {
+        var parameterType = parameter.type;
+        if (targetType != null) {
+          contextType = typeSystem.refineNumericInvocationContext(
+              targetType, methodElement, invocationContext, parameterType);
+        } else {
+          contextType = parameterType;
+        }
+      }
+      analyzeExpression(argument, contextType);
+      if (flow != null) {
+        whyNotPromotedList.add(flow.whyNotPromoted(arguments[i]));
+      }
+    }
+    if (isIdentical && length > 1) {
+      var secondArg = arguments[1];
+      flow?.equalityOp_end(
+          node.parent as Expression, secondArg, secondArg.typeOrThrow);
+    }
+  }
 
   void analyzeExpression(Expression expression, DartType? contextType) {
     InferenceContext.setType(expression, contextType);
@@ -1081,81 +1157,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitArgumentList(ArgumentList node,
-      {bool isIdentical = false,
-      List<WhyNotPromotedGetter>? whyNotPromotedList}) {
-    whyNotPromotedList ??= [];
-    var callerType = InferenceContext.getContext(node);
-    NodeList<Expression> arguments = node.arguments;
-    if (callerType is FunctionType) {
-      var parameters = callerType.parameters;
-
-      var namedParameters = <String, ParameterElement>{};
-      for (var i = 0; i < parameters.length; i++) {
-        var parameter = parameters[i];
-        if (parameter.isNamed) {
-          namedParameters[parameter.name] = parameter;
-        }
-      }
-
-      var parent = node.parent;
-      DartType? targetType;
-      Element? methodElement;
-      DartType? invocationContext;
-      if (parent is MethodInvocation) {
-        targetType = parent.realTarget?.staticType;
-        methodElement = parent.methodName.staticElement;
-        invocationContext = InferenceContext.getContext(parent);
-      }
-
-      //TODO(leafp): Consider using the parameter elements here instead.
-      //TODO(leafp): Make sure that the parameter elements are getting
-      // setup correctly with inference.
-      var positionalParameterIndex = 0;
-      for (var i = 0; i < arguments.length; i++) {
-        var argument = arguments[i];
-        ParameterElement? parameter;
-        if (argument is NamedExpression) {
-          parameter = namedParameters[argument.name.label.name];
-        } else {
-          while (positionalParameterIndex < parameters.length) {
-            parameter = parameters[positionalParameterIndex++];
-            if (!parameter.isNamed) {
-              break;
-            }
-          }
-        }
-        if (parameter != null) {
-          var parameterType = parameter.type;
-          if (targetType != null) {
-            InferenceContext.setType(
-                argument,
-                typeSystem.refineNumericInvocationContext(targetType,
-                    methodElement, invocationContext, parameterType));
-          } else {
-            InferenceContext.setType(argument, parameterType);
-          }
-        }
-      }
-    }
-    checkUnreachableNode(node);
-    int length = arguments.length;
-    var flow = flowAnalysis.flow;
-    for (var i = 0; i < length; i++) {
-      if (isIdentical && length > 1 && i == 1) {
-        var firstArg = arguments[0];
-        flow?.equalityOp_rightBegin(firstArg, firstArg.typeOrThrow);
-      }
-      arguments[i].accept(this);
-      if (flow != null) {
-        whyNotPromotedList.add(flow.whyNotPromoted(arguments[i]));
-      }
-    }
-    if (isIdentical && length > 1) {
-      var secondArg = arguments[1];
-      flow?.equalityOp_end(
-          node.parent as Expression, secondArg, secondArg.typeOrThrow);
-    }
+  void visitArgumentList(ArgumentList node) {
+    assert(false, 'analyzeArgumentList should be used instead');
+    analyzeArgumentList(node, null);
   }
 
   @override
@@ -1559,7 +1563,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (arguments != null) {
         var argumentList = arguments.argumentList;
         if (constructor != null) {
-          InferenceContext.setType(argumentList, constructor.type);
           argumentList.correspondingStaticParameters =
               ResolverVisitor.resolveArgumentsToParameters(
             argumentList: argumentList,
@@ -1661,8 +1664,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.extensionName.accept(this);
     node.typeArguments?.accept(this);
 
-    ExtensionMemberResolver(this).setOverrideReceiverContextType(node);
-    visitArgumentList(node.argumentList,
+    var contextType =
+        ExtensionMemberResolver(this).computeOverrideReceiverContextType(node);
+    analyzeArgumentList(
+        node.argumentList,
+        contextType == null
+            ? null
+            : [
+                ParameterElementImpl.synthetic(
+                    null, contextType, ParameterKind.REQUIRED)
+              ],
         whyNotPromotedList: whyNotPromotedList);
 
     extensionResolver.resolveOverride(node, whyNotPromotedList);
@@ -2228,8 +2239,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitRedirectingConstructorInvocation(
         node as RedirectingConstructorInvocationImpl);
-    InferenceContext.setType(node.argumentList, node.staticElement?.type);
-    visitArgumentList(node.argumentList,
+    analyzeArgumentList(node.argumentList, node.staticElement?.parameters,
         whyNotPromotedList: whyNotPromotedList);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
@@ -2326,8 +2336,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     elementResolver.visitSuperConstructorInvocation(
         node as SuperConstructorInvocationImpl);
-    InferenceContext.setType(node.argumentList, node.staticElement?.type);
-    visitArgumentList(node.argumentList,
+    analyzeArgumentList(node.argumentList, node.staticElement?.parameters,
         whyNotPromotedList: whyNotPromotedList);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);

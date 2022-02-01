@@ -120,7 +120,7 @@ class FunctionExpressionInvocationResolver {
 
   void _resolveArguments(FunctionExpressionInvocationImpl node,
       List<WhyNotPromotedGetter> whyNotPromotedList) {
-    _resolver.visitArgumentList(node.argumentList,
+    _resolver.analyzeArgumentList(node.argumentList, null,
         whyNotPromotedList: whyNotPromotedList);
   }
 

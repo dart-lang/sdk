@@ -307,11 +307,12 @@ class MethodInvocationResolver {
   void _resolveArguments(MethodInvocationImpl node,
       List<WhyNotPromotedGetter> whyNotPromotedList) {
     // TODO(scheglov) This is bad, don't write raw type, carry it
-    _inferenceHelper.inferArgumentTypesForInvocation(
+    var callerType = _inferenceHelper.inferArgumentTypesForInvocation(
       node,
       node.methodName.staticType,
     );
-    _resolver.visitArgumentList(node.argumentList,
+    _resolver.analyzeArgumentList(node.argumentList,
+        callerType is FunctionType ? callerType.parameters : null,
         whyNotPromotedList: whyNotPromotedList);
   }
 
@@ -456,7 +457,7 @@ class MethodInvocationResolver {
     }
 
     _setExplicitTypeArgumentTypes();
-    _resolver.visitArgumentList(node.argumentList,
+    _resolver.analyzeArgumentList(node.argumentList, null,
         whyNotPromotedList: whyNotPromotedList);
   }
 

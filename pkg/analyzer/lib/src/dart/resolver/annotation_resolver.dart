@@ -122,7 +122,7 @@ class AnnotationResolver with InstanceCreationResolverMixin {
         CompileTimeErrorCode.INVALID_ANNOTATION,
         node,
       );
-      _resolver.visitArgumentList(argumentList,
+      _resolver.analyzeArgumentList(argumentList, null,
           whyNotPromotedList: whyNotPromotedList);
       return;
     }
@@ -142,8 +142,7 @@ class AnnotationResolver with InstanceCreationResolverMixin {
         );
       }
       _resolveConstructorInvocationArguments(node);
-      InferenceContext.setType(argumentList, constructorElement.type);
-      _resolver.visitArgumentList(argumentList,
+      _resolver.analyzeArgumentList(argumentList, constructorElement.parameters,
           whyNotPromotedList: whyNotPromotedList);
       return;
     }
@@ -158,8 +157,7 @@ class AnnotationResolver with InstanceCreationResolverMixin {
       node.element = constructorElement;
       _resolveConstructorInvocationArguments(node);
 
-      InferenceContext.setType(argumentList, constructorElement.type);
-      _resolver.visitArgumentList(argumentList,
+      _resolver.analyzeArgumentList(argumentList, constructorElement.parameters,
           whyNotPromotedList: whyNotPromotedList);
     }
 
@@ -221,7 +219,7 @@ class AnnotationResolver with InstanceCreationResolverMixin {
       typeParameters,
       constructorElement,
     );
-    inferArgumentTypes(
+    var inferenceResult = inferArgumentTypes(
         inferenceNode: node,
         constructorElement: constructorElement,
         elementToInfer: elementToInfer,
@@ -229,7 +227,10 @@ class AnnotationResolver with InstanceCreationResolverMixin {
         arguments: node.arguments!,
         errorNode: node,
         isConst: true);
-    _resolver.visitArgumentList(argumentList,
+    if (inferenceResult != null) {
+      constructorElement = inferenceResult.constructorElement;
+    }
+    _resolver.analyzeArgumentList(argumentList, constructorElement.parameters,
         whyNotPromotedList: whyNotPromotedList);
 
     var constructorRawType = elementToInfer.asType;
@@ -528,7 +529,7 @@ class AnnotationResolver with InstanceCreationResolverMixin {
       AnnotationImpl node, List<WhyNotPromotedGetter> whyNotPromotedList) {
     var arguments = node.arguments;
     if (arguments != null) {
-      _resolver.visitArgumentList(arguments,
+      _resolver.analyzeArgumentList(arguments, null,
           whyNotPromotedList: whyNotPromotedList);
     }
   }

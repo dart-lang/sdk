@@ -61,9 +61,10 @@ class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
       definingLibrary: _resolver.definingLibrary,
     );
     var typeName = constructorName.type2;
+    var constructorElement = constructorName.staticElement;
     var inferenceResult = inferArgumentTypes(
         inferenceNode: node,
-        constructorElement: constructorName.staticElement,
+        constructorElement: constructorElement,
         elementToInfer: elementToInfer,
         typeArguments: typeName.typeArguments,
         arguments: node.argumentList,
@@ -71,9 +72,11 @@ class InstanceCreationExpressionResolver with InstanceCreationResolverMixin {
         isConst: node.isConst);
     if (inferenceResult != null) {
       typeName.type = inferenceResult.constructedType;
-      constructorName.staticElement = inferenceResult.constructorElement;
+      constructorElement =
+          constructorName.staticElement = inferenceResult.constructorElement;
     }
-    _resolver.visitArgumentList(node.argumentList,
+    _resolver.analyzeArgumentList(
+        node.argumentList, constructorElement?.parameters,
         whyNotPromotedList: whyNotPromotedList);
     _resolver.elementResolver.visitInstanceCreationExpression(node);
     _resolver.typeAnalyzer.visitInstanceCreationExpression(node);

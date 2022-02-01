@@ -163,13 +163,12 @@ class InvocationInferenceHelper {
     return null;
   }
 
-  void inferArgumentTypesForInvocation(
+  DartType? inferArgumentTypesForInvocation(
     InvocationExpression node,
     DartType? type,
   ) {
-    var inferred = inferArgumentTypesForGeneric(node, type, node.typeArguments);
-    InferenceContext.setType(
-        node.argumentList, inferred ?? node.staticInvokeType);
+    return inferArgumentTypesForGeneric(node, type, node.typeArguments) ??
+        node.staticInvokeType;
   }
 
   /// Given a possibly generic invocation like `o.m(args)` or `(f)(args)` try to
@@ -419,9 +418,11 @@ class InvocationInferenceHelper {
     return false;
   }
 
-  void _resolveArguments(ArgumentList argumentList,
-      List<WhyNotPromotedGetter> whyNotPromotedList) {
-    _resolver.visitArgumentList(argumentList,
+  void _resolveArguments(
+      ArgumentList argumentList,
+      List<WhyNotPromotedGetter> whyNotPromotedList,
+      List<ParameterElement> parameters) {
+    _resolver.analyzeArgumentList(argumentList, parameters,
         isIdentical: _isCallToIdentical(argumentList.parent),
         whyNotPromotedList: whyNotPromotedList);
   }
@@ -466,8 +467,7 @@ class InvocationInferenceHelper {
     var typeParameters = rawType.typeFormals;
 
     if (typeParameters.isEmpty) {
-      InferenceContext.setType(argumentList, rawType);
-      _resolveArguments(argumentList, whyNotPromotedList);
+      _resolveArguments(argumentList, whyNotPromotedList, rawType.parameters);
 
       _typeArgumentTypes = const <DartType>[];
       _invokeType = rawType;
@@ -482,9 +482,9 @@ class InvocationInferenceHelper {
       )!;
 
       var downwardsInvokeType = rawType.instantiate(downwardsTypeArguments);
-      InferenceContext.setType(argumentList, downwardsInvokeType);
 
-      _resolveArguments(argumentList, whyNotPromotedList);
+      _resolveArguments(
+          argumentList, whyNotPromotedList, downwardsInvokeType.parameters);
 
       _typeArgumentTypes = _inferUpwards(
         rawType: rawType,
@@ -527,9 +527,8 @@ class InvocationInferenceHelper {
     }
 
     var invokeType = rawType.instantiate(typeArguments);
-    InferenceContext.setType(argumentList, invokeType);
 
-    _resolveArguments(argumentList, whyNotPromotedList);
+    _resolveArguments(argumentList, whyNotPromotedList, invokeType.parameters);
 
     _typeArgumentTypes = typeArguments;
     _invokeType = invokeType;
