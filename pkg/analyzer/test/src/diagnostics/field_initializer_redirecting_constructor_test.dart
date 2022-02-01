@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class FieldInitializerRedirectingConstructorTest
     extends PubPackageResolutionTest {
-  test_afterRedirection() async {
+  test_class_afterRedirection() async {
     await assertErrorsInCode(r'''
 class A {
   int x = 0;
@@ -29,7 +29,7 @@ class A {
     ]);
   }
 
-  test_beforeRedirection() async {
+  test_class_beforeRedirection() async {
     await assertErrorsInCode(r'''
 class A {
   int x = 0;
@@ -42,7 +42,7 @@ class A {
     ]);
   }
 
-  test_redirectionOnly() async {
+  test_class_redirectionOnly() async {
     await assertErrorsInCode(r'''
 class A {
   int x = 0;
@@ -51,6 +51,51 @@ class A {
 }
 ''', [
       error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 42,
+          6),
+    ]);
+  }
+
+  test_enum_afterRedirection() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int x;
+  const E.named();
+  const E() : this.named(), x = 42;
+}
+''', [
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 76,
+          6),
+    ]);
+  }
+
+  test_enum_beforeRedirection() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int x;
+  const E.named();
+  const E() : x = 42, this.named();
+}
+''', [
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 62,
+          6),
+    ]);
+  }
+
+  @FailingTest(
+    reason: 'Reports also INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
+  )
+  test_enum_redirectionOnly() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int x;
+  const E.named();
+  const E(this.x) : this.named();
+}
+''', [
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR, 58,
           6),
     ]);
   }

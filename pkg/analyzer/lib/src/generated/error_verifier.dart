@@ -1877,6 +1877,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// field initializers, and assert initializers.
   void _checkForConflictingInitializerErrorCodes(
       ConstructorDeclaration declaration) {
+    var enclosingClass = _enclosingClass;
+    if (enclosingClass == null) {
+      return;
+    }
     // Count and check each redirecting initializer.
     var redirectingInitializerCount = 0;
     var superInitializerCount = 0;
@@ -1892,7 +1896,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           RedirectingConstructorInvocation invocation = initializer;
           var redirectingElement = invocation.staticElement;
           if (redirectingElement == null) {
-            String enclosingNamedType = _enclosingClass!.displayName;
+            String enclosingNamedType = enclosingClass.displayName;
             String constructorStrName = enclosingNamedType;
             if (invocation.constructorName != null) {
               constructorStrName += ".${invocation.constructorName!.name}";
@@ -1919,7 +1923,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
         redirectingInitializerCount++;
       } else if (initializer is SuperConstructorInvocation) {
-        if (superInitializerCount == 1) {
+        if (enclosingClass.isEnum) {
+          errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR,
+            initializer.superKeyword,
+          );
+        } else if (superInitializerCount == 1) {
           // Only report the second (first illegal) superinitializer.
           errorReporter.reportErrorForNode(
               CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, initializer);
@@ -1933,9 +1942,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (redirectingInitializerCount > 0) {
       for (ConstructorInitializer initializer in declaration.initializers) {
         if (initializer is SuperConstructorInvocation) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
-              initializer);
+          if (!enclosingClass.isEnum) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+                initializer);
+          }
         }
         if (initializer is ConstructorFieldInitializer) {
           errorReporter.reportErrorForNode(
@@ -1949,10 +1960,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
     }
-    if (redirectingInitializerCount == 0 &&
+    if (!enclosingClass.isEnum &&
+        redirectingInitializerCount == 0 &&
         superInitializerCount == 1 &&
         superInitializer != declaration.initializers.last) {
-      var superNamedType = _enclosingClass!.supertype!.element.displayName;
+      var superNamedType = enclosingClass.supertype!.element.displayName;
       var constructorStrName = superNamedType;
       var constructorName = superInitializer.constructorName;
       if (constructorName != null) {

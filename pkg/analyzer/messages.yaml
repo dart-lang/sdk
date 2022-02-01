@@ -11371,6 +11371,9 @@ CompileTimeErrorCode:
         B(int x) : assert(x >= 0), super(x);
       }
       ```
+  SUPER_IN_ENUM_CONSTRUCTOR:
+    problemMessage: The enum constructor can't have a 'super' initializer.
+    correctionMessage: Try removing the 'super' invocation.
   SUPER_IN_EXTENSION:
     problemMessage: "The 'super' keyword can't be used in an extension because an extension doesn't have a superclass."
     hasPublishedDocs: true

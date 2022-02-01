@@ -643,6 +643,7 @@ import 'super_formal_parameter_without_associated_named_test.dart'
     as super_formal_parameter_without_associated_named;
 import 'super_formal_parameter_without_associated_positional_test.dart'
     as super_formal_parameter_without_associated_positional;
+import 'super_in_enum_constructor_test.dart' as super_in_enum_constructor;
 import 'super_in_extension_test.dart' as super_in_extension;
 import 'super_in_invalid_context_test.dart' as super_in_invalid_context;
 import 'super_in_redirecting_constructor_test.dart'
@@ -1166,6 +1167,7 @@ main() {
     super_formal_parameter_type_is_not_subtype_of_associated.main();
     super_formal_parameter_without_associated_named.main();
     super_formal_parameter_without_associated_positional.main();
+    super_in_enum_constructor.main();
     super_in_extension.main();
     super_in_invalid_context.main();
     super_in_redirecting_constructor.main();

@@ -13190,6 +13190,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode SUPER_IN_ENUM_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'SUPER_IN_ENUM_CONSTRUCTOR',
+    "The enum constructor can't have a 'super' initializer.",
+    correctionMessage: "Try removing the 'super' invocation.",
+  );
+
   /**
    * No parameters.
    */
