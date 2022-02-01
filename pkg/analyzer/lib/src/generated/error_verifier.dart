@@ -495,6 +495,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredElement!;
     _withEnclosingExecutable(element, () {
+      _checkForNonConstGenerativeEnumConstructor(node);
       _checkForInvalidModifierOnBody(
           node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
       if (!_checkForConstConstructorWithNonConstSuper(node)) {
@@ -3547,6 +3548,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return true;
     }
     return false;
+  }
+
+  void _checkForNonConstGenerativeEnumConstructor(ConstructorDeclaration node) {
+    if (_enclosingClass?.isEnum == true &&
+        node.constKeyword == null &&
+        node.factoryKeyword == null) {
+      errorReporter.reportErrorForName(
+        CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR,
+        node,
+      );
+    }
   }
 
   /// Verify the given map [literal] either:

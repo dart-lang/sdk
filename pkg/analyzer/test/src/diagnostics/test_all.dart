@@ -473,6 +473,8 @@ import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
 import 'non_const_call_to_literal_constructor_test.dart'
     as non_const_call_to_literal_constructor;
+import 'non_const_generative_enum_constructor_test.dart'
+    as non_const_generative_enum_constructor;
 import 'non_const_map_as_expression_statement_test.dart'
     as non_const_map_as_expression_statement;
 import 'non_constant_annotation_constructor_test.dart'
@@ -1055,6 +1057,7 @@ main() {
     non_bool_negation_expression.main();
     non_bool_operand.main();
     non_const_call_to_literal_constructor.main();
+    non_const_generative_enum_constructor.main();
     non_const_map_as_expression_statement.main();
     non_constant_annotation_constructor.main();
     non_constant_list_element.main();

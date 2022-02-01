@@ -1551,6 +1551,9 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the member
+  NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
+    problemMessage: Generative enum constructors must be 'const'.
+    correctionMessage: Try adding the keyword 'const'.
   NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as keys in a 'const' map literal."

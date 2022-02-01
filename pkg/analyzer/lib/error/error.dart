@@ -323,6 +323,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.NON_BOOL_EXPRESSION,
   CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION,
   CompileTimeErrorCode.NON_BOOL_OPERAND,
+  CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR,
   CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
   CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR,
   CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
