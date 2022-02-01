@@ -9387,6 +9387,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE =
+      CompileTimeErrorCode(
+    'NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE',
+    "Non-abstract classes can't have 'Enum' as a superinterface.",
+    correctionMessage:
+        "Try specifying a different interface, or remove it from the list.",
+    uniqueName: 'NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE',
+  );
+
   /**
    * Parameters:
    * 0: the name of the first member

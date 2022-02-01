@@ -16,6 +16,32 @@ main() {
 @reflectiveTest
 class MixinSuperClassConstraintDisallowedClassTest
     extends PubPackageResolutionTest {
+  test_dartCoreEnum() async {
+    await assertNoErrorsInCode(r'''
+mixin M on Enum {}
+''');
+  }
+
+  test_dartCoreEnum_language216() async {
+    await assertErrorsInCode(r'''
+// @dart = 2.16
+mixin M on Enum {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+          27, 4),
+    ]);
+
+    var element = findElement.mixin('M');
+    assertElementTypes(element.superclassConstraints, ['Enum']);
+
+    var typeRef = findNode.namedType('Enum {}');
+    assertNamedType(
+      typeRef,
+      findElement.importFind('dart:core').class_('Enum'),
+      'Enum',
+    );
+  }
+
   test_int() async {
     await assertErrorsInCode(r'''
 mixin M on int {}

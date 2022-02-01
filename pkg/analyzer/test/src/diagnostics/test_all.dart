@@ -465,6 +465,8 @@ import 'no_combined_super_signature_test.dart' as no_combined_super_signature;
 import 'no_default_super_constructor_test.dart' as no_default_super_constructor;
 import 'no_generative_constructors_in_superclass_test.dart'
     as no_generative_constructors_in_superclass;
+import 'non_abstract_class_has_enum_superinterface_test.dart'
+    as non_abstract_class_has_enum_superinterface;
 import 'non_abstract_class_inherits_abstract_member_test.dart'
     as non_abstract_class_inherits_abstract_member;
 import 'non_bool_condition_test.dart' as non_bool_condition;
@@ -1051,6 +1053,7 @@ main() {
     no_combined_super_signature.main();
     no_default_super_constructor.main();
     no_generative_constructors_in_superclass.main();
+    non_abstract_class_has_enum_superinterface.main();
     non_abstract_class_inherits_abstract_member.main();
     non_bool_condition.main();
     non_bool_expression.main();

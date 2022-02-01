@@ -23,6 +23,38 @@ class A implements bool {}
     ]);
   }
 
+  test_class_dartCoreEnum_abstract() async {
+    await assertNoErrorsInCode('''
+abstract class A implements Enum {}
+''');
+  }
+
+  test_class_dartCoreEnum_concrete_direct() async {
+    await assertErrorsInCode('''
+class A implements Enum {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 4),
+    ]);
+  }
+
+  test_class_dartCoreEnum_language216_abstract() async {
+    await assertErrorsInCode('''
+// @dart = 2.16
+abstract class A implements Enum {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 44, 4),
+    ]);
+  }
+
+  test_class_dartCoreEnum_language216_concrete() async {
+    await assertErrorsInCode('''
+// @dart = 2.16
+class A implements Enum {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 35, 4),
+    ]);
+  }
+
   test_class_double() async {
     await assertErrorsInCode('''
 class A implements double {}
@@ -46,6 +78,16 @@ import 'dart:async';
 class A implements FutureOr<int> {}
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 40, 13),
+    ]);
+  }
+
+  test_class_FutureOr_typedef() async {
+    await assertErrorsInCode('''
+import 'dart:async';
+typedef F = FutureOr<void>;
+class A implements F {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 68, 1),
     ]);
   }
 
@@ -106,6 +148,42 @@ class M {}
 class C = A with M implements bool;
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 4),
+    ]);
+  }
+
+  test_classTypeAlias_dartCoreEnum_abstract() async {
+    await assertNoErrorsInCode('''
+class M {}
+abstract class A = Object with M implements Enum;
+''');
+  }
+
+  test_classTypeAlias_dartCoreEnum_concrete_direct() async {
+    await assertErrorsInCode('''
+class M {}
+class A = Object with M implements Enum;
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 46, 4),
+    ]);
+  }
+
+  test_classTypeAlias_dartCoreEnum_language216_abstract() async {
+    await assertErrorsInCode('''
+// @dart = 2.16
+mixin M {}
+abstract class A = Object with M implements Enum;
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 71, 4),
+    ]);
+  }
+
+  test_classTypeAlias_dartCoreEnum_language216_concrete() async {
+    await assertErrorsInCode('''
+// @dart = 2.16
+mixin M {}
+class A = Object with M implements Enum;
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 62, 4),
     ]);
   }
 
@@ -178,6 +256,21 @@ class C = A with M implements String, num;
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 6),
       error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 60, 3),
+    ]);
+  }
+
+  test_mixin_dartCoreEnum() async {
+    await assertNoErrorsInCode('''
+mixin M implements Enum {}
+''');
+  }
+
+  test_mixin_dartCoreEnum_language216() async {
+    await assertErrorsInCode('''
+// @dart = 2.16
+mixin M implements Enum {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 35, 4),
     ]);
   }
 
