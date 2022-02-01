@@ -14,6 +14,12 @@ extension ClassElementExtension on ClassElement {
   }
 }
 
+extension ConstructorElementExtension on ConstructorElement {
+  bool get isGenerative {
+    return !isFactory;
+  }
+}
+
 extension ElementAnnotationExtensions on ElementAnnotation {
   static final Map<String, TargetKind> _targetKindsByName = {
     for (final kind in TargetKind.values) kind.toString(): kind,

@@ -6616,6 +6616,7 @@ The following code produces this diagnostic because the enum `E` is being
 instantiated:
 
 {% prettify dart tag=pre+code %}
+// @dart = 2.16
 enum E {a}
 
 var e = [!E!]();
@@ -6627,6 +6628,7 @@ If you intend to use an instance of the enum, then reference one of the
 constants defined in the enum:
 
 {% prettify dart tag=pre+code %}
+// @dart = 2.16
 enum E {a}
 
 var e = E.a;

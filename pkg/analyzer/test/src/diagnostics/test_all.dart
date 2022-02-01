@@ -341,6 +341,8 @@ import 'invalid_override_different_default_values_positional_test.dart'
 import 'invalid_override_of_non_virtual_member_test.dart'
     as invalid_override_of_non_virtual_member;
 import 'invalid_override_test.dart' as invalid_override;
+import 'invalid_reference_to_generative_enum_constructor_test.dart'
+    as invalid_reference_to_generative_enum_constructor;
 import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
 import 'invalid_required_named_param_test.dart' as invalid_required_named_param;
 import 'invalid_required_optional_positional_param_test.dart'
@@ -976,6 +978,7 @@ main() {
     invalid_override_different_default_values_positional.main();
     invalid_override_of_non_virtual_member.main();
     invalid_override.main();
+    invalid_reference_to_generative_enum_constructor.main();
     invalid_reference_to_this.main();
     invalid_required_named_param.main();
     invalid_required_optional_positional_param.main();

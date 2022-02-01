@@ -440,6 +440,11 @@ mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {
   String? get testPackageLanguageVersion => '2.14';
 }
 
+mixin WithoutEnhancedEnumsMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => '2.16';
+}
+
 mixin WithoutNullSafetyMixin on PubPackageResolutionTest {
   @override
   String? get testPackageLanguageVersion => '2.9';
