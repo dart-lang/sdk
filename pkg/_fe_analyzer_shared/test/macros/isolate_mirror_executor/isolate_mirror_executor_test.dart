@@ -68,6 +68,7 @@ void main() {
           isAbstract: false,
           isExternal: false,
           isGetter: false,
+          isOperator: false,
           isSetter: false,
           identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'foo'),
           namedParameters: [],

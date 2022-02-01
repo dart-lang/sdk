@@ -344,6 +344,7 @@ class MacroApplications {
         isAbstract: builder.isAbstract,
         isExternal: builder.isExternal,
         isGetter: builder.isGetter,
+        isOperator: builder.isOperator,
         isSetter: builder.isSetter,
         positionalParameters: positionalParameters,
         namedParameters: namedParameters,

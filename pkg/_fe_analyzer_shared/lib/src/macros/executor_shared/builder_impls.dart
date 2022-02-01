@@ -257,7 +257,7 @@ DeclarationCode _buildClassAugmentation(
         Identifier clazz, List<DeclarationCode> augmentations) =>
     new DeclarationCode.fromParts([
       'augment class ',
-      clazz,
+      clazz.name,
       ' {\n',
       ...augmentations.joinAsCode('\n'),
       '\n}',
@@ -311,13 +311,14 @@ DeclarationCode _buildFunctionAugmentation(
   return new DeclarationCode.fromParts([
     'augment ',
     if (declaration is ConstructorDeclaration) ...[
-      declaration.definingClass,
+      declaration.definingClass.name,
       if (declaration.identifier.name.isNotEmpty) '.',
     ] else ...[
       declaration.returnType.code,
       ' ',
+      if (declaration.isOperator) 'operator ',
     ],
-    declaration.identifier,
+    declaration.identifier.name,
     if (declaration.typeParameters.isNotEmpty) ...[
       '<',
       for (TypeParameterDeclaration typeParam
@@ -334,7 +335,7 @@ DeclarationCode _buildFunctionAugmentation(
       new ParameterCode.fromParts([
         positionalRequired.type.code,
         ' ',
-        positionalRequired.identifier,
+        positionalRequired.identifier.name,
       ]),
       ', '
     ],
@@ -345,7 +346,7 @@ DeclarationCode _buildFunctionAugmentation(
         new ParameterCode.fromParts([
           positionalOptional.type.code,
           ' ',
-          positionalOptional.identifier,
+          positionalOptional.identifier.name,
         ]),
         ', ',
       ],

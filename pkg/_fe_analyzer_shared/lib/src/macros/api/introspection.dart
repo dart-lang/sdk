@@ -131,6 +131,9 @@ abstract class FunctionDeclaration implements Declaration {
   /// Whether this function has an `external` modifier.
   bool get isExternal;
 
+  /// Whether this function is an operator.
+  bool get isOperator;
+
   /// Whether this function is actually a getter.
   bool get isGetter;
 

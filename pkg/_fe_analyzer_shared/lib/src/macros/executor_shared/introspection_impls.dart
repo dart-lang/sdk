@@ -288,6 +288,9 @@ class FunctionDeclarationImpl extends DeclarationImpl
   final bool isGetter;
 
   @override
+  final bool isOperator;
+
+  @override
   final bool isSetter;
 
   @override
@@ -311,6 +314,7 @@ class FunctionDeclarationImpl extends DeclarationImpl
     required this.isAbstract,
     required this.isExternal,
     required this.isGetter,
+    required this.isOperator,
     required this.isSetter,
     required this.namedParameters,
     required this.positionalParameters,
@@ -330,6 +334,7 @@ class FunctionDeclarationImpl extends DeclarationImpl
       ..addBool(isAbstract)
       ..addBool(isExternal)
       ..addBool(isGetter)
+      ..addBool(isOperator)
       ..addBool(isSetter)
       ..startList();
     for (ParameterDeclarationImpl named in namedParameters) {
@@ -367,6 +372,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required bool isAbstract,
     required bool isExternal,
     required bool isGetter,
+    required bool isOperator,
     required bool isSetter,
     required List<ParameterDeclarationImpl> namedParameters,
     required List<ParameterDeclarationImpl> positionalParameters,
@@ -380,6 +386,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
           isAbstract: isAbstract,
           isExternal: isExternal,
           isGetter: isGetter,
+          isOperator: isOperator,
           isSetter: isSetter,
           namedParameters: namedParameters,
           positionalParameters: positionalParameters,
@@ -415,6 +422,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     required bool isAbstract,
     required bool isExternal,
     required bool isGetter,
+    required bool isOperator,
     required bool isSetter,
     required List<ParameterDeclarationImpl> namedParameters,
     required List<ParameterDeclarationImpl> positionalParameters,
@@ -430,6 +438,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
           isAbstract: isAbstract,
           isExternal: isExternal,
           isGetter: isGetter,
+          isOperator: isOperator,
           isSetter: isSetter,
           namedParameters: namedParameters,
           positionalParameters: positionalParameters,
