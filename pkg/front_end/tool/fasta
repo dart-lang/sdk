@@ -46,7 +46,7 @@ case "${1//_/-}" in
       set -- "$@" /dev/fd/1
     fi
     if [ "$#" != "3" ]; then
-      stop "Usage: $1 dillfile [output]"
+      stop "Usage: $1 dillFile [output]"
     fi
     ;;
   testing)

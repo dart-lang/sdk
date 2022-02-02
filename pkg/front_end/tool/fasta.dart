@@ -63,7 +63,7 @@ Future<void> main(List<String> args) async {
     case 'dump-ir':
       script = '${kernelBin}/dump.dart';
       if (remainingArguments.isEmpty || remainingArguments.length > 2) {
-        stop("Usage: $command dillfile [output]");
+        stop("Usage: $command dillFile [output]");
       }
       break;
     case 'testing':

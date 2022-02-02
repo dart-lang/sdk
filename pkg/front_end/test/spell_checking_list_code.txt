@@ -28,6 +28,7 @@ advantage
 affecting
 afterwards
 agree
+agreeing
 ahe
 ai
 aiki
@@ -174,6 +175,7 @@ channel
 char
 charcode
 chars
+checkout
 checkpoint
 chloestefantsova
 chunks
@@ -492,6 +494,7 @@ futured
 futureor
 g
 gardening
+gb
 gen
 generation
 getable
@@ -560,6 +563,7 @@ identifying
 ideographic
 idn
 ids
+idx
 iff
 il
 imitate
@@ -652,6 +656,7 @@ juxtapositions
 jvm
 k
 kallentu
+kb
 kernel's
 kill
 klass
@@ -766,6 +771,7 @@ na
 nameless
 namer
 natively
+nativewrappers
 nbsp
 nc
 ncs
@@ -836,6 +842,7 @@ overloader
 overlooked
 overshadowed
 oversight
+overview
 overwrite
 overwriting
 ownership
@@ -1178,6 +1185,7 @@ stand
 starter
 stated
 statics
+stats
 stderr
 stdin
 stdio
@@ -1452,6 +1460,7 @@ xdbff
 xdc
 xdfff
 xef
+xff
 xi
 xj
 xk

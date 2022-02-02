@@ -188,6 +188,7 @@ descending
 descriptors
 deviation
 dfast
+dfuzz
 di
 diagnosticable
 dictionaries
@@ -195,7 +196,6 @@ dictionary
 differentiate
 dijkstra
 dijkstras
-dillfile
 dinteractive
 dirname
 disagree
