@@ -692,13 +692,16 @@ class BazelWorkspacePackage extends WorkspacePackage {
           .getFolder(root)
           .getChildAssumingFile('BUILD')
           .readAsStringSync();
-      var hasNonNullableFlag = buildContent
+      var flattenedBuildContent = buildContent
           .split('\n')
           .map((e) => e.trim())
           .where((e) => !e.startsWith('#'))
           .map((e) => e.replaceAll(' ', ''))
-          .join()
-          .contains('dart_package(null_safety=True');
+          .join();
+      var hasNonNullableFlag = const {
+        'dart_package(null_safety=True',
+        'dart_package(sound_null_safety=True',
+      }.any(flattenedBuildContent.contains);
       if (hasNonNullableFlag) {
         // Enabled by default.
       } else {
