@@ -3515,7 +3515,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ mov(R9, Operand(R8));
     __ AddImmediate(R3, R0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
-        R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R3);
+        R0, FieldAddress(R0, target::PointerBase::data_offset()), R3);
     Label init_loop;
     __ Bind(&init_loop);
     __ AddImmediate(R3, 2 * target::kWordSize);

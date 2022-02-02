@@ -215,7 +215,7 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kInstance_native_fields_array:
     case Slot::Kind::kTypeArguments:
     case Slot::Kind::kTypedDataView_offset_in_bytes:
-    case Slot::Kind::kTypedDataView_data:
+    case Slot::Kind::kTypedDataView_typed_data:
     case Slot::Kind::kGrowableObjectArray_data:
     case Slot::Kind::kArray_type_arguments:
     case Slot::Kind::kContext_parent:
@@ -232,7 +232,6 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kFunctionType_named_parameter_names:
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
-    case Slot::Kind::kPointerBase_data_field:
     case Slot::Kind::kType_arguments:
     case Slot::Kind::kTypeArgumentsIndex:
     case Slot::Kind::kTypeParameters_names:

@@ -32,7 +32,6 @@ import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -529,8 +528,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (node.parent is! FunctionDeclaration) {
       _checkForMissingReturn(node.body, node);
     }
-    var functionType = InferenceContext.getContext(node);
-    if (functionType is! FunctionType) {
+    if (!(node as FunctionExpressionImpl).wasFunctionTypeSupplied) {
       _checkStrictInferenceInParameters(node.parameters, body: node.body);
     }
     super.visitFunctionExpression(node);

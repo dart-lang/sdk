@@ -236,7 +236,7 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
 
   if (IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(array), target::TypedDataBase::data_field_offset()));
+        new Value(array), target::PointerBase::data_offset()));
   }
 
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(
@@ -420,7 +420,7 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
 
   if (IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(array), target::TypedDataBase::data_field_offset()));
+        new Value(array), target::PointerBase::data_offset()));
   }
   // No store barrier.
   ASSERT(IsExternalTypedDataClassId(array_cid) ||

@@ -177,7 +177,7 @@
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(ObjectStore, type_type_offset)                                         \
   FIELD(OneByteString, data_offset)                                            \
-  FIELD(PointerBase, data_field_offset)                                        \
+  FIELD(PointerBase, data_offset)                                              \
   FIELD(Pointer, type_arguments_offset)                                        \
   FIELD(SingleTargetCache, entry_point_offset)                                 \
   FIELD(SingleTargetCache, lower_limit_offset)                                 \
@@ -322,9 +322,9 @@
   FIELD(TypeParameter, flags_offset)                                           \
   FIELD(TypeRef, type_offset)                                                  \
   FIELD(TypedDataBase, length_offset)                                          \
-  FIELD(TypedDataView, data_offset)                                            \
+  FIELD(TypedDataView, typed_data_offset)                                      \
   FIELD(TypedDataView, offset_in_bytes_offset)                                 \
-  FIELD(TypedData, data_offset)                                                \
+  FIELD(TypedData, payload_offset)                                             \
   FIELD(UnhandledException, exception_offset)                                  \
   FIELD(UnhandledException, stacktrace_offset)                                 \
   FIELD(UserTag, tag_offset)                                                   \

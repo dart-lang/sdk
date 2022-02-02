@@ -1,5 +1,7 @@
 ## 3.3.0-dev
 * Added `getField` to `ExtensionElement`.
+* Added `isGenerative` to `ConstructorElement`.
+* Added `isDartCoreEnum` to `ClassElement` and `DartType`.
 
 ## 3.2.0
 * Deprecated `changes` getter in `File` and `Folder`, use `watch()` instead.

@@ -532,6 +532,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartCoreEnum {
+    return element.isDartCoreEnum;
+  }
+
+  @override
   bool get isDartCoreFunction {
     return element.name == "Function" && element.library.isDartCore;
   }
@@ -986,6 +991,9 @@ abstract class TypeImpl implements DartType {
 
   @override
   bool get isDartCoreDouble => false;
+
+  @override
+  bool get isDartCoreEnum => false;
 
   @override
   bool get isDartCoreFunction => false;

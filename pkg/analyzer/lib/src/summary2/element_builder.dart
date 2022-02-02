@@ -220,9 +220,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       hasConstConstructor: true,
     );
 
-    var needsImplicitConstructor =
-        !node.members.any((e) => e is ConstructorDeclaration);
-
     // Build fields for all enum constants.
     var constants = node.constants;
     var valuesElements = <Expression>[];
@@ -352,6 +349,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       node.typeParameters?.accept(this);
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
+
+    var needsImplicitConstructor = !holder.constructors.any(
+      (e) => e.name.isEmpty || e.isGenerative,
+    );
 
     if (needsImplicitConstructor) {
       holder.addConstructor(

@@ -3726,7 +3726,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     /* data area to be initialized. */
     __ AddImmediate(R2, R0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
-        R0, FieldAddress(R0, target::TypedDataBase::data_field_offset()), R2);
+        R0, FieldAddress(R0, target::PointerBase::data_offset()), R2);
     Label init_loop, done;
     __ Bind(&init_loop);
     __ cmp(R2, Operand(R1));

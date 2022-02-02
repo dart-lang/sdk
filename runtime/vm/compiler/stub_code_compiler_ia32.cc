@@ -3059,8 +3059,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ xorl(ECX, ECX); /* Zero. */
     __ leal(EDI, FieldAddress(EAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
-        EAX, FieldAddress(EAX, target::TypedDataBase::data_field_offset()),
-        EDI);
+        EAX, FieldAddress(EAX, target::PointerBase::data_offset()), EDI);
     Label done, init_loop;
     __ Bind(&init_loop);
     __ cmpl(EDI, EBX);

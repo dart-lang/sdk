@@ -5107,6 +5107,11 @@ class FunctionExpressionImpl extends ExpressionImpl
   /// The body of the function.
   FunctionBodyImpl _body;
 
+  /// If resolution has been performed, this boolean indicates whether a
+  /// function type was supplied via context for this function expression.
+  /// `false` if resolution hasn't been performed yet.
+  bool wasFunctionTypeSupplied = false;
+
   @override
   ExecutableElement? declaredElement;
 

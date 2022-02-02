@@ -125,6 +125,21 @@ dart_package(null_safety = True)
     assertType(findNode.namedType('int v'), 'int');
   }
 
+  test_buildFile_nonNullable_soundNullSafety() async {
+    newFile('$myPackageRootPath/BUILD', content: r'''
+dart_package(
+  sound_null_safety = True
+)
+''');
+
+    await resolveFileCode(
+      '$myPackageRootPath/lib/a.dart',
+      'int v = 0;',
+    );
+    assertNoErrorsInResult();
+    assertType(findNode.namedType('int v'), 'int');
+  }
+
   test_buildFile_nonNullable_withComments() async {
     newFile('$myPackageRootPath/BUILD', content: r'''
 dart_package(

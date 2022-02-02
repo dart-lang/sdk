@@ -274,8 +274,8 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               Register start_reg) {
   if (IsTypedDataBaseClassId(array_cid)) {
     __ lx(array_reg,
-          compiler::FieldAddress(
-              array_reg, compiler::target::TypedDataBase::data_field_offset()));
+          compiler::FieldAddress(array_reg,
+                                 compiler::target::PointerBase::data_offset()));
   } else {
     switch (array_cid) {
       case kOneByteStringCid:
@@ -1771,7 +1771,7 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Address of input bytes.
   __ LoadFieldFromOffset(bytes_reg, bytes_reg,
-                         compiler::target::TypedDataBase::data_field_offset());
+                         compiler::target::PointerBase::data_offset());
 
   // Table.
   __ AddImmediate(

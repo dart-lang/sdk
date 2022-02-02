@@ -213,9 +213,8 @@ class PrefixExpressionResolver {
 
   void _resolveNegation(PrefixExpressionImpl node) {
     var operand = node.operand;
-    InferenceContext.setType(operand, _typeProvider.boolType);
 
-    operand.accept(_resolver);
+    _resolver.analyzeExpression(operand, _typeProvider.boolType);
     operand = node.operand;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(operand);
 

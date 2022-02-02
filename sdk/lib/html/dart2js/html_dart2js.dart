@@ -13389,10 +13389,14 @@ class Element extends Node
     } else if (alignment == ScrollAlignment.BOTTOM) {
       this._scrollIntoView(false);
     } else if (hasScrollIntoViewIfNeeded) {
+      // TODO(srujzs): This method shouldn't be calling out to
+      // `scrollIntoViewIfNeeded`. Remove this and make `scrollIntoView` match
+      // the browser definition. If you intend to use `scrollIntoViewIfNeeded`,
+      // use the `Element.scrollIntoViewIfNeeded` method.
       if (alignment == ScrollAlignment.CENTER) {
-        this._scrollIntoViewIfNeeded(true);
+        this.scrollIntoViewIfNeeded(true);
       } else {
-        this._scrollIntoViewIfNeeded();
+        this.scrollIntoViewIfNeeded();
       }
     } else {
       this._scrollIntoView();
@@ -14896,8 +14900,18 @@ class Element extends Node
   @JSName('scrollIntoView')
   void _scrollIntoView([Object? arg]) native;
 
-  @JSName('scrollIntoViewIfNeeded')
-  void _scrollIntoViewIfNeeded([bool? centerIfNeeded]) native;
+  /**
+   * Nonstandard version of `scrollIntoView` that scrolls the current element
+   * into the visible area of the browser window if it's not already within the
+   * visible area of the browser window. If the element is already within the
+   * visible area of the browser window, then no scrolling takes place.
+   *
+   * ## Other resources
+   *
+   * * [Element.scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)
+   *   from MDN.
+   */
+  void scrollIntoViewIfNeeded([bool? centerIfNeeded]) native;
 
   void scrollTo([options_OR_x, num? y]) {
     if (options_OR_x == null && y == null) {

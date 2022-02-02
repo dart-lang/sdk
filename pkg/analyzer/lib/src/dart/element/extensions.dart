@@ -8,18 +8,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta_meta.dart';
 
-extension ClassElementExtension on ClassElement {
-  bool get isDartCoreEnum {
-    return name == 'Enum' && library.isDartCore;
-  }
-}
-
-extension ConstructorElementExtension on ConstructorElement {
-  bool get isGenerative {
-    return !isFactory;
-  }
-}
-
 extension ElementAnnotationExtensions on ElementAnnotation {
   static final Map<String, TargetKind> _targetKindsByName = {
     for (final kind in TargetKind.values) kind.toString(): kind,
@@ -118,12 +106,6 @@ extension ElementExtension on Element {
 extension ExecutableElementExtension on ExecutableElement {
   bool get isEnumConstructor {
     return this is ConstructorElement && enclosingElement is EnumElementImpl;
-  }
-}
-
-extension InterfaceTypeExtension on InterfaceType {
-  bool get isDartCoreEnum {
-    return element.isDartCoreEnum;
   }
 }
 

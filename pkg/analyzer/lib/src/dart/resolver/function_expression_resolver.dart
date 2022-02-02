@@ -43,8 +43,10 @@ class FunctionExpressionResolver {
     }
 
     var contextType = InferenceContext.getContext(node);
+    bool wasFunctionTypeSupplied = contextType is FunctionType;
+    node.wasFunctionTypeSupplied = wasFunctionTypeSupplied;
     DartType? imposedType;
-    if (contextType is FunctionType) {
+    if (wasFunctionTypeSupplied) {
       contextType = _matchTypeParameters(
         node.typeParameters,
         contextType,

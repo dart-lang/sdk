@@ -104,6 +104,10 @@ abstract class ClassElement
   /// <i>abstract</i> is different from <i>has unimplemented members</i>.
   bool get isAbstract;
 
+  /// Return `true` if this class represents the class 'Enum' defined in the
+  /// dart:core library.
+  bool get isDartCoreEnum;
+
   /// Return `true` if this class represents the class 'Object' defined in the
   /// dart:core library.
   bool get isDartCoreObject;
@@ -467,6 +471,9 @@ abstract class ConstructorElement
 
   /// Return `true` if this constructor represents a factory constructor.
   bool get isFactory;
+
+  /// Return `true` if this constructor represents a generative constructor.
+  bool get isGenerative;
 
   @override
   String get name;

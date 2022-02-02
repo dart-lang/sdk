@@ -5690,6 +5690,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode ILLEGAL_LANGUAGE_VERSION_OVERRIDE =
+      CompileTimeErrorCode(
+    'ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
+    "The language version must be {0}.",
+    correctionMessage:
+        "Try removing the language version override and migrating the code.",
+  );
+
   /**
    * No parameters.
    */

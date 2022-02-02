@@ -19685,7 +19685,7 @@ intptr_t Instance::DataOffsetFor(intptr_t cid) {
     return 0;
   }
   if (IsTypedDataClassId(cid)) {
-    return TypedData::data_offset();
+    return TypedData::payload_offset();
   }
   switch (cid) {
     case kArrayCid:

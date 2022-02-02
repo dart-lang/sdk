@@ -24,11 +24,14 @@ class ForResolver {
 
   void resolveElement(ForElementImpl node, CollectionLiteralContext? context) {
     var forLoopParts = node.forLoopParts;
+    void visitBody() {
+      node.body.resolveElement(_resolver, context);
+    }
+
     if (forLoopParts is ForPartsImpl) {
-      _forParts(node, forLoopParts, node.body, context: context);
+      _forParts(node, forLoopParts, visitBody);
     } else if (forLoopParts is ForEachPartsImpl) {
-      _forEachParts(node, node.awaitKeyword != null, forLoopParts, node.body,
-          context: context);
+      _forEachParts(node, node.awaitKeyword != null, forLoopParts, visitBody);
     }
   }
 
@@ -36,10 +39,14 @@ class ForResolver {
     _resolver.checkUnreachableNode(node);
 
     var forLoopParts = node.forLoopParts;
+    void visitBody() {
+      node.body.accept(_resolver);
+    }
+
     if (forLoopParts is ForPartsImpl) {
-      _forParts(node, forLoopParts, node.body);
+      _forParts(node, forLoopParts, visitBody);
     } else if (forLoopParts is ForEachPartsImpl) {
-      _forEachParts(node, node.awaitKeyword != null, forLoopParts, node.body);
+      _forEachParts(node, node.awaitKeyword != null, forLoopParts, visitBody);
     }
   }
 
@@ -68,9 +75,8 @@ class ForResolver {
     }
   }
 
-  void _forEachParts(
-      AstNode node, bool isAsync, ForEachParts forEachParts, AstNode body,
-      {CollectionLiteralContext? context}) {
+  void _forEachParts(AstNode node, bool isAsync, ForEachParts forEachParts,
+      void Function() visitBody) {
     Expression iterable = forEachParts.iterable;
     DeclaredIdentifier? loopVariable;
     SimpleIdentifier? identifier;
@@ -103,14 +109,14 @@ class ForResolver {
         }
       }
     }
+    InterfaceType? targetType;
     if (valueType != null) {
-      InterfaceType targetType = isAsync
+      targetType = isAsync
           ? _resolver.typeProvider.streamType(valueType)
           : _resolver.typeProvider.iterableType(valueType);
-      InferenceContext.setType(iterable, targetType);
     }
 
-    iterable.accept(_resolver);
+    _resolver.analyzeExpression(iterable, targetType);
     iterable = forEachParts.iterable;
 
     _resolver.nullableDereferenceVerifier.expression(
@@ -139,13 +145,12 @@ class ForResolver {
           elementType ?? DynamicTypeImpl.instance, null);
     }
 
-    _visitBody(body, context);
+    visitBody();
 
     _resolver.flowAnalysis.flow?.forEach_end();
   }
 
-  void _forParts(AstNode node, ForParts forParts, AstNode body,
-      {CollectionLiteralContext? context}) {
+  void _forParts(AstNode node, ForParts forParts, void Function() visitBody) {
     if (forParts is ForPartsWithDeclarations) {
       forParts.variables.accept(_resolver);
     } else if (forParts is ForPartsWithExpression) {
@@ -156,8 +161,7 @@ class ForResolver {
 
     var condition = forParts.condition;
     if (condition != null) {
-      InferenceContext.setType(condition, _resolver.typeProvider.boolType);
-      condition.accept(_resolver);
+      _resolver.analyzeExpression(condition, _resolver.typeProvider.boolType);
       condition = forParts.condition!;
       var whyNotPromoted =
           _resolver.flowAnalysis.flow?.whyNotPromoted(condition);
@@ -166,20 +170,11 @@ class ForResolver {
     }
 
     _resolver.flowAnalysis.for_bodyBegin(node, condition);
-    _visitBody(body, context);
+    visitBody();
 
     _resolver.flowAnalysis.flow?.for_updaterBegin();
     forParts.updaters.accept(_resolver);
 
     _resolver.flowAnalysis.flow?.for_end();
-  }
-
-  void _visitBody(AstNode body, CollectionLiteralContext? context) {
-    if (body is CollectionElementImpl) {
-      body.resolveElement(_resolver, context);
-    } else {
-      assert(body is Statement);
-      body.accept(_resolver);
-    }
   }
 }

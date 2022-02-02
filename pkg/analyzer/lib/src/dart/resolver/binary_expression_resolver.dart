@@ -140,9 +140,8 @@ class BinaryExpressionResolver {
     if (leftContextType != null && _isNonNullableByDefault) {
       leftContextType = _typeSystem.makeNullable(leftContextType);
     }
-    InferenceContext.setType(left, leftContextType);
 
-    left.accept(_resolver);
+    _resolver.analyzeExpression(left, leftContextType);
     left = node.leftOperand;
     var leftType = left.typeOrThrow;
 
@@ -150,10 +149,9 @@ class BinaryExpressionResolver {
     if (rightContextType == null || rightContextType.isDynamic) {
       rightContextType = leftType;
     }
-    InferenceContext.setType(right, rightContextType);
 
     flow?.ifNullExpression_rightBegin(left, leftType);
-    right.accept(_resolver);
+    _resolver.analyzeExpression(right, rightContextType);
     right = node.rightOperand;
     flow?.ifNullExpression_end();
 
@@ -172,18 +170,15 @@ class BinaryExpressionResolver {
     var right = node.rightOperand;
     var flow = _resolver.flowAnalysis.flow;
 
-    InferenceContext.setType(left, _typeProvider.boolType);
-    InferenceContext.setType(right, _typeProvider.boolType);
-
     flow?.logicalBinaryOp_begin();
-    left.accept(_resolver);
+    _resolver.analyzeExpression(left, _typeProvider.boolType);
     left = node.leftOperand;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
 
     flow?.logicalBinaryOp_rightBegin(left, node, isAnd: true);
     _resolver.checkUnreachableNode(right);
 
-    right.accept(_resolver);
+    _resolver.analyzeExpression(right, _typeProvider.boolType);
     right = node.rightOperand;
     var rightWhyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(right);
@@ -202,18 +197,15 @@ class BinaryExpressionResolver {
     var right = node.rightOperand;
     var flow = _resolver.flowAnalysis.flow;
 
-    InferenceContext.setType(left, _typeProvider.boolType);
-    InferenceContext.setType(right, _typeProvider.boolType);
-
     flow?.logicalBinaryOp_begin();
-    left.accept(_resolver);
+    _resolver.analyzeExpression(left, _typeProvider.boolType);
     left = node.leftOperand;
     var leftWhyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(left);
 
     flow?.logicalBinaryOp_rightBegin(left, node, isAnd: false);
     _resolver.checkUnreachableNode(right);
 
-    right.accept(_resolver);
+    _resolver.analyzeExpression(right, _typeProvider.boolType);
     right = node.rightOperand;
     var rightWhyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(right);
@@ -251,20 +243,19 @@ class BinaryExpressionResolver {
     _resolveUserDefinableElement(node, operator.lexeme);
 
     var invokeType = node.staticInvokeType;
+    DartType? contextType;
     if (invokeType != null && invokeType.parameters.isNotEmpty) {
       // If this is a user-defined operator, set the right operand context
       // using the operator method's parameter type.
       var rightParam = invokeType.parameters[0];
-      InferenceContext.setType(
-          right,
-          _typeSystem.refineNumericInvocationContext(
-              left.staticType,
-              node.staticElement,
-              InferenceContext.getContext(node),
-              rightParam.type));
+      contextType = _typeSystem.refineNumericInvocationContext(
+          left.staticType,
+          node.staticElement,
+          InferenceContext.getContext(node),
+          rightParam.type);
     }
 
-    right.accept(_resolver);
+    _resolver.analyzeExpression(right, contextType);
     right = node.rightOperand;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(right);
 

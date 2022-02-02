@@ -125,7 +125,7 @@ class CompletionDriver with ExpectMixin {
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
     var request = CompletionGetSuggestionsParams(
-      server.testFilePath,
+      server.convertPath(server.testFilePath),
       completionOffset,
     ).toRequest('0');
     var response = await server.handleRequest(request);
@@ -138,7 +138,7 @@ class CompletionDriver with ExpectMixin {
 
   Future<List<CompletionSuggestion>> getSuggestions2() async {
     var request = CompletionGetSuggestions2Params(
-      server.testFilePath,
+      server.convertPath(server.testFilePath),
       completionOffset,
       1 << 16,
       timeout: 60 * 1000,

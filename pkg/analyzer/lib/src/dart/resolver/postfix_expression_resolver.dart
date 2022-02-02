@@ -197,14 +197,11 @@ class PostfixExpressionResolver {
     }
 
     var contextType = InferenceContext.getContext(node);
-    if (contextType != null) {
-      if (_isNonNullableByDefault) {
-        contextType = _typeSystem.makeNullable(contextType);
-      }
-      InferenceContext.setType(operand, contextType);
+    if (contextType != null && _isNonNullableByDefault) {
+      contextType = _typeSystem.makeNullable(contextType);
     }
 
-    operand.accept(_resolver);
+    _resolver.analyzeExpression(operand, contextType);
     operand = node.operand;
 
     var operandType = operand.typeOrThrow;

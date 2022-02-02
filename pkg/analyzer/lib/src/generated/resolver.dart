@@ -957,8 +957,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         hasWrite: true,
       );
 
-      InferenceContext.setType(node.index, result.indexContextType);
-      node.index.accept(this);
+      analyzeExpression(node.index, result.indexContextType);
       var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
       checkIndexExpressionIndex(
         node.index,
@@ -1174,9 +1173,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
-    InferenceContext.setType(node.condition, typeProvider.boolType);
     flowAnalysis.flow?.assert_begin();
-    node.condition.accept(this);
+    analyzeExpression(node.condition, typeProvider.boolType);
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
@@ -1189,9 +1187,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAssertStatement(AssertStatement node) {
-    InferenceContext.setType(node.condition, typeProvider.boolType);
     flowAnalysis.flow?.assert_begin();
-    node.condition.accept(this);
+    analyzeExpression(node.condition, typeProvider.boolType);
     boolExpressionVerifier.checkForNonBoolExpression(
       node.condition,
       errorCode: CompileTimeErrorCode.NON_BOOL_EXPRESSION,
@@ -1211,12 +1208,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitAwaitExpression(AwaitExpression node) {
     var contextType = InferenceContext.getContext(node);
+    DartType? futureUnion;
     if (contextType != null) {
-      var futureUnion = _createFutureOr(contextType);
-      InferenceContext.setType(node.expression, futureUnion);
+      futureUnion = _createFutureOr(contextType);
     }
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    analyzeExpression(node.expression, futureUnion);
     typeAnalyzer.visitAwaitExpression(node as AwaitExpressionImpl);
     insertGenericFunctionInstantiation(node);
   }
@@ -1273,8 +1270,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitCascadeExpression(covariant CascadeExpressionImpl node) {
-    InferenceContext.setTypeFromNode(node.target, node);
-    node.target.accept(this);
+    analyzeExpression(node.target, InferenceContext.getContext(node));
 
     if (node.isNullAware) {
       flowAnalysis.flow!.nullAwareAccess_rightBegin(
@@ -1349,38 +1345,35 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
+    var contextType = InferenceContext.getContext(node);
     Expression condition = node.condition;
     var flow = flowAnalysis.flow;
     flow?.conditional_conditionBegin();
 
     // TODO(scheglov) Do we need these checks for null?
-    InferenceContext.setType(node.condition, typeProvider.boolType);
-    condition.accept(this);
+    analyzeExpression(node.condition, typeProvider.boolType);
     condition = node.condition;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
     boolExpressionVerifier.checkForNonBoolCondition(condition,
         whyNotPromoted: whyNotPromoted);
 
-    InferenceContext.setTypeFromNode(node.thenExpression, node);
-
     if (flow != null) {
       flow.conditional_thenBegin(condition, node);
       checkUnreachableNode(node.thenExpression);
     }
-    node.thenExpression.accept(this);
+    analyzeExpression(node.thenExpression, contextType);
     nullSafetyDeadCodeVerifier.flowEnd(node.thenExpression);
 
     Expression elseExpression = node.elseExpression;
-    InferenceContext.setTypeFromNode(elseExpression, node);
 
     if (flow != null) {
       flow.conditional_elseBegin(node.thenExpression);
       checkUnreachableNode(elseExpression);
-      elseExpression.accept(this);
+      analyzeExpression(elseExpression, contextType);
       flow.conditional_end(node, elseExpression);
       nullSafetyDeadCodeVerifier.flowEnd(elseExpression);
     } else {
-      elseExpression.accept(this);
+      analyzeExpression(elseExpression, contextType);
     }
     elseExpression = node.elseExpression;
 
@@ -1440,8 +1433,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var fieldElement = enclosingClass!.getField(node.fieldName.name);
     var fieldType = fieldElement?.type;
     var expression = node.expression;
-    InferenceContext.setType(expression, fieldType);
-    expression.accept(this);
+    analyzeExpression(expression, fieldType);
     expression = node.expression;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
     elementResolver.visitConstructorFieldInitializer(
@@ -1497,13 +1489,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    InferenceContext.setType(node.defaultValue, node.declaredElement?.type);
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    node.parameter.accept(this);
+    var defaultValue = node.defaultValue;
+    if (defaultValue != null) {
+      analyzeExpression(defaultValue, node.declaredElement?.type);
+    }
     ParameterElement element = node.declaredElement!;
 
     if (element is DefaultParameterElementImpl && node.isOfLocalFunction) {
-      element.constantInitializer = node.defaultValue;
+      element.constantInitializer = defaultValue;
     }
   }
 
@@ -1517,8 +1512,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.body.accept(this);
 
     flowAnalysis.flow?.doStatement_conditionBegin();
-    InferenceContext.setType(condition, typeProvider.boolType);
-    condition.accept(this);
+    analyzeExpression(condition, typeProvider.boolType);
     condition = node.condition;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
     boolExpressionVerifier.checkForNonBoolCondition(condition,
@@ -1579,11 +1573,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             parameters: constructor.parameters,
           );
           for (var argument in argumentList.arguments) {
-            var parameter = argument.staticParameterElement;
-            if (parameter != null) {
-              InferenceContext.setType(argument, parameter.type);
-            }
-            argument.accept(this);
+            analyzeExpression(argument, argument.staticParameterElement?.type);
           }
         }
         arguments.typeArguments?.accept(this);
@@ -1625,14 +1615,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     try {
       inferenceContext.pushFunctionBodyContext(node, imposedType);
-      InferenceContext.setType(
-        node.expression,
-        inferenceContext.bodyContext!.contextType,
-      );
       _thisAccessTracker.enterFunctionBody(node);
 
       checkUnreachableNode(node);
-      node.visitChildren(this);
+      analyzeExpression(
+        node.expression,
+        inferenceContext.bodyContext!.contextType,
+      );
       insertImplicitCallReference(node.expression);
 
       flowAnalysis.flow?.handleExit();
@@ -1747,13 +1736,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     var functionType = node.declaredElement!.type;
-    InferenceContext.setType(node.functionExpression, functionType);
 
     var outerFunction = _enclosingFunction;
     try {
       _enclosingFunction = node.declaredElement;
       checkUnreachableNode(node);
-      node.visitChildren(this);
+      node.documentationComment?.accept(this);
+      node.metadata.accept(this);
+      node.returnType?.accept(this);
+      node.name.accept(this);
+      analyzeExpression(node.functionExpression, functionType);
       elementResolver.visitFunctionDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -1845,8 +1837,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitIfElement(IfElement node, {CollectionLiteralContext? context}) {
     flowAnalysis.flow?.ifStatement_conditionBegin();
     Expression condition = node.condition;
-    InferenceContext.setType(condition, typeProvider.boolType);
-    condition.accept(this);
+    analyzeExpression(condition, typeProvider.boolType);
     condition = node.condition;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
 
@@ -1874,8 +1865,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     Expression condition = node.condition;
 
-    InferenceContext.setType(condition, typeProvider.boolType);
-    condition.accept(this);
+    analyzeExpression(condition, typeProvider.boolType);
     condition = node.condition;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
 
@@ -1929,8 +1919,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var element = result.readElement;
     node.staticElement = element as MethodElement?;
 
-    InferenceContext.setType(node.index, result.indexContextType);
-    node.index.accept(this);
+    analyzeExpression(node.index, result.indexContextType);
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
     checkIndexExpressionIndex(
       node.index,
@@ -2114,9 +2103,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitNamedExpression(NamedExpression node) {
-    InferenceContext.setTypeFromNode(node.expression, node);
+    var contextType = InferenceContext.getContext(node);
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    node.name.accept(this);
+    analyzeExpression(node.expression, contextType);
     typeAnalyzer.visitNamedExpression(node as NamedExpressionImpl);
     // Any "why not promoted" information that flow analysis had associated with
     // `node.expression` now needs to be forwarded to `node`, so that when
@@ -2163,9 +2153,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
-    InferenceContext.setTypeFromNode(node.expression, node);
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    analyzeExpression(node.expression, InferenceContext.getContext(node));
     typeAnalyzer
         .visitParenthesizedExpression(node as ParenthesizedExpressionImpl);
     flowAnalysis.flow?.parenthesizedExpression(node, node.expression);
@@ -2274,18 +2263,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    InferenceContext.setType(
-      node.expression,
-      inferenceContext.bodyContext?.contextType,
-    );
-
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    var expression = node.expression;
+    if (expression != null) {
+      analyzeExpression(
+        expression,
+        inferenceContext.bodyContext?.contextType,
+      );
+      // Pick up the expression again in case it was rewritten.
+      expression = node.expression;
+    }
 
-    inferenceContext.bodyContext?.addReturnExpression(node.expression);
+    inferenceContext.bodyContext?.addReturnExpression(expression);
     flowAnalysis.flow?.handleExit();
 
-    var expression = node.expression;
     if (expression != null) {
       insertImplicitCallReference(expression);
     }
@@ -2379,10 +2370,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitSwitchCase(SwitchCase node) {
     checkUnreachableNode(node);
 
-    InferenceContext.setType(
-        node.expression, _enclosingSwitchStatementExpressionType);
     checkUnreachableNode(node);
-    node.visitChildren(this);
+    node.labels.accept(this);
+    analyzeExpression(node.expression, _enclosingSwitchStatementExpressionType);
+    node.statements.accept(this);
 
     var flow = flowAnalysis.flow;
     if (flow != null && flow.isReachable && _isNonNullableByDefault) {
@@ -2578,10 +2569,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     checkUnreachableNode(node);
 
     Expression condition = node.condition;
-    InferenceContext.setType(condition, typeProvider.boolType);
 
     flowAnalysis.flow?.whileStatement_conditionBegin(node);
-    condition.accept(this);
+    analyzeExpression(condition, typeProvider.boolType);
     condition = node.condition;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(condition);
 

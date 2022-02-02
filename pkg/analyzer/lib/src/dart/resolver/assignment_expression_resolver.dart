@@ -69,13 +69,14 @@ class AssignmentExpressionResolver {
     // TODO(scheglov) Use VariableElement and do in resolveForWrite() ?
     _assignmentShared.checkFinalAlreadyAssigned(left);
 
+    DartType? rhsContext;
     {
       var leftType = node.writeType;
       if (writeElement is VariableElement) {
         leftType = _resolver.localVariableTypeProvider
             .getType(left as SimpleIdentifier, isRead: false);
       }
-      _setRhsContext(node, leftType!, operator, right);
+      rhsContext = _computeRhsContext(node, leftType!, operator, right);
     }
 
     var flow = _resolver.flowAnalysis.flow;
@@ -83,7 +84,7 @@ class AssignmentExpressionResolver {
       flow.ifNullExpression_rightBegin(left, node.readType!);
     }
 
-    right.accept(_resolver);
+    _resolver.analyzeExpression(right, rhsContext);
     right = node.rightHandSide;
     var whyNotPromoted = flow?.whyNotPromoted(right);
 
@@ -145,6 +146,28 @@ class AssignmentExpressionResolver {
     }
 
     return true;
+  }
+
+  DartType? _computeRhsContext(AssignmentExpressionImpl node, DartType leftType,
+      TokenType operator, Expression right) {
+    switch (operator) {
+      case TokenType.EQ:
+      case TokenType.QUESTION_QUESTION_EQ:
+        return leftType;
+      case TokenType.AMPERSAND_AMPERSAND_EQ:
+      case TokenType.BAR_BAR_EQ:
+        return _typeProvider.boolType;
+      default:
+        var method = node.staticElement;
+        if (method != null) {
+          var parameters = method.parameters;
+          if (parameters.isNotEmpty) {
+            return _typeSystem.refineNumericInvocationContext(
+                leftType, method, leftType, parameters[0].type);
+          }
+        }
+        return null;
+    }
   }
 
   void _resolveOperator(AssignmentExpressionImpl node) {
@@ -258,32 +281,6 @@ class AssignmentExpressionResolver {
         operator != TokenType.QUESTION_QUESTION_EQ) {
       _resolver.checkForArgumentTypeNotAssignableForArgument(node.rightHandSide,
           whyNotPromoted: whyNotPromoted);
-    }
-  }
-
-  void _setRhsContext(AssignmentExpressionImpl node, DartType leftType,
-      TokenType operator, Expression right) {
-    switch (operator) {
-      case TokenType.EQ:
-      case TokenType.QUESTION_QUESTION_EQ:
-        InferenceContext.setType(right, leftType);
-        break;
-      case TokenType.AMPERSAND_AMPERSAND_EQ:
-      case TokenType.BAR_BAR_EQ:
-        InferenceContext.setType(right, _typeProvider.boolType);
-        break;
-      default:
-        var method = node.staticElement;
-        if (method != null) {
-          var parameters = method.parameters;
-          if (parameters.isNotEmpty) {
-            InferenceContext.setType(
-                right,
-                _typeSystem.refineNumericInvocationContext(
-                    leftType, method, leftType, parameters[0].type));
-          }
-        }
-        break;
     }
   }
 }
