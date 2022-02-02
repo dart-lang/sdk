@@ -14,7 +14,7 @@ Generates the Luci configuration for the Dart project.
 
 load("//defaults.star", "defaults")
 
-lucicfg.check_version("1.30.5")
+lucicfg.check_version("1.30.9")
 
 luci.builder.defaults.experiments.set({
     # Launch 100% of Swarming tasks in "realms-aware mode", crbug.com/1170330.
@@ -415,6 +415,20 @@ luci.gitiles_poller(
     bucket = "ci",
     repo = "https://dart.googlesource.com/external/github.com/flutter/flutter",
     refs = ["refs/heads/master"],
+)
+luci.gitiles_poller(
+    name = "dart-nightly-trigger",
+    bucket = "ci",
+    repo = DART_GIT,
+    refs = ["refs/heads/main"],
+    schedule = "0 5 * * *",  # daily, at 05:00 UTC
+)
+luci.gitiles_poller(
+    name = "dart-weekly-trigger",
+    bucket = "ci",
+    repo = DART_GIT,
+    refs = ["refs/heads/main"],
+    schedule = "0 0 * * SUN",  # weekly, midnight Saturday to Sunday
 )
 
 luci.notifier(
@@ -849,27 +863,15 @@ def dart_vm_low_priority_builder(name, **kwargs):
 def dart_vm_nightly_builder(name, **kwargs):
     nightly_builder(name, notifies = "dart-vm-team", **kwargs)
 
-# These lists are used to collect all nightly/weekly builders to give them as
-# properties to the "nightly"/"weekly" builder defined below, which triggers
-# the actual builds using the "cron" recipe.
-#
-# We do not set a schedule on the individual builders because the scheduler
-# doesn't set an input commit when it triggers cron'ed builders, and without
-# an input commit, Milo doesn't know how to show the build on the console.
-nightly_builders = []
-weekly_builders = []
-
 def nightly_builder(name, notifies = "nightly", **kwargs):
     dart_ci_sandbox_builder(
         name,
         notifies = notifies,
         on_cq = False,
         priority = LOW,
-        schedule = "triggered",  # triggered by nightly cron builder
-        triggered_by = None,
+        triggered_by = ["dart-nightly-trigger"],
         **kwargs
     )
-    nightly_builders.append(name)
 
 def weekly_ci_sandbox_builder(name, notifies = None, **kwargs):
     dart_ci_sandbox_builder(
@@ -877,11 +879,9 @@ def weekly_ci_sandbox_builder(name, notifies = None, **kwargs):
         notifies = notifies,
         on_cq = False,
         priority = LOW,
-        schedule = "triggered",  # triggered by weekly cron builder
-        triggered_by = None,
+        triggered_by = ["dart-weekly-trigger"],
         **kwargs
     )
-    weekly_builders.append(name)
 
 # cfe
 dart_ci_sandbox_builder(
@@ -1758,21 +1758,6 @@ nightly_builder(
     channels = [],
     dimensions = {"host_class": "experimental"},
     notifies = "infra",
-)
-
-dart_infra_builder(
-    "nightly",
-    notifies = "infra",
-    properties = {"builders": nightly_builders},
-    recipe = "cron/cron",
-    schedule = "0 5 * * *",  # daily, at 05:00 UTC
-)
-dart_infra_builder(
-    "weekly",
-    notifies = "infra",
-    properties = {"builders": weekly_builders},
-    recipe = "cron/cron",
-    schedule = "0 0 * * SUN",  # weekly, midnight Saturday to Sunday
 )
 
 dart_ci_sandbox_builder(
