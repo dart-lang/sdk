@@ -615,10 +615,10 @@ class GrowableObjectArray : public AllStatic {
 
 class PointerBase : public AllStatic {
  public:
-  static word data_field_offset();
+  static word data_offset();
 };
 
-class TypedDataBase : public PointerBase {
+class TypedDataBase : public AllStatic {
  public:
   static word length_offset();
   static word InstanceSize();
@@ -627,7 +627,7 @@ class TypedDataBase : public PointerBase {
 
 class TypedData : public AllStatic {
  public:
-  static word data_offset();
+  static word payload_offset();
   static word HeaderSize();
   static word InstanceSize();
   static word InstanceSize(word lengthInBytes);
@@ -636,7 +636,6 @@ class TypedData : public AllStatic {
 
 class ExternalTypedData : public AllStatic {
  public:
-  static word data_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };
@@ -644,7 +643,7 @@ class ExternalTypedData : public AllStatic {
 class TypedDataView : public AllStatic {
  public:
   static word offset_in_bytes_offset();
-  static word data_offset();
+  static word typed_data_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };
@@ -700,7 +699,7 @@ class LocalHandle : public AllStatic {
   static word ptr_offset();
 };
 
-class Pointer : public PointerBase {
+class Pointer : public AllStatic {
  public:
   static word type_arguments_offset();
   static word InstanceSize();

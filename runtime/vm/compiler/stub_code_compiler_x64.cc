@@ -3782,8 +3782,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(Assembler* assembler,
     __ xorq(RBX, RBX); /* Zero. */
     __ leaq(RDI, FieldAddress(RAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
-        RAX, FieldAddress(RAX, target::TypedDataBase::data_field_offset()),
-        RDI);
+        RAX, FieldAddress(RAX, target::PointerBase::data_offset()), RDI);
     Label done, init_loop;
     __ Bind(&init_loop);
     __ cmpq(RDI, RCX);

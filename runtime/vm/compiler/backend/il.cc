@@ -2753,7 +2753,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         }
       }
     }
-  } else if (slot().kind() == Slot::Kind::kTypedDataView_data) {
+  } else if (slot().kind() == Slot::Kind::kTypedDataView_typed_data) {
     // This case cover the first explicit argument to typed data view
     // factories, the data (buffer).
     ASSERT(!calls_initializer());
@@ -6529,10 +6529,9 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
           zone_, pointer_loc.payload_type(), pointer_loc.container_type(),
           temp);
       compiler->EmitNativeMove(dst, pointer_loc, &temp_alloc);
-      __ LoadField(
-          temp,
-          compiler::FieldAddress(
-              temp, compiler::target::TypedDataBase::data_field_offset()));
+      __ LoadField(temp,
+                   compiler::FieldAddress(
+                       temp, compiler::target::PointerBase::data_offset()));
 
       // Copy chuncks.
       const intptr_t sp_offset =
@@ -6594,10 +6593,9 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
       __ LoadMemoryValue(temp0, FPREG, 0);
       __ LoadMemoryValue(temp0, temp0, typed_data_loc.ToStackSlotOffset());
     }
-    __ LoadField(
-        temp0,
-        compiler::FieldAddress(
-            temp0, compiler::target::TypedDataBase::data_field_offset()));
+    __ LoadField(temp0,
+                 compiler::FieldAddress(
+                     temp0, compiler::target::PointerBase::data_offset()));
 
     if (returnLocation.IsPointerToMemory()) {
       // Copy blocks from the stack location to TypedData.
@@ -6774,10 +6772,10 @@ void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
   if (dst1.IsMultiple()) {
     Register typed_data_reg = locs()->in(0).reg();
     // Load the data pointer out of the TypedData/Pointer.
-    __ LoadField(typed_data_reg,
-                 compiler::FieldAddress(
-                     typed_data_reg,
-                     compiler::target::TypedDataBase::data_field_offset()));
+    __ LoadField(
+        typed_data_reg,
+        compiler::FieldAddress(typed_data_reg,
+                               compiler::target::PointerBase::data_offset()));
 
     const auto& multiple = dst1.AsMultiple();
     int offset_in_bytes = 0;

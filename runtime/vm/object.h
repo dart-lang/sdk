@@ -10686,7 +10686,7 @@ class Float64x2 : public Instance {
 
 class PointerBase : public Instance {
  public:
-  static intptr_t data_field_offset() {
+  static intptr_t data_offset() {
     return OFFSET_OF(UntaggedPointerBase, data_);
   }
 };
@@ -10830,7 +10830,9 @@ class TypedData : public TypedDataBase {
 
 #undef TYPED_GETTER_SETTER
 
-  static intptr_t data_offset() { return UntaggedTypedData::payload_offset(); }
+  static intptr_t payload_offset() {
+    return UntaggedTypedData::payload_offset();
+  }
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedTypedData) ==
@@ -10940,10 +10942,6 @@ class ExternalTypedData : public TypedDataBase {
                                             Dart_HandleFinalizer callback,
                                             intptr_t external_size) const;
 
-  static intptr_t data_offset() {
-    return OFFSET_OF(UntaggedExternalTypedData, data_);
-  }
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedExternalTypedData));
   }
@@ -11016,7 +11014,7 @@ class TypedDataView : public TypedDataBase {
     return IsExternalTypedDataClassId(cid);
   }
 
-  static intptr_t data_offset() {
+  static intptr_t typed_data_offset() {
     return OFFSET_OF(UntaggedTypedDataView, typed_data_);
   }
 

@@ -131,10 +131,9 @@ void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
                                               Register start_reg) {
   intptr_t offset;
   if (IsTypedDataBaseClassId(array_cid)) {
-    __ movl(
-        array_reg,
-        compiler::FieldAddress(
-            array_reg, compiler::target::TypedDataBase::data_field_offset()));
+    __ movl(array_reg,
+            compiler::FieldAddress(
+                array_reg, compiler::target::PointerBase::data_offset()));
     offset = 0;
   } else {
     switch (array_cid) {
@@ -1328,8 +1327,8 @@ void Utf8ScanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Address of input bytes.
   __ movl(bytes_reg,
-          compiler::FieldAddress(
-              bytes_reg, compiler::target::TypedDataBase::data_field_offset()));
+          compiler::FieldAddress(bytes_reg,
+                                 compiler::target::PointerBase::data_offset()));
 
   // Pointers to start, end and end-16.
   __ leal(bytes_ptr_reg, compiler::Address(bytes_reg, start_reg, TIMES_1, 0));

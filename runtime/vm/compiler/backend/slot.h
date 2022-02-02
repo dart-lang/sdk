@@ -96,7 +96,7 @@ class ParsedFunction;
   V(GrowableObjectArray, UntaggedGrowableObjectArray, data, Array, VAR)        \
   V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL)                  \
   V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi, FINAL)         \
-  V(TypedDataView, UntaggedTypedDataView, data, Dynamic, FINAL)                \
+  V(TypedDataView, UntaggedTypedDataView, typed_data, Dynamic, FINAL)          \
   V(String, UntaggedString, length, Smi, FINAL)                                \
   V(LinkedHashBase, UntaggedLinkedHashBase, index, TypedDataUint32Array, VAR)  \
   V(LinkedHashBase, UntaggedLinkedHashBase, data, Array, VAR)                  \
@@ -109,7 +109,6 @@ class ParsedFunction;
   V(ArgumentsDescriptor, UntaggedArray, positional_count, Smi, FINAL)          \
   V(ArgumentsDescriptor, UntaggedArray, count, Smi, FINAL)                     \
   V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
-  V(PointerBase, UntaggedPointerBase, data_field, Dynamic, FINAL)              \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
   V(TypeParameters, UntaggedTypeParameters, names, Array, FINAL)               \
   V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL)               \
@@ -154,8 +153,7 @@ class ParsedFunction;
     FINAL)                                                                     \
   V(FunctionType, UntaggedFunctionType, packed_type_parameter_counts, Uint16,  \
     FINAL)                                                                     \
-  V(Pointer, UntaggedPointer, data_field, FfiIntPtr, FINAL)                    \
-  V(TypedDataBase, UntaggedTypedDataBase, data_field, IntPtr, VAR)             \
+  V(PointerBase, UntaggedPointerBase, data, IntPtr, VAR)                       \
   V(TypeParameter, UntaggedTypeParameter, flags, Uint8, FINAL)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)
