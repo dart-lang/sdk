@@ -106,20 +106,17 @@ class InferenceContext {
     }
   }
 
-  void popFunctionBodyContext(FunctionBody node) {
+  DartType popFunctionBodyContext(FunctionBody node) {
     var context = _bodyContexts.removeLast();
 
     var flow = _resolver.flowAnalysis.flow;
 
-    var resultType = context.computeInferredReturnType(
+    return context.computeInferredReturnType(
       endOfBlockIsReachable: flow == null || flow.isReachable,
     );
-
-    setType(node, resultType);
   }
 
-  void pushFunctionBodyContext(FunctionBody node) {
-    var imposedType = getContext(node);
+  void pushFunctionBodyContext(FunctionBody node, DartType? imposedType) {
     _bodyContexts.add(
       BodyInferenceContext(
         typeSystem: _typeSystem,
@@ -143,7 +140,9 @@ class InferenceContext {
   /// [TypeSystemImpl.lowerBoundForType] if you would prefer a known type
   /// that represents the bound of the context type.
   static DartType? getContext(AstNode? node) {
-    if (node is ArgumentList) {
+    if (node is ArgumentList ||
+        node is VariableDeclaration ||
+        node is FunctionBody) {
       assert(false, 'Nodes of type ${node.runtimeType} should use context');
     }
     return node?.getProperty(_typeProperty);
@@ -152,7 +151,9 @@ class InferenceContext {
   /// Attach contextual type information [type] to [node] for use during
   /// inference.
   static void setType(AstNode? node, DartType? type) {
-    if (node is ArgumentList) {
+    if (node is ArgumentList ||
+        node is VariableDeclaration ||
+        node is FunctionBody) {
       assert(false, 'Nodes of type ${node.runtimeType} should use context');
     }
     if (type == null || type.isDynamic) {
@@ -1238,16 +1239,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitBlockFunctionBody(BlockFunctionBody node) {
+  DartType visitBlockFunctionBody(BlockFunctionBody node,
+      {DartType? imposedType}) {
     try {
-      inferenceContext.pushFunctionBodyContext(node);
+      inferenceContext.pushFunctionBodyContext(node, imposedType);
       _thisAccessTracker.enterFunctionBody(node);
       checkUnreachableNode(node);
       node.visitChildren(this);
     } finally {
       _thisAccessTracker.exitFunctionBody(node);
-      inferenceContext.popFunctionBodyContext(node);
+      imposedType = inferenceContext.popFunctionBodyContext(node);
     }
+    return imposedType;
   }
 
   @override
@@ -1391,12 +1394,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
 
     var returnType = node.declaredElement!.type.returnType;
-    InferenceContext.setType(node.body, returnType);
 
     var outerFunction = _enclosingFunction;
     try {
@@ -1404,7 +1406,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
-      node.visitChildren(this);
+      node.documentationComment?.accept(this);
+      node.metadata.accept(this);
+      node.returnType.accept(this);
+      node.name?.accept(this);
+      node.parameters.accept(this);
+      node.initializers.accept(this);
+      node.redirectedConstructor?.accept(this);
+      node.body.resolve(this, returnType);
       elementResolver.visitConstructorDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -1526,12 +1535,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitEmptyFunctionBody(EmptyFunctionBody node) {
-    if (resolveOnlyCommentInFunctionBody) {
-      return;
+  DartType visitEmptyFunctionBody(EmptyFunctionBody node,
+      {DartType? imposedType}) {
+    if (!resolveOnlyCommentInFunctionBody) {
+      checkUnreachableNode(node);
+      node.visitChildren(this);
     }
-    checkUnreachableNode(node);
-    node.visitChildren(this);
+    return imposedType ?? typeProvider.dynamicType;
   }
 
   @override
@@ -1607,13 +1617,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  DartType visitExpressionFunctionBody(ExpressionFunctionBody node,
+      {DartType? imposedType}) {
     if (resolveOnlyCommentInFunctionBody) {
-      return;
+      return imposedType ?? typeProvider.dynamicType;
     }
 
     try {
-      inferenceContext.pushFunctionBodyContext(node);
+      inferenceContext.pushFunctionBodyContext(node, imposedType);
       InferenceContext.setType(
         node.expression,
         inferenceContext.bodyContext!.contextType,
@@ -1629,8 +1640,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       inferenceContext.bodyContext!.addReturnExpression(node.expression);
     } finally {
       _thisAccessTracker.exitFunctionBody(node);
-      inferenceContext.popFunctionBodyContext(node);
+      imposedType = inferenceContext.popFunctionBodyContext(node);
     }
+    return imposedType;
   }
 
   @override
@@ -2010,12 +2022,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     flowAnalysis.topLevelDeclaration_enter(node, node.parameters);
     flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
 
     DartType returnType = node.declaredElement!.returnType;
-    InferenceContext.setType(node.body, returnType);
 
     var outerFunction = _enclosingFunction;
     try {
@@ -2023,7 +2034,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       assert(_thisType == null);
       _setupThisType();
       checkUnreachableNode(node);
-      node.visitChildren(this);
+      node.documentationComment?.accept(this);
+      node.metadata.accept(this);
+      node.returnType?.accept(this);
+      node.name.accept(this);
+      node.typeParameters?.accept(this);
+      node.parameters?.accept(this);
+      node.body.resolve(this, returnType);
       elementResolver.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -2123,9 +2140,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitNativeFunctionBody(NativeFunctionBody node) {
+  DartType visitNativeFunctionBody(NativeFunctionBody node,
+      {DartType? imposedType}) {
     checkUnreachableNode(node);
     node.visitChildren(this);
+    return imposedType ?? typeProvider.dynamicType;
   }
 
   @override
@@ -2543,10 +2562,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     flowAnalysis.variableDeclarationList(node);
-    for (VariableDeclaration decl in node.variables) {
-      VariableElement variableElement = decl.declaredElement!;
-      InferenceContext.setType(decl, variableElement.type);
-    }
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitVariableDeclarationList(node);

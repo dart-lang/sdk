@@ -21,6 +21,17 @@ main() {
 @reflectiveTest
 class NonErrorResolverTest extends PubPackageResolutionTest
     with NonErrorResolverTestCases {
+  test_async_callback_in_with_unknown_return_type_context() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  R run<R>(R Function() action);
+}
+f(C c) {
+  c.run(() async {});
+}
+''');
+  }
+
   test_await_flattened() async {
     await assertNoErrorsInCode('''
 Future<Future<int>>? ffi() => null;
