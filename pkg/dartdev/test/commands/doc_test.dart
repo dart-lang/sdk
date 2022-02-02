@@ -6,27 +6,46 @@ import 'package:test/test.dart';
 
 import '../utils.dart';
 
-const int compileErrorExitCode = 64;
+const int errorExitCode = 64;
 
 void main() {
   group('doc', defineDocTests, timeout: longTimeout);
 }
 
 void defineDocTests() {
-  test('Passing no args fails', () async {
-    final p = project();
-    final result = await p.run(['doc']);
-    expect(result.stderr, contains('Input directory not specified'));
-    expect(result.exitCode, compileErrorExitCode);
-  });
-
   test('--help', () async {
     final p = project();
     final result = await p.run(['doc', '--help']);
     expect(
       result.stdout,
-      contains('Usage: dart doc [arguments] <input directory>'),
+      contains('Usage: dart doc [arguments] [<directory>]'),
     );
+    expect(result.exitCode, 0);
+  });
+
+  test('Passing multiple directories fails', () async {
+    final p = project();
+    final result = await p.run(['doc', 'foo', 'bar']);
+    expect(result.stderr,
+        contains("'dart doc' only supports one input directory.'"));
+    expect(result.exitCode, errorExitCode);
+  });
+
+  test('defaults to documenting cwd', () async {
+    final p = project(mainSrc: 'void main() { print("Hello, World"); }');
+    p.file('lib/foo.dart', '''
+/// This is Foo. It uses [Bar].
+class Foo {
+  Bar bar;
+}
+
+/// Bar is very nice.
+class Bar {
+  _i = 42;
+}
+''');
+    final result = await p.run(['doc'], workingDir: p.dirPath);
+    expect(result.stdout, contains('Documenting dartdev_temp'));
     expect(result.exitCode, 0);
   });
 
