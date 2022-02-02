@@ -518,6 +518,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   Iterable<String> jsPartDebuggerNames(Library library) =>
       library.parts.map((part) => part.partUri);
 
+  /// True when [library] is the sdk internal library 'dart:_internal'.
+  bool _isDartInternal(Library library) {
+    var importUri = library.importUri;
+    return importUri.scheme == 'dart' && importUri.path == '_internal';
+  }
+
   @override
   bool isSdkInternalRuntime(Library l) {
     return isSdkInternalRuntimeUri(l.importUri);
@@ -5465,6 +5471,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (target.isFactory) return _emitFactoryInvocation(node);
 
     // Optimize some internal SDK calls.
+    if (_isDartInternal(target.enclosingLibrary)) {
+      var args = node.arguments;
+      if (args.positional.length == 1 &&
+          args.types.length == 1 &&
+          args.named.isEmpty &&
+          target.name.text == 'unsafeCast') {
+        return args.positional.single.accept(this);
+      }
+    }
     if (isSdkInternalRuntime(target.enclosingLibrary)) {
       var name = target.name.text;
       if (node.arguments.positional.isEmpty &&

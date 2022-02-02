@@ -117,7 +117,7 @@ class MemoryProfile {
 
   AdbMemoryInfo? adbMemoryInfo;
 
-  late EventSample eventSample;
+  EventSample eventSample = EventSample.empty();
 
   RasterCache? rasterCache;
 

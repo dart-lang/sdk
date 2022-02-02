@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*spec.class: global#LinkedHashMap:deps=[Map],direct,explicit=[LinkedHashMap<LinkedHashMap.K,LinkedHashMap.V>],implicit=[LinkedHashMap.K,LinkedHashMap.V],needsArgs*/
 /*prod.class: global#LinkedHashMap:deps=[Map],needsArgs*/
@@ -20,6 +20,6 @@ method<T>() {
 test(o) => o is Map<int, int>;
 
 main() {
-  Expect.isTrue(test(method<int>().call()));
-  Expect.isFalse(test(method<String>().call()));
+  makeLive(test(method<int>().call()));
+  makeLive(test(method<String>().call()));
 }

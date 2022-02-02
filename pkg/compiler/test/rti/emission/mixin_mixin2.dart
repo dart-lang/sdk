@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import "package:expect/expect.dart";
+import "package:compiler/src/util/testing.dart";
 
 /*class: M:checks=[]*/
 class M<T> {
@@ -38,8 +38,8 @@ class G<T> extends C<T> {}
 class H<T> extends D<Map<String, T>> {}
 
 main() {
-  Expect.equals("num", new E().t().toString());
-  Expect.equals("String", new F().t().toString());
-  Expect.equals("List<bool>", new G<bool>().t().toString());
-  Expect.equals("List<Set<Map<String, int>>>", new H<int>().t().toString());
+  makeLive("num" == new E().t().toString());
+  makeLive("String" == new F().t().toString());
+  makeLive("List<bool>" == new G<bool>().t().toString());
+  makeLive("List<Set<Map<String, int>>>" == new H<int>().t().toString());
 }

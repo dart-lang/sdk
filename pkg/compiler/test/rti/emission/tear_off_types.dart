@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 main() {
   test1();
@@ -24,9 +24,9 @@ class B1 extends A1<int> {}
 
 @pragma('dart2js:noInline')
 test1() {
-  Expect.isTrue(_test1(method1a));
-  Expect.isTrue(_test1(method1b));
-  Expect.isFalse(_test1(method1c));
+  makeLive(_test1(method1a));
+  makeLive(_test1(method1b));
+  makeLive(_test1(method1c));
 }
 
 B1 method1a() => null;
@@ -46,9 +46,9 @@ class B2 extends A2<int> {}
 
 @pragma('dart2js:noInline')
 test2() {
-  Expect.isFalse(_test2(method2a));
-  Expect.isTrue(_test2(method2b));
-  Expect.isFalse(_test2(method2c));
+  makeLive(_test2(method2a));
+  makeLive(_test2(method2b));
+  makeLive(_test2(method2c));
 }
 
 void method2a(B2 b) {}
@@ -68,9 +68,9 @@ class B3 extends A3<int> {}
 
 @pragma('dart3js:noInline')
 test3() {
-  Expect.isTrue(_test3(method3a));
-  Expect.isTrue(_test3(method3b));
-  Expect.isFalse(_test3(method3c));
+  makeLive(_test3(method3a));
+  makeLive(_test3(method3b));
+  makeLive(_test3(method3c));
 }
 
 void method3a(B3 b) {}
@@ -88,9 +88,9 @@ class B4 extends A4<int> {}
 
 @pragma('dart4js:noInline')
 test4() {
-  Expect.isTrue(_test4(method4a));
-  Expect.isFalse(_test4(method4b));
-  Expect.isFalse(_test4(method4c));
+  makeLive(_test4(method4a));
+  makeLive(_test4(method4b));
+  makeLive(_test4(method4c));
 }
 
 B4 method4a() => null;
@@ -108,9 +108,9 @@ class B5 extends A5<int> {}
 
 @pragma('dart2js:noInline')
 test5() {
-  Expect.isTrue(_test5(method5a));
-  Expect.isTrue(_test5(method5b));
-  Expect.isFalse(_test5(method5c));
+  makeLive(_test5(method5a));
+  makeLive(_test5(method5b));
+  makeLive(_test5(method5c));
 }
 
 void method5a(void Function(B5) f) => null;
@@ -128,9 +128,9 @@ class B6 extends A6<int> {}
 
 @pragma('dart6js:noInline')
 test6() {
-  Expect.isTrue(_test6(method6a));
-  Expect.isTrue(_test6(method6b));
-  Expect.isFalse(_test6(method6c));
+  makeLive(_test6(method6a));
+  makeLive(_test6(method6b));
+  makeLive(_test6(method6c));
 }
 
 void Function(B6) method6a() => null;
@@ -148,9 +148,9 @@ class B7 extends A7<int> {}
 
 @pragma('dart7js:noInline')
 test7() {
-  Expect.isTrue(_test7(method7a));
-  Expect.isFalse(_test7(method7b));
-  Expect.isFalse(_test7(method7c));
+  makeLive(_test7(method7a));
+  makeLive(_test7(method7b));
+  makeLive(_test7(method7c));
 }
 
 void method7a(void Function(B7) f) => null;

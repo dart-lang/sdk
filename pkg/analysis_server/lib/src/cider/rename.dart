@@ -31,19 +31,21 @@ class CanRenameResponse {
     _flutterWidgetState = _findFlutterStateClass(element, name);
 
     RefactoringStatus? status;
-    if (element is LocalVariableElement) {
-      status = validateVariableName(name);
-    } else if (element is ParameterElement) {
+    if (element is ParameterElement) {
       status = validateParameterName(name);
+    } else if (element is VariableElement) {
+      status = validateVariableName(name);
     } else if (element is FunctionElement) {
       status = validateFunctionName(name);
-    } else if (element is TopLevelVariableElement) {
-      status = validateVariableName(name);
+    } else if (element is FieldElement) {
+      status = validateFieldName(name);
     } else if (element is TypeAliasElement) {
       status = validateTypeAliasName(name);
     } else if (element is ClassElement) {
       status = validateClassName(name);
-    } else if (status == null) {
+    }
+
+    if (status == null) {
       return null;
     }
     return CheckNameResponse(status, this);
@@ -95,7 +97,6 @@ class CheckNameResponse {
     for (var element in elements) {
       matches.addAll(canRename._fileResolver.findReferences(element));
     }
-
     FlutterWidgetRename? flutterRename;
     if (canRename._flutterWidgetState != null) {
       var stateWidget = canRename._flutterWidgetState!;

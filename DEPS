@@ -117,7 +117,7 @@ vars = {
   "glob_rev": "a62acf590598f458d3198d9f2930c1c9dd4b1379",
   "html_rev": "00cd3c22dac0e68e6ed9e7e4945101aedb1b3109",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
-  "http_multi_server_rev": "de1b312164c24a1690b46c6e97bd47eff40c4649",
+  "http_multi_server_rev": "34bf7f04b61cce561f47f7f275c2cc811534a05a",
   "http_parser_rev": "202391286ddc13c4c3c284ac5b511f04697250ed",
   "http_rev": "1e42ffa181b263f7790f276a5465832bff7ce615",
   "icu_rev" : "81d656878ec611cb0b42d52c82e9dae93920d9ba",

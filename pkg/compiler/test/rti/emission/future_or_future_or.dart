@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 import 'dart:async';
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: global#Future:checkedInstance*/
 
@@ -19,6 +19,6 @@ class B {}
 test(o) => o is FutureOr<FutureOr<A>>;
 
 main() {
-  Expect.isTrue(test(new A()));
-  Expect.isFalse(test(new B()));
+  makeLive(test(new A()));
+  makeLive(test(new B()));
 }

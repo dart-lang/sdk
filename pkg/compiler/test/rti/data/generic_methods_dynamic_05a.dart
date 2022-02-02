@@ -4,9 +4,9 @@
 
 // @dart = 2.7
 
-// Reduced version of generic_methods_dynamic_05a_strong.
+import 'package:compiler/src/util/testing.dart';
 
-import "package:expect/expect.dart";
+// Reduced version of generic_methods_dynamic_05a_strong.
 
 /*spec.class: A:deps=[C.bar],direct,explicit=[A.T*,A<B*>*,A<bar.T*>*],needsArgs*/
 /*prod.class: A:deps=[C.bar],explicit=[A<B*>*],needsArgs*/
@@ -30,5 +30,5 @@ main() {
   C c = new C();
 
   dynamic x = c.bar<B>(new A<B>(new B()));
-  Expect.isTrue(x is A<B>);
+  makeLive(x is A<B>);
 }

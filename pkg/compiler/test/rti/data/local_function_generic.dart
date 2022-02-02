@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 method1() {
   /*spec.direct,explicit=[local.T*],needsArgs,needsSignature*/
@@ -17,5 +17,5 @@ method1() {
 test(o) => o is S Function<S>(S);
 
 main() {
-  Expect.isTrue(test(method1()));
+  makeLive(test(method1()));
 }

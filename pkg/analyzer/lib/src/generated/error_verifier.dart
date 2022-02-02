@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -534,6 +535,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitConstructorReference(ConstructorReference node) {
     _typeArgumentsVerifier.checkConstructorReference(node);
+    _checkForInvalidGenerativeConstructorReference(node.constructorName);
   }
 
   @override
@@ -842,7 +844,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     DartType type = namedType.typeOrThrow;
     if (type is InterfaceType) {
       _checkForConstOrNewWithAbstractClass(node, namedType, type);
-      _checkForConstOrNewWithEnum(node, namedType, type);
+      _checkForInvalidGenerativeConstructorReference(constructorName);
       _checkForConstOrNewWithMixin(node, namedType, type);
       _requiredParametersVerifier.visitInstanceCreationExpression(node);
       if (node.isConst) {
@@ -2149,21 +2151,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  /// Verify that the given instance creation [expression] is not being invoked
-  /// on an enum. The [namedType] is the [NamedType] of the [ConstructorName] from
-  /// the [InstanceCreationExpression], this is the AST node that the error is
-  /// attached to. The [type] is the type being constructed with this
-  /// [InstanceCreationExpression].
-  ///
-  /// See [CompileTimeErrorCode.INSTANTIATE_ENUM].
-  void _checkForConstOrNewWithEnum(InstanceCreationExpression expression,
-      NamedType namedType, InterfaceType type) {
-    if (type.element.isEnum) {
-      errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INSTANTIATE_ENUM, namedType);
-    }
-  }
-
   /// Verify that the given [expression] is not a mixin instantiation.
   void _checkForConstOrNewWithMixin(InstanceCreationExpression expression,
       NamedType namedType, InterfaceType type) {
@@ -2899,6 +2886,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           initializer,
           [fieldName.name]);
       return;
+    }
+  }
+
+  void _checkForInvalidGenerativeConstructorReference(ConstructorName node) {
+    var constructorElement = node.staticElement;
+    if (constructorElement != null &&
+        constructorElement.isGenerative &&
+        constructorElement.enclosingElement.isEnum) {
+      if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          node,
+        );
+      } else {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INSTANTIATE_ENUM,
+          node.type2,
+        );
+      }
     }
   }
 

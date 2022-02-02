@@ -577,7 +577,7 @@ class ProcessedOptions {
 
     Uri input = inputs.first;
 
-    if (input.scheme == 'packages') {
+    if (input.scheme == 'package') {
       report(
           messageCantInferPackagesFromPackageUri.withLocation(
               input, -1, noLength),

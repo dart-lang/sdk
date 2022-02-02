@@ -15,7 +15,9 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -1759,7 +1761,12 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 }
 
 abstract class CollectionElementImpl extends AstNodeImpl
-    implements CollectionElement {}
+    implements CollectionElement {
+  /// Dispatches this collection element to the [resolver], with the given
+  /// [context] information.
+  void resolveElement(
+      ResolverVisitor resolver, CollectionLiteralContext? context);
+}
 
 /// A combinator associated with an import or export directive.
 ///
@@ -3740,6 +3747,12 @@ abstract class ExpressionImpl extends AstNodeImpl
 
   @override
   ExpressionImpl get unParenthesized => this;
+
+  @override
+  void resolveElement(
+      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    resolver.analyzeExpression(this, context?.elementType);
+  }
 }
 
 /// An expression used as a statement.
@@ -4473,6 +4486,12 @@ class ForElementImpl extends CollectionElementImpl implements ForElement {
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForElement(this);
+
+  @override
+  void resolveElement(
+      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    resolver.visitForElement(this, context: context);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -5822,6 +5841,12 @@ class IfElementImpl extends CollectionElementImpl implements IfElement {
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIfElement(this);
 
   @override
+  void resolveElement(
+      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    resolver.visitIfElement(this, context: context);
+  }
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _condition.accept(visitor);
     _thenElement.accept(visitor);
@@ -7094,6 +7119,12 @@ class MapLiteralEntryImpl extends CollectionElementImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteralEntry(this);
+
+  @override
+  void resolveElement(
+      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    resolver.visitMapLiteralEntry(this, context: context);
+  }
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9539,6 +9570,12 @@ class SpreadElementImpl extends AstNodeImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     return visitor.visitSpreadElement(this);
+  }
+
+  @override
+  void resolveElement(
+      ResolverVisitor resolver, CollectionLiteralContext? context) {
+    resolver.visitSpreadElement(this, context: context);
   }
 
   @override

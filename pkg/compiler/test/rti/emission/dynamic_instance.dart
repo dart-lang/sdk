@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: B:checkedInstance,typeArgument*/
 class B {}
@@ -25,6 +25,6 @@ class D implements B {}
 test(o) => new C().method1<B>(o);
 
 main() {
-  Expect.isTrue(test(new D()));
-  Expect.isFalse(test(null));
+  makeLive(test(new D()));
+  makeLive(test(null));
 }

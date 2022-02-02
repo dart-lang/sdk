@@ -4,10 +4,10 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 // Test that substitutions are emitted for classes that are only used as
 // type arguments.
-
-import 'package:expect/expect.dart';
 
 class K {}
 
@@ -23,5 +23,5 @@ main() {
   var v = new DateTime.now().millisecondsSinceEpoch != 42
       ? new X<B>()
       : new X<A<String>>();
-  Expect.isFalse(v is X<A<String>>);
+  makeLive(v is X<A<String>>);
 }

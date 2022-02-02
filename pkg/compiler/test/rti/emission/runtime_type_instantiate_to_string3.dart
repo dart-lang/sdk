@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 /*class: Class:checks=[],instance*/
 class Class {
   T id<T>(T t) => t;
@@ -11,5 +13,5 @@ class Class {
 
 main() {
   int Function(int) x = new Class().id;
-  print("${x.runtimeType}");
+  makeLive("${x.runtimeType}");
 }

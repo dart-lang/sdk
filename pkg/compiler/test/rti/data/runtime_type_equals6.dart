@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*spec.class: Class1a:explicit=[Class1a*],needsArgs*/
 /*prod.class: Class1a:needsArgs*/
@@ -31,8 +31,8 @@ test(Class1a c, Type type) {
 }
 
 main() {
-  Expect.isTrue(test(new Class1a(), Class1a));
-  Expect.isFalse(test(new Class1b<int>(), Class1a));
-  Expect.isFalse(test(new Class1c<int>(), Class1a));
+  makeLive(test(new Class1a(), Class1a));
+  makeLive(test(new Class1b<int>(), Class1a));
+  makeLive(test(new Class1c<int>(), Class1a));
   new Class2<int>();
 }

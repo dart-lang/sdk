@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -125,6 +126,15 @@ class _ClassVerifier {
 
   void verify() {
     if (_checkDirectSuperTypes()) {
+      return;
+    }
+
+    if (!classElement.isAbstract &&
+        classElement.allSupertypes.any((e) => e.isDartCoreEnum)) {
+      reporter.reportErrorForNode(
+        CompileTimeErrorCode.NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE,
+        classNameNode,
+      );
       return;
     }
 
@@ -332,8 +342,19 @@ class _ClassVerifier {
     }
 
     DartType type = namedType.typeOrThrow;
-    if (type is InterfaceType &&
-        typeProvider.isNonSubtypableClass(type.element)) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+
+    var interfaceElement = type.element;
+
+    if (interfaceElement.isDartCoreEnum &&
+        library.featureSet.isEnabled(Feature.enhanced_enums) &&
+        classElement.isAbstract) {
+      return false;
+    }
+
+    if (typeProvider.isNonSubtypableClass(interfaceElement)) {
       reporter.reportErrorForNode(errorCode, namedType, [type]);
       return true;
     }

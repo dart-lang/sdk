@@ -6,9 +6,9 @@
 
 /*class: global#Type:instance,typeLiteral*/
 
-import "package:expect/expect.dart";
+import "package:compiler/src/util/testing.dart";
 
 void main(bool b) {
-  Expect.isTrue(dynamic is Type);
-  Expect.isFalse(dynamic == (b ? Type : dynamic)); // ?: avoids constant folding
+  makeLive(dynamic is Type);
+  makeLive(dynamic == (b ? Type : dynamic)); // ?: avoids constant folding
 }

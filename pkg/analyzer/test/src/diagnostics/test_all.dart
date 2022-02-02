@@ -341,6 +341,8 @@ import 'invalid_override_different_default_values_positional_test.dart'
 import 'invalid_override_of_non_virtual_member_test.dart'
     as invalid_override_of_non_virtual_member;
 import 'invalid_override_test.dart' as invalid_override;
+import 'invalid_reference_to_generative_enum_constructor_test.dart'
+    as invalid_reference_to_generative_enum_constructor;
 import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
 import 'invalid_required_named_param_test.dart' as invalid_required_named_param;
 import 'invalid_required_optional_positional_param_test.dart'
@@ -465,6 +467,8 @@ import 'no_combined_super_signature_test.dart' as no_combined_super_signature;
 import 'no_default_super_constructor_test.dart' as no_default_super_constructor;
 import 'no_generative_constructors_in_superclass_test.dart'
     as no_generative_constructors_in_superclass;
+import 'non_abstract_class_has_enum_superinterface_test.dart'
+    as non_abstract_class_has_enum_superinterface;
 import 'non_abstract_class_inherits_abstract_member_test.dart'
     as non_abstract_class_inherits_abstract_member;
 import 'non_bool_condition_test.dart' as non_bool_condition;
@@ -974,6 +978,7 @@ main() {
     invalid_override_different_default_values_positional.main();
     invalid_override_of_non_virtual_member.main();
     invalid_override.main();
+    invalid_reference_to_generative_enum_constructor.main();
     invalid_reference_to_this.main();
     invalid_required_named_param.main();
     invalid_required_optional_positional_param.main();
@@ -1051,6 +1056,7 @@ main() {
     no_combined_super_signature.main();
     no_default_super_constructor.main();
     no_generative_constructors_in_superclass.main();
+    non_abstract_class_has_enum_superinterface.main();
     non_abstract_class_inherits_abstract_member.main();
     non_bool_condition.main();
     non_bool_expression.main();

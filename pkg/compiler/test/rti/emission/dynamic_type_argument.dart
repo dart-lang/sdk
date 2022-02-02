@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: A:checkedInstance,checks=[],instance*/
 class A<T> {}
@@ -31,7 +31,7 @@ class E {}
 test(o) => o is A<B>;
 
 main() {
-  Expect.isTrue(test(new C().method1<B>()));
-  Expect.isTrue(test(new C().method1<D>()));
-  Expect.isFalse(test(new C().method1<E>()));
+  makeLive(test(new C().method1<B>()));
+  makeLive(test(new C().method1<D>()));
+  makeLive(test(new C().method1<E>()));
 }

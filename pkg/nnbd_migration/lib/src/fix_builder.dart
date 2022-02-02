@@ -378,17 +378,14 @@ class MigrationResolutionHooksImpl
   @override
   List<ParameterElement> getExecutableParameters(
       ExecutableElementImpl element) {
-    if (_fixBuilder!._graph.isBeingMigrated(element.library.source)) {
-      // The element is part of a library that's being migrated, so its
-      // parameters all have been visited (and thus have their own final
-      // types).  So we don't need to do anything.
-      return const ElementTypeProvider().getExecutableParameters(element);
-    } else {
-      // The element is not part of a library that's being migrated, so its
-      // parameters probably haven't been visited; we need to get the parameters
-      // from the final function type.
-      return getExecutableType(element).parameters;
-    }
+    // Note: even if the element is part of a library that's being migrated,
+    // there's no guarantee that the parameter elements have been appropriately
+    // updated by the migration process, because they might be synthetic
+    // parameters.  (This happens when the code being migrated contains a mixin
+    // application and there's a synthetic constructor).  So we can't safely get
+    // the parameters out of the element.  But it is always safe to defer to
+    // `getExecutableType` and get the parameter list from the function type.
+    return getExecutableType(element).parameters;
   }
 
   @override

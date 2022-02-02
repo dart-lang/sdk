@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
+import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -21,12 +22,13 @@ class ForResolver {
     required ResolverVisitor resolver,
   }) : _resolver = resolver;
 
-  void resolveElement(ForElementImpl node) {
+  void resolveElement(ForElementImpl node, CollectionLiteralContext? context) {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForPartsImpl) {
-      _forParts(node, forLoopParts, node.body);
+      _forParts(node, forLoopParts, node.body, context: context);
     } else if (forLoopParts is ForEachPartsImpl) {
-      _forEachParts(node, node.awaitKeyword != null, forLoopParts, node.body);
+      _forEachParts(node, node.awaitKeyword != null, forLoopParts, node.body,
+          context: context);
     }
   }
 
@@ -67,11 +69,8 @@ class ForResolver {
   }
 
   void _forEachParts(
-    AstNode node,
-    bool isAsync,
-    ForEachParts forEachParts,
-    AstNode body,
-  ) {
+      AstNode node, bool isAsync, ForEachParts forEachParts, AstNode body,
+      {CollectionLiteralContext? context}) {
     Expression iterable = forEachParts.iterable;
     DeclaredIdentifier? loopVariable;
     SimpleIdentifier? identifier;
@@ -140,12 +139,13 @@ class ForResolver {
           elementType ?? DynamicTypeImpl.instance, null);
     }
 
-    body.accept(_resolver);
+    _visitBody(body, context);
 
     _resolver.flowAnalysis.flow?.forEach_end();
   }
 
-  void _forParts(AstNode node, ForParts forParts, AstNode body) {
+  void _forParts(AstNode node, ForParts forParts, AstNode body,
+      {CollectionLiteralContext? context}) {
     if (forParts is ForPartsWithDeclarations) {
       forParts.variables.accept(_resolver);
     } else if (forParts is ForPartsWithExpression) {
@@ -166,11 +166,20 @@ class ForResolver {
     }
 
     _resolver.flowAnalysis.for_bodyBegin(node, condition);
-    body.accept(_resolver);
+    _visitBody(body, context);
 
     _resolver.flowAnalysis.flow?.for_updaterBegin();
     forParts.updaters.accept(_resolver);
 
     _resolver.flowAnalysis.flow?.for_end();
+  }
+
+  void _visitBody(AstNode body, CollectionLiteralContext? context) {
+    if (body is CollectionElementImpl) {
+      body.resolveElement(_resolver, context);
+    } else {
+      assert(body is Statement);
+      body.accept(_resolver);
+    }
   }
 }

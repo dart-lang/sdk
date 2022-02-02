@@ -6,7 +6,7 @@
 
 // From co19/Language/Types/Function_Types/subtype_named_args_t02.
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*spec.class: A:checkedInstance,checkedTypeArgument,typeArgument*/
 /*prod.class: A:checkedTypeArgument,typeArgument*/
@@ -54,56 +54,56 @@ typedef okWithDynamicFunc_1({A x, G y, mixFunc z, var v});
 typedef okWithDynamicFunc_2({int x, bool y, List<Map> z, classesFunc v});
 
 main() {
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({D a, B b, C c, A d}) {} is classesFunc);
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({A a, A b, A c, A d}) {} is classesFunc);
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({D a, A1 b, A1 c, A1 d}) {} is classesFunc);
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({D a, A2 b, A2 c, A2 d}) {} is classesFunc);
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({D a, D b, D c, D d}) {} is classesFunc);
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({var a, var b, var c, var d}) {} is classesFunc);
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({Object a, Object b, Object c, Object d}) {} is classesFunc);
 
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({Map<num, num> m, List<List<A1>> l, G<A, A1, A1, A1> g}) {}
           is genericsFunc);
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({Map<int, int> m, List<List<D>> l, G<D, D, D, D> g}) {} is genericsFunc);
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({var m, var l, var g}) {} is genericsFunc);
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({Object m, Object l, Object g}) {} is genericsFunc);
 
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({A x, G y, mixFunc z, var v}) {} is dynamicFunc);
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       ({int x, bool y, List<Map> z, classesFunc v}) {} is dynamicFunc);
 
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       (
           {okWithClassesFunc_1 f1,
           okWithGenericsFunc_1 f2,
           okWithDynamicFunc_1 f3}) {} is funcFunc);
-  Expect.isTrue(
+  makeLive(
       /*checks=[$signature],instance*/
       (
           {okWithClassesFunc_2 f1,

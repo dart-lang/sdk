@@ -6,7 +6,7 @@
 
 // Derived from tests/web_2/generic_type_error_message_test.
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 /*class: Foo:*/
 class Foo<T extends num> {}
@@ -30,7 +30,7 @@ main() {
 void test(dynamic object, Type type, {bool expectTypeArguments}) {
   bool caught = false;
   try {
-    print(type);
+    makeLive(type);
     object as List<String>;
   } catch (e) {
     String expected = '$type';
@@ -38,10 +38,9 @@ void test(dynamic object, Type type, {bool expectTypeArguments}) {
       expected = expected.substring(0, expected.indexOf('<'));
     }
     expected = "'$expected'";
-    Expect.isTrue(e.toString().contains(expected),
-        'Expected "$expected" in the message: $e');
+    makeLive(e.toString().contains(expected));
     caught = true;
-    print(e);
+    makeLive(e);
   }
-  Expect.isTrue(caught);
+  makeLive(caught);
 }

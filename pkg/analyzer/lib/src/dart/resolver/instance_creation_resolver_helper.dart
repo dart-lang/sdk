@@ -66,7 +66,6 @@ mixin InstanceCreationResolverMixin {
           isConst: isConst, errorNode: errorNode);
 
       if (inferred != null) {
-        InferenceContext.setType(arguments, inferred);
         // Fix up the parameter elements based on inferred method.
         arguments.correspondingStaticParameters =
             ResolverVisitor.resolveArgumentsToParameters(
@@ -90,7 +89,6 @@ mixin InstanceCreationResolverMixin {
       if (constructorElement != null) {
         var type = constructorElement.type;
         type = resolver.toLegacyTypeIfOptOut(type) as FunctionType;
-        InferenceContext.setType(arguments, type);
       }
     }
 

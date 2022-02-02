@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 
 class Class<T> {
   Class();
@@ -20,7 +20,7 @@ main() {
   /*needsSignature*/
   local2(int i, String s) => i;
 
-  Expect.isTrue(local1a.runtimeType == local1b.runtimeType);
-  Expect.isFalse(local1a.runtimeType == local2.runtimeType);
+  makeLive(local1a.runtimeType == local1b.runtimeType);
+  makeLive(local1a.runtimeType == local2.runtimeType);
   new Class();
 }

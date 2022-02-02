@@ -13,7 +13,7 @@ library foo;
 // jsinterop classes implement the same interface.
 /*class: global#LegacyJavaScriptObject:checks=[$isA,$isB,$isB],instance*/
 
-import 'package:expect/expect.dart';
+import 'package:compiler/src/util/testing.dart';
 import 'package:js/js.dart';
 
 /*class: A:checkedInstance,checks=[],instance,onlyForRti*/
@@ -51,11 +51,11 @@ main() {
 }
 
 test(o) {
-  Expect.isTrue(o is A<int>, "Expected $o to be A<int>");
-  Expect.isTrue(o is A<String>, "Expected $o to be A<String>");
+  makeLive(o is A<int>);
+  makeLive(o is A<String>);
 
-  Expect.isTrue(o is B<int>, "Expected $o to be B<int>");
-  Expect.isTrue(o is B<String>, "Expected $o to be B<String>");
+  makeLive(o is B<int>);
+  makeLive(o is B<String>);
 
-  Expect.isFalse(o is D<int>, "Expected $o not to be D<int>");
+  makeLive(o is D<int>);
 }

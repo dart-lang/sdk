@@ -6568,6 +6568,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // instantiated:
   //
   // ```dart
+  // // @dart = 2.16
   // enum E {a}
   //
   // var e = [!E!]();
@@ -6579,6 +6580,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // constants defined in the enum:
   //
   // ```dart
+  // // @dart = 2.16
   // enum E {a}
   //
   // var e = E.a;
@@ -7497,6 +7499,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_OVERRIDE',
     "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
     hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode
+      INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR = CompileTimeErrorCode(
+    'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
+    "Generative enum constructors can only be used as targets of redirection.",
+    correctionMessage: "Try using a factory constructor, or an enum constant.",
   );
 
   /**
@@ -9385,6 +9394,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try using one of the named constructors defined in '{0}'.",
     hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE =
+      CompileTimeErrorCode(
+    'NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE',
+    "Non-abstract classes can't have 'Enum' as a superinterface.",
+    correctionMessage:
+        "Try specifying a different interface, or remove it from the list.",
+    uniqueName: 'NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE',
   );
 
   /**

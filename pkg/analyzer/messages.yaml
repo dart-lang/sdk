@@ -5713,6 +5713,7 @@ CompileTimeErrorCode:
       instantiated:
 
       ```dart
+      // @dart = 2.16
       enum E {a}
 
       var e = [!E!]();
@@ -5724,6 +5725,7 @@ CompileTimeErrorCode:
       constants defined in the enum:
 
       ```dart
+      // @dart = 2.16
       enum E {a}
 
       var e = E.a;
@@ -6504,6 +6506,9 @@ CompileTimeErrorCode:
         void m2(String s) {}
       }
       ```
+  INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
+    problemMessage: Generative enum constructors can only be used as targets of redirection.
+    correctionMessage: Try using a factory constructor, or an enum constant.
   INVALID_REFERENCE_TO_THIS:
     problemMessage: "Invalid reference to 'this' expression."
     hasPublishedDocs: true
@@ -8031,6 +8036,10 @@ CompileTimeErrorCode:
 
       A f() => A();
       ```
+  NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE:
+    sharedName: NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE
+    problemMessage: "Non-abstract classes can't have 'Enum' as a superinterface."
+    correctionMessage: Try specifying a different interface, or remove it from the list.
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
     sharedName: NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
     problemMessage: "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and {4} more."

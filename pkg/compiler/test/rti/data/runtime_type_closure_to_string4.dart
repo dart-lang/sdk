@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 /*class: Class1:*/
 class Class1 {
   /*member: Class1.:*/
@@ -22,6 +24,6 @@ class Class2<T> {
 /*member: main:*/
 main() {
   Class1 cls1 = new Class1();
-  print(cls1.method.runtimeType.toString());
+  makeLive(cls1.method.runtimeType.toString());
   new Class2<int>();
 }

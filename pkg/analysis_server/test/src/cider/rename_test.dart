@@ -51,6 +51,18 @@ class A {
     expect(refactor.refactoringElement.offset, _correctionContext.offset);
   }
 
+  void test_canRename_field_static_private() {
+    var refactor = _compute(r'''
+class A{
+  static const ^_val = 1234;
+}
+''');
+
+    expect(refactor, isNotNull);
+    expect(refactor!.refactoringElement.element.name, '_val');
+    expect(refactor.refactoringElement.offset, _correctionContext.offset);
+  }
+
   void test_canRename_function() {
     var refactor = _compute(r'''
 void ^foo() {
@@ -256,6 +268,42 @@ class TestPageState extends State<TestPage> {
     ]);
   }
 
+  void test_rename_field() {
+    var result = _rename(r'''
+class A{
+  int get ^x => 5;
+}
+
+void foo() {
+  var m = A().x;
+}
+''', 'y');
+
+    expect(result, isNotNull);
+    expect(result!.matches, [
+      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
+          [CharacterLocation(2, 11), CharacterLocation(6, 15)]),
+    ]);
+  }
+
+  void test_rename_field_static_private() {
+    var result = _rename(r'''
+class A{
+  static const ^_val = 1234;
+}
+
+void foo() {
+  print(A._val);
+}
+''', '_newVal');
+
+    expect(result, isNotNull);
+    expect(result!.matches, [
+      CiderSearchMatch(convertPath('/workspace/dart/test/lib/test.dart'),
+          [CharacterLocation(2, 16), CharacterLocation(6, 11)]),
+    ]);
+  }
+
   void test_rename_function() {
     var result = _rename(r'''
 test() {}
@@ -341,7 +389,7 @@ void f() {
     ]);
   }
 
-  void test_typeAlias_functionType() {
+  void test_rename_typeAlias_functionType() {
     var result = _rename(r'''
 typedef ^F = void Function();
 void f(F a) {}

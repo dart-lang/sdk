@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import "package:expect/expect.dart";
+import "package:compiler/src/util/testing.dart";
 
 /*class: I:checkedInstance*/
 class I<T> {}
@@ -30,12 +30,12 @@ class C<T, K> = S<T> with A<T, List<K>> implements J<K>;
 
 @pragma('dart2js:noInline')
 test(c) {
-  Expect.equals("Map<int, List<bool>>", c.t().toString());
-  Expect.isTrue(c is I<List<bool>>);
-  Expect.isTrue(c is J<bool>);
-  Expect.isTrue(c is S<int>);
-  Expect.isTrue(c is A<int, List<bool>>);
-  Expect.isTrue(c is M<Map<int, List<bool>>>);
+  makeLive("Map<int, List<bool>>" == c.t().toString());
+  makeLive(c is I<List<bool>>);
+  makeLive(c is J<bool>);
+  makeLive(c is S<int>);
+  makeLive(c is A<int, List<bool>>);
+  makeLive(c is M<Map<int, List<bool>>>);
 }
 
 main() {

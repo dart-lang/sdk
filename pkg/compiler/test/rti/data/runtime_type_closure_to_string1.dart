@@ -4,6 +4,8 @@
 
 // @dart = 2.7
 
+import 'package:compiler/src/util/testing.dart';
+
 class Class<T> {
   Class();
 }
@@ -15,7 +17,7 @@ main() {
   /*spec.needsSignature*/
   local2(int i, String s) => i;
 
-  print('${local1.runtimeType}');
+  makeLive('${local1.runtimeType}');
   local2(0, '');
   new Class();
 }
