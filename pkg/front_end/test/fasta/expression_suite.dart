@@ -4,8 +4,6 @@
 
 library fasta.test.expression_test;
 
-import "dart:convert" show JsonEncoder;
-
 import "dart:io" show File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
@@ -60,8 +58,6 @@ import '../../lib/src/fasta/kernel/utils.dart'
 
 import '../utils/kernel_chain.dart' show runDiff, openWrite;
 
-const JsonEncoder json = const JsonEncoder.withIndent("  ");
-
 class Context extends ChainContext {
   final CompilerContext compilerContext;
   final List<DiagnosticMessage> errors;
@@ -104,7 +100,7 @@ class CompilationResult {
   String printResult(Uri entryPoint, Context context) {
     StringBuffer buffer = new StringBuffer();
     buffer.write("Errors: {\n");
-    for (var error in errors) {
+    for (DiagnosticMessage error in errors) {
       for (String message in error.plainTextFormatted) {
         for (String line in splitLines(message)) {
           buffer.write("  ");
@@ -219,11 +215,13 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
   @override
   Future<Result<Null>> run(List<TestCase> tests, Context context) async {
     String actual = "";
-    for (var test in tests) {
-      var primary = test.results.first.printResult(test.entryPoint!, context);
+    for (TestCase test in tests) {
+      String primary =
+          test.results.first.printResult(test.entryPoint!, context);
       actual += primary;
       for (int i = 1; i < test.results.length; ++i) {
-        var secondary = test.results[i].printResult(test.entryPoint!, context);
+        String secondary =
+            test.results[i].printResult(test.entryPoint!, context);
         if (primary != secondary) {
           return fail(
               null,
@@ -233,7 +231,7 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
         }
       }
     }
-    var test = tests.first;
+    TestCase test = tests.first;
     Uri testUri = test.description.uri;
     File expectedFile = new File("${testUri.toFilePath()}$suffix");
     if (await expectedFile.exists()) {
@@ -292,9 +290,8 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
 
     final List<TestCase> tests = [];
     for (YamlMap map in maps) {
-      for (var _key in map.keys) {
-        String key = _key;
-        var value = map[key];
+      for (String key in map.keys) {
+        dynamic value = map[key];
 
         if (key == "entry_point") {
           entryPoint = description.uri.resolveUri(Uri.parse(value as String));
@@ -326,7 +323,7 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
           expression = value;
         }
       }
-      var test = new TestCase(
+      TestCase test = new TestCase(
           description,
           entryPoint,
           import,
@@ -340,7 +337,7 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
           className,
           methodName,
           expression);
-      var result = test.validate();
+      String? result = test.validate();
       if (result != null) {
         return new Result.fail(tests, result);
       }
@@ -359,9 +356,9 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
   // Compile [test.expression], update [test.errors] with results.
   // As a side effect - verify that generated procedure can be serialized.
   Future<void> compileExpression(TestCase test, IncrementalCompiler compiler,
-      IncrementalCompilerResult sourceCompilerResult, Context context) async {
+      IncrementalCompilerResult compilerResult, Context context) async {
     Map<String, DartType>? definitions = createDefinitionsWithTypes(
-        sourceCompilerResult.classHierarchy?.knownLibraries,
+        compilerResult.classHierarchy?.knownLibraries,
         test.definitionTypes,
         test.definitions);
 
@@ -372,7 +369,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       }
     }
     List<TypeParameter>? typeParams = createTypeParametersWithBounds(
-        sourceCompilerResult.classHierarchy?.knownLibraries,
+        compilerResult.classHierarchy?.knownLibraries,
         test.typeBounds,
         test.typeDefaults,
         test.typeDefinitions);
@@ -398,7 +395,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
     test.results.add(new CompilationResult(compiledProcedure, errors));
     if (compiledProcedure != null) {
       // Confirm we can serialize generated procedure.
-      sourceCompilerResult.component.computeCanonicalNames();
+      compilerResult.component.computeCanonicalNames();
       List<int> list = serializeProcedure(compiledProcedure);
       assert(list.length > 0);
     }
@@ -407,7 +404,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
   @override
   Future<Result<List<TestCase>>> run(
       List<TestCase> tests, Context context) async {
-    for (var test in tests) {
+    for (TestCase test in tests) {
       context.fileSystem.entityForUri(test.entryPoint!).writeAsBytesSync(
           await new File.fromUri(test.entryPoint!).readAsBytes());
 
@@ -421,7 +418,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       IncrementalCompilerResult sourceCompilerResult =
           await sourceCompiler.computeDelta(entryPoints: [test.entryPoint!]);
       Component component = sourceCompilerResult.component;
-      var errors = context.takeErrors();
+      List<DiagnosticMessage> errors = context.takeErrors();
       if (!errors.isEmpty) {
         return fail(
             tests,
