@@ -6,7 +6,7 @@
 
 namespace dart {
 
-#if defined(DART_PRECOMPILER) || !defined(DART_PRODUCT)
+#if defined(DART_PRECOMPILER) || !defined(PRODUCT)
 
 #define COMMON_CLASSES_AND_FIELDS(F)                                           \
   F(Class, name_)                                                              \

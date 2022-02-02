@@ -19,7 +19,7 @@
 
 namespace dart {
 
-#if defined(DART_PRECOMPILER) || !defined(DART_PRODUCT)
+#if defined(DART_PRECOMPILER) || !defined(PRODUCT)
 
 class OffsetsTable : public ZoneAllocated {
  public:
