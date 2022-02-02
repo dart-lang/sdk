@@ -125,6 +125,11 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   }
 
   @override
+  bool get isDartCoreEnum {
+    return name == 'Enum' && library.isDartCore;
+  }
+
+  @override
   bool get isDartCoreObject => false;
 
   @override
@@ -1472,6 +1477,11 @@ mixin ConstructorElementMixin implements ConstructorElement {
     }
     // OK, can be used as default constructor
     return true;
+  }
+
+  @override
+  bool get isGenerative {
+    return !isFactory;
   }
 }
 
