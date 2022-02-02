@@ -1004,6 +1004,10 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
 
   @override
+  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+      resolver.visitBlockFunctionBody(this, imposedType: imposedType);
+
+  @override
   void visitChildren(AstVisitor visitor) {
     _block.accept(visitor);
   }
@@ -3245,6 +3249,10 @@ class EmptyFunctionBodyImpl extends FunctionBodyImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyFunctionBody(this);
 
   @override
+  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+      resolver.visitEmptyFunctionBody(this, imposedType: imposedType);
+
+  @override
   void visitChildren(AstVisitor visitor) {
     // Empty function bodies have no children.
   }
@@ -3655,6 +3663,10 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitExpressionFunctionBody(this);
+
+  @override
+  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+      resolver.visitExpressionFunctionBody(this, imposedType: imposedType);
 
   @override
   void visitChildren(AstVisitor visitor) {
@@ -4930,6 +4942,12 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
     }
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
   }
+
+  /// Dispatch this function body to the resolver, imposing [imposedType] as the
+  /// return type context for `return` statements.
+  ///
+  /// Return value is the actual return type of the method.
+  DartType resolve(ResolverVisitor resolver, DartType? imposedType);
 }
 
 /// A top-level declaration.
@@ -7864,6 +7882,10 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeFunctionBody(this);
+
+  @override
+  DartType resolve(ResolverVisitor resolver, DartType? imposedType) =>
+      resolver.visitNativeFunctionBody(this, imposedType: imposedType);
 
   @override
   void visitChildren(AstVisitor visitor) {
