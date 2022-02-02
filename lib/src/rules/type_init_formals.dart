@@ -22,6 +22,9 @@ a constructor parameter is using `super.x` to forward to a super constructor,
 then the type of the parameter is understood to be the same as the super
 constructor parameter.
 
+Type annotating an initializing formal with a different type than that of the
+field is OK.
+
 **GOOD:**
 ```dart
 class Point {
