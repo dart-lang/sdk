@@ -837,11 +837,11 @@ String defaultSdkSummaryPath({bool soundNullSafety}) {
 
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 
-/// Returns the absolute path to the default `.packages` file, or `null` if one
-/// could not be found.
+/// Returns the absolute path to the default `package_config.json` file, or
+/// `null` if one could not be found.
 ///
-/// Checks for a `.packages` file in the current working directory, or in any
-/// parent directory.
+/// Checks for a `.dart_tool/package_config.json` file in the current working
+/// directory, or in any parent directory.
 String _findPackagesFilePath() {
   // TODO(jmesserly): this was copied from package:package_config/discovery.dart
   // Unfortunately the relevant function is not public. CFE APIs require a URI
@@ -850,9 +850,9 @@ String _findPackagesFilePath() {
   if (!dir.isAbsolute) dir = dir.absolute;
   if (!dir.existsSync()) return null;
 
-  // Check for $cwd/.packages
+  // Check for $cwd/.dart_tool/package_config.json
   while (true) {
-    var file = File(p.join(dir.path, '.packages'));
+    var file = File.fromUri(dir.uri.resolve('.dart_tool/package_config.json'));
     if (file.existsSync()) return file.path;
 
     // If we didn't find it, search the parent directory.
