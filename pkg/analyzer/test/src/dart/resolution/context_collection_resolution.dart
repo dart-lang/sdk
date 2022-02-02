@@ -212,6 +212,10 @@ abstract class ContextResolutionTest
     );
   }
 
+  /// Override this method to update [analysisOptions] for every context root,
+  /// the default or already updated with `analysis_options.yaml` file.
+  void updateAnalysisOptions(AnalysisOptionsImpl analysisOptions) {}
+
   /// Call this method if the test needs to use the empty byte store, without
   /// any information cached.
   void useEmptyByteStore() {
@@ -241,6 +245,7 @@ abstract class ContextResolutionTest
       resourceProvider: resourceProvider,
       retainDataForTesting: retainDataForTesting,
       sdkPath: sdkRoot.path,
+      updateAnalysisOptions: updateAnalysisOptions,
     );
 
     verifyCreatedCollection();

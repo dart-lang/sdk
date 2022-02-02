@@ -4992,6 +4992,9 @@ CompileTimeErrorCode:
       ```dart
       int f() => 0;
       ```
+  ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
+    problemMessage: The language version must be {0}.
+    correctionMessage: Try removing the language version override and migrating the code.
   ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
     problemMessage: "Functions marked 'sync*' must have a return type that is a supertype of 'Iterable<T>' for some type 'T'."
     correctionMessage: "Try fixing the return type of the function, or removing the modifier 'sync*' from the function body."

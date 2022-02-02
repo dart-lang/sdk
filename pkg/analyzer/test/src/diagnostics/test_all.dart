@@ -241,6 +241,8 @@ import 'if_element_condition_from_deferred_library_test.dart'
 import 'illegal_async_generator_return_type_test.dart'
     as illegal_async_generator_return_type;
 import 'illegal_async_return_type_test.dart' as illegal_async_return_type;
+import 'illegal_language_version_override_test.dart'
+    as illegal_language_version_override;
 import 'illegal_sync_generator_return_type_test.dart'
     as illegal_sync_generator_return_type;
 import 'implements_deferred_class_test.dart' as implements_deferred_class;
@@ -912,6 +914,7 @@ main() {
     if_element_condition_from_deferred_library.main();
     illegal_async_generator_return_type.main();
     illegal_async_return_type.main();
+    illegal_language_version_override.main();
     illegal_sync_generator_return_type.main();
     implements_deferred_class.main();
     implements_disallowed_class.main();

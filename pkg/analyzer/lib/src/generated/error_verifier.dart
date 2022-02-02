@@ -487,6 +487,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _featureSet = node.featureSet;
     _duplicateDefinitionVerifier.checkUnit(node);
     _checkForDeferredPrefixCollisions(node);
+    _checkForIllegalLanguageOverride(node);
     super.visitCompilationUnit(node);
     _featureSet = null;
   }
@@ -2684,6 +2685,29 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND, node);
     }
+  }
+
+  void _checkForIllegalLanguageOverride(CompilationUnit node) {
+    var sourceLanguageConstraint = _options.sourceLanguageConstraint;
+    if (sourceLanguageConstraint == null) {
+      return;
+    }
+
+    var languageVersionToken = node.languageVersionToken;
+    if (languageVersionToken == null) {
+      return;
+    }
+
+    var languageVersion = _currentLibrary.languageVersion.effective;
+    if (sourceLanguageConstraint.allows(languageVersion)) {
+      return;
+    }
+
+    errorReporter.reportErrorForToken(
+      CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE,
+      languageVersionToken,
+      ['$sourceLanguageConstraint'],
+    );
   }
 
   /// Verify that the given implements [clause] does not implement classes such

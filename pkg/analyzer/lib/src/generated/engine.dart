@@ -224,6 +224,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   VersionConstraint? sdkVersionConstraint;
 
+  /// The constraint on the language version for every Dart file.
+  /// Violations will be reported as analysis errors.
+  VersionConstraint? sourceLanguageConstraint;
+
   ExperimentStatus _contextFeatures = ExperimentStatus();
 
   /// The language version to use for libraries that are not in a package.
