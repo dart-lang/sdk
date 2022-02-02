@@ -109,14 +109,14 @@ class ForResolver {
         }
       }
     }
+    InterfaceType? targetType;
     if (valueType != null) {
-      InterfaceType targetType = isAsync
+      targetType = isAsync
           ? _resolver.typeProvider.streamType(valueType)
           : _resolver.typeProvider.iterableType(valueType);
-      InferenceContext.setType(iterable, targetType);
     }
 
-    iterable.accept(_resolver);
+    _resolver.analyzeExpression(iterable, targetType);
     iterable = forEachParts.iterable;
 
     _resolver.nullableDereferenceVerifier.expression(
@@ -161,8 +161,7 @@ class ForResolver {
 
     var condition = forParts.condition;
     if (condition != null) {
-      InferenceContext.setType(condition, _resolver.typeProvider.boolType);
-      condition.accept(_resolver);
+      _resolver.analyzeExpression(condition, _resolver.typeProvider.boolType);
       condition = forParts.condition!;
       var whyNotPromoted =
           _resolver.flowAnalysis.flow?.whyNotPromoted(condition);

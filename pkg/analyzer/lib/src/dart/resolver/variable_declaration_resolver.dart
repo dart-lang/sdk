@@ -49,8 +49,7 @@ class VariableDeclarationResolver {
       _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }
 
-    InferenceContext.setType(initializer, element.type);
-    initializer.accept(_resolver);
+    _resolver.analyzeExpression(initializer, element.type);
     initializer = node.initializer!;
     var whyNotPromoted =
         _resolver.flowAnalysis.flow?.whyNotPromoted(initializer);
