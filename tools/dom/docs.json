@@ -1270,6 +1270,19 @@
           "   * See [EventStreamProvider] for usage information.",
           "   */"
         ],
+        "scrollIntoViewIfNeeded": [
+          "/**",
+          "   * Nonstandard version of `scrollIntoView` that scrolls the current element",
+          "   * into the visible area of the browser window if it's not already within the",
+          "   * visible area of the browser window. If the element is already within the",
+          "   * visible area of the browser window, then no scrolling takes place.",
+          "   *",
+          "   * ## Other resources",
+          "   *",
+          "   * * [Element.scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)",
+          "   *   from MDN.",
+          "   */"
+        ],
         "searchEvent": [
           "/**",
           "   * Static factory designed to expose `search` events to event",
