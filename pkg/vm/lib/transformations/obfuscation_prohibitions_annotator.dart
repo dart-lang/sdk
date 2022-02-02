@@ -6,15 +6,17 @@ library vm.transformations.obfuscation_prohibitions_annotator;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/target/targets.dart' show Target;
 
 import '../metadata/obfuscation_prohibitions.dart';
 import 'pragma.dart';
 
-void transformComponent(Component component, CoreTypes coreTypes) {
+void transformComponent(
+    Component component, CoreTypes coreTypes, Target target) {
   final repo = new ObfuscationProhibitionsMetadataRepository();
   component.addMetadataRepository(repo);
-  final visitor =
-      ObfuscationProhibitionsVisitor(ConstantPragmaAnnotationParser(coreTypes));
+  final visitor = ObfuscationProhibitionsVisitor(
+      ConstantPragmaAnnotationParser(coreTypes, target));
   visitor.visitComponent(component);
   repo.mapping[component] = visitor.metadata;
 }

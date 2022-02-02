@@ -1551,6 +1551,9 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the member
+  NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
+    problemMessage: Generative enum constructors must be 'const'.
+    correctionMessage: Try adding the keyword 'const'.
   NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as keys in a 'const' map literal."
@@ -11371,6 +11374,9 @@ CompileTimeErrorCode:
         B(int x) : assert(x >= 0), super(x);
       }
       ```
+  SUPER_IN_ENUM_CONSTRUCTOR:
+    problemMessage: The enum constructor can't have a 'super' initializer.
+    correctionMessage: Try removing the 'super' invocation.
   SUPER_IN_EXTENSION:
     problemMessage: "The 'super' keyword can't be used in an extension because an extension doesn't have a superclass."
     hasPublishedDocs: true

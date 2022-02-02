@@ -50,7 +50,7 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
       other.forEach((key, value) {
         JS('', '#.set(#, #)', map, key, value);
       });
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 
@@ -64,7 +64,7 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
     int length = JS('!', '#.size', map);
     JS('', '#.set(#, #)', map, key, value);
     if (length != JS<int>('!', '#.size', map)) {
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 
@@ -75,14 +75,14 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
     V value = ifAbsent();
     if (value == null) JS('', '# = null', value);
     JS('', '#.set(#, #)', _map, key, value);
-    _modifications = (_modifications + 1) & 0x3ffffff;
+    _modifications = (_modifications + 1) & 0x3fffffff;
     return value;
   }
 
   V? remove(Object? key) {
     V value = JS('', '#.get(#)', _map, key);
     if (JS<bool>('!', '#.delete(#)', _map, key)) {
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
     return value == null ? null : value; // coerce undefined to null.
   }
@@ -90,7 +90,7 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
   void clear() {
     if (JS<int>('!', '#.size', _map) > 0) {
       JS('', '#.clear()', _map);
-      _modifications = (_modifications + 1) & 0x3ffffff;
+      _modifications = (_modifications + 1) & 0x3fffffff;
     }
   }
 }

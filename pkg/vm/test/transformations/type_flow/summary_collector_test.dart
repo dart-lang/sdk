@@ -74,8 +74,8 @@ class PrintSummaries extends RecursiveVisitor {
         hierarchy,
         new FakeEntryPointsListener(typesBuilder),
         typesBuilder,
-        new NativeCodeOracle(
-            coreTypes.index, new ConstantPragmaAnnotationParser(coreTypes)),
+        new NativeCodeOracle(coreTypes.index,
+            new ConstantPragmaAnnotationParser(coreTypes, target)),
         new GenericInterfacesInfoImpl(coreTypes, hierarchy),
         /*_protobufHandler=*/ null);
   }

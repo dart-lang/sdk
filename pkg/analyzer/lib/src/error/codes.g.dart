@@ -10285,6 +10285,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
+    "Generative enum constructors must be 'const'.",
+    correctionMessage: "Try adding the keyword 'const'.",
+  );
+
   /**
    * 13.2 Expression Statements: It is a compile-time error if a non-constant
    * map literal that has no explicit type arguments appears in a place where a
@@ -13188,6 +13195,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'SUPER_INVOCATION_NOT_LAST',
     "The superconstructor call must be last in an initializer list: '{0}'.",
     hasPublishedDocs: true,
+  );
+
+  static const CompileTimeErrorCode SUPER_IN_ENUM_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'SUPER_IN_ENUM_CONSTRUCTOR',
+    "The enum constructor can't have a 'super' initializer.",
+    correctionMessage: "Try removing the 'super' invocation.",
   );
 
   /**

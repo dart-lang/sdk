@@ -17,13 +17,6 @@
 - `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
   `false`.
 
-#### `dart:io`
-
-- **Breaking Change** [#45410](https://github.com/dart-lang/sdk/issues/45410):
-  `HttpClient` no longer transmits some headers (i.e. `authorization`,
-  `www-authenticate`, `cookie`, `cookie2`) when processing redirects to
-  a different domain.
-
 ### Tools
 
 #### Dart command line
@@ -60,13 +53,16 @@
 
 #### `dart:io`
 
+- **Breaking Change** [#45410](https://github.com/dart-lang/sdk/issues/45410):
+  `HttpClient` no longer transmits some headers (i.e. `authorization`,
+  `www-authenticate`, `cookie`, `cookie2`) when processing redirects to a
+  different domain.
 - **Breaking Change** [#47653](https://github.com/dart-lang/sdk/issues/47653):
-On Windows, `Directory.rename` will no longer delete a directory if
-`newPath` specifies one. Instead, a `FileSystemException` will be thrown.
-
+  On Windows, `Directory.rename` will no longer delete a directory if
+  `newPath` specifies one. Instead, a `FileSystemException` will be thrown.
 - **Breaking Change** [#47769](https://github.com/dart-lang/sdk/issues/47769):
-The `Platform.packageRoot` API has been removed. It had been marked deprecated
-in 2018, as it doesn't work with any Dart 2.x release.
+  The `Platform.packageRoot` API has been removed. It had been marked deprecated
+  in 2018, as it doesn't work with any Dart 2.x release.
 - Add optional `sourcePort` parameter to `Socket.connect`, `Socket.startConnect`, `RawSocket.connect` and `RawSocket.startConnect`
 
 #### `dart:isolate`

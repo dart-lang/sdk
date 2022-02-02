@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/external_name.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'analysis.dart';
@@ -236,7 +235,7 @@ class _Collect extends RecursiveVisitor {
         shaker.typeFlowAnalysis.nativeCodeOracle
             .isMemberReferencedFromNativeCode(member) ||
         shaker.typeFlowAnalysis.nativeCodeOracle.isRecognized(member) ||
-        getExternalName(coreTypes, member) != null ||
+        member.isExternal ||
         member.name.text == '==') {
       info.eligible = false;
     }

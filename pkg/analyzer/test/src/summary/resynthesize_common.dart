@@ -17702,6 +17702,447 @@ library
 ''');
   }
 
+  test_enum_constructor_fieldFormal_functionTyped_withReturnType() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v;
+  final x;
+  const E(int this.x(double a));
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+          final x @22
+            type: dynamic
+        constructors
+          const @33
+            parameters
+              requiredPositional final this.x @44
+                type: int Function(double)
+                parameters
+                  requiredPositional a @53
+                    type: double
+                field: self::@enum::E::@field::x
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+          synthetic get x @-1
+            returnType: dynamic
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_constructor_fieldFormal_multiple_matching_fields() async {
+    var library = await checkLibrary('''
+enum E {
+  v;
+  final int x;
+  final String x;
+  const E(this.x);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+          final x @26
+            type: int
+          final x @44
+            type: String
+        constructors
+          const @55
+            parameters
+              requiredPositional final this.x @62
+                type: int
+                field: self::@enum::E::@field::x
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+          synthetic get x @-1
+            returnType: int
+          synthetic get x @-1
+            returnType: String
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_constructor_fieldFormal_no_matching_field() async {
+    var library = await checkLibrary('''
+enum E {
+  v;
+  const E(this.x);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+        constructors
+          const @22
+            parameters
+              requiredPositional final this.x @29
+                type: dynamic
+                field: <null>
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_constructor_fieldFormal_typed_typed() async {
+    var library = await checkLibrary('''
+enum E {
+  v;
+  final num x;
+  const E(int this.x);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+          final x @26
+            type: num
+        constructors
+          const @37
+            parameters
+              requiredPositional final this.x @48
+                type: int
+                field: self::@enum::E::@field::x
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+          synthetic get x @-1
+            returnType: num
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_constructor_fieldFormal_untyped_typed() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v;
+  final x;
+  E(int this.x);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+          final x @22
+            type: dynamic
+        constructors
+          @27
+            parameters
+              requiredPositional final this.x @38
+                type: int
+                field: self::@enum::E::@field::x
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+          synthetic get x @-1
+            returnType: dynamic
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
+  test_enum_constructor_fieldFormal_untyped_untyped() async {
+    var library = await checkLibrary(r'''
+enum E {
+  v;
+  final x;
+  E(this.x);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    enums
+      enum E @5
+        supertype: Enum
+        fields
+          static const enumConstant v @11
+            type: E
+            constantInitializer
+              InstanceCreationExpression
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                constructorName: ConstructorName
+                  name: SimpleIdentifier
+                    staticElement: self::@enum::E::@constructor::•
+                    staticType: null
+                    token:  @-1
+                  period: . @0
+                  staticElement: self::@enum::E::@constructor::•
+                  type: NamedType
+                    name: SimpleIdentifier
+                      staticElement: self::@enum::E
+                      staticType: null
+                      token: E @-1
+                    type: E
+                staticType: E
+          synthetic static const values @-1
+            type: List<E>
+            constantInitializer
+              ListLiteral
+                elements
+                  SimpleIdentifier
+                    staticElement: self::@enum::E::@getter::v
+                    staticType: E
+                    token: v @-1
+                leftBracket: [ @0
+                rightBracket: ] @0
+                staticType: List<E>
+          synthetic final index @-1
+            type: int
+          final x @22
+            type: dynamic
+        constructors
+          @27
+            parameters
+              requiredPositional final this.x @34
+                type: dynamic
+                field: self::@enum::E::@field::x
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+          synthetic get index @-1
+            returnType: int
+          synthetic get x @-1
+            returnType: dynamic
+        methods
+          synthetic toString @-1
+            returnType: String
+''');
+  }
+
   test_enum_constructor_named() async {
     var library = await checkLibrary(r'''
 enum E {

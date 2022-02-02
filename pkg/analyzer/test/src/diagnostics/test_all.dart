@@ -473,6 +473,8 @@ import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
 import 'non_const_call_to_literal_constructor_test.dart'
     as non_const_call_to_literal_constructor;
+import 'non_const_generative_enum_constructor_test.dart'
+    as non_const_generative_enum_constructor;
 import 'non_const_map_as_expression_statement_test.dart'
     as non_const_map_as_expression_statement;
 import 'non_constant_annotation_constructor_test.dart'
@@ -643,6 +645,7 @@ import 'super_formal_parameter_without_associated_named_test.dart'
     as super_formal_parameter_without_associated_named;
 import 'super_formal_parameter_without_associated_positional_test.dart'
     as super_formal_parameter_without_associated_positional;
+import 'super_in_enum_constructor_test.dart' as super_in_enum_constructor;
 import 'super_in_extension_test.dart' as super_in_extension;
 import 'super_in_invalid_context_test.dart' as super_in_invalid_context;
 import 'super_in_redirecting_constructor_test.dart'
@@ -1054,6 +1057,7 @@ main() {
     non_bool_negation_expression.main();
     non_bool_operand.main();
     non_const_call_to_literal_constructor.main();
+    non_const_generative_enum_constructor.main();
     non_const_map_as_expression_statement.main();
     non_constant_annotation_constructor.main();
     non_constant_list_element.main();
@@ -1166,6 +1170,7 @@ main() {
     super_formal_parameter_type_is_not_subtype_of_associated.main();
     super_formal_parameter_without_associated_named.main();
     super_formal_parameter_without_associated_positional.main();
+    super_in_enum_constructor.main();
     super_in_extension.main();
     super_in_invalid_context.main();
     super_in_redirecting_constructor.main();
