@@ -491,6 +491,25 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     return result;
   }
 
+  List<Class> getAllSupertypeClassesForTesting(Class class_) {
+    List<Class?> allClassesByIndex =
+        new List<Class?>.filled(_infoMap.length, null);
+    for (MapEntry<Class, _ClassInfo> c in _infoMap.entries) {
+      allClassesByIndex[c.value.topologicalIndex] = c.key;
+    }
+
+    List<Class> result = [];
+    Uint32List list = _infoMap[class_]!.supertypeIntervalList;
+    for (int i = 0; i < list.length; i += 2) {
+      int from = list[i];
+      int to = list[i + 1];
+      for (int j = from; j < to; j++) {
+        result.add(allClassesByIndex[j]!);
+      }
+    }
+    return result;
+  }
+
   _ClassInfo infoFor(Class cls) {
     _ClassInfo? info = _infoMap[cls];
     if (info == null) {
