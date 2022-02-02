@@ -33,7 +33,12 @@ final useInProcessDap = Platform.environment['DAP_TEST_INTERNAL'] == 'true';
 /// This is useful for debugging locally or on the bots and will include both
 /// DAP traffic (between the test DAP client and the DAP server) and the VM
 /// Service traffic (wrapped in a custom 'dart.log' event).
-final verboseLogging = Platform.environment['DAP_TEST_VERBOSE'] == 'true';
+///
+/// Verbose logging is temporarily enabled for all test runs to try and
+/// understand failures noted at https://github.com/dart-lang/sdk/issues/48274.
+/// Once resolved, this variable can be set back to the result of:
+///     Platform.environment['DAP_TEST_VERBOSE'] == 'true'
+final verboseLogging = true;
 
 /// A [RegExp] that matches the `path` part of a VM Service URI that contains
 /// an authentication token.
