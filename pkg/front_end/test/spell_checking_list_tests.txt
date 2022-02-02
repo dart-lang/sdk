@@ -188,6 +188,7 @@ descending
 descriptors
 deviation
 dfast
+dfuzz
 di
 diagnosticable
 dictionaries

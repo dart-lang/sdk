@@ -38,7 +38,17 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
 
 import "package:kernel/ast.dart"
-    show Component, DartType, DynamicType, Procedure, TypeParameter;
+    show
+        Class,
+        Component,
+        Constructor,
+        DartType,
+        DynamicType,
+        Field,
+        Library,
+        Member,
+        Procedure,
+        TypeParameter;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 
@@ -65,7 +75,11 @@ class Context extends ChainContext {
   @override
   final List<Step> steps;
 
-  Context(this.compilerContext, this.errors, bool updateExpectations)
+  final bool fuzz;
+  final Set<Uri> fuzzedLibraries = {};
+  int fuzzCompiles = 0;
+
+  Context(this.compilerContext, this.errors, bool updateExpectations, this.fuzz)
       : steps = <Step>[
           const ReadTest(),
           const CompileExpression(),
@@ -399,6 +413,118 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       List<int> list = serializeProcedure(compiledProcedure);
       assert(list.length > 0);
     }
+
+    if (context.fuzz) {
+      await fuzz(compiler, compilerResult, context);
+    }
+  }
+
+  Future<void> fuzz(IncrementalCompiler compiler,
+      IncrementalCompilerResult compilerResult, Context context) async {
+    for (Library lib in compilerResult.classHierarchy!.knownLibraries) {
+      if (!context.fuzzedLibraries.add(lib.importUri)) continue;
+
+      for (Member m in lib.members) {
+        await fuzzMember(m, compiler, lib.importUri, context);
+      }
+
+      for (Class c in lib.classes) {
+        for (Member m in c.members) {
+          await fuzzMember(m, compiler, lib.importUri, context);
+        }
+      }
+    }
+  }
+
+  Future<void> fuzzMember(Member m, IncrementalCompiler compiler,
+      Uri libraryUri, Context context) async {
+    String expression = m.name.text;
+    if (m is Field || (m is Procedure && m.isGetter)) {
+      // fields and getters are fine as-is
+    } else if (m is Procedure && !m.isGetter) {
+      expression = "$expression()";
+    } else if (m is Constructor) {
+      if (m.parent is! Class) {
+        return;
+      }
+      Class parent = m.parent as Class;
+      if (m.name.text != "") {
+        expression = "${parent.name}.${m.name.text}()";
+      } else {
+        expression = "${parent.name}()";
+      }
+    } else {
+      print("Ignoring $m (${m.runtimeType})");
+      return;
+    }
+
+    String? className;
+    if (m.parent is Class && m is! Constructor) {
+      Class parent = m.parent as Class;
+      className = parent.name;
+    }
+
+    await fuzzTryCompile(compiler, "$expression", libraryUri, className,
+        !m.isInstanceMember, context);
+    if (className != null && !m.isInstanceMember) {
+      await fuzzTryCompile(compiler, "$className.$expression", libraryUri, null,
+          !m.isInstanceMember, context);
+    }
+    await fuzzTryCompile(compiler, "$expression.toString()", libraryUri,
+        className, !m.isInstanceMember, context);
+    if (className != null && !m.isInstanceMember) {
+      await fuzzTryCompile(compiler, "$className.$expression.toString()",
+          libraryUri, null, !m.isInstanceMember, context);
+    }
+    await fuzzTryCompile(compiler, "$expression.toString() == '42'", libraryUri,
+        className, !m.isInstanceMember, context);
+    if (className != null && !m.isInstanceMember) {
+      await fuzzTryCompile(
+          compiler,
+          "$className.$expression.toString() == '42'",
+          libraryUri,
+          null,
+          !m.isInstanceMember,
+          context);
+    }
+    await fuzzTryCompile(
+        compiler,
+        "() { var x = $expression.toString(); x == '42'; }()",
+        libraryUri,
+        className,
+        !m.isInstanceMember,
+        context);
+    if (className != null && !m.isInstanceMember) {
+      await fuzzTryCompile(
+          compiler,
+          "() { var x = $className.$expression.toString(); x == '42'; }()",
+          libraryUri,
+          null,
+          !m.isInstanceMember,
+          context);
+    }
+  }
+
+  Future<void> fuzzTryCompile(IncrementalCompiler compiler, String expression,
+      Uri libraryUri, String? className, bool isStatic, Context context) async {
+    context.fuzzCompiles++;
+    print("Fuzz compile #${context.fuzzCompiles} "
+        "('$expression' in $libraryUri $className)");
+    Procedure? compiledProcedure = await compiler.compileExpression(
+      expression,
+      {},
+      [],
+      "debugExpr",
+      libraryUri,
+      className: className,
+      isStatic: isStatic,
+    );
+    context.takeErrors();
+    if (compiledProcedure != null) {
+      // Confirm we can serialize generated procedure.
+      List<int> list = serializeProcedure(compiledProcedure);
+      assert(list.length > 0);
+    }
   }
 
   @override
@@ -430,6 +556,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
           path: test.entryPoint!.path + ".dill");
       Uint8List dillData = await serializeComponent(component);
       context.fileSystem.entityForUri(dillFileUri).writeAsBytesSync(dillData);
+      Set<Uri> beforeFuzzedLibraries = context.fuzzedLibraries.toSet();
       await compileExpression(
           test, sourceCompiler, sourceCompilerResult, context);
 
@@ -444,6 +571,8 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       // Since it compiled successfully from source, the bootstrap-from-Dill
       // should also succeed without errors.
       assert(errors.isEmpty);
+      context.fuzzedLibraries.clear();
+      context.fuzzedLibraries.addAll(beforeFuzzedLibraries);
       await compileExpression(test, dillCompiler, dillCompilerResult, context);
     }
     return new Result.pass(tests);
@@ -492,13 +621,15 @@ Future<Context> createContext(
 
   final bool updateExpectations = environment["updateExpectations"] == "true";
 
+  final bool fuzz = environment["fuzz"] == "true";
+
   final CompilerContext compilerContext = new CompilerContext(options);
 
   // Disable colors to ensure that expectation files are the same across
   // platforms and independent of stdin/stderr.
   colors.enableColors = false;
 
-  return new Context(compilerContext, errors, updateExpectations);
+  return new Context(compilerContext, errors, updateExpectations, fuzz);
 }
 
 void main([List<String> arguments = const []]) =>
