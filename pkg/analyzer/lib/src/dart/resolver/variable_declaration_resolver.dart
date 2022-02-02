@@ -43,13 +43,13 @@ class VariableDeclarationResolver {
     var isTopLevel =
         element is FieldElement || element is TopLevelVariableElement;
 
-    InferenceContext.setTypeFromNode(initializer, node);
     if (isTopLevel) {
       _resolver.flowAnalysis.topLevelDeclaration_enter(node, null);
     } else if (element.isLate) {
       _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
     }
 
+    InferenceContext.setType(initializer, element.type);
     initializer.accept(_resolver);
     initializer = node.initializer!;
     var whyNotPromoted =

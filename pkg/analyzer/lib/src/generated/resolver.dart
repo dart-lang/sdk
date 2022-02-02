@@ -143,7 +143,7 @@ class InferenceContext {
   /// [TypeSystemImpl.lowerBoundForType] if you would prefer a known type
   /// that represents the bound of the context type.
   static DartType? getContext(AstNode? node) {
-    if (node is ArgumentList) {
+    if (node is ArgumentList || node is VariableDeclaration) {
       assert(false, 'Nodes of type ${node.runtimeType} should use context');
     }
     return node?.getProperty(_typeProperty);
@@ -152,7 +152,7 @@ class InferenceContext {
   /// Attach contextual type information [type] to [node] for use during
   /// inference.
   static void setType(AstNode? node, DartType? type) {
-    if (node is ArgumentList) {
+    if (node is ArgumentList || node is VariableDeclaration) {
       assert(false, 'Nodes of type ${node.runtimeType} should use context');
     }
     if (type == null || type.isDynamic) {
@@ -2543,10 +2543,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     flowAnalysis.variableDeclarationList(node);
-    for (VariableDeclaration decl in node.variables) {
-      VariableElement variableElement = decl.declaredElement!;
-      InferenceContext.setType(decl, variableElement.type);
-    }
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitVariableDeclarationList(node);
