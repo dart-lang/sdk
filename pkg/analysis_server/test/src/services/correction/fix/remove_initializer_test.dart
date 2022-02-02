@@ -106,6 +106,25 @@ void f([String? s]) {}
 ''');
   }
 
+  Future<void> test_parameter_super() async {
+    await resolveTestCode('''
+class C {
+  C({String? s});
+}
+class D extends C {
+  D({super.s = null});
+}
+''');
+    await assertHasFix('''
+class C {
+  C({String? s});
+}
+class D extends C {
+  D({super.s});
+}
+''');
+  }
+
   Future<void> test_topLevel() async {
     await resolveTestCode('''
 var x = null;

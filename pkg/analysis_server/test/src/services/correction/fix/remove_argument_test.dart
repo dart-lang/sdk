@@ -107,9 +107,6 @@ void main() {
 ''');
   }
 
-  @FailingTest(
-    issue: 'https://github.com/dart-lang/linter/issues/3082',
-  )
   Future<void> test_named_betweenRequiredPositional() async {
     await resolveTestCode('''
 void foo(int a, int b, {bool c = true}) {}

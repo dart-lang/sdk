@@ -231,7 +231,7 @@ class TypeInitFormalsTest extends RemoveTypeAnnotationTest {
   @override
   String get lintCode => LintNames.type_init_formals;
 
-  Future<void> test_void() async {
+  Future<void> test_formalFieldParameter() async {
     await resolveTestCode('''
 class C {
   int f;
@@ -242,6 +242,25 @@ class C {
 class C {
   int f;
   C(this.f);
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3210')
+  Future<void> test_superParameter() async {
+    // If this issue gets closed as "won't fix," remove this test.
+    await resolveTestCode('''
+class C {
+  C(int f);
+}
+class D extends C {
+  D(int super.f);
+}
+''');
+    await assertHasFix('''
+class C {
+  int f;
+  C(super.f);
 }
 ''');
   }

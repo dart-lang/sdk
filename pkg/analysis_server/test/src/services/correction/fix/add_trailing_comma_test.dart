@@ -72,7 +72,22 @@ class AddTrailingCommaTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.require_trailing_commas;
 
-  Future<void> test_comma() async {
+  Future<void> test_named() async {
+    await resolveTestCode('''
+void f({a, b}) {
+  f(a: 'a',
+    b: 'b');
+}
+''');
+    await assertHasFix('''
+void f({a, b}) {
+  f(a: 'a',
+    b: 'b',);
+}
+''');
+  }
+
+  Future<void> test_positional() async {
     await resolveTestCode('''
 void f(a, b) {
   f('a',

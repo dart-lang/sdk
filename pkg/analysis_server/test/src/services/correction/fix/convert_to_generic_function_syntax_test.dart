@@ -114,13 +114,28 @@ g(String Function(int Function() h) f) {}
 }
 
 @reflectiveTest
-class UseFunctionTypeSyntaxForParametersTest extends FixProcessorLintTest
-    with WithNullSafetyLintMixin {
+class UseFunctionTypeSyntaxForParametersTest extends FixProcessorLintTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
 
   @override
   String get lintCode => LintNames.use_function_type_syntax_for_parameters;
+
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3212')
+  Future<void> test_functionTypedParameter_fieldFormal() async {
+    await resolveTestCode('''
+class C {
+  String Function(int) f;
+  C(String this.f(int x));
+}
+''');
+    await assertHasFix('''
+class C {
+  String Function(int) f;
+  C(String Function(int x) this.f);
+}
+''');
+  }
 
   Future<void> test_functionTypedParameter_noParameterTypes() async {
     await resolveTestCode('''
@@ -153,6 +168,26 @@ g(String f(int x)) {}
 ''');
     await assertHasFix('''
 g(String Function(int x) f) {}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3212')
+  Future<void> test_functionTypedParameter_superParameter() async {
+    await resolveTestCode('''
+class C {
+  C(String Function(int x) f);
+}
+class D extends C {
+  D(String super.f(int x));
+}
+''');
+    await assertHasFix('''
+class C {
+  C(String Function(int x) f);
+}
+class D extends C {
+  D(String Function(int x) super.f);
+}
 ''');
   }
 }

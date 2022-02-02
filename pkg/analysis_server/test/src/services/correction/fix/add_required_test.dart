@@ -81,6 +81,25 @@ void function({required String param}) {}
 ''');
   }
 
+  Future<void> test_nonNullable_superParameter() async {
+    await resolveTestCode('''
+class C {
+  C({required int param});
+}
+class D extends C {
+  D({super.param});
+}
+''');
+    await assertHasFix('''
+class C {
+  C({required int param});
+}
+class D extends C {
+  D({required super.param});
+}
+''');
+  }
+
   Future<void> test_withRequiredAnnotation() async {
     writeTestPackageConfig(meta: true);
 

@@ -55,4 +55,23 @@ void f({int a: 1}) => null;
 void f({int a = 1}) => null;
 ''');
   }
+
+  Future<void> test_superParameter() async {
+    await resolveTestCode('''
+class C {
+  C({int? i});
+}
+class D extends C {
+  D({int? super.i: 1});
+}
+''');
+    await assertHasFix('''
+class C {
+  C({int? i});
+}
+class D extends C {
+  D({int? super.i = 1});
+}
+''');
+  }
 }

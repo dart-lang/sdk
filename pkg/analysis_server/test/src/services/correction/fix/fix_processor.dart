@@ -236,6 +236,7 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   void setUp() {
     super.setUp();
     createAnalysisOptionsFile(
+      experiments: experiments,
       lints: [lintCode],
     );
   }
