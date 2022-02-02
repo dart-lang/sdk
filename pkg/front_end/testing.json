@@ -319,7 +319,8 @@
       "pattern": [
         "_fe_analyzer_shared/lib/.*\\.dart$",
         "front_end/lib/.*\\.dart$",
-        "kernel/lib/.*\\.dart$"
+        "kernel/lib/.*\\.dart$",
+        "kernel/bin/.*\\.dart$"
       ],
       "exclude": [
         "kernel/lib/vm/.*\\.dart$",

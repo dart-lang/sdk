@@ -196,7 +196,6 @@ dictionary
 differentiate
 dijkstra
 dijkstras
-dillfile
 dinteractive
 dirname
 disagree

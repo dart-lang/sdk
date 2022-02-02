@@ -83,21 +83,22 @@ void main(List<String> args) {
     for (String className in agreeingClasses) {
       Class c1 = libClass1[className]!;
       Class c2 = libClass2[className]!;
-      Set<Classish> c1Supertypes = createClassishSet(
+      Set<ClassReference> c1Supertypes = createClassReferenceSet(
           ch1.getAllSupertypeClassesForTesting(c1),
           onlyPublic: true,
           ignoresMap: ignoresMap);
-      Set<Classish> c2Supertypes = createClassishSet(
+      Set<ClassReference> c2Supertypes = createClassReferenceSet(
           ch2.getAllSupertypeClassesForTesting(c2),
           onlyPublic: true,
           ignoresMap: ignoresMap);
-      Set<Classish> missing = new Set<Classish>.from(c1Supertypes)
+      Set<ClassReference> missing = new Set<ClassReference>.from(c1Supertypes)
         ..removeAll(c2Supertypes);
       if (missing.isNotEmpty) {
         print("$c1 in $lib1 from (1) has these extra supertypes: "
             "${missing.toList()}");
       }
-      missing = new Set<Classish>.from(c2Supertypes)..removeAll(c1Supertypes);
+      missing = new Set<ClassReference>.from(c2Supertypes)
+        ..removeAll(c1Supertypes);
       if (missing.isNotEmpty) {
         print("$c2 in $lib2 from (2) has these extra supertypes: "
             "${missing.toList()}");
@@ -125,23 +126,23 @@ Map<String, Class> createPublicClassMap(Library lib,
   return map;
 }
 
-Set<Classish> createClassishSet(List<Class> classes,
+Set<ClassReference> createClassReferenceSet(List<Class> classes,
     {required bool onlyPublic, required Map<Uri, Set<String>> ignoresMap}) {
-  Set<Classish> result = {};
+  Set<ClassReference> result = {};
   for (Class c in classes) {
     if (onlyPublic && c.name.startsWith("_")) continue;
     Set<String>? ignored = ignoresMap[c.enclosingLibrary.importUri];
     if (ignored?.contains(c.name) ?? false) continue;
-    result.add(new Classish(c.name, c.enclosingLibrary.importUri));
+    result.add(new ClassReference(c.name, c.enclosingLibrary.importUri));
   }
   return result;
 }
 
-class Classish {
+class ClassReference {
   final String name;
   final Uri libImportUri;
 
-  const Classish(this.name, this.libImportUri);
+  const ClassReference(this.name, this.libImportUri);
 
   @override
   int get hashCode => name.hashCode * 13 + libImportUri.hashCode * 17;
@@ -149,7 +150,7 @@ class Classish {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! Classish) return false;
+    if (other is! ClassReference) return false;
     if (name != other.name) return false;
     if (libImportUri != other.libImportUri) return false;
     return true;
