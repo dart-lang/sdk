@@ -1047,39 +1047,6 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-//    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
-//    _state[kSTATE_LO] = state & _MASK_32;
-//    _state[kSTATE_HI] = state >> 32;
-void AsmIntrinsifier::Random_nextState(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  const Field& state_field = LookupMathRandomStateFieldOffset();
-  const int64_t a_int_value = AsmIntrinsifier::kRandomAValue;
-
-  // Receiver.
-  __ movq(RAX, Address(RSP, +1 * target::kWordSize));
-  // Field '_state'.
-  __ LoadCompressed(RBX,
-                    FieldAddress(RAX, LookupFieldOffsetInBytes(state_field)));
-  // Addresses of _state[0] and _state[1].
-  const intptr_t scale =
-      target::Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
-  const intptr_t offset =
-      target::Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
-  Address addr_0 = FieldAddress(RBX, 0 * scale + offset);
-  Address addr_1 = FieldAddress(RBX, 1 * scale + offset);
-  __ movq(RAX, Immediate(a_int_value));
-  __ movl(RCX, addr_0);
-  __ imulq(RCX, RAX);
-  __ movl(RDX, addr_1);
-  __ addq(RDX, RCX);
-  __ movl(addr_0, RDX);
-  __ shrq(RDX, Immediate(32));
-  __ movl(addr_1, RDX);
-  ASSERT(target::ToRawSmi(0) == 0);
-  __ xorq(RAX, RAX);
-  __ ret();
-}
-
 // Identity comparison.
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {

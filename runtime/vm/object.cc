@@ -14469,10 +14469,6 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
   DEVELOPER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
 
-  all_libs.Clear();
-  all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS_ASM_INTRINSIC);
-
 #undef CHECK_FINGERPRINTS_INNER
 #undef CHECK_FINGERPRINTS
 #undef CHECK_FINGERPRINTS_ASM_INTRINSIC

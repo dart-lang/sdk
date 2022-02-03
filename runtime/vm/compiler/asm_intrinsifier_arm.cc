@@ -1024,42 +1024,6 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-//    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
-//    _state[kSTATE_LO] = state & _MASK_32;
-//    _state[kSTATE_HI] = state >> 32;
-void AsmIntrinsifier::Random_nextState(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  const Field& state_field = LookupMathRandomStateFieldOffset();
-  const int64_t a_int_value = AsmIntrinsifier::kRandomAValue;
-
-  // 'a_int_value' is a mask.
-  ASSERT(Utils::IsUint(32, a_int_value));
-  int32_t a_int32_value = static_cast<int32_t>(a_int_value);
-
-  // Receiver.
-  __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  // Field '_state'.
-  __ ldr(R1, FieldAddress(R0, target::Field::OffsetOf(state_field)));
-  // Addresses of _state[0] and _state[1].
-
-  const int64_t disp_0 =
-      target::Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
-  const int64_t disp_1 =
-      disp_0 + target::Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
-
-  __ LoadImmediate(R0, a_int32_value);
-  __ LoadFieldFromOffset(R2, R1, disp_0);
-  __ LoadFieldFromOffset(R3, R1, disp_1);
-  __ mov(R8, Operand(0));  // Zero extend unsigned _state[kSTATE_HI].
-  // Unsigned 32-bit multiply and 64-bit accumulate into R8:R3.
-  __ umlal(R3, R8, R0, R2);  // R8:R3 <- R8:R3 + R0 * R2.
-  __ StoreFieldToOffset(R3, R1, disp_0);
-  __ StoreFieldToOffset(R8, R1, disp_1);
-  ASSERT(target::ToRawSmi(0) == 0);
-  __ eor(R0, R0, Operand(R0));
-  __ Ret();
-}
-
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
