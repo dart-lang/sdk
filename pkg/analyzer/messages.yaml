@@ -8043,7 +8043,6 @@ CompileTimeErrorCode:
       A f() => A();
       ```
   NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE:
-    sharedName: NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE
     problemMessage: "Non-abstract classes can't have 'Enum' as a superinterface."
     correctionMessage: Try specifying a different interface, or remove it from the list.
   NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
