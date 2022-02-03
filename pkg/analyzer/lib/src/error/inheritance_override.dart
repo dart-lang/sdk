@@ -61,6 +61,18 @@ class InheritanceOverrideVerifier {
           superclass: declaration.superclass2,
           withClause: declaration.withClause,
         ).verify();
+      } else if (declaration is EnumDeclaration) {
+        _ClassVerifier(
+          typeSystem: _typeSystem,
+          typeProvider: _typeProvider,
+          inheritance: _inheritance,
+          reporter: _reporter,
+          featureSet: unit.featureSet,
+          library: library,
+          classNameNode: declaration.name,
+          implementsClause: declaration.implementsClause,
+          withClause: declaration.withClause,
+        ).verify();
       } else if (declaration is MixinDeclaration) {
         _ClassVerifier(
           typeSystem: _typeSystem,
@@ -94,7 +106,7 @@ class _ClassVerifier {
   final FeatureSet featureSet;
   final LibraryElementImpl library;
   final Uri libraryUri;
-  final ClassElementImpl classElement;
+  final AbstractClassElementImpl classElement;
 
   final SimpleIdentifier classNameNode;
   final List<ClassMember> members;
@@ -119,7 +131,7 @@ class _ClassVerifier {
     this.superclass,
     this.withClause,
   })  : libraryUri = library.source.uri,
-        classElement = classNameNode.staticElement as ClassElementImpl;
+        classElement = classNameNode.staticElement as AbstractClassElementImpl;
 
   bool get _isNonNullableByDefault => typeSystem.isNonNullableByDefault;
 
@@ -128,7 +140,8 @@ class _ClassVerifier {
       return;
     }
 
-    if (!classElement.isAbstract &&
+    if (!classElement.isEnum &&
+        !classElement.isAbstract &&
         classElement.allSupertypes.any((e) => e.isDartCoreEnum)) {
       reporter.reportErrorForNode(
         CompileTimeErrorCode.NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE,
@@ -402,9 +415,34 @@ class _ClassVerifier {
         )) {
           hasError = true;
         }
+        if (classElement.isEnum && _checkEnumMixin(namedType)) {
+          hasError = true;
+        }
       }
     }
     return hasError;
+  }
+
+  bool _checkEnumMixin(NamedType namedType) {
+    DartType type = namedType.typeOrThrow;
+    if (type is! InterfaceType) {
+      return false;
+    }
+
+    var interfaceElement = type.element;
+    if (interfaceElement.isEnum) {
+      return false;
+    }
+
+    if (interfaceElement.fields.every((e) => e.isStatic || e.isSynthetic)) {
+      return false;
+    }
+
+    reporter.reportErrorForNode(
+      CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE,
+      namedType,
+    );
+    return true;
   }
 
   void _checkForOptionalParametersDifferentDefaultValues(

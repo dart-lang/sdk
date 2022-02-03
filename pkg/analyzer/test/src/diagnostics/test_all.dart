@@ -147,6 +147,8 @@ import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'enum_constant_same_name_as_enclosing_test.dart'
     as enum_constant_same_name_as_enclosing;
+import 'enum_mixin_with_instance_variable_test.dart'
+    as enum_mixin_with_instance_variable;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
@@ -854,6 +856,7 @@ main() {
     duplicate_part.main();
     duplicate_shown_name.main();
     enum_constant_same_name_as_enclosing.main();
+    enum_mixin_with_instance_variable.main();
     equal_elements_in_const_set.main();
     equal_elements_in_set.main();
     equal_keys_in_const_map.main();

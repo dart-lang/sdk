@@ -163,4 +163,14 @@ class C = A with String, num;
       error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 36, 3),
     ]);
   }
+
+  test_enum_int() async {
+    await assertErrorsInCode('''
+enum E with int {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 12, 3),
+    ]);
+  }
 }

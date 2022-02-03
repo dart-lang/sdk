@@ -3636,6 +3636,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try renaming the constant.",
   );
 
+  static const CompileTimeErrorCode ENUM_MIXIN_WITH_INSTANCE_VARIABLE =
+      CompileTimeErrorCode(
+    'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
+    "Mixins applied to enums can't have instance variables.",
+    correctionMessage: "Try replacing the instance variables with getters.",
+  );
+
   /**
    * No parameters.
    */
