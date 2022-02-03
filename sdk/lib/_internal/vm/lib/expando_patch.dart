@@ -178,7 +178,9 @@ class _WeakReferenceImpl<T extends Object> implements WeakReference<T> {
   // instead of reusing WeakProperty.
   final _WeakProperty _weakProperty;
 
-  _WeakReferenceImpl(T object) : _weakProperty = _WeakProperty()..key = object;
+  _WeakReferenceImpl(T object) : _weakProperty = _WeakProperty()..key = object {
+    Expando._checkType(object);
+  }
 
   T? get target => unsafeCast<T?>(_weakProperty.key);
 }
