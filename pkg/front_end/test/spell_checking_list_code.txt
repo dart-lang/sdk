@@ -901,6 +901,7 @@ precompilation
 precompilations
 precompile
 precompiled
+precompiling
 preexisted
 preexisting
 prefixing

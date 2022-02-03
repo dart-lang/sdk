@@ -391,13 +391,38 @@ class KernelTarget extends TargetImplementation {
     builder.mixedInTypeBuilder = null;
   }
 
-  Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
-    if (loader.first == null) return new BuildResult();
-    return withCrashReporting<BuildResult>(() async {
+  bool _hasComputedNeededPrecompilations = false;
+
+  Future<NeededPrecompilations?> computeNeededPrecompilations() async {
+    assert(!_hasComputedNeededPrecompilations,
+        "Needed precompilations have already been computed.");
+    _hasComputedNeededPrecompilations = true;
+    if (loader.first == null) return null;
+    return withCrashReporting<NeededPrecompilations?>(() async {
       await loader.buildOutlines();
       loader.coreLibrary.becomeCoreLibrary();
       loader.resolveParts();
-      loader.computeMacroDeclarations();
+      return loader.computeMacroDeclarations();
+    }, () => loader.currentUriForCrashReporting);
+  }
+
+  Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
+    if (loader.first == null) return new BuildResult();
+    return withCrashReporting<BuildResult>(() async {
+      if (!_hasComputedNeededPrecompilations) {
+        NeededPrecompilations? neededPrecompilations =
+            await computeNeededPrecompilations();
+        // To support macros, the needed macro libraries must be compiled be
+        // they are applied. Any supporting pipeline must therefore call
+        // [computeNeededPrecompilations] before calling [buildOutlines] in
+        // order to perform any need compilation in advance.
+        //
+        // If [neededPrecompilations] is non-null here, it means that macro
+        // compilation was needed but not performed.
+        if (neededPrecompilations != null) {
+          throw new UnsupportedError('Macro precompilation is not supported.');
+        }
+      }
       loader.computeLibraryScopes();
       MacroApplications? macroApplications =
           await loader.computeMacroApplications();
@@ -1587,7 +1612,9 @@ class KernelDiagnosticReporter
 
 class BuildResult {
   final Component? component;
+  final NeededPrecompilations? neededPrecompilations;
   final MacroApplications? macroApplications;
 
-  BuildResult({this.component, this.macroApplications});
+  BuildResult(
+      {this.component, this.macroApplications, this.neededPrecompilations});
 }

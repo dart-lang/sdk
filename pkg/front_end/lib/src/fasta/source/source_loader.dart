@@ -1358,10 +1358,8 @@ severity: $severity
   /// Computes which macro declarations that needs to be precompiled in order
   /// to support macro application during compilation.
   ///
-  /// If no macros need precompilation, `null` is returned. Otherwise a map
-  /// from library uris to macro class names and the names of constructor their
-  /// constructors is returned.
-  Map<Uri, Map<String, List<String>>>? computeMacroDeclarations() {
+  /// If no macros need precompilation, `null` is returned.
+  NeededPrecompilations? computeMacroDeclarations() {
     if (!enableMacros) return null;
 
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
@@ -1526,7 +1524,7 @@ severity: $severity
           // be more layers but we'll compute these at the next attempt at
           // compilation, when this layer has been precompiled.
           // TODO(johnniwinther): Use this to trigger a precompile step.
-          return neededPrecompilations;
+          return new NeededPrecompilations(neededPrecompilations);
         }
       }
     }

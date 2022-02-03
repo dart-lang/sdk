@@ -98,6 +98,16 @@ class ClassMacroApplicationData {
   Map<MemberBuilder, List<MacroApplication>> memberApplications = {};
 }
 
+/// Macro classes that need to be precompiled.
+class NeededPrecompilations {
+  /// Map from library uris to macro class names and the names of constructor
+  /// their constructors is returned for macro classes that need to be
+  /// precompiled.
+  final Map<Uri, Map<String, List<String>>> macroDeclarations;
+
+  NeededPrecompilations(this.macroDeclarations);
+}
+
 class MacroApplications {
   final macro.MacroExecutor _macroExecutor;
   final Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData;
