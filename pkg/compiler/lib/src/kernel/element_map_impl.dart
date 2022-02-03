@@ -56,7 +56,6 @@ import 'env.dart';
 import 'kelements.dart';
 import 'kernel_impact.dart';
 
-part 'native_basic_data.dart';
 part 'no_such_method_resolver.dart';
 
 /// Implementation of [KernelToElementMap] that only supports world
