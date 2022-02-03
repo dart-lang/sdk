@@ -15,7 +15,7 @@ var _issuedPostEventWarning = false;
 var _issuedRegisterExtensionWarning = false;
 final _developerSupportWarning = 'from dart:developer is only supported in '
     'build/run/test environments where the developer event method hooks have '
-    'been set.';
+    'been set by package:dwds v11.1.0 or higher.';
 
 /// Returns `true` if the debugger service has been attached to the app.
 // TODO(46377) Update this check when we have a documented API for DDC apps.
@@ -85,8 +85,7 @@ _registerExtension(String method, ServiceExtensionHandler handler) {
     JS('', r'#.$emitRegisterEvent(#)', dart.global_, method);
     return;
   }
-  // TODO(nshahan) Remove use of debug log after package:dwds removes support.
-  // https://github.com/dart-lang/webdev/issues/1342
+  // TODO(48103) Remove use of debug log in Dart 3.0.0.
   JS('', 'console.debug("dart.developer.registerExtension", #)', method);
 }
 
@@ -134,8 +133,7 @@ void _postEvent(String eventKind, String eventData) {
     JS('', r'#.$emitDebugEvent(#, #)', dart.global_, eventKind, eventData);
     return;
   }
-  // TODO(nshahan) Remove use of debug log after package:dwds removes support.
-  // https://github.com/dart-lang/webdev/issues/1342
+  // TODO(48103) Remove use of debug log in Dart 3.0.0.
   JS('', 'console.debug("dart.developer.postEvent", #, #)', eventKind,
       eventData);
 }
