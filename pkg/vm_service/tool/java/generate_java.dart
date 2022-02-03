@@ -265,7 +265,8 @@ class Api extends Member with ApiParseUtil {
       Node node = nodes[i];
 
       if (isPre(node) && h3Name != null) {
-        String definition = textForCode(node);
+        String definition = textForCode(node)
+            .replaceAll('(string|Null)', 'string'); // this is terrible.
         String? docs;
 
         if (i + 1 < nodes.length && isPara(nodes[i + 1])) {
