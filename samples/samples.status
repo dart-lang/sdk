@@ -20,7 +20,7 @@ sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # I
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
 ffi/*: SkipByDesign # FFI skips, see ffi.status
 
 [ $arch != x64 || $compiler != dartk || $system != linux || $hot_reload || $hot_reload_rollback ]

@@ -49,7 +49,7 @@ integer_arith_vm_test: SkipByDesign # Is a VM optimization test that requires in
 iterable_return_type_int64_test: SkipByDesign # Requires int64 support.
 typed_data_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 support.
 
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
 bigint_parse_radix_test: Skip # Issue 31659
 bigint_test: Skip # Issue 31659
 
