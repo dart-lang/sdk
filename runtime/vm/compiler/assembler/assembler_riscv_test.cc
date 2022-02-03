@@ -1102,6 +1102,8 @@ ASSEMBLER_TEST_RUN(StoreWord_Neg, test) {
 
 #if XLEN >= 64
 ASSEMBLER_TEST_GENERATE(LoadWordUnsigned_0, assembler) {
+  FLAG_use_compressed_instructions = false;
+  __ SetExtensions(RV_G);
   __ lwu(A0, Address(A0, 0));
   __ ret();
 }
