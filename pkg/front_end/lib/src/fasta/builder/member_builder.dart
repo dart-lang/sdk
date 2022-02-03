@@ -80,6 +80,9 @@ abstract class MemberBuilder implements ModifierBuilder {
   /// This is normally the member itself, if a setter, but for instance
   /// lowered late fields this can be synthesized setters.
   List<ClassMember> get localSetters;
+
+  /// The builder for the enclosing class, if any.
+  ClassBuilder? get classBuilder;
 }
 
 abstract class MemberBuilderImpl extends ModifierBuilderImpl
@@ -100,7 +103,7 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
       : this.fileUri = (fileUri ?? parent?.fileUri)!,
         super(parent, charOffset);
 
-  /// The builder for the enclosing class, if any.
+  @override
   ClassBuilder? get classBuilder =>
       parent is ClassBuilder ? parent as ClassBuilder : null;
 
