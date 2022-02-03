@@ -214,6 +214,11 @@ extension CompletionSuggestionExtension
     element.isNotNull.kind.isMethod;
   }
 
+  void get isNamedArgument {
+    kind.isNamedArgument;
+    element.isNull;
+  }
+
   @useResult
   CheckTarget<bool?> get isNotImported {
     return nest(
@@ -332,6 +337,10 @@ extension CompletionSuggestionKindExtension
 
   void get isInvocation {
     isEqualTo(CompletionSuggestionKind.INVOCATION);
+  }
+
+  void get isNamedArgument {
+    isEqualTo(CompletionSuggestionKind.NAMED_ARGUMENT);
   }
 }
 
