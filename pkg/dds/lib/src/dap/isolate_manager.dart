@@ -445,11 +445,11 @@ class IsolateManager {
     } else if (eventKind == vm.EventKind.kPauseStart) {
       // Don't resume from a PauseStart if this has already happened (see
       // comments on [thread.hasBeenStarted]).
-      if (!thread.hasBeenStarted) {
+      if (!thread.startupHandled) {
+        thread.startupHandled = true;
         // If requested, automatically resume. Otherwise send a Stopped event to
         // inform the client UI the thread is paused.
         if (resumeIfStarting) {
-          thread.hasBeenStarted = true;
           await resumeThread(thread.threadId);
         } else {
           sendStoppedOnEntryEvent(thread.threadId);
@@ -730,7 +730,11 @@ class ThreadInfo {
   int? exceptionReference;
   var paused = false;
 
-  /// Tracks whether an isolate has been started from its PauseStart state.
+  /// Tracks whether an isolates startup routine has been handled.
+  ///
+  /// The startup routine will either automatically resume the isolate or send
+  /// a stopped-on-entry event, depending on whether we're launching or
+  /// attaching.
   ///
   /// This is used to prevent trying to resume a thread twice if a PauseStart
   /// event arrives around the same time that are our initialization code (which
@@ -739,7 +743,12 @@ class ThreadInfo {
   ///
   /// If we send a duplicate resume, it could trigger an unwanted resume for a
   /// breakpoint or exception that occur early on.
-  bool hasBeenStarted = false;
+  ///
+  /// In the case of attach, a similar race exists.. The initialization may
+  /// choose not to resume the isolate (so we can attach to a VM with paused
+  /// isolates) but then a PauseStart event that arrived during initialization
+  /// could trigger a resume that we don't want.
+  bool startupHandled = false;
 
   /// The most recent pauseEvent for this isolate.
   vm.Event? pauseEvent;
