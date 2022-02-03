@@ -47,6 +47,7 @@ import '../util/enumset.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'loader.dart';
+import 'native_basic_data.dart';
 
 /// Front end strategy that loads '.dill' files and builds a resolved element
 /// model from kernel IR nodes.

@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:expect/expect.dart';
 
 void main() {
+  testWeakReferenceNonExpandoKey();
   testWeakReference();
 }
 
@@ -20,6 +21,12 @@ class Nonce {
   Nonce(this.value);
 
   String toString() => 'Nonce($value)';
+}
+
+void testWeakReferenceNonExpandoKey() {
+  Expect.throwsArgumentError(() {
+    WeakReference<String>("Hello world!");
+  });
 }
 
 void testWeakReference() async {

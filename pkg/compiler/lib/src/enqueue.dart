@@ -76,48 +76,6 @@ class EnqueueTask extends CompilerTask {
   }
 }
 
-abstract class Enqueuer {
-  /// If `true` the checking for unenqueued members is skipped. The current
-  /// implementation registers parameter usages as a side-effect so unit
-  /// testing of member usage we need to test both with and without the
-  /// enqueuer check.
-  // TODO(johnniwinther): [checkEnqueuerConsistency] should not have
-  // side-effects.
-  static bool skipEnqueuerCheckForTesting = false;
-
-  WorldBuilder get worldBuilder;
-
-  void open(ImpactStrategy impactStrategy, FunctionEntity mainMethod,
-      Iterable<Uri> libraries);
-  void close();
-
-  /// Returns [:true:] if this enqueuer is the resolution enqueuer.
-  bool get isResolutionQueue;
-
-  bool queueIsClosed;
-
-  bool get queueIsEmpty;
-
-  ImpactUseCase get impactUse;
-
-  void forEach(void f(WorkItem work));
-
-  /// Apply the [worldImpact] to this enqueuer. If the [impactSource] is
-  /// provided the impact strategy will remove it from the element impact cache,
-  /// if it is no longer needed.
-  void applyImpact(WorldImpact worldImpact, {var impactSource});
-  bool checkNoEnqueuedInvokedInstanceMethods(
-      ElementEnvironment elementEnvironment);
-
-  /// Check the enqueuer queue is empty or fail otherwise.
-  void checkQueueIsEmpty();
-  void logSummary(void log(String message));
-
-  Iterable<MemberEntity> get processedEntities;
-
-  Iterable<ClassEntity> get processedClasses;
-}
-
 abstract class EnqueuerListener {
   /// Called to instruct to the backend that [type] has been instantiated.
   void registerInstantiatedType(InterfaceType type,
@@ -176,7 +134,43 @@ abstract class EnqueuerListener {
   void logSummary(void log(String message));
 }
 
-abstract class EnqueuerImpl extends Enqueuer {
+abstract class Enqueuer {
+  /// If `true` the checking for unenqueued members is skipped. The current
+  /// implementation registers parameter usages as a side-effect so unit
+  /// testing of member usage we need to test both with and without the
+  /// enqueuer check.
+  // TODO(johnniwinther): [checkEnqueuerConsistency] should not have
+  // side-effects.
+  static bool skipEnqueuerCheckForTesting = false;
+
+  WorldBuilder get worldBuilder;
+
+  /// Returns [:true:] if this enqueuer is the resolution enqueuer.
+  bool get isResolutionQueue;
+
+  bool queueIsClosed;
+
+  bool get queueIsEmpty;
+
+  ImpactUseCase get impactUse;
+
+  void forEach(void f(WorkItem work));
+
+  /// Apply the [worldImpact] to this enqueuer. If the [impactSource] is
+  /// provided the impact strategy will remove it from the element impact cache,
+  /// if it is no longer needed.
+  void applyImpact(WorldImpact worldImpact, {var impactSource});
+  bool checkNoEnqueuedInvokedInstanceMethods(
+      ElementEnvironment elementEnvironment);
+
+  /// Check the enqueuer queue is empty or fail otherwise.
+  void checkQueueIsEmpty();
+  void logSummary(void log(String message));
+
+  Iterable<MemberEntity> get processedEntities;
+
+  Iterable<ClassEntity> get processedClasses;
+
   CompilerTask get task;
   void checkClass(ClassEntity cls);
   void processStaticUse(MemberEntity member, StaticUse staticUse);
@@ -190,14 +184,12 @@ abstract class EnqueuerImpl extends Enqueuer {
 
   ImpactStrategy get impactStrategy => _impactStrategy;
 
-  @override
   void open(ImpactStrategy impactStrategy, FunctionEntity mainMethod,
       Iterable<Uri> libraries) {
     _impactStrategy = impactStrategy;
     listener.onQueueOpen(this, mainMethod, libraries);
   }
 
-  @override
   void close() {
     // TODO(johnniwinther): Set [_impactStrategy] to `null` and [queueIsClosed]
     // to `true` here.
@@ -223,7 +215,7 @@ abstract class EnqueuerImpl extends Enqueuer {
 }
 
 /// [Enqueuer] which is specific to resolution.
-class ResolutionEnqueuer extends EnqueuerImpl {
+class ResolutionEnqueuer extends Enqueuer {
   static const ImpactUseCase IMPACT_USE = ImpactUseCase('ResolutionEnqueuer');
 
   @override
@@ -253,7 +245,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   ResolutionEnqueuer(this.task, this._reporter, this.listener,
       this._worldBuilder, this._workItemBuilder, this._annotationsData,
       [this.name = 'resolution enqueuer']) {
-    _impactVisitor = EnqueuerImplImpactVisitor(this);
+    _impactVisitor = EnqueuerImpactVisitor(this);
   }
 
   @override
@@ -531,10 +523,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 }
 
-class EnqueuerImplImpactVisitor implements WorldImpactVisitor {
-  final EnqueuerImpl enqueuer;
+class EnqueuerImpactVisitor implements WorldImpactVisitor {
+  final Enqueuer enqueuer;
 
-  EnqueuerImplImpactVisitor(this.enqueuer);
+  EnqueuerImpactVisitor(this.enqueuer);
 
   @override
   void visitDynamicUse(MemberEntity member, DynamicUse dynamicUse) {

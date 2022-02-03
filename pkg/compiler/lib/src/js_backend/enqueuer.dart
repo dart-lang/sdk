@@ -30,7 +30,7 @@ import '../util/enumset.dart';
 import '../util/util.dart' show Setlet;
 
 /// [Enqueuer] which is specific to code generation.
-class CodegenEnqueuer extends EnqueuerImpl {
+class CodegenEnqueuer extends Enqueuer {
   final String name;
   final Set<ClassEntity> _recentClasses = Setlet();
   bool _recentConstants = false;
@@ -61,7 +61,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   CodegenEnqueuer(this.task, this._worldBuilder, this._workItemBuilder,
       this.listener, this._annotationsData)
       : this.name = 'codegen enqueuer' {
-    _impactVisitor = EnqueuerImplImpactVisitor(this);
+    _impactVisitor = EnqueuerImpactVisitor(this);
   }
 
   @override
