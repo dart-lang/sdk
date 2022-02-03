@@ -2810,7 +2810,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               templateConstEvalGetterNotFound
                   .withArguments(variable.name ?? ''));
     } else {
-      if (variable.parent is Let || _isFormalParameter(variable)) {
+      if (variable.parent is Let ||
+          variable.parent is LocalInitializer ||
+          _isFormalParameter(variable)) {
         return env.lookupVariable(node.variable) ??
             createEvaluationErrorConstant(
                 node,
@@ -4117,6 +4119,7 @@ class EvaluationEnvironment {
   final EvaluationEnvironment? _parent;
 
   EvaluationEnvironment() : _parent = null;
+
   EvaluationEnvironment.withParent(this._parent);
 
   /// Whether the current environment is empty.
@@ -4214,18 +4217,21 @@ class ProceedStatus extends ExecutionStatus {
 /// Status that the statement returned a valid [Constant] value.
 class ReturnStatus extends ExecutionStatus {
   final Constant? value;
+
   ReturnStatus(this.value);
 }
 
 /// Status with an exception or error that the statement has thrown.
 class AbortStatus extends ExecutionStatus {
   final AbortConstant error;
+
   AbortStatus(this.error);
 }
 
 /// Status that the statement breaks out of an enclosing [LabeledStatement].
 class BreakStatus extends ExecutionStatus {
   final LabeledStatement target;
+
   BreakStatus(this.target);
 }
 

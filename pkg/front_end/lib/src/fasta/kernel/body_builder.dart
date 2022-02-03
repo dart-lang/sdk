@@ -1664,11 +1664,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     return annotation;
   }
 
-  Arguments parseArguments(Token token) {
+  ArgumentsImpl parseArguments(Token token) {
     Parser parser = new Parser(this,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
     token = parser.parseArgumentsRest(token);
-    Arguments arguments = pop() as Arguments;
+    ArgumentsImpl arguments = pop() as ArgumentsImpl;
     checkEmpty(token.charOffset);
     return arguments;
   }
@@ -1751,15 +1751,21 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else if (initializers.last is RedirectingInitializer) {
         RedirectingInitializer redirectingInitializer =
             initializers.last as RedirectingInitializer;
-        if (libraryBuilder.enableEnhancedEnumsInLibrary) {
-          redirectingInitializer.arguments.positional.insertAll(0, [
+        if (sourceClassBuilder is SourceEnumBuilder &&
+            libraryBuilder.enableEnhancedEnumsInLibrary) {
+          ArgumentsImpl arguments =
+              redirectingInitializer.arguments as ArgumentsImpl;
+          List<Expression> enumSyntheticArguments = [
             new VariableGetImpl(constructor.function.positionalParameters[0],
                 forNullGuardedAccess: false)
               ..parent = redirectingInitializer.arguments,
             new VariableGetImpl(constructor.function.positionalParameters[1],
                 forNullGuardedAccess: false)
               ..parent = redirectingInitializer.arguments
-          ]);
+          ];
+          arguments.positional.insertAll(0, enumSyntheticArguments);
+          arguments.argumentsOriginalOrder
+              ?.insertAll(0, enumSyntheticArguments);
         }
       }
 
@@ -1905,10 +1911,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       List<Expression> positional;
       List<NamedExpression> named;
       if (libraryBuilder.enableNamedArgumentsAnywhereInLibrary) {
-        positional =
-            new List<Expression>.filled(positionalCount, dummyExpression);
+        positional = new List<Expression>.filled(
+            positionalCount, dummyExpression,
+            growable: true);
         named = new List<NamedExpression>.filled(
-            arguments.length - positionalCount, dummyNamedExpression);
+            arguments.length - positionalCount, dummyNamedExpression,
+            growable: true);
         int positionalIndex = 0;
         int namedIndex = 0;
         for (int i = 0; i < arguments.length; i++) {
@@ -7337,11 +7345,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
 abstract class EnsureLoaded {
   void ensureLoaded(Member? member);
+
   bool isLoaded(Member? member);
 }
 
 class Operator {
   final Token token;
+
   String get name => token.stringValue!;
 
   final int charOffset;

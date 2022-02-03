@@ -590,7 +590,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           MemberBuilder? constructorBuilder =
               constructorScopeBuilder[constructorName];
 
-          Arguments arguments;
+          ArgumentsImpl arguments;
           List<Expression> enumSyntheticArguments = <Expression>[
             new IntLiteral(index++),
             new StringLiteral(constant),
@@ -623,11 +623,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
             bodyBuilder.performBacklogComputations(delayedActionPerformers);
 
             arguments.positional.insertAll(0, enumSyntheticArguments);
+            arguments.argumentsOriginalOrder
+                ?.insertAll(0, enumSyntheticArguments);
           } else {
             arguments = new ArgumentsImpl(enumSyntheticArguments);
           }
 
-          if (typeArguments != null && arguments is ArgumentsImpl) {
+          if (typeArguments != null) {
             ArgumentsImpl.setNonInferrableArgumentTypes(
                 arguments, typeArguments);
           } else if (cls.typeParameters.isNotEmpty) {
