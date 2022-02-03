@@ -1,0 +1,3 @@
+enum C { a(1, 2, z: 3), b(z: 3, 1, 2), c(1, z: 3, 2), d.named1(1, 2, 3), e.named2(1, 2, 3), f.named3(1, 2, 3), ; final String log; const C(int x, int y, {int z = 42}) : this.log = "x=$x, y=$y, z=$z"; const C.named1(int x, int y, int z) : this(x, y, z: z); const C.named2(int x, int y, int z) : this(x, z: z, y); const C.named3(int x, int y, int z) : this(z: z, x, y); }
+main() {}
+expect(expected, actual) {}

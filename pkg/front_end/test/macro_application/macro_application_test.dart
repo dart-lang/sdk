@@ -5,7 +5,6 @@
 import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
-import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/isolated_executor/isolated_executor.dart'
     as isolatedExecutor;
@@ -14,13 +13,11 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart'
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/fasta/builder/field_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/kernel/macro.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
-import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart' hide Arguments;
@@ -28,67 +25,32 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/vm.dart';
 
-const Map<String, Map<String, List<String>>> macroDeclarations = {
-  'package:macro/macro.dart': {
-    'FunctionDefinitionMacro1': [''],
-    'FunctionDefinitionMacro2': [''],
-    'FunctionTypesMacro1': [''],
-    'FunctionDeclarationsMacro1': [''],
-    'FunctionDeclarationsMacro2': [''],
-    'MethodDeclarationsMacro1': [''],
-    'VariableDeclarationsMacro1': [''],
-    'FieldDeclarationsMacro1': [''],
-    'ClassDeclarationsMacro1': [''],
-    'ConstructorDeclarationsMacro1': [''],
-  }
-};
-
-Future<Uri> compileMacros(Directory directory) async {
-  CompilerOptions options = new CompilerOptions();
-  options.target = new VmTarget(new TargetFlags());
-  options.explicitExperimentalFlags[ExperimentalFlag.macros] = true;
-  options.environmentDefines = {};
-  options.packagesFileUri = Platform.script.resolve('data/package_config.json');
-
-  CompilerResult? compilerResult = await compileScript(
-      {'main.dart': bootstrapMacroIsolate(macroDeclarations)},
-      options: options, requireMain: false);
-  Uri uri = directory.absolute.uri.resolve('macros.dill');
-  await writeComponentToFile(compilerResult!.component!, uri);
-  return uri;
-}
-
 Future<void> main(List<String> args) async {
   enableMacros = true;
 
   Directory tempDirectory =
       await Directory.systemTemp.createTemp('macro_application');
-
-  Uri macrosUri = await compileMacros(tempDirectory);
-  Map<MacroClass, Uri> precompiledMacroUris = {};
-  macroDeclarations
-      .forEach((String macroUri, Map<String, List<String>> macroClasses) {
-    macroClasses.forEach((String macroClass, List<String> constructorNames) {
-      precompiledMacroUris[new MacroClass(Uri.parse(macroUri), macroClass)] =
-          macrosUri;
-    });
-  });
-
-  Directory dataDir =
-      new Directory.fromUri(Platform.script.resolve('data/tests'));
-  await runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const MacroDataComputer(),
-          [new MacroTestConfig(precompiledMacroUris)]),
-      preserveWhitespaceInAnnotations: true);
+  try {
+    Directory dataDir =
+        new Directory.fromUri(Platform.script.resolve('data/tests'));
+    await runTests<String>(dataDir,
+        args: args,
+        createUriForFileName: createUriForFileName,
+        onFailure: onFailure,
+        runTest: runTestFor(
+            const MacroDataComputer(), [new MacroTestConfig(tempDirectory)]),
+        preserveWhitespaceInAnnotations: true);
+  } finally {
+    await tempDirectory.delete(recursive: true);
+  }
 }
 
 class MacroTestConfig extends TestConfig {
-  final Map<MacroClass, Uri> precompiledMacroUris;
+  final Directory tempDirectory;
+  int precompiledCount = 0;
+  final Map<MacroClass, Uri> precompiledMacroUris = {};
 
-  MacroTestConfig(this.precompiledMacroUris)
+  MacroTestConfig(this.tempDirectory)
       : super(cfeMarker, 'cfe',
             explicitExperimentalFlags: {ExperimentalFlag.macros: true},
             packageConfigUri:
@@ -100,6 +62,13 @@ class MacroTestConfig extends TestConfig {
       return await isolatedExecutor.start();
     };
     options.precompiledMacroUris = precompiledMacroUris;
+    options.macroTarget = new VmTarget(new TargetFlags());
+    options.macroSerializer = (Component component) async {
+      Uri uri = tempDirectory.absolute.uri
+          .resolve('macros${precompiledCount++}.dill');
+      await writeComponentToFile(component, uri);
+      return uri;
+    };
   }
 }
 

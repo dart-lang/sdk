@@ -321,6 +321,16 @@ UsePosition* LiveRange::AddUse(intptr_t pos, Location* location_slot) {
 }
 
 void LiveRange::AddSafepoint(intptr_t pos, LocationSummary* locs) {
+  if (spill_slot().IsConstant() &&
+      (locs->always_calls() && !locs->callee_safe_call())) {
+    // Constants have pseudo spill slot assigned to them from
+    // the very beginning. This means that we don't need to associate
+    // "always_calls" safepoints with these ranges, because they will never
+    // be spilled. We still need to associate slow-path safepoints because
+    // a value might be allocated to a register across a slow-path call.
+    return;
+  }
+
   ASSERT(IsInstructionStartPosition(pos));
   SafepointPosition* safepoint =
       new SafepointPosition(ToInstructionEnd(pos), locs);

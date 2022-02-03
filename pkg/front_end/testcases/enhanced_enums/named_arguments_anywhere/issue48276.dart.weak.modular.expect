@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::String log = "";
+  constructor •(core::int x, core::int y, {core::int z = #C1}) → self::C
+    : super core::Object::•() {
+    this.{self::C::log} = "x=${x}, y=${y}, z=${z}";
+  }
+  constructor named1(core::int x, core::int y, core::int z) → self::C
+    : this self::C::•(x, y, z: z)
+    ;
+  constructor named2(core::int x, core::int y, core::int z) → self::C
+    : final core::int #t1 = x, final core::int #t2 = z, this self::C::•(#t1, y, z: #t2)
+    ;
+  constructor named3(core::int x, core::int y, core::int z) → self::C
+    : final core::int #t3 = z, this self::C::•(x, y, z: #t3)
+    ;
+}
+static method main() → dynamic {
+  self::expect("x=1, y=2, z=3", new self::C::•(1, 2, z: 3).{self::C::log}{core::String});
+  self::expect("x=1, y=2, z=3", (let final core::int #t4 = 3 in new self::C::•(1, 2, z: #t4)).{self::C::log}{core::String});
+  self::expect("x=1, y=2, z=3", (let final core::int #t5 = 1 in let final core::int #t6 = 3 in new self::C::•(#t5, 2, z: #t6)).{self::C::log}{core::String});
+  self::expect("x=1, y=2, z=3", new self::C::named1(1, 2, 3).{self::C::log}{core::String});
+  self::expect("x=1, y=2, z=3", new self::C::named2(1, 2, 3).{self::C::log}{core::String});
+  self::expect("x=1, y=2, z=3", new self::C::named3(1, 2, 3).{self::C::log}{core::String});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = 42
+}

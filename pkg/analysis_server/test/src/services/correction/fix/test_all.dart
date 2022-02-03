@@ -75,6 +75,7 @@ import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
 import 'convert_to_null_aware_test.dart' as convert_to_null_aware;
 import 'convert_to_on_type_test.dart' as convert_to_on_type;
 import 'convert_to_package_import_test.dart' as convert_to_package_import;
+import 'convert_to_raw_string_test.dart' as convert_to_raw_string;
 import 'convert_to_relative_import_test.dart' as convert_to_relative_import;
 import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
@@ -278,6 +279,7 @@ void main() {
     convert_to_null_aware_spread.main();
     convert_to_on_type.main();
     convert_to_package_import.main();
+    convert_to_raw_string.main();
     convert_to_relative_import.main();
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
