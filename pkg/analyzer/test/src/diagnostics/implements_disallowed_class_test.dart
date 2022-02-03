@@ -259,6 +259,26 @@ class C = A with M implements String, num;
     ]);
   }
 
+  test_enum_dartCoreEnum() async {
+    await assertErrorsInCode('''
+enum E implements Enum {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 18, 4),
+    ]);
+  }
+
+  test_enum_int() async {
+    await assertErrorsInCode('''
+enum E implements int {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 18, 3),
+    ]);
+  }
+
   test_mixin_dartCoreEnum() async {
     await assertNoErrorsInCode('''
 mixin M implements Enum {}

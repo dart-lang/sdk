@@ -1114,9 +1114,10 @@ Dart_NewFinalizableHandle(Dart_Handle object,
 
 DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
                                          intptr_t external_size) {
-  IsolateGroup* isolate_group = IsolateGroup::Current();
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
   CHECK_ISOLATE_GROUP(isolate_group);
-  NoSafepointScope no_safepoint_scope;
+  TransitionToVM transition(T);
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsActiveWeakPersistentHandle(object));
@@ -1140,9 +1141,10 @@ DART_EXPORT void Dart_UpdateFinalizableExternalSize(
 }
 
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
-  IsolateGroup* isolate_group = IsolateGroup::Current();
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
   CHECK_ISOLATE_GROUP(isolate_group);
-  NoSafepointScope no_safepoint_scope;
+  TransitionToVM transition(T);
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsActivePersistentHandle(object));
@@ -1155,9 +1157,10 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
 
 DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_WeakPersistentHandle object) {
-  IsolateGroup* isolate_group = IsolateGroup::Current();
+  Thread* T = Thread::Current();
+  IsolateGroup* isolate_group = T->isolate_group();
   CHECK_ISOLATE_GROUP(isolate_group);
-  NoSafepointScope no_safepoint_scope;
+  TransitionToVM transition(T);
   ApiState* state = isolate_group->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsActiveWeakPersistentHandle(object));

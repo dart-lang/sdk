@@ -12,6 +12,14 @@
 - Add `ref=` and `[]=` methods to the `StructPointer` and `UnionPointer`
   extensions. They copy a compound instance into a native memory region.
 
+#### `dart:html`
+
+- Add `scrollIntoViewIfNeeded` to `Element`. Previously, this method was nested
+  within `scrollIntoView` based on the `ScrollAlignment` value. `scrollIntoView`
+  is unchanged for now, but users who intend to use the native
+  `Element.scrollIntoViewIfNeeded` should use the new `scrollIntoViewIfNeeded`
+  definition instead.
+
 #### `dart:indexed_db`
 
 - `IdbFactory.supportsDatabaseNames` has been deprecated. It will always return
