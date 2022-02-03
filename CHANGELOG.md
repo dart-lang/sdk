@@ -61,7 +61,8 @@
 
 #### `dart:io`
 
-- **Breaking Change** [#45410](https://github.com/dart-lang/sdk/issues/45410):
+- **Breaking Change** [#45410](https://github.com/dart-lang/sdk/issues/45410),
+  **security advisory** [CVE-2022-0451](https://github.com/dart-lang/sdk/security/advisories/GHSA-c8mh-jj22-xg5h):
   `HttpClient` no longer transmits some headers (i.e. `authorization`,
   `www-authenticate`, `cookie`, `cookie2`) when processing redirects to a
   different domain.
