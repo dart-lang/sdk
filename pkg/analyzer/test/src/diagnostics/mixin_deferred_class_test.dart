@@ -30,6 +30,20 @@ class C = B with a.A;
     ]);
   }
 
+  test_enum() async {
+    newFile('$testPackageLibPath/a.dart', content: '''
+class A {}
+''');
+    await assertErrorsInCode('''
+import 'a.dart' deferred as a;
+enum E with a.A {
+  v;
+}
+''', [
+      error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 43, 3),
+    ]);
+  }
+
   test_mixin_deferred_class() async {
     newFile('$testPackageLibPath/lib1.dart', content: '''
 library lib1;

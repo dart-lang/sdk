@@ -2606,6 +2606,51 @@ void f(C? c) {
     );
   }
 
+  test_hasReceiver_interfaceType_enum() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  void foo() {}
+}
+
+void f(E e) {
+  e.foo();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('e.foo()'),
+      element: findElement.method('foo', of: 'E'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+  }
+
+  test_hasReceiver_interfaceType_enum_fromMixin() async {
+    await assertNoErrorsInCode(r'''
+mixin M on Enum {
+  void foo() {}
+}
+
+enum E with M {
+  v;
+}
+
+void f(E e) {
+  e.foo();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('e.foo()'),
+      element: findElement.method('foo', of: 'M'),
+      typeArgumentTypes: [],
+      invokeType: 'void Function()',
+      type: 'void',
+    );
+  }
+
   test_hasReceiver_interfaceTypeQ_defined() async {
     await assertErrorsInCode(r'''
 class A {

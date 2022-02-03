@@ -23,6 +23,16 @@ class as {}
     ]);
   }
 
+  test_enum() async {
+    await assertErrorsInCode('''
+enum as {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 5, 2),
+    ]);
+  }
+
   test_mixin() async {
     await assertErrorsInCode('''
 mixin as {}

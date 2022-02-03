@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class MixinApplicationConcreteSuperInvokedMemberTypeTest
     extends PubPackageResolutionTest {
-  test_method() async {
+  test_class_method() async {
     await assertErrorsInCode(r'''
 class I {
   void foo([int? p]) {}
@@ -46,7 +46,7 @@ abstract class X extends B with M {}
     ]);
   }
 
-  test_method_OK_overriddenInMixin() async {
+  test_class_method_OK_overriddenInMixin() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
   void remove(T x) {}
@@ -60,5 +60,36 @@ mixin M<U> on A<U> {
 
 class X<T> = A<T> with M<T>;
 ''');
+  }
+
+  test_enum_method() async {
+    await assertErrorsInCode(r'''
+abstract class I {
+  void foo([int? p]);
+}
+
+mixin M1 {
+  void foo(int? p) {}
+}
+
+mixin M2 implements I {}
+
+mixin M3 on I {
+  void bar() {
+    super.foo(42);
+  }
+}
+
+enum E with M1, M2, M3 {
+  v;
+  void foo([int? p]) {}
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
+          183,
+          2),
+    ]);
   }
 }
