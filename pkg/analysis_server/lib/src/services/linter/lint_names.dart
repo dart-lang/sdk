@@ -142,5 +142,6 @@ class LintNames {
       'use_function_type_syntax_for_parameters';
   static const String use_key_in_widget_constructors =
       'use_key_in_widget_constructors';
+  static const String use_raw_strings = 'use_raw_strings';
   static const String use_rethrow_when_possible = 'use_rethrow_when_possible';
 }

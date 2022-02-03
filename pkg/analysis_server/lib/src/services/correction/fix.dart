@@ -508,6 +508,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Convert to 'package:' imports everywhere in file",
   );
+  static const CONVERT_TO_RAW_STRING = FixKind(
+    'dart.fix.convert.toRawString',
+    DartFixKindPriority.DEFAULT,
+    'Convert to raw string',
+  );
+  static const CONVERT_TO_RAW_STRING_MULTI = FixKind(
+    'dart.fix.convert.toRawString.multi',
+    DartFixKindPriority.IN_FILE,
+    'Convert to raw strings everywhere in file',
+  );
   static const CONVERT_TO_RELATIVE_IMPORT = FixKind(
     'dart.fix.convert.toRelativeImport',
     DartFixKindPriority.DEFAULT,

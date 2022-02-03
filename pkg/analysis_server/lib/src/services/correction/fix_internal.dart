@@ -61,6 +61,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_null_awa
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_on_type.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_raw_string.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_where_type.dart';
@@ -629,6 +630,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.use_key_in_widget_constructors: [
       AddKeyToConstructors.newInstance,
+    ],
+    LintNames.use_raw_strings: [
+      ConvertToRawString.newInstance,
     ],
     LintNames.use_rethrow_when_possible: [
       UseRethrow.newInstance,
