@@ -5,7 +5,7 @@
 library dart2js.js_emitter.native_emitter;
 
 import '../common.dart';
-import '../common_elements.dart' show JCommonElements, JElementEnvironment;
+import '../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../elements/types.dart' show DartType, FunctionType;
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;

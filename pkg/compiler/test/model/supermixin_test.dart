@@ -6,7 +6,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/expect.dart';
 import '../helpers/program_lookup.dart';

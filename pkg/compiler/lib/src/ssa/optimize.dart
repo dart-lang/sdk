@@ -4,11 +4,11 @@
 
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry;
+import '../common/elements.dart' show JCommonElements;
 import '../common/names.dart' show Selectors;
 import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';

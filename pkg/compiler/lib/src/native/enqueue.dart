@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
+import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/native_data.dart' show NativeData;

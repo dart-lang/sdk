@@ -7,8 +7,8 @@ import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 
+import '../common/elements.dart' show KCommonElements, KElementEnvironment;
 import '../constants/values.dart';
-import '../common_elements.dart' show KCommonElements, KElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';

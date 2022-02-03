@@ -8,7 +8,7 @@ library type_test_helper;
 
 import 'dart:async';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/types.dart';

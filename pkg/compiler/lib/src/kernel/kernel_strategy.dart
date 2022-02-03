@@ -8,11 +8,11 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../common/backend_api.dart';
+import '../common/elements.dart';
 import '../common/names.dart' show Uris;
 import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
-import '../common_elements.dart';
 import '../compiler.dart';
 import '../deferred_load/deferred_load.dart' show DeferredLoadTask;
 import '../elements/entities.dart';

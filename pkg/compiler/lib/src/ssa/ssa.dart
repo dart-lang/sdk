@@ -6,8 +6,8 @@ library ssa;
 
 import '../backend_strategy.dart';
 import '../common.dart';
-import '../common_elements.dart' show CommonElements, JElementEnvironment;
 import '../common/codegen.dart' show CodegenResult, CodegenRegistry;
+import '../common/elements.dart' show CommonElements, JElementEnvironment;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../elements/entities.dart';
 import '../elements/types.dart';

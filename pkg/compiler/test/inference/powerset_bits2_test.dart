@@ -6,7 +6,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/inferrer/powersets/powersets.dart';
 import 'package:compiler/src/inferrer/powersets/powerset_bits.dart';

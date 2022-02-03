@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
+import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;

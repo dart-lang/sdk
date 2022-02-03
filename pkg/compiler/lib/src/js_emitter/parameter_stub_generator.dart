@@ -4,7 +4,7 @@
 
 library dart2js.js_emitter.parameter_stub_generator;
 
-import '../common_elements.dart' show JElementEnvironment;
+import '../common/elements.dart' show JElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';

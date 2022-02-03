@@ -6,10 +6,10 @@ library dart2js.js_emitter.main_call_stub_generator;
 
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 
+import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-import '../common_elements.dart';
 
 import 'code_emitter_task.dart' show Emitter;
 

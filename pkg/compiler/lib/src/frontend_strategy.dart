@@ -5,8 +5,8 @@
 library dart2js.frontend_strategy;
 
 import 'common.dart';
+import 'common/elements.dart';
 import 'common/tasks.dart';
-import 'common_elements.dart';
 import 'compiler.dart' show Compiler;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'elements/entities.dart';

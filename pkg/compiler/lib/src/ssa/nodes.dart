@@ -6,7 +6,7 @@ import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../closure.dart';
 import '../common.dart';
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../elements/entities.dart';

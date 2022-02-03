@@ -5,7 +5,7 @@
 // @dart = 2.7
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/runtime_types_resolution.dart';

@@ -7,7 +7,7 @@ library js_backend.native_data;
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../common_elements.dart' show ElementEnvironment;
+import '../common/elements.dart' show ElementEnvironment;
 import '../elements/entities.dart';
 import '../ir/annotations.dart';
 import '../kernel/element_map.dart';

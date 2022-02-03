@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../common_elements.dart' show KElementEnvironment;
+import '../common/elements.dart' show KElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';

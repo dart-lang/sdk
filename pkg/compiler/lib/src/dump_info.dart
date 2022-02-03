@@ -13,10 +13,10 @@ import 'package:dart2js_info/binary_serialization.dart' as dump_info;
 
 import '../compiler_new.dart';
 import 'backend_strategy.dart';
+import 'common.dart';
+import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
 import 'common/tasks.dart' show CompilerTask;
-import 'common.dart';
-import 'common_elements.dart' show JElementEnvironment;
 import 'compiler.dart' show Compiler;
 import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;

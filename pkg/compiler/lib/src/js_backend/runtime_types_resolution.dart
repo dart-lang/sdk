@@ -5,8 +5,8 @@
 library js_backend.runtime_types_resolution;
 
 import '../common.dart';
+import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/names.dart' show Identifiers;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';

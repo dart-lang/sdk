@@ -5,7 +5,7 @@
 import 'package:js_ast/src/precedence.dart' as js show PRIMARY;
 import 'package:front_end/src/api_unstable/dart2js.dart' show $A;
 
-import '../common_elements.dart' show JCommonElements;
+import '../common/elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../js/js.dart' as js;
 import '../serialization/serialization.dart';
