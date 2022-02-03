@@ -23,6 +23,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
         ScannerResult,
         Token,
         scan;
+import 'package:front_end/src/fasta/source/source_type_alias_builder.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, HandleAmbiguousSupertypes;
@@ -48,6 +49,7 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/prefix_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
@@ -86,6 +88,8 @@ import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
+import 'source_extension_builder.dart';
+import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart'
     show
@@ -1549,7 +1553,7 @@ severity: $severity
               scope: classBuilder.scope,
               fileUri: classBuilder.fileUri,
               metadataBuilders: classBuilder.metadata);
-          builder.forEach((String name, Builder memberBuilder) {
+          classBuilder.forEach((String name, Builder memberBuilder) {
             if (memberBuilder is SourceProcedureBuilder) {
               List<MacroApplication>? macroApplications = prebuildAnnotations(
                   enclosingLibrary: libraryBuilder,
@@ -1570,6 +1574,9 @@ severity: $severity
                 classMacroApplicationData.memberApplications[memberBuilder] =
                     macroApplications;
               }
+            } else {
+              throw new UnsupportedError("Unexpected class member "
+                  "$memberBuilder (${memberBuilder.runtimeType})");
             }
           });
           classBuilder.forEachConstructor((String name, Builder memberBuilder) {
@@ -1583,6 +1590,19 @@ severity: $severity
                 classMacroApplicationData.memberApplications[memberBuilder] =
                     macroApplications;
               }
+            } else if (memberBuilder is SourceFactoryBuilder) {
+              List<MacroApplication>? macroApplications = prebuildAnnotations(
+                  enclosingLibrary: libraryBuilder,
+                  scope: classBuilder.scope,
+                  fileUri: memberBuilder.fileUri,
+                  metadataBuilders: memberBuilder.metadata);
+              if (macroApplications != null) {
+                classMacroApplicationData.memberApplications[memberBuilder] =
+                    macroApplications;
+              }
+            } else {
+              throw new UnsupportedError("Unexpected constructor "
+                  "$memberBuilder (${memberBuilder.runtimeType})");
             }
           });
 
@@ -1611,6 +1631,13 @@ severity: $severity
             libraryMacroApplicationData.memberApplications[builder] =
                 macroApplications;
           }
+        } else if (builder is PrefixBuilder ||
+            builder is SourceExtensionBuilder ||
+            builder is SourceTypeAliasBuilder) {
+          // Macro applications are not supported.
+        } else {
+          throw new UnsupportedError("Unexpected library member "
+              "$builder (${builder.runtimeType})");
         }
       }
       if (libraryMacroApplicationData.classData.isNotEmpty ||

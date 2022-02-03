@@ -9,14 +9,17 @@ import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/isolated_executor/isolated_executor.dart'
     as isolatedExecutor;
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart'
+    show ActualData, ClassId, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
+import 'package:front_end/src/fasta/builder/field_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/kernel/macro.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
+import 'package:front_end/src/fasta/source/source_class_builder.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
@@ -32,6 +35,11 @@ const Map<String, Map<String, List<String>>> macroDeclarations = {
     'FunctionTypesMacro1': [''],
     'FunctionDeclarationsMacro1': [''],
     'FunctionDeclarationsMacro2': [''],
+    'MethodDeclarationsMacro1': [''],
+    'VariableDeclarationsMacro1': [''],
+    'FieldDeclarationsMacro1': [''],
+    'ClassDeclarationsMacro1': [''],
+    'ConstructorDeclarationsMacro1': [''],
   }
 };
 
@@ -95,11 +103,68 @@ class MacroTestConfig extends TestConfig {
   }
 }
 
+bool _isMember(MemberBuilder memberBuilder, Member member) {
+  if (memberBuilder is FieldBuilder) {
+    // Only show annotations for the field or getter.
+    return memberBuilder.readTarget == member;
+  } else if (member is Procedure && member.isSetter) {
+    return memberBuilder.writeTarget == member;
+  } else if (member is Procedure && member.isGetter) {
+    return memberBuilder.readTarget == member;
+  } else {
+    return memberBuilder.invokeTarget == member;
+  }
+}
+
 class MacroDataComputer extends DataComputer<String> {
   const MacroDataComputer();
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
+
+  @override
+  void computeClassData(TestResultData testResultData, Class cls,
+      Map<Id, ActualData<String>> actualMap,
+      {bool? verbose}) {
+    CfeDataRegistry<String> registry =
+        new CfeDataRegistry(testResultData.compilerResult, actualMap);
+    MacroApplicationDataForTesting macroApplicationData = testResultData
+        .compilerResult
+        .kernelTargetForTesting!
+        .loader
+        .dataForTesting!
+        .macroApplicationData;
+    StringBuffer sb = new StringBuffer();
+    for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
+        in macroApplicationData.classTypesResults.entries) {
+      if (entry.key.cls == cls) {
+        for (MacroExecutionResult result in entry.value) {
+          sb.write('\n${codeToString(result.augmentations.first)}');
+        }
+      }
+    }
+    for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
+        in macroApplicationData.classDeclarationsResults.entries) {
+      if (entry.key.cls == cls) {
+        for (MacroExecutionResult result in entry.value) {
+          sb.write('\n${codeToString(result.augmentations.first)}');
+        }
+      }
+    }
+    for (MapEntry<SourceClassBuilder, List<MacroExecutionResult>> entry
+        in macroApplicationData.classDefinitionsResults.entries) {
+      if (entry.key.cls == cls) {
+        for (MacroExecutionResult result in entry.value) {
+          sb.write('\n${codeToString(result.augmentations.first)}');
+        }
+      }
+    }
+    if (sb.isNotEmpty) {
+      Id id = new ClassId(cls.name);
+      registry.registerValue(
+          cls.fileUri, cls.fileOffset, id, sb.toString(), cls);
+    }
+  }
 
   @override
   void computeMemberData(TestResultData testResultData, Member member,
@@ -116,7 +181,7 @@ class MacroDataComputer extends DataComputer<String> {
     StringBuffer sb = new StringBuffer();
     for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.memberTypesResults.entries) {
-      if (entry.key.member == member) {
+      if (_isMember(entry.key, member)) {
         for (MacroExecutionResult result in entry.value) {
           sb.write('\n${codeToString(result.augmentations.first)}');
         }
@@ -124,7 +189,7 @@ class MacroDataComputer extends DataComputer<String> {
     }
     for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.memberDeclarationsResults.entries) {
-      if (entry.key.member == member) {
+      if (_isMember(entry.key, member)) {
         for (MacroExecutionResult result in entry.value) {
           sb.write('\n${codeToString(result.augmentations.first)}');
         }
@@ -132,7 +197,7 @@ class MacroDataComputer extends DataComputer<String> {
     }
     for (MapEntry<MemberBuilder, List<MacroExecutionResult>> entry
         in macroApplicationData.memberDefinitionsResults.entries) {
-      if (entry.key.member == member) {
+      if (_isMember(entry.key, member)) {
         for (MacroExecutionResult result in entry.value) {
           sb.write('\n${codeToString(result.augmentations.first)}');
         }

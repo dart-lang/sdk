@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import 'builder/builder.dart';
+import 'builder/class_builder.dart';
 import 'builder/extension_builder.dart';
 import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
@@ -812,8 +813,13 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
+  ClassBuilder get classBuilder {
+    throw new UnsupportedError('AmbiguousMemberBuilder.classBuilder');
+  }
+
+  @override
   LibraryBuilder get library {
-    throw new UnsupportedError('AmbiguousMemberBuilder.parent=');
+    throw new UnsupportedError('AmbiguousMemberBuilder.library');
   }
 
   // TODO(johnniwinther): Remove this and create a [ProcedureBuilder] interface.
