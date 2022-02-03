@@ -4595,31 +4595,6 @@ class MintDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d, bool primary) {}
-
-#if defined(DART_PRECOMPILED_RUNTIME)
-  void PostLoad(Deserializer* d, const Array& refs, bool primary) {
-    if (!primary && is_canonical()) {
-      const Class& mint_cls = Class::Handle(
-          d->zone(), d->isolate_group()->object_store()->mint_class());
-      Object& number = Object::Handle(d->zone());
-      Mint& number2 = Mint::Handle(d->zone());
-      SafepointMutexLocker ml(
-          d->isolate_group()->constant_canonicalization_mutex());
-      for (intptr_t i = start_index_; i < stop_index_; i++) {
-        number = refs.At(i);
-        if (!number.IsMint()) continue;
-        number2 =
-            mint_cls.LookupCanonicalMint(d->zone(), Mint::Cast(number).value());
-        if (number2.IsNull()) {
-          number.SetCanonical();
-          mint_cls.InsertCanonicalMint(d->zone(), Mint::Cast(number));
-        } else {
-          refs.SetAt(i, number2);
-        }
-      }
-    }
-  }
-#endif
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -4678,30 +4653,6 @@ class DoubleDeserializationCluster : public DeserializationCluster {
       dbl->untag()->value_ = d->Read<double>();
     }
   }
-
-#if defined(DART_PRECOMPILED_RUNTIME)
-  void PostLoad(Deserializer* d, const Array& refs, bool primary) {
-    if (!primary && is_canonical()) {
-      auto Z = d->zone();
-      auto isolate_group = d->isolate_group();
-      const Class& cls =
-          Class::Handle(Z, isolate_group->object_store()->double_class());
-      SafepointMutexLocker ml(isolate_group->constant_canonicalization_mutex());
-      Double& dbl = Double::Handle(Z);
-      Double& dbl2 = Double::Handle(Z);
-      for (intptr_t i = start_index_; i < stop_index_; i++) {
-        dbl ^= refs.At(i);
-        dbl2 = cls.LookupCanonicalDouble(Z, dbl.value());
-        if (dbl2.IsNull()) {
-          dbl.SetCanonical();
-          cls.InsertCanonicalDouble(Z, dbl);
-        } else {
-          refs.SetAt(i, dbl2);
-        }
-      }
-    }
-  }
-#endif
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

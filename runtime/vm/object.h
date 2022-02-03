@@ -1497,16 +1497,11 @@ class Class : public Object {
   FieldPtr LookupInstanceFieldAllowPrivate(const String& name) const;
   FieldPtr LookupStaticFieldAllowPrivate(const String& name) const;
 
-  DoublePtr LookupCanonicalDouble(Zone* zone, double value) const;
-  MintPtr LookupCanonicalMint(Zone* zone, int64_t value) const;
-
   // The methods above are more efficient than this generic one.
   InstancePtr LookupCanonicalInstance(Zone* zone, const Instance& value) const;
 
   InstancePtr InsertCanonicalConstant(Zone* zone,
                                       const Instance& constant) const;
-  void InsertCanonicalDouble(Zone* zone, const Double& constant) const;
-  void InsertCanonicalMint(Zone* zone, const Mint& constant) const;
 
   void RehashConstants(Zone* zone) const;
 
@@ -9117,15 +9112,6 @@ class Number : public Instance {
   // TODO(iposva): Add more useful Number methods.
   StringPtr ToString(Heap::Space space) const;
 
-  // Numbers are canonicalized differently from other instances/strings.
-  // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
-  virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
-
-#if defined(DEBUG)
-  // Check if number is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
-
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
 
@@ -9329,7 +9315,6 @@ class Mint : public Integer {
   static MintPtr New(int64_t value, Heap::Space space = Heap::kNew);
 
   static MintPtr NewCanonical(int64_t value);
-  static MintPtr NewCanonicalLocked(Thread* thread, int64_t value);
 
  private:
   void set_value(int64_t value) const;
@@ -9356,7 +9341,6 @@ class Double : public Number {
 
   // Returns a canonical double object allocated in the old gen space.
   static DoublePtr NewCanonical(double d);
-  static DoublePtr NewCanonicalLocked(Thread* thread, double d);
 
   // Returns a canonical double object (allocated in the old gen space) or
   // Double::null() if str points to a string that does not convert to a

@@ -5843,108 +5843,13 @@ static uword Hash64To32(uint64_t v) {
   return static_cast<uint32_t>(v);
 }
 
-class CanonicalDoubleKey {
- public:
-  explicit CanonicalDoubleKey(const Double& key)
-      : key_(&key), value_(key.value()) {}
-  explicit CanonicalDoubleKey(const double value) : key_(NULL), value_(value) {}
-  bool Matches(const Double& obj) const {
-    return obj.BitwiseEqualsToDouble(value_);
-  }
-  uword Hash() const { return Hash(value_); }
-  static uword Hash(double value) {
-    return Hash64To32(bit_cast<uint64_t>(value));
-  }
-
-  const Double* key_;
-  const double value_;
-
- private:
-  DISALLOW_ALLOCATION();
-};
-
-class CanonicalMintKey {
- public:
-  explicit CanonicalMintKey(const Mint& key)
-      : key_(&key), value_(key.value()) {}
-  explicit CanonicalMintKey(const int64_t value) : key_(NULL), value_(value) {}
-  bool Matches(const Mint& obj) const { return obj.value() == value_; }
-  uword Hash() const { return Hash(value_); }
-  static uword Hash(int64_t value) {
-    return Hash64To32(bit_cast<uint64_t>(value));
-  }
-
-  const Mint* key_;
-  const int64_t value_;
-
- private:
-  DISALLOW_ALLOCATION();
-};
-
-// Traits for looking up Canonical numbers based on a hash of the value.
-template <typename ObjectType, typename KeyType>
-class CanonicalNumberTraits {
- public:
-  static const char* Name() { return "CanonicalNumberTraits"; }
-  static bool ReportStats() { return false; }
-
-  // Called when growing the table.
-  static bool IsMatch(const Object& a, const Object& b) {
-    return a.ptr() == b.ptr();
-  }
-  static bool IsMatch(const KeyType& a, const Object& b) {
-    return a.Matches(ObjectType::Cast(b));
-  }
-  static uword Hash(const Object& key) {
-    return KeyType::Hash(ObjectType::Cast(key).value());
-  }
-  static uword Hash(const KeyType& key) { return key.Hash(); }
-  static ObjectPtr NewKey(const KeyType& obj) {
-    if (obj.key_ != NULL) {
-      return obj.key_->ptr();
-    } else {
-      UNIMPLEMENTED();
-      return NULL;
-    }
-  }
-};
-typedef UnorderedHashSet<CanonicalNumberTraits<Double, CanonicalDoubleKey> >
-    CanonicalDoubleSet;
-typedef UnorderedHashSet<CanonicalNumberTraits<Mint, CanonicalMintKey> >
-    CanonicalMintSet;
-
-// Returns an instance of Double or Double::null().
-DoublePtr Class::LookupCanonicalDouble(Zone* zone, double value) const {
-  ASSERT(this->ptr() ==
-         IsolateGroup::Current()->object_store()->double_class());
-  if (this->constants() == Array::null()) return Double::null();
-
-  Double& canonical_value = Double::Handle(zone);
-  CanonicalDoubleSet constants(zone, this->constants());
-  canonical_value ^= constants.GetOrNull(CanonicalDoubleKey(value));
-  this->set_constants(constants.Release());
-  return canonical_value.ptr();
-}
-
-// Returns an instance of Mint or Mint::null().
-MintPtr Class::LookupCanonicalMint(Zone* zone, int64_t value) const {
-  ASSERT(this->ptr() == IsolateGroup::Current()->object_store()->mint_class());
-  if (this->constants() == Array::null()) return Mint::null();
-
-  Mint& canonical_value = Mint::Handle(zone);
-  CanonicalMintSet constants(zone, this->constants());
-  canonical_value ^= constants.GetOrNull(CanonicalMintKey(value));
-  this->set_constants(constants.Release());
-  return canonical_value.ptr();
-}
-
 class CanonicalInstanceKey {
  public:
   explicit CanonicalInstanceKey(const Instance& key) : key_(key) {
-    ASSERT(!(key.IsString() || key.IsInteger() || key.IsAbstractType()));
+    ASSERT(!(key.IsString() || key.IsAbstractType()));
   }
   bool Matches(const Instance& obj) const {
-    ASSERT(!(obj.IsString() || obj.IsInteger() || obj.IsAbstractType()));
+    ASSERT(!(obj.IsString() || obj.IsAbstractType()));
     if (key_.CanonicalizeEquals(obj)) {
       ASSERT(obj.IsCanonical());
       return true;
@@ -5966,15 +5871,15 @@ class CanonicalInstanceTraits {
 
   // Called when growing the table.
   static bool IsMatch(const Object& a, const Object& b) {
-    ASSERT(!(a.IsString() || a.IsInteger() || a.IsAbstractType()));
-    ASSERT(!(b.IsString() || b.IsInteger() || b.IsAbstractType()));
+    ASSERT(!(a.IsString() || a.IsAbstractType()));
+    ASSERT(!(b.IsString() || b.IsAbstractType()));
     return a.ptr() == b.ptr();
   }
   static bool IsMatch(const CanonicalInstanceKey& a, const Object& b) {
     return a.Matches(Instance::Cast(b));
   }
   static uword Hash(const Object& key) {
-    ASSERT(!(key.IsString() || key.IsNumber() || key.IsAbstractType()));
+    ASSERT(!(key.IsString() || key.IsAbstractType()));
     ASSERT(key.IsInstance());
     return Instance::Cast(key).CanonicalizeHash();
   }
@@ -6015,26 +5920,6 @@ InstancePtr Class::InsertCanonicalConstant(Zone* zone,
     this->set_constants(constants.Release());
   }
   return canonical_value.ptr();
-}
-
-void Class::InsertCanonicalDouble(Zone* zone, const Double& constant) const {
-  if (this->constants() == Array::null()) {
-    this->set_constants(Array::Handle(
-        zone, HashTables::New<CanonicalDoubleSet>(128, Heap::kOld)));
-  }
-  CanonicalDoubleSet constants(zone, this->constants());
-  constants.InsertNewOrGet(CanonicalDoubleKey(constant));
-  this->set_constants(constants.Release());
-}
-
-void Class::InsertCanonicalMint(Zone* zone, const Mint& constant) const {
-  if (this->constants() == Array::null()) {
-    this->set_constants(Array::Handle(
-        zone, HashTables::New<CanonicalMintSet>(128, Heap::kOld)));
-  }
-  CanonicalMintSet constants(zone, this->constants());
-  constants.InsertNewOrGet(CanonicalMintKey(constant));
-  this->set_constants(constants.Release());
 }
 
 void Class::RehashConstants(Zone* zone) const {
@@ -19134,7 +19019,7 @@ InstancePtr Instance::Canonicalize(Thread* thread) const {
 }
 
 InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
-  if (this->IsCanonical()) {
+  if (!this->ptr()->IsHeapObject() || this->IsCanonical()) {
     return this->ptr();
   }
   ASSERT(!IsNull());
@@ -22151,46 +22036,6 @@ const char* TypeParameter::ToCString() const {
   return printer.buffer();
 }
 
-InstancePtr Number::CanonicalizeLocked(Thread* thread) const {
-  intptr_t cid = GetClassId();
-  switch (cid) {
-    case kSmiCid:
-      return static_cast<SmiPtr>(raw_value());
-    case kMintCid:
-      return Mint::NewCanonicalLocked(thread, Mint::Cast(*this).value());
-    case kDoubleCid:
-      return Double::NewCanonicalLocked(thread, Double::Cast(*this).value());
-    default:
-      UNREACHABLE();
-  }
-  return Instance::null();
-}
-
-#if defined(DEBUG)
-bool Number::CheckIsCanonical(Thread* thread) const {
-  intptr_t cid = GetClassId();
-  Zone* zone = thread->zone();
-  const Class& cls = Class::Handle(zone, this->clazz());
-  switch (cid) {
-    case kSmiCid:
-      return true;
-    case kMintCid: {
-      Mint& result = Mint::Handle(zone);
-      result ^= cls.LookupCanonicalMint(zone, Mint::Cast(*this).value());
-      return (result.ptr() == this->ptr());
-    }
-    case kDoubleCid: {
-      Double& dbl = Double::Handle(zone);
-      dbl ^= cls.LookupCanonicalDouble(zone, Double::Cast(*this).value());
-      return (dbl.ptr() == this->ptr());
-    }
-    default:
-      UNREACHABLE();
-  }
-  return false;
-}
-#endif  // DEBUG
-
 const char* Number::ToCString() const {
   // Number is an interface. No instances of Number should exist.
   UNREACHABLE();
@@ -22537,29 +22382,9 @@ MintPtr Mint::New(int64_t val, Heap::Space space) {
 
 MintPtr Mint::NewCanonical(int64_t value) {
   Thread* thread = Thread::Current();
-  SafepointMutexLocker ml(
-      thread->isolate_group()->constant_canonicalization_mutex());
-  return NewCanonicalLocked(thread, value);
-}
-
-MintPtr Mint::NewCanonicalLocked(Thread* thread, int64_t value) {
-  // Do not allocate a Mint if Smi would do.
-  ASSERT(!Smi::IsValid(value));
-  Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-  const Class& cls =
-      Class::Handle(zone, isolate_group->object_store()->mint_class());
-  Mint& canonical_value =
-      Mint::Handle(zone, cls.LookupCanonicalMint(zone, value));
-  if (!canonical_value.IsNull()) {
-    return canonical_value.ptr();
-  }
-  canonical_value = Mint::New(value, Heap::kOld);
-  canonical_value.SetCanonical();
-  // The value needs to be added to the constants list. Grow the list if
-  // it is full.
-  cls.InsertCanonicalMint(zone, canonical_value);
-  return canonical_value.ptr();
+  Mint& mint = Mint::Handle(thread->zone(), Mint::New(value, Heap::kOld));
+  mint ^= mint.Canonicalize(thread);
+  return mint.ptr();
 }
 
 bool Mint::Equals(const Instance& other) const {
@@ -22668,28 +22493,9 @@ DoublePtr Double::New(const String& str, Heap::Space space) {
 
 DoublePtr Double::NewCanonical(double value) {
   Thread* thread = Thread::Current();
-  SafepointMutexLocker ml(
-      thread->isolate_group()->constant_canonicalization_mutex());
-  return NewCanonicalLocked(thread, value);
-}
-
-DoublePtr Double::NewCanonicalLocked(Thread* thread, double value) {
-  Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-  const Class& cls =
-      Class::Handle(zone, isolate_group->object_store()->double_class());
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Double& canonical_value =
-      Double::Handle(zone, cls.LookupCanonicalDouble(zone, value));
-  if (!canonical_value.IsNull()) {
-    return canonical_value.ptr();
-  }
-  canonical_value = Double::New(value, Heap::kOld);
-  canonical_value.SetCanonical();
-  // The value needs to be added to the constants list.
-  cls.InsertCanonicalDouble(zone, canonical_value);
-  return canonical_value.ptr();
+  Double& dbl = Double::Handle(thread->zone(), Double::New(value, Heap::kOld));
+  dbl ^= dbl.Canonicalize(thread);
+  return dbl.ptr();
 }
 
 DoublePtr Double::NewCanonical(const String& str) {
