@@ -259,6 +259,8 @@ class Api extends Member with ApiParseUtil {
 
     String? h3Name;
 
+    // TODO(helin24): This code does not capture documentation with more than
+    //  one paragraph or lists. It may help to check generate_dart to fix this.
     for (int i = 0; i < nodes.length; i++) {
       Node node = nodes[i];
 
