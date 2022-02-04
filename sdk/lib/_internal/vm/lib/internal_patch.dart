@@ -156,13 +156,9 @@ Int32List _growRegExpStack(Int32List stack) {
   return newStack;
 }
 
-// This function can be used to skip implicit or explicit checked down casts in
-// the parts of the core library implementation where we know by construction the
-// type of a value.
-//
-// Important: this is unsafe and must be used with care.
+@patch
 @pragma("vm:external-name", "Internal_unsafeCast")
-external T unsafeCast<T>(Object? v);
+external T unsafeCast<T>(dynamic v);
 
 // This function can be used to keep an object alive till that point.
 @pragma("vm:recognized", "other")

@@ -62,3 +62,6 @@ T createSentinel<T>() => throw UnsupportedError('createSentinel');
 
 @patch
 bool isSentinel(dynamic value) => throw UnsupportedError('isSentinel');
+
+@patch
+T unsafeCast<T>(dynamic v) => v;

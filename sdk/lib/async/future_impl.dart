@@ -4,15 +4,6 @@
 
 part of dart.async;
 
-/// The onValue and onError handlers return either a value or a future
-typedef FutureOr<T> _FutureOnValue<S, T>(S value);
-
-/// Test used by [Future.catchError] to handle skip some errors.
-typedef bool _FutureErrorTest(Object error);
-
-/// Used by [WhenFuture].
-typedef dynamic _FutureAction();
-
 abstract class _Completer<T> implements Completer<T> {
   final _Future<T> future = new _Future<T>();
 
@@ -106,7 +97,7 @@ class _FutureListener<S, T> {
         state = (errorCallback == null) ? stateThen : stateThenOnerror;
 
   _FutureListener.thenAwait(
-      this.result, _FutureOnValue<S, T> onValue, Function errorCallback)
+      this.result, FutureOr<T> Function(S) onValue, Function errorCallback)
       : callback = onValue,
         errorCallback = errorCallback,
         state = stateThenOnerror;
@@ -127,19 +118,19 @@ class _FutureListener<S, T> {
 
   FutureOr<T> Function(S) get _onValue {
     assert(handlesValue);
-    return callback as dynamic;
+    return unsafeCast<FutureOr<T> Function(S)>(callback);
   }
 
   Function? get _onError => errorCallback;
 
-  _FutureErrorTest get _errorTest {
+  bool Function(Object) get _errorTest {
     assert(hasErrorTest);
-    return callback as dynamic;
+    return unsafeCast<bool Function(Object)>(callback);
   }
 
-  _FutureAction get _whenCompleteAction {
+  dynamic Function() get _whenCompleteAction {
     assert(handlesComplete);
-    return callback as dynamic;
+    return unsafeCast<dynamic Function()>(callback);
   }
 
   /// Whether this listener has an error callback.
