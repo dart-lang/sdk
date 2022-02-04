@@ -76,7 +76,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     late List<int> oneShotSerialized;
     try {
       IncrementalKernelGenerator compiler =
-          new IncrementalKernelGenerator(getOptions(), uri);
+          new IncrementalKernelGenerator(getOptions(), [uri]);
       oneShotSerialized =
           util.postProcess((await compiler.computeDelta()).component);
     } catch (e) {
@@ -89,7 +89,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     try {
       globalDebuggingNames = new NameSystem();
       if (context.compiler == null) {
-        context.compiler = new IncrementalKernelGenerator(getOptions(), uri);
+        context.compiler = new IncrementalKernelGenerator(getOptions(), [uri]);
       }
       IncrementalCompilerResult compilerResult = await context.compiler!
           .computeDelta(entryPoints: [uri], fullComponent: true);
@@ -106,7 +106,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     try {
       globalDebuggingNames = new NameSystem();
       if (context.compiler == null) {
-        context.compiler = new IncrementalKernelGenerator(getOptions(), uri);
+        context.compiler = new IncrementalKernelGenerator(getOptions(), [uri]);
       }
       IncrementalCompilerResult compilerResult = await context.compiler!
           .computeDelta(entryPoints: [uri], fullComponent: true);

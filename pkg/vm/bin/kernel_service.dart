@@ -324,16 +324,16 @@ class IncrementalCompilerWrapper extends Compiler {
     result.generator = new IncrementalCompiler.forExpressionCompilationOnly(
         component,
         result.options,
-        component.mainMethod!.enclosingLibrary.fileUri);
+        [component.mainMethod!.enclosingLibrary.fileUri]);
     return result;
   }
 
   @override
   Future<CompilerResult> compileInternal(Uri script) async {
-    final generator = this.generator ??= IncrementalCompiler(options, script);
+    final generator = this.generator ??= IncrementalCompiler(options, [script]);
     errorsPlain.clear();
     errorsColorized.clear();
-    final compilerResult = await generator.compile(entryPoint: script);
+    final compilerResult = await generator.compile(entryPoints: [script]);
     final component = compilerResult.component;
     return new CompilerResult(component, const {},
         compilerResult.classHierarchy, compilerResult.coreTypes);
@@ -367,7 +367,7 @@ class IncrementalCompilerWrapper extends Compiler {
     new BinaryPrinter(sink).writeComponentFile(fullComponent);
     sink.close();
 
-    clone.generator = new IncrementalCompiler(options, generator.entryPoint,
+    clone.generator = new IncrementalCompiler(options, generator.entryPoints,
         initializeFromDillUri: Uri.file(filename));
     return clone;
   }

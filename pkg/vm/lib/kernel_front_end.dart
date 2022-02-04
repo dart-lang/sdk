@@ -97,6 +97,9 @@ void declareCompilerOptions(ArgParser args) {
           ' If multi-root file system is used, the input script and .packages file should be specified using URI.');
   args.addOption('filesystem-scheme',
       help: 'The URI scheme for the multi-root virtual filesystem.');
+  args.addMultiOption('source',
+      help: 'List additional source files to include into compilation.',
+      defaultsTo: const <String>[]);
   args.addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
@@ -203,6 +206,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool treeShakeWriteOnlyFields = options['tree-shake-write-only-fields'];
   final List<String>? experimentalFlags = options['enable-experiment'];
   final Map<String, String> environmentDefines = {};
+  final List<String> sources = options['source'];
 
   if (!parseCommandLineDefines(options['define'], environmentDefines, usage)) {
     return badUsageExitCode;
@@ -248,6 +252,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
   }
 
+  final List<Uri> additionalSources = sources.map(resolveInputUri).toList();
+
   final verbosity = Verbosity.parseArgument(options['verbosity']);
   final errorPrinter = new ErrorPrinter(verbosity);
   final errorDetector =
@@ -285,6 +291,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   }
 
   final results = await compileToKernel(mainUri, compilerOptions,
+      additionalSources: additionalSources,
       includePlatform: additionalDills.isNotEmpty,
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       aot: aot,
@@ -354,7 +361,8 @@ class KernelCompilationResults {
 ///
 Future<KernelCompilationResults> compileToKernel(
     Uri source, CompilerOptions options,
-    {bool includePlatform: false,
+    {List<Uri> additionalSources: const <Uri>[],
+    bool includePlatform: false,
     List<String> deleteToStringPackageUris: const <String>[],
     bool aot: false,
     bool useGlobalTypeFlowAnalysis: false,
@@ -379,7 +387,8 @@ Future<KernelCompilationResults> compileToKernel(
     compilerResult =
         await loadKernel(options.fileSystem, resolveInputUri(fromDillFile));
   } else {
-    compilerResult = await kernelForProgram(source, options);
+    compilerResult = await kernelForProgram(source, options,
+        additionalSources: additionalSources);
   }
   final Component? component = compilerResult?.component;
   Iterable<Uri>? compiledSources = component?.uriToSource.keys;

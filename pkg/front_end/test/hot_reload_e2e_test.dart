@@ -309,7 +309,7 @@ IncrementalKernelGenerator createIncrementalCompiler(
     ..fileSystem = fs
     ..target = new VmTarget(new TargetFlags())
     ..environmentDefines = {};
-  return new IncrementalKernelGenerator(options, entryUri);
+  return new IncrementalKernelGenerator(options, [entryUri]);
 }
 
 Future<bool> rebuild(IncrementalKernelGenerator compiler, Uri outputUri) async {
