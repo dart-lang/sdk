@@ -1400,7 +1400,7 @@ _Collected_ [Sentinel](#sentinel) is returned.
 
 ```
 Success|Sentinel setIsolatePauseMode(string isolateId,
-                                     ExceptionPauseMode exceptionPauseMode [optional],
+                                     ExceptionPauseMode mode [optional],
                                      bool shouldPauseOnExit [optional])
 ```
 
