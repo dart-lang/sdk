@@ -204,7 +204,7 @@ class SimpleMacro
     var constructors = (await builder.constructorsOf(parentClass));
 
     // Test the type resolver and static type interfaces
-    var staticReturnType = await builder.instantiateType(method.returnType);
+    var staticReturnType = await builder.resolve(method.returnType.code);
     if (!(await staticReturnType.isExactly(staticReturnType))) {
       throw StateError('The return type should be exactly equal to itself!');
     }
@@ -213,8 +213,7 @@ class SimpleMacro
     }
 
     // TODO: Use `builder.instantiateCode` instead once implemented.
-    var classType =
-        await builder.instantiateType(constructors.first.returnType);
+    var classType = await builder.resolve(constructors.first.returnType.code);
     if (await staticReturnType.isExactly(classType)) {
       throw StateError(
           'The return type should not be exactly equal to the class type');
@@ -283,9 +282,9 @@ class SimpleMacro
       return [
         if (!isFirst) ', ',
         typeParam.identifier.name,
-        if (typeParam.bounds != null) ...[
+        if (typeParam.bound != null) ...[
           ' extends ',
-          typeParam.bounds!.code,
+          typeParam.bound!.code,
         ]
       ];
     }
@@ -385,7 +384,7 @@ FunctionBodyCode _buildFunctionAugmentation(FunctionDeclaration function) =>
       ],
       for (var param in function.typeParameters) ...[
         "print('typeParam: ${param.identifier.name} ",
-        if (param.bounds != null) param.bounds!.code,
+        if (param.bound != null) param.bound!.code,
         "');\n",
       ],
       'return augment super',

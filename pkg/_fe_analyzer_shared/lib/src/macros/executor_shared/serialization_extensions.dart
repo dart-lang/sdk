@@ -106,7 +106,7 @@ extension DeserializerExtensions on Deserializer {
       new TypeParameterDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
-        bounds: (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
+        bound: (this..moveNext()).checkNull() ? null : expectRemoteInstance(),
       );
 
   FunctionDeclaration _expectFunctionDeclaration(int id) =>
@@ -197,44 +197,83 @@ extension DeserializerExtensions on Deserializer {
         aliasedType: RemoteInstance.deserialize(this),
       );
 
-  T expectCode<T extends Code>() {
-    CodeKind kind = CodeKind.values[expectNum()];
+  List<String> _readStringList() => [
+        for (bool hasNext = (this
+                  ..moveNext()
+                  ..expectList())
+                .moveNext();
+            hasNext;
+            hasNext = moveNext())
+          expectString(),
+      ];
+
+  List<T> _readCodeList<T extends Code>() => [
+        for (bool hasNext = (this
+                  ..moveNext()
+                  ..expectList())
+                .moveNext();
+            hasNext;
+            hasNext = moveNext())
+          expectCode(),
+      ];
+
+  List<Object> _readParts() {
     moveNext();
     expectList();
     List<Object> parts = [];
     while (moveNext()) {
-      CodePartKind partKind = CodePartKind.values[expectNum()];
+      _CodePartKind partKind = _CodePartKind.values[expectNum()];
       moveNext();
       switch (partKind) {
-        case CodePartKind.code:
+        case _CodePartKind.code:
           parts.add(expectCode());
           break;
-        case CodePartKind.string:
+        case _CodePartKind.string:
           parts.add(expectString());
           break;
-        case CodePartKind.identifier:
+        case _CodePartKind.identifier:
           parts.add(expectRemoteInstance());
           break;
       }
     }
+    return parts;
+  }
+
+  T expectCode<T extends Code>() {
+    CodeKind kind = CodeKind.values[expectNum()];
 
     switch (kind) {
       case CodeKind.raw:
-        return new Code.fromParts(parts) as T;
+        return new Code.fromParts(_readParts()) as T;
       case CodeKind.declaration:
-        return new DeclarationCode.fromParts(parts) as T;
-      case CodeKind.element:
-        return new ElementCode.fromParts(parts) as T;
+        return new DeclarationCode.fromParts(_readParts()) as T;
       case CodeKind.expression:
-        return new ExpressionCode.fromParts(parts) as T;
+        return new ExpressionCode.fromParts(_readParts()) as T;
       case CodeKind.functionBody:
-        return new FunctionBodyCode.fromParts(parts) as T;
-      case CodeKind.namedArgument:
-        return new NamedArgumentCode.fromParts(parts) as T;
+        return new FunctionBodyCode.fromParts(_readParts()) as T;
+      case CodeKind.functionTypeAnnotation:
+        return new FunctionTypeAnnotationCode(
+            namedParameters: _readCodeList(),
+            positionalParameters: _readCodeList(),
+            returnType: (this..moveNext()).expectNullableCode(),
+            typeParameters: _readCodeList()) as T;
+      case CodeKind.namedTypeAnnotation:
+        return new NamedTypeAnnotationCode(
+            name: RemoteInstance.deserialize(this),
+            typeArguments: _readCodeList()) as T;
+      case CodeKind.nullableTypeAnnotation:
+        return new NullableTypeAnnotationCode((this..moveNext()).expectCode())
+            as T;
       case CodeKind.parameter:
-        return new ParameterCode.fromParts(parts) as T;
-      case CodeKind.statement:
-        return new StatementCode.fromParts(parts) as T;
+        return new ParameterCode(
+            defaultValue: (this..moveNext()).expectNullableCode(),
+            keywords: _readStringList(),
+            name: (this..moveNext()).expectString(),
+            type: (this..moveNext()).expectNullableCode()) as T;
+      case CodeKind.typeParameter:
+        return new TypeParameterCode(
+            bound: (this..moveNext()).expectNullableCode(),
+            name: (this..moveNext()).expectString()) as T;
     }
   }
 
@@ -270,29 +309,82 @@ extension SerializeNullableCode on Code? {
 
 extension SerializeCode on Code {
   void serialize(Serializer serializer) {
-    serializer
-      ..addNum(kind.index)
-      ..startList();
-    for (Object part in parts) {
-      if (part is String) {
+    serializer.addNum(kind.index);
+    switch (kind) {
+      case CodeKind.namedTypeAnnotation:
+        NamedTypeAnnotationCode self = this as NamedTypeAnnotationCode;
+        (self.name as IdentifierImpl).serialize(serializer);
+        serializer.startList();
+        for (TypeAnnotationCode typeArg in self.typeArguments) {
+          typeArg.serialize(serializer);
+        }
+        serializer.endList();
+        return;
+      case CodeKind.functionTypeAnnotation:
+        FunctionTypeAnnotationCode self = this as FunctionTypeAnnotationCode;
+        serializer.startList();
+        for (ParameterCode named in self.namedParameters) {
+          named.serialize(serializer);
+        }
         serializer
-          ..addNum(CodePartKind.string.index)
-          ..addString(part);
-      } else if (part is Code) {
-        serializer.addNum(CodePartKind.code.index);
-        part.serialize(serializer);
-      } else if (part is IdentifierImpl) {
-        serializer.addNum(CodePartKind.identifier.index);
-        part.serialize(serializer);
-      } else {
-        throw new StateError('Unrecognized code part $part');
-      }
+          ..endList()
+          ..startList();
+        for (ParameterCode positional in self.positionalParameters) {
+          positional.serialize(serializer);
+        }
+        serializer..endList();
+        self.returnType.serializeNullable(serializer);
+        serializer.startList();
+        for (TypeParameterCode typeParam in self.typeParameters) {
+          typeParam.serialize(serializer);
+        }
+        serializer.endList();
+        return;
+      case CodeKind.nullableTypeAnnotation:
+        NullableTypeAnnotationCode self = this as NullableTypeAnnotationCode;
+        self.underlyingType.serialize(serializer);
+        return;
+      case CodeKind.parameter:
+        ParameterCode self = this as ParameterCode;
+        self.defaultValue.serializeNullable(serializer);
+        serializer.startList();
+        for (String keyword in self.keywords) {
+          serializer.addString(keyword);
+        }
+        serializer
+          ..endList()
+          ..addString(self.name);
+        self.type.serializeNullable(serializer);
+        return;
+      case CodeKind.typeParameter:
+        TypeParameterCode self = this as TypeParameterCode;
+        self.bound.serializeNullable(serializer);
+        serializer.addString(self.name);
+        return;
+      default:
+        serializer.startList();
+        for (Object part in parts) {
+          if (part is String) {
+            serializer
+              ..addNum(_CodePartKind.string.index)
+              ..addString(part);
+          } else if (part is Code) {
+            serializer.addNum(_CodePartKind.code.index);
+            part.serialize(serializer);
+          } else if (part is IdentifierImpl) {
+            serializer.addNum(_CodePartKind.identifier.index);
+            part.serialize(serializer);
+          } else {
+            throw new StateError('Unrecognized code part $part');
+          }
+        }
+        serializer.endList();
+        return;
     }
-    serializer.endList();
   }
 }
 
-enum CodePartKind {
+enum _CodePartKind {
   string,
   code,
   identifier,

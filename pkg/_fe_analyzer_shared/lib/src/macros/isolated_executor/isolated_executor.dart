@@ -151,12 +151,12 @@ class _SingleIsolatedMacroExecutor extends MacroExecutor {
               }
               completer.complete(response);
               break;
-            case MessageType.instantiateTypeRequest:
-              InstantiateTypeRequest request =
-                  new InstantiateTypeRequest.deserialize(deserializer, zoneId);
+            case MessageType.resolveTypeRequest:
+              ResolveTypeRequest request =
+                  new ResolveTypeRequest.deserialize(deserializer, zoneId);
               StaticType instance =
                   await (request.typeResolver.instance as TypeResolver)
-                      .instantiateType(request.typeAnnotation);
+                      .resolve(request.typeAnnotationCode);
               SerializableResponse response = new SerializableResponse(
                   response: new RemoteInstanceImpl(
                       id: RemoteInstance.uniqueId,

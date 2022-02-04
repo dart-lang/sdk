@@ -48,16 +48,13 @@ abstract class TypeAnnotationImpl extends RemoteInstance
 class NamedTypeAnnotationImpl extends TypeAnnotationImpl
     implements NamedTypeAnnotation {
   @override
-  Code get code => new Code.fromParts([
-        identifier,
-        if (typeArguments.isNotEmpty) ...[
-          '<',
-          typeArguments.first.code,
-          for (TypeAnnotation arg in typeArguments.skip(1)) ...[', ', arg.code],
-          '>',
-        ],
-        if (isNullable) '?',
-      ]);
+  TypeAnnotationCode get code {
+    NamedTypeAnnotationCode underlyingType =
+        new NamedTypeAnnotationCode(name: identifier, typeArguments: [
+      for (TypeAnnotation typeArg in typeArguments) typeArg.code,
+    ]);
+    return isNullable ? underlyingType.asNullable : underlyingType;
+  }
 
   @override
   final IdentifierImpl identifier;
@@ -95,39 +92,23 @@ class NamedTypeAnnotationImpl extends TypeAnnotationImpl
 class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
     implements FunctionTypeAnnotation {
   @override
-  Code get code => new Code.fromParts([
-        returnType.code,
-        'Function',
-        if (typeParameters.isNotEmpty) ...[
-          '<',
-          typeParameters.first.identifier.name,
-          if (typeParameters.first.bounds != null) ...[
-            ' extends ',
-            typeParameters.first.bounds!.code,
-          ],
-          for (TypeParameterDeclaration arg in typeParameters.skip(1)) ...[
-            ', ',
-            arg.identifier.name,
-            if (arg.bounds != null) ...[' extends ', arg.bounds!.code],
-          ],
-          '>',
-        ],
-        '(',
-        for (ParameterDeclaration positional in positionalParameters) ...[
-          positional.type.code,
-          ' ${positional.identifier.name}',
-        ],
-        if (namedParameters.isNotEmpty) ...[
-          '{',
-          for (ParameterDeclaration named in namedParameters) ...[
-            named.type.code,
-            ' ${named.identifier.name}',
-          ],
-          '}',
-        ],
-        ')',
-        if (isNullable) '?',
-      ]);
+  TypeAnnotationCode get code {
+    FunctionTypeAnnotationCode underlyingType = new FunctionTypeAnnotationCode(
+      returnType: returnType.code,
+      typeParameters: [
+        for (TypeParameterDeclaration typeParam in typeParameters)
+          typeParam.code,
+      ],
+      positionalParameters: [
+        for (ParameterDeclaration positional in positionalParameters)
+          positional.code,
+      ],
+      namedParameters: [
+        for (ParameterDeclaration named in namedParameters) named.code,
+      ],
+    );
+    return isNullable ? underlyingType.asNullable : underlyingType;
+  }
 
   @override
   final List<ParameterDeclarationImpl> namedParameters;
@@ -234,12 +215,18 @@ class ParameterDeclarationImpl extends DeclarationImpl
     serializer.addBool(isRequired);
     type.serialize(serializer);
   }
+
+  @override
+  ParameterCode get code =>
+      new ParameterCode(name: identifier.name, type: type.code, keywords: [
+        if (isNamed && isRequired) 'required',
+      ]);
 }
 
 class TypeParameterDeclarationImpl extends DeclarationImpl
     implements TypeParameterDeclaration {
   @override
-  final TypeAnnotationImpl? bounds;
+  final TypeAnnotationImpl? bound;
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.typeParameterDeclaration;
@@ -247,7 +234,7 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
   TypeParameterDeclarationImpl({
     required int id,
     required IdentifierImpl identifier,
-    required this.bounds,
+    required this.bound,
   }) : super(id: id, identifier: identifier);
 
   @override
@@ -258,13 +245,17 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
       return;
     }
 
-    TypeAnnotationImpl? bounds = this.bounds;
-    if (bounds == null) {
+    TypeAnnotationImpl? bound = this.bound;
+    if (bound == null) {
       serializer.addNull();
     } else {
-      bounds.serialize(serializer);
+      bound.serialize(serializer);
     }
   }
+
+  @override
+  TypeParameterCode get code =>
+      new TypeParameterCode(name: identifier.name, bound: bound?.code);
 }
 
 class FunctionDeclarationImpl extends DeclarationImpl

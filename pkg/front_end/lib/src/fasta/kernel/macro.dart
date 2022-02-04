@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/macros/executor_shared/introspection_imp
 import 'package:_fe_analyzer_shared/src/macros/executor_shared/remote_instance.dart'
     as macro;
 import 'package:front_end/src/base/common.dart';
-import 'package:kernel/ast.dart' show DartType, DynamicType;
+import 'package:kernel/ast.dart' show DartType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/types.dart';
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
@@ -20,6 +20,7 @@ import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
 import '../builder/type_builder.dart';
 import '../identifiers.dart';
 import '../source/source_class_builder.dart';
@@ -540,7 +541,7 @@ class MacroApplications {
     }
   }
 
-  Map<TypeBuilder?, _NamedTypeAnnotationImpl> _typeAnnotationCache = {};
+  Map<TypeBuilder?, macro.TypeAnnotationImpl> _typeAnnotationCache = {};
 
   List<macro.TypeAnnotationImpl> computeTypeAnnotations(
       LibraryBuilder library, List<TypeBuilder>? typeBuilders) {
@@ -549,7 +550,7 @@ class MacroApplications {
         (int index) => computeTypeAnnotation(library, typeBuilders[index]));
   }
 
-  _NamedTypeAnnotationImpl _computeTypeAnnotation(
+  macro.TypeAnnotationImpl _computeTypeAnnotation(
       LibraryBuilder libraryBuilder, TypeBuilder? typeBuilder) {
     if (typeBuilder != null) {
       if (typeBuilder is NamedTypeBuilder) {
@@ -558,21 +559,22 @@ class MacroApplications {
             computeTypeAnnotations(libraryBuilder, typeBuilder.arguments);
         bool isNullable = typeBuilder.nullabilityBuilder.isNullable;
         if (name is String) {
-          return new _NamedTypeAnnotationImpl(
-              typeBuilder: typeBuilder,
-              libraryBuilder: libraryBuilder,
+          return new macro.NamedTypeAnnotationImpl(
               id: macro.RemoteInstance.uniqueId,
-              identifier: new macro.IdentifierImpl(
-                  id: macro.RemoteInstance.uniqueId, name: name),
+              identifier: new _IdentifierImpl(
+                  typeBuilder: typeBuilder,
+                  libraryBuilder: libraryBuilder,
+                  id: macro.RemoteInstance.uniqueId,
+                  name: name),
               typeArguments: typeArguments,
               isNullable: isNullable);
         } else if (name is QualifiedName) {
           assert(name.qualifier is String);
-          return new _NamedTypeAnnotationImpl(
-              typeBuilder: typeBuilder,
-              libraryBuilder: libraryBuilder,
+          return new macro.NamedTypeAnnotationImpl(
               id: macro.RemoteInstance.uniqueId,
-              identifier: new macro.IdentifierImpl(
+              identifier: new _IdentifierImpl(
+                  typeBuilder: typeBuilder,
+                  libraryBuilder: libraryBuilder,
                   id: macro.RemoteInstance.uniqueId,
                   // TODO: We probably shouldn't be including the qualifier
                   // here. Kernel should probably have its own implementation
@@ -584,9 +586,7 @@ class MacroApplications {
         }
       }
     }
-    return new _NamedTypeAnnotationImpl(
-        typeBuilder: typeBuilder,
-        libraryBuilder: libraryBuilder,
+    return new macro.NamedTypeAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
         identifier: dynamicIdentifier,
         isNullable: false,
@@ -599,17 +599,51 @@ class MacroApplications {
         _computeTypeAnnotation(libraryBuilder, typeBuilder);
   }
 
-  macro.StaticType resolveTypeAnnotation(
-      _NamedTypeAnnotationImpl typeAnnotation) {
-    TypeBuilder? typeBuilder = typeAnnotation.typeBuilder;
-    LibraryBuilder libraryBuilder = typeAnnotation.libraryBuilder;
-    DartType dartType;
-    if (typeBuilder != null) {
-      dartType = typeBuilder.build(libraryBuilder);
+  TypeBuilder _typeBuilderForAnnotation(
+      macro.TypeAnnotationCode typeAnnotation) {
+    NullabilityBuilder nullabilityBuilder;
+    if (typeAnnotation is macro.NullableTypeAnnotationCode) {
+      nullabilityBuilder = const NullabilityBuilder.nullable();
+      typeAnnotation = typeAnnotation.underlyingType;
     } else {
-      dartType = const DynamicType();
+      nullabilityBuilder = const NullabilityBuilder.omitted();
     }
-    return createStaticType(dartType);
+
+    if (typeAnnotation is macro.NamedTypeAnnotationCode) {
+      _IdentifierImpl typeIdentifier = typeAnnotation.name as _IdentifierImpl;
+      TypeBuilder? originalTypeBuilder = typeIdentifier.typeBuilder;
+      if (originalTypeBuilder == null) {
+        throw new StateError('No type builder for $typeIdentifier');
+      }
+      if (originalTypeBuilder is! NamedTypeBuilder) {
+        throw new StateError(
+            'Type $typeIdentifier was not a named type as expected!');
+      }
+      List<TypeBuilder> arguments = [
+        for (macro.TypeAnnotationCode argumentCode
+            in typeAnnotation.typeArguments)
+          _typeBuilderForAnnotation(argumentCode),
+      ];
+
+      return new NamedTypeBuilder.fromTypeDeclarationBuilder(
+          originalTypeBuilder.declaration!, nullabilityBuilder,
+          instanceTypeVariableAccess:
+              originalTypeBuilder.instanceTypeVariableAccess,
+          arguments: arguments);
+    }
+    // TODO: Implement support for function types.
+    throw new UnimplementedError(
+        'Unimplemented type annotation kind ${typeAnnotation.kind}');
+  }
+
+  macro.StaticType resolveTypeAnnotation(
+      macro.TypeAnnotationCode typeAnnotation) {
+    TypeBuilder typeBuilder = _typeBuilderForAnnotation(typeAnnotation);
+    // TODO: This should probably be passed in instead, possibly attached to the
+    // TypeResolver class?
+    LibraryBuilder libraryBuilder =
+        typeAnnotation.parts.whereType<_IdentifierImpl>().first.libraryBuilder;
+    return createStaticType(typeBuilder.build(libraryBuilder));
   }
 
   Map<DartType, _StaticTypeImpl> _staticTypeCache = {};
@@ -619,22 +653,16 @@ class MacroApplications {
   }
 }
 
-class _NamedTypeAnnotationImpl extends macro.NamedTypeAnnotationImpl {
+class _IdentifierImpl extends macro.IdentifierImpl {
   final TypeBuilder? typeBuilder;
   final LibraryBuilder libraryBuilder;
 
-  _NamedTypeAnnotationImpl({
+  _IdentifierImpl({
     required this.typeBuilder,
     required this.libraryBuilder,
     required int id,
-    required bool isNullable,
-    required macro.IdentifierImpl identifier,
-    required List<macro.TypeAnnotationImpl> typeArguments,
-  }) : super(
-            id: id,
-            isNullable: isNullable,
-            identifier: identifier,
-            typeArguments: typeArguments);
+    required String name,
+  }) : super(id: id, name: name);
 }
 
 class _StaticTypeImpl extends macro.StaticType {
@@ -661,14 +689,7 @@ class _TypeResolver implements macro.TypeResolver {
   _TypeResolver(this.macroApplications);
 
   @override
-  Future<macro.StaticType> instantiateCode(macro.ExpressionCode code) {
-    // TODO: implement instantiateCode
-    throw new UnimplementedError();
-  }
-
-  @override
-  Future<macro.StaticType> instantiateType(
-      covariant _NamedTypeAnnotationImpl typeAnnotation) {
+  Future<macro.StaticType> resolve(macro.TypeAnnotationCode typeAnnotation) {
     return new Future.value(
         macroApplications.resolveTypeAnnotation(typeAnnotation));
   }

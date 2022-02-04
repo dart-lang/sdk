@@ -343,26 +343,26 @@ class ExecuteDefinitionsPhaseRequest extends Request {
   }
 }
 
-/// A request to reflect on a type annotation
-class InstantiateTypeRequest extends Request {
-  final TypeAnnotationImpl typeAnnotation;
+/// A request to resolve on a type annotation code object
+class ResolveTypeRequest extends Request {
+  final TypeAnnotationCode typeAnnotationCode;
   final RemoteInstanceImpl typeResolver;
 
-  InstantiateTypeRequest(this.typeAnnotation, this.typeResolver,
+  ResolveTypeRequest(this.typeAnnotationCode, this.typeResolver,
       {required int serializationZoneId})
       : super(serializationZoneId: serializationZoneId);
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
-  InstantiateTypeRequest.deserialize(
+  ResolveTypeRequest.deserialize(
       Deserializer deserializer, int serializationZoneId)
-      : typeAnnotation = RemoteInstance.deserialize(deserializer),
+      : typeAnnotationCode = (deserializer..moveNext()).expectCode(),
         typeResolver = RemoteInstance.deserialize(deserializer),
         super.deserialize(deserializer, serializationZoneId);
 
   void serialize(Serializer serializer) {
-    serializer.addNum(MessageType.instantiateTypeRequest.index);
-    typeAnnotation.serialize(serializer);
+    serializer.addNum(MessageType.resolveTypeRequest.index);
+    typeAnnotationCode.serialize(serializer);
     typeResolver.serialize(serializer);
     super.serialize(serializer);
   }
@@ -491,8 +491,8 @@ class ClientTypeResolver implements TypeResolver {
       {required this.remoteInstance, required this.serializationZoneId});
 
   @override
-  Future<StaticType> instantiateType(TypeAnnotationImpl typeAnnotation) async {
-    InstantiateTypeRequest request = new InstantiateTypeRequest(
+  Future<StaticType> resolve(TypeAnnotationCode typeAnnotation) async {
+    ResolveTypeRequest request = new ResolveTypeRequest(
         typeAnnotation, remoteInstance,
         serializationZoneId: serializationZoneId);
     RemoteInstanceImpl remoteType =
@@ -511,12 +511,6 @@ class ClientTypeResolver implements TypeResolver {
             'Expected either a StaticType or NamedStaticType but got '
             '${remoteType.kind}');
     }
-  }
-
-  @override
-  Future<StaticType> instantiateCode(ExpressionCode code) {
-    // TODO: implement instantiateCode
-    throw new UnimplementedError();
   }
 }
 
@@ -705,7 +699,7 @@ enum MessageType {
   executeDefinitionsPhaseRequest,
   executeTypesPhaseRequest,
   instantiateMacroRequest,
-  instantiateTypeRequest,
+  resolveTypeRequest,
   isExactlyTypeRequest,
   isSubtypeOfRequest,
   loadMacroRequest,

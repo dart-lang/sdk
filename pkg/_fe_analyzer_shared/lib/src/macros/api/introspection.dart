@@ -24,10 +24,9 @@ abstract class TypeAnnotation {
   /// trailing `?`)
   bool get isNullable;
 
-  /// A convenience method to get a [Code] object representation of this full
-  /// type annotation, including support for generic type arguments as well as
-  /// function types.
-  Code get code;
+  /// A convenience method to get a [Code] object equivalent to this type
+  /// annotation.
+  TypeAnnotationCode get code;
 }
 
 /// The base class for function type declarations.
@@ -193,10 +192,20 @@ abstract class ParameterDeclaration implements Declaration {
   /// Whether or not this parameter is either a non-optional positional
   /// parameter or an optional parameter with the `required` keyword.
   bool get isRequired;
+
+  /// A convenience method to get a `code` object equivalent to this parameter.
+  ///
+  /// Note that the original default value will not be included, as it is not a
+  /// part of this API.
+  ParameterCode get code;
 }
 
 /// Type parameter introspection information.
 abstract class TypeParameterDeclaration implements Declaration {
-  /// The bounds for this type parameter, if it has any.
-  TypeAnnotation? get bounds;
+  /// The bound for this type parameter, if it has any.
+  TypeAnnotation? get bound;
+
+  /// A convenience method to get a `code` object equivalent to this type
+  /// parameter.
+  TypeParameterCode get code;
 }

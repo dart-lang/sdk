@@ -28,9 +28,9 @@ class FunctionDefinitionMacro2 implements FunctionDefinitionMacro {
     if (function.positionalParameters.isEmpty) {
       return;
     }
-    StaticType returnType = await builder.instantiateType(function.returnType);
+    StaticType returnType = await builder.resolve(function.returnType.code);
     StaticType parameterType =
-    await builder.instantiateType(function.positionalParameters.first.type);
+    await builder.resolve(function.positionalParameters.first.type.code);
     builder.augment(new FunctionBodyCode.fromString('''{
   print('isExactly=${await returnType.isExactly(parameterType)}');
   print('isSubtype=${await returnType.isSubtypeOf(parameterType)}');
@@ -90,9 +90,9 @@ class FunctionDeclarationsMacro2 implements FunctionDeclarationsMacro {
     if (function.positionalParameters.isEmpty) {
       return;
     }
-    StaticType returnType = await builder.instantiateType(function.returnType);
+    StaticType returnType = await builder.resolve(function.returnType.code);
     StaticType parameterType =
-    await builder.instantiateType(function.positionalParameters.first.type);
+    await builder.resolve(function.positionalParameters.first.type.code);
     bool isExactly = await returnType.isExactly(parameterType);
     bool isSubtype = await returnType.isSubtypeOf(parameterType);
     String tag = '${isExactly ? 'e' : ''}${isSubtype ? 's' : ''}';

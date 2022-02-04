@@ -139,7 +139,7 @@ void main() {
       final zapTypeParam = TypeParameterDeclarationImpl(
           id: RemoteInstance.uniqueId,
           identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Zap'),
-          bounds: barType);
+          bound: barType);
 
       // Transitively tests `TypeParameterDeclaration` and
       // `ParameterDeclaration`.

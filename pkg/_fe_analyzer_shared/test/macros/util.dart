@@ -76,20 +76,14 @@ class TestTypeDeclarationResolver implements TypeDeclarationResolver {
 }
 
 class TestTypeResolver implements TypeResolver {
-  final Map<TypeAnnotation, StaticType> staticTypes;
+  final Map<Identifier, StaticType> staticTypes;
 
   TestTypeResolver(this.staticTypes);
 
   @override
-  Future<StaticType> instantiateType(
-      covariant TypeAnnotation typeAnnotation) async {
-    return staticTypes[typeAnnotation]!;
-  }
-
-  @override
-  Future<StaticType> instantiateCode(ExpressionCode code) {
-    // TODO: implement instantiateCode
-    throw UnimplementedError();
+  Future<StaticType> resolve(covariant TypeAnnotationCode type) async {
+    assert(type.parts.length == 1);
+    return staticTypes[type.parts.first]!;
   }
 }
 
@@ -401,8 +395,9 @@ class Fixtures {
       myClassType.identifier, 'package:my_package/my_package.dart', []);
 
   static final testTypeResolver = TestTypeResolver({
-    stringType: TestNamedStaticType(stringType.identifier, 'dart:core', []),
-    myClassType: myClassStaticType,
+    stringType.identifier:
+        TestNamedStaticType(stringType.identifier, 'dart:core', []),
+    myClass.identifier: myClassStaticType,
   });
   static final testClassIntrospector = TestClassIntrospector(
     constructors: {
