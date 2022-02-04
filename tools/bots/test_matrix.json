@@ -2264,17 +2264,6 @@
           ]
         },
         {
-          "name": "ddc weak modular tests",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "testRunner": true,
-          "arguments": [
-            "pkg/dev_compiler/test/modular_suite_nnbd.dart",
-            "-ndartdevk-weak-${system}-release-chrome",
-            "--verbose",
-            "--use-sdk"
-          ]
-        },
-        {
           "name": "ddc nnbd weak tests",
           "arguments": [
             "-ndartdevk-weak-linux-release-chrome",
@@ -2284,7 +2273,7 @@
             "dartdevc",
             "web"
           ],
-          "shards": 5,
+          "shards": 2,
           "fileset": "web_platform_nnbd"
         },
         {
@@ -2297,6 +2286,26 @@
           "fileset": "web_platform_nnbd"
         },
         {
+          "name": "ddc nnbd strong co19 tests",
+          "arguments": [
+            "-ndartdevk-strong-linux-release-chrome",
+            "co19"
+          ],
+          "shards": 3,
+          "fileset": "web_platform_nnbd"
+        },
+        {
+          "name": "ddc weak modular tests",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/modular_suite_nnbd.dart",
+            "-ndartdevk-weak-${system}-release-chrome",
+            "--verbose",
+            "--use-sdk"
+          ]
+        },
+        {
           "name": "ddc nnbd strong tests",
           "arguments": [
             "-ndartdevk-strong-linux-release-chrome",
@@ -2305,13 +2314,6 @@
             "lib",
             "dartdevc",
             "web"
-          ]
-        },
-        {
-          "name": "ddc nnbd strong co19 tests",
-          "arguments": [
-            "-ndartdevk-strong-linux-release-chrome",
-            "co19"
           ]
         }
       ]
