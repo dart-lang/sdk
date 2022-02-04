@@ -176,10 +176,6 @@ abstract class VariableDeclaration implements Declaration {
 
   /// The type of this field.
   TypeAnnotation get type;
-
-  /// A [ExpressionCode] object representing the initializer for this field, if
-  /// present.
-  ExpressionCode? get initializer;
 }
 
 /// Field introspection information.
@@ -197,10 +193,6 @@ abstract class ParameterDeclaration implements Declaration {
   /// Whether or not this parameter is either a non-optional positional
   /// parameter or an optional parameter with the `required` keyword.
   bool get isRequired;
-
-  /// A [Code] object representing the default value for this parameter, if
-  /// present. Can be used to copy default values to other parameters.
-  Code? get defaultValue;
 }
 
 /// Type parameter introspection information.

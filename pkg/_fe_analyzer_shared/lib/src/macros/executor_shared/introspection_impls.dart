@@ -203,9 +203,6 @@ abstract class DeclarationImpl extends RemoteInstance implements Declaration {
 class ParameterDeclarationImpl extends DeclarationImpl
     implements ParameterDeclaration {
   @override
-  final Code? defaultValue;
-
-  @override
   final bool isNamed;
 
   @override
@@ -220,7 +217,6 @@ class ParameterDeclarationImpl extends DeclarationImpl
   ParameterDeclarationImpl({
     required int id,
     required IdentifierImpl identifier,
-    required this.defaultValue,
     required this.isNamed,
     required this.isRequired,
     required this.type,
@@ -234,11 +230,6 @@ class ParameterDeclarationImpl extends DeclarationImpl
       return;
     }
 
-    if (defaultValue == null) {
-      serializer.addNull();
-    } else {
-      defaultValue!.serialize(serializer);
-    }
     serializer.addBool(isNamed);
     serializer.addBool(isRequired);
     type.serialize(serializer);
@@ -462,9 +453,6 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
 class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
   @override
-  final ExpressionCode? initializer;
-
-  @override
   final bool isExternal;
 
   @override
@@ -482,7 +470,6 @@ class VariableDeclarationImpl extends DeclarationImpl
   VariableDeclarationImpl({
     required int id,
     required IdentifierImpl identifier,
-    required this.initializer,
     required this.isExternal,
     required this.isFinal,
     required this.isLate,
@@ -497,7 +484,6 @@ class VariableDeclarationImpl extends DeclarationImpl
       return;
     }
 
-    initializer.serializeNullable(serializer);
     serializer
       ..addBool(isExternal)
       ..addBool(isFinal)
@@ -516,7 +502,6 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     required int id,
     required IdentifierImpl identifier,
     // Variable fields
-    required ExpressionCode? initializer,
     required bool isExternal,
     required bool isFinal,
     required bool isLate,
@@ -526,7 +511,6 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   }) : super(
             id: id,
             identifier: identifier,
-            initializer: initializer,
             isExternal: isExternal,
             isFinal: isFinal,
             isLate: isLate,

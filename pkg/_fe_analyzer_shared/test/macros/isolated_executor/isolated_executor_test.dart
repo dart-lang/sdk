@@ -350,7 +350,7 @@ void main() {
                   augment super = value;
                 }'''),
               equalsIgnoringWhitespace('''
-                augment final String _myVariable = '';
+                augment final String _myVariable = 'new initial value' + augment super;
                 '''),
             ]));
       });
@@ -415,6 +415,7 @@ augment class MyClass {
   augment set myField(String value) {
     augment super = value;
   }
+  augment String myField = \'new initial value\' + augment super;
 }''');
 
 final methodDefinitionMatchers = [

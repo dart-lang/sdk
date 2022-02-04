@@ -379,25 +379,24 @@ class MacroApplications {
       for (FormalParameterBuilder formal in formals) {
         macro.TypeAnnotationImpl type =
             computeTypeAnnotation(builder.library, formal.type);
-        // TODO(johnniwinther): Support default values.
         if (formal.isNamed) {
           namedParameters.add(new macro.ParameterDeclarationImpl(
-              id: macro.RemoteInstance.uniqueId,
-              identifier: new macro.IdentifierImpl(
-                  id: macro.RemoteInstance.uniqueId, name: formal.name),
-              isRequired: formal.isNamedRequired,
-              isNamed: true,
-              type: type,
-              defaultValue: null));
+            id: macro.RemoteInstance.uniqueId,
+            identifier: new macro.IdentifierImpl(
+                id: macro.RemoteInstance.uniqueId, name: formal.name),
+            isRequired: formal.isNamedRequired,
+            isNamed: true,
+            type: type,
+          ));
         } else {
           positionalParameters.add(new macro.ParameterDeclarationImpl(
-              id: macro.RemoteInstance.uniqueId,
-              identifier: new macro.IdentifierImpl(
-                  id: macro.RemoteInstance.uniqueId, name: formal.name),
-              isRequired: formal.isRequired,
-              isNamed: false,
-              type: type,
-              defaultValue: null));
+            id: macro.RemoteInstance.uniqueId,
+            identifier: new macro.IdentifierImpl(
+                id: macro.RemoteInstance.uniqueId, name: formal.name),
+            isRequired: formal.isRequired,
+            isNamed: false,
+            type: type,
+          ));
         }
       }
     }
@@ -525,8 +524,6 @@ class MacroApplications {
           identifier: new macro.IdentifierImpl(
               id: macro.RemoteInstance.uniqueId, name: builder.name),
           definingClass: definingClass.identifier as macro.IdentifierImpl,
-          // TODO(johnniwinther): Support initializer.
-          initializer: null,
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
           isLate: builder.isLate,
@@ -536,8 +533,6 @@ class MacroApplications {
           id: macro.RemoteInstance.uniqueId,
           identifier: new macro.IdentifierImpl(
               id: macro.RemoteInstance.uniqueId, name: builder.name),
-          // TODO(johnniwinther): Support initializer.
-          initializer: null,
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
           isLate: builder.isLate,

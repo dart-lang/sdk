@@ -262,7 +262,6 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: '_myVariable'),
-      initializer: ExpressionCode.fromString("''"),
       isExternal: false,
       isFinal: true,
       isLate: false,
@@ -295,7 +294,6 @@ class Fixtures {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'value'),
-            defaultValue: null,
             isNamed: false,
             isRequired: true,
             type: stringType)
@@ -353,7 +351,6 @@ class Fixtures {
   static final myField = FieldDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
-      initializer: null,
       isExternal: false,
       isFinal: false,
       isLate: false,

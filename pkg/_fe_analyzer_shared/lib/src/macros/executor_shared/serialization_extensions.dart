@@ -97,7 +97,6 @@ extension DeserializerExtensions on Deserializer {
       new ParameterDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
-        defaultValue: (this..moveNext()).checkNull() ? null : expectCode(),
         isNamed: (this..moveNext()).expectBool(),
         isRequired: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
@@ -162,7 +161,6 @@ extension DeserializerExtensions on Deserializer {
       new VariableDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
-        initializer: (this..moveNext()).expectNullableCode(),
         isExternal: (this..moveNext()).expectBool(),
         isFinal: (this..moveNext()).expectBool(),
         isLate: (this..moveNext()).expectBool(),
@@ -172,7 +170,6 @@ extension DeserializerExtensions on Deserializer {
   FieldDeclaration _expectFieldDeclaration(int id) => new FieldDeclarationImpl(
         id: id,
         identifier: expectRemoteInstance(),
-        initializer: (this..moveNext()).expectNullableCode(),
         isExternal: (this..moveNext()).expectBool(),
         isFinal: (this..moveNext()).expectBool(),
         isLate: (this..moveNext()).expectBool(),

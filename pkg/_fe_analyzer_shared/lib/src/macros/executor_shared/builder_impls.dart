@@ -360,10 +360,6 @@ DeclarationCode _buildFunctionAugmentation(
           named.type.code,
           ' ',
           named.identifier,
-          if (named.defaultValue != null) ...[
-            ' = ',
-            named.defaultValue!,
-          ],
         ]),
         ', ',
       ],

@@ -270,7 +270,8 @@ class SimpleMacro
         variable.type.code,
         ' value) { augment super = value; }'
       ]),
-      initializer: variable.initializer,
+      initializer:
+          ExpressionCode.fromString("'new initial value' + augment super"),
     );
   }
 
@@ -374,14 +375,12 @@ FunctionBodyCode _buildFunctionAugmentation(FunctionDeclaration function) =>
         "print('positionalParam: ",
         param.type.code,
         ' ${param.identifier.name}',
-        if (param.defaultValue != null) ...[' = ', param.defaultValue!],
         "');\n",
       ],
       for (var param in function.namedParameters) ...[
         "print('namedParam: ",
         param.type.code,
         ' ${param.identifier.name}',
-        if (param.defaultValue != null) ...[' = ', param.defaultValue!],
         "');\n",
       ],
       for (var param in function.typeParameters) ...[
