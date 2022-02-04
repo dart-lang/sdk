@@ -92,7 +92,7 @@ mixin M {
 
 @reflectiveTest
 class FinalNotInitializedWithNullSafetyTest extends PubPackageResolutionTest {
-  test_field_abstract() async {
+  test_class_field_abstract() async {
     await assertNoErrorsInCode('''
 abstract class A {
   abstract final int x;
@@ -100,7 +100,7 @@ abstract class A {
 ''');
   }
 
-  test_field_abstract_with_constructor() async {
+  test_class_field_abstract_with_constructor() async {
     await assertNoErrorsInCode('''
 abstract class A {
   abstract final int x;
@@ -109,7 +109,7 @@ abstract class A {
 ''');
   }
 
-  test_field_external() async {
+  test_class_field_external() async {
     await assertNoErrorsInCode('''
 class A {
   external final int x;
@@ -117,7 +117,15 @@ class A {
 ''');
   }
 
-  test_field_external_with_constructor() async {
+  test_class_field_external_static() async {
+    await assertNoErrorsInCode('''
+class A {
+  external static final int x;
+}
+''');
+  }
+
+  test_class_field_external_with_constructor() async {
     await assertNoErrorsInCode('''
 class A {
   external final int x;
@@ -126,15 +134,7 @@ class A {
 ''');
   }
 
-  test_field_noConstructor_initializer() async {
-    await assertNoErrorsInCode('''
-class C {
-  late final f = 1;
-}
-''');
-  }
-
-  test_field_noConstructor_noInitializer() async {
+  test_class_field_late_noConstructor_noInitializer() async {
     await assertNoErrorsInCode('''
 class C {
   late final f;
@@ -142,7 +142,24 @@ class C {
 ''');
   }
 
-  test_field_ofClass() async {
+  test_class_field_late_unnamedConstructor_noInitializer() async {
+    await assertNoErrorsInCode('''
+class C {
+  late final f;
+  C();
+}
+''');
+  }
+
+  test_class_field_noConstructor_initializer() async {
+    await assertNoErrorsInCode('''
+class C {
+  final f = 1;
+}
+''');
+  }
+
+  test_class_field_noConstructor_noInitializer() async {
     await assertErrorsInCode('''
 abstract class A {
   final int x;
@@ -152,40 +169,71 @@ abstract class A {
     ]);
   }
 
-  test_field_unnamedConstructor_constructorInitializer() async {
+  test_class_field_unnamedConstructor_constructorInitializer() async {
     await assertNoErrorsInCode('''
 class C {
-  late final f;
+  final f;
   C() : f = 2;
 }
 ''');
   }
 
-  test_field_unnamedConstructor_fieldFormalParameter() async {
+  test_class_field_unnamedConstructor_fieldFormalParameter() async {
     await assertNoErrorsInCode('''
 class C {
-  late final f;
+  final f;
   C(this.f);
 }
 ''');
   }
 
-  test_field_unnamedConstructor_initializer() async {
+  test_class_field_unnamedConstructor_initializer() async {
     await assertNoErrorsInCode('''
 class C {
-  late final f = 1;
+  final f = 1;
   C();
 }
 ''');
   }
 
-  test_field_unnamedConstructor_noInitializer() async {
+  test_enum_field_constructorFieldInitializer() async {
     await assertNoErrorsInCode('''
-class C {
-  late final f;
-  C();
+enum E {
+  v;
+  final int x;
+  const E() : x = 0;
 }
 ''');
+  }
+
+  test_enum_field_fieldFormalParameter() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v(0);
+  final int x;
+  const E(this.x);
+}
+''');
+  }
+
+  test_enum_field_hasInitializer() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v;
+  final int x = 0;
+}
+''');
+  }
+
+  test_enum_field_noConstructor_noInitializer() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  final int x;
+}
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, 26, 1),
+    ]);
   }
 
   test_localVariable_initializer() async {
@@ -208,15 +256,7 @@ f() {
     ]);
   }
 
-  test_static_field_external() async {
-    await assertNoErrorsInCode('''
-class A {
-  external static final int x;
-}
-''');
-  }
-
-  test_variable_external() async {
+  test_topLevel_external() async {
     await assertNoErrorsInCode('''
 external final int x;
 ''');

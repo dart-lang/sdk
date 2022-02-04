@@ -2026,6 +2026,9 @@ class C extends A<String> implements B {}
 _'{0}' can't be used to name both a type variable and the class in which the
 type variable is defined._
 
+_'{0}' can't be used to name both a type variable and the enumeration in which
+the type variable is defined._
+
 _'{0}' can't be used to name both a type variable and the extension in which the
 type variable is defined._
 
@@ -2058,6 +2061,9 @@ class C<T> {}
 ### conflicting_type_variable_and_member
 
 _'{0}' can't be used to name both a type variable and a member in this class._
+
+_'{0}' can't be used to name both a type variable and a member in this
+enumeration._
 
 _'{0}' can't be used to name both a type variable and a member in this
 extension._

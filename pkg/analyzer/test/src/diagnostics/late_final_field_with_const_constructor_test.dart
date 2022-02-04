@@ -87,7 +87,27 @@ class A {
 ''');
   }
 
-  test_inExtension() async {
+  test_enum_instance_hasInitializer() async {
+    await assertErrorsInCode('''
+enum E {
+  v;
+  late final f = 0;
+}
+''', [
+      error(_errorCode, 16, 4),
+    ]);
+  }
+
+  test_enum_static() async {
+    await assertNoErrorsInCode('''
+enum E {
+  v;
+  static late final f = 0;
+}
+''');
+  }
+
+  test_extension() async {
     // https://github.com/dart-lang/sdk/issues/46952
     // This test is here because the code that tests for
     // LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR is where the referenced issue was

@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConflictingTypeVariableAndClassTest);
+    defineReflectiveTests(ConflictingTypeVariableAndEnumTest);
     defineReflectiveTests(ConflictingTypeVariableAndExtensionTest);
     defineReflectiveTests(ConflictingTypeVariableAndMixinTest);
   });
@@ -22,6 +23,19 @@ class ConflictingTypeVariableAndClassTest extends PubPackageResolutionTest {
 class T<T> {}
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS, 8, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class ConflictingTypeVariableAndEnumTest extends PubPackageResolutionTest {
+  test_conflict() async {
+    await assertErrorsInCode(r'''
+enum E<E> {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM, 7, 1),
     ]);
   }
 }

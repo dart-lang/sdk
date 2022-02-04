@@ -1852,6 +1852,14 @@ CompileTimeErrorCode:
       ```dart
       class C<T> {}
       ```
+  CONFLICTING_TYPE_VARIABLE_AND_ENUM:
+    sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
+    problemMessage: "'{0}' can't be used to name both a type variable and the enumeration in which the type variable is defined."
+    correctionMessage: Try renaming either the type variable or the enumeration.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the type variable
   CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
     problemMessage: "'{0}' can't be used to name both a type variable and the extension in which the type variable is defined."
@@ -1906,6 +1914,14 @@ CompileTimeErrorCode:
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
     problemMessage: "'{0}' can't be used to name both a type variable and a member in this mixin."
+    correctionMessage: Try renaming either the type variable or the member.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the type variable
+  CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
+    sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+    problemMessage: "'{0}' can't be used to name both a type variable and a member in this enumeration."
     correctionMessage: Try renaming either the type variable or the member.
     hasPublishedDocs: true
     comment: |-
