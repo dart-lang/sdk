@@ -76,7 +76,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   final DiagnosticReporter reporter;
   final Environment _environment;
-  CommonElementsImpl _commonElements;
+  JCommonElements _commonElements;
   JsElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
   KernelDartTypes _types;
@@ -137,7 +137,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _elementEnvironment = JsElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
-    _commonElements = CommonElementsImpl(_types, _elementEnvironment);
+    _commonElements = JCommonElements(_types, _elementEnvironment);
     _constantValuefier = ConstantValuefier(this);
 
     programEnv = _elementMap.env.convert();
@@ -297,7 +297,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _elementEnvironment = JsElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
-    _commonElements = CommonElementsImpl(_types, _elementEnvironment);
+    _commonElements = JCommonElements(_types, _elementEnvironment);
     _constantValuefier = ConstantValuefier(this);
 
     source.registerComponentLookup(ComponentLookup(component));
@@ -510,7 +510,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   JsElementEnvironment get elementEnvironment => _elementEnvironment;
 
   @override
-  CommonElementsImpl get commonElements => _commonElements;
+  JCommonElements get commonElements => _commonElements;
 
   FunctionEntity get _mainFunction {
     return programEnv.mainMethod != null

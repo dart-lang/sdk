@@ -65,7 +65,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   @override
   final DiagnosticReporter reporter;
   final Environment _environment;
-  CommonElementsImpl _commonElements;
+  KCommonElements _commonElements;
   KernelElementEnvironment _elementEnvironment;
   DartTypeConverter _typeConverter;
   KernelDartTypes _types;
@@ -117,7 +117,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     _elementEnvironment = KernelElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
-    _commonElements = CommonElementsImpl(_types, _elementEnvironment);
+    _commonElements = KCommonElements(_types, _elementEnvironment);
     _constantValuefier = ConstantValuefier(this);
   }
 
@@ -128,7 +128,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   KernelElementEnvironment get elementEnvironment => _elementEnvironment;
 
   @override
-  CommonElementsImpl get commonElements => _commonElements;
+  KCommonElements get commonElements => _commonElements;
 
   FunctionEntity get _mainFunction {
     return env.mainMethod != null ? getMethodInternal(env.mainMethod) : null;
@@ -1874,24 +1874,10 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  Iterable<ConstantValue> getLibraryMetadata(covariant IndexedLibrary library) {
-    assert(elementMap.checkFamily(library));
-    KLibraryData libraryData = elementMap.libraries.getData(library);
-    return libraryData.getMetadata(elementMap);
-  }
-
-  @override
   Iterable<ImportEntity> getImports(covariant IndexedLibrary library) {
     assert(elementMap.checkFamily(library));
     KLibraryData libraryData = elementMap.libraries.getData(library);
     return libraryData.getImports(elementMap);
-  }
-
-  @override
-  Iterable<ConstantValue> getClassMetadata(covariant IndexedClass cls) {
-    assert(elementMap.checkFamily(cls));
-    KClassData classData = elementMap.classes.getData(cls);
-    return classData.getMetadata(elementMap);
   }
 
   @override
