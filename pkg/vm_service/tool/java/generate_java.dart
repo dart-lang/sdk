@@ -259,11 +259,14 @@ class Api extends Member with ApiParseUtil {
 
     String? h3Name;
 
+    // TODO(helin24): This code does not capture documentation with more than
+    //  one paragraph or lists. It may help to check generate_dart to fix this.
     for (int i = 0; i < nodes.length; i++) {
       Node node = nodes[i];
 
       if (isPre(node) && h3Name != null) {
-        String definition = textForCode(node);
+        String definition = textForCode(node)
+            .replaceAll('(string|Null)', 'string'); // this is terrible.
         String? docs;
 
         if (i + 1 < nodes.length && isPara(nodes[i + 1])) {
@@ -638,7 +641,8 @@ class MethodArg extends Member {
   }
 
   /// TODO: Hacked enum arg type determination
-  bool get isEnumType => name == 'step' || name == 'mode';
+  bool get isEnumType =>
+      name == 'step' || name == 'mode' || name == 'exceptionPauseMode';
 }
 
 class MethodParser extends Parser {
