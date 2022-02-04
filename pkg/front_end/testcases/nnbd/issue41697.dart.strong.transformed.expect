@@ -37,7 +37,7 @@ static method test1(self::C<core::num> c) → dynamic {
   <S extends FutureOr<core::num>>(S, FutureOr<core::num>) → asy::Future<core::num> f2 = c.{self::C::field2} = <S extends FutureOr<core::num>>(S s, FutureOr<core::num>t) → asy::Future<core::num> /* originally async */ {
     final asy::_Future<core::num> :async_future = new asy::_Future::•<core::num>();
     core::bool* :is_sync = false;
-    FutureOr<core::num>? :return_value;
+    core::num? :return_value;
     (dynamic) → dynamic :async_op_then;
     (core::Object, core::StackTrace) → dynamic :async_op_error;
     core::int :await_jump_var = 0;
@@ -51,7 +51,7 @@ static method test1(self::C<core::num> c) → dynamic {
           :return_value = _in::unsafeCast<core::num>(:result).{core::num::+}(1){(core::num) → core::num};
           break #L1;
         }
-        asy::_completeOnAsyncReturn(:async_future, :return_value, :is_sync);
+        asy::_completeWithNoFutureOnAsyncReturn(:async_future, :return_value, :is_sync);
         return;
       }
       on dynamic catch(dynamic exception, core::StackTrace stack_trace) {

@@ -1347,6 +1347,18 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
   VariableDeclaration? asyncFutureVariable;
   VariableDeclaration? isSyncVariable;
 
+  // In general an async functions such as
+  //
+  //     Future<X> foo() async { return <expr>; }
+  //
+  // can return as `<expr>` either X or Future<X>, i.e. it can return
+  // FutureOr<X>
+  //
+  // If we know it doesn't return any object of type `Future`, we can optimize
+  // the future completion process by avoiding some expensive `is Future<T>`
+  // type checks on the returned value.
+  late bool canReturnFuture;
+
   AsyncFunctionRewriter(HelperNodes helper, FunctionNode enclosingFunction,
       StatefulStaticTypeContext staticTypeContext)
       : super(helper, enclosingFunction, staticTypeContext);
@@ -1385,12 +1397,21 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
         type: helper.coreTypes.boolLegacyRawType);
     statements.add(isSyncVariable!);
 
-    // asy::FutureOr<dynamic>* :return_value;
+    // asy::FutureOr<T>* :return_value;
     returnVariable = VariableDeclaration(ContinuationVariables.returnValue,
         type: returnType);
     statements.add(returnVariable!);
 
+    canReturnFuture = false;
+
     setupAsyncContinuations(statements);
+
+    // If we could prove the function doesn't return a `Future` we change the
+    // type of `:return_value`.
+    if (!canReturnFuture) {
+      returnVariable!.type =
+          valueType.withDeclaredNullability(Nullability.nullable);
+    }
 
     // :async_op();
     final startStatement = ExpressionStatement(LocalFunctionInvocation(
@@ -1439,7 +1460,9 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     return Block(<Statement>[
       body,
       ExpressionStatement(StaticInvocation(
-          helper.completeOnAsyncReturn,
+          canReturnFuture
+              ? helper.completeOnAsyncReturn
+              : helper.completeWithNoFutureOnAsyncReturn,
           Arguments([
             VariableGet(asyncFutureVariable!),
             VariableGet(returnVariable!),
@@ -1452,13 +1475,46 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
   @override
   TreeNode visitReturnStatement(
       ReturnStatement node, TreeNode? removalSentinel) {
-    var expr = node.expression == null
-        ? new NullLiteral()
+    final expression = node.expression;
+    if (expression != null && !canReturnFuture) {
+      final returnedType = staticTypeContext.getExpressionType(expression);
+      canReturnFuture = _canHoldFutureObject(returnedType);
+    }
+
+    final transformedExpression = node.expression == null
+        ? NullLiteral()
         : expressionRewriter!.rewrite(node.expression!, statements);
-    statements.add(new ExpressionStatement(
-        new VariableSet(returnVariable!, expr)..fileOffset = node.fileOffset));
-    statements.add(new BreakStatement(labeledBody!));
+    statements.add(ExpressionStatement(
+        VariableSet(returnVariable!, transformedExpression)
+          ..fileOffset = node.fileOffset));
+    statements.add(BreakStatement(labeledBody!));
     return removalSentinel ?? EmptyStatement();
+  }
+
+  bool _canHoldFutureObject(DartType type) {
+    // Any supertype or subtype of `FutureOr` may hold a `Future` object.
+    final env = staticTypeContext.typeEnvironment;
+
+    if (type is TypeParameterType) {
+      type = type.parameter.defaultType;
+    }
+
+    if (type is FutureOrType) return true;
+
+    // Any supertype of Future (which includes Future/Object/dynamic) can hold
+    // Future objects.
+    if (env.isSubtypeOf(
+        helper.futureType, type, SubtypeCheckMode.ignoringNullabilities)) {
+      return true;
+    }
+
+    // Any subtype of Future (which includes Future/_Future and any user-defined
+    // implementations) can hold Future objects.
+    if (env.isSubtypeOf(
+        type, helper.futureType, SubtypeCheckMode.ignoringNullabilities)) {
+      return true;
+    }
+    return false;
   }
 }
 
@@ -1476,6 +1532,7 @@ class HelperNodes {
   final Procedure asyncThenWrapper;
   final Procedure awaitHelper;
   final Procedure completeOnAsyncReturn;
+  final Procedure completeWithNoFutureOnAsyncReturn;
   final Procedure completeOnAsyncError;
   final Library coreLibrary;
   final CoreTypes coreTypes;
@@ -1496,6 +1553,7 @@ class HelperNodes {
   final Member syncIteratorYieldEachIterable;
   final Class boolClass;
   final Procedure unsafeCast;
+  final DartType futureType;
 
   bool productMode;
 
@@ -1513,6 +1571,7 @@ class HelperNodes {
       this.asyncThenWrapper,
       this.awaitHelper,
       this.completeOnAsyncReturn,
+      this.completeWithNoFutureOnAsyncReturn,
       this.completeOnAsyncError,
       this.coreLibrary,
       this.coreTypes,
@@ -1533,7 +1592,9 @@ class HelperNodes {
       this.syncIteratorYieldEachIterable,
       this.boolClass,
       this.productMode,
-      this.unsafeCast);
+      this.unsafeCast)
+      : futureType = InterfaceType(
+            futureClass, Nullability.nonNullable, [DynamicType()]);
 
   factory HelperNodes.fromCoreTypes(CoreTypes coreTypes, bool productMode) {
     return new HelperNodes._(
@@ -1550,6 +1611,7 @@ class HelperNodes {
         coreTypes.asyncThenWrapperHelperProcedure,
         coreTypes.awaitHelperProcedure,
         coreTypes.completeOnAsyncReturn,
+        coreTypes.completeWithNoFutureOnAsyncReturn,
         coreTypes.completeOnAsyncError,
         coreTypes.coreLibrary,
         coreTypes,

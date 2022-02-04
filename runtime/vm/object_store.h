@@ -159,6 +159,7 @@ class ObjectPointerVisitor;
   RW(Function, simple_instance_of_false_function)                              \
   RW(Function, async_star_move_next_helper)                                    \
   RW(Function, complete_on_async_return)                                       \
+  RW(Function, complete_with_no_future_on_async_return)                        \
   RW(Function, complete_on_async_error)                                        \
   RW(Class, async_star_stream_controller)                                      \
   ARW_RELAXED(Smi, future_timeout_future_index)                                \

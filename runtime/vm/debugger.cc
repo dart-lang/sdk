@@ -888,7 +888,9 @@ bool ActivationFrame::IsAsyncMachinery() const {
   ASSERT(!function_.IsNull());
   auto isolate_group = IsolateGroup::Current();
   if (function_.ptr() ==
-      isolate_group->object_store()->complete_on_async_return()) {
+          isolate_group->object_store()->complete_on_async_return() ||
+      function_.ptr() == isolate_group->object_store()
+                             ->complete_with_no_future_on_async_return()) {
     // We are completing an async function's completer.
     return true;
   }

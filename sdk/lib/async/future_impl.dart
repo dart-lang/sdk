@@ -618,6 +618,17 @@ class _Future<T> implements Future<T> {
     _asyncCompleteWithValue(unsafeCast<T>(typedValue));
   }
 
+  /// Internal helper function used to implement `async` functions.
+  ///
+  /// Like [_asyncCompleteUnchecked], but avoids a `is Future<T>` check due to
+  /// having a static guarantee on the callsite that the [value] cannot be a
+  /// [Future].
+  /// Should be used judiciously.
+  void _asyncCompleteUncheckedNoFuture(/*T*/ dynamic value) {
+    assert((value as T) == value);
+    _asyncCompleteWithValue(unsafeCast<T>(value));
+  }
+
   void _asyncCompleteWithValue(T value) {
     _setPendingComplete();
     _zone.scheduleMicrotask(() {

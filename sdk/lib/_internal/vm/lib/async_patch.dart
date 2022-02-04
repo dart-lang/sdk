@@ -264,6 +264,19 @@ void _completeOnAsyncReturn(_Future _future, Object? value, bool is_sync) {
 }
 
 @pragma("vm:entry-point", "call")
+void _completeWithNoFutureOnAsyncReturn(
+    _Future _future, Object? value, bool is_sync) {
+  // The first awaited expression is invoked sync. so complete is async. to
+  // allow then and error handlers to be attached.
+  // async_jump_var=0 is prior to first await, =1 is first await.
+  if (!is_sync) {
+    _future._asyncCompleteUncheckedNoFuture(value);
+  } else {
+    _future._completeWithValue(value);
+  }
+}
+
+@pragma("vm:entry-point", "call")
 void _completeOnAsyncError(
     _Future _future, Object e, StackTrace st, bool is_sync) {
   if (!is_sync) {
