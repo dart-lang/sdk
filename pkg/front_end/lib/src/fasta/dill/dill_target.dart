@@ -12,6 +12,8 @@ import '../../base/processed_options.dart' show ProcessedOptions;
 
 import '../compiler_context.dart' show CompilerContext;
 
+import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
+
 import '../messages.dart' show FormattedMessage, LocatedMessage, Message;
 
 import '../ticker.dart' show Ticker;
@@ -40,7 +42,10 @@ class DillTarget extends TargetImplementation {
   /// Shared with [CompilerContext].
   final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
 
-  DillTarget(this.ticker, this.uriTranslator, this.backendTarget)
+  final Benchmarker? benchmarker;
+
+  DillTarget(this.ticker, this.uriTranslator, this.backendTarget,
+      {this.benchmarker})
       // ignore: unnecessary_null_comparison
       : assert(ticker != null),
         // ignore: unnecessary_null_comparison
@@ -81,9 +86,12 @@ class DillTarget extends TargetImplementation {
 
   void buildOutlines({bool suppressFinalizationErrors: false}) {
     if (loader.libraries.isNotEmpty) {
+      benchmarker?.enterPhase(BenchmarkPhases.dill_buildOutlines);
       loader.buildOutlines();
+      benchmarker?.enterPhase(BenchmarkPhases.dill_finalizeExports);
       loader.finalizeExports(
           suppressFinalizationErrors: suppressFinalizationErrors);
+      benchmarker?.enterPhase(BenchmarkPhases.unknown);
     }
     isLoaded = true;
   }
