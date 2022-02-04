@@ -199,6 +199,59 @@ void ${clazz.identifier.name}GeneratedMethod_${sb}() {}
 
 macro
 
+class ClassDeclarationsMacro2 implements ClassDeclarationsMacro {
+  const ClassDeclarationsMacro2();
+
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
+      ClassMemberDeclarationBuilder builder) async {
+    List<ConstructorDeclaration> constructors = await builder.constructorsOf(
+        clazz);
+    StringBuffer constructorsText = new StringBuffer();
+    String comma = '';
+    constructorsText.write('constructors=');
+    for (ConstructorDeclaration constructor in constructors) {
+      constructorsText.write(comma);
+      String name = constructor.identifier.name;
+      constructorsText.write("'$name'");
+      comma = ',';
+    }
+
+    List<FieldDeclaration> fields = await builder.fieldsOf(
+        clazz);
+    StringBuffer fieldsText = new StringBuffer();
+    comma = '';
+    fieldsText.write('fields=');
+    for (FieldDeclaration field in fields) {
+      fieldsText.write(comma);
+      String name = field.identifier.name;
+      fieldsText.write("'$name'");
+      comma = ',';
+    }
+
+    List<MethodDeclaration> methods = await builder.methodsOf(
+        clazz);
+    StringBuffer methodsText = new StringBuffer();
+    comma = '';
+    methodsText.write('methods=');
+    for (MethodDeclaration method in methods) {
+      methodsText.write(comma);
+      String name = method.identifier.name;
+      methodsText.write("'$name'");
+      comma = ',';
+    }
+
+    builder.declareInLibrary(new DeclarationCode.fromString('''
+void ${clazz.identifier.name}Introspection() {
+  print("$constructorsText");
+  print("$fieldsText");
+  print("$methodsText");
+}
+'''));
+  }
+}
+
+macro
+
 class ConstructorDeclarationsMacro1
     implements ConstructorDeclarationsMacro {
   const ConstructorDeclarationsMacro1();

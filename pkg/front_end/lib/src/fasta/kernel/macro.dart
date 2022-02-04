@@ -166,7 +166,8 @@ class MacroApplications {
     return new MacroApplications(macroExecutor, libraryData, dataForTesting);
   }
 
-  Map<SourceClassBuilder, macro.ClassDeclaration?> _classDeclarations = {};
+  Map<SourceClassBuilder, macro.ClassDeclaration> _classDeclarations = {};
+  Map<macro.ClassDeclaration, SourceClassBuilder> _classBuilders = {};
   Map<MemberBuilder, macro.Declaration?> _memberDeclarations = {};
 
   // TODO(johnniwinther): Support all members.
@@ -177,6 +178,10 @@ class MacroApplications {
 
   macro.ClassDeclaration _getClassDeclaration(SourceClassBuilder builder) {
     return _classDeclarations[builder] ??= _createClassDeclaration(builder);
+  }
+
+  SourceClassBuilder _getClassBuilder(macro.ClassDeclaration declaration) {
+    return _classBuilders[declaration]!;
   }
 
   macro.Declaration _createMemberDeclaration(MemberBuilder memberBuilder) {
@@ -297,7 +302,7 @@ class MacroApplications {
       ClassHierarchyBase classHierarchy) async {
     types = new Types(classHierarchy);
     typeResolver = new _TypeResolver(this);
-    classIntrospector = new _ClassIntrospector();
+    classIntrospector = new _ClassIntrospector(this);
     await _applyMacros(_applyDeclarationsMacros);
   }
 
@@ -344,7 +349,7 @@ class MacroApplications {
   }
 
   macro.ClassDeclaration _createClassDeclaration(SourceClassBuilder builder) {
-    return new macro.ClassDeclarationImpl(
+    macro.ClassDeclaration declaration = new macro.ClassDeclarationImpl(
         id: macro.RemoteInstance.uniqueId,
         identifier: new macro.IdentifierImpl(
             id: macro.RemoteInstance.uniqueId, name: builder.name),
@@ -358,6 +363,8 @@ class MacroApplications {
         mixins: [],
         // TODO(johnniwinther): Support superclass
         superclass: null);
+    _classBuilders[declaration] = builder;
+    return declaration;
   }
 
   List<List<macro.ParameterDeclarationImpl>> _createParameters(
@@ -673,17 +680,42 @@ class _TypeResolver implements macro.TypeResolver {
 }
 
 class _ClassIntrospector implements macro.ClassIntrospector {
+  final MacroApplications macroApplications;
+
+  _ClassIntrospector(this.macroApplications);
+
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
       macro.ClassDeclaration clazz) {
-    // TODO: implement constructorsOf
-    throw new UnimplementedError('_ClassIntrospector.constructorsOf');
+    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
+    List<macro.ConstructorDeclaration> result = [];
+    classBuilder.forEachConstructor((_, MemberBuilder memberBuilder) {
+      if (memberBuilder is DeclaredSourceConstructorBuilder) {
+        // TODO(johnniwinther): Should we support synthesized constructors?
+        result.add(macroApplications._getMemberDeclaration(memberBuilder)
+            as macro.ConstructorDeclaration);
+      }
+    });
+    classBuilder.forEach((_, Builder memberBuilder) {
+      if (memberBuilder is SourceFactoryBuilder) {
+        result.add(macroApplications._getMemberDeclaration(memberBuilder)
+            as macro.ConstructorDeclaration);
+      }
+    });
+    return new Future.value(result);
   }
 
   @override
   Future<List<macro.FieldDeclaration>> fieldsOf(macro.ClassDeclaration clazz) {
-    // TODO: implement fieldsOf
-    throw new UnimplementedError('_ClassIntrospector.fieldsOf');
+    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
+    List<macro.FieldDeclaration> result = [];
+    classBuilder.forEach((_, Builder memberBuilder) {
+      if (memberBuilder is SourceFieldBuilder) {
+        result.add(macroApplications._getMemberDeclaration(memberBuilder)
+            as macro.FieldDeclaration);
+      }
+    });
+    return new Future.value(result);
   }
 
   @override
@@ -696,8 +728,15 @@ class _ClassIntrospector implements macro.ClassIntrospector {
   @override
   Future<List<macro.MethodDeclaration>> methodsOf(
       macro.ClassDeclaration clazz) {
-    // TODO: implement methodsOf
-    throw new UnimplementedError('_ClassIntrospector.methodsOf');
+    ClassBuilder classBuilder = macroApplications._getClassBuilder(clazz);
+    List<macro.MethodDeclaration> result = [];
+    classBuilder.forEach((_, Builder memberBuilder) {
+      if (memberBuilder is SourceProcedureBuilder) {
+        result.add(macroApplications._getMemberDeclaration(memberBuilder)
+            as macro.MethodDeclaration);
+      }
+    });
+    return new Future.value(result);
   }
 
   @override
