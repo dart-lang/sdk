@@ -1106,7 +1106,8 @@ abstract class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<Success> setIsolatePauseMode(String isolateId,
-      {/*ExceptionPauseMode*/ String? mode, bool? shouldPauseOnExit});
+      {/*ExceptionPauseMode*/ String? exceptionPauseMode,
+      bool? shouldPauseOnExit});
 
   /// The `setFlag` RPC is used to set a VM flag at runtime. Returns an error if
   /// the named flag does not exist, the flag may not be set at runtime, or the
@@ -1595,7 +1596,7 @@ class VmServerConnection {
         case 'setIsolatePauseMode':
           response = await _serviceImplementation.setIsolatePauseMode(
             params!['isolateId'],
-            mode: params['mode'],
+            exceptionPauseMode: params['exceptionPauseMode'],
             shouldPauseOnExit: params['shouldPauseOnExit'],
           );
           break;
@@ -2139,10 +2140,12 @@ class VmService implements VmServiceInterface {
 
   @override
   Future<Success> setIsolatePauseMode(String isolateId,
-          {/*ExceptionPauseMode*/ String? mode, bool? shouldPauseOnExit}) =>
+          {/*ExceptionPauseMode*/ String? exceptionPauseMode,
+          bool? shouldPauseOnExit}) =>
       _call('setIsolatePauseMode', {
         'isolateId': isolateId,
-        if (mode != null) 'mode': mode,
+        if (exceptionPauseMode != null)
+          'exceptionPauseMode': exceptionPauseMode,
         if (shouldPauseOnExit != null) 'shouldPauseOnExit': shouldPauseOnExit,
       });
 
