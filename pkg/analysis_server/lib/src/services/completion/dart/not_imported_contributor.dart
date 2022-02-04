@@ -83,9 +83,6 @@ class NotImportedContributor extends DartCompletionContributor {
 
       builder.isNotImportedLibrary = true;
       builder.laterReplacesEarlier = false;
-      builder.suggestionAdded = (suggestion) {
-        additionalData.set.add(suggestion);
-      };
 
       if (request.includeIdentifiers) {
         _buildSuggestions(exportElements);
@@ -97,7 +94,6 @@ class NotImportedContributor extends DartCompletionContributor {
 
       builder.isNotImportedLibrary = false;
       builder.laterReplacesEarlier = true;
-      builder.suggestionAdded = null;
     }
   }
 

@@ -25,13 +25,55 @@ Comparator<CompletionSuggestion> completionComparator = (a, b) {
   return b.relevance.compareTo(a.relevance);
 };
 
-/// Add default argument list text and ranges based on the given
+String buildClosureParameters(FunctionType type) {
+  var buffer = StringBuffer();
+  buffer.write('(');
+
+  var hasNamed = false;
+  var hasOptionalPositional = false;
+  var parameters = type.parameters;
+  var existingNames = parameters.map((p) => p.name).toSet();
+  for (var i = 0; i < parameters.length; ++i) {
+    var parameter = parameters[i];
+    if (i != 0) {
+      buffer.write(', ');
+    }
+    if (parameter.isNamed && !hasNamed) {
+      hasNamed = true;
+      buffer.write('{');
+    } else if (parameter.isOptionalPositional && !hasOptionalPositional) {
+      hasOptionalPositional = true;
+      buffer.write('[');
+    }
+    var name = parameter.name;
+    if (name.isEmpty) {
+      name = 'p$i';
+      var index = 1;
+      while (existingNames.contains(name)) {
+        name = 'p${i}_$index';
+        index++;
+      }
+    }
+    buffer.write(name);
+  }
+
+  if (hasNamed) {
+    buffer.write('}');
+  } else if (hasOptionalPositional) {
+    buffer.write(']');
+  }
+
+  buffer.write(')');
+  return buffer.toString();
+}
+
+/// Compute default argument list text and ranges based on the given
 /// [requiredParams] and [namedParams].
-void addDefaultArgDetails(
-    CompletionSuggestion suggestion,
-    Element element,
-    Iterable<ParameterElement> requiredParams,
-    Iterable<ParameterElement> namedParams) {
+CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
+  Element element,
+  Iterable<ParameterElement> requiredParams,
+  Iterable<ParameterElement> namedParams,
+) {
   var sb = StringBuffer();
   var ranges = <int>[];
 
@@ -95,50 +137,10 @@ void addDefaultArgDetails(
     }
   }
 
-  suggestion.defaultArgumentListString = sb.isNotEmpty ? sb.toString() : null;
-  suggestion.defaultArgumentListTextRanges = ranges.isNotEmpty ? ranges : null;
-}
-
-String buildClosureParameters(FunctionType type) {
-  var buffer = StringBuffer();
-  buffer.write('(');
-
-  var hasNamed = false;
-  var hasOptionalPositional = false;
-  var parameters = type.parameters;
-  var existingNames = parameters.map((p) => p.name).toSet();
-  for (var i = 0; i < parameters.length; ++i) {
-    var parameter = parameters[i];
-    if (i != 0) {
-      buffer.write(', ');
-    }
-    if (parameter.isNamed && !hasNamed) {
-      hasNamed = true;
-      buffer.write('{');
-    } else if (parameter.isOptionalPositional && !hasOptionalPositional) {
-      hasOptionalPositional = true;
-      buffer.write('[');
-    }
-    var name = parameter.name;
-    if (name.isEmpty) {
-      name = 'p$i';
-      var index = 1;
-      while (existingNames.contains(name)) {
-        name = 'p${i}_$index';
-        index++;
-      }
-    }
-    buffer.write(name);
-  }
-
-  if (hasNamed) {
-    buffer.write('}');
-  } else if (hasOptionalPositional) {
-    buffer.write(']');
-  }
-
-  buffer.write(')');
-  return buffer.toString();
+  return CompletionDefaultArgumentList(
+    text: sb.isNotEmpty ? sb.toString() : null,
+    ranges: ranges.isNotEmpty ? ranges : null,
+  );
 }
 
 /// Create a new protocol Element for inclusion in a completion suggestion.
@@ -244,6 +246,16 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
     return DYNAMIC;
   }
   return type.getDisplayString(withNullability: false);
+}
+
+class CompletionDefaultArgumentList {
+  final String? text;
+  final List<int>? ranges;
+
+  CompletionDefaultArgumentList({
+    required this.text,
+    required this.ranges,
+  });
 }
 
 /// A tuple of text to insert and an (optional) location for the cursor.

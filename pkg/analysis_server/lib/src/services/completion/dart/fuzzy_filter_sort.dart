@@ -3,17 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 
 /// Filters and scores [suggestions] according to how well they match the
 /// [pattern]. Sorts [suggestions] by the score, relevance, and name.
-List<CompletionSuggestion> fuzzyFilterSort({
+List<CompletionSuggestionBuilder> fuzzyFilterSort({
   required String pattern,
-  required List<CompletionSuggestion> suggestions,
+  required List<CompletionSuggestionBuilder> suggestions,
 }) {
   var matcher = FuzzyMatcher(pattern, matchStyle: MatchStyle.SYMBOL);
 
-  double score(CompletionSuggestion suggestion) {
+  double score(CompletionSuggestionBuilder suggestion) {
     var suggestionTextToMatch = suggestion.completion;
 
     if (suggestion.kind == CompletionSuggestionKind.NAMED_ARGUMENT) {
@@ -53,7 +54,7 @@ List<CompletionSuggestion> fuzzyFilterSort({
 
 /// [CompletionSuggestion] scored using [FuzzyMatcher].
 class _FuzzyScoredSuggestion {
-  final CompletionSuggestion suggestion;
+  final CompletionSuggestionBuilder suggestion;
   final double score;
 
   _FuzzyScoredSuggestion(this.suggestion, this.score);
