@@ -8,6 +8,7 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:collection/collection.dart';
 import 'package:devtools_shared/devtools_shared.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -227,9 +228,8 @@ class MemoryProfile {
         flutterViewListResponse.json!['views'].cast<Map<String, dynamic>>();
 
     // Each isolate should only have one FlutterView.
-    final flutterView = views.firstWhere(
+    final flutterView = views.firstWhereOrNull(
       (view) => view['type'] == 'FlutterView',
-      orElse: () => null,
     );
 
     if (flutterView == null) {
