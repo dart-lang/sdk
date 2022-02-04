@@ -4567,10 +4567,11 @@ class MintSerializationCluster : public SerializationCluster {
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
-class MintDeserializationCluster : public DeserializationCluster {
+class MintDeserializationCluster
+    : public AbstractInstanceDeserializationCluster {
  public:
   explicit MintDeserializationCluster(bool is_canonical)
-      : DeserializationCluster("int", is_canonical) {}
+      : AbstractInstanceDeserializationCluster("int", is_canonical) {}
   ~MintDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
@@ -4635,10 +4636,11 @@ class DoubleSerializationCluster : public SerializationCluster {
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
-class DoubleDeserializationCluster : public DeserializationCluster {
+class DoubleDeserializationCluster
+    : public AbstractInstanceDeserializationCluster {
  public:
   explicit DoubleDeserializationCluster(bool is_canonical)
-      : DeserializationCluster("double", is_canonical) {}
+      : AbstractInstanceDeserializationCluster("double", is_canonical) {}
   ~DoubleDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) {
