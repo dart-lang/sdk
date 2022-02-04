@@ -1854,8 +1854,8 @@ CompileTimeErrorCode:
       ```
   CONFLICTING_TYPE_VARIABLE_AND_ENUM:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
-    problemMessage: "'{0}' can't be used to name both a type variable and the enumeration in which the type variable is defined."
-    correctionMessage: Try renaming either the type variable or the enumeration.
+    problemMessage: "'{0}' can't be used to name both a type variable and the enum in which the type variable is defined."
+    correctionMessage: Try renaming either the type variable or the enum.
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -1921,7 +1921,7 @@ CompileTimeErrorCode:
       0: the name of the type variable
   CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
-    problemMessage: "'{0}' can't be used to name both a type variable and a member in this enumeration."
+    problemMessage: "'{0}' can't be used to name both a type variable and a member in this enum."
     correctionMessage: Try renaming either the type variable or the member.
     hasPublishedDocs: true
     comment: |-
@@ -12232,8 +12232,8 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the enumeration constant that is not defined
-      1: the name of the enumeration used to access the constant
+      0: the name of the enum constant that is not defined
+      1: the name of the enum used to access the constant
     documentation: |-
       #### Description
 
@@ -19868,7 +19868,7 @@ StaticWarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a `switch` statement for an enum
-      doesn't include an option for one of the values in the enumeration.
+      doesn't include an option for one of the values in the enum.
 
       Note that `null` is always a possible value for an enum and therefore also
       must be handled.

@@ -1889,10 +1889,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode CONFLICTING_TYPE_VARIABLE_AND_ENUM =
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    "'{0}' can't be used to name both a type variable and the enumeration in "
-        "which the type variable is defined.",
-    correctionMessage:
-        "Try renaming either the type variable or the enumeration.",
+    "'{0}' can't be used to name both a type variable and the enum in which "
+        "the type variable is defined.",
+    correctionMessage: "Try renaming either the type variable or the enum.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_ENUM',
   );
@@ -1960,7 +1959,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
     'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
     "'{0}' can't be used to name both a type variable and a member in this "
-        "enumeration.",
+        "enum.",
     correctionMessage: "Try renaming either the type variable or the member.",
     hasPublishedDocs: true,
     uniqueName: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM',
@@ -14244,8 +14243,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the enumeration constant that is not defined
-   * 1: the name of the enumeration used to access the constant
+   * 0: the name of the enum constant that is not defined
+   * 1: the name of the enum used to access the constant
    */
   // #### Description
   //
@@ -16479,7 +16478,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // #### Description
   //
   // The analyzer produces this diagnostic when a `switch` statement for an enum
-  // doesn't include an option for one of the values in the enumeration.
+  // doesn't include an option for one of the values in the enum.
   //
   // Note that `null` is always a possible value for an enum and therefore also
   // must be handled.
