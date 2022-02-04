@@ -45,9 +45,39 @@ class A {
     ]);
   }
 
+  test_class_getter_static() async {
+    await assertErrorsInCode(r'''
+class A {
+  static int get A => 0;
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
+    ]);
+  }
+
   test_class_method() async {
     // No test because a method named the same as the enclosing class is
     // indistinguishable from a constructor.
+  }
+
+  test_class_setter() async {
+    await assertErrorsInCode(r'''
+class A {
+  set A(_) {}
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
+    ]);
+  }
+
+  test_class_setter_static() async {
+    await assertErrorsInCode(r'''
+class A {
+  static set A(_) {}
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 23, 1),
+    ]);
   }
 
   test_mixin_getter() async {
