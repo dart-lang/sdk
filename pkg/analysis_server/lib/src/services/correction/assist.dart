@@ -196,6 +196,11 @@ class DartAssistKind {
     30,
     'Convert to a spread',
   );
+  static const CONVERT_TO_SUPER_INITIALIZING_PARAMETER = AssistKind(
+    'dart.assist.convert.toSuperInitializingParameter',
+    30,
+    'Convert to a super initializing parameter',
+  );
   static const ENCAPSULATE_FIELD = AssistKind(
     'dart.assist.encapsulateField',
     30,

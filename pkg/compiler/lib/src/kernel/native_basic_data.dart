@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../frontend_strategy.dart';

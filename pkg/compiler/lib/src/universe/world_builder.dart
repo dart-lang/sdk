@@ -4,7 +4,7 @@
 
 library world_builder;
 
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';

@@ -139,8 +139,6 @@ namespace dart {
   V(String_toUpperCase, 1)                                                     \
   V(String_concatRange, 3)                                                     \
   V(Math_doublePow, 2)                                                         \
-  V(Random_nextState, 1)                                                       \
-  V(Random_setupSeed, 1)                                                       \
   V(Random_initialSeed, 0)                                                     \
   V(SecureRandom_getBytes, 1)                                                  \
   V(DateTime_currentTimeMicros, 0)                                             \

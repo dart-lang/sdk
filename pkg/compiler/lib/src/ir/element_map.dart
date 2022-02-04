@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 
 import '../common.dart';
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
 import '../elements/types.dart';

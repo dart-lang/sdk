@@ -4,9 +4,9 @@
 
 library js_backend.interceptor_data;
 
-import '../common/names.dart' show Identifiers;
-import '../common_elements.dart'
+import '../common/elements.dart'
     show CommonElements, KCommonElements, KElementEnvironment;
+import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';

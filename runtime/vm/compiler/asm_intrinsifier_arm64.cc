@@ -1184,37 +1184,6 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-//    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
-//    _state[kSTATE_LO] = state & _MASK_32;
-//    _state[kSTATE_HI] = state >> 32;
-void AsmIntrinsifier::Random_nextState(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  const Field& state_field = LookupMathRandomStateFieldOffset();
-  const int64_t a_int_value = AsmIntrinsifier::kRandomAValue;
-
-  // Receiver.
-  __ ldr(R0, Address(SP, 0 * target::kWordSize));
-  // Field '_state'.
-  __ LoadCompressed(R1,
-                    FieldAddress(R0, LookupFieldOffsetInBytes(state_field)));
-
-  // Addresses of _state[0].
-  const int64_t disp =
-      target::Instance::DataOffsetFor(kTypedDataUint32ArrayCid) -
-      kHeapObjectTag;
-
-  __ LoadImmediate(R0, a_int_value);
-  __ LoadFromOffset(R2, R1, disp);
-  __ LsrImmediate(R3, R2, 32);
-  __ andi(R2, R2, Immediate(0xffffffff));
-  __ mul(R2, R0, R2);
-  __ add(R2, R2, Operand(R3));
-  __ StoreToOffset(R2, R1, disp);
-  ASSERT(target::ToRawSmi(0) == 0);
-  __ eor(R0, R0, Operand(R0));
-  __ ret();
-}
-
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));

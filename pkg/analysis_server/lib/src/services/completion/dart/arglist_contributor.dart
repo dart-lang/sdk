@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
@@ -42,7 +43,7 @@ class ArgListContributor extends DartCompletionContributor {
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
       {bool appendComma = false, int? replacementLength}) {
-    var appendColon = !_isInNamedExpression();
+    var appendColon = !_isEditingNamedArgLabel();
     var namedArgs = _namedArgs();
     for (var parameter in parameters) {
       if (parameter.isNamed) {
@@ -197,6 +198,11 @@ class ArgListContributor extends DartCompletionContributor {
   bool _isEditingNamedArgLabel() {
     if (argumentList != null) {
       var entity = request.target.entity;
+      if (entity is SimpleIdentifier &&
+          entity.isSynthetic &&
+          entity.token.next?.type == TokenType.COLON) {
+        return true;
+      }
       if (entity is NamedExpression) {
         var offset = request.offset;
         if (entity.offset < offset && offset < entity.end) {
@@ -213,16 +219,6 @@ class ArgListContributor extends DartCompletionContributor {
     var parent = containingNode.parent;
     var newExpr = parent != null ? flutter.identifyNewExpression(parent) : null;
     return newExpr != null && flutter.isWidgetCreation(newExpr);
-  }
-
-  /// Return `true` if the [request] is inside of a [NamedExpression] name.
-  bool _isInNamedExpression() {
-    var entity = request.target.entity;
-    if (entity is NamedExpression) {
-      var name = entity.name;
-      return name.offset < request.offset && request.offset < name.end;
-    }
-    return false;
   }
 
   /// Return `true` if the completion target is in the middle or beginning of

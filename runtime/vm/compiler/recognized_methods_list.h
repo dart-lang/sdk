@@ -303,9 +303,6 @@ namespace dart {
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 0xfecba6b3)          \
   V(_IntegerImplementation, <<, Integer_shl, 0x2d855b02)                       \
 
-#define MATH_LIB_INTRINSIC_LIST(V)                                             \
-  V(_Random, _nextState, Random_nextState, 0x7207677d)                         \
-
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
   V(_Int8List, [], Int8ArrayGetIndexed, 0x35f3fab6)                            \
   V(_Int8List, []=, Int8ArraySetIndexed, 0x6e4fdaa7)                           \
@@ -408,7 +405,6 @@ namespace dart {
   CORE_LIB_INTRINSIC_LIST(V)                                                   \
   DEVELOPER_LIB_INTRINSIC_LIST(V)                                              \
   INTERNAL_LIB_INTRINSIC_LIST(V)                                               \
-  MATH_LIB_INTRINSIC_LIST(V)                                                   \
 
 #define ALL_INTRINSICS_LIST(V)                                                 \
   ALL_INTRINSICS_NO_INTEGER_LIB_LIST(V)                                        \

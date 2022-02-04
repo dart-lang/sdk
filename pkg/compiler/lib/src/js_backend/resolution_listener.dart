@@ -4,8 +4,8 @@
 
 library js_backend.backend.resolution_listener;
 
+import '../common/elements.dart' show KCommonElements, KElementEnvironment;
 import '../common/names.dart' show Identifiers;
-import '../common_elements.dart' show KCommonElements, KElementEnvironment;
 import '../constants/values.dart';
 import '../deferred_load/deferred_load.dart';
 import '../elements/entities.dart';

@@ -7,7 +7,7 @@ library js_backend.backend.impact_transformer;
 import '../universe/class_hierarchy.dart' show ClassHierarchyBuilder;
 
 import '../common.dart';
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../common/backend_api.dart' show ImpactTransformer;
 import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;

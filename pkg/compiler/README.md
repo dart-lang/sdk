@@ -340,7 +340,7 @@ functionality is publicly exposed.
   compilation either because they are first-class in the language or because
   they are implicitly used to implement some features. These include:
 
-  * `lib/src/common_elements.dart`: provides an interface to lookup basic
+  * `lib/src/common/elements.dart`: provides an interface to lookup basic
     elements like the class of `Object`, `int`, `List`, and their corresponding
     interface types, constructors for symbols, annotations such as
     `@MirrorsUsed`, the `identical` function, etc. These are normally restricted

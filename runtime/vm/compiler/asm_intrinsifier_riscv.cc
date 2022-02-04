@@ -440,15 +440,6 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-//    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
-//    _state[kSTATE_LO] = state & _MASK_32;
-//    _state[kSTATE_HI] = state >> 32;
-void AsmIntrinsifier::Random_nextState(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  // TODO(riscv)
-  __ Bind(normal_ir_body);
-}
-
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {
   Label true_label;

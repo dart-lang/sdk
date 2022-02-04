@@ -6,11 +6,11 @@ library dart2js.enqueue;
 
 import 'dart:collection' show Queue;
 
+import 'common.dart';
 import 'common/codegen.dart';
+import 'common/elements.dart' show ElementEnvironment;
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
-import 'common.dart';
-import 'common_elements.dart' show ElementEnvironment;
 import 'constants/values.dart';
 import 'compiler.dart' show Compiler;
 import 'elements/entities.dart';

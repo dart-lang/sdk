@@ -264,4 +264,107 @@ class C = A with B;
       error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 35, 1),
     ]);
   }
+
+  test_enum_getter_mixinAndMixin() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+mixin A {
+  int get _foo => 0;
+}
+
+mixin B {
+  int get _foo => 0;
+}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+enum E with A, B {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 33, 1),
+    ]);
+  }
+
+  test_enum_method_interfaceAndMixin_same() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+mixin A {
+  void _foo() {}
+}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+mixin B implements A {}
+enum E with B, A {
+  v
+}
+''');
+  }
+
+  test_enum_method_mixinAndMixin() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+mixin A {
+  void _foo() {}
+}
+
+mixin B {
+  void _foo() {}
+}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+enum E with A, B {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 33, 1),
+    ]);
+  }
+
+  test_enum_method_staticAndInstanceElement() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+mixin A {
+  static void _foo() {}
+}
+
+mixin B {
+  void _foo() {}
+}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+enum E with A, B {
+  v
+}
+''');
+  }
+
+  test_enum_setter_mixinAndMixin() async {
+    newFile('$testPackageLibPath/a.dart', content: r'''
+mixin A {
+  set _foo(int _) {}
+}
+
+mixin B {
+  set _foo(int _) {}
+}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+enum E with A, B {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION, 33, 1),
+    ]);
+  }
 }

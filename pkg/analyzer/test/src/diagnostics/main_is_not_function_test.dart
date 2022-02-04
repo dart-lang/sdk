@@ -39,6 +39,17 @@ class main = A with M;
     ], legacy: []));
   }
 
+  test_enum() async {
+    await resolveTestCode('''
+enum main {
+  v
+}
+''');
+    assertErrorsInResult(expectedErrorsByNullability(nullable: [
+      error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 5, 4),
+    ], legacy: []));
+  }
+
   test_function() async {
     await assertNoErrorsInCode('''
 void main() {}

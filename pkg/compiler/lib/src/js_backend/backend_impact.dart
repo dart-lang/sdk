@@ -4,8 +4,8 @@
 
 library dart2js.js_helpers.impact;
 
+import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/names.dart';
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../elements/types.dart' show InterfaceType;
 import '../elements/entities.dart';
 import '../universe/selector.dart';

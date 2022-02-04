@@ -52,12 +52,12 @@ io/echo_server_stream_test: Slow, Pass
 # Enabling of dartk for sim{arm,arm64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simarm64c) ]
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 io/file_blocking_lock_test: Crash # Please triage.
 io/file_lock_test: Slow, Pass
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
-[ $compiler == dartk && ($arch == simarm64 || $arch == simarm64c) ]
+[ $compiler == dartk && ($arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 io/http_bind_test: Slow, Pass
 
 [ $compiler == dartk && ($hot_reload || $hot_reload_rollback) ]

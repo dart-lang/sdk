@@ -34,10 +34,10 @@ import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../../../compiler_new.dart';
 import '../../common.dart';
+import '../../common/elements.dart' show CommonElements, JElementEnvironment;
 import '../../common/tasks.dart';
 import '../../constants/values.dart'
     show ConstantValue, FunctionConstantValue, LateSentinelConstantValue;
-import '../../common_elements.dart' show CommonElements, JElementEnvironment;
 import '../../deferred_load/output_unit.dart' show OutputUnit;
 import '../../dump_info.dart';
 import '../../elements/entities.dart';

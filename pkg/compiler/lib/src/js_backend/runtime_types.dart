@@ -5,9 +5,9 @@
 library js_backend.runtime_types;
 
 import '../common.dart';
-import '../common/names.dart' show Identifiers;
-import '../common_elements.dart'
+import '../common/elements.dart'
     show ElementEnvironment, JCommonElements, JElementEnvironment;
+import '../common/names.dart' show Identifiers;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;

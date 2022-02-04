@@ -6,7 +6,7 @@
 
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';

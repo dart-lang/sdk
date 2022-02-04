@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-import 'package:compiler/src/common_elements.dart' show JElementEnvironment;
+import 'package:compiler/src/common/elements.dart' show JElementEnvironment;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld;

@@ -13,12 +13,12 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../compiler_new.dart' as api;
 import 'backend_strategy.dart';
+import 'common.dart';
 import 'common/codegen.dart';
+import 'common/elements.dart' show ElementEnvironment;
 import 'common/names.dart' show Selectors;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
-import 'common.dart';
-import 'common_elements.dart' show ElementEnvironment;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'deferred_load/program_split_constraints/nodes.dart' as psc

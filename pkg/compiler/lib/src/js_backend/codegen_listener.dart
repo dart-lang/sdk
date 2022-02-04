@@ -6,8 +6,8 @@ library js_backend.backend.codegen_listener;
 
 import 'dart:collection';
 
+import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/names.dart' show Identifiers;
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';

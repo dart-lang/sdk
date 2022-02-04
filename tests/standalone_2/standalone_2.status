@@ -108,7 +108,7 @@ io/socket_many_connections_test: Skip # This test fails with "Too many open file
 fragmentation_test: SkipSlow
 fragmentation_typed_data_test: SkipSlow
 
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
 io/socket_sigpipe_test: SkipByDesign # Test uses ffi
 
 [ $compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk ]

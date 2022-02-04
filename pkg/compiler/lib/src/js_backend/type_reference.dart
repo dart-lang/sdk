@@ -64,7 +64,7 @@ library js_backend.type_reference;
 import 'package:front_end/src/api_unstable/dart2js.dart'
     show $0, $9, $A, $Z, $_, $a, $z;
 
-import '../common_elements.dart' show CommonElements;
+import '../common/elements.dart' show CommonElements;
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_emitter/code_emitter_task.dart' show Emitter;

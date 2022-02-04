@@ -9417,7 +9417,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Non-abstract classes can't have 'Enum' as a superinterface.",
     correctionMessage:
         "Try specifying a different interface, or remove it from the list.",
-    uniqueName: 'NON_ABSTRACT_CLASS_HAS_ENUM_SUPERINTERFACE',
   );
 
   /**

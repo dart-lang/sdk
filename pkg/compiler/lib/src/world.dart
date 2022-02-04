@@ -6,7 +6,7 @@ library dart2js.world;
 
 import 'closure.dart';
 import 'common.dart';
-import 'common_elements.dart'
+import 'common/elements.dart'
     show
         JCommonElements,
         JElementEnvironment,

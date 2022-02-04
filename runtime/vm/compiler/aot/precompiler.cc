@@ -2482,28 +2482,11 @@ void Precompiler::TraceTypesFromRetainedClasses() {
           }
         }
       }
-      intptr_t cid = cls.id();
-      if (cid == kDoubleCid) {
-        // Rehash.
-        cls.set_constants(Object::null_array());
-        for (intptr_t j = 0; j < retained_constants.Length(); j++) {
-          constant ^= retained_constants.At(j);
-          cls.InsertCanonicalDouble(Z, Double::Cast(constant));
-        }
-      } else if (cid == kMintCid) {
-        // Rehash.
-        cls.set_constants(Object::null_array());
-        for (intptr_t j = 0; j < retained_constants.Length(); j++) {
-          constant ^= retained_constants.At(j);
-          cls.InsertCanonicalMint(Z, Mint::Cast(constant));
-        }
-      } else {
-        // Rehash.
-        cls.set_constants(Object::null_array());
-        for (intptr_t j = 0; j < retained_constants.Length(); j++) {
-          constant ^= retained_constants.At(j);
-          cls.InsertCanonicalConstant(Z, constant);
-        }
+      // Rehash.
+      cls.set_constants(Object::null_array());
+      for (intptr_t j = 0; j < retained_constants.Length(); j++) {
+        constant ^= retained_constants.At(j);
+        cls.InsertCanonicalConstant(Z, constant);
       }
 
       if (retained_constants.Length() > 0) {

@@ -250,6 +250,76 @@ class B<X> = Object with M<X>;
 ''');
   }
 
+  test_enum_implements_function_parameterType() async {
+    await assertErrorsInCode(r'''
+typedef F<X> = void Function(X);
+class A<X> {}
+enum E<X> implements A<F<X>> {
+  v
+}
+''', [
+      error(
+        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+        54,
+        1,
+      ),
+    ]);
+  }
+
+  test_enum_implements_function_returnType() async {
+    await assertNoErrorsInCode(r'''
+typedef F<X> = X Function();
+class A<X> {}
+enum E<X> implements A<F<X>> {
+  v
+}
+''');
+  }
+
+  test_enum_implements_withoutFunction() async {
+    await assertNoErrorsInCode(r'''
+class A<X> {}
+enum E<X> implements A<X> {
+  v
+}
+''');
+  }
+
+  test_enum_with_function_parameterType() async {
+    await assertErrorsInCode(r'''
+typedef F<X> = void Function(X);
+class A<X> {}
+enum E<X> with A<F<X>> {
+  v
+}
+''', [
+      error(
+        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+        54,
+        1,
+      ),
+    ]);
+  }
+
+  test_enum_with_function_returnType() async {
+    await assertNoErrorsInCode(r'''
+typedef F<X> = X Function();
+class A<X> {}
+enum E<X> with A<F<X>> {
+  v
+}
+''');
+  }
+
+  test_enum_with_withoutFunction() async {
+    await assertNoErrorsInCode(r'''
+class A<X> {}
+enum E<X> with A<X> {
+  v
+}
+''');
+  }
+
   test_mixin_implements_function_parameterType() async {
     await assertErrorsInCode(r'''
 typedef F<X> = void Function(X);

@@ -76,10 +76,10 @@ mirrors/invocation_fuzz_test: Crash
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
 
-[ $runtime == vm && ($arch == simarm64 || $arch == simarm64c) ]
+[ $runtime == vm && ($arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64) ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
-[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $hot_reload || $hot_reload_rollback ]
+[ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 || $hot_reload || $hot_reload_rollback ]
 convert/chunked_conversion_utf88_test: SkipSlow
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow
 convert/utf85_test: SkipSlow

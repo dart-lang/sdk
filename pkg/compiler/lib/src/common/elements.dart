@@ -1,20 +1,18 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(sigmund): rename and move to common/elements.dart
-library dart2js.type_system;
+import '../common.dart';
+import '../constants/constant_system.dart' as constant_system;
+import '../constants/values.dart';
+import '../elements/entities.dart';
+import '../elements/types.dart';
+import '../inferrer/abstract_value_domain.dart';
+import '../js_backend/native_data.dart' show NativeBasicData;
+import '../js_model/locals.dart';
+import '../universe/selector.dart' show Selector;
 
-import 'common.dart';
-import 'common/names.dart' show Identifiers, Uris;
-import 'constants/constant_system.dart' as constant_system;
-import 'constants/values.dart';
-import 'elements/entities.dart';
-import 'elements/types.dart';
-import 'inferrer/abstract_value_domain.dart';
-import 'js_backend/native_data.dart' show NativeBasicData;
-import 'js_model/locals.dart';
-import 'universe/selector.dart' show Selector;
+import 'names.dart' show Identifiers, Uris;
 
 /// The common elements and types in Dart.
 abstract class CommonElements {

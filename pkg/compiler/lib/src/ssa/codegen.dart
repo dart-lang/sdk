@@ -8,13 +8,13 @@ import 'dart:collection' show Queue;
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
 
 import '../common.dart';
+import '../common/elements.dart' show JCommonElements;
 import '../common/metrics.dart';
 import '../common/names.dart';
 import '../common/codegen.dart' show CodegenRegistry;
 import '../common/tasks.dart' show Measurer, CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
-import '../common_elements.dart' show JCommonElements;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
 import '../elements/types.dart';

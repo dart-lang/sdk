@@ -5,8 +5,8 @@
 import 'dart:collection';
 
 import '../common.dart';
+import '../common/elements.dart';
 import '../common/names.dart' show Identifiers;
-import '../common_elements.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';

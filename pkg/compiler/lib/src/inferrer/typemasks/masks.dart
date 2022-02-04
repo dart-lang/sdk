@@ -7,7 +7,7 @@ library masks;
 import 'package:kernel/ast.dart' as ir;
 
 import '../../common.dart';
-import '../../common_elements.dart' show CommonElements;
+import '../../common/elements.dart' show CommonElements;
 import '../../constants/values.dart';
 import '../../elements/entities.dart';
 import '../../elements/names.dart';

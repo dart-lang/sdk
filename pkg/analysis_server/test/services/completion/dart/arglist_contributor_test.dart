@@ -660,17 +660,15 @@ foo({String children}) {}
       check: (response) {
         _checkNamedArguments(response).matchesInAnyOrder([
           (suggestion) => suggestion
-            // TODO(scheglov) This does not seem right.
-            ..completion.isEqualTo('two: ')
+            ..completion.isEqualTo('two')
             ..parameterType.isEqualTo('int')
             ..hasEmptyReplacement()
-            ..hasSelection(offset: 5),
+            ..hasSelection(offset: 3),
           (suggestion) => suggestion
-            // TODO(scheglov) This does not seem right.
-            ..completion.isEqualTo('three: ')
+            ..completion.isEqualTo('three')
             ..parameterType.isEqualTo('double')
             ..hasEmptyReplacement()
-            ..hasSelection(offset: 7),
+            ..hasSelection(offset: 5),
         ]);
       },
     );

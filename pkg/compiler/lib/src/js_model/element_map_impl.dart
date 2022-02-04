@@ -14,8 +14,8 @@ import 'package:kernel/type_environment.dart' as ir;
 
 import '../closure.dart' show BoxLocal, ThisLocal;
 import '../common.dart';
+import '../common/elements.dart';
 import '../common/names.dart';
-import '../common_elements.dart';
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart';
 import '../elements/entities.dart';

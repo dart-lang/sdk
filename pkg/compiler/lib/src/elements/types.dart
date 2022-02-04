@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../common/elements.dart';
 import '../common/names.dart';
-import '../common_elements.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../util/util.dart' show equalElements, equalSets, identicalElements;

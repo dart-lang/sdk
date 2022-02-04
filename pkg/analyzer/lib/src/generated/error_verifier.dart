@@ -563,6 +563,26 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     try {
       _enclosingClass = node.declaredElement;
       _duplicateDefinitionVerifier.checkEnum(node);
+
+      // TODO(scheglov) implement
+      // List<ClassMember> members = node.members;
+      _checkForBuiltInIdentifierAsName(
+          node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+      // _checkForConflictingClassTypeVariableErrorCodes();
+      var implementsClause = node.implementsClause;
+      var withClause = node.withClause;
+
+      if (implementsClause != null || withClause != null) {
+        _checkClassInheritance(node, null, withClause, implementsClause);
+      }
+
+      // TODO(scheglov) implement
+      // _checkForConflictingClassMembers();
+      // _constructorFieldsVerifier.enterClass(node);
+      // _checkForFinalNotInitializedInClass(members);
+      _checkForWrongTypeParameterVarianceInSuperinterfaces();
+      _checkForMainFunction(node.name);
+
       super.visitEnumDeclaration(node);
     } finally {
       _enclosingClass = outerClass;

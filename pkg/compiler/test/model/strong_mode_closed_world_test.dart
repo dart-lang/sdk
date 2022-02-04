@@ -7,7 +7,7 @@
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/world.dart';
 import '../helpers/memory_compiler.dart';

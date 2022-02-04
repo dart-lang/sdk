@@ -61,6 +61,58 @@ class B implements A, A, A, A {}
     ]);
   }
 
+  test_enum_implements_2times() async {
+    await assertErrorsInCode(r'''
+class A {}
+enum E implements A, A { // ref
+  v
+}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 32, 1),
+    ]);
+
+    var A = findElement.class_('A');
+    assertNamedType(findNode.namedType('A, A { // ref'), A, 'A');
+    assertNamedType(findNode.namedType('A { // ref'), A, 'A');
+  }
+
+  test_enum_implements_2times_viaTypeAlias() async {
+    await assertErrorsInCode(r'''
+class A {}
+typedef B = A;
+enum E implements A, B {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 47, 1),
+    ]);
+
+    assertNamedType(
+      findNode.namedType('A, B {'),
+      findElement.class_('A'),
+      'A',
+    );
+
+    assertNamedType(
+      findNode.namedType('B {'),
+      findElement.typeAlias('B'),
+      'A',
+    );
+  }
+
+  test_enum_implements_4times() async {
+    await assertErrorsInCode(r'''
+class A {} class C{}
+enum E implements A, A, A, A {
+  v
+}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 42, 1),
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 45, 1),
+      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 48, 1),
+    ]);
+  }
+
   test_mixin_implements_2times() async {
     await assertErrorsInCode(r'''
 class A {}

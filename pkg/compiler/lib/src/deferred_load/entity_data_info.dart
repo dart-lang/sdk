@@ -9,7 +9,7 @@ import 'deferred_load.dart';
 import 'entity_data.dart';
 
 import '../common.dart';
-import '../common_elements.dart' show CommonElements, KElementEnvironment;
+import '../common/elements.dart' show CommonElements, KElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart'
     show ConstantValue, ConstructedConstantValue, InstantiationConstantValue;

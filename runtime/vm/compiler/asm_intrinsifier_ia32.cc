@@ -1147,41 +1147,6 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ Bind(normal_ir_body);
 }
 
-//    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
-//    _state[kSTATE_LO] = state & _MASK_32;
-//    _state[kSTATE_HI] = state >> 32;
-void AsmIntrinsifier::Random_nextState(Assembler* assembler,
-                                       Label* normal_ir_body) {
-  const Field& state_field = LookupMathRandomStateFieldOffset();
-  const int64_t a_int_value = AsmIntrinsifier::kRandomAValue;
-
-  // 'a_int_value' is a mask.
-  ASSERT(Utils::IsUint(32, a_int_value));
-  int32_t a_int32_value = static_cast<int32_t>(a_int_value);
-
-  // Receiver.
-  __ movl(EAX, Address(ESP, +1 * target::kWordSize));
-  // Field '_state'.
-  __ movl(EBX, FieldAddress(EAX, LookupFieldOffsetInBytes(state_field)));
-  // Addresses of _state[0] and _state[1].
-  const intptr_t scale =
-      target::Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
-  const intptr_t offset =
-      target::Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
-  Address addr_0 = FieldAddress(EBX, 0 * scale + offset);
-  Address addr_1 = FieldAddress(EBX, 1 * scale + offset);
-  __ movl(EAX, Immediate(a_int32_value));
-  // 64-bit multiply EAX * value -> EDX:EAX.
-  __ mull(addr_0);
-  __ addl(EAX, addr_1);
-  __ adcl(EDX, Immediate(0));
-  __ movl(addr_1, EDX);
-  __ movl(addr_0, EAX);
-  ASSERT(target::ToRawSmi(0) == 0);
-  __ xorl(EAX, EAX);
-  __ ret();
-}
-
 // Identity comparison.
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {

@@ -9,7 +9,7 @@ library compiler_helper;
 import 'dart:async';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/common_elements.dart';
+import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_strategy.dart';

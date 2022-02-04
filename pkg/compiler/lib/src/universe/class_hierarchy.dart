@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common_elements.dart';
+import '../common/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart' show InterfaceType;
 import '../serialization/serialization.dart';

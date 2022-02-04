@@ -2058,8 +2058,8 @@ class A {
   Future<void> test_ArgumentList_imported_function_named_param_label3() async {
     addTestFile('void f() { int.parse("16", ^: 16);}');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ');
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ');
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix');
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError');
     expect(suggestions, hasLength(2));
   }
 
