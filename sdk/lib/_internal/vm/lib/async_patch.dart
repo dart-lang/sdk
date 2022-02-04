@@ -257,7 +257,7 @@ void _completeOnAsyncReturn(_Future _future, Object? value, bool is_sync) {
   // allow then and error handlers to be attached.
   // async_jump_var=0 is prior to first await, =1 is first await.
   if (!is_sync || value is Future) {
-    _future._asyncComplete(value);
+    _future._asyncCompleteUnchecked(value);
   } else {
     _future._completeWithValue(value);
   }
