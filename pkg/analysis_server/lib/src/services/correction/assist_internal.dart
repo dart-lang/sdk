@@ -38,6 +38,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_null_awa
 import 'package:analysis_server/src/services/correction/dart/convert_to_package_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_relative_import.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_super_initializing_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/encapsulate_field.dart';
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
 import 'package:analysis_server/src/services/correction/dart/flutter_convert_to_children.dart';
@@ -104,19 +105,20 @@ class AssistProcessor extends BaseProcessor {
     ConvertMapFromIterableToForLiteral.newInstance,
     ConvertPartOfToUri.newInstance,
     ConvertToDoubleQuotes.newInstance,
-    ConvertToFieldParameter.newInstance,
-    ConvertToMultilineString.newInstance,
-    ConvertToNormalParameter.newInstance,
-    ConvertToSingleQuotes.newInstance,
     ConvertToExpressionFunctionBody.newInstance,
+    ConvertToFieldParameter.newInstance,
     ConvertToGenericFunctionSyntax.newInstance,
     ConvertToIntLiteral.newInstance,
     ConvertToListLiteral.newInstance,
     ConvertToMapLiteral.newInstance,
+    ConvertToMultilineString.newInstance,
+    ConvertToNormalParameter.newInstance,
     ConvertToNullAware.newInstance,
     ConvertToPackageImport.newInstance,
     ConvertToRelativeImport.newInstance,
     ConvertToSetLiteral.newInstance,
+    ConvertToSingleQuotes.newInstance,
+    ConvertToSuperInitializingParameter.newInstance,
     EncapsulateField.newInstance,
     ExchangeOperands.newInstance,
     FlutterConvertToChildren.newInstance,

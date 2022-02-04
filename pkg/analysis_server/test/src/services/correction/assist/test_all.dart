@@ -41,6 +41,8 @@ import 'convert_to_set_literal_test.dart' as convert_to_set_literal;
 import 'convert_to_single_quoted_string_test.dart'
     as convert_to_single_quoted_string;
 import 'convert_to_spread_test.dart' as convert_to_spread;
+import 'convert_to_super_initializing_parameter_test.dart'
+    as convert_to_super_initializing_parameter;
 import 'encapsulate_field_test.dart' as encapsulate_field;
 import 'exchange_operands_test.dart' as exchange_operands;
 import 'flutter_convert_to_children_test.dart' as flutter_convert_to_children;
@@ -122,6 +124,7 @@ void main() {
     convert_to_set_literal.main();
     convert_to_single_quoted_string.main();
     convert_to_spread.main();
+    convert_to_super_initializing_parameter.main();
     encapsulate_field.main();
     exchange_operands.main();
     flutter_convert_to_children.main();
