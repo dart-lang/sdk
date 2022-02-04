@@ -643,8 +643,6 @@ luci.builder.defaults.properties.set({
     },
 })
 
-lkgr_builders = []
-
 def dart_builder(
         name,
         bucket,
@@ -669,8 +667,7 @@ def dart_builder(
         triggering_policy = None,
         on_cq = False,
         experiment_percentage = None,
-        location_regexp = None,
-        lkgr = False):
+        location_regexp = None):
     """
     Creates a Dart builder on all the specified channels.
 
@@ -699,7 +696,6 @@ def dart_builder(
         on_cq: Whether the build is added to the default set of CQ tryjobs.
         experiment_percentage: What experiment percentage to use.
         location_regexp: Locations that trigger this builder.
-        lkgr: If true, this builder needs to be green to advance the LKGR.
     """
     dimensions = defaults.dimensions(dimensions)
     properties = defaults.properties(properties)
@@ -711,9 +707,6 @@ def dart_builder(
         fail("builder %s should be a macOS builder" % name)
     if "linux" in name and os != "Linux":
         fail("builder %s should be a Linux builder" % name)
-
-    if lkgr:
-        lkgr_builders.append({"project": "dart", "bucket": bucket, "builder": name})
 
     def builder(channel, notifies, triggered_by):
         if channel == "try":
@@ -1580,7 +1573,6 @@ dart_ci_builder(
     "dart-sdk-linux",
     category = "sdk|l",
     channels = CHANNELS,
-    lkgr = True,
     properties = {
         "$dart/build": {
             "timeout": 100 * 60,  # 100 minutes,
@@ -1592,7 +1584,6 @@ dart_ci_builder(
     category = "sdk|m",
     channels = CHANNELS,
     dimensions = mac(),
-    lkgr = True,
     properties = PINNED_XCODE,
 )
 dart_ci_builder(
@@ -1609,7 +1600,6 @@ dart_ci_builder(
     channels = CHANNELS,
     dimensions = windows(),
     on_cq = True,
-    lkgr = True,
 )
 
 # ddc
@@ -1650,7 +1640,6 @@ dart_ci_builder(
     "debianpackage-linux",
     category = "misc|dp",
     channels = RELEASE_CHANNELS,
-    lkgr = True,
     notifies = "infra",
     properties = {
         "clobber": False,
@@ -1671,7 +1660,6 @@ dart_ci_sandbox_builder(
     category = "flutter|g3",
     channels = [],
     execution_timeout = 5 * time.minute,
-    lkgr = True,
     notifies = None,
     priority = HIGH,
     triggered_by = None,
@@ -1728,14 +1716,6 @@ dart_infra_builder(
         "dart-flutter-flutter-trigger",
     ],
     triggering_policy = scheduler.greedy_batching(max_batch_size = 1),
-)
-dart_infra_builder(
-    "lkgr",
-    execution_timeout = 15 * time.minute,
-    notifies = "infra",
-    properties = {"builders": lkgr_builders, "ref": "refs/heads/lkgr"},
-    recipe = "roller/lkgr",
-    schedule = "with 15m interval",
 )
 dart_infra_builder(
     "roll-to-dev",
