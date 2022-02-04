@@ -641,7 +641,8 @@ class MethodArg extends Member {
   }
 
   /// TODO: Hacked enum arg type determination
-  bool get isEnumType => name == 'step' || name == 'mode';
+  bool get isEnumType =>
+      name == 'step' || name == 'mode' || name == 'exceptionPauseMode';
 }
 
 class MethodParser extends Parser {
