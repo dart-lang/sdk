@@ -56,7 +56,7 @@ class CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
   final int relevance;
 
   final String? completionOverride;
-  final Uri? libraryUri;
+  final String? libraryUriStr;
   final bool isNotImported;
 
   CompletionSuggestionBuilderImpl({
@@ -64,7 +64,7 @@ class CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
     required this.kind,
     required this.completionOverride,
     required this.relevance,
-    required this.libraryUri,
+    required this.libraryUriStr,
     required this.isNotImported,
   });
 
@@ -102,19 +102,10 @@ class CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
       parameterTypes: element.parameterTypes,
       defaultArgumentListString: element.defaultArgumentList?.text,
       defaultArgumentListTextRanges: element.defaultArgumentList?.ranges,
-      isNotImported: isNotImported,
+      libraryUri: libraryUriStr,
+      isNotImported: isNotImported ? true : null,
     );
   }
-}
-
-/// Wrapper around a potentially nullable value.
-///
-/// When the wrapper instance is provided for a property, the property
-/// value is replaced, even if the value to set is `null` itself.
-class CopyWithValue<T> {
-  final T value;
-
-  CopyWithValue(this.value);
 }
 
 /// Information about an [Element] that does not depend on the location where
@@ -277,7 +268,7 @@ class SuggestionBuilder {
   /// The URI of the library from which suggestions are being added.
   /// This URI is not necessary the same as the URI that declares an element,
   /// because of exports.
-  Uri? libraryUri;
+  String? libraryUriStr;
 
   /// This flag is set to `true` while adding suggestions for top-level
   /// elements from not-yet-imported libraries.
@@ -1319,7 +1310,7 @@ class SuggestionBuilder {
       kind: kind,
       completionOverride: completion,
       relevance: relevance,
-      libraryUri: libraryUri,
+      libraryUriStr: libraryUriStr,
       isNotImported: isNotImported,
     );
   }
@@ -1594,46 +1585,5 @@ extension on Object? {
   T? ifTypeOrNull<T>() {
     final self = this;
     return self is T ? self : null;
-  }
-}
-
-extension CompletionSuggestionExtension on CompletionSuggestion {
-  CompletionSuggestion copyWith({
-    CopyWithValue<bool?>? isNotImported,
-    CopyWithValue<int>? relevance,
-  }) {
-    return protocol.CompletionSuggestion(
-      kind,
-      relevance.orElse(this.relevance),
-      completion,
-      selectionOffset,
-      selectionLength,
-      isDeprecated,
-      isPotential,
-      displayText: displayText,
-      replacementOffset: replacementOffset,
-      replacementLength: replacementLength,
-      docSummary: docSummary,
-      docComplete: docComplete,
-      declaringType: declaringType,
-      defaultArgumentListString: defaultArgumentListString,
-      defaultArgumentListTextRanges: defaultArgumentListTextRanges,
-      element: element,
-      returnType: returnType,
-      parameterNames: parameterNames,
-      parameterTypes: parameterTypes,
-      requiredParameterCount: requiredParameterCount,
-      hasNamedParameters: hasNamedParameters,
-      parameterName: parameterName,
-      parameterType: parameterType,
-      isNotImported: isNotImported.orElse(this.isNotImported),
-    );
-  }
-}
-
-extension _CopyWithValueExtension<T> on CopyWithValue<T>? {
-  T orElse(T defaultValue) {
-    final self = this;
-    return self != null ? self.value : defaultValue;
   }
 }

@@ -206,7 +206,7 @@ class CiderCompletionComputer {
   List<CompletionSuggestionBuilder> _librarySuggestions(
       LibraryElement element) {
     var suggestionBuilder = SuggestionBuilder(_dartCompletionRequest);
-    suggestionBuilder.libraryUri = element.source.uri;
+    suggestionBuilder.libraryUriStr = element.source.uri.toString();
     var visitor = LibraryElementSuggestionBuilder(
         _dartCompletionRequest, suggestionBuilder);
     var exportMap = element.exportNamespace.definedNames;

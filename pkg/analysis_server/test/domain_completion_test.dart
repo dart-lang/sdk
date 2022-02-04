@@ -1162,10 +1162,14 @@ void f(A a) {
     check(response).suggestions.matches([
       (suggestion) => suggestion
         ..completion.isEqualTo('foo01')
-        ..isGetter,
+        ..isGetter
+        ..libraryUri.isNull
+        ..isNotImported.isNull,
       (suggestion) => suggestion
         ..completion.isEqualTo('foo02')
-        ..isGetter,
+        ..isGetter
+        ..libraryUri.isNull
+        ..isNotImported.isNull,
     ]);
   }
 
@@ -1609,6 +1613,29 @@ void f() {
     ]);
   }
 
+  Future<void> test_prefixed_importPrefix_class() async {
+    await _configureWithWorkspaceRoot();
+
+    var response = await _getTestCodeSuggestions('''
+import 'dart:math' as math;
+
+void f() {
+  math.Rand^
+}
+''');
+
+    check(response)
+      ..assertComplete()
+      ..hasReplacement(left: 4);
+
+    check(response).suggestions.withElementClass.matches([
+      (suggestion) => suggestion
+        ..completion.isEqualTo('Random')
+        ..libraryUri.isEqualTo('dart:math')
+        ..isNotImported.isNull,
+    ]);
+  }
+
   Future<void> test_unprefixed_filters() async {
     await _configureWithWorkspaceRoot();
 
@@ -1664,10 +1691,14 @@ void f() {
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
         ..completion.isEqualTo('A01')
-        ..isClass,
+        ..isClass
+        ..libraryUri.isEqualTo('package:test/a.dart')
+        ..isNotImported.isNull,
       (suggestion) => suggestion
         ..completion.isEqualTo('A02')
-        ..isClass,
+        ..isClass
+        ..libraryUri.isEqualTo('package:test/b.dart')
+        ..isNotImported.isNull,
     ]);
   }
 
@@ -1698,10 +1729,14 @@ void f() {
     check(response).suggestions.matches([
       (suggestion) => suggestion
         ..completion.isEqualTo('foo01')
-        ..isTopLevelVariable,
+        ..isTopLevelVariable
+        ..libraryUri.isEqualTo('package:test/a.dart')
+        ..isNotImported.isNull,
       (suggestion) => suggestion
         ..completion.isEqualTo('foo02')
-        ..isTopLevelVariable,
+        ..isTopLevelVariable
+        ..libraryUri.isEqualTo('package:test/b.dart')
+        ..isNotImported.isNull,
     ]);
   }
 
@@ -1724,7 +1759,8 @@ void f() {
     check(response).suggestions.withElementClass.matches([
       (suggestion) => suggestion
         ..completion.isEqualTo('math.Random')
-        ..libraryUriToImport.isNull,
+        ..libraryUri.isEqualTo('dart:math')
+        ..isNotImported.isNull,
     ]);
   }
 

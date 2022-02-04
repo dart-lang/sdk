@@ -81,6 +81,7 @@ class NotImportedContributor extends DartCompletionContributor {
       var exportNamespace = element.exportNamespace;
       var exportElements = exportNamespace.definedNames.values.toList();
 
+      builder.libraryUriStr = file.uriStr;
       builder.isNotImportedLibrary = true;
       builder.laterReplacesEarlier = false;
 
@@ -92,6 +93,7 @@ class NotImportedContributor extends DartCompletionContributor {
         _extensions(exportElements),
       );
 
+      builder.libraryUriStr = null;
       builder.isNotImportedLibrary = false;
       builder.laterReplacesEarlier = true;
     }
