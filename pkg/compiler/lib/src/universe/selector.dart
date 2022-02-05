@@ -148,7 +148,7 @@ class Selector {
     } else if (element.isConstructor) {
       return Selector.callConstructor(name);
     } else {
-      throw failedAt(element, "Can't get selector from $element");
+      throw failedAt(element, "Cannot get selector from $element");
     }
   }
 

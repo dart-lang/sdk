@@ -220,7 +220,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
 
     registry.registerStaticUse(StaticUse.staticInvoke(
         completerFactory,
-        const CallStructure.unnamed(0, 1),
+        CallStructure.unnamed(0, 1),
         [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
 
     return rewriter;
@@ -255,7 +255,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
 
     registry.registerStaticUse(StaticUse.staticInvoke(
         commonElements.syncStarIterableFactory,
-        const CallStructure.unnamed(1, 1),
+        CallStructure.unnamed(1, 1),
         [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
 
     return rewriter;
@@ -293,7 +293,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
 
     registry.registerStaticUse(StaticUse.staticInvoke(
         commonElements.asyncStarStreamControllerFactory,
-        const CallStructure.unnamed(1, 1),
+        CallStructure.unnamed(1, 1),
         [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
 
     return rewriter;
