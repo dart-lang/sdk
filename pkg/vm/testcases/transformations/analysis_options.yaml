@@ -4,4 +4,7 @@
 
 analyzer:
   exclude:
-    - tool/**
+    - deferred_loading/**
+    - to_string_transformer/**
+    - type_flow/**
+    - unreachable_code_elimination/**

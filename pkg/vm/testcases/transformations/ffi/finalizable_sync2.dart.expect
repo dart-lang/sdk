@@ -1,0 +1,300 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class MyFinalizable extends core::Object implements ffi::Finalizable {
+  field core::int internalValue = 4;
+  synthetic constructor •() → self::MyFinalizable
+    : super core::Object::•()
+    ;
+}
+static method main() → void {
+  final self::MyFinalizable finalizable = new self::MyFinalizable::•();
+  {
+    final self::MyFinalizable finalizable2 = new self::MyFinalizable::•();
+    _in::reachabilityFence(finalizable2);
+  }
+  if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 42) {
+    {
+      _in::reachabilityFence(finalizable);
+      return;
+    }
+  }
+  else {
+    try
+      try {
+        final self::MyFinalizable finalizable3 = new self::MyFinalizable::•();
+        {}
+        _in::reachabilityFence(finalizable3);
+      }
+      on core::Exception catch(no-exception-var) {
+        final self::MyFinalizable finalizable4 = new self::MyFinalizable::•();
+        _in::reachabilityFence(finalizable4);
+      }
+    finally {
+      final self::MyFinalizable finalizable5 = new self::MyFinalizable::•();
+      _in::reachabilityFence(finalizable5);
+    }
+    try {
+      final self::MyFinalizable finalizable13 = new self::MyFinalizable::•();
+      try
+        try {
+          final self::MyFinalizable finalizable14 = new self::MyFinalizable::•();
+          if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 100) {
+            throw block {
+              final core::Exception :expressionValueWrappedFinalizable = core::Exception::•("foo");
+              _in::reachabilityFence(finalizable14);
+            } =>:expressionValueWrappedFinalizable;
+          }
+          if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 101) {
+            throw block {
+              final core::Error :expressionValueWrappedFinalizable = new core::Error::•();
+              _in::reachabilityFence(finalizable);
+              _in::reachabilityFence(finalizable13);
+              _in::reachabilityFence(finalizable14);
+            } =>:expressionValueWrappedFinalizable;
+          }
+          _in::reachabilityFence(finalizable14);
+        }
+        on core::Exception catch(final core::Exception e) {
+          core::print(e);
+          block {
+            _in::reachabilityFence(finalizable13);
+          } =>rethrow;
+        }
+      finally {
+        if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 1000) {
+          throw block {
+            final core::Exception :expressionValueWrappedFinalizable = core::Exception::•("bar");
+            _in::reachabilityFence(finalizable13);
+          } =>:expressionValueWrappedFinalizable;
+        }
+      }
+      _in::reachabilityFence(finalizable13);
+    }
+    on core::Exception catch(final core::Exception e) {
+      core::print(e);
+    }
+  }
+  #L1:
+  switch(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int}) {
+    #L2:
+    case #C1:
+    case #C2:
+      {
+        final self::MyFinalizable finalizable6 = new self::MyFinalizable::•();
+        {
+          _in::reachabilityFence(finalizable);
+          _in::reachabilityFence(finalizable6);
+          return;
+        }
+      }
+    #L3:
+    case #C3:
+      {
+        final self::MyFinalizable finalizable7 = new self::MyFinalizable::•();
+        {
+          _in::reachabilityFence(finalizable7);
+          break #L1;
+        }
+      }
+    #L4:
+    case #C4:
+      {
+        final self::MyFinalizable finalizable70 = new self::MyFinalizable::•();
+        #L5:
+        switch(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int}) {
+          #L6:
+          case #C5:
+            {
+              final self::MyFinalizable finalizable71 = new self::MyFinalizable::•();
+              if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 44) {
+                {
+                  _in::reachabilityFence(finalizable70);
+                  _in::reachabilityFence(finalizable71);
+                  continue #L4;
+                }
+              }
+              {
+                _in::reachabilityFence(finalizable71);
+                break #L5;
+              }
+            }
+        }
+        {
+          _in::reachabilityFence(finalizable70);
+          continue #L3;
+        }
+      }
+    #L7:
+    default:
+      {
+        final self::MyFinalizable finalizable8 = new self::MyFinalizable::•();
+        _in::reachabilityFence(finalizable8);
+      }
+  }
+  #L8:
+  for (core::int i = 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
+    #L9:
+    {
+      final self::MyFinalizable finalizable9 = new self::MyFinalizable::•();
+      for (core::int j = 0; j.{core::num::<}(10){(core::num) → core::bool}; j = j.{core::num::+}(1){(core::num) → core::int})
+        #L10:
+        {
+          final self::MyFinalizable finalizable10 = new self::MyFinalizable::•();
+          if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 42) {
+            {
+              _in::reachabilityFence(finalizable9);
+              _in::reachabilityFence(finalizable10);
+              break #L8;
+            }
+          }
+          if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 1337) {
+            {
+              _in::reachabilityFence(finalizable9);
+              _in::reachabilityFence(finalizable10);
+              break #L8;
+            }
+          }
+          if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
+            {
+              _in::reachabilityFence(finalizable10);
+              break #L10;
+            }
+          }
+          if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 3) {
+            {
+              _in::reachabilityFence(finalizable9);
+              _in::reachabilityFence(finalizable10);
+              break #L9;
+            }
+          }
+          _in::reachabilityFence(finalizable10);
+        }
+      _in::reachabilityFence(finalizable9);
+    }
+  #L11:
+  {
+    final self::MyFinalizable finalizable11 = new self::MyFinalizable::•();
+    #L12:
+    {
+      final self::MyFinalizable finalizable12 = new self::MyFinalizable::•();
+      if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
+        {
+          _in::reachabilityFence(finalizable11);
+          _in::reachabilityFence(finalizable12);
+          break #L11;
+        }
+      }
+      if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 3) {
+        {
+          _in::reachabilityFence(finalizable12);
+          break #L12;
+        }
+      }
+      _in::reachabilityFence(finalizable12);
+    }
+    _in::reachabilityFence(finalizable11);
+  }
+  for (core::int i = 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    final self::MyFinalizable finalizable15 = new self::MyFinalizable::•();
+    _in::reachabilityFence(finalizable15);
+  }
+  core::int i = 0;
+  while (i.{core::num::<}(10){(core::num) → core::bool}) {
+    final self::MyFinalizable finalizable16 = new self::MyFinalizable::•();
+    i = i.{core::num::+}(1){(core::num) → core::int};
+    _in::reachabilityFence(finalizable16);
+  }
+  {
+    core::Iterator<ffi::Finalizable> :sync-for-iterator = core::Iterable::generate<ffi::Finalizable>(5, (core::int index) → self::MyFinalizable => new self::MyFinalizable::•()).{core::Iterable::iterator}{core::Iterator<ffi::Finalizable>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final ffi::Finalizable finalizable17 = :sync-for-iterator.{core::Iterator::current}{ffi::Finalizable};
+      {
+        _in::reachabilityFence(finalizable17);
+      }
+    }
+  }
+  i = 0;
+  for (ffi::Finalizable finalizable18 = new self::MyFinalizable::•(); i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    _in::reachabilityFence(finalizable18);
+  }
+  _in::reachabilityFence(finalizable);
+}
+static method doSomething(core::int a) → core::int
+  return a;
+static method createClosure() → () → void {
+  final self::MyFinalizable finalizable20 = new self::MyFinalizable::•();
+  return block {
+    final () → void :expressionValueWrappedFinalizable = () → void {
+      if(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}{core::int} =={core::num::==}{(core::Object) → core::bool} 42) {
+        {
+          _in::reachabilityFence(finalizable20);
+          return;
+        }
+      }
+      self::doSomething(finalizable20.{self::MyFinalizable::internalValue}{core::int});
+      _in::reachabilityFence(finalizable20);
+    };
+    _in::reachabilityFence(finalizable20);
+  } =>:expressionValueWrappedFinalizable;
+}
+static method createNestedClosure() → () → () → () → void {
+  final self::MyFinalizable finalizable40 = new self::MyFinalizable::•();
+  return block {
+    final () → () → () → void :expressionValueWrappedFinalizable = () → () → () → void {
+      final self::MyFinalizable finalizable41 = new self::MyFinalizable::•();
+      return block {
+        final () → () → void :expressionValueWrappedFinalizable = () → () → void {
+          final self::MyFinalizable finalizable42 = new self::MyFinalizable::•();
+          return block {
+            final () → void :expressionValueWrappedFinalizable = () → void {
+              self::doSomething(finalizable40.{self::MyFinalizable::internalValue}{core::int});
+              self::doSomething(finalizable41.{self::MyFinalizable::internalValue}{core::int});
+              self::doSomething(finalizable42.{self::MyFinalizable::internalValue}{core::int});
+              _in::reachabilityFence(finalizable40);
+              _in::reachabilityFence(finalizable41);
+              _in::reachabilityFence(finalizable42);
+            };
+            _in::reachabilityFence(finalizable40);
+            _in::reachabilityFence(finalizable41);
+            _in::reachabilityFence(finalizable42);
+          } =>:expressionValueWrappedFinalizable;
+        };
+        _in::reachabilityFence(finalizable40);
+        _in::reachabilityFence(finalizable41);
+      } =>:expressionValueWrappedFinalizable;
+    };
+    _in::reachabilityFence(finalizable40);
+  } =>:expressionValueWrappedFinalizable;
+}
+static method createBadClosure() → () → void {
+  final self::MyFinalizable finalizable21 = new self::MyFinalizable::•();
+  final core::int internalValue = finalizable21.{self::MyFinalizable::internalValue}{core::int};
+  return block {
+    final () → void :expressionValueWrappedFinalizable = () → void {
+      self::doSomething(internalValue);
+    };
+    _in::reachabilityFence(finalizable21);
+  } =>:expressionValueWrappedFinalizable;
+}
+static method reassignment() → void {
+  self::MyFinalizable finalizable30 = new self::MyFinalizable::•();
+  self::doSomething(4);
+  finalizable30 = block {
+    final self::MyFinalizable :expressionValueWrappedFinalizable = new self::MyFinalizable::•();
+    _in::reachabilityFence(finalizable30);
+  } =>:expressionValueWrappedFinalizable;
+  _in::reachabilityFence(finalizable30);
+}
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = 4
+  #C5 = 5
+}

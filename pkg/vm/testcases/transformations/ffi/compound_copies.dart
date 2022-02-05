@@ -1,7 +1,5 @@
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
-
 class Coordinate extends Struct {
   @Int64()
   external int x;

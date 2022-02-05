@@ -1,0 +1,71 @@
+library #lib /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class MyFinalizable extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::MyFinalizable
+    : super core::Object::•()
+    ;
+}
+static method doSomething() → core::int
+  return 3;
+static method useFinalizableSyncStar(ffi::Finalizable finalizable) → core::Iterable<core::int> /* originally sync* */ {
+  function :sync_op_gen() → (core::_SyncIterator<dynamic>?, dynamic, dynamic) → core::bool* {
+    core::int :await_jump_var = 0;
+    dynamic :await_ctx_var;
+    ffi::Finalizable finalizable = finalizable;
+    function :sync_op(core::_SyncIterator<dynamic>? :iterator, dynamic :exception, dynamic :stack_trace) → core::bool* yielding {
+      {
+        {
+          [@vm.call-site-attributes.metadata=receiverType:dart.core::_SyncIterator<dynamic>?] :iterator.{core::_SyncIterator::_current} = block {
+            final core::int :expressionValueWrappedFinalizable = self::doSomething();
+            _in::reachabilityFence(finalizable);
+          } =>:expressionValueWrappedFinalizable;
+          [yield] true;
+        }
+        final self::MyFinalizable finalizable2 = new self::MyFinalizable::•();
+        {
+          [@vm.call-site-attributes.metadata=receiverType:dart.core::_SyncIterator<dynamic>?] :iterator.{core::_SyncIterator::_current} = block {
+            final core::int :expressionValueWrappedFinalizable = 5;
+            _in::reachabilityFence(finalizable);
+            _in::reachabilityFence(finalizable2);
+          } =>:expressionValueWrappedFinalizable;
+          [yield] true;
+        }
+        final self::MyFinalizable finalizable3 = new self::MyFinalizable::•();
+        {
+          [@vm.call-site-attributes.metadata=receiverType:dart.core::_SyncIterator<dynamic>?] :iterator.{core::_SyncIterator::_current} = block {
+            final core::int :expressionValueWrappedFinalizable = 10;
+            _in::reachabilityFence(finalizable);
+            _in::reachabilityFence(finalizable2);
+            _in::reachabilityFence(finalizable3);
+          } =>:expressionValueWrappedFinalizable;
+          [yield] true;
+        }
+        _in::reachabilityFence(finalizable2);
+        _in::reachabilityFence(finalizable3);
+        _in::reachabilityFence(finalizable);
+      }
+      return false;
+    }
+    return :sync_op;
+  }
+  return new core::_SyncIterable::•<core::int>(:sync_op_gen);
+}
+static method main() → void {
+  final self::MyFinalizable finalizable = new self::MyFinalizable::•();
+  {
+    core::Iterator<core::int> :sync-for-iterator = self::useFinalizableSyncStar(finalizable).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        core::print(element);
+      }
+    }
+  }
+  _in::reachabilityFence(finalizable);
+}

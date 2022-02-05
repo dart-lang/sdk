@@ -252,6 +252,7 @@ class FfiTransformer extends Transformer {
   final Procedure asFunctionTearoff;
   final Procedure lookupFunctionTearoff;
   final Procedure getNativeFieldFunction;
+  final Class finalizableClass;
   final Procedure reachabilityFenceFunction;
   final Procedure checkAbiSpecificIntegerMappingFunction;
 
@@ -479,6 +480,7 @@ class FfiTransformer extends Transformer {
             LibraryIndex.tearoffPrefix + 'lookupFunction'),
         getNativeFieldFunction = index.getTopLevelProcedure(
             'dart:nativewrappers', '_getNativeField'),
+        finalizableClass = index.getClass('dart:ffi', 'Finalizable'),
         reachabilityFenceFunction =
             index.getTopLevelProcedure('dart:_internal', 'reachabilityFence'),
         checkAbiSpecificIntegerMappingFunction = index.getTopLevelProcedure(
