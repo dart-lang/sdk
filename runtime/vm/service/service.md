@@ -1903,7 +1903,7 @@ class @Code extends @Object {
 _@Code_ is a reference to a _Code_ object.
 
 ```
-class Code extends @Object {
+class Code extends Object {
   // A name for this code object.
   string name;
 

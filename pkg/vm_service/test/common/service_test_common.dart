@@ -142,6 +142,25 @@ IsolateTest setBreakpointAtUriAndLine(String uri, int line) {
   };
 }
 
+IsolateTest setBreakpointAtLineColumn(int line, int column) {
+  return (VmService service, IsolateRef isolateRef) async {
+    print("Setting breakpoint for line $line column $column");
+    final isolateId = isolateRef.id!;
+    final isolate = await service.getIsolate(isolateId);
+    final lib =
+        await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
+    ScriptRef script = lib.scripts!.firstWhere((s) => s.uri == lib.uri);
+    Breakpoint bpt = await service.addBreakpoint(
+      isolateId,
+      script.id!,
+      line,
+      column: column,
+    );
+    print("Breakpoint is $bpt");
+    expect(bpt, isNotNull);
+  };
+}
+
 IsolateTest stoppedAtLine(int line) {
   return (VmService service, IsolateRef isolateRef) async {
     print("Checking we are at line $line");
@@ -211,6 +230,34 @@ Future<void> _unsubscribeDebugStream(VmService service) async {
   }
 }
 
+Future<void> resumeAndAwaitEvent(
+  VmService service,
+  IsolateRef isolateRef,
+  String streamId,
+  Function(Event) onEvent,
+) async {
+  final completer = Completer<void>();
+  late final StreamSubscription sub;
+  sub = service.onEvent(streamId).listen((event) async {
+    await onEvent(event);
+    await sub.cancel();
+    await service.streamCancel(streamId);
+    completer.complete();
+  });
+
+  await service.streamListen(streamId);
+  await service.resume(isolateRef.id!);
+  return completer.future;
+}
+
+IsolateTest resumeIsolateAndAwaitEvent(
+  String streamId,
+  Function(Event) onEvent,
+) {
+  return (VmService service, IsolateRef isolate) async =>
+      resumeAndAwaitEvent(service, isolate, streamId, onEvent);
+}
+
 Future<void> stepOver(VmService service, IsolateRef isolateRef) async {
   await service.streamListen(EventStreams.kDebug);
   await _subscribeDebugStream(service);
@@ -242,14 +289,13 @@ IsolateTest resumeProgramRecordingStops(
     subscription = service.onDebugEvent.listen((event) async {
       if (event.kind == EventKind.kPauseBreakpoint) {
         final stack = await service.getStack(isolateRef.id!);
-        final frames = stack.frames!;
-        expect(frames.length, greaterThanOrEqualTo(2));
+        expect(stack.frames!.length, greaterThanOrEqualTo(2));
 
         String brokeAt =
-            await _locationToString(service, isolateRef, frames[0]);
+            await _locationToString(service, isolateRef, stack.frames![0]);
         if (includeCaller) {
           brokeAt =
-              '$brokeAt (${await _locationToString(service, isolateRef, frames[1])})';
+              '$brokeAt (${await _locationToString(service, isolateRef, stack.frames![1])})';
         }
         recordStops.add(brokeAt);
         await service.resume(isolateRef.id!);

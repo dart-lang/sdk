@@ -14,6 +14,7 @@ dependencies:
 
 dev_dependencies:
   async: ^2.5.0
+  expect: any
   markdown: ^4.0.0-nullsafety.0
   mockito: ^5.0.0-nullsafety.1
   path: ^1.8.0
