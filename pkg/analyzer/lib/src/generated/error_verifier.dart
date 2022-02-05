@@ -246,8 +246,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
         _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
-        _duplicateDefinitionVerifier =
-            DuplicateDefinitionVerifier(_currentLibrary, errorReporter) {
+        _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
+            _inheritanceManager, _currentLibrary, errorReporter) {
     _isInSystemLibrary = _currentLibrary.source.uri.isScheme('dart');
     _isInCatchClause = false;
     _isInStaticVariableDeclaration = false;

@@ -5108,12 +5108,12 @@ class PropertyAccessorElementImpl_ImplicitGetter
 
   @override
   Element get nonSynthetic {
-    if (enclosingElement is EnumElementImpl) {
-      if (name == 'index' || name == 'values') {
-        return enclosingElement;
-      }
+    final variable = this.variable;
+    if (!variable.isSynthetic) {
+      return variable;
     }
-    return variable;
+    assert(enclosingElement is EnumElementImpl);
+    return enclosingElement;
   }
 
   @override

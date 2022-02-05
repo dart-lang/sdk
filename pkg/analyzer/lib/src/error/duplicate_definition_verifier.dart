@@ -8,21 +8,20 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/error/codes.dart';
 
 class DuplicateDefinitionVerifier {
-  static final Set<String> _enumInstanceMembers = {
-    'hashCode',
-    'index',
-    FunctionElement.NO_SUCH_METHOD_METHOD_NAME,
-    'runtimeType',
-    'toString',
-  };
-
+  final InheritanceManager3 _inheritanceManager;
   final LibraryElement _currentLibrary;
   final ErrorReporter _errorReporter;
 
-  DuplicateDefinitionVerifier(this._currentLibrary, this._errorReporter);
+  DuplicateDefinitionVerifier(
+    this._inheritanceManager,
+    this._currentLibrary,
+    this._errorReporter,
+  );
 
   /// Check that the exception and stack trace parameters have different names.
   void checkCatchClause(CatchClause node) {
@@ -45,30 +44,65 @@ class DuplicateDefinitionVerifier {
 
   /// Check that there are no members with the same name.
   void checkEnum(EnumDeclaration node) {
-    ClassElement element = node.declaredElement!;
+    var enumElement = node.declaredElement as EnumElementImpl;
+    var enumName = enumElement.name;
 
-    Map<String, Element> staticGetters = {
-      'values': element.getGetter('values')!
-    };
+    var instanceGetters = <String, Element>{};
+    var instanceSetters = <String, Element>{};
+    var staticGetters = <String, Element>{};
+    var staticSetters = <String, Element>{};
 
     for (EnumConstantDeclaration constant in node.constants) {
       _checkDuplicateIdentifier(staticGetters, constant.name);
     }
 
-    String enumName = element.name;
-    for (EnumConstantDeclaration constant in node.constants) {
-      SimpleIdentifier identifier = constant.name;
-      String name = identifier.name;
-      if (name == enumName) {
+    for (var member in node.members) {
+      if (member is FieldDeclaration) {
+        for (var field in member.fields.variables) {
+          var identifier = field.name;
+          _checkDuplicateIdentifier(
+            member.isStatic ? staticGetters : instanceGetters,
+            identifier,
+            setterScope: member.isStatic ? staticSetters : instanceSetters,
+          );
+        }
+      } else if (member is MethodDeclaration) {
+        _checkDuplicateIdentifier(
+          member.isStatic ? staticGetters : instanceGetters,
+          member.name,
+          setterScope: member.isStatic ? staticSetters : instanceSetters,
+        );
+      }
+    }
+
+    for (var constant in node.constants) {
+      if (constant.name.name == enumName) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
-          identifier,
+          constant.name,
         );
-      } else if (_enumInstanceMembers.contains(name)) {
-        _errorReporter.reportErrorForNode(
+      }
+    }
+
+    var staticExecutable = [
+      ...enumElement.accessors,
+      ...enumElement.methods,
+    ].where((element) => element.isStatic);
+    for (var executable in staticExecutable) {
+      var baseName = executable.displayName;
+      var instanceGetter = _inheritanceManager.getMember2(
+        enumElement,
+        Name(_currentLibrary.source.uri, baseName),
+      );
+      var instanceSetter = _inheritanceManager.getMember2(
+        enumElement,
+        Name(_currentLibrary.source.uri, '$baseName='),
+      );
+      if (instanceGetter != null || instanceSetter != null) {
+        _errorReporter.reportErrorForElement(
           CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
-          identifier,
-          [enumName, name, enumName],
+          executable,
+          [enumName, baseName, enumName],
         );
       }
     }

@@ -13,6 +13,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DuplicateDefinitionTest);
     defineReflectiveTests(DuplicateDefinitionClassTest);
+    defineReflectiveTests(DuplicateDefinitionEnumTest);
     defineReflectiveTests(DuplicateDefinitionExtensionTest);
     defineReflectiveTests(DuplicateDefinitionMixinTest);
   });
@@ -322,6 +323,333 @@ f(,[]) {}
 ''', [
       error(ParserErrorCode.MISSING_IDENTIFIER, 2, 1),
       error(ParserErrorCode.MISSING_IDENTIFIER, 4, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class DuplicateDefinitionEnumTest extends PubPackageResolutionTest {
+  test_instance_field_field() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int foo = 0;
+  final int foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 47, 3),
+    ]);
+  }
+
+  test_instance_field_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int foo = 0;
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 45, 3),
+    ]);
+  }
+
+  test_instance_field_method() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int foo = 0;
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 42, 3),
+    ]);
+  }
+
+  test_instance_fieldFinal_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int foo = 0;
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 45, 3),
+    ]);
+  }
+
+  test_instance_fieldFinal_setter() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  final int foo = 0;
+  set foo(int x) {}
+}
+''');
+  }
+
+  test_instance_getter_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  int get foo => 0;
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 44, 3),
+    ]);
+  }
+
+  test_instance_getter_method() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  int get foo => 0;
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 41, 3),
+    ]);
+  }
+
+  test_instance_getter_setter() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  int get foo => 0;
+  set foo(_) {}
+}
+''');
+  }
+
+  test_instance_method_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void foo() {}
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 40, 3),
+    ]);
+  }
+
+  test_instance_method_method() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void foo() {}
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 37, 3),
+    ]);
+  }
+
+  test_instance_method_setter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void foo() {}
+  set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 36, 3),
+    ]);
+  }
+
+  test_instance_setter_getter() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  set foo(_) {}
+  int get foo => 0;
+}
+''');
+  }
+
+  test_instance_setter_method() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  set foo(_) {}
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 37, 3),
+    ]);
+  }
+
+  test_instance_setter_setter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  void set foo(_) {}
+  void set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 46, 3),
+    ]);
+  }
+
+  test_static_field_field() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static int foo = 0;
+  static int foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 49, 3),
+    ]);
+  }
+
+  test_static_field_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static int foo = 0;
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 53, 3),
+    ]);
+  }
+
+  test_static_field_method() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static int foo = 0;
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 50, 3),
+    ]);
+  }
+
+  test_static_fieldFinal_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static final int foo = 0;
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 59, 3),
+    ]);
+  }
+
+  test_static_fieldFinal_setter() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static final int foo = 0;
+  static set foo(int x) {}
+}
+''');
+  }
+
+  test_static_getter_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static int get foo => 0;
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 58, 3),
+    ]);
+  }
+
+  test_static_getter_method() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static int get foo => 0;
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 55, 3),
+    ]);
+  }
+
+  test_static_getter_setter() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static int get foo => 0;
+  static set foo(_) {}
+}
+''');
+  }
+
+  test_static_method_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static void foo() {}
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 54, 3),
+    ]);
+  }
+
+  test_static_method_method() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static void foo() {}
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 51, 3),
+    ]);
+  }
+
+  test_static_method_setter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static void foo() {}
+  static set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 50, 3),
+    ]);
+  }
+
+  test_static_setter_getter() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  static set foo(_) {}
+  static int get foo => 0;
+}
+''');
+  }
+
+  test_static_setter_method() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static set foo(_) {}
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 51, 3),
+    ]);
+  }
+
+  test_static_setter_setter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static void set foo(_) {}
+  static void set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 60, 3),
     ]);
   }
 }
