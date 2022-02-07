@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -186,12 +187,14 @@ enum E {
   }
 
   test_constructor_unresolved_named() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 enum E {
   v.named(42);
   const E(int a);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED, 13, 5),
+    ]);
 
     assertEnumConstant(
       findNode.enumConstantDeclaration('v'),
@@ -203,12 +206,14 @@ enum E {
   }
 
   test_constructor_unresolved_unnamed() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 enum E {
   v(42);
   const E.named(int a);
 }
-''');
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1),
+    ]);
 
     assertEnumConstant(
       findNode.enumConstantDeclaration('v'),

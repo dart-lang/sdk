@@ -12290,6 +12290,17 @@ CompileTimeErrorCode:
 
       var e = E.b;
       ```
+  UNDEFINED_ENUM_CONSTRUCTOR_NAMED:
+    sharedName: UNDEFINED_ENUM_CONSTRUCTOR
+    problemMessage: The enum doesn't have a constructor named '{0}'.
+    correctionMessage: Try correcting the name to the name of an existing constructor, or defining constructor with the name '{0}'.
+    comment: |-
+      Parameters:
+      0: the name of the constructor that is undefined
+  UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED:
+    sharedName: UNDEFINED_ENUM_CONSTRUCTOR
+    problemMessage: The enum doesn't have an unnamed constructor.
+    correctionMessage: Try adding the name of an existing constructor, or defining an unnamed constructor.
   UNDEFINED_EXTENSION_GETTER:
     problemMessage: "The getter '{0}' isn't defined for the extension '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter named '{0}'."

@@ -1561,16 +1561,36 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var element = node.declaredElement as ConstFieldElementImpl;
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpression) {
-      var constructor = initializer.constructorName.staticElement;
-      node.constructorElement = constructor;
+      var constructorName = initializer.constructorName;
+      var constructorElement = constructorName.staticElement;
+      if (constructorElement != null) {
+        node.constructorElement = constructorElement;
+      } else {
+        var typeName = constructorName.type2.name;
+        if (typeName.staticElement is EnumElementImpl) {
+          var nameNode = node.arguments?.constructorSelector?.name;
+          if (nameNode != null) {
+            errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED,
+              nameNode,
+              [nameNode.name],
+            );
+          } else {
+            errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED,
+              node.name,
+            );
+          }
+        }
+      }
       var arguments = node.arguments;
       if (arguments != null) {
         var argumentList = arguments.argumentList;
-        if (constructor != null) {
+        if (constructorElement != null) {
           argumentList.correspondingStaticParameters =
               ResolverVisitor.resolveArgumentsToParameters(
             argumentList: argumentList,
-            parameters: constructor.parameters,
+            parameters: constructorElement.parameters,
           );
           for (var argument in argumentList.arguments) {
             analyzeExpression(argument, argument.staticParameterElement?.type);

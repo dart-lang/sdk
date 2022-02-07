@@ -14325,6 +14325,30 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   /**
    * Parameters:
+   * 0: the name of the constructor that is undefined
+   */
+  static const CompileTimeErrorCode UNDEFINED_ENUM_CONSTRUCTOR_NAMED =
+      CompileTimeErrorCode(
+    'UNDEFINED_ENUM_CONSTRUCTOR',
+    "The enum doesn't have a constructor named '{0}'.",
+    correctionMessage:
+        "Try correcting the name to the name of an existing constructor, or "
+        "defining constructor with the name '{0}'.",
+    uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
+  );
+
+  static const CompileTimeErrorCode UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED =
+      CompileTimeErrorCode(
+    'UNDEFINED_ENUM_CONSTRUCTOR',
+    "The enum doesn't have an unnamed constructor.",
+    correctionMessage:
+        "Try adding the name of an existing constructor, or defining an "
+        "unnamed constructor.",
+    uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED',
+  );
+
+  /**
+   * Parameters:
    * 0: the name of the getter that is undefined
    * 1: the name of the extension that was explicitly specified
    */

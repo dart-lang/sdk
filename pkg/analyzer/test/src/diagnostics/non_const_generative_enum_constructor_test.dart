@@ -36,11 +36,11 @@ enum E {
   test_generative_nonConst_named() async {
     await assertErrorsInCode(r'''
 enum E {
-  v;
+  v.named();
   E.named();
 }
 ''', [
-      error(CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR, 16, 7),
+      error(CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR, 24, 7),
     ]);
   }
 
