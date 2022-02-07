@@ -80,6 +80,61 @@ class A {
     ]);
   }
 
+  test_enum_field() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  final int E = 0;
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 26, 1),
+    ]);
+  }
+
+  test_enum_getter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  int get E => 0;
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 24, 1),
+    ]);
+  }
+
+  test_enum_getter_static() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static int get E => 0;
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 31, 1),
+    ]);
+  }
+
+  test_enum_setter() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  set E(int _) {}
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 20, 1),
+    ]);
+  }
+
+  test_enum_setter_static() async {
+    await assertErrorsInCode(r'''
+enum E {
+  v;
+  static set E(int _) {}
+}
+''', [
+      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 27, 1),
+    ]);
+  }
+
   test_mixin_getter() async {
     await assertErrorsInCode(r'''
 mixin M {
