@@ -199,6 +199,7 @@ class _ClassVerifier {
           _checkDeclaredMember(field.name, libraryUri, fieldElement.setter);
           if (!member.isStatic) {
             _checkIllegalNonAbstractEnumIndex(field.name);
+            _checkIllegalEnumValuesDeclaration(field.name);
           }
         }
       } else if (member is MethodDeclaration) {
@@ -209,11 +210,16 @@ class _ClassVerifier {
 
         _checkDeclaredMember(member.name, libraryUri, member.declaredElement,
             methodParameterNodes: member.parameters?.parameters);
+        if (!member.isStatic) {
+          _checkIllegalEnumValuesDeclaration(member.name);
+        }
         if (!(member.isStatic || member.isAbstract || member.isSetter)) {
           _checkIllegalNonAbstractEnumIndex(member.name);
         }
       }
     }
+
+    _checkIllegalEnumValuesInheritance();
 
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
@@ -623,6 +629,36 @@ class _ClassVerifier {
 
     path.removeAt(path.length - 1);
     return false;
+  }
+
+  void _checkIllegalEnumValuesDeclaration(SimpleIdentifier name) {
+    if (implementsDartCoreEnum && name.name == 'values') {
+      reporter.reportErrorForNode(
+        CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION,
+        name,
+      );
+    }
+  }
+
+  void _checkIllegalEnumValuesInheritance() {
+    if (implementsDartCoreEnum) {
+      var getter = inheritance.getInherited2(
+        classElement,
+        Name(libraryUri, 'values'),
+      );
+      var setter = inheritance.getInherited2(
+        classElement,
+        Name(libraryUri, 'values='),
+      );
+      var inherited = getter ?? setter;
+      if (inherited != null) {
+        reporter.reportErrorForNode(
+          CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE,
+          classNameNode,
+          [inherited.enclosingElement.name!],
+        );
+      }
+    }
   }
 
   void _checkIllegalNonAbstractEnumIndex(SimpleIdentifier name) {

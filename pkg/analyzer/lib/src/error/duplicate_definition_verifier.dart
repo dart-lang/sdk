@@ -107,7 +107,7 @@ class DuplicateDefinitionVerifier {
       var baseName = accessor.displayName;
       if (accessor.isStatic) {
         var instance = _getInterfaceMember(enumElement, baseName);
-        if (instance != null) {
+        if (instance != null && baseName != 'values') {
           _errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
             accessor,

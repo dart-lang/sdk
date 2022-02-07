@@ -5018,6 +5018,15 @@ CompileTimeErrorCode:
       ```dart
       int f() => 0;
       ```
+  ILLEGAL_ENUM_VALUES_DECLARATION:
+    problemMessage: An instance member named 'values' can't be declared in a class that implements 'Enum'.
+    correctionMessage: Try using a different name.
+  ILLEGAL_ENUM_VALUES_INHERITANCE:
+    problemMessage: An instance member named 'values' can't be inherited from '{0}' in a class that implements 'Enum'.
+    correctionMessage: Try using a different name.
+    comment: |-
+      Parameters:
+      0: the name of the class that declares 'values'
   ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
     problemMessage: The language version must be {0}.
     correctionMessage: Try removing the language version override and migrating the code.
