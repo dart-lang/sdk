@@ -407,6 +407,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_unnecessary_containers: [
       FlutterRemoveWidget.newInstance,
     ],
+    LintNames.avoid_void_async: [
+      ReplaceReturnTypeFuture.newInstance,
+    ],
     LintNames.await_only_futures: [
       RemoveAwait.newInstance,
     ],

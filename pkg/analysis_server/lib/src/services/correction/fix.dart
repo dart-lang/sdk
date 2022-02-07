@@ -1288,6 +1288,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Return 'Future<{0}>'",
   );
+  static const REPLACE_RETURN_TYPE_FUTURE_MULTI = FixKind(
+    'dart.fix.replace.returnTypeFuture.multi',
+    DartFixKindPriority.IN_FILE,
+    "Return a 'Future' where required in file.",
+  );
   static const REPLACE_RETURN_TYPE_ITERABLE = FixKind(
     'dart.fix.replace.returnTypeIterable',
     DartFixKindPriority.DEFAULT,
