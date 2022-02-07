@@ -45,9 +45,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
   final NativeResolutionEnqueuer _nativeEnqueuer;
   final KFieldAnalysis _fieldAnalysis;
 
-  /// True when we enqueue the loadLibrary code.
-  bool _isLoadLibraryFunctionResolved = false;
-
   ResolutionEnqueuerListener(
       this._options,
       this._elementEnvironment,
@@ -294,14 +291,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
 
     if (_commonElements.isCreateInvocationMirrorHelper(member)) {
       _registerBackendImpact(worldImpact, _impacts.noSuchMethodSupport);
-    }
-
-    if (_elementEnvironment.isDeferredLoadLibraryGetter(member)) {
-      // TODO(sigurdm): Create a function registerLoadLibraryAccess.
-      if (!_isLoadLibraryFunctionResolved) {
-        _isLoadLibraryFunctionResolved = true;
-        _registerBackendImpact(worldImpact, _impacts.loadLibrary);
-      }
     }
 
     if (member.isGetter && member.name == Identifiers.runtimeType_) {

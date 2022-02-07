@@ -1862,13 +1862,6 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  bool isDeferredLoadLibraryGetter(MemberEntity member) {
-    // The front-end generates the getter of loadLibrary explicitly as code
-    // so there is no implicit representation based on a "loadLibrary" member.
-    return false;
-  }
-
-  @override
   Iterable<ImportEntity> getImports(covariant IndexedLibrary library) {
     assert(elementMap.checkFamily(library));
     KLibraryData libraryData = elementMap.libraries.getData(library);

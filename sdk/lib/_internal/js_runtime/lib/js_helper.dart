@@ -2666,12 +2666,6 @@ String getIsolateAffinityTag(String name) {
   return JS('String', '#(#)', isolateTagGetter, name);
 }
 
-typedef Future<Null> LoadLibraryFunctionType();
-
-LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
-  return () => loadDeferredLibrary(loadId);
-}
-
 final Map<String, Future<Null>?> _loadingLibraries = <String, Future<Null>?>{};
 final Set<String> _loadedLibraries = new Set<String>();
 
