@@ -3018,7 +3018,7 @@ class ExportElementImpl extends UriReferencedElementImpl
 
 /// A concrete implementation of an [ExtensionElement].
 class ExtensionElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, HasCompletionData
     implements ExtensionElement {
   /// The type being extended.
   DartType? _extendedType;
@@ -3202,6 +3202,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
 /// A concrete implementation of a [FieldElement].
 class FieldElementImpl extends PropertyInducingElementImpl
+    with HasCompletionData
     implements FieldElement {
   /// True if this field inherits from a covariant parameter. This happens
   /// when it overrides a field in a supertype that is covariant.
@@ -5475,7 +5476,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 ///
 /// Clients may not extend, implement or mix-in this class.
 class TypeAliasElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin
+    with TypeParameterizedElementMixin, HasCompletionData
     implements TypeAliasElement {
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
