@@ -11,7 +11,7 @@
     "constraint, update this by running tools/generate_package_config.dart."
   ],
   "configVersion": 2,
-  "generated": "2022-01-12T18:16:46.198227",
+  "generated": "2022-02-02T12:23:40.780016",
   "generator": "tools/generate_package_config.dart",
   "packages": [
     {
@@ -345,7 +345,7 @@
       "name": "glob",
       "rootUri": "../third_party/pkg/glob",
       "packageUri": "lib/",
-      "languageVersion": "2.12"
+      "languageVersion": "2.15"
     },
     {
       "name": "html",
