@@ -397,7 +397,6 @@ class SuggestionBuilder {
     _addBuilder(
       _createCompletionSuggestionBuilder(
         parameter,
-        elementKind: protocol.ElementKind.PARAMETER,
         kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: relevance,
         isNotImported: isNotImportedLibrary,
@@ -1281,21 +1280,15 @@ class SuggestionBuilder {
   /// than the kind normally used for the element. If a [prefix] is provided,
   /// then the element name (or completion) will be prefixed. The [relevance] is
   /// the relevance of the suggestion.
-  ///
-  /// TODO(scheglov) Consider removing [elementKind]
   CompletionSuggestionBuilder? _createCompletionSuggestionBuilder(
     Element element, {
     String? completion,
-    protocol.ElementKind? elementKind,
     required CompletionSuggestionKind kind,
     required int relevance,
     required bool isNotImported,
     String? prefix,
   }) {
-    var elementData = _getElementCompletionData(
-      element,
-      elementKind: elementKind,
-    );
+    var elementData = _getElementCompletionData(element);
     if (elementData == null) {
       return null;
     }
@@ -1316,10 +1309,7 @@ class SuggestionBuilder {
   }
 
   /// The non-caching implementation of [_getElementCompletionData].
-  ElementCompletionData? _createElementCompletionData(
-    Element element, {
-    protocol.ElementKind? elementKind,
-  }) {
+  ElementCompletionData? _createElementCompletionData(Element element) {
     // Do not include operators in suggestions.
     if (element is ExecutableElement && element.isOperator) {
       return null;
@@ -1328,13 +1318,10 @@ class SuggestionBuilder {
     var completion = element.displayName;
     var documentation = _getDocumentation(element);
 
-    var suggestedElement = protocol.convertElement(element,
-        withNullability: _isNonNullableByDefault);
-
-    // TODO(scheglov) Update a copy.
-    if (elementKind != null) {
-      suggestedElement.kind = elementKind;
-    }
+    var suggestedElement = protocol.convertElement(
+      element,
+      withNullability: _isNonNullableByDefault,
+    );
 
     var enclosingElement = element.enclosingElement;
 
@@ -1422,12 +1409,7 @@ class SuggestionBuilder {
 
   /// Return [ElementCompletionData] for the [element], or `null` if the
   /// element cannot be suggested for completion.
-  ///
-  /// TODO(scheglov) Consider removing [elementKind]
-  ElementCompletionData? _getElementCompletionData(
-    Element element, {
-    protocol.ElementKind? elementKind,
-  }) {
+  ElementCompletionData? _getElementCompletionData(Element element) {
     ElementCompletionData? result;
 
     var hasCompletionData = element.ifTypeOrNull<HasCompletionData>();
@@ -1435,10 +1417,7 @@ class SuggestionBuilder {
       result = hasCompletionData.completionData.ifTypeOrNull();
     }
 
-    result ??= _createElementCompletionData(
-      element,
-      elementKind: elementKind,
-    );
+    result ??= _createElementCompletionData(element);
 
     hasCompletionData?.completionData = result;
     return result;

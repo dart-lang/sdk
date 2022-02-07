@@ -1658,7 +1658,7 @@ class E {}
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestParameter('e', 'E');
+    assertSuggestLocalVariable('e', 'E');
     assertSuggestMethod('a', 'A', null);
     assertNotSuggested('Object');
     assertNotSuggested('x');
@@ -1671,8 +1671,8 @@ class E {}
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestParameter('e', 'Object');
-    assertSuggestParameter('s', 'StackTrace');
+    assertSuggestLocalVariable('e', 'Object');
+    assertSuggestLocalVariable('s', 'StackTrace');
     assertSuggestMethod('a', 'A', null);
     assertNotSuggested('Object');
     assertNotSuggested('x');
