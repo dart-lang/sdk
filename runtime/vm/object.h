@@ -668,7 +668,7 @@ class Object {
                             Heap::Space space,
                             bool compressed);
 
-  static intptr_t RoundedAllocationSize(intptr_t size) {
+  static constexpr intptr_t RoundedAllocationSize(intptr_t size) {
     return Utils::RoundUp(size, kObjectAlignment);
   }
 
@@ -10228,9 +10228,16 @@ class Bool : public Instance {
 class Array : public Instance {
  public:
   // Returns `true` if we use card marking for arrays of length [array_length].
-  static bool UseCardMarkingForAllocation(const intptr_t array_length) {
+  static constexpr bool UseCardMarkingForAllocation(
+      const intptr_t array_length) {
     return Array::InstanceSize(array_length) > Heap::kNewAllocatableSize;
   }
+
+  // WB invariant restoration code only applies to arrives which have at most
+  // this many elements. Consequently WB elimination code should not eliminate
+  // WB on arrays of larger lengths across instructions that can cause GC.
+  // Note: we also can't restore WB invariant for arrays which use card marking.
+  static constexpr intptr_t kMaxLengthForWriteBarrierElimination = 8;
 
   intptr_t Length() const { return LengthOf(ptr()); }
   static intptr_t LengthOf(const ArrayPtr array) {
@@ -10327,7 +10334,7 @@ class Array : public Instance {
     return OFFSET_OF(UntaggedArray, type_arguments_);
   }
 
-  static bool IsValidLength(intptr_t len) {
+  static constexpr bool IsValidLength(intptr_t len) {
     return 0 <= len && len <= kMaxElements;
   }
 
@@ -10337,7 +10344,7 @@ class Array : public Instance {
     return 0;
   }
 
-  static intptr_t InstanceSize(intptr_t len) {
+  static constexpr intptr_t InstanceSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
     ASSERT(sizeof(UntaggedArray) ==
            (sizeof(UntaggedInstance) + (2 * kBytesPerElement)));
