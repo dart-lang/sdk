@@ -70,10 +70,10 @@ dynamic Function(Object, StackTrace) _asyncErrorWrapperHelper(
 Future _awaitHelper(var object, dynamic Function(dynamic) thenCallback,
     dynamic Function(dynamic, StackTrace) errorCallback, Function awaiter) {
   late _Future future;
-  if (object is! Future) {
-    future = new _Future().._setValue(object);
-  } else if (object is _Future) {
+  if (object is _Future) {
     future = object;
+  } else if (object is! Future) {
+    future = new _Future().._setValue(object);
   } else {
     return object.then(thenCallback, onError: errorCallback);
   }
